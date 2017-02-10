@@ -6,7 +6,7 @@ using Discord;
 namespace Monk.Modules
 {
     [Name("Info"), Summary("General helper module")]
-    public class InfoModule : ModuleBase
+    public sealed class InfoModule : ModuleBase
     {
         private CommandService commandService;
 
@@ -29,6 +29,7 @@ namespace Monk.Modules
                 {
                     eb.AddField(new EmbedFieldBuilder().WithName(command.Name).WithValue(command.Summary));
                 }
+
                 await ReplyAsync(string.Empty, embed: eb.Build());
                 eb = new EmbedBuilder();
             }
