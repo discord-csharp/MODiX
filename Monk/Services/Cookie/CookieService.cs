@@ -12,7 +12,7 @@ namespace Monk.Services.Cookie
 
         public async Task<bool> AddCookie(ulong guild, ulong user)
         {
-
+            var cookie = repository.GetOneAsync() // I need to find a way to pass in a condition here :/
         }
     }
 }
