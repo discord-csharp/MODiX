@@ -33,7 +33,7 @@ namespace Monk
             if (message == null) return;
 
             int argPos = 0;
-            if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(client.CurrentUser, ref argPos) || IsCustomCommand(message)))
+            if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(client.CurrentUser, ref argPos)))
                 return;
 
             var context = new CommandContext(client, message);
@@ -43,22 +43,6 @@ namespace Monk
             {
                 await context.Channel.SendMessageAsync(result.ErrorReason);
             }
-        }
-
-        public bool IsCustomCommand(SocketUserMessage message)
-        {
-            var customs = new List<string>();
-            var isCustom = false;
-
-            customs.Add("thanks");
-            
-            customs.ForEach(x =>
-            {
-                if (message.Content.ToLower().Contains(x.ToLower()))
-                    isCustom = true;
-            });
-
-            return isCustom;
         }
 
         public async Task Install()
