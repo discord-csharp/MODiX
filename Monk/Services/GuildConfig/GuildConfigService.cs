@@ -61,5 +61,16 @@ namespace Monk.Services.GuildConfig
 
             var res = await repository.Update(guildConfig.Id, guildConfig);
         }
+
+        public async Task<string> GenerateFormattedConfig(IGuild guild)
+        {
+            var guildConfig = await Task.Run(() => repository.GetOne(x => x.GuildId == guild.Id));
+            if (guildConfig == null)
+            {
+                return "This guild has no configuration at the moment. You can create a configuration by setting up roles through !config.";
+            }
+
+            return $"AdminRole: {guildConfig.AdminRoleId}\n ModerationRole: {guildConfig.ModeratorRoleId}";
+        }
     }
 }

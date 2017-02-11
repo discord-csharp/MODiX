@@ -31,6 +31,13 @@ namespace Monk.Modules
             await ReplyAsync($"Permission for Moderators has been successfully updated to {roleId}");
         }
 
+        [Command("show"), Summary("Shows current config.")]
+        public async Task ShowConfigAsync()
+        {
+            var res = await service.GenerateFormattedConfig(Context.Guild);
+            await ReplyAsync(res);
+        }
+
         [Command("GetRoles"), Summary("Shows a list of all roles including their Ids that are on this guild.")]
         public async Task GetRolesAsync()
         {
