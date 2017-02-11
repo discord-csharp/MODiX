@@ -35,7 +35,7 @@ namespace Monk.Services.Cookies
 
         public async Task<int> GetCookieCount(ulong guild, ulong user)
         {
-            return await Task.Run(() => repository.GetOne(x => x.GuildId == guild && x.OwnerId == user).Count);
+            return await Task.Run(() => (repository.GetOne(x => x.GuildId == guild && x.OwnerId == user)?? new Cookie()).Count);
         }
     }
 }

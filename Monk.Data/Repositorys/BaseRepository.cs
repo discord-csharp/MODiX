@@ -21,9 +21,9 @@ namespace Monk.Data.Repositorys
             collectionName = Activator.CreateInstance<T>().CollectionName;
         }
 
-        public Task<IAsyncCursor<T>> GetAllAsync()
+        public Task<IAsyncCursor<T>> GetAllAsync(Expression<Func<T, bool>> filter)
         {
-            return database.GetCollection<T>(collectionName).FindAsync(new BsonDocument());
+            return database.GetCollection<T>(collectionName).FindAsync(filter);
         }
 
         public T GetOne(Expression<Func<T, bool>> filter)
