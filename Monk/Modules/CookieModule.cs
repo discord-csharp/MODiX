@@ -9,6 +9,7 @@ using Monk.Services.Cookies;
 
 namespace Monk.Modules
 {
+    [Name("Cookie"), Summary("Rewards the real MVP with a cookie!")]
     public class CookieModule : ModuleBase
     {
         /// <summary>
@@ -19,7 +20,7 @@ namespace Monk.Modules
         /// </summary>
         private static Dictionary<ulong, DateTime> cookieLog = new Dictionary<ulong, DateTime>();
 
-        [Command("add"), Alias("thanks")]
+        [Command("add"), Alias("thanks"), Summary("Rewards someone special with a cookie.")]
         public async Task AddCookieAsync(IGuildUser user)
         {
             if (Context.User.Id == user.Id)
@@ -41,9 +42,14 @@ namespace Monk.Modules
             cookieLog.Add(user.Id, DateTime.Now);
         }
 
-        [Command("count")]
-        public async Task GetCookieCountAsync(IGuildUser user)
+        [Command("cookies"), Summary("Displays how many cookies a user has")]
+        public async Task GetCookieCountAsync(IGuildUser user = null)
         {
+            if(user == null)
+            {
+                user = Context.User as IGuildUser;
+            }
+
             var cookies = await new CookieService().GetCookieCount(user.GuildId, user.Id);
             await ReplyAsync($"{user.Username} has {cookies} cookies!");
         }

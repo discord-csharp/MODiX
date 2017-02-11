@@ -2,6 +2,8 @@
 using Discord.Commands;
 using System.Threading.Tasks;
 using Discord;
+using System.Text;
+using System.Linq;
 
 namespace Monk.Modules
 {
@@ -19,20 +21,35 @@ namespace Monk.Modules
         public async Task HelpAsync()
         {
             var eb = new EmbedBuilder();
-            
-            foreach(var module in commandService.Modules)
+            var userDm = await Context.User.CreateDMChannelAsync();
+
+            foreach (var module in commandService.Modules)
             {
-                eb = eb.WithTitle(module.Name)
-                       .WithDescription(module.Summary);
+                eb = eb.WithTitle($"Module: {module.Name ?? ""}")
+                       .WithDescription(module.Summary ?? "");
 
                 foreach(var command in module.Commands)
                 {
-                    eb.AddField(new EmbedFieldBuilder().WithName(command.Name).WithValue(command.Summary));
+                    eb.AddField(new EmbedFieldBuilder().WithName($"Command: !{module.Name ?? ""} {command.Name ?? ""} {GetParams(command)}").WithValue(command.Summary ?? ""));
                 }
 
-                await ReplyAsync(string.Empty, embed: eb.Build());
+                await userDm.SendMessageAsync(string.Empty, embed: eb.Build());
                 eb = new EmbedBuilder();
             }
+            await ReplyAsync($"Check your private messages, {Context.User.Mention}");
+        }
+
+        private string GetParams(CommandInfo info)
+        {
+            var sb = new StringBuilder();
+            info.Parameters.ToList().ForEach(x =>
+            {
+                if (x.IsOptional)
+                    sb.Append("[Optional(" + x.Name + ")]");
+                else
+                    sb.Append("[" + x.Name + "]");
+            });
+            return sb.ToString();
         }
     }
 }

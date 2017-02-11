@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Monk.Modules
 {
-    [Group("config")]
+    [Group("config"), Name("Config"), Summary("Configures MODFiX for use on your server")]
     public class GuildConfigModule : ModuleBase
     {
         private GuildConfigService service = new GuildConfigService();
