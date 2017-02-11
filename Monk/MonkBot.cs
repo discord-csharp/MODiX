@@ -18,7 +18,7 @@ namespace Monk
 
         public async Task Run()
         {
-            string token = "Mjc5Nzk2MzAwMjEwMzcyNjEy.C4BzTg.swmMF-ETrKbj2T3ChvluXQYInDA";
+            string token = Environment.GetEnvironmentVariable("MODIX_BOT_KEY");
 
             await Install(); // Setting up DependencyMap
 

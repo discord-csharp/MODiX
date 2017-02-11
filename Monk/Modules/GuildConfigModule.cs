@@ -44,6 +44,7 @@ namespace Monk.Modules
             StringBuilder sb = new StringBuilder();
             foreach(var role in Context.Guild.Roles)
             {
+                // Replacing to avoid those nasty pings.
                 sb.Append($"{role.Name} - {role.Id}\n".Replace("@everyone", "everyone"));
             }
             await ReplyAsync(sb.ToString());
