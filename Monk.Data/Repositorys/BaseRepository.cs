@@ -4,6 +4,7 @@ using MongoDB.Driver.Builders;
 using Monk.Data.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -25,9 +26,9 @@ namespace Monk.Data.Repositorys
             return database.GetCollection<T>(collectionName).FindAsync(new BsonDocument());
         }
 
-        public T GetOneAsync(ObjectId id)
+        public T GetOne(Expression<Func<T, bool>> filter)
         {
-            return database.GetCollection<T>(collectionName).Find(x => x.Id == id).FirstOrDefault();
+            return database.GetCollection<T>(collectionName).Find(filter).FirstOrDefault();
         }
 
         public Task InsertAsync(T entity)

@@ -8,6 +8,6 @@
     <PackageReference Include="Discord.Net.WebSocket" Version="1.0.0-rc-00592" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Services\" />
+    <ProjectReference Include="..\Monk.Data\Monk.Data.csproj" />
   </ItemGroup>
 </Project>

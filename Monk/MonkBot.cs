@@ -17,8 +17,7 @@ namespace Monk
 
         public async Task Run()
         {
-            DotNetEnv.Env.Load();
-            string token = ;
+            string token = "Mjc5Nzk2MzAwMjEwMzcyNjEy.C4AENQ.CcUpTsuOjPckDy_r1cCeNsxxkT0";
 
             await Install(); // Setting up DependencyMap
 
