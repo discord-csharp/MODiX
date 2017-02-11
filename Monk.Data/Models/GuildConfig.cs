@@ -11,6 +11,7 @@ namespace Monk.Data.Models
         {
             CollectionName = nameof(GuildConfig);
         }
+
         [BsonElement("GuildId")]
         public ulong GuildId { get; set; }
         [BsonElement("AdminRoleId")]
