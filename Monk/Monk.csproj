@@ -6,6 +6,8 @@
   <ItemGroup>
     <PackageReference Include="Discord.Net.Commands" Version="1.0.0-rc-00592" />
     <PackageReference Include="Discord.Net.WebSocket" Version="1.0.0-rc-00592" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="1.1.0" />
+    <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Monk.Data\Monk.Data.csproj" />

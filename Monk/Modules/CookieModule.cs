@@ -9,7 +9,6 @@ using Monk.Services.Cookies;
 
 namespace Monk.Modules
 {
-    [Group("cookie")]
     public class CookieModule : ModuleBase
     {
         /// <summary>
@@ -20,7 +19,7 @@ namespace Monk.Modules
         /// </summary>
         private static Dictionary<ulong, DateTime> cookieLog = new Dictionary<ulong, DateTime>();
 
-        [Command("add")]
+        [Command("add"), Alias("thanks")]
         public async Task AddCookieAsync(IGuildUser user)
         {
             if (Context.User.Id == user.Id)
