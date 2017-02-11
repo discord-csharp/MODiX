@@ -18,7 +18,7 @@ namespace Monk
 
         public async Task Run()
         {
-            string token = "Mjc5Nzk2MzAwMjEwMzcyNjEy.C4AENQ.CcUpTsuOjPckDy_r1cCeNsxxkT0";
+            string token = "Mjc5Nzk2MzAwMjEwMzcyNjEy.C4BzTg.swmMF-ETrKbj2T3ChvluXQYInDA";
 
             await Install(); // Setting up DependencyMap
 

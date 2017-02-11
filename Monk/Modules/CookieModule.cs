@@ -36,7 +36,7 @@ namespace Monk.Modules
 
             var cookieService = new CookieService();
             await cookieService.AddCookie(user.GuildId, user.Id);
-            await ReplyAsync($"A cookie has been added to {user.Username}. Its ugly, but i just want to test if my DAL works.");
+            await ReplyAsync($"A cookie has been added to {user.Username}.");
 
             cookieLog.Add(user.Id, DateTime.Now);
         }
