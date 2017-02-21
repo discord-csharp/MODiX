@@ -11,4 +11,4 @@ Issues are the center of MODiX´s development. You can see what features are bei
 
 ## Setting it up
 
-MODiX receives its key out of the environment variables. Please set the ENV_Variable MODIX_BOT_KEY to your bot key to get it up and running. Also, a mongodb-server is needed on localhost:DEFAULT.
+MODiX receives its key out of the environment variables. Please set the ENV_Variable MODIX_BOT_KEY to your bot key to get it up and running. Also, a mongodb-server is needed on localhost:DEFAULT. 
