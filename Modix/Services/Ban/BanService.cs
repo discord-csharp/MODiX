@@ -1,12 +1,10 @@
-﻿using Discord;
-using Monk.Data.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using MongoDB.Driver;
+﻿using System.Text;
 using System.Threading.Tasks;
+using Discord;
+using MongoDB.Driver;
+using Monk.Data.Repositories;
 
-namespace Monk.Services.Ban
+namespace Modix.Services.Ban
 {
     public class BanService
     {

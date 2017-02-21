@@ -1,10 +1,10 @@
-﻿using Discord;
-using Monk.Data.Repositories;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
+using Discord;
+using Monk;
+using Monk.Data.Repositories;
 
-namespace Monk.Services.GuildConfig
+namespace Modix.Services.GuildConfig
 {
     public class GuildConfigService
     {
@@ -39,7 +39,7 @@ namespace Monk.Services.GuildConfig
 
             if(guildConfig == null)
             {
-                guildConfig = new Monk.Data.Models.GuildConfig
+                guildConfig = new Data.Models.GuildConfig
                 {
                     GuildId = guild.Id,
                     AdminRoleId = permission == Permissions.Administrator ? roleId : 0,

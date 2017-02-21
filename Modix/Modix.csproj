@@ -10,6 +10,6 @@
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Monk.Data\Monk.Data.csproj" />
+    <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
   </ItemGroup>
 </Project>

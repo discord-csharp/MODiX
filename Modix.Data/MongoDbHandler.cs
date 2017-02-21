@@ -1,9 +1,6 @@
 ﻿using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Monk.Data
+namespace Modix.Data
 {
     class MongoDbHandler
     {

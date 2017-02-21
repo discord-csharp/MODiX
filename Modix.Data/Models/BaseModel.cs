@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace Monk.Data.Models
+namespace Modix.Data.Models
 {
     public class BaseModel
     {
