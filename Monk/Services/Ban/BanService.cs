@@ -1,5 +1,5 @@
 ﻿using Discord;
-using Monk.Data.Repositorys;
+using Monk.Data.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Text;

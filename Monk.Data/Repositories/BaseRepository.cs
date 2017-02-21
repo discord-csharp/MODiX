@@ -8,7 +8,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Monk.Data.Repositorys
+namespace Monk.Data.Repositories
 {
     public class BaseRepository<T> where T : BaseModel
     {
