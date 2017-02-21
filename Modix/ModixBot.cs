@@ -1,21 +1,29 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using NLog;
 
 namespace Modix
 {
     public sealed class ModixBot
     {
         private readonly CommandService _commands = new CommandService();
-        private readonly DiscordSocketClient _client = new DiscordSocketClient();
+        private DiscordSocketClient _client;
         private readonly DependencyMap _map = new DependencyMap();
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         public async Task Run()
         {
             var token = Environment.GetEnvironmentVariable("MODIX_BOT_KEY");
+            _client = new DiscordSocketClient(config: new DiscordSocketConfig()
+            {
+                LogLevel = LogSeverity.Info,
+            });
 
             await Install(); // Setting up DependencyMap
 
@@ -26,6 +34,9 @@ namespace Modix
 
         public async Task HandleCommand(SocketMessage messageParam)
         {
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+
             var message = messageParam as SocketUserMessage;
             if (message == null) return;
 
@@ -40,6 +51,8 @@ namespace Modix
             {
                 await context.Channel.SendMessageAsync(result.ErrorReason);
             }
+            stopwatch.Stop();
+            Logger.Info($"{stopwatch.ElapsedMilliseconds}ms: {message}");
         }
 
         public async Task Install()
@@ -48,6 +61,11 @@ namespace Modix
             _map.Add(_commands);
 
             _client.MessageReceived += HandleCommand;
+            _client.Log += (message) =>
+            {
+                Logger.Info(message.ToString());
+                return Task.CompletedTask;
+            };
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly());
         }
     }
