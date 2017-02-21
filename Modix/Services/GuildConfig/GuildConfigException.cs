@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Monk.Services.GuildConfig
+namespace Modix.Services.GuildConfig
 {
     public class GuildConfigException : Exception
     {

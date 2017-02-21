@@ -1,4 +1,4 @@
-﻿using Monk.Data.Models;
+﻿using Modix.Data.Models;
 
 namespace Monk.Data.Repositories
 {

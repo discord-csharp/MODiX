@@ -1,9 +1,11 @@
-﻿using Discord.Commands;
-using Monk.Services.GuildConfig;
+﻿using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Discord.Commands;
+using Modix.Services.GuildConfig;
+using Monk;
 
-namespace Monk.Modules
+namespace Modix.Modules
 {
     [Group("config"), Name("Config"), Summary("Configures MODFiX for use on your server")]
     public class GuildConfigModule : ModuleBase
@@ -35,7 +37,8 @@ namespace Monk.Modules
         public async Task GetRolesAsync()
         {
             StringBuilder sb = new StringBuilder();
-            foreach (var role in Context.Guild.Roles)
+
+            foreach (var role in Context.Guild.Roles.OrderBy(r => r.Position))
             {
                 // Replacing to avoid those nasty pings.
                 sb.Append($"{role.Name} - {role.Id}\n".Replace("@everyone", "everyone"));

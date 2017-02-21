@@ -1,9 +1,9 @@
-﻿using Discord;
+﻿using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
-using Monk.Services.Ban;
-using System.Threading.Tasks;
+using Modix.Services.Ban;
 
-namespace Monk.Modules
+namespace Modix.Modules
 {
     [Name("Ban"), Summary("Easy way to ban the bad guys.")]
     public class BanModule : ModuleBase

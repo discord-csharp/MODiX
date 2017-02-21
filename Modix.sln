@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26127.0
+VisualStudioVersion = 15.0.26206.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Monk", "Monk\Monk.csproj", "{9BBC702D-F919-4482-BF6C-0FC8EA2740C4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix", "Modix\Modix.csproj", "{9BBC702D-F919-4482-BF6C-0FC8EA2740C4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monk.Data", "Monk.Data\Monk.Data.csproj", "{7DE6DD27-4450-4FA5-8C93-40709FBD8870}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modix.Data", "Modix.Data\Modix.Data.csproj", "{7DE6DD27-4450-4FA5-8C93-40709FBD8870}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

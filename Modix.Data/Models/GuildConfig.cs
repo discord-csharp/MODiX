@@ -1,9 +1,6 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Monk.Data.Models
+namespace Modix.Data.Models
 {
     public class GuildConfig : BaseModel
     {

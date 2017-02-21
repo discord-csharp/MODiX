@@ -1,11 +1,10 @@
-﻿using System;
-using Discord.Commands;
+﻿using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Discord;
-using System.Text;
-using System.Linq;
+using Discord.Commands;
 
-namespace Monk.Modules
+namespace Modix.Modules
 {
     [Name("Info"), Summary("General helper module")]
     public sealed class InfoModule : ModuleBase
