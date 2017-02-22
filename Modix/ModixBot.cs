@@ -16,6 +16,7 @@ namespace Modix
         private DiscordSocketClient _client;
         private readonly DependencyMap _map = new DependencyMap();
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private readonly ModixBotHooks _hooks = new ModixBotHooks();
 
         public async Task Run()
         {
@@ -34,6 +35,7 @@ namespace Modix
 
         public async Task HandleCommand(SocketMessage messageParam)
         {
+
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
@@ -61,11 +63,10 @@ namespace Modix
             _map.Add(_commands);
 
             _client.MessageReceived += HandleCommand;
-            _client.Log += (message) =>
-            {
-                Logger.Info(message.ToString());
-                return Task.CompletedTask;
-            };
+            _client.MessageReceived += _hooks.HandleMessage;
+            _client.Log += _hooks.HandleLog;
+
+
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly());
         }
     }
