@@ -29,25 +29,25 @@ namespace Modix
 
             if (user == null) return;
 
-            var msg = new Message()
-            {
-                AvatarId = user.AvatarId,
-                AvatarUrl = user.AvatarUrl,
-                Content = messageParam.Content,
-                CreatedAt = messageParam.Timestamp.DateTime,
-                Discriminator = user.Discriminator,
-                DiscriminatorValue = user.DiscriminatorValue,
-                Username = user.Username,
-                IsBot = messageParam.Author.IsBot,
-                MessageId = messageParam.Id,
-                Mention = messageParam.Author.Mention,
-                GuildId = user.Guild.Id,
-                Game = user.Game.ToString(),
-                Attachments = messageParam.Attachments.Select((attachment) => attachment.Url).ToArray(),
-            };
+            //var msg = new DiscordMessage()
+            //{
+                //AvatarId = user.AvatarId,
+                //AvatarUrl = user.AvatarUrl,
+                //Content = messageParam.Content,
+                //CreatedAt = messageParam.Timestamp.DateTime,
+                //Discriminator = user.Discriminator,
+                //DiscriminatorValue = user.DiscriminatorValue,
+                //Username = user.Username,
+                //IsBot = messageParam.Author.IsBot,
+                //MessageId = messageParam.Id,
+                //Mention = messageParam.Author.Mention,
+                //GuildId = user.Guild.Id,
+                //Game = user.Game.ToString(),
+                //Attachments = messageParam.Attachments.Select((attachment) => attachment.Url).ToArray(),
+            //};
 
-            var res = new MessageRepository().InsertAsync(msg);
-            await res;
+            //var res = new MessageRepository().InsertAsync(msg);
+            //await res;
             Logger.Info($"Logged message from {user.Username} in {user.Guild.Name}/{messageParam.Channel}");
         }
     }

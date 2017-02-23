@@ -1,9 +1,10 @@
 ﻿using Discord;
 using Discord.Commands;
+using Modix.Data;
+using Modix.Data.Repositories;
 using Modix.Services.GuildConfig;
-using Monk.Data.Repositories;
 
-namespace Modix
+namespace Modix.Utilities
 {
     public enum Permissions
     {
@@ -13,25 +14,30 @@ namespace Modix
 
     public class PermissionHelper
     {
+        private static readonly DiscordGuildRepository GuildRepository = new DiscordGuildRepository();
         public IRole GetRoleByPermission(ICommandContext context, Permissions perms)
         {
-            var guildConfig = new GuildConfigRepository().GetOne(g => g.GuildId == context.Guild.Id);
-
-            if (guildConfig == null)
+            using (var db = new ModixContext())
             {
-                throw new GuildConfigException("Guild is not configured yet. Please use the config module to set it up!");
-            }
+                var guild = GuildRepository.GetByGuildAsync(context.Guild).Result ??
+                            GuildRepository.AddByGuildAsync(context.Guild).Result;
+                if (guild.Config == null)
+                {
+                    throw new GuildConfigException(
+                        "DiscordGuild is not configured yet. Please use the config module to set it up!");
+                }
 
-            switch (perms)
-            {
-                case Permissions.Administrator:
-                    return context.Guild.GetRole(guildConfig.AdminRoleId);
-                case Permissions.Moderator:
-                    return context.Guild.GetRole(guildConfig.ModeratorRoleId);
+                switch (perms)
+                {
+                    case Permissions.Administrator:
+                        return context.Guild.GetRole(guild.Config.AdminRoleId.ToUlong());
+                    case Permissions.Moderator:
+                        return context.Guild.GetRole(guild.Config.ModeratorRoleId.ToUlong());
+                }
+                // If I ever fuck this up, blame obsi :D
+                throw new GuildConfigException(
+                    "DiscordGuild is not configured yet. Please use the config module to set it up!");
             }
-            // If I ever fuck this up, blame obsi :D
-            throw new GuildConfigException("Guild is not configured yet. Please use the config module to set it up!");
         }
-
     }
 }

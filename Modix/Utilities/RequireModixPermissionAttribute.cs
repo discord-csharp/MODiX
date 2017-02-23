@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Modix.Services.GuildConfig;
-using Monk.Data.Repositories;
+using Modix.Utilities;
 
 namespace Modix
 {

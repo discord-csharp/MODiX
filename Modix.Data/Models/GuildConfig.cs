@@ -1,19 +1,13 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿
+using System.ComponentModel.DataAnnotations;
 
 namespace Modix.Data.Models
 {
-    public class GuildConfig : BaseModel
+    public class GuildConfig
     {
-        public GuildConfig()
-        {
-            CollectionName = nameof(GuildConfig);
-        }
-
-        [BsonElement("GuildId")]
-        public ulong GuildId { get; set; }
-        [BsonElement("AdminRoleId")]
-        public ulong AdminRoleId { get; set; }
-        [BsonElement("ModeratorRoleId")]
-        public ulong ModeratorRoleId { get; set; }
+        public int Id { get; set; }
+        public long GuildId { get; set; }
+        public long AdminRoleId { get; set; }
+        public long ModeratorRoleId { get; set; }
     }
 }
