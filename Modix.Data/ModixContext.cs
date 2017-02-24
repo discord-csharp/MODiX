@@ -20,7 +20,7 @@ namespace Modix.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseNpgsql("User ID=modix;Password=modix123;Host=localhost;Port=5432;Database=modix;Pooling=true;");
+                optionsBuilder.UseNpgsql(Environment.GetEnvironmentVariable("MODIX_DB_CONNECTION"));
             }
         }
     }
