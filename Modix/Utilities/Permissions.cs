@@ -1,37 +1,34 @@
 ﻿using Discord;
 using Discord.Commands;
+using Modix.Data;
+using Modix.Data.Services;
+using Modix.Data.Utilities;
 using Modix.Services.GuildConfig;
-using Monk.Data.Repositories;
 
-namespace Modix
-{
-    public enum Permissions
-    {
-        Administrator,
-        Moderator
-    }
-
+namespace Modix.Utilities
+{ 
     public class PermissionHelper
     {
+        private static readonly DiscordGuildService GuildService = new DiscordGuildService(new ModixContext());
         public IRole GetRoleByPermission(ICommandContext context, Permissions perms)
         {
-            var guildConfig = new GuildConfigRepository().GetOne(g => g.GuildId == context.Guild.Id);
-
-            if (guildConfig == null)
+            var guild = GuildService.ObtainAsync(context.Guild).Result;
+            if (guild.Config == null)
             {
-                throw new GuildConfigException("Guild is not configured yet. Please use the config module to set it up!");
+                throw new GuildConfigException(
+                    "DiscordGuild is not configured yet. Please use the config module to set it up!");
             }
 
             switch (perms)
             {
                 case Permissions.Administrator:
-                    return context.Guild.GetRole(guildConfig.AdminRoleId);
+                    return context.Guild.GetRole(guild.Config.AdminRoleId.ToUlong());
                 case Permissions.Moderator:
-                    return context.Guild.GetRole(guildConfig.ModeratorRoleId);
+                    return context.Guild.GetRole(guild.Config.ModeratorRoleId.ToUlong());
             }
             // If I ever fuck this up, blame obsi :D
-            throw new GuildConfigException("Guild is not configured yet. Please use the config module to set it up!");
+            throw new GuildConfigException(
+                "DiscordGuild is not configured yet. Please use the config module to set it up!");
         }
-
     }
 }

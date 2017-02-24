@@ -1,23 +1,16 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
+﻿
+using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Modix.Data.Models
 {
-    public class Ban : BaseModel
+    public class Ban
     {
-        public Ban()
-        {
-            CollectionName = nameof(Ban);
-        }
-
-        [BsonElement("UserId")]
-        public ulong UserId { get; set; }
-        [BsonElement("CreatorId")]
-        public ulong CreatorId { get; set; }
-        [BsonElement("GuildId")]
-        public ulong GuildId { get; set; }
-        [BsonElement("Reason")]
+        public int Id { get; set; }
+        public long UserId { get; set; }
+        public long CreatorId { get; set; }
+        public DiscordGuild Guild { get; set; }
         public string Reason { get; set; }
-        [BsonElement("Active")]
         public bool Active { get; set; }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Modix.Data.Utilities;
 using Modix.Services.Ban;
+using Modix.Utilities;
 
 namespace Modix.Modules
 {
@@ -13,7 +15,7 @@ namespace Modix.Modules
         {
             await ReplyAsync($"**{user.Mention}** has been **banned** from the server. Reason: {reason}");
             await Context.Guild.AddBanAsync(user, pruneDays);
-            await new BanService().BanAsync(user.Id, Context.User.Id, Context.Guild.Id, reason);
+            await new BanService().BanAsync(Context.User as IGuildUser, user, Context.Guild, reason);
         }
 
         [Command("unban"), Summary("Unbans a guy that has been forgiving."), RequireModixPermission(Permissions.Administrator | Permissions.Moderator)]
