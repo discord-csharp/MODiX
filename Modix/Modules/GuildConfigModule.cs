@@ -2,6 +2,7 @@
 using System.Text;
 using System.Threading.Tasks;
 using Discord.Commands;
+using Modix.Data.Utilities;
 using Modix.Services.GuildConfig;
 using Modix.Utilities;
 
@@ -17,7 +18,7 @@ namespace Modix.Modules
         {
             _service = new GuildConfigService(Context.Guild);
 
-            await _service.SetPermissionAsync(Context.Guild, Permissions.Administrator, roleId);
+            _service.SetPermissionAsync(Context.Guild, Permissions.Administrator, roleId);
             await ReplyAsync($"Permission for Administrators has been successfully updated to {roleId}");
         }
 
@@ -26,7 +27,7 @@ namespace Modix.Modules
         {
             _service = new GuildConfigService(Context.Guild);
 
-            await _service.SetPermissionAsync(Context.Guild, Permissions.Moderator, roleId);
+            _service.SetPermissionAsync(Context.Guild, Permissions.Moderator, roleId);
             await ReplyAsync($"Permission for Moderators has been successfully updated to {roleId}");
         }
 
@@ -35,7 +36,7 @@ namespace Modix.Modules
         {
             _service = new GuildConfigService(Context.Guild);
 
-            var res = await _service.GenerateFormattedConfig(Context.Guild);
+            var res = _service.GenerateFormattedConfig(Context.Guild);
             await ReplyAsync(res);
         }
 

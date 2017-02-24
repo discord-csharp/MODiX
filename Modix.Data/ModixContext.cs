@@ -13,9 +13,15 @@ namespace Modix.Data
         public DbSet<DiscordMessage> Messages { get; set; }
         public DbSet<DiscordUser> Users { get; set; }
 
+        public ModixContext() { }
+        public ModixContext(DbContextOptions<ModixContext> options) : base(options) { }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseNpgsql("User ID=modix;Password=modix123;Host=localhost;Port=5432;Database=modix;Pooling=true;");
+            if (!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseNpgsql("User ID=modix;Password=modix123;Host=localhost;Port=5432;Database=modix;Pooling=true;");
+            }
         }
     }
 }

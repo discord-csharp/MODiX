@@ -6,13 +6,19 @@ using System.Threading.Tasks;
 using Discord;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data.Models;
-using Modix.Utilities;
+using Modix.Data.Utilities;
 
-namespace Modix.Data.Repositories
+namespace Modix.Data.Services
 {
-    public class DiscordUserRepository
+    public class DiscordUserService
     {
-        public async Task<DiscordUser> GetByUserAsync(IGuildUser user)
+        private ModixContext _context;
+
+        public DiscordUserService(ModixContext context)
+        {
+            _context = context;
+        }
+        public async Task<DiscordUser> GetAsync(IGuildUser user)
         {
             using (var db = new ModixContext())
             {
@@ -27,7 +33,7 @@ namespace Modix.Data.Repositories
             }
         }
 
-        public async Task<DiscordUser> AddByUserAsync(IGuildUser user)
+        public async Task<DiscordUser> AddAsync(IGuildUser user)
         {
             using (var db = new ModixContext())
             {
@@ -45,6 +51,11 @@ namespace Modix.Data.Repositories
                 await db.SaveChangesAsync();
                 return res;
             }
+        }
+
+        public async Task<DiscordUser> ObtainAsync(IGuildUser user)
+        {
+            return await GetAsync(user) ?? await AddAsync(user);
         }
     }
 }

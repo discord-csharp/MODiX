@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Modix.Data.Utilities;
 using Modix.Services.Ban;
 using Modix.Utilities;
 

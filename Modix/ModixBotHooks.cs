@@ -8,7 +8,6 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Modix.Data.Models;
-using Modix.Data.Repositories;
 using NLog;
 
 namespace Modix

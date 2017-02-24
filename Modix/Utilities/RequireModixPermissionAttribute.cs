@@ -1,12 +1,10 @@
-﻿using Discord;
-using Discord.Commands;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using Discord.WebSocket;
-using Modix.Services.GuildConfig;
-using Modix.Utilities;
+using Discord;
+using Discord.Commands;
+using Modix.Data.Utilities;
 
-namespace Modix
+namespace Modix.Utilities
 {
     public class RequireModixPermissionAttribute : PreconditionAttribute
     {

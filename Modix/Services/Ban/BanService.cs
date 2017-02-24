@@ -5,20 +5,21 @@ using System.Threading.Tasks;
 using Discord;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data;
-using Modix.Data.Repositories;
+using Modix.Data.Services;
+using Modix.Data.Utilities;
 using Modix.Utilities;
 
 namespace Modix.Services.Ban
 {
     public class BanService
     {
-        private readonly DiscordGuildRepository _guildRepository = new DiscordGuildRepository();
+        private readonly DiscordGuildService _guildService = new DiscordGuildService(new ModixContext());
 
         public async Task BanAsync(IGuildUser author, IGuildUser user, IGuild guild, string reason)
         {
             using (var db = new ModixContext())
             {
-                var dbGuild = await _guildRepository.GetByGuildAsync(guild) ?? await _guildRepository.AddByGuildAsync(guild);
+                var dbGuild = await _guildService.ObtainAsync(guild);
 
                 var ban = new Data.Models.Ban
                 {

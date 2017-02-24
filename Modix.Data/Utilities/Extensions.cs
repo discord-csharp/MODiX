@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Modix.Utilities
+namespace Modix.Data.Utilities
 {
     public static class Extensions
     {

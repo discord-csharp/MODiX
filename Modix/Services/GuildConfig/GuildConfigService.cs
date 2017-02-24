@@ -3,21 +3,22 @@ using System.Threading.Tasks;
 using Discord;
 using Modix.Data;
 using Modix.Data.Models;
-using Modix.Data.Repositories;
+using Modix.Data.Services;
+using Modix.Data.Utilities;
 using Modix.Utilities;
 
 namespace Modix.Services.GuildConfig
 {
     public sealed class GuildConfigService
     {
-        private DiscordGuildRepository _guildRepository = new DiscordGuildRepository();
+        private DiscordGuildService _guildService = new DiscordGuildService(new ModixContext());
         private DiscordGuild _guild = null;
 
         private GuildConfigService() { }
 
         public GuildConfigService(IGuild guild)
         {
-            _guild = _guildRepository.GetByGuildAsync(guild).Result ?? _guildRepository.AddByGuildAsync(guild).Result;
+            _guild = _guildService.ObtainAsync(guild).Result;
         }
 
         public Task<bool> IsPermittedAsync(IGuild guild, IGuildUser user, Permissions reqPerm)
@@ -42,37 +43,12 @@ namespace Modix.Services.GuildConfig
             return Task.Run(() => user.RoleIds.Any(x => x == guild.GetRole(requiredRoleId).Id));
         }
 
-        public async Task SetPermissionAsync(IGuild guild, Permissions permission, ulong roleId)
+        public void SetPermissionAsync(IGuild guild, Permissions permission, ulong roleId)
         {
-            using (var db = new ModixContext())
-            {
-                if (_guild.Config == null)
-                {
-                    _guild.Config = new Data.Models.GuildConfig
-                    {
-                        GuildId = guild.Id.ToLong(),
-                        AdminRoleId = permission == Permissions.Administrator ? roleId.ToLong() : 0,
-                        ModeratorRoleId = permission == Permissions.Moderator ? roleId.ToLong() : 0,
-                    };
-
-                    db.Guilds.Update(_guild);
-                    return;
-                }
-
-                if (permission == Permissions.Administrator)
-                {
-                    _guild.Config.AdminRoleId = roleId.ToLong();
-                }
-                else
-                {
-                    _guild.Config.ModeratorRoleId = roleId.ToLong();
-                }
-
-                db.Guilds.Update(_guild);
-            }
+            _guildService.SetPermissionAsync(guild, permission, roleId);
         }
 
-        public async Task<string> GenerateFormattedConfig(IGuild guild)
+        public string GenerateFormattedConfig(IGuild guild)
         {
             if (_guild.Config == null)
             {
