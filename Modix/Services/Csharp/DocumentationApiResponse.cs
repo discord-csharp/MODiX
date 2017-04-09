@@ -35,6 +35,8 @@ namespace Modix.Services.Csharp
         Structure,
         Property,
         Constructor,
-        Field
+        Field,
+        Event,
+        Interface
     }
 }
