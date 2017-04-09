@@ -29,7 +29,7 @@ namespace Modix
             await Install(); // Setting up DependencyMap
 
             await _client.LoginAsync(TokenType.Bot, token);
-            await _client.ConnectAsync();
+            await _client.StartAsync();
             await Task.Delay(-1);
         }
 

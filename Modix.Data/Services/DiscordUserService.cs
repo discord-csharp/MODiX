@@ -40,7 +40,7 @@ namespace Modix.Data.Services
                 var discordUser = new DiscordUser()
                 {
                     DiscordId = user.Id.ToLong(),
-                    AvatarUrl = user.AvatarUrl,
+                    AvatarUrl = user.GetAvatarUrl(),
                     CreatedAt = user.CreatedAt.DateTime,
                     IsBot = user.IsBot,
                     Username = user.Username,
