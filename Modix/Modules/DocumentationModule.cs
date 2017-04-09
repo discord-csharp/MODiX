@@ -15,27 +15,29 @@ namespace Modix.Modules
         [Command("docs"), Summary("SShows class/method reference from the new unified .Net reference.")]
         public async Task GetDocumentationAsync(string term)
         {
-            var results = await new DocumentationService().GetDocumentationResultsAsync(term);
-
-            var builder = new EmbedBuilder();
-            builder.WithColor(new Color(46, 204, 113))
-                .WithTitle($"Documentation for '{term}'");
-
+            var response = await new DocumentationService().GetDocumentationResultsAsync(term);
             var embedCount = 0; //boy, fuck d.net and their "hide everything" shit
 
-            foreach (var res in results.Results)
+            foreach (var res in response.Results.Take(3).OrderBy(x => x.DisplayName))
             {
-                if (embedCount == 5) break;
                 embedCount++;
 
-                builder.AddField(
-                    new EmbedFieldBuilder()
-                        .WithName($"[{res.DisplayName}]({res.Url})")
-                        .WithValue("...")
-                );
+                var builder = new EmbedBuilder()
+                    .WithColor(new Color(46, 204, 113))
+                    .WithTitle($"{res.ItemKind}: {res.DisplayName}")
+                    .WithUrl(res.Url)
+                    .WithDescription(res.Description);
+
+                if (embedCount == 3)
+                {
+                    builder.WithFooter(
+                        new EmbedFooterBuilder().WithText($"{embedCount}/{response.Results.Count} https://docs.microsoft.com/dotnet/api/?term={term}")
+                    );
+                    builder.Footer.Build();
+                }
+                builder.Build();
+                await ReplyAsync("", embed: builder);
             }
-            builder.Build();
-            await ReplyAsync("", embed: builder);
         }
     }
 }

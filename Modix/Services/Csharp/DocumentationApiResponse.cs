@@ -34,6 +34,7 @@ namespace Modix.Services.Csharp
         Method,
         Structure,
         Property,
-        Constructor
+        Constructor,
+        Field
     }
 }
