@@ -60,7 +60,6 @@ namespace Modix
         public async Task Install()
         {
             _map.Add(_client);
-            _map.Add(_commands);
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;

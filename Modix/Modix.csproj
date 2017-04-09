@@ -6,8 +6,9 @@
   <ItemGroup>
     <PackageReference Include="Discord.Net.Commands" Version="1.0.0-rc2-00697" />
     <PackageReference Include="Discord.Net.WebSocket" Version="1.0.0-rc2-00697" />
-    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="1.1.0" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="1.0.0-rtm-beta3" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="1.1.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="10.0.2" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="1.0.0-rtm-beta4" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
