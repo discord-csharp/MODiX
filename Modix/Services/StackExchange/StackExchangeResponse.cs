@@ -10,10 +10,10 @@ namespace Modix.Services.StackExchange
         public bool HasMore { get; set; }
 
         [JsonProperty("quota_max")]
-        public bool QuotaMax { get; set; }
+        public int QuotaMax { get; set; }
 
         [JsonProperty("quota_remaining")]
-        public bool QuotaRemaining { get; set; }
+        public int QuotaRemaining { get; set; }
 
         [JsonProperty("items")]
         public ICollection<StackExchangeResponseItem> Items { get; set; }

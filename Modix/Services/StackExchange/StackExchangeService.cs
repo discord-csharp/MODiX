@@ -15,7 +15,7 @@ namespace Modix.Services.StackExchange
             $"&sort=votes" +
             $"&filter=default";
 
-        public async Task<StackExchangeResponse> GetStackExchangeResultsAsync(string phrase, string site = "stackoverflow", string tags = "c#")
+        public async Task<StackExchangeResponse> GetStackExchangeResultsAsync(string phrase, string site, string tags)
         {
             phrase = Uri.EscapeDataString(phrase);
             site = Uri.EscapeDataString(site);
