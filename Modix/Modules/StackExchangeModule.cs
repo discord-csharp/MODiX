@@ -66,7 +66,7 @@ namespace Modix.Modules
             var footer = new EmbedBuilder()
                 .WithColor(new Color(50, 50, 50))
                 .WithFooter(
-                     new EmbedFooterBuilder().WithText($"<tags: {tags} | site: {site} | {response.QuotaRemaining} of {response.QuotaMax} queries remaining today>"));
+                     new EmbedFooterBuilder().WithText($"tags: {tags} | site: {site}. !stack foobar [site=stackexchange tags=c#]"));
             footer.Build();
             await ReplyAsync("", embed: footer);
         }
