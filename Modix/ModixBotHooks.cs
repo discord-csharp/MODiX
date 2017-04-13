@@ -8,17 +8,36 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Modix.Data.Models;
-using NLog;
+using Serilog;
 
 namespace Modix
 {
     public class ModixBotHooks
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         public Task HandleLog(LogMessage message)
         {
-            Logger.Info(message.ToString());
+            switch (message.Severity)
+            {
+                case LogSeverity.Critical:
+                    Log.Error(message.ToString());
+                    break;
+                case LogSeverity.Debug:
+                    Log.Debug(message.ToString());
+                    break;
+                case LogSeverity.Warning:
+                    Log.Warning(message.ToString());
+                    break;
+                case LogSeverity.Error:
+                    Log.Error(message.ToString());
+                    break;
+                case LogSeverity.Info:
+                    Log.Information(message.ToString());
+                    break;
+                case LogSeverity.Verbose:
+                    Log.Verbose(message.ToString());
+                    break;
+            }
             return Task.CompletedTask;
         }
 
@@ -47,7 +66,7 @@ namespace Modix
 
             //var res = new MessageRepository().InsertAsync(msg);
             //await res;
-            Logger.Info($"Logged message from {user.Username} in {user.Guild.Name}/{messageParam.Channel}");
+            //Logger.Info($"Logged message from {user.Username} in {user.Guild.Name}/{messageParam.Channel}");
         }
     }
 }

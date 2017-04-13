@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using NLog;
+using Serilog;
 
 namespace Modix
 {
@@ -15,8 +15,16 @@ namespace Modix
         private readonly CommandService _commands = new CommandService();
         private DiscordSocketClient _client;
         private readonly DependencyMap _map = new DependencyMap();
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly ModixBotHooks _hooks = new ModixBotHooks();
+
+        public ModixBot()
+        {
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .WriteTo.LiterateConsole()
+                .WriteTo.RollingFile(@"logs\{Date}")
+                .CreateLogger();
+        }
 
         public async Task Run()
         {
@@ -54,7 +62,7 @@ namespace Modix
                 await context.Channel.SendMessageAsync(result.ErrorReason);
             }
             stopwatch.Stop();
-            Logger.Info($"{stopwatch.ElapsedMilliseconds}ms: {message}");
+            Log.Information($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
         }
 
         public async Task Install()
