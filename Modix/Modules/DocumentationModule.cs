@@ -12,11 +12,11 @@ namespace Modix.Modules
     [Name("Documentation"), Summary("Easy way to ban the bad guys.")]
     public class DocumentationModule : ModuleBase
     {
-        [Command("docs"), Summary("SShows class/method reference from the new unified .Net reference.")]
+        [Command("docs"), Summary("Shows class/method reference from the new unified .Net reference.")]
         public async Task GetDocumentationAsync([Remainder]string term)
         {
             var response = await new DocumentationService().GetDocumentationResultsAsync(term);
-            var embedCount = 0; //boy, fuck d.net and their "hide everything" shit
+            var embedCount = 0;
 
             foreach (var res in response.Results.Take(3).OrderBy(x => x.DisplayName))
             {
