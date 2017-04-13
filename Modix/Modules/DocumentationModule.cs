@@ -13,7 +13,7 @@ namespace Modix.Modules
     public class DocumentationModule : ModuleBase
     {
         [Command("docs"), Summary("SShows class/method reference from the new unified .Net reference.")]
-        public async Task GetDocumentationAsync(string term)
+        public async Task GetDocumentationAsync([Remainder]string term)
         {
             var response = await new DocumentationService().GetDocumentationResultsAsync(term);
             var embedCount = 0; //boy, fuck d.net and their "hide everything" shit

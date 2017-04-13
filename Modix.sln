@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.4
+VisualStudioVersion = 15.0.26403.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix", "Modix\Modix.csproj", "{9BBC702D-F919-4482-BF6C-0FC8EA2740C4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Data", "Modix.Data\Modix.Data.csproj", "{7DE6DD27-4450-4FA5-8C93-40709FBD8870}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modix.Repl.Host", "Modix.Repl.Host\Modix.Repl.Host.csproj", "{A3D6D22B-F2DA-4A73-B522-ACC00540B7DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,18 @@ Global
 		{7DE6DD27-4450-4FA5-8C93-40709FBD8870}.Release|x64.Build.0 = Release|Any CPU
 		{7DE6DD27-4450-4FA5-8C93-40709FBD8870}.Release|x86.ActiveCfg = Release|Any CPU
 		{7DE6DD27-4450-4FA5-8C93-40709FBD8870}.Release|x86.Build.0 = Release|Any CPU
+		{A3D6D22B-F2DA-4A73-B522-ACC00540B7DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3D6D22B-F2DA-4A73-B522-ACC00540B7DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3D6D22B-F2DA-4A73-B522-ACC00540B7DF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A3D6D22B-F2DA-4A73-B522-ACC00540B7DF}.Debug|x64.Build.0 = Debug|Any CPU
+		{A3D6D22B-F2DA-4A73-B522-ACC00540B7DF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A3D6D22B-F2DA-4A73-B522-ACC00540B7DF}.Debug|x86.Build.0 = Debug|Any CPU
+		{A3D6D22B-F2DA-4A73-B522-ACC00540B7DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3D6D22B-F2DA-4A73-B522-ACC00540B7DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A3D6D22B-F2DA-4A73-B522-ACC00540B7DF}.Release|x64.ActiveCfg = Release|Any CPU
+		{A3D6D22B-F2DA-4A73-B522-ACC00540B7DF}.Release|x64.Build.0 = Release|Any CPU
+		{A3D6D22B-F2DA-4A73-B522-ACC00540B7DF}.Release|x86.ActiveCfg = Release|Any CPU
+		{A3D6D22B-F2DA-4A73-B522-ACC00540B7DF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
