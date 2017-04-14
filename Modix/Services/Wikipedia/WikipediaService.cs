@@ -19,7 +19,7 @@ namespace Modix.Services.StackExchange
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new WebException("Something failed while querying the Stack Exchange API.");
+                throw new WebException("Something failed while querying the Wikipedia API.");
             }
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
