@@ -20,6 +20,7 @@ namespace Modix.Modules
             if (response == null || response.Query == null || !response.Query.Pages.Any())
             {
                 await ReplyAsync($"Failed to find anything for `!wiki {phrase}`.");
+                return;
             }
 
             // Construct results into one string (use StringBuilder for concat speed).
@@ -28,9 +29,10 @@ namespace Modix.Modules
             var message = messageBuilder.ToString();
 
             // Sometimes we get here and there's no message, just double check.
-            if (message.Length == 0)
+            if (message.Length == 0 || message == Environment.NewLine)
             {
                 await ReplyAsync($"Failed to find anything for `!wiki {phrase}`.");
+                return;
             }
 
             // Discord has a limit on channel message size... so this accounts for that.
@@ -40,7 +42,12 @@ namespace Modix.Modules
                 // IE: 5000 / 2000 = 2.5
                 // Round up = 3
                 decimal batchCount = Math.Ceiling(decimal.Divide(message.Length, DiscordConfig.MaxMessageSize));
+
+                // Keep track of how many characters we've sent to the channel.
+                // Use the cursor to see the diff between what we've sent, and what is remaining to send
+                //  So we can satisfy the batch sending approach.
                 int cursor = 0;
+
                 for (var i = 0; i < batchCount; i++)
                 {
                     var builder = new EmbedBuilder()
