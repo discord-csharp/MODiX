@@ -20,12 +20,6 @@ namespace Modix.Modules
             Results
         }
 
-        private struct UserBag
-        {
-            public ulong Id { get; set; }
-            public string UserName { get; set; }
-        }
-
         private const int StageDurationInSeconds = 30;
         private const int StageStepLengthInSeconds = 5;
         private const int RollingDurationInSeconds = 30;
