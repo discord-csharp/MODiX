@@ -52,6 +52,8 @@ namespace Modix.Modules
                 {
                     await Context.Channel.SendMessageAsync("MODiX is currently in a bet. Please wait for the current game to end");
                 }
+
+                return;
             }
 
             _state = BettingState.Stage;
