@@ -25,6 +25,7 @@ namespace Modix.Modules
         private const int StageStepLengthInSeconds = 5;
         private const int RollingDurationInSeconds = 30;
         private const int RollingStepLengthInSeconds = 5;
+        private const int MaxRoll = 50000;
 
         private static int _stageCounter;
         private static int _rollingCounter;
@@ -39,45 +40,27 @@ namespace Modix.Modules
         [Command("Stage"), Summary("Sets the stage for a new betting game. Players can join during this time with !bet join")]
         public async Task StageAsync()
         {
-            if (_state != BettingState.Idle)
+            if (_state == BettingState.Idle)
             {
-                if (_state == BettingState.Stage && Context.User.Id != _sessionOwner.Id)
-                {
-                    await Context.Channel.SendMessageAsync($"MODiX is currently setting the stage for a bet. There is only `{StageDurationInSeconds - _stageCounter}` seconds left to join. `!bet join` to participate in this session");
-                }
-                else if (_state == BettingState.Stage && Context.User.Id == _sessionOwner.Id)
-                {
-                    await Context.Channel.SendMessageAsync($"You're the owner of the current session, {Context.User.Mention}. Type `!bet start` to begin the game!");
-                }
-                else
-                {
-                    await Context.Channel.SendMessageAsync("MODiX is currently in a bet. Please wait for the current game to end");
-                }
+                _state = BettingState.Stage;
+                _sessionOwner = Context.User;
+                _joinedUsers.Add(_sessionOwner);
+                await Context.Channel.SendMessageAsync($"{Context.User.Mention} has set the stage for a new betting game. `!bet join` to participate in this session. `!bet start` to begin!");
 
-                return;
+                _stageTimer = new Timer(StageTimer_Tick, _stageCounter, 0, 1000 * StageStepLengthInSeconds);
             }
-
-            _state = BettingState.Stage;
-            _sessionOwner = Context.User;
-            _joinedUsers.Add(_sessionOwner);
-            await Context.Channel.SendMessageAsync($"{Context.User.Mention} has set the stage for a new betting game. `!bet join` to participate in this session. `!bet start` to begin!");
-
-            _stageTimer = new Timer(async (state) =>
+            else if (_state == BettingState.Stage && Context.User.Id != _sessionOwner.Id)
             {
-                if (_state == BettingState.Rolling)
-                {
-                    // It's possible there could be a race condition. Account for it here.
-                    ResetStageTimer();
-                }
-                else if (_stageCounter >= StageDurationInSeconds && _joinedUsers.Count < 2)
-                {
-                    await Context.Channel.SendMessageAsync($"Not enough players joined {Context.User.Mention}'s session. Start another game with `!bet stage`");
-                    ResetStageTimer();
-                }
-
-                _stageCounter += StageStepLengthInSeconds;
-
-            }, _stageCounter, 0, 1000 * StageStepLengthInSeconds);
+                await Context.Channel.SendMessageAsync($"MODiX is currently setting the stage for a bet. There is only `{StageDurationInSeconds - _stageCounter}` seconds left to join. `!bet join` to participate in this session");
+            }
+            else if (_state == BettingState.Stage && Context.User.Id == _sessionOwner.Id)
+            {
+                await Context.Channel.SendMessageAsync($"You're the owner of the current session, {Context.User.Mention}. Type `!bet start` to begin the game!");
+            }
+            else
+            {
+                await Context.Channel.SendMessageAsync("MODiX is currently in a bet. Please wait for the current game to end");
+            }
         }
 
         [Command("Start"), Summary("Starts a new session of the game")]
@@ -90,54 +73,7 @@ namespace Modix.Modules
 
                 await Context.Channel.SendMessageAsync("Ok everyone, The stage is set! `!bet roll` to place your bets!");
 
-                _rollingTimer = new Timer(async (state) =>
-                {
-                    if (_rollingCounter >= RollingDurationInSeconds && _rolls.Count == 0)
-                    {
-                        await Context.Channel.SendMessageAsync($"Well this is awkward... no one rolled. Really {_sessionOwner.Mention}, you didn't even roll in your own game?");
-                        _state = BettingState.Idle;
-                        ResetRollTimer();
-                        return;
-                    }
-                    else if (_rollingCounter >= RollingDurationInSeconds || _state == BettingState.Results)
-                    {
-                        // Show the results!
-                        var sb = new StringBuilder();
-                        int ctr = 1;
-                        IUser winner = null;
-                        foreach (var roll in _rolls.OrderByDescending(r => r.Value))
-                        {
-                            if (ctr == 1)
-                            {
-                                winner = roll.Key;
-                            }
-                            sb.AppendLine($"{ctr++}.  {roll.Key.Username}: {roll.Value}");
-                        }
-
-                        var builder = new EmbedBuilder()
-                            .WithColor(new Color(95, 186, 125))
-                            .WithTitle($"Congratulations {winner.Username}, you are the winner!")
-                            .WithDescription(sb.ToString())
-                            .WithFooter(new EmbedFooterBuilder().WithText($"Thank you {_sessionOwner.Username} for hosting this game."));
-
-                        builder.Build();
-                        await Context.Channel.SendMessageAsync("", embed: builder);
-                        _state = BettingState.Idle;
-                        ResetRollTimer();
-                        return;
-                    }
-                    else if (RollingDurationInSeconds - _rollingCounter <= 5)
-                    {
-                        await Context.Channel.SendMessageAsync("5 seconds... `!bet roll` to play!");
-                    }
-                    else if (RollingDurationInSeconds - _rollingCounter <= 10)
-                    {
-                        await Context.Channel.SendMessageAsync("There's only 10 seconds left to roll. `!bet join` to play!");
-                    }
-
-                    _rollingCounter += RollingStepLengthInSeconds;
-
-                }, _rollingCounter, 0, 1000 * RollingStepLengthInSeconds);
+                _rollingTimer = new Timer(RollTimer_Tick, _rollingCounter, 0, 1000 * RollingStepLengthInSeconds);
             }
             else if (_state == BettingState.Stage && Context.User.Id != _sessionOwner.Id)
             {
@@ -180,7 +116,7 @@ namespace Modix.Modules
         {
             if (_state == BettingState.Rolling && _joinedUsers.Any(u => u.Id == Context.User.Id) && !_rolls.Any(r => r.Key.Id == Context.User.Id))
             {
-                _rolls.Add(Context.User, _randomGenerator.Next(50001));
+                _rolls.Add(Context.User, _randomGenerator.Next(50000 + 1));
                 await Context.Channel.SendMessageAsync($"{Context.User.Mention}, your roll has been recorded.");
 
                 if (_rolls.Count == _joinedUsers.Count)
@@ -222,6 +158,70 @@ namespace Modix.Modules
             _rolls.Clear();
             _joinedUsers.Clear();
             _sessionOwner = null;
+        }
+
+        private async void StageTimer_Tick(object state)
+        {
+            if (_state == BettingState.Rolling)
+            {
+                // It's possible there could be a race condition. Account for it here.
+                ResetStageTimer();
+            }
+            else if (_stageCounter >= StageDurationInSeconds && _joinedUsers.Count < 2)
+            {
+                await Context.Channel.SendMessageAsync($"Not enough players joined {Context.User.Mention}'s session. Start another game with `!bet stage`");
+                ResetStageTimer();
+            }
+
+            _stageCounter += StageStepLengthInSeconds;
+        }
+
+        private async void RollTimer_Tick(object state)
+        {
+            if (_rollingCounter >= RollingDurationInSeconds && _rolls.Count == 0)
+            {
+                await Context.Channel.SendMessageAsync($"Well this is awkward... no one rolled. Really {_sessionOwner.Mention}, you didn't even roll in your own game?");
+                _state = BettingState.Idle;
+                ResetRollTimer();
+                return;
+            }
+            else if (_rollingCounter >= RollingDurationInSeconds || _state == BettingState.Results)
+            {
+                // Show the results!
+                var sb = new StringBuilder();
+                int ctr = 1;
+                IUser winner = null;
+                foreach (var roll in _rolls.OrderByDescending(r => r.Value))
+                {
+                    if (ctr == 1)
+                    {
+                        winner = roll.Key;
+                    }
+                    sb.AppendLine($"{ctr++}.  {roll.Key.Username}: {roll.Value}");
+                }
+
+                var builder = new EmbedBuilder()
+                    .WithColor(new Color(95, 186, 125))
+                    .WithTitle($"Congratulations {winner.Username}, you are the winner!")
+                    .WithDescription(sb.ToString())
+                    .WithFooter(new EmbedFooterBuilder().WithText($"Thank you {_sessionOwner.Username} for hosting this game."));
+
+                builder.Build();
+                await Context.Channel.SendMessageAsync("", embed: builder);
+                _state = BettingState.Idle;
+                ResetRollTimer();
+                return;
+            }
+            else if (RollingDurationInSeconds - _rollingCounter <= 5)
+            {
+                await Context.Channel.SendMessageAsync("5 seconds... `!bet roll` to play!");
+            }
+            else if (RollingDurationInSeconds - _rollingCounter <= 10)
+            {
+                await Context.Channel.SendMessageAsync("There's only 10 seconds left to roll. `!bet join` to play!");
+            }
+
+            _rollingCounter += RollingStepLengthInSeconds;
         }
     }
 }
