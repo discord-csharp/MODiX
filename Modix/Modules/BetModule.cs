@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Modix.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Modix.Modules
 {
-    [Group("bet"), Name("Bet"), Summary("A fun betting game involving random numbers!")]
+    [Group("bet"), Name("Bet"), Summary("A fun betting game involving random numbers!"), LimitToChannels]
     public class BetModule : ModuleBase
     {
         private enum BettingState
