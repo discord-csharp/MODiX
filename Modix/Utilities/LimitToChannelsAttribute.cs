@@ -20,7 +20,7 @@ namespace Modix.Utilities
 
             return channels.Any(c => ulong.Parse(c) == context.Channel.Id)
                 ? Task.Run(() => PreconditionResult.FromSuccess())
-                : Task.Run(() => PreconditionResult.FromError("This command cannot run in this channel"));
+                : Task.Run(() => PreconditionResult.FromError($"This command cannot run in this channel. Valid channels are: {string.Join(", ", channels.Select(c => $"<#{c}>"))}"));
         }
     }
 }
