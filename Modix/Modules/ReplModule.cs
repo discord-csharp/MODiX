@@ -25,10 +25,10 @@ namespace Modix.Modules
         private const string ReplRemoteUrl =
             "http://csharpdiscordfn.azurewebsites.net/api/EvalTrigger?code=MGx5t5RZ6mmmy1jhVZ1amrWr8S3nPyCzG6bTR1mYbwULdhfuq86Ckg==";
 
-        [Command("exec", RunMode = RunMode.Async), Summary("Executes code!")]
+        [Command("exec", RunMode = RunMode.Async), Alias("eval"), Summary("Executes code!")]
         public async Task ReplInvoke([Remainder] string code)
         {
-            string cleanCode = code.Replace("```csharp", "").Replace("```", "");
+            string cleanCode = code.Replace("```csharp", "").Replace("```cs", "").Replace("```", "");
 
             var client = new HttpClient();
             var res = await client.PostAsync(ReplRemoteUrl, new StringContent(cleanCode));
@@ -54,7 +54,7 @@ namespace Modix.Modules
                .WithAuthor(a => a.WithIconUrl(Context.Client.CurrentUser.GetAvatarUrl()).WithName(Context.Client.CurrentUser.Username))
                .WithFooter(a => a.WithText($"{parsedResult.ExecutionTime.Milliseconds} ms"));
 
-            embed.AddField(a => a.WithName("Code").WithValue(Format.Code(code, "cs")));
+            embed.AddField(a => a.WithName("Code").WithValue(Format.Code(cleanCode, "cs")));
             embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnValue?.GetType()?.Name ?? "null"}")
                                  .WithValue(Format.Code($"{parsedResult.ReturnValue?.ToString().Replace("\r\n", "") ?? " "}", "txt")));
 
