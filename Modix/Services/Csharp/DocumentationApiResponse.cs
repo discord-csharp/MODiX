@@ -37,6 +37,7 @@ namespace Modix.Services.Csharp
         Constructor,
         Field,
         Event,
-        Interface
+        Interface,
+        Delegate
     }
 }
