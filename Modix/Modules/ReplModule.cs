@@ -18,6 +18,8 @@ namespace Modix.Modules
         public string Code { get; set; }
         public string ExceptionType { get; set; }
         public TimeSpan ExecutionTime { get; set; }
+        public TimeSpan CompileTime { get; set; }
+        public string ConsoleOut { get; set; }
     }
 
     public class ReplModule : ModuleBase
@@ -52,12 +54,22 @@ namespace Modix.Modules
                .WithDescription(string.IsNullOrEmpty(parsedResult.Exception) ? "Successful" : $"Failed: {parsedResult.ExceptionType} - {parsedResult.Exception}")
                .WithColor(string.IsNullOrEmpty(parsedResult.Exception) ? new Color(0, 255, 0) : new Color(255, 0, 0))
                .WithAuthor(a => a.WithIconUrl(Context.Client.CurrentUser.GetAvatarUrl()).WithName(Context.Client.CurrentUser.Username))
-               .WithFooter(a => a.WithText($"{parsedResult.ExecutionTime.Milliseconds} ms"));
+               .WithFooter(a => a.WithText($"{(parsedResult.ExecutionTime.TotalMilliseconds + parsedResult.CompileTime.TotalMilliseconds):F} ms"));
 
             embed.AddField(a => a.WithName("Code").WithValue(Format.Code(cleanCode, "cs")));
-            embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnValue?.GetType()?.Name ?? "null"}")
-                                 .WithValue(Format.Code($"{parsedResult.ReturnValue?.ToString().Replace("\r\n", "") ?? " "}", "txt")));
 
+            if (parsedResult.ReturnValue != null)
+            {
+                embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnValue?.GetType()?.Name ?? "null"}")
+                                     .WithValue(Format.Code($"{parsedResult.ReturnValue?.ToString() ?? " "}", "txt")));
+            }
+
+            if (!string.IsNullOrWhiteSpace(parsedResult.ConsoleOut))
+            {
+                embed.AddField(a => a.WithName("Console Output")
+                                     .WithValue(Format.Code($"{parsedResult.ConsoleOut}", "txt")));
+            }
+            
             await Context.Channel.SendMessageAsync(string.Empty, embed: embed).ConfigureAwait(false);
         }
     }
