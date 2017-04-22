@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 
 namespace Modix.Modules
 {
@@ -25,22 +26,17 @@ namespace Modix.Modules
     public class ReplModule : ModuleBase
     {
         private const string ReplRemoteUrl =
-            "http://csharpdiscordfn.azurewebsites.net/api/EvalTrigger?code=MGx5t5RZ6mmmy1jhVZ1amrWr8S3nPyCzG6bTR1mYbwULdhfuq86Ckg==";
+            "http://csharpdiscordfn.azurewebsites.net/api/EvalTrigger?code={0}";
 
         [Command("exec", RunMode = RunMode.Async), Alias("eval"), Summary("Executes code!")]
         public async Task ReplInvoke([Remainder] string code)
         {
+            var key = Environment.GetEnvironmentVariable("MODIX_REPL_KEY");
             string cleanCode = code.Replace("```csharp", "").Replace("```cs", "").Replace("```", "");
 
             var client = new HttpClient();
-            var res = await client.PostAsync(ReplRemoteUrl, new StringContent(cleanCode));
-
-            if (res.StatusCode == HttpStatusCode.Forbidden)
-            {
-                await ReplyAsync("Exec failed: You used a forbidden class. <@144084036036329472>");
-                return;
-            }
-
+            var res = await client.PostAsync(string.Format(ReplRemoteUrl, key), new StringContent(cleanCode));
+            
             if (!res.IsSuccessStatusCode & res.StatusCode != HttpStatusCode.BadRequest)
             {
                 await ReplyAsync("Exec failed: " + res.StatusCode);
@@ -51,7 +47,7 @@ namespace Modix.Modules
 
             var embed = new EmbedBuilder()
                .WithTitle("Eval Result")
-               .WithDescription(string.IsNullOrEmpty(parsedResult.Exception) ? "Successful" : $"Failed: {parsedResult.ExceptionType} - {parsedResult.Exception}")
+               .WithDescription(string.IsNullOrEmpty(parsedResult.Exception) ? "Successful" : "Failed")
                .WithColor(string.IsNullOrEmpty(parsedResult.Exception) ? new Color(0, 255, 0) : new Color(255, 0, 0))
                .WithAuthor(a => a.WithIconUrl(Context.Client.CurrentUser.GetAvatarUrl()).WithName(Context.Client.CurrentUser.Username))
                .WithFooter(a => a.WithText($"{(parsedResult.ExecutionTime.TotalMilliseconds + parsedResult.CompileTime.TotalMilliseconds):F} ms"));
@@ -67,9 +63,16 @@ namespace Modix.Modules
             if (!string.IsNullOrWhiteSpace(parsedResult.ConsoleOut))
             {
                 embed.AddField(a => a.WithName("Console Output")
-                                     .WithValue(Format.Code($"{parsedResult.ConsoleOut}", "txt")));
+                                     .WithValue(Format.Code(parsedResult.ConsoleOut, "txt")));
             }
-            
+
+            if (!string.IsNullOrWhiteSpace(parsedResult.Exception))
+            {
+                var diffFormatted = Regex.Replace(parsedResult.Exception, "^", "- ", RegexOptions.Multiline);
+                embed.AddField(a => a.WithName($"Exception: {parsedResult.ExceptionType}")
+                                     .WithValue(Format.Code(diffFormatted, "diff")));
+            }
+
             await Context.Channel.SendMessageAsync(string.Empty, embed: embed).ConfigureAwait(false);
         }
     }
