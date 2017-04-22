@@ -39,7 +39,9 @@ namespace Modix.Modules
         [Command("exec", RunMode = RunMode.Async), Alias("eval"), Summary("Executes code!")]
         public async Task ReplInvoke([Remainder] string code)
         {
+            var message = await Context.Channel.SendMessageAsync("Working...");
             var key = _config.ReplToken;
+            
             string cleanCode = code.Replace("```csharp", "").Replace("```cs", "").Replace("```", "");
 
             var client = new HttpClient();
@@ -81,7 +83,10 @@ namespace Modix.Modules
                                      .WithValue(Format.Code(diffFormatted, "diff")));
             }
 
-            await Context.Channel.SendMessageAsync(string.Empty, embed: embed).ConfigureAwait(false);
+            await message.ModifyAsync(a => {
+                a.Content = string.Empty;
+                a.Embed = embed.Build();
+            });
         }
     }
 }
