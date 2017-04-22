@@ -9,6 +9,7 @@ using Discord;
 using Discord.Commands;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
+using Modix.Data.Models;
 
 namespace Modix.Modules
 {
@@ -28,10 +29,17 @@ namespace Modix.Modules
         private const string ReplRemoteUrl =
             "http://csharpdiscordfn.azurewebsites.net/api/EvalTrigger?code={0}";
 
+        private readonly ModixConfig _config;
+
+        public ReplModule(ModixConfig config)
+        {
+            _config = config;
+        }
+
         [Command("exec", RunMode = RunMode.Async), Alias("eval"), Summary("Executes code!")]
         public async Task ReplInvoke([Remainder] string code)
         {
-            var key = Environment.GetEnvironmentVariable("MODIX_REPL_KEY");
+            var key = _config.ReplToken;
             string cleanCode = code.Replace("```csharp", "").Replace("```cs", "").Replace("```", "");
 
             var client = new HttpClient();
