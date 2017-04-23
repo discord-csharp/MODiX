@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using Modix.Data.Models;
 using System.Threading;
+using Discord.WebSocket;
 
 namespace Modix.Modules
 {
@@ -42,6 +43,7 @@ namespace Modix.Modules
         [Command("exec", RunMode = RunMode.Async), Alias("eval"), Summary("Executes code!")]
         public async Task ReplInvoke([Remainder] string code)
         {
+            var guildUser = Context.User as SocketGuildUser;
             var message = await Context.Channel.SendMessageAsync("Working...");
             var key = _config.ReplToken;
             
@@ -74,8 +76,8 @@ namespace Modix.Modules
                .WithTitle("Eval Result")
                .WithDescription(string.IsNullOrEmpty(parsedResult.Exception) ? "Successful" : "Failed")
                .WithColor(string.IsNullOrEmpty(parsedResult.Exception) ? new Color(0, 255, 0) : new Color(255, 0, 0))
-               .WithAuthor(a => a.WithIconUrl(Context.Client.CurrentUser.GetAvatarUrl()).WithName(Context.Client.CurrentUser.Username))
-               .WithFooter(a => a.WithText($"{(parsedResult.ExecutionTime.TotalMilliseconds + parsedResult.CompileTime.TotalMilliseconds):F} ms"));
+               .WithAuthor(a => a.WithIconUrl(Context.User.GetAvatarUrl()).WithName(guildUser?.Nickname ?? Context.User.Username))
+               .WithFooter(a => a.WithText($"Compile: {parsedResult.CompileTime.TotalMilliseconds:F}ms | Execution: {parsedResult.ExecutionTime.TotalMilliseconds:F}ms"));
 
             embed.AddField(a => a.WithName("Code").WithValue(Format.Code(cleanCode, "cs")));
 
