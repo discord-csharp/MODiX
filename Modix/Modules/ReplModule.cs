@@ -10,6 +10,7 @@ using Discord.Commands;
 using Newtonsoft.Json;
 using System.Text.RegularExpressions;
 using Modix.Data.Models;
+using System.Threading;
 
 namespace Modix.Modules
 {
@@ -31,6 +32,8 @@ namespace Modix.Modules
 
         private readonly ModixConfig _config;
 
+        private static readonly HttpClient _client = new HttpClient();
+
         public ReplModule(ModixConfig config)
         {
             _config = config;
@@ -42,14 +45,26 @@ namespace Modix.Modules
             var message = await Context.Channel.SendMessageAsync("Working...");
             var key = _config.ReplToken;
             
-            string cleanCode = code.Replace("```csharp", "").Replace("```cs", "").Replace("```", "");
+            string cleanCode = code.Replace("```csharp", string.Empty).Replace("```cs", string.Empty).Replace("```", string.Empty);
+            cleanCode = Regex.Replace(cleanCode.Trim(), "^`|`$", string.Empty); //strip out the ` characters from the beginning and end of the string
 
-            var client = new HttpClient();
-            var res = await client.PostAsync(string.Format(ReplRemoteUrl, key), new StringContent(cleanCode));
+            var content = new StringContent(cleanCode, Encoding.UTF8, "text/plain");
             
+            HttpResponseMessage res;
+            try
+            {
+                var tokenSrc = new CancellationTokenSource(15000);
+                res = await _client.PostAsync(string.Format(ReplRemoteUrl, key), content, tokenSrc.Token);
+            }
+            catch(TaskCanceledException)
+            {
+                await message.ModifyAsync(a => { a.Content = $"Exec failed: Gave up waiting for a response from the REPL service."; });
+                return;
+            }
+
             if (!res.IsSuccessStatusCode & res.StatusCode != HttpStatusCode.BadRequest)
             {
-                await ReplyAsync("Exec failed: " + res.StatusCode);
+                await message.ModifyAsync(a => { a.Content = $"Exec failed: {res.StatusCode}"; });
                 return;
             }
 
