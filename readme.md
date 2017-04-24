@@ -17,7 +17,7 @@ Thanks to the cooperation of Cisien, we managed to get a REPL up and running. Ai
 
 Here is how its done:
 1. Modix receives !exec-Message
-2. Modix parses message, sends a HTTP Put-Request to Cisiens API
+2. Modix parses message, sends a HTTP Post-Request to Cisiens API
 3. Cisiens API filters some bad namespaces/types, then compiles and executes the code
 4. Cisiens API returns a JSON string which contains the results and some metadata
 5. Modix wraps the result into a structure using JsonConvert<>
