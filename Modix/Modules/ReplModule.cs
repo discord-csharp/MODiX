@@ -24,6 +24,7 @@ namespace Modix.Modules
         public TimeSpan ExecutionTime { get; set; }
         public TimeSpan CompileTime { get; set; }
         public string ConsoleOut { get; set; }
+        public string ReturnTypeName { get; set; }
     }
 
     public class ReplModule : ModuleBase
@@ -43,22 +44,25 @@ namespace Modix.Modules
         [Command("exec", RunMode = RunMode.Async), Alias("eval"), Summary("Executes code!")]
         public async Task ReplInvoke([Remainder] string code)
         {
+            if (code.Length > 1024)
+            {
+                await ReplyAsync("Exec failed: Code is greater than 1024 characters in length");
+                return;
+            }
+
             var guildUser = Context.User as SocketGuildUser;
             var message = await Context.Channel.SendMessageAsync("Working...");
             var key = _config.ReplToken;
-            
-            string cleanCode = code.Replace("```csharp", string.Empty).Replace("```cs", string.Empty).Replace("```", string.Empty);
-            cleanCode = Regex.Replace(cleanCode.Trim(), "^`|`$", string.Empty); //strip out the ` characters from the beginning and end of the string
 
-            var content = new StringContent(cleanCode, Encoding.UTF8, "text/plain");
-            
+            var content = BuildContent(code);
+
             HttpResponseMessage res;
             try
             {
                 var tokenSrc = new CancellationTokenSource(15000);
                 res = await _client.PostAsync(string.Format(ReplRemoteUrl, key), content, tokenSrc.Token);
             }
-            catch(TaskCanceledException)
+            catch (TaskCanceledException)
             {
                 await message.ModifyAsync(a => { a.Content = $"Exec failed: Gave up waiting for a response from the REPL service."; });
                 return;
@@ -71,6 +75,29 @@ namespace Modix.Modules
             }
 
             var parsedResult = JsonConvert.DeserializeObject<Result>(await res.Content.ReadAsStringAsync());
+                        
+            var embed = BuildEmbed(guildUser, parsedResult);
+
+            await message.ModifyAsync(a =>
+            {
+                a.Content = string.Empty;
+                a.Embed = embed.Build();
+            });
+        }
+
+        private StringContent BuildContent(string code)
+        {
+            var cleanCode = code.Replace("```csharp", string.Empty).Replace("```cs", string.Empty).Replace("```", string.Empty);
+            cleanCode = Regex.Replace(cleanCode.Trim(), "^`|`$", string.Empty); //strip out the ` characters from the beginning and end of the string
+
+            return new StringContent(cleanCode, Encoding.UTF8, "text/plain");
+        }
+
+        private EmbedBuilder BuildEmbed(SocketGuildUser guildUser, Result parsedResult)
+        {
+            var returnValue = TrimIfNeeded(parsedResult.ReturnValue?.ToString() ?? " ", 1000);
+            var consoleOut = TrimIfNeeded(parsedResult.ConsoleOut, 1000);
+            var exception = TrimIfNeeded(parsedResult.Exception ?? string.Empty, 1000);
 
             var embed = new EmbedBuilder()
                .WithTitle("Eval Result")
@@ -79,18 +106,18 @@ namespace Modix.Modules
                .WithAuthor(a => a.WithIconUrl(Context.User.GetAvatarUrl()).WithName(guildUser?.Nickname ?? Context.User.Username))
                .WithFooter(a => a.WithText($"Compile: {parsedResult.CompileTime.TotalMilliseconds:F}ms | Execution: {parsedResult.ExecutionTime.TotalMilliseconds:F}ms"));
 
-            embed.AddField(a => a.WithName("Code").WithValue(Format.Code(cleanCode, "cs")));
+            embed.AddField(a => a.WithName("Code").WithValue(Format.Code(parsedResult.Code, "cs")));
 
             if (parsedResult.ReturnValue != null)
             {
-                embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnValue?.GetType()?.Name ?? "null"}")
-                                     .WithValue(Format.Code($"{parsedResult.ReturnValue?.ToString() ?? " "}", "txt")));
+                embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnTypeName ?? "null"}")
+                                     .WithValue(Format.Code($"{returnValue}", "txt")));
             }
 
-            if (!string.IsNullOrWhiteSpace(parsedResult.ConsoleOut))
+            if (!string.IsNullOrWhiteSpace(consoleOut))
             {
                 embed.AddField(a => a.WithName("Console Output")
-                                     .WithValue(Format.Code(parsedResult.ConsoleOut, "txt")));
+                                     .WithValue(Format.Code(consoleOut, "txt")));
             }
 
             if (!string.IsNullOrWhiteSpace(parsedResult.Exception))
@@ -100,10 +127,17 @@ namespace Modix.Modules
                                      .WithValue(Format.Code(diffFormatted, "diff")));
             }
 
-            await message.ModifyAsync(a => {
-                a.Content = string.Empty;
-                a.Embed = embed.Build();
-            });
+            return embed;
+        }
+
+        private static string TrimIfNeeded(string value, int len)
+        {
+            if (value.Length > len)
+            {
+                return value.Substring(0, len);
+            }
+
+            return value;
         }
     }
 }
