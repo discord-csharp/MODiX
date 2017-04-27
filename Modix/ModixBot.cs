@@ -15,7 +15,10 @@ namespace Modix
 {
     public sealed class ModixBot
     {
-        private readonly CommandService _commands = new CommandService();
+        private readonly CommandService _commands = new CommandService( new CommandServiceConfig
+        {
+            LogLevel = LogSeverity.Debug
+        });
         private DiscordSocketClient _client;
         private readonly DependencyMap _map = new DependencyMap();
         private readonly ModixBotHooks _hooks = new ModixBotHooks();
@@ -39,7 +42,7 @@ namespace Modix
 
             _client = new DiscordSocketClient(config: new DiscordSocketConfig()
             {
-                LogLevel = LogSeverity.Info,
+                LogLevel = LogSeverity.Debug,
             });
 
             await Install(); // Setting up DependencyMap
@@ -100,7 +103,7 @@ namespace Modix
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;
             _client.Log += _hooks.HandleLog;
-
+            _commands.Log += _hooks.HandleLog;
 
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly());
         }
