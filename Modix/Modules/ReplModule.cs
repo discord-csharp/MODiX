@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
+using Modix.Data.Models;
+using System.Threading;
+using Discord.WebSocket;
 
 namespace Modix.Modules
 {
@@ -18,47 +22,122 @@ namespace Modix.Modules
         public string Code { get; set; }
         public string ExceptionType { get; set; }
         public TimeSpan ExecutionTime { get; set; }
+        public TimeSpan CompileTime { get; set; }
+        public string ConsoleOut { get; set; }
+        public string ReturnTypeName { get; set; }
     }
 
     public class ReplModule : ModuleBase
     {
         private const string ReplRemoteUrl =
-            "http://csharpdiscordfn.azurewebsites.net/api/EvalTrigger?code=MGx5t5RZ6mmmy1jhVZ1amrWr8S3nPyCzG6bTR1mYbwULdhfuq86Ckg==";
+            "http://csharpdiscordfn.azurewebsites.net/api/EvalTrigger?code={0}";
 
-        [Command("exec", RunMode = RunMode.Async), Summary("Executes code!")]
+        private readonly ModixConfig _config;
+
+        private static readonly HttpClient _client = new HttpClient();
+
+        public ReplModule(ModixConfig config)
+        {
+            _config = config;
+        }
+
+        [Command("exec", RunMode = RunMode.Async), Alias("eval"), Summary("Executes code!")]
         public async Task ReplInvoke([Remainder] string code)
         {
-            string cleanCode = code.Replace("```csharp", "").Replace("```", "");
-
-            var client = new HttpClient();
-            var res = await client.PostAsync(ReplRemoteUrl, new StringContent(cleanCode));
-
-            if (res.StatusCode == HttpStatusCode.Forbidden)
+            if (code.Length > 1024)
             {
-                await ReplyAsync("Exec failed: You used a forbidden class. <@144084036036329472>");
+                await ReplyAsync("Exec failed: Code is greater than 1024 characters in length");
+                return;
+            }
+
+            var guildUser = Context.User as SocketGuildUser;
+            var message = await Context.Channel.SendMessageAsync("Working...");
+            var key = _config.ReplToken;
+
+            var content = BuildContent(code);
+
+            HttpResponseMessage res;
+            try
+            {
+                var tokenSrc = new CancellationTokenSource(15000);
+                res = await _client.PostAsync(string.Format(ReplRemoteUrl, key), content, tokenSrc.Token);
+            }
+            catch (TaskCanceledException)
+            {
+                await message.ModifyAsync(a => { a.Content = $"Exec failed: Gave up waiting for a response from the REPL service."; });
                 return;
             }
 
             if (!res.IsSuccessStatusCode & res.StatusCode != HttpStatusCode.BadRequest)
             {
-                await ReplyAsync("Exec failed: " + res.StatusCode);
+                await message.ModifyAsync(a => { a.Content = $"Exec failed: {res.StatusCode}"; });
                 return;
             }
 
             var parsedResult = JsonConvert.DeserializeObject<Result>(await res.Content.ReadAsStringAsync());
+                        
+            var embed = BuildEmbed(guildUser, parsedResult);
+
+            await message.ModifyAsync(a =>
+            {
+                a.Content = string.Empty;
+                a.Embed = embed.Build();
+            });
+        }
+
+        private StringContent BuildContent(string code)
+        {
+            var cleanCode = code.Replace("```csharp", string.Empty).Replace("```cs", string.Empty).Replace("```", string.Empty);
+            cleanCode = Regex.Replace(cleanCode.Trim(), "^`|`$", string.Empty); //strip out the ` characters from the beginning and end of the string
+
+            return new StringContent(cleanCode, Encoding.UTF8, "text/plain");
+        }
+
+        private EmbedBuilder BuildEmbed(SocketGuildUser guildUser, Result parsedResult)
+        {
+            var returnValue = TrimIfNeeded(parsedResult.ReturnValue?.ToString() ?? " ", 1000);
+            var consoleOut = TrimIfNeeded(parsedResult.ConsoleOut, 1000);
+            var exception = TrimIfNeeded(parsedResult.Exception ?? string.Empty, 1000);
 
             var embed = new EmbedBuilder()
                .WithTitle("Eval Result")
-               .WithDescription(string.IsNullOrEmpty(parsedResult.Exception) ? "Successful" : $"Failed: {parsedResult.ExceptionType} - {parsedResult.Exception}")
+               .WithDescription(string.IsNullOrEmpty(parsedResult.Exception) ? "Successful" : "Failed")
                .WithColor(string.IsNullOrEmpty(parsedResult.Exception) ? new Color(0, 255, 0) : new Color(255, 0, 0))
-               .WithAuthor(a => a.WithIconUrl(Context.Client.CurrentUser.GetAvatarUrl()).WithName(Context.Client.CurrentUser.Username))
-               .WithFooter(a => a.WithText($"{parsedResult.ExecutionTime.Milliseconds} ms"));
+               .WithAuthor(a => a.WithIconUrl(Context.User.GetAvatarUrl()).WithName(guildUser?.Nickname ?? Context.User.Username))
+               .WithFooter(a => a.WithText($"Compile: {parsedResult.CompileTime.TotalMilliseconds:F}ms | Execution: {parsedResult.ExecutionTime.TotalMilliseconds:F}ms"));
 
-            embed.AddField(a => a.WithName("Code").WithValue(Format.Code(code, "cs")));
-            embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnValue?.GetType()?.Name ?? "null"}")
-                                 .WithValue(Format.Code($"{parsedResult.ReturnValue?.ToString().Replace("\r\n", "") ?? " "}", "txt")));
+            embed.AddField(a => a.WithName("Code").WithValue(Format.Code(parsedResult.Code, "cs")));
 
-            await Context.Channel.SendMessageAsync(string.Empty, embed: embed).ConfigureAwait(false);
+            if (parsedResult.ReturnValue != null)
+            {
+                embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnTypeName ?? "null"}")
+                                     .WithValue(Format.Code($"{returnValue}", "txt")));
+            }
+
+            if (!string.IsNullOrWhiteSpace(consoleOut))
+            {
+                embed.AddField(a => a.WithName("Console Output")
+                                     .WithValue(Format.Code(consoleOut, "txt")));
+            }
+
+            if (!string.IsNullOrWhiteSpace(parsedResult.Exception))
+            {
+                var diffFormatted = Regex.Replace(parsedResult.Exception, "^", "- ", RegexOptions.Multiline);
+                embed.AddField(a => a.WithName($"Exception: {parsedResult.ExceptionType}")
+                                     .WithValue(Format.Code(diffFormatted, "diff")));
+            }
+
+            return embed;
+        }
+
+        private static string TrimIfNeeded(string value, int len)
+        {
+            if (value.Length > len)
+            {
+                return value.Substring(0, len);
+            }
+
+            return value;
         }
     }
 }

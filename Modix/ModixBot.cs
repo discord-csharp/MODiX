@@ -1,21 +1,28 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Modix.Data.Models;
+using Newtonsoft.Json;
 using Serilog;
 
 namespace Modix
 {
     public sealed class ModixBot
     {
-        private readonly CommandService _commands = new CommandService();
+        private readonly CommandService _commands = new CommandService( new CommandServiceConfig
+        {
+            LogLevel = LogSeverity.Debug
+        });
         private DiscordSocketClient _client;
         private readonly DependencyMap _map = new DependencyMap();
         private readonly ModixBotHooks _hooks = new ModixBotHooks();
+        private ModixConfig _config = new ModixConfig();
 
         public ModixBot()
         {
@@ -28,17 +35,40 @@ namespace Modix
 
         public async Task Run()
         {
-            var token = Environment.GetEnvironmentVariable("MODIX_BOT_KEY");
+            if (!await LoadConfig())
+            {
+                return;
+            }
+
             _client = new DiscordSocketClient(config: new DiscordSocketConfig()
             {
-                LogLevel = LogSeverity.Info,
+                LogLevel = LogSeverity.Debug,
             });
 
             await Install(); // Setting up DependencyMap
-
-            await _client.LoginAsync(TokenType.Bot, token);
+            await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
             await Task.Delay(-1);
+        }
+
+        public async Task<bool> LoadConfig()
+        {
+            if (!File.Exists("config/conf.json"))
+            {
+                Log.Fatal("Configfile is missing. Generating a new one.");
+
+                if (!Directory.Exists("config"))
+                {
+                    Directory.CreateDirectory("config");
+                }
+
+                await Task.Run(() => File.WriteAllText("config/conf.json", JsonConvert.SerializeObject(_config)));
+                Log.Information("Configfile config/conf.json created.");
+                return false;
+            }
+
+            _config = JsonConvert.DeserializeObject<ModixConfig>(File.ReadAllText("config/conf.json"));
+            return true; 
         }
 
         public async Task HandleCommand(SocketMessage messageParam)
@@ -68,11 +98,12 @@ namespace Modix
         public async Task Install()
         {
             _map.Add(_client);
+            _map.Add(_config);
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;
             _client.Log += _hooks.HandleLog;
-
+            _commands.Log += _hooks.HandleLog;
 
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly());
         }

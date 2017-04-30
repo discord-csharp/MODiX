@@ -5,12 +5,20 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Modix.Data.Models;
 
 namespace Modix.Modules
 {
     [Name("StackExchange"), Summary("Query any site from Stack Exchange.")]
     public class StackExchangeModule : ModuleBase
     {
+        private ModixConfig _config;
+
+        public StackExchangeModule(ModixConfig config)
+        {
+            _config = config;
+        }
+
         [Command("stack"), Summary("Returns top results from a Stack Exchange site. Usage: `!stack how do i parse json with c#? [site=stackoverflow tags=c#,json]`")]
         public async Task Run([Remainder] string phrase)
         {
@@ -50,9 +58,9 @@ namespace Modix.Modules
                 tags = "c#";
             }
 
-            var response = await new StackExchangeService().GetStackExchangeResultsAsync(phrase, site, tags);
-
-            foreach (var res in response.Items.Take(3))
+            var response = await new StackExchangeService().GetStackExchangeResultsAsync(_config.StackoverflowToken, phrase, site, tags);
+            var filteredRes = response.Items.Where(x => x.Tags.Contains(tags));
+            foreach (var res in filteredRes.Take(3))
             {
                 var builder = new EmbedBuilder()
                     .WithColor(new Color(95, 186, 125))

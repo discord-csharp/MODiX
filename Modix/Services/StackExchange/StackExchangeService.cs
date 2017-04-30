@@ -10,13 +10,14 @@ namespace Modix.Services.StackExchange
     {
         private string _ApiReferenceUrl =
             $"http://api.stackexchange.com/2.2/search/advanced" +
-            $"?key={Environment.GetEnvironmentVariable("MODIX_STACKEXCHANGE_KEY")}" +
+            "?key={0}" +
             $"&order=desc" +
             $"&sort=votes" +
             $"&filter=default";
 
-        public async Task<StackExchangeResponse> GetStackExchangeResultsAsync(string phrase, string site, string tags)
+        public async Task<StackExchangeResponse> GetStackExchangeResultsAsync(string token, string phrase, string site, string tags)
         {
+            _ApiReferenceUrl = string.Format(_ApiReferenceUrl, token);
             phrase = Uri.EscapeDataString(phrase);
             site = Uri.EscapeDataString(site);
             tags = Uri.EscapeDataString(tags);
