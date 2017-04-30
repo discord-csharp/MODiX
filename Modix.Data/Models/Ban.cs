@@ -1,8 +1,4 @@
-﻿
-using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-
-namespace Modix.Data.Models
+﻿namespace Modix.Data.Models
 {
     public class Ban
     {

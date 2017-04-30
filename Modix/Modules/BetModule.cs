@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Modix.Modules
 {
-    [Group("bet"), Name("Bet"), Summary("A fun betting game involving random numbers!"), LimitToChannels]
+    [Group("bet"), Name("Bet"), Summary("A fun betting game involving random numbers!"), ApplyChannelLimits]
     public class BetModule : ModuleBase
     {
         private enum BettingState

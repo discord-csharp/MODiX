@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Modix.Data;
@@ -30,7 +31,7 @@ namespace Modix.Services.GuildConfig
 
             ulong requiredRoleId = 0;
 
-            switch(reqPerm)
+            switch (reqPerm)
             {
                 case Permissions.Administrator:
                     requiredRoleId = _guild.Config.AdminRoleId.ToUlong();
@@ -56,6 +57,16 @@ namespace Modix.Services.GuildConfig
             }
 
             return $"AdminRole: {_guild.Config.AdminRoleId}\nModerationRole: {_guild.Config.ModeratorRoleId}";
+        }
+
+        public async Task<bool> AddModuleLimitAsync(IMessageChannel channel, string module)
+        {
+            return await _guildService.AddModuleLimitAsync(_guild, channel, module);
+        }
+
+        public async Task<bool> RemoveModuleLimitAsync(IMessageChannel channel, string module)
+        {
+            return await _guildService.RemoveModuleLimitAsync(_guild, channel, module);
         }
     }
 }

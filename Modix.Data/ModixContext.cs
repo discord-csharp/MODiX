@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data.Models;
 
@@ -12,6 +10,7 @@ namespace Modix.Data
         public DbSet<DiscordGuild> Guilds { get; set; }
         public DbSet<DiscordMessage> Messages { get; set; }
         public DbSet<DiscordUser> Users { get; set; }
+        public DbSet<ChannelLimit> ChannelLimits { get; set; }
 
         public ModixContext() { }
         public ModixContext(DbContextOptions<ModixContext> options) : base(options) { }
