@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Discord.Commands;
 using Modix.Data.Utilities;
 using Modix.Services.GuildConfig;
-using Modix.Utilities;
 
 namespace Modix.Modules
 {
@@ -51,6 +50,30 @@ namespace Modix.Modules
                 sb.Append($"{role.Name} - {role.Id}\n".Replace("@everyone", "everyone"));
             }
             await ReplyAsync(sb.ToString());
+        }
+
+        [Command("RemoveLimit"), Summary("Removes a limit from a module to a channel."), RequireOwner]
+        public async Task RemoveLimitModuleAsync(string module)
+        {
+            _service = new GuildConfigService(Context.Guild);
+
+            var result = await _service.RemoveModuleLimitAsync(Context.Channel, module);
+            if (result)
+            {
+                await ReplyAsync($"{module}'s limit has been removed from channel {Context.Channel.Name}");
+            }
+        }
+
+        [Command("AddLimit"), Summary("Limits a module to a channel."), RequireOwner]
+        public async Task LimitModuleAsync(string module)
+        {
+            _service = new GuildConfigService(Context.Guild);
+
+            var result = await _service.AddModuleLimitAsync(Context.Channel, module);
+            if (result)
+            {
+                await ReplyAsync($"{module} has been granted permissions to channel {Context.Channel.Name}");
+            }
         }
     }
 }

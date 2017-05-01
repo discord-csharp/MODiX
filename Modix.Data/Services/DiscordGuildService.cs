@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading.Tasks;
 using Discord;
-using Microsoft.Build.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data.Models;
 using Modix.Data.Utilities;
@@ -103,9 +99,60 @@ namespace Modix.Data.Services
             }
         }
 
-        public async Task<DiscordGuild> ObtainAsync(IGuild  guild)
+        public async Task<DiscordGuild> ObtainAsync(IGuild guild)
         {
             return await GetAsync(guild.Id) ?? await AddAsync(guild);
+        }
+
+        public async Task<bool> AddModuleLimitAsync(DiscordGuild guild, IMessageChannel channel, string module)
+        {
+            using (var db = new ModixContext())
+            {
+                var limit = await db.ChannelLimits
+                    .Where(c =>
+                        c.ModuleName.ToUpper() == module.ToUpper() &&
+                        c.Guild.Id == guild.Id &&
+                        c.ChannelId == channel.Id.ToLong())
+                    .FirstOrDefaultAsync();
+
+                if (limit == null)
+                {
+                    await db.ChannelLimits.AddAsync(new ChannelLimit
+                    {
+                        ModuleName = module,
+                        Guild = guild,
+                        ChannelId = channel.Id.ToLong()
+                    });
+
+                    await db.SaveChangesAsync();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public async Task<bool> RemoveModuleLimitAsync(DiscordGuild guild, IMessageChannel channel, string module)
+        {
+            using (var db = new ModixContext())
+            {
+                var limit = await db.ChannelLimits
+                    .Where(c =>
+                        c.ModuleName.ToUpper() == module.ToUpper() &&
+                        c.Guild.Id == guild.Id &&
+                        c.ChannelId == channel.Id.ToLong())
+                    .FirstOrDefaultAsync();
+
+                if (limit != null)
+                {
+                    db.ChannelLimits.Remove(limit);
+
+                    await db.SaveChangesAsync();
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

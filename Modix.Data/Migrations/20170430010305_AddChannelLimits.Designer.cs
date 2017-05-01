@@ -8,9 +8,10 @@ using Modix.Data;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    partial class ModixContextModelSnapshot : ModelSnapshot
+    [Migration("20170430010305_AddChannelLimits")]
+    partial class AddChannelLimits
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
