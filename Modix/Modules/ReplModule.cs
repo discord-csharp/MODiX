@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -30,7 +29,7 @@ namespace Modix.Modules
     public class ReplModule : ModuleBase
     {
         private const string ReplRemoteUrl =
-            "http://csharpdiscordfn.azurewebsites.net/api/EvalTrigger?code={0}";
+            "http://csdiscordservice.azurewebsites.net/api/Eval";
 
         private readonly ModixConfig _config;
 
@@ -39,6 +38,7 @@ namespace Modix.Modules
         public ReplModule(ModixConfig config)
         {
             _config = config;
+            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", config.ReplToken);
         }
 
         [Command("exec", RunMode = RunMode.Async), Alias("eval"), Summary("Executes code!")]
@@ -52,7 +52,6 @@ namespace Modix.Modules
 
             var guildUser = Context.User as SocketGuildUser;
             var message = await Context.Channel.SendMessageAsync("Working...");
-            var key = _config.ReplToken;
 
             var content = BuildContent(code);
 
@@ -60,7 +59,7 @@ namespace Modix.Modules
             try
             {
                 var tokenSrc = new CancellationTokenSource(15000);
-                res = await _client.PostAsync(string.Format(ReplRemoteUrl, key), content, tokenSrc.Token);
+                res = await _client.PostAsync(ReplRemoteUrl, content, tokenSrc.Token);
             }
             catch (TaskCanceledException)
             {
