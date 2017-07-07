@@ -58,7 +58,7 @@ namespace Modix.Modules
             HttpResponseMessage res;
             try
             {
-                var tokenSrc = new CancellationTokenSource(15000);
+                var tokenSrc = new CancellationTokenSource(30000);
                 res = await _client.PostAsync(ReplRemoteUrl, content, tokenSrc.Token);
             }
             catch (TaskCanceledException)
