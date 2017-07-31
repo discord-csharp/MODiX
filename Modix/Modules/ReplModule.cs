@@ -29,7 +29,7 @@ namespace Modix.Modules
     public class ReplModule : ModuleBase
     {
         private const string ReplRemoteUrl =
-            "http://csdiscordservice.azurewebsites.net/Eval";
+            "http://eval.cisien.com/Eval";
 
         private readonly ModixConfig _config;
 
@@ -58,7 +58,7 @@ namespace Modix.Modules
             HttpResponseMessage res;
             try
             {
-                var tokenSrc = new CancellationTokenSource(15000);
+                var tokenSrc = new CancellationTokenSource(30000);
                 res = await _client.PostAsync(ReplRemoteUrl, content, tokenSrc.Token);
             }
             catch (TaskCanceledException)
