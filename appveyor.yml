@@ -8,8 +8,8 @@ install:
   - dotnet --info
   - ps: choco install docker-compose
 before_build:
-  - dotnet restore Modix\Modix.csproj --configfile ..\.nuget\nuget.config
-  - dotnet restore Modix.Data\Modix.Data.csproj --configfile ..\.nuget\nuget.config
+  - dotnet restore Modix\Modix.csproj
+  - dotnet restore Modix.Data\Modix.Data.csproj
   - 7z a deploy-script.zip before-deploy.ps1
 build:
   project: Modix.sln
