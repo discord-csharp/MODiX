@@ -1,0 +1,46 @@
+version: 1.0.{build}
+image: Visual Studio 2017
+configuration: Release
+platform: Any CPU
+pull_requests:
+  do_not_increment_build_number: true
+install:
+  - dotnet --info
+  - ps: choco install docker-compose
+before_build:
+  - dotnet restore Modix\Modix.csproj --configfile ..\.nuget\nuget.config
+  - dotnet restore Modix.Data\Modix.Data.csproj --configfile ..\.nuget\nuget.config
+  - 7z a deploy-script.zip before-deploy.ps1
+build:
+  project: Modix.sln
+  verbosity: minimal
+test: off  
+after_build:
+  - ps: |
+      $tag = $env:APPVEYOR_REPO_BRANCH
+      if(-not [System.String]::IsNullOrWhitespace($env:APPVEYOR_PULL_REQUEST_NUMBER)) { $tag = "$tag-pr-${$env:APPVEYOR_PULL_REQUEST_NUMBER}" }
+      if([System.String]::IsNullOrWhitespace($tag)) { $tag = "untagged" }
+      docker login -u="$env:DOCKER_USER" -p="$env:DOCKER_PASS"
+      docker tag modix cisien/modix:$tag
+      docker push cisien/modix:$tag
+artifacts:
+  - path: deploy-script.zip
+    name: deploy-script
+deploy:
+  - provider: Environment
+    name: docker
+    on:
+      branch: master
+environment:
+  DOCKER_USER:
+    secure: ry9x9cQ9gzMNaPOd45RSHQ==
+  DOCKER_PASS:
+    secure: AXXeju7g+0ZE1ZMW2TKcXfW6+CMT70ZDh5iWYE5Bg80=
+  ModixToken:
+    secure: iH/a01Ci3aCaWMHF+AAyYNag9WjvjEoCppj6sYSj3tTrEtoGB+aQiQpR/zgpc2/EizWUgfx4UoHG9SymyhhgSA==
+  ReplServiceToken:
+    secure: GroejrzfkoqNfBomrM4kTrBhT9PoueDewcScZe81dYrqU42xc4WRH2gbNib7wDTz
+  SOToken:
+    secure: ikKVUonT4VkpFzI4GhMi3ZNqHzgA6DokzWXvm0G4DUg=
+  ConnectionString: 
+    secure: RZuDPer6qgcX8PiTNtSy1FNJfcBjch117aqYa91l9CbjZqgvWmWWStfBLBQcwulN6bXB82kxRC6aNJ36cPlnuqicVdjNVEvQIprjC/ngzY7kWIzrZo2vJNSyBtWFH9KUyQMifNriIgQt5t3Of4eeW5hOGCRTOcnGwboI4JN1mqFUFzM+ByRrlq7LbtEqCR5ji2MCSJbbqwFC1CzKXjWy0Q==

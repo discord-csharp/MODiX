@@ -35,11 +35,7 @@ namespace Modix
 
         public async Task Run()
         {
-            if (!await LoadConfig())
-            {
-                return;
-            }
-
+            LoadConfig();
             _client = new DiscordSocketClient(config: new DiscordSocketConfig()
             {
                 LogLevel = LogSeverity.Debug,
@@ -51,24 +47,15 @@ namespace Modix
             await Task.Delay(-1);
         }
 
-        public async Task<bool> LoadConfig()
+        public void LoadConfig()
         {
-            if (!File.Exists("config/conf.json"))
+            _config = new ModixConfig
             {
-                Log.Fatal("Configfile is missing. Generating a new one.");
-
-                if (!Directory.Exists("config"))
-                {
-                    Directory.CreateDirectory("config");
-                }
-
-                await Task.Run(() => File.WriteAllText("config/conf.json", JsonConvert.SerializeObject(_config)));
-                Log.Information("Configfile config/conf.json created.");
-                return false;
-            }
-
-            _config = JsonConvert.DeserializeObject<ModixConfig>(File.ReadAllText("config/conf.json"));
-            return true; 
+                DiscordToken = Environment.GetEnvironmentVariable("Token"),
+                ReplToken = Environment.GetEnvironmentVariable("ReplToken"),
+                StackoverflowToken = Environment.GetEnvironmentVariable("StackoverflowToken"),
+                PostgreConnectionString = Environment.GetEnvironmentVariable("PostgreConnectionString")
+            };
         }
 
         public async Task HandleCommand(SocketMessage messageParam)

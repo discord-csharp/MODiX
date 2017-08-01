@@ -16,4 +16,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update=".dockerignore">
+      <DependentUpon>Dockerfile</DependentUpon>
+    </None>
+  </ItemGroup>
 </Project>
