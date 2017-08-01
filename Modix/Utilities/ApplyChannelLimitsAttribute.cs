@@ -1,6 +1,7 @@
 ﻿using Discord.Commands;
 using Modix.Data;
 using Modix.Data.Utilities;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -8,7 +9,7 @@ namespace Modix.Utilities
 {
     public class ApplyChannelLimits : PreconditionAttribute
     {
-        public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
+        public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
         {
             using (var db = new ModixContext())
             {

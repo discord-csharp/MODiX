@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Modix.Data.Utilities;
+using System;
 
 namespace Modix.Utilities
 {
@@ -15,7 +16,7 @@ namespace Modix.Utilities
             _requiredPermission = requiredPermission;
         }
 
-        public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IDependencyMap map)
+        public override Task<PreconditionResult> CheckPermissions(ICommandContext context, CommandInfo command, IServiceProvider map)
         {
             // first check if we're in a guild because this won't work if we aren't in a guild
             if (!(context.User is IGuildUser))

@@ -20,7 +20,7 @@ namespace Modix.Modules
         public async Task HelpAsync()
         {
             var eb = new EmbedBuilder();
-            var userDm = await Context.User.CreateDMChannelAsync();
+            var userDm = await Context.User.GetOrCreateDMChannelAsync();
 
             foreach (var module in commandService.Modules)
             {

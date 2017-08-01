@@ -10,6 +10,7 @@ using Discord.WebSocket;
 using Modix.Data.Models;
 using Newtonsoft.Json;
 using Serilog;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Modix
 {
@@ -20,7 +21,7 @@ namespace Modix
             LogLevel = LogSeverity.Debug
         });
         private DiscordSocketClient _client;
-        private readonly DependencyMap _map = new DependencyMap();
+        private readonly IServiceCollection _map = new ServiceCollection();
         private readonly ModixBotHooks _hooks = new ModixBotHooks();
         private ModixConfig _config = new ModixConfig();
 
@@ -72,20 +73,16 @@ namespace Modix
                 return;
 
             var context = new CommandContext(_client, message);
-            var result = await _commands.ExecuteAsync(context, argPos, _map);
-
-            if (!result.IsSuccess)
-            {
-                await context.Channel.SendMessageAsync(result.ErrorReason);
-            }
+            var result = await _commands.ExecuteAsync(context, argPos, _map.BuildServiceProvider());
+            
             stopwatch.Stop();
             Log.Information($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
         }
 
         public async Task Install()
         {
-            _map.Add(_client);
-            _map.Add(_config);
+            _map.AddSingleton(_client);
+            _map.AddSingleton(_config);
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;
