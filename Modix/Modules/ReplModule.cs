@@ -28,8 +28,7 @@ namespace Modix.Modules
 
     public class ReplModule : ModuleBase
     {
-        private const string ReplRemoteUrl =
-            "http://eval.cisien.com/Eval";
+        private const string ReplRemoteUrl = "http://CSDiscord/Eval";
 
         private readonly ModixConfig _config;
 
