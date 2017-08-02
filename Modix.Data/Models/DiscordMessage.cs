@@ -10,6 +10,6 @@ namespace Modix.Data.Models
         public DiscordGuild DiscordGuild { get; set; }
         public string Content { get; set; }
         public DiscordUser Author { get; set; }
-        public string[] Attachments { get; set; }
+        public string Attachments { get; set; }
     }
 }
