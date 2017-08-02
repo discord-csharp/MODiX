@@ -62,7 +62,12 @@ namespace Modix.Modules
             }
             catch (TaskCanceledException)
             {
-                await message.ModifyAsync(a => { a.Content = $"Exec failed: Gave up waiting for a response from the REPL service."; });
+                await message.ModifyAsync(a => { a.Content = $"Gave up waiting for a response from the REPL service."; });
+                return;
+            }
+            catch (Exception ex)
+            {
+                await message.ModifyAsync(a => { a.Content = $"Exec failed: {ex.Message}"; });
                 return;
             }
 
@@ -73,7 +78,7 @@ namespace Modix.Modules
             }
 
             var parsedResult = JsonConvert.DeserializeObject<Result>(await res.Content.ReadAsStringAsync());
-                        
+
             var embed = BuildEmbed(guildUser, parsedResult);
 
             await message.ModifyAsync(a =>
