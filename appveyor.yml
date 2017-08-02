@@ -37,7 +37,7 @@ environment:
   DOCKER_PASS:
     secure: AXXeju7g+0ZE1ZMW2TKcXfW6+CMT70ZDh5iWYE5Bg80=
   ModixToken:
-    secure: iH/a01Ci3aCaWMHF+AAyYNag9WjvjEoCppj6sYSj3tTrEtoGB+aQiQpR/zgpc2/EizWUgfx4UoHG9SymyhhgSA==
+    secure: BWrrOxIXH+Aq+iQLbCR5SUS28lWtWIm/ideML7d5k7oppYgFDN7Kz68SVjUBbLPEv0hV9REAMaRK4vr0Ng8vng==
   ReplServiceToken:
     secure: GroejrzfkoqNfBomrM4kTrBhT9PoueDewcScZe81dYrqU42xc4WRH2gbNib7wDTz
   SOToken:
