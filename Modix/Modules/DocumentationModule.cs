@@ -16,6 +16,13 @@ namespace Modix.Modules
         public async Task GetDocumentationAsync([Remainder]string term)
         {
             var response = await new DocumentationService().GetDocumentationResultsAsync(term);
+
+            if (response.Count == 0)
+            {
+                await ReplyAsync("Could not find documentation for your requested term.");
+                return;
+            }
+            
             var embedCount = 0;
 
             foreach (var res in response.Results.Take(3).OrderBy(x => x.DisplayName))
