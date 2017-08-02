@@ -19,7 +19,7 @@ namespace Modix.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseNpgsql(Environment.GetEnvironmentVariable("MODIX_DB_CONNECTION"));
+                optionsBuilder.UseSqlite(Environment.GetEnvironmentVariable("MODIX_DB_CONNECTION"));
             }
         }
     }
