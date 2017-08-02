@@ -13,5 +13,5 @@ if (Enter-OncePerDeployment "install_docker_image")
 	docker stop Modix
 	docker rm Modix
 	docker pull "cisien/modix:$tag"
-	docker run -d -e "Token=$env:ModixToken" -e "ReplToken=$env:ReplServiceToken" -e "StackoverflowToken=$env:SOToken" -e "PostgreConnectionString=$env:ConnectionString" --name=Modix -v modix:c:\app\config --link=CSDiscord --net=nat "cisien/modix:$tag"
+	docker run -d -e "Token=$env:ModixToken" -e "ReplToken=$env:ReplServiceToken" -e "StackoverflowToken=$env:SOToken" -e "MODIX_DB_CONNECTION=$env:ConnectionString" --name=Modix -v modix:c:\app\config --link=CSDiscord --net=nat "cisien/modix:$tag"
 }

@@ -42,5 +42,4 @@ environment:
     secure: GroejrzfkoqNfBomrM4kTrBhT9PoueDewcScZe81dYrqU42xc4WRH2gbNib7wDTz
   SOToken:
     secure: ikKVUonT4VkpFzI4GhMi3ZNqHzgA6DokzWXvm0G4DUg=
-  ConnectionString: 
-    secure: RZuDPer6qgcX8PiTNtSy1FNJfcBjch117aqYa91l9CbjZqgvWmWWStfBLBQcwulN6bXB82kxRC6aNJ36cPlnuqicVdjNVEvQIprjC/ngzY7kWIzrZo2vJNSyBtWFH9KUyQMifNriIgQt5t3Of4eeW5hOGCRTOcnGwboI4JN1mqFUFzM+ByRrlq7LbtEqCR5ji2MCSJbbqwFC1CzKXjWy0Q==
+  ConnectionString: Data Source=c:\app\config\sqlite.db;Version=3;

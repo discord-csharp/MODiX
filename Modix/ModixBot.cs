@@ -55,7 +55,7 @@ namespace Modix
                 DiscordToken = Environment.GetEnvironmentVariable("Token"),
                 ReplToken = Environment.GetEnvironmentVariable("ReplToken"),
                 StackoverflowToken = Environment.GetEnvironmentVariable("StackoverflowToken"),
-                PostgreConnectionString = Environment.GetEnvironmentVariable("PostgreConnectionString")
+                PostgreConnectionString = Environment.GetEnvironmentVariable("MODIX_DB_CONNECTION")
             };
         }
 
