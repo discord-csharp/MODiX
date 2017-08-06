@@ -86,6 +86,8 @@ namespace Modix.Modules
                 a.Content = string.Empty;
                 a.Embed = embed.Build();
             });
+
+            await Context.Message.DeleteAsync();
         }
 
         private StringContent BuildContent(string code)

@@ -1,7 +1,9 @@
-﻿namespace Modix
+﻿using System.Threading.Tasks;
+
+namespace Modix
 {
     class Program
     {
-        static void Main(string[] args) => new ModixBot().Run().GetAwaiter().GetResult();
+        static async Task Main(string[] args) => await new ModixBot().Run();
     }
 }
