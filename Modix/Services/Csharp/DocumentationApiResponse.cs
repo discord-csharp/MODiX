@@ -38,6 +38,8 @@ namespace Modix.Services.Csharp
         Field,
         Event,
         Interface,
-        Delegate
+        Delegate,
+        Enum,
+        Struct
     }
 }
