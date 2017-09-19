@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Modix.Data.Models;
-using Newtonsoft.Json;
 using Serilog;
 using Microsoft.Extensions.DependencyInjection;
 
