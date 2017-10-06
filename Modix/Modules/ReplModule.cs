@@ -43,6 +43,12 @@ namespace Modix.Modules
         [Command("exec", RunMode = RunMode.Async), Alias("eval"), Summary("Executes code!")]
         public async Task ReplInvoke([Remainder] string code)
         {
+            if (!(Context.Channel is SocketGuildChannel))
+            {
+                await ReplyAsync("exec can only be executed in public guild channels.");
+                return;
+            }
+
             if (code.Length > 1024)
             {
                 await ReplyAsync("Exec failed: Code is greater than 1024 characters in length");
