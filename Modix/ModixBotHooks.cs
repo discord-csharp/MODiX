@@ -9,6 +9,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Modix.Data.Models;
 using Serilog;
+using Modix.Services.AutoCodePaste;
 
 namespace Modix
 {
@@ -46,6 +47,8 @@ namespace Modix
             var user = ((messageParam as SocketUserMessage)?.Author as SocketGuildUser);
 
             if (user == null) return;
+
+            await CodePasteHandler.MessageReceived(messageParam);
 
             //var msg = new DiscordMessage()
             //{

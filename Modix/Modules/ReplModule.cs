@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using Modix.Data.Models;
 using System.Threading;
 using Discord.WebSocket;
+using Modix.Utilities;
 
 namespace Modix.Modules
 {
@@ -58,7 +59,7 @@ namespace Modix.Modules
             var guildUser = Context.User as SocketGuildUser;
             var message = await Context.Channel.SendMessageAsync("Working...");
 
-            var content = BuildContent(code);
+            var content = FormatUtilities.BuildContent(code);
 
             HttpResponseMessage res;
             try
@@ -94,14 +95,6 @@ namespace Modix.Modules
             });
 
             await Context.Message.DeleteAsync();
-        }
-
-        private StringContent BuildContent(string code)
-        {
-            var cleanCode = code.Replace("```csharp", string.Empty).Replace("```cs", string.Empty).Replace("```", string.Empty);
-            cleanCode = Regex.Replace(cleanCode.Trim(), "^`|`$", string.Empty); //strip out the ` characters from the beginning and end of the string
-
-            return new StringContent(cleanCode, Encoding.UTF8, "text/plain");
         }
 
         private EmbedBuilder BuildEmbed(SocketGuildUser guildUser, Result parsedResult)
