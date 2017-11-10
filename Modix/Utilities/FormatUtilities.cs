@@ -33,7 +33,7 @@ namespace Modix.Utilities
         public static string FixIndentation(string code)
         {
             var lines = code.Split('\n');
-            string indentLine = lines.SkipWhile(d => d[0] != ' ').FirstOrDefault();
+            string indentLine = lines.SkipWhile(d => d.FirstOrDefault() != ' ').FirstOrDefault();
             
             if (indentLine != null)
             {

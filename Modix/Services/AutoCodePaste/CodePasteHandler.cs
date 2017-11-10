@@ -26,16 +26,20 @@ namespace Modix.Services.AutoCodePaste
 */
 
 {4}";
+        internal static string FormatHeader(IMessage arg)
+        {
+            return String.Format(Header, $"{arg.Author.Username}#{arg.Author.DiscriminatorValue}",
+                    arg.Channel.Name, DateTime.Now.ToString("dddd, MMMM d yyyy @ H:mm:ss"), arg.Id, FormatUtilities.FixIndentation(arg.Content));
+        }
+
         internal static async Task MessageReceived(SocketMessage arg)
         {
-            if (arg.Content.Length < 750) { return; }
+            if (arg.Content.Length < 750 && arg.Content.Split('\n').Length <= 30) { return; } 
+            if (arg.Content.StartsWith("!exec") || arg.Content.StartsWith("!eval")) { return; } //let the eval module handle it
 
-            string content = String.Format(Header, $"{arg.Author.Username}#{arg.Author.DiscriminatorValue}",
-                    arg.Channel.Name, DateTime.Now.ToString("dddd, MMMM d yyyy @ H:mm:ss"), arg.Id, FormatUtilities.FixIndentation(arg.Content));
+            string url = await new CodePasteService().UploadCode(FormatHeader(arg));
 
-            string url = await new CodePasteService().UploadCode(content);
-
-            await arg.Channel.SendMessageAsync($"Sorry {arg.Author.Mention}, your message was a bit too long! Next time, paste long chunks of code elsewhere!\n{url}");
+            await arg.Channel.SendMessageAsync($"Hey {arg.Author.Mention}, I took the liberty of uploading your overly-long message here:\n{url}");
             await arg.DeleteAsync();
         }
     }
