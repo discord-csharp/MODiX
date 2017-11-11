@@ -14,7 +14,7 @@ namespace Modix.Modules
         [Command("paste"), Summary("Paste the rest of your message to the internet, and return the URL.")]
         public async Task Run([Remainder] string code)
         {
-            var response = await new CodePasteService().UploadCode(CodePasteHandler.FormatHeader(Context.Message));
+            string response = await new CodePasteService().UploadCode(Context.Message, code);
 
             var builder = new EmbedBuilder()
                 .WithTitle("Here's Your Paste")

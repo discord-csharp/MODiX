@@ -4,6 +4,8 @@ using Modix.Utilities;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -12,35 +14,32 @@ namespace Modix.Services.AutoCodePaste
 {
     public class CodePasteHandler
     {
-        const string Header = @"/*
-    ______ _                       _   _____   _  _   
-    |  _  (_)                     | | /  __ \_| || |_ 
-    | | | |_ ___  ___ ___  _ __ __| | | /  \/_  __  _|
-    | | | | / __|/ __/ _ \| '__/ _` | | |    _| || |_ 
-    | |/ /| \__ \ (_| (_) | | | (_| | | \__/\_  __  _|
-    |___/ |_|___/\___\___/|_|  \__,_|  \____/ |_||_|  
-    
-    Written By: {0} in #{1}
-    Posted on {2}
-    Message ID: {3}
-*/
-
-{4}";
-        internal static string FormatHeader(IMessage arg)
+        internal async Task MessageReceived(SocketMessage arg)
         {
-            return String.Format(Header, $"{arg.Author.Username}#{arg.Author.DiscriminatorValue}",
-                    arg.Channel.Name, DateTime.Now.ToString("dddd, MMMM d yyyy @ H:mm:ss"), arg.Id, FormatUtilities.FixIndentation(arg.Content));
-        }
+            if (arg.Content.Length < 750 &&
+                arg.Content.Count(c => c == '\n') <= 30)
+            {
+                return;
+            }
 
-        internal static async Task MessageReceived(SocketMessage arg)
-        {
-            if (arg.Content.Length < 750 && arg.Content.Split('\n').Length <= 30) { return; } 
-            if (arg.Content.StartsWith("!exec") || arg.Content.StartsWith("!eval")) { return; } //let the eval module handle it
+            //Make sure we don't have collisions with other modules
+            //TODO: Make this less hacky
+            if (arg.Content.StartsWith("!exec") || arg.Content.StartsWith("!eval") || arg.Content.StartsWith("!paste"))
+            {
+                return;
+            }
 
-            string url = await new CodePasteService().UploadCode(FormatHeader(arg));
+            try
+            {
+                string url = await new CodePasteService().UploadCode(arg);
 
-            await arg.Channel.SendMessageAsync($"Hey {arg.Author.Mention}, I took the liberty of uploading your overly-long message here:\n{url}");
-            await arg.DeleteAsync();
+                await arg.Channel.SendMessageAsync($"Hey {arg.Author.Mention}, I took the liberty of uploading your overly-long message here:\n{url}");
+                await arg.DeleteAsync();
+            }
+            catch (WebException ex)
+            {
+                await arg.Channel.SendMessageAsync($"I would have reuploaded your long message, but: {ex.Message}");
+            }
         }
     }
 }
