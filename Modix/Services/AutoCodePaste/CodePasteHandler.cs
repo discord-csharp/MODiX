@@ -12,19 +12,28 @@ using System.Threading.Tasks;
 
 namespace Modix.Services.AutoCodePaste
 {
-    public class CodePasteHandler
+    public static class CodePasteHandler
     {
-        internal async Task MessageReceived(SocketMessage arg)
+        internal static async Task MessageReceived(SocketMessage arg)
         {
-            if (arg.Content.Length < 750 &&
-                arg.Content.Count(c => c == '\n') <= 30)
+            string code = arg.Content;
+            int lines = code.Count(c => c == '\n');
+
+            if (code.Contains("```"))
+            {
+                if (code.Length < 1000)
+                {
+                    return;
+                }
+            }
+            else if (lines < 30 && code.Length < 1500)
             {
                 return;
             }
 
             //Make sure we don't have collisions with other modules
             //TODO: Make this less hacky
-            if (arg.Content.StartsWith("!exec") || arg.Content.StartsWith("!eval") || arg.Content.StartsWith("!paste"))
+            if (code.StartsWith("!exec") || code.StartsWith("!eval") || code.StartsWith("!paste"))
             {
                 return;
             }
@@ -33,7 +42,17 @@ namespace Modix.Services.AutoCodePaste
             {
                 string url = await new CodePasteService().UploadCode(arg);
 
-                await arg.Channel.SendMessageAsync($"Hey {arg.Author.Mention}, I took the liberty of uploading your overly-long message here:\n{url}");
+                var embed = new EmbedBuilder()
+                    .WithAuthor(arg.Author)
+                    .WithDescription($"Your message was a bit long; next time, consider pasting it somewhere else or use the `!paste [code]` command.")
+                    .AddInlineField("Auto-Paste", url)
+                    .WithFooter(new EmbedFooterBuilder
+                    {
+                        Text = $"Message Id: {arg.Id}"
+                    })
+                    .WithColor(new Color(95, 186, 125));
+
+                await arg.Channel.SendMessageAsync(arg.Author.Mention, false, embed);
                 await arg.DeleteAsync();
             }
             catch (WebException ex)
