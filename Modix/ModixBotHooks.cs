@@ -48,7 +48,7 @@ namespace Modix
 
             if (user == null) return;
 
-            await new CodePasteHandler().MessageReceived(messageParam);
+            await CodePasteHandler.MessageReceived(messageParam);
 
             //var msg = new DiscordMessage()
             //{
