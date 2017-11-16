@@ -19,5 +19,19 @@ namespace Modix.Data.Utilities
 
             return convertedNumber;
         }
+
+        public static string Truncate(this string value, int maxLength, string suffix = "…")
+        {
+            if (string.IsNullOrEmpty(value)) return value;
+
+            if (value.Length <= maxLength)
+            {
+                return value;
+            }
+            else
+            {
+                return $"{value.Substring(0, maxLength).Trim()}{suffix}";
+            }
+        }
     }
 }

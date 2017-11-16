@@ -15,6 +15,7 @@ namespace Modix
 {
     public class ModixBotHooks
     {
+        private CodePasteHandler codePaste = new CodePasteHandler();
 
         public Task HandleLog(LogMessage message)
         {
@@ -42,13 +43,21 @@ namespace Modix
             return Task.CompletedTask;
         }
 
+        public async Task HandleAddReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+        {
+            await codePaste.ReactionAdded(message, channel, reaction);
+        }
+
+        public async Task HandleRemoveReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+        {
+            await codePaste.ReactionRemoved(message, channel, reaction);
+        }
+
         public async Task HandleMessage(SocketMessage messageParam)
         {
             var user = ((messageParam as SocketUserMessage)?.Author as SocketGuildUser);
 
             if (user == null) return;
-
-            await CodePasteHandler.MessageReceived(messageParam);
 
             //var msg = new DiscordMessage()
             //{

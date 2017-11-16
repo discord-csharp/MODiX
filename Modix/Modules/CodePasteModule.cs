@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Modix.Data.Utilities;
 using Modix.Services.AutoCodePaste;
 using System;
 using System.Linq;
@@ -14,18 +15,10 @@ namespace Modix.Modules
         [Command("paste"), Summary("Paste the rest of your message to the internet, and return the URL.")]
         public async Task Run([Remainder] string code)
         {
-            string response = await new CodePasteService().UploadCode(Context.Message, code);
+            string url = await CodePasteService.UploadCode(Context.Message, code);
+            var embed = CodePasteService.BuildEmbed(Context.User, code, url);
 
-            var builder = new EmbedBuilder()
-                .WithTitle("Here's Your Paste")
-                .WithDescription(response)
-                .WithFooter(new EmbedFooterBuilder
-                {
-                    Text = $"Message Id: {Context.Message.Id}"
-                })
-                .WithColor(new Color(95, 186, 125));
-
-            await ReplyAsync(Context.User.Mention, false, builder);
+            await ReplyAsync(Context.User.Mention, false, embed);
             await Context.Message.DeleteAsync();
         }
     }
