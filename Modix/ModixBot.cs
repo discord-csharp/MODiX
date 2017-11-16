@@ -83,6 +83,9 @@ namespace Modix
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;
+            _client.ReactionAdded += _hooks.HandleAddReaction;
+            _client.ReactionRemoved += _hooks.HandleRemoveReaction;
+
             _client.Log += _hooks.HandleLog;
             _commands.Log += _hooks.HandleLog;
 

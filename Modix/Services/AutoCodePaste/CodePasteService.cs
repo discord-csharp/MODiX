@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Modix.Data.Utilities;
 using Modix.Utilities;
 using Newtonsoft.Json.Linq;
 using System;
@@ -12,20 +13,13 @@ namespace Modix.Services.AutoCodePaste
 {
     public class CodePasteService
     {
-        private const string Header = @"/*
-    ______ _                       _   _____   _  _   
-    |  _  (_)                     | | /  __ \_| || |_ 
-    | | | |_ ___  ___ ___  _ __ __| | | /  \/_  __  _|
-    | | | | / __|/ __/ _ \| '__/ _` | | |    _| || |_ 
-    | |/ /| \__ \ (_| (_) | | | (_| | | \__/\_  __  _|
-    |___/ |_|___/\___\___/|_|  \__,_|  \____/ |_||_|  
-    
-    Written By: {0} in #{1}
-    Posted on {2}
-    Message ID: {3}
-*/
+        private const string Header = @"{0}
 
-{4}";
+/*
+    Written By: {1} in #{2}
+    Posted on {3}
+    Message ID: {4}
+*/";
 
         private const string _ApiReferenceUrl = "https://hastebin.com/";
 
@@ -34,7 +28,7 @@ namespace Modix.Services.AutoCodePaste
         /// </summary>
         /// <param name="code">The code to post</param>
         /// <returns>The URL to the newly created post</returns>
-        private async Task<string> UploadCode(string code)
+        private static async Task<string> UploadCode(string code)
         {
             var client = new HttpClient();
             var response = await client.PostAsync($"{_ApiReferenceUrl}documents", FormatUtilities.BuildContent(code));
@@ -56,12 +50,25 @@ namespace Modix.Services.AutoCodePaste
         /// <param name="msg">The Discord message to upload</param>
         /// <param name="code">The string to upload instead of message content</param>
         /// <returns>The URL to the newly created post</returns>
-        internal async Task<string> UploadCode(IMessage msg, string code = null)
+        internal static async Task<string> UploadCode(IMessage msg, string code = null)
         {
-            string formatted = String.Format(Header, $"{msg.Author.Username}#{msg.Author.DiscriminatorValue}",
-                    msg.Channel.Name, DateTime.Now.ToString("dddd, MMMM d yyyy @ H:mm:ss"), msg.Id, FormatUtilities.FixIndentation(code ?? msg.Content));
+            string formatted = String.Format(FormatUtilities.FixIndentation(code ?? msg.Content), Header, 
+                $"{msg.Author.Username}#{msg.Author.DiscriminatorValue}", msg.Channel.Name,
+                DateTime.Now.ToString("dddd, MMMM d yyyy @ H:mm:ss"), msg.Id);
 
             return await UploadCode(formatted);
+        }
+
+        internal static EmbedBuilder BuildEmbed(IUser user, string content, string url)
+        {
+            string cleanCode = FormatUtilities.FixIndentation(content);
+
+            return new EmbedBuilder()
+                .WithTitle("Your message was re-uploaded")
+                .WithAuthor(user)
+                .WithDescription(cleanCode.Trim().Truncate(300))
+                .AddInlineField("Auto-Paste", url)
+                .WithColor(new Color(95, 186, 125));
         }
     }
 }
