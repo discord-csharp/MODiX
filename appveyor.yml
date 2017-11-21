@@ -42,4 +42,7 @@ environment:
     secure: GroejrzfkoqNfBomrM4kTrBhT9PoueDewcScZe81dYrqU42xc4WRH2gbNib7wDTz
   SOToken:
     secure: ikKVUonT4VkpFzI4GhMi3ZNqHzgA6DokzWXvm0G4DUg=
+  log_webhook_token:
+    secure: /QjuIMGkGJIDgoyw+zeIsQQKjcbnrmydGAjcOhzYvFPHy2CFoev9vd2Bq8gv+oA/dUVv8mFShqPqvzFq+1PkwdUMIYVB21wcTRENTA4FjjQ=
   ConnectionString: Data Source=c:\app\config\sqlite.db;Version=3;
+  log_webhook_id: 382609729802862592

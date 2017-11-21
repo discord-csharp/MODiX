@@ -8,12 +8,14 @@ using Discord.WebSocket;
 using Modix.Data.Models;
 using Serilog;
 using Microsoft.Extensions.DependencyInjection;
+using Modix.Utilities;
+using Serilog.Events;
 
 namespace Modix
 {
     public sealed class ModixBot
     {
-        private readonly CommandService _commands = new CommandService( new CommandServiceConfig
+        private readonly CommandService _commands = new CommandService(new CommandServiceConfig
         {
             LogLevel = LogSeverity.Debug
         });
@@ -24,16 +26,23 @@ namespace Modix
 
         public ModixBot()
         {
-            Log.Logger = new LoggerConfiguration()
+            LoadConfig();
+
+            var loggerConfig = new LoggerConfiguration()
                 .MinimumLevel.Debug()
                 .WriteTo.LiterateConsole()
-                .WriteTo.RollingFile(@"logs\{Date}")
-                .CreateLogger();
+                .WriteTo.RollingFile(@"logs\{Date}");
+
+            if (!string.IsNullOrWhiteSpace(_config.WebhookToken))
+            {
+                loggerConfig.WriteTo.DiscordWebhookSink(_config.WebhookId, _config.WebhookToken, LogEventLevel.Error);
+            }
+
+            Log.Logger = loggerConfig.CreateLogger();
         }
 
         public async Task Run()
         {
-            LoadConfig();
             _client = new DiscordSocketClient(config: new DiscordSocketConfig()
             {
                 LogLevel = LogSeverity.Debug,
@@ -47,13 +56,21 @@ namespace Modix
 
         public void LoadConfig()
         {
+
             _config = new ModixConfig
             {
                 DiscordToken = Environment.GetEnvironmentVariable("Token"),
                 ReplToken = Environment.GetEnvironmentVariable("ReplToken"),
                 StackoverflowToken = Environment.GetEnvironmentVariable("StackoverflowToken"),
-                PostgreConnectionString = Environment.GetEnvironmentVariable("MODIX_DB_CONNECTION")
+                PostgreConnectionString = Environment.GetEnvironmentVariable("MODIX_DB_CONNECTION"),
             };
+            var id = Environment.GetEnvironmentVariable("log_webhook_id");
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                _config.WebhookId = ulong.Parse(id);
+                _config.WebhookToken = Environment.GetEnvironmentVariable("log_webhook_token");
+            }
         }
 
         public async Task HandleCommand(SocketMessage messageParam)
@@ -71,7 +88,7 @@ namespace Modix
 
             var context = new CommandContext(_client, message);
             var result = await _commands.ExecuteAsync(context, argPos, _map.BuildServiceProvider());
-            
+
             stopwatch.Stop();
             Log.Information($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
         }
