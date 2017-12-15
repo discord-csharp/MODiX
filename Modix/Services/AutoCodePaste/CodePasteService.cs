@@ -3,23 +3,22 @@ using Modix.Data.Utilities;
 using Modix.Utilities;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Modix.Services.AutoCodePaste
 {
     public class CodePasteService
     {
-        private const string Header = @"{0}
-
+        private const string Header = @"
 /*
-    Written By: {1} in #{2}
-    Posted on {3}
-    Message ID: {4}
-*/";
+    Written By: {0} in #{1}
+    Posted on {2}
+    Message ID: {3}
+*/
+
+{4}";
 
         private const string _ApiReferenceUrl = "https://hastebin.com/";
 
@@ -38,8 +37,8 @@ namespace Modix.Services.AutoCodePaste
                 throw new WebException("Something failed while posting code to Hastebin.");
             }
 
-            string urlResponse = await response.Content.ReadAsStringAsync();
-            string pasteKey = JObject.Parse(urlResponse)["key"].Value<string>();
+            var urlResponse = await response.Content.ReadAsStringAsync();
+            var pasteKey = JObject.Parse(urlResponse)["key"].Value<string>();
 
             return $"{_ApiReferenceUrl}{pasteKey}.cs";
         }
@@ -52,16 +51,17 @@ namespace Modix.Services.AutoCodePaste
         /// <returns>The URL to the newly created post</returns>
         internal static async Task<string> UploadCode(IMessage msg, string code = null)
         {
-            string formatted = String.Format(FormatUtilities.FixIndentation(code ?? msg.Content), Header, 
+            var formatted = string.Format(Header,
                 $"{msg.Author.Username}#{msg.Author.DiscriminatorValue}", msg.Channel.Name,
-                DateTime.Now.ToString("dddd, MMMM d yyyy @ H:mm:ss"), msg.Id);
+                DateTime.Now.ToString("dddd, MMMM d yyyy @ H:mm:ss"), msg.Id, 
+                FormatUtilities.FixIndentation(code ?? msg.Content));
 
             return await UploadCode(formatted);
         }
 
         internal static EmbedBuilder BuildEmbed(IUser user, string content, string url)
         {
-            string cleanCode = FormatUtilities.FixIndentation(content);
+            var cleanCode = FormatUtilities.FixIndentation(content);
 
             return new EmbedBuilder()
                 .WithTitle("Your message was re-uploaded")
