@@ -53,7 +53,8 @@ namespace Modix.Services.AutoCodePaste
         {
             var formatted = string.Format(Header,
                 $"{msg.Author.Username}#{msg.Author.DiscriminatorValue}", msg.Channel.Name,
-                DateTime.Now.ToString("dddd, MMMM d yyyy @ H:mm:ss"), msg.Id, FormatUtilities.FixIndentation(code ?? msg.Content));
+                DateTime.Now.ToString("dddd, MMMM d yyyy @ H:mm:ss"), msg.Id, 
+                FormatUtilities.FixIndentation(code ?? msg.Content));
 
             return await UploadCode(formatted);
         }
