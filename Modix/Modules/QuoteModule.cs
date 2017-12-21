@@ -53,19 +53,7 @@ namespace Modix.Modules
                     Context.User.Mention, messageId, channel.Name);
             }
 
-            if (message != null)
-            {
-                var quoteEmbed = _quoteService.BuildQuoteEmbed(message);
-
-                await ReplyAsync(string.Empty, false, quoteEmbed);
-            }
-            else
-            {
-                await ReplyFailure();
-            }
-
-            // Delete the message originally sent, we're done (even if we've failed fetching)
-            await Context.Message.DeleteAsync();
+            await ProcessRetrievedMessage(message);
         }
 
         private async Task ProcessRetrievedMessage(IMessage message)
@@ -103,7 +91,7 @@ namespace Modix.Modules
                     if (message != null)
                         break;
                 }
-                catch (CommandException e)
+                catch (Exception e)
                 {
                     Log.Warning(e, "Failed accessing channel {ChannelName} when searching for message {MessageId}",
                         channel.Name, messageId);
