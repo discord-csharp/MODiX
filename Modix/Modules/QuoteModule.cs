@@ -105,8 +105,8 @@ namespace Modix.Modules
                 }
                 catch (CommandException e)
                 {
-                    Console.WriteLine(e);
-                    throw;
+                    Log.Error(e, "Failed fetching message for Quote command, ran by {User} with a Message ID of {MessageId}",
+                        Context.User.Mention, messageId);
                 }
             }
 
