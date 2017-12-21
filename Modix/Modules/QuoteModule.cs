@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using System;
+using Discord.Commands;
 using System.Threading.Tasks;
 using Discord;
 using Modix.Services.Quote;
@@ -109,10 +110,17 @@ namespace Modix.Modules
 
                 foreach (var channel in channels)
                 {
-                    message = await GetMessage(messageId, channel);
+                    try
+                    {
+                        message = await GetMessage(messageId, channel);
 
-                    if (message != null)
-                        break;
+                        if (message != null)
+                            break;
+                    }
+                    catch (CommandException ex)
+                    {
+                        Log.Warning(ex, "Cannot access channel when searching for quote");
+                    }
                 }
             }
 
