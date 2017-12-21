@@ -1,7 +1,9 @@
-﻿using Discord.Commands;
+﻿using System;
+using Discord.Commands;
 using System.Threading.Tasks;
 using Discord;
 using Modix.Services.Quote;
+using Serilog;
 
 namespace Modix.Modules
 {
@@ -15,14 +17,47 @@ namespace Modix.Modules
             _quoteService = quoteService;
         }
 
-        [Command("quote"), Summary("Quote a message using its Discord ID, returns a pretty embed of the message along with the author")]
-        public async Task Run([Remainder] string id)
+        [Command("quote")]
+        public async Task Run(ulong messageId)
         {
             IMessage message = null;
 
-            if (ulong.TryParse(id, out var messageId))
-                message = await GetMessage(messageId);
+            try
+            {
+                message = await GetMessage(messageId, Context.Channel as ITextChannel);
 
+                if (message == null)
+                    message = await FindMessageInUnknownChannel(messageId);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Failed fetching message for Quote command, ran by {User} with a Message ID of {MessageId}", 
+                    Context.User.Mention, messageId);
+            }
+
+            await ProcessRetrievedMessage(message);
+        }
+
+        [Command("quote")]
+        public async Task Run(ITextChannel channel, ulong messageId)
+        {
+            IMessage message = null;
+
+            try
+            {
+                message = await GetMessage(messageId, channel);
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Failed fetching message for Quote command, ran by {User} with a Message ID of {MessageId} for channel {Channel}", 
+                    Context.User.Mention, messageId, channel.Name);
+            }
+
+            await ProcessRetrievedMessage(message);
+        }
+
+        private async Task ProcessRetrievedMessage(IMessage message)
+        {
             if (message != null)
             {
                 var quoteEmbed = _quoteService.BuildQuoteEmbed(message);
@@ -38,34 +73,39 @@ namespace Modix.Modules
             await Context.Message.DeleteAsync();
         }
 
-        private async Task<IMessage> GetMessage(ulong messageId)
+        private async Task<IMessage> FindMessageInUnknownChannel(ulong messageId)
         {
-            // Attempt to get the message from the channel the user
-            // is executing the command from
-            var message = await GetMessageInChannel(messageId);
+            IMessage message = null;
 
-            if (message == null)
+            // We haven't found a message, now fetch all text
+            // channels and attempt to find the message
+
+            var channels = await Context.Guild.GetTextChannelsAsync();
+
+            foreach (var channel in channels)
             {
-                // We haven't found a message, now fetch all text
-                // channels and attempt to find the message
-
-                var channels = await Context.Guild.GetTextChannelsAsync();
-
-                foreach (var channel in channels)
+                try
                 {
-                    message = await GetMessageInChannel(messageId, channel);
+                    message = await GetMessage(messageId, channel);
 
                     if (message != null)
                         break;
+                }
+                catch (Exception e)
+                {
+                    Log.Warning(e, "Failed accessing channel {ChannelName} when searching for message {MessageId}",
+                        channel.Name, messageId);
                 }
             }
 
             return message;
         }
 
-        private Task<IMessage> GetMessageInChannel(ulong messageId) => Context.Channel.GetMessageAsync(messageId);
+        private Task<IMessage> GetMessage(ulong messageId, ITextChannel channel)
+            => GetMessageInChannel(messageId, channel);
 
-        private Task<IMessage> GetMessageInChannel(ulong messageId, ITextChannel channel) => channel.GetMessageAsync(messageId);
+        private static Task<IMessage> GetMessageInChannel(ulong messageId, ITextChannel channel) 
+            => channel.GetMessageAsync(messageId);
 
         private Task ReplyFailure() => ReplyAsync($"I couldn't find the message you're referring to {Context.User.Mention}");
     }
