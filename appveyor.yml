@@ -32,6 +32,7 @@ deploy:
     on:
       branch: master
 environment:
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   DOCKER_USER:
     secure: ry9x9cQ9gzMNaPOd45RSHQ==
   DOCKER_PASS:

@@ -90,6 +90,11 @@ namespace Modix
             var context = new CommandContext(_client, message);
             var result = await _commands.ExecuteAsync(context, argPos, _map.BuildServiceProvider());
 
+            if(!result.IsSuccess)
+            {
+                Log.Error($"{result.Error}: {result.ErrorReason}");
+            }
+
             stopwatch.Stop();
             Log.Information($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
         }
