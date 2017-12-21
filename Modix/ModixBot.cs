@@ -8,6 +8,7 @@ using Discord.WebSocket;
 using Modix.Data.Models;
 using Serilog;
 using Microsoft.Extensions.DependencyInjection;
+using Modix.Services.Quote;
 using Modix.Utilities;
 using Serilog.Events;
 
@@ -97,6 +98,7 @@ namespace Modix
         {
             _map.AddSingleton(_client);
             _map.AddSingleton(_config);
+            _map.AddScoped<IQuoteService, QuoteService>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;

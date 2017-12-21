@@ -2,9 +2,14 @@
 
 namespace Modix.Services.Quote
 {
-    public static class QuoteService
+    public interface IQuoteService
     {
-        public static EmbedBuilder BuildQuoteEmbed(IMessage message)
+        EmbedBuilder BuildQuoteEmbed(IMessage message);
+    }
+
+    public class QuoteService : IQuoteService
+    {
+        public EmbedBuilder BuildQuoteEmbed(IMessage message)
         {
             return new EmbedBuilder()
                 .WithAuthor(message.Author)
@@ -14,7 +19,7 @@ namespace Modix.Services.Quote
         }
 
         private static string GetPostedMeta(IMessage message)
-            => string.Format("{0:dddd, dd}{1} {0:MMMM yyyy} at {0:HH:mm}, in {2}", message.Timestamp, GetDaySuffix(message.Timestamp.Day), $"#{message.Channel.Name}");
+            => string.Format("{0:dddd, dd}{1} {0:MMMM yyyy} at {0:HH:mm}, in #{2}", message.Timestamp, GetDaySuffix(message.Timestamp.Day), message.Channel.Name);
 
         private static string GetDaySuffix(int day)
         {

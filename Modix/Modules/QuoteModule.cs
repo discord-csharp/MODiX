@@ -8,6 +8,13 @@ namespace Modix.Modules
     [Name("Quote Message"), Summary("Quote a message from the Guild with its ID")]
     public class QuoteModule : ModuleBase
     {
+        private readonly IQuoteService _quoteService;
+
+        public QuoteModule(IQuoteService quoteService)
+        {
+            _quoteService = quoteService;
+        }
+
         [Command("quote"), Summary("Quote a message using its Discord ID, returns a pretty embed of the message along with the author")]
         public async Task Run([Remainder] string id)
         {
@@ -18,7 +25,7 @@ namespace Modix.Modules
 
             if (message != null)
             {
-                var quoteEmbed = QuoteService.BuildQuoteEmbed(message);
+                var quoteEmbed = _quoteService.BuildQuoteEmbed(message);
 
                 await ReplyAsync(string.Empty, false, quoteEmbed);
             }
