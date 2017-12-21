@@ -105,8 +105,8 @@ namespace Modix.Modules
                 }
                 catch (CommandException e)
                 {
-                    Log.Error(e, "Failed fetching message for Quote command, ran by {User} with a Message ID of {MessageId}",
-                        Context.User.Mention, messageId);
+                    Log.Warning(e, "Failed accessing channel {ChannelName} when searching for message {MessageId}",
+                        channel.Name, messageId);
                 }
             }
 
