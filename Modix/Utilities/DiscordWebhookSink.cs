@@ -35,7 +35,7 @@ namespace Modix.Utilities
                 .AddField(new EmbedFieldBuilder()
                     .WithIsInline(false)
                     .WithName($"LogLevel: {logEvent.Level}")
-                    .WithValue(Format.Code($"{formattedMessage}\n{logEvent.Exception?.ToString()}")));
+                    .WithValue(Format.Code($"{formattedMessage}\n{logEvent.Exception?.ToString()}".TruncateTo(1010))));
 
             webhookClient.SendMessageAsync(string.Empty, embeds: new[] { message.Build() }, username: "Modix Logger");
         }
@@ -45,6 +45,19 @@ namespace Modix.Utilities
         public static LoggerConfiguration DiscordWebhookSink(this LoggerSinkConfiguration config, ulong id, string token, LogEventLevel minLevel)
         {
             return config.Sink(new DiscordWebhookSink(id, token, null), minLevel);
+        }
+    }
+
+    public static class LoggingExtensions
+    {
+        public static string TruncateTo(this string str, int length)
+        {
+            if(str.Length < length)
+            {
+                return str;
+            }
+
+            return str.Substring(0, length);
         }
     }
 }
