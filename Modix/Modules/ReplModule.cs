@@ -12,6 +12,7 @@ using Modix.Data.Models;
 using System.Threading;
 using Discord.WebSocket;
 using Modix.Utilities;
+using Serilog;
 
 namespace Modix.Modules
 {
@@ -75,6 +76,7 @@ namespace Modix.Modules
             catch (Exception ex)
             {
                 await message.ModifyAsync(a => { a.Content = $"Exec failed: {ex.Message}"; });
+                Log.Error(ex, "Exec Failed");
                 return;
             }
 
