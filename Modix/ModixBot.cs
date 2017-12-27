@@ -30,9 +30,9 @@ namespace Modix
             LoadConfig();
 
             var loggerConfig = new LoggerConfiguration()
-                .MinimumLevel.Debug()
+                .MinimumLevel.Verbose()
                 .WriteTo.LiterateConsole()
-                .WriteTo.RollingFile(@"logs\{Date}");
+                .WriteTo.RollingFile(@"logs\{Date}", restrictedToMinimumLevel: LogEventLevel.Debug);
 
             if (!string.IsNullOrWhiteSpace(_config.WebhookToken))
             {
