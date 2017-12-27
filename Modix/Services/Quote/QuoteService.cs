@@ -4,18 +4,22 @@ namespace Modix.Services.Quote
 {
     public interface IQuoteService
     {
-        EmbedBuilder BuildQuoteEmbed(IMessage message);
+        EmbedBuilder BuildQuoteEmbed(IMessage message, IUser executingUser);
     }
 
     public class QuoteService : IQuoteService
     {
-        public EmbedBuilder BuildQuoteEmbed(IMessage message)
+        public EmbedBuilder BuildQuoteEmbed(IMessage message, IUser executingUser)
         {
-            return new EmbedBuilder()
-                .WithAuthor(message.Author)
-                .WithDescription(message.Content)
-                .WithFooter(GetPostedMeta(message))
-                .WithColor(new Color(95, 186, 125));
+            var embed = new EmbedBuilder()
+                .WithAuthor(x => x.WithIconUrl(message.Author.GetAvatarUrl()).WithName(message.Author.Username))
+                .WithDescription(message.Content);
+
+            embed.AddField("Quoted by", executingUser.Mention, true);
+
+            embed.WithFooter(GetPostedMeta(message)).WithColor(new Color(95, 186, 125));
+
+            return embed;
         }
 
         private static string GetPostedMeta(IMessage message)
