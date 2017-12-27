@@ -56,11 +56,15 @@ namespace Modix.Modules
             await ProcessRetrievedMessage(message);
         }
 
+        [Command("quote")]
+        public async Task Run(ulong messageId, ITextChannel channel)
+            => await Run(channel, messageId);
+
         private async Task ProcessRetrievedMessage(IMessage message)
         {
             if (message != null)
             {
-                var quoteEmbed = _quoteService.BuildQuoteEmbed(message);
+                var quoteEmbed = _quoteService.BuildQuoteEmbed(message, Context.User);
 
                 await ReplyAsync(string.Empty, false, quoteEmbed);
             }
