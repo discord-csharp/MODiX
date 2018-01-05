@@ -97,7 +97,7 @@ namespace Modix.Modules
                 }
                 catch (Exception e)
                 {
-                    Log.Warning(e, "Failed accessing channel {ChannelName} when searching for message {MessageId}",
+                    Log.Debug(e, "Failed accessing channel {ChannelName} when searching for message {MessageId}",
                         channel.Name, messageId);
                 }
             }
