@@ -32,7 +32,7 @@ namespace Modix.Services.AutoCodePaste
 
             var message = await cachedMessage.GetOrDownloadAsync();
 
-            if (message.Content.Length < 1000)
+            if (message.Content.Length < 100)
             {
                 return;
             }
