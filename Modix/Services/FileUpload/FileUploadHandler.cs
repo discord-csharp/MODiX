@@ -102,6 +102,6 @@ namespace Modix.Services.FileUpload
         }
 
         private static string GetReplyToUser(IMessage message)
-            => $"Please don't upload any potentialy harmful files {message.Author.Mention}, your message has been removed";
+            => $"Please don't upload any potentially harmful files {message.Author.Mention}, your message has been removed";
     }
 }
