@@ -24,7 +24,8 @@ namespace Modix.Services.FileUpload
             ".com",
             ".scr",
             ".msi",
-            ".cmd"
+            ".cmd",
+            ".vbs"
         };
 
         public async Task Handle(IMessage message)
