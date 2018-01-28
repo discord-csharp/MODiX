@@ -25,13 +25,14 @@ namespace Modix.Services.FileUpload
             ".scr",
             ".msi",
             ".cmd",
-            ".vbs"
+            ".vbs",
+            ".js",
         };
 
         public async Task Handle(IMessage message)
         {
             // Check if the attachment's file name ends in anything suspicious first
-            if (!_blacklistedExtensions.Any(ext => message.Attachments.Any(m => m.Filename.EndsWith(ext))))
+            if (!_blacklistedExtensions.Any(ext => message.Attachments.Any(m => m.Filename.ToLower().EndsWith(ext))))
                 return;
 
             await TryPostToModerationChannel(message);
