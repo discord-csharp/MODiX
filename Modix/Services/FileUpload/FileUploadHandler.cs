@@ -22,8 +22,9 @@ namespace Modix.Services.FileUpload
             ".pdb",
             ".sh",
             ".com",
-            ".src",
+            ".scr",
             ".msi",
+            ".cmd"
         };
 
         public async Task Handle(IMessage message)
