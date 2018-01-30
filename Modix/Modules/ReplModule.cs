@@ -30,7 +30,7 @@ namespace Modix.Modules
 
     public class ReplModule : ModuleBase
     {
-        private const string ReplRemoteUrl = "http://CSDiscord/Eval";
+        private const string ReplRemoteUrl = "http://CSDiscord:31337/Eval";
 
         private readonly ModixConfig _config;
 
