@@ -28,7 +28,7 @@ artifacts:
     name: deploy-script
 deploy:
   - provider: Environment
-    name: docker
+    name: spartanhost
     on:
       branch: master
 environment:
