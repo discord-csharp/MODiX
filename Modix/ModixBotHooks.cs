@@ -55,10 +55,14 @@ namespace Modix
             await _codePaste.ReactionRemoved(message, channel, reaction);
         }
 
-        public async Task HandleMessage(SocketMessage message)
+        public async Task HandleMessage(SocketMessage messageParam)
         {
-            if (message.Attachments.Any())
-                await _fileUploadHandler.Handle(message);
+            var user = ((messageParam as SocketUserMessage)?.Author as SocketGuildUser);
+
+            if (user == null) return;
+
+            if (messageParam.Attachments.Any())
+                await _fileUploadHandler.Handle(messageParam);
         }
     }
 }
