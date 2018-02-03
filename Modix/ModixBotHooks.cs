@@ -10,12 +10,14 @@ using Discord.WebSocket;
 using Modix.Data.Models;
 using Serilog;
 using Modix.Services.AutoCodePaste;
+using Modix.Services.FileUpload;
 
 namespace Modix
 {
     public class ModixBotHooks
     {
-        private CodePasteHandler codePaste = new CodePasteHandler();
+        private readonly CodePasteHandler _codePaste = new CodePasteHandler();
+        private readonly FileUploadHandler _fileUploadHandler = new FileUploadHandler();
 
         public Task HandleLog(LogMessage message)
         {
@@ -45,12 +47,12 @@ namespace Modix
 
         public async Task HandleAddReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
-            await codePaste.ReactionAdded(message, channel, reaction);
+            await _codePaste.ReactionAdded(message, channel, reaction);
         }
 
         public async Task HandleRemoveReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
-            await codePaste.ReactionRemoved(message, channel, reaction);
+            await _codePaste.ReactionRemoved(message, channel, reaction);
         }
 
         public async Task HandleMessage(SocketMessage messageParam)
@@ -59,26 +61,8 @@ namespace Modix
 
             if (user == null) return;
 
-            //var msg = new DiscordMessage()
-            //{
-                //AvatarId = user.AvatarId,
-                //AvatarUrl = user.AvatarUrl,
-                //Content = messageParam.Content,
-                //CreatedAt = messageParam.Timestamp.DateTime,
-                //Discriminator = user.Discriminator,
-                //DiscriminatorValue = user.DiscriminatorValue,
-                //Username = user.Username,
-                //IsBot = messageParam.Author.IsBot,
-                //MessageId = messageParam.Id,
-                //Mention = messageParam.Author.Mention,
-                //GuildId = user.Guild.Id,
-                //Game = user.Game.ToString(),
-                //Attachments = messageParam.Attachments.Select((attachment) => attachment.Url).ToArray(),
-            //};
-
-            //var res = new MessageRepository().InsertAsync(msg);
-            //await res;
-            //Logger.Info($"Logged message from {user.Username} in {user.Guild.Name}/{messageParam.Channel}");
+            if (messageParam.Attachments.Any())
+                await _fileUploadHandler.Handle(messageParam);
         }
     }
 }
