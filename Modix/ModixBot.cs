@@ -11,6 +11,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Modix.Services.Quote;
 using Modix.Utilities;
 using Serilog.Events;
+using Modix.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Modix
 {
@@ -40,16 +43,29 @@ namespace Modix
             }
 
             Log.Logger = loggerConfig.CreateLogger();
+            _map.AddLogging(bldr => bldr.AddSerilog(Log.Logger, true));
         }
 
         public async Task Run()
         {
-            _client = new DiscordSocketClient(config: new DiscordSocketConfig()
+            _client = new DiscordSocketClient(config: new DiscordSocketConfig
             {
                 LogLevel = LogSeverity.Debug,
             });
 
             await Install(); // Setting up DependencyMap
+            _map.AddDbContext<ModixContext>(options =>
+            {
+                options.UseNpgsql(_config.PostgreConnectionString);                
+            });
+           
+            var provider = _map.BuildServiceProvider();
+
+            var loggerFactory = provider.GetService<ILoggerFactory>();
+            using (var context = provider.GetService<ModixContext>())
+            {
+                context.Database.Migrate();
+            }
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
             await Task.Delay(-1);
@@ -90,7 +106,7 @@ namespace Modix
             var context = new CommandContext(_client, message);
             var result = await _commands.ExecuteAsync(context, argPos, _map.BuildServiceProvider());
 
-            if(!result.IsSuccess)
+            if (!result.IsSuccess)
             {
                 Log.Error($"{result.Error}: {result.ErrorReason}");
             }

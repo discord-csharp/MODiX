@@ -1,9 +1,21 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace Modix
 {
     class Program
     {
-        static async Task Main(string[] args) => await new ModixBot().Run();
+        static async Task Main(string[] args)
+        {
+            try
+            {
+                await new ModixBot().Run();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                Environment.Exit(ex.HResult);
+            }
+        }
     }
 }

@@ -10,7 +10,7 @@ using Modix.Data.Utilities;
 
 namespace Modix.Data.Services
 {
-    public class DiscordUserService
+    public class DiscordUserService : IDisposable
     {
         private ModixContext _context;
 
@@ -20,42 +20,44 @@ namespace Modix.Data.Services
         }
         public async Task<DiscordUser> GetAsync(IGuildUser user)
         {
-            using (var db = new ModixContext())
+            try
             {
-                try
-                {
-                    return await db.Users.SingleAsync(x => x.DiscordId == user.Id.ToLong());
-                }
-                catch (InvalidOperationException)
-                {
-                    return null;
-                }
+                return await _context.Users.SingleAsync(x => x.DiscordId == user.Id.ToLong());
             }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
+
         }
 
         public async Task<DiscordUser> AddAsync(IGuildUser user)
         {
-            using (var db = new ModixContext())
+            var discordUser = new DiscordUser()
             {
-                var discordUser = new DiscordUser()
-                {
-                    DiscordId = user.Id.ToLong(),
-                    AvatarUrl = user.GetAvatarUrl(),
-                    CreatedAt = user.CreatedAt.DateTime,
-                    IsBot = user.IsBot,
-                    Username = user.Username,
-                    Nickname = user.Nickname,
-                };
+                DiscordId = user.Id.ToLong(),
+                AvatarUrl = user.GetAvatarUrl(),
+                CreatedAt = user.CreatedAt.DateTime,
+                IsBot = user.IsBot,
+                Username = user.Username,
+                Nickname = user.Nickname,
+            };
 
-                var res = (await db.Users.AddAsync(discordUser)).Entity;
-                await db.SaveChangesAsync();
-                return res;
-            }
+            var res = (await _context.Users.AddAsync(discordUser)).Entity;
+            await _context.SaveChangesAsync();
+            return res;
+
         }
 
         public async Task<DiscordUser> ObtainAsync(IGuildUser user)
         {
             return await GetAsync(user) ?? await AddAsync(user);
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            _context.Dispose();
         }
     }
 }

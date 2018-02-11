@@ -8,7 +8,7 @@ using Modix.Data.Utilities;
 
 namespace Modix.Data.Services
 {
-    public class DiscordGuildService
+    public class DiscordGuildService : IDisposable
     {
         private ModixContext _context;
 
@@ -19,84 +19,79 @@ namespace Modix.Data.Services
 
         public async Task<DiscordGuild> GetAsync(ulong discordId)
         {
-            using (var db = new ModixContext())
+
+            try
             {
-                try
-                {
-                    return await db.Guilds
-                        .Where(guild => guild.DiscordId == discordId.ToLong())
-                        .Include(guild => guild.Owner)
-                        .Include(guild => guild.Config)
-                        .FirstAsync();
-                }
-                catch (InvalidOperationException)
-                {
-                    return null;
-                }
+                return await _context.Guilds
+                    .Where(guild => guild.DiscordId == discordId.ToLong())
+                    .Include(guild => guild.Owner)
+                    .Include(guild => guild.Config)
+                    .FirstAsync();
             }
+            catch (InvalidOperationException)
+            {
+                return null;
+            }
+
         }
 
         public async Task<DiscordGuild> AddAsync(IGuild guild)
         {
-            using (var db = new ModixContext())
+
+            var service = new DiscordUserService(new ModixContext());
+            var owner = await guild.GetOwnerAsync();
+
+            var discordGuild = new DiscordGuild()
             {
-                var service = new DiscordUserService(new ModixContext());
-                var owner = await guild.GetOwnerAsync();
+                Config = new GuildConfig(),
+                DiscordId = guild.Id.ToLong(),
+                Name = guild.Name,
+                CreatedAt = guild.CreatedAt.DateTime,
+                Owner = await service.ObtainAsync(owner),
+            };
 
-                var discordGuild = new DiscordGuild()
-                {
-                    Config = new GuildConfig(),
-                    DiscordId = guild.Id.ToLong(),
-                    Name = guild.Name,
-                    CreatedAt = guild.CreatedAt.DateTime,
-                    Owner = await service.ObtainAsync(owner),
-                };
-
-                var res = (await db.Guilds.AddAsync(discordGuild)).Entity;
-                try
-                {
-                    await db.SaveChangesAsync();
-                }
-                catch (Exception)
-                {
-                    return null;
-                }
-                return res;
+            var res = (await _context.Guilds.AddAsync(discordGuild)).Entity;
+            try
+            {
+                await _context.SaveChangesAsync();
             }
+            catch (Exception)
+            {
+                return null;
+            }
+            return res;
+
         }
 
         public async void SetPermissionAsync(IGuild guild, Permissions permission, ulong roleId)
         {
             var discordGuild = await ObtainAsync(guild);
 
-            using (var db = new ModixContext())
+            if (discordGuild.Config == null)
             {
-                if (discordGuild.Config == null)
+                discordGuild.Config = new Data.Models.GuildConfig
                 {
-                    discordGuild.Config = new Data.Models.GuildConfig
-                    {
-                        GuildId = guild.Id.ToLong(),
-                        AdminRoleId = permission == Permissions.Administrator ? roleId.ToLong() : 0,
-                        ModeratorRoleId = permission == Permissions.Moderator ? roleId.ToLong() : 0,
-                    };
+                    GuildId = guild.Id.ToLong(),
+                    AdminRoleId = permission == Permissions.Administrator ? roleId.ToLong() : 0,
+                    ModeratorRoleId = permission == Permissions.Moderator ? roleId.ToLong() : 0,
+                };
 
-                    db.Guilds.Update(discordGuild);
-                    await db.SaveChangesAsync();
-                    return;
-                }
-
-                if (permission == Permissions.Administrator)
-                {
-                    discordGuild.Config.AdminRoleId = roleId.ToLong();
-                }
-                else
-                {
-                    discordGuild.Config.ModeratorRoleId = roleId.ToLong();
-                }
-
-                db.Guilds.Update(discordGuild);
-                await db.SaveChangesAsync();
+                _context.Guilds.Update(discordGuild);
+                await _context.SaveChangesAsync();
+                return;
             }
+
+            if (permission == Permissions.Administrator)
+            {
+                discordGuild.Config.AdminRoleId = roleId.ToLong();
+            }
+            else
+            {
+                discordGuild.Config.ModeratorRoleId = roleId.ToLong();
+            }
+
+            _context.Guilds.Update(discordGuild);
+            await _context.SaveChangesAsync();
         }
 
         public async Task<DiscordGuild> ObtainAsync(IGuild guild)
@@ -106,53 +101,55 @@ namespace Modix.Data.Services
 
         public async Task<bool> AddModuleLimitAsync(DiscordGuild guild, IMessageChannel channel, string module)
         {
-            using (var db = new ModixContext())
+            var limit = await _context.ChannelLimits
+                .Where(c =>
+                    c.ModuleName.ToUpper() == module.ToUpper() &&
+                    c.Guild.Id == guild.Id &&
+                    c.ChannelId == channel.Id.ToLong())
+                .FirstOrDefaultAsync();
+
+            if (limit == null)
             {
-                var limit = await db.ChannelLimits
-                    .Where(c =>
-                        c.ModuleName.ToUpper() == module.ToUpper() &&
-                        c.Guild.Id == guild.Id &&
-                        c.ChannelId == channel.Id.ToLong())
-                    .FirstOrDefaultAsync();
-
-                if (limit == null)
+                await _context.ChannelLimits.AddAsync(new ChannelLimit
                 {
-                    await db.ChannelLimits.AddAsync(new ChannelLimit
-                    {
-                        ModuleName = module,
-                        Guild = guild,
-                        ChannelId = channel.Id.ToLong()
-                    });
+                    ModuleName = module,
+                    Guild = guild,
+                    ChannelId = channel.Id.ToLong()
+                });
 
-                    await db.SaveChangesAsync();
-                    return true;
-                }
+                await _context.SaveChangesAsync();
+                return true;
             }
+
 
             return false;
         }
 
         public async Task<bool> RemoveModuleLimitAsync(DiscordGuild guild, IMessageChannel channel, string module)
         {
-            using (var db = new ModixContext())
+            var limit = await _context.ChannelLimits
+                .Where(c =>
+                    c.ModuleName.ToUpper() == module.ToUpper() &&
+                    c.Guild.Id == guild.Id &&
+                    c.ChannelId == channel.Id.ToLong())
+                .FirstOrDefaultAsync();
+
+            if (limit != null)
             {
-                var limit = await db.ChannelLimits
-                    .Where(c =>
-                        c.ModuleName.ToUpper() == module.ToUpper() &&
-                        c.Guild.Id == guild.Id &&
-                        c.ChannelId == channel.Id.ToLong())
-                    .FirstOrDefaultAsync();
+                _context.ChannelLimits.Remove(limit);
 
-                if (limit != null)
-                {
-                    db.ChannelLimits.Remove(limit);
-
-                    await db.SaveChangesAsync();
-                    return true;
-                }
+                await _context.SaveChangesAsync();
+                return true;
             }
 
+
             return false;
+        }
+        
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            _context.Dispose();
         }
     }
 }
