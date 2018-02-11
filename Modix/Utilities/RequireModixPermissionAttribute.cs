@@ -4,6 +4,8 @@ using Discord;
 using Discord.Commands;
 using Modix.Data.Utilities;
 using System;
+using Microsoft.Extensions.DependencyInjection;
+using Modix.Data;
 
 namespace Modix.Utilities
 {
@@ -20,18 +22,20 @@ namespace Modix.Utilities
         {
             // first check if we're in a guild because this won't work if we aren't in a guild
             if (!(context.User is IGuildUser))
-                return Task.Run(() => PreconditionResult.FromError("The current context isn't a guild"));
+                return Task.FromResult(PreconditionResult.FromError("The current context isn't a guild"));
 
-            var user = (IGuildUser)context.User;
-
-            var role = new PermissionHelper().GetRoleByPermission(context, _requiredPermission);
-
-            if (user.RoleIds.Any(roleId => user.Guild.GetRole(roleId).Position > role.Position))
+            using (var db = map.GetService<ModixContext>())
             {
-                return Task.Run(() => PreconditionResult.FromSuccess());
-            }
+                var user = (IGuildUser)context.User;
 
-            return Task.Run(() => PreconditionResult.FromError("The current user doesn't satisfy a permission precondition"));
+                var role = new PermissionHelper(db).GetRoleByPermission(context, _requiredPermission);
+
+                if (user.RoleIds.Any(roleId => user.Guild.GetRole(roleId).Position > role.Position))
+                {
+                    return Task.FromResult(PreconditionResult.FromSuccess());
+                }
+            }
+            return Task.FromResult(PreconditionResult.FromError("The current user doesn't satisfy a permission precondition"));
         }
     }
 }

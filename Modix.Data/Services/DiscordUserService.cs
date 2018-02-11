@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +15,7 @@ namespace Modix.Data.Services
         {
             _context = context;
         }
+
         public async Task<DiscordUser> GetAsync(IGuildUser user)
         {
             try

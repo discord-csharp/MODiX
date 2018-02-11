@@ -6,10 +6,15 @@ using Modix.Data.Utilities;
 using Modix.Services.GuildConfig;
 
 namespace Modix.Utilities
-{ 
+{
     public class PermissionHelper
     {
-        private static readonly DiscordGuildService GuildService = new DiscordGuildService(new ModixContext());
+        private readonly DiscordGuildService GuildService;
+        public PermissionHelper(ModixContext context)
+        {
+            GuildService = new DiscordGuildService(context);
+        }
+
         public IRole GetRoleByPermission(ICommandContext context, Permissions perms)
         {
             var guild = GuildService.ObtainAsync(context.Guild).Result;

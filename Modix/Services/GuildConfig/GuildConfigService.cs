@@ -12,13 +12,12 @@ namespace Modix.Services.GuildConfig
 {
     public sealed class GuildConfigService
     {
-        private DiscordGuildService _guildService = new DiscordGuildService(new ModixContext());
+        private DiscordGuildService _guildService;
         private DiscordGuild _guild = null;
 
-        private GuildConfigService() { }
-
-        public GuildConfigService(IGuild guild)
+        public GuildConfigService(IGuild guild, ModixContext context)
         {
+            _guildService = new DiscordGuildService(context);
             _guild = _guildService.ObtainAsync(guild).Result;
         }
 

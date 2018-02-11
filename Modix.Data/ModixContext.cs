@@ -10,7 +10,7 @@ namespace Modix.Data
 
         }
 
-        public ModixContext() { }
+        private ModixContext() { }
 
         public DbSet<Ban> Bans { get; set; }
         public DbSet<DiscordGuild> Guilds { get; set; }

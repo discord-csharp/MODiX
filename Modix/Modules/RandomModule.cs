@@ -5,7 +5,7 @@
     using Discord.Commands;
     using Modix.Utilities;
 
-    [Group("random"), Name("Random"), Summary("A bunch of random commands"), ApplyChannelLimits]
+    [Group("random"), Name("Random"), Summary("A bunch of random commands")]
     public class RandomModule : ModuleBase
     {
         private static readonly Random Random = new Random();

@@ -38,7 +38,7 @@ namespace Modix.Data.Services
         public async Task<DiscordGuild> AddAsync(IGuild guild)
         {
 
-            var service = new DiscordUserService(new ModixContext());
+            var service = new DiscordUserService(_context);
             var owner = await guild.GetOwnerAsync();
 
             var discordGuild = new DiscordGuild()
@@ -69,7 +69,7 @@ namespace Modix.Data.Services
 
             if (discordGuild.Config == null)
             {
-                discordGuild.Config = new Data.Models.GuildConfig
+                discordGuild.Config = new GuildConfig
                 {
                     GuildId = guild.Id.ToLong(),
                     AdminRoleId = permission == Permissions.Administrator ? roleId.ToLong() : 0,

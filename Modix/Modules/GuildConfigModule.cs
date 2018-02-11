@@ -2,6 +2,7 @@
 using System.Text;
 using System.Threading.Tasks;
 using Discord.Commands;
+using Modix.Data;
 using Modix.Data.Utilities;
 using Modix.Services.GuildConfig;
 
@@ -11,11 +12,17 @@ namespace Modix.Modules
     public class GuildConfigModule : ModuleBase
     {
         private GuildConfigService _service;
+        private ModixContext _context;
+
+        public GuildConfigModule(ModixContext context)
+        {
+            _context = context;
+        }
 
         [Command("SetAdmin"), Summary("Allows you to set the role ID of the Administrators"), RequireOwner]
         public async Task SetAdminAsync(ulong roleId)
         {
-            _service = new GuildConfigService(Context.Guild);
+            _service = new GuildConfigService(Context.Guild, _context);
 
             _service.SetPermissionAsync(Context.Guild, Permissions.Administrator, roleId);
             await ReplyAsync($"Permission for Administrators has been successfully updated to {roleId}");
@@ -24,7 +31,7 @@ namespace Modix.Modules
         [Command("SetModerator"), Summary("Allows you to set the role ID of the Moderators"), RequireOwner]
         public async Task SetModeratorAsync(ulong roleId)
         {
-            _service = new GuildConfigService(Context.Guild);
+            _service = new GuildConfigService(Context.Guild, _context);
 
             _service.SetPermissionAsync(Context.Guild, Permissions.Moderator, roleId);
             await ReplyAsync($"Permission for Moderators has been successfully updated to {roleId}");
@@ -33,7 +40,7 @@ namespace Modix.Modules
         [Command("show"), Summary("Shows current config.")]
         public async Task ShowConfigAsync()
         {
-            _service = new GuildConfigService(Context.Guild);
+            _service = new GuildConfigService(Context.Guild, _context);
 
             var res = _service.GenerateFormattedConfig(Context.Guild);
             await ReplyAsync(res);
@@ -55,7 +62,7 @@ namespace Modix.Modules
         [Command("RemoveLimit"), Summary("Removes a limit from a module to a channel."), RequireOwner]
         public async Task RemoveLimitModuleAsync(string module)
         {
-            _service = new GuildConfigService(Context.Guild);
+            _service = new GuildConfigService(Context.Guild, _context);
 
             var result = await _service.RemoveModuleLimitAsync(Context.Channel, module);
             if (result)
@@ -67,7 +74,7 @@ namespace Modix.Modules
         [Command("AddLimit"), Summary("Limits a module to a channel."), RequireOwner]
         public async Task LimitModuleAsync(string module)
         {
-            _service = new GuildConfigService(Context.Guild);
+            _service = new GuildConfigService(Context.Guild, _context);
 
             var result = await _service.AddModuleLimitAsync(Context.Channel, module);
             if (result)
