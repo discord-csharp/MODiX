@@ -101,9 +101,9 @@ namespace Modix.Modules
 
         private EmbedBuilder BuildEmbed(SocketGuildUser guildUser, Result parsedResult)
         {
-            var returnValue = TrimIfNeeded(parsedResult.ReturnValue?.ToString() ?? " ", 1000);
-            var consoleOut = TrimIfNeeded(parsedResult.ConsoleOut, 1000);
-            var exception = TrimIfNeeded(parsedResult.Exception ?? string.Empty, 1000);
+            var returnValue = (parsedResult.ReturnValue?.ToString() ?? " ").TruncateTo(1000);
+            var consoleOut = parsedResult.ConsoleOut.TruncateTo(1000);
+            var exception = (parsedResult.Exception ?? string.Empty).TruncateTo(1000);
 
             var embed = new EmbedBuilder()
                .WithTitle("Eval Result")
@@ -130,20 +130,10 @@ namespace Modix.Modules
             {
                 var diffFormatted = Regex.Replace(parsedResult.Exception, "^", "- ", RegexOptions.Multiline);
                 embed.AddField(a => a.WithName($"Exception: {parsedResult.ExceptionType}")
-                                     .WithValue(Format.Code(diffFormatted, "diff")));
+                                     .WithValue(Format.Code(diffFormatted.TruncateTo(1000), "diff")));
             }
 
             return embed;
-        }
-
-        private static string TrimIfNeeded(string value, int len)
-        {
-            if (value.Length > len)
-            {
-                return value.Substring(0, len);
-            }
-
-            return value;
         }
     }
 }
