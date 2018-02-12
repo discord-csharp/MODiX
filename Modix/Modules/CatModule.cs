@@ -21,7 +21,8 @@
         public async Task Cat(string gif = "")
         {
             // 30 seconds to find a cat
-            var token = new CancellationTokenSource(30000);
+            var cts = new CancellationTokenSource(30000);
+            var token = cts.Token;
 
             // Regular picture
             if (gif.Equals(string.Empty))
@@ -39,7 +40,7 @@
             }
         }
 
-        private async Task GetCatGif(CancellationTokenSource token)
+        private async Task GetCatGif(CancellationToken token)
         {
             var obj = new URL();
             var json = string.Empty;
@@ -76,7 +77,7 @@
             }
         }
 
-        private async Task GetCatPicture(CancellationTokenSource token)
+        private async Task GetCatPicture(CancellationToken token)
         {
             var json = string.Empty;
             var obj = new URL();
@@ -113,13 +114,13 @@
             }
         }
 
-        private async Task<string> DownloadCatJson(CancellationTokenSource token)
+        private async Task<string> DownloadCatJson(CancellationToken token)
         {
             var json = string.Empty;
 
             try
             {
-                using (var response = await Client.GetAsync("http://random.cat/meow"))
+                using (var response = await Client.GetAsync("http://random.cat/meow", token))
                 {
                     if (response.IsSuccessStatusCode)
                     {
@@ -144,13 +145,11 @@
             return json;
         }
 
-        private async Task DownloadCatPicture(string url, CancellationTokenSource token)
+        private async Task DownloadCatPicture(string url, CancellationToken token)
         {
-            var srcToken = token.Token;
-
             try
             {
-                using (var response = await Client.GetAsync(url, srcToken))
+                using (var response = await Client.GetAsync(url, token))
                 {
                     if (response.IsSuccessStatusCode)
                     {
