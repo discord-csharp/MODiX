@@ -1,10 +1,11 @@
 ﻿namespace Modix.Modules
 {
+    using Discord.Commands;
+    using Modix.Services.Cat;
+    using System;
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-    using Discord.Commands;
-    using Modix.Services.Cat;
 
     public class CatModule : ModuleBase
     {
@@ -22,20 +23,22 @@
             var cat = new CatService();
 
             // Regular picture
-            if (string.IsNullOrWhiteSpace(gif))
+            if (!string.Equals("gif", gif, StringComparison.OrdinalIgnoreCase))
             {
                 message = await cat.GetCatPicture(token);
             }
-            else if (gif.Equals("gif"))
+            else if (gif.Equals("gif", StringComparison.OrdinalIgnoreCase))
             {
-                // Gif cat
+                // Gif of a cat
                 message = await cat.GetCatGif(token);
             }
             else
             {
+                // Invalid command received
                 await Context.Channel.SendMessageAsync("Use `!cat` or `!cat gif`");
             }
 
+            // Send the link
             await Context.Channel.SendMessageAsync(message);
         }
     }
