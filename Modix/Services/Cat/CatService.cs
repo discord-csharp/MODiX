@@ -31,8 +31,8 @@
             {
                 try
                 {
-	                //Download a json string from the API
-	                json = await DownloadCatJson(token);
+                    //Download a json string from the API
+                    json = await DownloadCatJson(token);
                 }
                 catch (TaskCanceledException)
                 {
@@ -40,7 +40,8 @@
                     return "Cat not downloaded in time";
                 }
 
-                // Check and make sure the string isn't empty before attempting to deserialize cat. If the website returns a blank string, something is wrong. Break the loop
+                // Check and make sure the string isn't empty before attempting to deserialize the
+                // json. If the website returns a blank string, something is wrong. Break the loop
                 if (string.IsNullOrWhiteSpace(json)) break;
 
                 //Deserialize the json retrieved from the website
@@ -54,7 +55,6 @@
                 // and the 404 error message is returned.
                 fileFoundFlag = true;
                 break;
-
             } while (!token.IsCancellationRequested);
 
             //Return the URL to the picture or the error message
@@ -85,7 +85,8 @@
                     return "Cat not downloaded in time";
                 }
 
-                // Check and make sure the string isn't empty before attempting to deserialize the json. If the website returns a blank string, something is wrong. Break the loop
+                // Check and make sure the string isn't empty before attempting to deserialize the
+                // json. If the website returns a blank string, something is wrong. Break the loop
                 if (string.IsNullOrWhiteSpace(json)) break;
 
                 //Deserialize the json retrieved from the website
@@ -100,7 +101,6 @@
                 // and the 404 error message is returned.
                 fileFoundFlag = true;
                 break;
-
             } while (!token.IsCancellationRequested);
 
             //Return the URL to the picture or the error message
