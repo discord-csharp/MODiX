@@ -16,6 +16,11 @@
             public string file { get; set; }
         }
 
+        /// <summary>
+        /// Gets the cat GIF.
+        /// </summary>
+        /// <param name="token">The token.</param>
+        /// <returns>Return the URL to the cat</returns>
         public async Task<string> GetCatGif(CancellationToken token)
         {
             var obj = new URL();
@@ -24,10 +29,18 @@
 
             do
             {
-                //Download a json string from the API
-                json = await DownloadCatJson(token);
+                try
+                {
+	                //Download a json string from the API
+	                json = await DownloadCatJson(token);
+                }
+                catch (TaskCanceledException)
+                {
+                    Log.Warning("Could not retrieve JSON string within the alloted time. Is the API Down?");
+                    return "Cat not downloaded in time";
+                }
 
-                // Check and make sure the string isn't empty before attempting to deserialize cat
+                // Check and make sure the string isn't empty before attempting to deserialize cat. If the website returns a blank string, something is wrong. Break the loop
                 if (string.IsNullOrWhiteSpace(json)) break;
 
                 //Deserialize the json retrieved from the website
@@ -41,12 +54,18 @@
                 // and the 404 error message is returned.
                 fileFoundFlag = true;
                 break;
+
             } while (!token.IsCancellationRequested);
 
             //Return the URL to the picture or the error message
             return fileFoundFlag ? obj.file : "404 cat gif not found";
         }
 
+        /// <summary>
+        /// Gets the cat picture.
+        /// </summary>
+        /// <param name="token">The token.</param>
+        /// <returns>Returns the URL to the cat</returns>
         public async Task<string> GetCatPicture(CancellationToken token)
         {
             var json = string.Empty;
@@ -55,10 +74,18 @@
 
             do
             {
-                // Download a JSON string from the API
-                json = await DownloadCatJson(token);
+                try
+                {
+                    // Download a JSON string from the API
+                    json = await DownloadCatJson(token);
+                }
+                catch (TaskCanceledException)
+                {
+                    Log.Warning("Could not retrieve JSON string within the alloted time. Is the API Down?");
+                    return "Cat not downloaded in time";
+                }
 
-                // Check and make sure the string isn't empty before attempting to deserialize cat
+                // Check and make sure the string isn't empty before attempting to deserialize the json. If the website returns a blank string, something is wrong. Break the loop
                 if (string.IsNullOrWhiteSpace(json)) break;
 
                 //Deserialize the json retrieved from the website
@@ -73,13 +100,20 @@
                 // and the 404 error message is returned.
                 fileFoundFlag = true;
                 break;
+
             } while (!token.IsCancellationRequested);
 
             //Return the URL to the picture or the error message
             return fileFoundFlag ? obj.file : "404 cat picture not found";
         }
 
-        private async Task<string> DownloadCatJson(CancellationToken token)
+        /// <summary>
+        /// Downloads the cat json.
+        /// </summary>
+        /// <param name="token">The token.</param>
+        /// <exception cref="TaskCanceledException"></exception>
+        /// <returns>Returns a JSON string</returns>
+        private static async Task<string> DownloadCatJson(CancellationToken token)
         {
             var json = string.Empty;
 
@@ -101,17 +135,17 @@
             }
             catch (HttpRequestException hre)
             {
-                Log.Fatal("Request Exception", hre.InnerException);
-            }
-            catch (TaskCanceledException)
-            {
-                // Ran out of time
-                return "Could not find cat in time";
+                Log.Error("Request Exception", hre.InnerException);
             }
 
             return json;
         }
 
+        /// <summary>
+        /// Deserializes the json.
+        /// </summary>
+        /// <param name="json">The json.</param>
+        /// <returns>Returns a URL object</returns>
         private static URL DeserializeJson(string json)
         {
             // Deserialize JSON

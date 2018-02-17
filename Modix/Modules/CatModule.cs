@@ -40,6 +40,8 @@
 
             // Send the link
             await Context.Channel.SendMessageAsync(message);
+
+            cts.Dispose();
         }
     }
 }
