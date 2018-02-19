@@ -12,6 +12,7 @@ using Modix.Services.Quote;
 using Modix.Utilities;
 using Serilog.Events;
 using Modix.Data;
+using Modix.Services.Cat;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -120,6 +121,7 @@ namespace Modix
             _map.AddSingleton(_client);
             _map.AddSingleton(_config);
             _map.AddScoped<IQuoteService, QuoteService>();
+            _map.AddTransient<ICatService, CatService>(); 
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;

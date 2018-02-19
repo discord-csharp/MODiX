@@ -3,45 +3,55 @@
     using Discord.Commands;
     using Modix.Services.Cat;
     using System;
-    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
+    using Serilog;
 
     public class CatModule : ModuleBase
     {
-        private static readonly HttpClient Client = new HttpClient();
+        private static Media MediaType;
+        private readonly ICatService _catService;
+
+        public CatModule(ICatService catService)
+        {
+            _catService = catService;
+        }
+
+        public enum Media
+        {
+            Picture, // 0
+            Gif // 1
+        }
 
         [Command("cat"), Summary("Gets a cat")]
-        public async Task Cat(string gif = "")
+        public async Task Cat(string param = "")
         {
-            // 5 seconds to find a cat
-            var cts = new CancellationTokenSource(5000);
-            var token = cts.Token;
-
             var message = string.Empty;
 
-            var cat = new CatService();
+            try
+            {
+                MediaType = (Media) Enum.Parse(typeof(Media), param, true);
 
-            // Regular picture
-            if (!string.Equals("gif", gif, StringComparison.OrdinalIgnoreCase))
+                if (!Enum.IsDefined(typeof(Media), MediaType) && !MediaType.ToString().Contains(","))
+                {
+                    // Invalid parameter received
+                    await Context.Channel.SendMessageAsync("Use `!cat` or `!cat gif`");
+                    return;
+                }
+            }catch(Exception)
             {
-                message = await cat.GetCatPicture(token);
+                Log.Warning("Invalid Parameter Passed");
             }
-            else if (gif.Equals("gif", StringComparison.OrdinalIgnoreCase))
+
+            using (var cts = new CancellationTokenSource(5000))
             {
-                // Gif of a cat
-                message = await cat.GetCatGif(token);
-            }
-            else
-            {
-                // Invalid command received
-                await Context.Channel.SendMessageAsync("Use `!cat` or `!cat gif`");
+                var token = cts.Token;
+
+                message = await _catService.HandleCat(MediaType, token);
             }
 
             // Send the link
             await Context.Channel.SendMessageAsync(message);
-
-            cts.Dispose();
         }
     }
 }
