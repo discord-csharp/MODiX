@@ -28,40 +28,40 @@
             var json = string.Empty;
             var fileFoundFlag = false;
 
-            do
+            while (!token.IsCancellationRequested)
             {
-                try
+	            try
                 {
-                    //Download a json string from the API
-                    json = await DownloadCatJson(token);
-
-                    // Check and make sure the string isn't empty before attempting to deserialize the
-                    // json. If the website returns a blank string, something is wrong. Break the loop
-                    if (string.IsNullOrWhiteSpace(json)) break;
-
-                    //Deserialize the json retrieved from the website
-                    obj = DeserializeJson(json);
-
-                    switch (mediaType)
-                    {
-                        case CatModule.Media.Picture when obj.file.EndsWith(".gif"):
-                            continue;
-                        case CatModule.Media.Gif when !obj.file.EndsWith(".gif"):
-                            continue;
-                    }
-
-                    // If a file is found on the first try, set the flag to true and break out of the
-                    // loop. If the loop is canceled due to the CancellationToken, the flag remains false
-                    // and the 404 error message is returned.
-                    fileFoundFlag = true;
-                    break;
-                }
+	                //Download a json string from the API
+	                json = await DownloadCatJson(token);
+	            }
                 catch (TaskCanceledException)
                 {
                     Log.Warning("Could not retrieve JSON string within the alloted time. Is the API Down?");
                     return "Cat not downloaded in time";
                 }
-            } while (!token.IsCancellationRequested);
+
+                // Check and make sure the string isn't empty before attempting to deserialize the
+                // json. If the website returns a blank string, something is wrong. Break the loop
+                if (string.IsNullOrWhiteSpace(json)) break;
+
+                //Deserialize the json retrieved from the website
+                obj = DeserializeJson(json);
+
+                switch (mediaType)
+                {
+                    case CatModule.Media.Picture when obj.file.EndsWith(".gif"):
+                        continue;
+                    case CatModule.Media.Gif when !obj.file.EndsWith(".gif"):
+                        continue;
+                }
+
+                // If a file is found on the first try, set the flag to true and break out of the
+                // loop. If the loop is canceled due to the CancellationToken, the flag remains false
+                // and the 404 error message is returned.
+                fileFoundFlag = true;
+                break;
+            }
 
             return fileFoundFlag ? obj.file : "404 cat gif not found";
         }
