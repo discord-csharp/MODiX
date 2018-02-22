@@ -36,9 +36,7 @@ namespace Modix.Data.Utilities
                 if (lines.Length > maxLines)
                 {
                     //merge everything back with newlines
-                    string merged = String.Join('\n', lines.Take(maxLines));
-
-                    return $"{merged}";
+                    return String.Join('\n', lines.Take(maxLines));
                 }
 
                 return $"{value.Substring(0, maxLength).Trim()}{suffix}";
