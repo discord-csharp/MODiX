@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 
 namespace Modix.Data.Utilities
 {
@@ -20,7 +21,7 @@ namespace Modix.Data.Utilities
             return convertedNumber;
         }
 
-        public static string Truncate(this string value, int maxLength, string suffix = "…")
+        public static string Truncate(this string value, int maxLength, int maxLines, string suffix = "…")
         {
             if (string.IsNullOrEmpty(value)) return value;
 
@@ -30,6 +31,16 @@ namespace Modix.Data.Utilities
             }
             else
             {
+                var lines = value.Split("\n", StringSplitOptions.RemoveEmptyEntries);
+                
+                if (lines.Length > maxLines)
+                {
+                    //merge everything back with newlines
+                    string merged = String.Join('\n', lines.Take(maxLines));
+
+                    return $"{merged}";
+                }
+
                 return $"{value.Substring(0, maxLength).Trim()}{suffix}";
             }
         }
