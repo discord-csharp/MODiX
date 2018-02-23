@@ -40,7 +40,7 @@ namespace Modix.Services.AutoCodePaste
             var urlResponse = await response.Content.ReadAsStringAsync();
             var pasteKey = JObject.Parse(urlResponse)["key"].Value<string>();
 
-            return $"{_ApiReferenceUrl}{pasteKey}.cs";
+            return $"{_ApiReferenceUrl}{pasteKey}.{FormatUtilities.GetCodeLanguage(code) ?? "cs"}";
         }
 
         /// <summary>
