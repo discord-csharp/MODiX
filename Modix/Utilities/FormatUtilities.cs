@@ -33,7 +33,15 @@ namespace Modix.Utilities
         public static string GetCodeLanguage(string message)
         {
             var match = _buildContentRegex.Match(message);
-            return match.Success ? match.Groups[1].Value : null;
+            if (match.Success)
+            {
+                string codeLanguage = match.Groups[1].Value;
+                return string.IsNullOrEmpty(codeLanguage) ? null : codeLanguage;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         /// <summary>
