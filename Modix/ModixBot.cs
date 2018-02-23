@@ -83,7 +83,7 @@ namespace Modix
             };
             var id = Environment.GetEnvironmentVariable("log_webhook_id");
 
-            if (string.IsNullOrWhiteSpace(id))
+            if (!string.IsNullOrWhiteSpace(id))
             {
                 _config.WebhookId = ulong.Parse(id);
                 _config.WebhookToken = Environment.GetEnvironmentVariable("log_webhook_token");
