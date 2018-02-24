@@ -37,7 +37,7 @@ namespace Modix.Modules
                 await ReplyAsync("il can only be executed in public guild channels.");
                 return;
             }
-
+            code = FormatUtilities.StipFormatting(code);
             if (code.Length > 1000)
             {
                 await ReplyAsync("Decompile Failed: Code is greater than 1000 characters in length");

@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -18,10 +16,7 @@ namespace Modix.Utilities
         /// <returns>The resulting StringContent for HTTP operations</returns>
         public static StringContent BuildContent(string code)
         {
-            string cleanCode = _buildContentRegex.Replace(code.Trim(), string.Empty); //strip out the ` characters and code block markers
-            cleanCode = cleanCode.Replace("\t", "    "); //spaces > tabs
-            cleanCode = FixIndentation(cleanCode);
-
+            var cleanCode = StipFormatting(code);
             return new StringContent(cleanCode, Encoding.UTF8, "text/plain");
         }
 
@@ -42,6 +37,14 @@ namespace Modix.Utilities
             {
                 return null;
             }
+        }
+
+        public static string StipFormatting(string code)
+        {
+            string cleanCode = _buildContentRegex.Replace(code.Trim(), string.Empty); //strip out the ` characters and code block markers
+            cleanCode = cleanCode.Replace("\t", "    "); //spaces > tabs
+            cleanCode = FixIndentation(cleanCode);
+            return cleanCode;
         }
 
         /// <summary>
