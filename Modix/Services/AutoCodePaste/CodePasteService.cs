@@ -39,7 +39,7 @@ namespace Modix.Services.AutoCodePaste
             var urlResponse = await response.Content.ReadAsStringAsync();
             var pasteKey = JObject.Parse(urlResponse)["key"].Value<string>();
 
-            return $"{_ApiReferenceUrl}{pasteKey}.cs";
+            return $"{_ApiReferenceUrl}{pasteKey}.{FormatUtilities.GetCodeLanguage(code) ?? "cs"}";
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Modix.Services.AutoCodePaste
             return new EmbedBuilder()
                 .WithTitle("Your message was re-uploaded")
                 .WithAuthor(user)
-                .WithDescription(cleanCode.Trim().Truncate(300))
+                .WithDescription(cleanCode.Trim().Truncate(200, 6))
                 .AddInlineField("Auto-Paste", url)
                 .WithColor(new Color(95, 186, 125));
         }

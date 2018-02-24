@@ -26,6 +26,25 @@ namespace Modix.Utilities
         }
 
         /// <summary>
+        /// Attempts to get the language of the code piece
+        /// </summary>
+        /// <param name="code">The code</param>
+        /// <returns>The code language if a match is found, null of none are found</returns>
+        public static string GetCodeLanguage(string message)
+        {
+            var match = _buildContentRegex.Match(message);
+            if (match.Success)
+            {
+                string codeLanguage = match.Groups[1].Value;
+                return string.IsNullOrEmpty(codeLanguage) ? null : codeLanguage;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Attempts to fix the indentation of a piece of code by aligning the left sidie.
         /// </summary>
         /// <param name="code">The code to align</param>
