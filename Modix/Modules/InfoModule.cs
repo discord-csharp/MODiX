@@ -24,12 +24,12 @@ namespace Modix.Modules
 
             foreach (var module in commandService.Modules)
             {
-                eb = eb.WithTitle($"Module: {module.Name ?? ""}")
-                       .WithDescription(module.Summary ?? "");
+                eb = eb.WithTitle($"Module: {module.Name ?? "Unknown"}")
+                       .WithDescription(module.Summary ?? "Unknown");
 
                 foreach(var command in module.Commands)
                 {
-                    eb.AddField(new EmbedFieldBuilder().WithName($"Command: !{module.Name ?? ""} {command.Name ?? ""} {GetParams(command)}").WithValue(command.Summary ?? ""));
+                    eb.AddField(new EmbedFieldBuilder().WithName($"Command: !{module.Name ?? ""} {command.Name ?? ""} {GetParams(command)}").WithValue(command.Summary ?? "Unknown"));
                 }
 
                 await userDm.SendMessageAsync(string.Empty, embed: eb.Build());
