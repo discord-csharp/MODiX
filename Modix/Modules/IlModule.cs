@@ -11,6 +11,7 @@ using Discord.WebSocket;
 using Modix.Utilities;
 using Serilog;
 using Modix.Services.AutoCodePaste;
+using System.Linq;
 
 namespace Modix.Modules
 {
@@ -90,10 +91,9 @@ namespace Modix.Modules
         {
             var failed = result.Contains("Emit Failed");
             string resultLink = null;
-            if(result.Length > 990) 
+            if (result.Length > 990)
             {
                 resultLink = await _pasteService.UploadCode(result);
-
             }
 
             var embed = new EmbedBuilder()
@@ -103,14 +103,15 @@ namespace Modix.Modules
                .WithAuthor(a => a.WithIconUrl(Context.User.GetAvatarUrl()).WithName(guildUser?.Nickname ?? Context.User.Username));
 
             embed.AddField(a => a.WithName("Code").WithValue(Format.Code(code, "cs")));
-            
+
             embed.AddField(a => a.WithName($"Result:")
                  .WithValue(Format.Code(result.TruncateTo(990), "asm")));
+
             if (resultLink != null)
             {
-                embed.AddField(a => a.WithValue($"[View on Hastebin]({resultLink})"));
+                embed.AddField(a => a.WithName("More...").WithValue($"[View on Hastebin]({resultLink})"));
             }
-            
+
             return embed;
         }
     }
