@@ -91,9 +91,17 @@ namespace Modix.Modules
         {
             var failed = result.Contains("Emit Failed");
             string resultLink = null;
+            string error = null;
             if (result.Length > 990)
             {
-                resultLink = await _pasteService.UploadCode(result);
+                try
+                {
+                    resultLink = await _pasteService.UploadCode(result);
+                }
+                catch (WebException we)
+                {
+                    error = we.Message;
+                }
             }
 
             var embed = new EmbedBuilder()
@@ -110,6 +118,10 @@ namespace Modix.Modules
             if (resultLink != null)
             {
                 embed.AddField(a => a.WithName("More...").WithValue($"[View on Hastebin]({resultLink})"));
+            }
+            else if (error != null)
+            {
+                embed.AddField(a => a.WithName("More...").WithValue(error));
             }
 
             return embed;
