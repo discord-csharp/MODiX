@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
-using Modix.Data.Models;
 using Serilog;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.FileUpload;
@@ -16,7 +10,7 @@ namespace Modix
 {
     public class ModixBotHooks
     {
-        private readonly CodePasteHandler _codePaste = new CodePasteHandler();
+        private readonly CodePasteHandler _codePaste = new CodePasteHandler(new CodePasteService());
         private readonly FileUploadHandler _fileUploadHandler = new FileUploadHandler();
 
         public Task HandleLog(LogMessage message)

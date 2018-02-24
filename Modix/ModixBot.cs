@@ -14,6 +14,7 @@ using Serilog.Events;
 using Modix.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Modix.Services.AutoCodePaste;
 
 namespace Modix
 {
@@ -120,6 +121,7 @@ namespace Modix
             _map.AddSingleton(_client);
             _map.AddSingleton(_config);
             _map.AddScoped<IQuoteService, QuoteService>();
+            _map.AddSingleton<CodePasteService>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;

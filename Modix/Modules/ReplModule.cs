@@ -51,9 +51,9 @@ namespace Modix.Modules
                 return;
             }
 
-            if (code.Length > 1024)
+            if (code.Length > 1000)
             {
-                await ReplyAsync("Exec failed: Code is greater than 1024 characters in length");
+                await ReplyAsync("Exec failed: Code is greater than 1000 characters in length");
                 return;
             }
 

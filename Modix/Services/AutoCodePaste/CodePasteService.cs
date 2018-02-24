@@ -21,15 +21,14 @@ namespace Modix.Services.AutoCodePaste
 {4}";
 
         private const string _ApiReferenceUrl = "https://hastebin.com/";
-
+        private static readonly HttpClient client = new HttpClient();
         /// <summary>
         /// Uploads a given piece of code to the service, and returns the URL to the post.
         /// </summary>
         /// <param name="code">The code to post</param>
         /// <returns>The URL to the newly created post</returns>
-        private static async Task<string> UploadCode(string code)
+        public async Task<string> UploadCode(string code)
         {
-            var client = new HttpClient();
             var response = await client.PostAsync($"{_ApiReferenceUrl}documents", FormatUtilities.BuildContent(code));
 
             if (!response.IsSuccessStatusCode)
@@ -49,7 +48,7 @@ namespace Modix.Services.AutoCodePaste
         /// <param name="msg">The Discord message to upload</param>
         /// <param name="code">The string to upload instead of message content</param>
         /// <returns>The URL to the newly created post</returns>
-        internal static async Task<string> UploadCode(IMessage msg, string code = null)
+        public async Task<string> UploadCode(IMessage msg, string code = null)
         {
             var formatted = string.Format(Header,
                 $"{msg.Author.Username}#{msg.Author.DiscriminatorValue}", msg.Channel.Name,
@@ -59,7 +58,7 @@ namespace Modix.Services.AutoCodePaste
             return await UploadCode(formatted);
         }
 
-        internal static EmbedBuilder BuildEmbed(IUser user, string content, string url)
+        public EmbedBuilder BuildEmbed(IUser user, string content, string url)
         {
             var cleanCode = FormatUtilities.FixIndentation(content);
 
