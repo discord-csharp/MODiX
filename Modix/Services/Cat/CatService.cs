@@ -9,7 +9,7 @@
 
     public interface ICatService
     {
-        Task<string> HandleCat(CatModule.Media mediaType, CancellationToken token);
+        Task<string> HandleCat(Media mediaType, CancellationToken token);
     }
 
     public class CatService : ICatService
@@ -22,7 +22,7 @@
             public string file { get; set; }
         }
 
-        public async Task<string> HandleCat(CatModule.Media mediaType, CancellationToken token)
+        public async Task<string> HandleCat(Media mediaType, CancellationToken token)
         {
             var obj = new URL();
             var json = string.Empty;
@@ -50,9 +50,9 @@
 
                 switch (mediaType)
                 {
-                    case CatModule.Media.Picture when obj.file.EndsWith(".gif"):
+                    case Media.Picture when obj.file.EndsWith(".gif"):
                         continue;
-                    case CatModule.Media.Gif when !obj.file.EndsWith(".gif"):
+                    case Media.Gif when !obj.file.EndsWith(".gif"):
                         continue;
                 }
 

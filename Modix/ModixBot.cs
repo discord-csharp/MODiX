@@ -120,8 +120,8 @@ namespace Modix
         {
             _map.AddSingleton(_client);
             _map.AddSingleton(_config);
+            _map.AddSingleton<ICatService, CatService>();
             _map.AddScoped<IQuoteService, QuoteService>();
-            _map.AddTransient<ICatService, CatService>(); 
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;

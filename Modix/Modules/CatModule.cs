@@ -5,11 +5,16 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Serilog;
+
+    public enum Media
+    {
+        Picture, // 0
+        Gif // 1
+    }
 
     public class CatModule : ModuleBase
     {
-        private static Media MediaType;
+        private static Media _mediaType;
         private readonly ICatService _catService;
 
         public CatModule(ICatService catService)
@@ -17,37 +22,33 @@
             _catService = catService;
         }
 
-        public enum Media
-        {
-            Picture, // 0
-            Gif // 1
-        }
-
         [Command("cat"), Summary("Gets a cat")]
         public async Task Cat(string param = "")
         {
             var message = string.Empty;
 
-            try
+            // It can take a Media type parameter however the command has to be !cat picture or !cat gif all of the time. 
+            // If !cat is used, it says too few parameters passed and fails. 
+            // I want to retain !cat functionality. 
+            if (string.IsNullOrWhiteSpace(param))
             {
-                MediaType = (Media) Enum.Parse(typeof(Media), param, true);
-
-                if (!Enum.IsDefined(typeof(Media), MediaType) && !MediaType.ToString().Contains(","))
-                {
-                    // Invalid parameter received
-                    await Context.Channel.SendMessageAsync("Use `!cat` or `!cat gif`");
-                    return;
-                }
-            }catch(Exception)
+                _mediaType = Media.Picture;
+            }
+            else if (string.Equals("gif", param, StringComparison.OrdinalIgnoreCase))
             {
-                Log.Warning("Invalid Parameter Passed");
+                _mediaType = Media.Gif;
+            }
+            else
+            {
+                await Context.Channel.SendMessageAsync("Use `!cat` or `!cat gif`");
+                return;
             }
 
             using (var cts = new CancellationTokenSource(5000))
             {
                 var token = cts.Token;
 
-                message = await _catService.HandleCat(MediaType, token);
+                message = await _catService.HandleCat(_mediaType, token);
             }
 
             // Send the link
