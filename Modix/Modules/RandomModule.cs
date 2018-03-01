@@ -48,12 +48,6 @@
                 return;
             }
 
-            if (inputs.Length > 100) // Arbitrary limit
-            {
-                await ReplyAsync("Woah, that's a lot to choose from, I can't decide :S");
-                return;
-            }
-
             var random = Random.Next(0, inputs.Length);
 
             var choice = inputs[random];
