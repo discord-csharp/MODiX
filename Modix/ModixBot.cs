@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -15,6 +15,7 @@ using Modix.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Modix.Services.AutoCodePaste;
+using Modix.Services.Cat;
 
 namespace Modix
 {
@@ -122,6 +123,7 @@ namespace Modix
             _map.AddSingleton(_config);
             _map.AddScoped<IQuoteService, QuoteService>();
             _map.AddSingleton<CodePasteService>();
+            _map.AddSingleton<ICatService, CatService>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;

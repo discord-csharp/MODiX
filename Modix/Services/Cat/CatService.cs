@@ -5,81 +5,68 @@
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
+    using Modix.Modules;
 
-    public class CatService
+    public interface ICatService
+    {
+        Task<string> HandleCat(Media mediaType, CancellationToken token);
+    }
+
+    public class CatService : ICatService
     {
         private static readonly HttpClient Client = new HttpClient();
 
         // Url for cat
-        public struct URL
+        private struct URL
         {
             public string file { get; set; }
         }
 
-        public async Task<string> GetCatGif(CancellationToken token)
+        public async Task<string> HandleCat(Media mediaType, CancellationToken token)
         {
             var obj = new URL();
             var json = string.Empty;
             var fileFoundFlag = false;
 
-            do
+            while (!token.IsCancellationRequested)
             {
-                //Download a json string from the API
-                json = await DownloadCatJson(token);
+	            try
+                {
+	                //Download a json string from the API
+	                json = await DownloadCatJson(token);
+	            }
+                catch (TaskCanceledException)
+                {
+                    Log.Warning("Could not retrieve JSON string within the alloted time. Is the API Down?");
+                    return "Cat not downloaded in time";
+                }
 
-                // Check and make sure the string isn't empty before attempting to deserialize cat
+                // Check and make sure the string isn't empty before attempting to deserialize the
+                // json. If the website returns a blank string, something is wrong. Break the loop
                 if (string.IsNullOrWhiteSpace(json)) break;
 
                 //Deserialize the json retrieved from the website
                 obj = DeserializeJson(json);
 
-                // If the url doesn't end with .gif, skip to the while evaluation and start the loop again
-                if (!obj.file.EndsWith(".gif")) continue;
+                switch (mediaType)
+                {
+                    case Media.Picture when obj.file.EndsWith(".gif"):
+                        continue;
+                    case Media.Gif when !obj.file.EndsWith(".gif"):
+                        continue;
+                }
 
                 // If a file is found on the first try, set the flag to true and break out of the
                 // loop. If the loop is canceled due to the CancellationToken, the flag remains false
                 // and the 404 error message is returned.
                 fileFoundFlag = true;
                 break;
-            } while (!token.IsCancellationRequested);
+            }
 
-            //Return the URL to the picture or the error message
             return fileFoundFlag ? obj.file : "404 cat gif not found";
         }
 
-        public async Task<string> GetCatPicture(CancellationToken token)
-        {
-            var json = string.Empty;
-            var obj = new URL();
-            var fileFoundFlag = false;
-
-            do
-            {
-                // Download a JSON string from the API
-                json = await DownloadCatJson(token);
-
-                // Check and make sure the string isn't empty before attempting to deserialize cat
-                if (string.IsNullOrWhiteSpace(json)) break;
-
-                //Deserialize the json retrieved from the website
-                obj = DeserializeJson(json);
-
-                // We want a cat picture. If the URL ends with .gif, skip to the while evaluation and
-                // start the loop again
-                if (obj.file.EndsWith(".gif")) continue;
-
-                // If a file is found on the first try, set the flag to true and break out of the
-                // loop. If the loop is canceled due to the CancellationToken, the flag remains false
-                // and the 404 error message is returned.
-                fileFoundFlag = true;
-                break;
-            } while (!token.IsCancellationRequested);
-
-            //Return the URL to the picture or the error message
-            return fileFoundFlag ? obj.file : "404 cat picture not found";
-        }
-
-        private async Task<string> DownloadCatJson(CancellationToken token)
+        private static async Task<string> DownloadCatJson(CancellationToken token)
         {
             var json = string.Empty;
 
@@ -101,12 +88,7 @@
             }
             catch (HttpRequestException hre)
             {
-                Log.Fatal("Request Exception", hre.InnerException);
-            }
-            catch (TaskCanceledException)
-            {
-                // Ran out of time
-                return "Could not find cat in time";
+                Log.Error("Request Exception", hre.InnerException);
             }
 
             return json;

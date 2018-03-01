@@ -3,39 +3,52 @@
     using Discord.Commands;
     using Modix.Services.Cat;
     using System;
-    using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
 
+    public enum Media
+    {
+        Picture, // 0
+        Gif // 1
+    }
+
     public class CatModule : ModuleBase
     {
-        private static readonly HttpClient Client = new HttpClient();
+        private static Media _mediaType;
+        private readonly ICatService _catService;
+
+        public CatModule(ICatService catService)
+        {
+            _catService = catService;
+        }
 
         [Command("cat"), Summary("Gets a cat")]
-        public async Task Cat(string gif = "")
+        public async Task Cat(string param = "")
         {
-            // 5 seconds to find a cat
-            var cts = new CancellationTokenSource(5000);
-            var token = cts.Token;
-
             var message = string.Empty;
 
-            var cat = new CatService();
-
-            // Regular picture
-            if (!string.Equals("gif", gif, StringComparison.OrdinalIgnoreCase))
+            // It can take a Media type parameter however the command has to be !cat picture or !cat gif all of the time. 
+            // If !cat is used, it says too few parameters passed and fails. 
+            // I want to retain !cat functionality. 
+            if (string.IsNullOrWhiteSpace(param))
             {
-                message = await cat.GetCatPicture(token);
+                _mediaType = Media.Picture;
             }
-            else if (gif.Equals("gif", StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals("gif", param, StringComparison.OrdinalIgnoreCase))
             {
-                // Gif of a cat
-                message = await cat.GetCatGif(token);
+                _mediaType = Media.Gif;
             }
             else
             {
-                // Invalid command received
                 await Context.Channel.SendMessageAsync("Use `!cat` or `!cat gif`");
+                return;
+            }
+
+            using (var cts = new CancellationTokenSource(5000))
+            {
+                var token = cts.Token;
+
+                message = await _catService.HandleCat(_mediaType, token);
             }
 
             // Send the link
