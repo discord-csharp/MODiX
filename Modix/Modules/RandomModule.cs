@@ -38,5 +38,27 @@
                 await Context.Channel.SendMessageAsync("tails");
             }
         }
+
+        [Command("pick"), Summary("Picks from a defined list of inputs")]
+        public async Task Pick(params string[] inputs)
+        {
+            if (inputs.Length <= 1)
+            {
+                await ReplyAsync("There isn't enough for me to choose from!");
+                return;
+            }
+
+            if (inputs.Length > 100) // Arbitrary limit
+            {
+                await ReplyAsync("Woah, that's a lot to choose from, I can't decide :S");
+                return;
+            }
+
+            var random = Random.Next(0, inputs.Length);
+
+            var choice = inputs[random];
+
+            await ReplyAsync(choice);
+        }
     }
 }
