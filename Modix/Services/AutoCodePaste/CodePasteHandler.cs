@@ -21,7 +21,13 @@ namespace Modix.Services.AutoCodePaste
 
     public class CodePasteHandler
     {
+        public CodePasteHandler(CodePasteService service)
+        {
+            _service = service;
+        }
+
         private Dictionary<ulong, int> _repasteRatings = new Dictionary<ulong, int>();
+        private CodePasteService _service;
 
         private async Task ModifyRatings(Cacheable<IUserMessage, ulong> cachedMessage, SocketReaction reaction, ReactionState state)
         {
@@ -80,8 +86,8 @@ namespace Modix.Services.AutoCodePaste
         {
             try
             {
-                string url = await CodePasteService.UploadCode(arg);
-                var embed = CodePasteService.BuildEmbed(arg.Author, arg.Content, url);
+                string url = await _service.UploadCode(arg);
+                var embed = _service.BuildEmbed(arg.Author, arg.Content, url);
 
                 await arg.Channel.SendMessageAsync(arg.Author.Mention, false, embed);
                 await arg.DeleteAsync();

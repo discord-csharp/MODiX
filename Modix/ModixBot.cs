@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -12,9 +12,9 @@ using Modix.Services.Quote;
 using Modix.Utilities;
 using Serilog.Events;
 using Modix.Data;
-using Modix.Services.Cat;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Modix.Services.AutoCodePaste;
 
 namespace Modix
 {
@@ -84,7 +84,7 @@ namespace Modix
             };
             var id = Environment.GetEnvironmentVariable("log_webhook_id");
 
-            if (string.IsNullOrWhiteSpace(id))
+            if (!string.IsNullOrWhiteSpace(id))
             {
                 _config.WebhookId = ulong.Parse(id);
                 _config.WebhookToken = Environment.GetEnvironmentVariable("log_webhook_token");
@@ -120,8 +120,9 @@ namespace Modix
         {
             _map.AddSingleton(_client);
             _map.AddSingleton(_config);
-            _map.AddSingleton<ICatService, CatService>();
             _map.AddScoped<IQuoteService, QuoteService>();
+            _map.AddSingleton<CodePasteService>();
+            _map.AddSingleton<ICatService, CatService>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;

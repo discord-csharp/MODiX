@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -18,11 +16,35 @@ namespace Modix.Utilities
         /// <returns>The resulting StringContent for HTTP operations</returns>
         public static StringContent BuildContent(string code)
         {
+            var cleanCode = StipFormatting(code);
+            return new StringContent(cleanCode, Encoding.UTF8, "text/plain");
+        }
+
+        /// <summary>
+        /// Attempts to get the language of the code piece
+        /// </summary>
+        /// <param name="code">The code</param>
+        /// <returns>The code language if a match is found, null of none are found</returns>
+        public static string GetCodeLanguage(string message)
+        {
+            var match = _buildContentRegex.Match(message);
+            if (match.Success)
+            {
+                string codeLanguage = match.Groups[1].Value;
+                return string.IsNullOrEmpty(codeLanguage) ? null : codeLanguage;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        public static string StipFormatting(string code)
+        {
             string cleanCode = _buildContentRegex.Replace(code.Trim(), string.Empty); //strip out the ` characters and code block markers
             cleanCode = cleanCode.Replace("\t", "    "); //spaces > tabs
             cleanCode = FixIndentation(cleanCode);
-
-            return new StringContent(cleanCode, Encoding.UTF8, "text/plain");
+            return cleanCode;
         }
 
         /// <summary>

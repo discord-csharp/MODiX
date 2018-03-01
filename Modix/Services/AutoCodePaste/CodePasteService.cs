@@ -21,15 +21,14 @@ namespace Modix.Services.AutoCodePaste
 {4}";
 
         private const string _ApiReferenceUrl = "https://hastebin.com/";
-
+        private static readonly HttpClient client = new HttpClient();
         /// <summary>
         /// Uploads a given piece of code to the service, and returns the URL to the post.
         /// </summary>
         /// <param name="code">The code to post</param>
         /// <returns>The URL to the newly created post</returns>
-        private static async Task<string> UploadCode(string code)
+        public async Task<string> UploadCode(string code)
         {
-            var client = new HttpClient();
             var response = await client.PostAsync($"{_ApiReferenceUrl}documents", FormatUtilities.BuildContent(code));
 
             if (!response.IsSuccessStatusCode)
@@ -40,7 +39,7 @@ namespace Modix.Services.AutoCodePaste
             var urlResponse = await response.Content.ReadAsStringAsync();
             var pasteKey = JObject.Parse(urlResponse)["key"].Value<string>();
 
-            return $"{_ApiReferenceUrl}{pasteKey}.cs";
+            return $"{_ApiReferenceUrl}{pasteKey}.{FormatUtilities.GetCodeLanguage(code) ?? "cs"}";
         }
 
         /// <summary>
@@ -49,7 +48,7 @@ namespace Modix.Services.AutoCodePaste
         /// <param name="msg">The Discord message to upload</param>
         /// <param name="code">The string to upload instead of message content</param>
         /// <returns>The URL to the newly created post</returns>
-        internal static async Task<string> UploadCode(IMessage msg, string code = null)
+        public async Task<string> UploadCode(IMessage msg, string code = null)
         {
             var formatted = string.Format(Header,
                 $"{msg.Author.Username}#{msg.Author.DiscriminatorValue}", msg.Channel.Name,
@@ -59,14 +58,14 @@ namespace Modix.Services.AutoCodePaste
             return await UploadCode(formatted);
         }
 
-        internal static EmbedBuilder BuildEmbed(IUser user, string content, string url)
+        public EmbedBuilder BuildEmbed(IUser user, string content, string url)
         {
             var cleanCode = FormatUtilities.FixIndentation(content);
 
             return new EmbedBuilder()
                 .WithTitle("Your message was re-uploaded")
                 .WithAuthor(user)
-                .WithDescription(cleanCode.Trim().Truncate(300))
+                .WithDescription(cleanCode.Trim().Truncate(200, 6))
                 .AddInlineField("Auto-Paste", url)
                 .WithColor(new Color(95, 186, 125));
         }
