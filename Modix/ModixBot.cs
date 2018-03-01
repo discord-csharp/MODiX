@@ -15,6 +15,7 @@ using Modix.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Modix.Services.AutoCodePaste;
+using Modix.Services.Cat;
 
 namespace Modix
 {
