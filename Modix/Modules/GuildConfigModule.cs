@@ -8,7 +8,7 @@ using Modix.Services.GuildConfig;
 
 namespace Modix.Modules
 {
-    [Group("config"), Name("Config"), Summary("Configures MODFiX for use on your server")]
+    [Group("config"), Name("Config"), Summary("Configures MODiX for use on your server")]
     public class GuildConfigModule : ModuleBase
     {
         private GuildConfigService _service;
