@@ -1,7 +1,11 @@
-﻿using System.Linq;
+﻿using Discord;
+using Modix.Services.AutoCodePaste;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Modix.Utilities
 {
@@ -67,6 +71,22 @@ namespace Modix.Utilities
             }
 
             return code;
+        }
+
+        public static async Task UploadToServiceIfBiggerThan(this EmbedBuilder embed, string content, string contentType, uint size, CodePasteService service)
+        {
+            if (content.Length > size)
+            {
+                try
+                {
+                    string resultLink = await service.UploadCode(content, contentType);
+                    embed.AddField(a => a.WithName("More...").WithValue($"[View on Hastebin]({resultLink})"));
+                }
+                catch (WebException we)
+                {
+                    embed.AddField(a => a.WithName("More...").WithValue(we.Message));
+                }
+            }
         }
     }
 }

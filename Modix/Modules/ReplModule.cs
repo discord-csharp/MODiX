@@ -117,84 +117,24 @@ namespace Modix.Modules
 
             if (parsedResult.ReturnValue != null)
             {
-                string resultLink = null;
-                string error = null;
-                if (returnValue.Length > 1000)
-                {
-                    try
-                    {
-                        resultLink = await _pasteService.UploadCode(returnValue, "json");
-                    }
-                    catch (WebException we)
-                    {
-                        error = we.Message;
-                    }
-                }
                 embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnTypeName ?? "null"}")
                                      .WithValue(Format.Code($"{returnValue.TruncateTo(1000)}", "json")));
-                if (resultLink != null)
-                {
-                    embed.AddField(a => a.WithName("More...").WithValue($"[View on Hastebin]({resultLink})"));
-                }
-                else if (error != null)
-                {
-                    embed.AddField(a => a.WithName("More...").WithValue(error));
-                }
+                await embed.UploadToServiceIfBiggerThan(returnValue, "json", 1000, _pasteService);
             }
 
             if (!string.IsNullOrWhiteSpace(consoleOut))
             {
-                string resultLink = null;
-                string error = null;
-                if (consoleOut.Length > 1000)
-                {
-                    try
-                    {
-                        resultLink = await _pasteService.UploadCode(consoleOut, "txt");
-                    }
-                    catch (WebException we)
-                    {
-                        error = we.Message;
-                    }
-                }
                 embed.AddField(a => a.WithName("Console Output")
                                      .WithValue(Format.Code(consoleOut.TruncateTo(1000), "txt")));
-                if (resultLink != null)
-                {
-                    embed.AddField(a => a.WithName("More...").WithValue($"[View on Hastebin]({resultLink})"));
-                }
-                else if (error != null)
-                {
-                    embed.AddField(a => a.WithName("More...").WithValue(error));
-                }
+                await embed.UploadToServiceIfBiggerThan(consoleOut, "txt", 1000, _pasteService);
             }
 
             if (!string.IsNullOrWhiteSpace(parsedResult.Exception))
             {
                 var diffFormatted = Regex.Replace(parsedResult.Exception, "^", "- ", RegexOptions.Multiline);
-                string resultLink = null;
-                string error = null;
-                if (diffFormatted.Length > 1000)
-                {
-                    try
-                    {
-                        resultLink = await _pasteService.UploadCode(diffFormatted, "diff");
-                    }
-                    catch (WebException we)
-                    {
-                        error = we.Message;
-                    }
-                }
                 embed.AddField(a => a.WithName($"Exception: {parsedResult.ExceptionType}")
                                      .WithValue(Format.Code(diffFormatted.TruncateTo(1000), "diff")));
-                if (resultLink != null)
-                {
-                    embed.AddField(a => a.WithName("More...").WithValue($"[View on Hastebin]({resultLink})"));
-                }
-                else if (error != null)
-                {
-                    embed.AddField(a => a.WithName("More...").WithValue(error));
-                }
+                await embed.UploadToServiceIfBiggerThan(diffFormatted, "diff", 1000, _pasteService);
             }
 
             return embed;
