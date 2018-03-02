@@ -1,18 +1,18 @@
-﻿using System;
+﻿using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
+using Modix.Data.Models;
+using Modix.Services.AutoCodePaste;
+using Modix.Utilities;
+using Newtonsoft.Json;
+using Serilog;
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
-using Discord;
-using Discord.Commands;
-using Newtonsoft.Json;
 using System.Text.RegularExpressions;
-using Modix.Data.Models;
 using System.Threading;
-using Discord.WebSocket;
-using Modix.Utilities;
-using Serilog;
+using System.Threading.Tasks;
 
 namespace Modix.Modules
 {
@@ -31,13 +31,14 @@ namespace Modix.Modules
     public class ReplModule : ModuleBase
     {
         private const string ReplRemoteUrl = "http://CSDiscord/Eval";
-
+        private readonly CodePasteService _pasteService;
         private readonly ModixConfig _config;
 
         private static readonly HttpClient _client = new HttpClient();
 
-        public ReplModule(ModixConfig config)
+        public ReplModule(ModixConfig config, CodePasteService pasteService)
         {
+            _pasteService = pasteService;
             _config = config;
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", config.ReplToken);
         }
@@ -88,7 +89,7 @@ namespace Modix.Modules
 
             var parsedResult = JsonConvert.DeserializeObject<Result>(await res.Content.ReadAsStringAsync());
 
-            var embed = BuildEmbed(guildUser, parsedResult);
+            var embed = await BuildEmbed(guildUser, parsedResult);
 
             await message.ModifyAsync(a =>
             {
@@ -99,11 +100,11 @@ namespace Modix.Modules
             await Context.Message.DeleteAsync();
         }
 
-        private EmbedBuilder BuildEmbed(SocketGuildUser guildUser, Result parsedResult)
+        private async Task<EmbedBuilder> BuildEmbed(SocketGuildUser guildUser, Result parsedResult)
         {
-            var returnValue = (parsedResult.ReturnValue?.ToString() ?? " ").TruncateTo(1000);
-            var consoleOut = parsedResult.ConsoleOut.TruncateTo(1000);
-            var exception = (parsedResult.Exception ?? string.Empty).TruncateTo(1000);
+            string returnValue = parsedResult.ReturnValue?.ToString() ?? " ";
+            string consoleOut = parsedResult.ConsoleOut;
+            string exception = parsedResult.Exception ?? string.Empty;
 
             var embed = new EmbedBuilder()
                .WithTitle("Eval Result")
@@ -116,21 +117,84 @@ namespace Modix.Modules
 
             if (parsedResult.ReturnValue != null)
             {
+                string resultLink = null;
+                string error = null;
+                if (returnValue.Length > 1000)
+                {
+                    try
+                    {
+                        resultLink = await _pasteService.UploadCode(returnValue, "json");
+                    }
+                    catch (WebException we)
+                    {
+                        error = we.Message;
+                    }
+                }
                 embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnTypeName ?? "null"}")
-                                     .WithValue(Format.Code($"{returnValue}", "txt")));
+                                     .WithValue(Format.Code($"{returnValue.TruncateTo(1000)}", "json")));
+                if (resultLink != null)
+                {
+                    embed.AddField(a => a.WithName("More...").WithValue($"[View on Hastebin]({resultLink})"));
+                }
+                else if (error != null)
+                {
+                    embed.AddField(a => a.WithName("More...").WithValue(error));
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(consoleOut))
             {
+                string resultLink = null;
+                string error = null;
+                if (consoleOut.Length > 1000)
+                {
+                    try
+                    {
+                        resultLink = await _pasteService.UploadCode(consoleOut, "txt");
+                    }
+                    catch (WebException we)
+                    {
+                        error = we.Message;
+                    }
+                }
                 embed.AddField(a => a.WithName("Console Output")
-                                     .WithValue(Format.Code(consoleOut, "txt")));
+                                     .WithValue(Format.Code(consoleOut.TruncateTo(1000), "txt")));
+                if (resultLink != null)
+                {
+                    embed.AddField(a => a.WithName("More...").WithValue($"[View on Hastebin]({resultLink})"));
+                }
+                else if (error != null)
+                {
+                    embed.AddField(a => a.WithName("More...").WithValue(error));
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(parsedResult.Exception))
             {
                 var diffFormatted = Regex.Replace(parsedResult.Exception, "^", "- ", RegexOptions.Multiline);
+                string resultLink = null;
+                string error = null;
+                if (diffFormatted.Length > 1000)
+                {
+                    try
+                    {
+                        resultLink = await _pasteService.UploadCode(diffFormatted, "diff");
+                    }
+                    catch (WebException we)
+                    {
+                        error = we.Message;
+                    }
+                }
                 embed.AddField(a => a.WithName($"Exception: {parsedResult.ExceptionType}")
                                      .WithValue(Format.Code(diffFormatted.TruncateTo(1000), "diff")));
+                if (resultLink != null)
+                {
+                    embed.AddField(a => a.WithName("More...").WithValue($"[View on Hastebin]({resultLink})"));
+                }
+                else if (error != null)
+                {
+                    embed.AddField(a => a.WithName("More...").WithValue(error));
+                }
             }
 
             return embed;
