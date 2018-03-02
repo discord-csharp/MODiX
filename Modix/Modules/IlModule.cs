@@ -90,19 +90,6 @@ namespace Modix.Modules
         private async Task<EmbedBuilder> BuildEmbed(SocketGuildUser guildUser, string code, string result)
         {
             var failed = result.Contains("Emit Failed");
-            string resultLink = null;
-            string error = null;
-            if (result.Length > 990)
-            {
-                try
-                {
-                    resultLink = await _pasteService.UploadCode(result);
-                }
-                catch (WebException we)
-                {
-                    error = we.Message;
-                }
-            }
 
             var embed = new EmbedBuilder()
                .WithTitle("Decompile Result")
@@ -115,14 +102,7 @@ namespace Modix.Modules
             embed.AddField(a => a.WithName($"Result:")
                  .WithValue(Format.Code(result.TruncateTo(990), "asm")));
 
-            if (resultLink != null)
-            {
-                embed.AddField(a => a.WithName("More...").WithValue($"[View on Hastebin]({resultLink})"));
-            }
-            else if (error != null)
-            {
-                embed.AddField(a => a.WithName("More...").WithValue(error));
-            }
+            await embed.UploadToServiceIfBiggerThan(result, "asm", 990, _pasteService);
 
             return embed;
         }
