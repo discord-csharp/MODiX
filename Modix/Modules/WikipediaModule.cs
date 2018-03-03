@@ -1,13 +1,14 @@
 ﻿using Discord;
 using Discord.Commands;
-using Modix.Services.StackExchange;
 using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Modix.Services.Wikipedia;
 
 namespace Modix.Modules
 {
+
     [Name("Wikipedia"), Summary("Search Wikipedia from Discord!")]
     public class WikipediaModule : ModuleBase
     {

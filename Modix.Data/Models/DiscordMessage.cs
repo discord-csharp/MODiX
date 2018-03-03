@@ -1,7 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-
-namespace Modix.Data.Models
+﻿namespace Modix.Data.Models
 {
     public class DiscordMessage
     {

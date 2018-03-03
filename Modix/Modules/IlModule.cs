@@ -11,7 +11,6 @@ using Discord.WebSocket;
 using Modix.Utilities;
 using Serilog;
 using Modix.Services.AutoCodePaste;
-using System.Linq;
 
 namespace Modix.Modules
 {

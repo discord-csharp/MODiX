@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Modix.Data.Models
+﻿namespace Modix.Data.Models
 {
     public class ModixConfig
     {

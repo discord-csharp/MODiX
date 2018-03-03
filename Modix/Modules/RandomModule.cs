@@ -3,7 +3,6 @@
     using System;
     using System.Threading.Tasks;
     using Discord.Commands;
-    using Modix.Utilities;
 
     [Group("random"), Name("Random"), Summary("A bunch of random commands")]
     public class RandomModule : ModuleBase

@@ -1,14 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Modix.Data.Utilities;
-using Modix.Utilities;
-using Serilog;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Modix.Services.AutoCodePaste
