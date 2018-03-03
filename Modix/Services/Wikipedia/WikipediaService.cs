@@ -1,11 +1,10 @@
-﻿using Modix.Services.Wikipedia;
-using Newtonsoft.Json;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
-
-namespace Modix.Services.StackExchange
+﻿namespace Modix.Services.Wikipedia
 {
+    using System.Net;
+    using System.Net.Http;
+    using System.Threading.Tasks;
+    using Newtonsoft.Json;
+
     public class WikipediaService
     {
         private const string WikipediaApiScheme = "https://en.wikipedia.org/w/api.php?format=json&action=query&prop=extracts&exlimit=max&explaintext&exintro&titles={0}&redirects=";

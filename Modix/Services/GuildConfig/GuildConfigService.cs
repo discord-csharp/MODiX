@@ -1,12 +1,10 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Modix.Data;
 using Modix.Data.Models;
 using Modix.Data.Services;
 using Modix.Data.Utilities;
-using Modix.Utilities;
 
 namespace Modix.Services.GuildConfig
 {

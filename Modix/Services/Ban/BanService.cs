@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
@@ -7,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using Modix.Data;
 using Modix.Data.Services;
 using Modix.Data.Utilities;
-using Modix.Utilities;
 
 namespace Modix.Services.Ban
 {
