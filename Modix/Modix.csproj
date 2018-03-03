@@ -15,6 +15,7 @@
     <PackageReference Include="Serilog.Sinks.Literate" Version="3.0.0" />
     <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
     <PackageReference Include="Serilog.Sinks.Sentry" Version="2.1.1" />
+    <PackageReference Include="SharpRaven" Version="2.2.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
