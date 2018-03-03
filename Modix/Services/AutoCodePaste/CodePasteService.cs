@@ -35,16 +35,21 @@ namespace Modix.Services.AutoCodePaste
         {
             var usingFallback = false;
             var content = FormatUtilities.BuildContent(code);
-            var response = await client.PostAsync($"{_ApiReferenceUrl}documents", content);
+            HttpResponseMessage response;
 
-            if (!response.IsSuccessStatusCode)
+            try
+            {
+                response = await client.PostAsync($"{_ApiReferenceUrl}documents", content);
+            }
+            catch (TaskCanceledException)
             {
                 usingFallback = true;
                 response = await client.PostAsync($"{_FallbackApiReferenceUrl}documents", content);
-                if (!response.IsSuccessStatusCode)
-                {
-                    throw new WebException("Something failed while posting code to Hastebin.");
-                }
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new WebException("Something failed while posting code to Hastebin.");
             }
 
             var urlResponse = await response.Content.ReadAsStringAsync();
