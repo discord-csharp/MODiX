@@ -22,7 +22,10 @@ namespace Modix.Services.AutoCodePaste
 
         private const string _ApiReferenceUrl = "https://hastebin.com/";
         private const string _FallbackApiReferenceUrl = "https://haste.charlesmilette.net/";
-        private static readonly HttpClient client = new HttpClient();
+        private static readonly HttpClient client = new HttpClient
+        {
+            Timeout = TimeSpan.FromSeconds(5)
+        };
         /// <summary>
         /// Uploads a given piece of code to the service, and returns the URL to the post.
         /// </summary>
