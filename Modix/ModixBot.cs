@@ -138,10 +138,6 @@ namespace Modix
             _map.AddScoped<IQuoteService, QuoteService>();
             _map.AddSingleton<CodePasteService>();
             _map.AddSingleton<ICatService, CatService>();
-            _map.AddTransient(factory =>
-            {
-                return new RavenClient(_config.SentryToken);
-            });
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;
