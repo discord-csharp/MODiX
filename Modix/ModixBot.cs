@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.Cat;
+using Serilog.Sinks.Sentry;
 
 namespace Modix
 {
@@ -42,6 +43,11 @@ namespace Modix
             if (!string.IsNullOrWhiteSpace(_config.WebhookToken))
             {
                 loggerConfig.WriteTo.DiscordWebhookSink(_config.WebhookId, _config.WebhookToken, LogEventLevel.Error);
+            }
+
+            if(!string.IsNullOrWhiteSpace(_config.SentryToken))
+            {
+                loggerConfig.WriteTo.Sentry(_config.SentryToken, restrictedToMinimumLevel: LogEventLevel.Warning);
             }
 
             Log.Logger = loggerConfig.CreateLogger();
@@ -83,12 +89,19 @@ namespace Modix
                 StackoverflowToken = Environment.GetEnvironmentVariable("StackoverflowToken"),
                 PostgreConnectionString = Environment.GetEnvironmentVariable("MODIX_DB_CONNECTION"),
             };
+
             var id = Environment.GetEnvironmentVariable("log_webhook_id");
 
             if (!string.IsNullOrWhiteSpace(id))
             {
                 _config.WebhookId = ulong.Parse(id);
                 _config.WebhookToken = Environment.GetEnvironmentVariable("log_webhook_token");
+            }
+
+            var sentryToken = Environment.GetEnvironmentVariable("SentryToken");
+            if (!string.IsNullOrWhiteSpace(sentryToken))
+            {
+                _config.SentryToken = sentryToken;
             }
         }
 

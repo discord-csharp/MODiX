@@ -12,5 +12,6 @@ namespace Modix.Data.Models
         public string PostgreConnectionString { get; set; }
         public string WebhookToken { get; set; }
         public ulong WebhookId { get; set; }
+        public string SentryToken { get; set; }
     }
 }
