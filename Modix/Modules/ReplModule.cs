@@ -32,14 +32,12 @@ namespace Modix.Modules
     {
         private const string ReplRemoteUrl = "http://CSDiscord/Eval";
         private readonly CodePasteService _pasteService;
-        private readonly ModixConfig _config;
 
         private static readonly HttpClient _client = new HttpClient();
 
         public ReplModule(ModixConfig config, CodePasteService pasteService)
         {
             _pasteService = pasteService;
-            _config = config;
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", config.ReplToken);
         }
 
@@ -104,7 +102,6 @@ namespace Modix.Modules
         {
             string returnValue = parsedResult.ReturnValue?.ToString() ?? " ";
             string consoleOut = parsedResult.ConsoleOut;
-            string exception = parsedResult.Exception ?? string.Empty;
 
             var embed = new EmbedBuilder()
                .WithTitle("Eval Result")

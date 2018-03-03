@@ -12,7 +12,7 @@ namespace Modix.Services.Ban
     public class BanService
     {
         private readonly DiscordGuildService _guildService;
-        private ModixContext _context;
+        private readonly ModixContext _context;
 
         public BanService(ModixContext context)
         {

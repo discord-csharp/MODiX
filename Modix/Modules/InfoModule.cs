@@ -9,11 +9,11 @@ namespace Modix.Modules
     [Name("Info"), Summary("General helper module")]
     public sealed class InfoModule : ModuleBase
     {
-        private CommandService commandService;
+        private readonly CommandService _commandService;
 
         public InfoModule(CommandService cs)
         {
-            commandService = cs;
+            _commandService = cs;
         }
 
         [Command("help"), Summary("Prints a neat list of all commands.")]
@@ -22,7 +22,7 @@ namespace Modix.Modules
             var eb = new EmbedBuilder();
             var userDm = await Context.User.GetOrCreateDMChannelAsync();
 
-            foreach (var module in commandService.Modules)
+            foreach (var module in _commandService.Modules)
             {
                 eb = eb.WithTitle($"Module: {module.Name ?? "Unknown"}")
                        .WithDescription(module.Summary ?? "Unknown");

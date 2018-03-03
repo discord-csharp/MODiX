@@ -12,7 +12,7 @@ namespace Modix.Modules
     public class GuildConfigModule : ModuleBase
     {
         private GuildConfigService _service;
-        private ModixContext _context;
+        private readonly ModixContext _context;
 
         public GuildConfigModule(ModixContext context)
         {

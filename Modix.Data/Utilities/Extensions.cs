@@ -7,7 +7,7 @@ namespace Modix.Data.Utilities
     {
         public static long ToLong(this ulong number)
         {
-            if (!long.TryParse((number.ToString()), out long convertedNumber)) 
+            if (!long.TryParse((number.ToString()), out var convertedNumber)) 
                 throw new AggregateException("Could not convert ulong to long");
 
             return convertedNumber;
@@ -15,7 +15,7 @@ namespace Modix.Data.Utilities
 
         public static ulong ToUlong(this long number)
         {
-            if (!ulong.TryParse((number.ToString()), out ulong convertedNumber))
+            if (!ulong.TryParse((number.ToString()), out var convertedNumber))
                 throw new AggregateException("Could not convert long to ulong");
 
             return convertedNumber;

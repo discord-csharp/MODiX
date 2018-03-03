@@ -11,7 +11,7 @@
 
         public async Task<WikipediaResponse> GetWikipediaResultsAsync(string phrase)
         {
-            string query = string.Join(" ", phrase);
+            var query = string.Join(" ", phrase);
             query = WebUtility.UrlEncode(query);
             var client = new HttpClient();
             var response = await client.GetAsync(string.Format(WikipediaApiScheme, query));

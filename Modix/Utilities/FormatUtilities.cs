@@ -11,7 +11,7 @@ namespace Modix.Utilities
 {
     public static class FormatUtilities
     {
-        private static Regex _buildContentRegex = new Regex(@"```([^\s]+|)");
+        private static readonly Regex _buildContentRegex = new Regex(@"```([^\s]+|)");
 
         /// <summary>
         /// Prepares a piece of input code for use in HTTP operations
@@ -45,7 +45,7 @@ namespace Modix.Utilities
 
         public static string StipFormatting(string code)
         {
-            string cleanCode = _buildContentRegex.Replace(code.Trim(), string.Empty); //strip out the ` characters and code block markers
+            var cleanCode = _buildContentRegex.Replace(code.Trim(), string.Empty); //strip out the ` characters and code block markers
             cleanCode = cleanCode.Replace("\t", "    "); //spaces > tabs
             cleanCode = FixIndentation(cleanCode);
             return cleanCode;
@@ -59,13 +59,13 @@ namespace Modix.Utilities
         public static string FixIndentation(string code)
         {
             var lines = code.Split('\n');
-            string indentLine = lines.SkipWhile(d => d.FirstOrDefault() != ' ').FirstOrDefault();
+            var indentLine = lines.SkipWhile(d => d.FirstOrDefault() != ' ').FirstOrDefault();
             
             if (indentLine != null)
             {
-                int indent = indentLine.LastIndexOf(' ') + 1;
+                var indent = indentLine.LastIndexOf(' ') + 1;
 
-                string pattern = $@"^[^\S\n]{{{indent}}}";
+                var pattern = $@"^[^\S\n]{{{indent}}}";
 
                 return Regex.Replace(code, pattern, "", RegexOptions.Multiline);
             }
@@ -79,7 +79,7 @@ namespace Modix.Utilities
             {
                 try
                 {
-                    string resultLink = await service.UploadCode(content, contentType);
+                    var resultLink = await service.UploadCode(content, contentType);
                     embed.AddField(a => a.WithName("More...").WithValue($"[View on Hastebin]({resultLink})"));
                 }
                 catch (WebException we)

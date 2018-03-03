@@ -8,7 +8,7 @@ namespace Modix.Modules
     [Name("Code Paste"), Summary("Paste some code to the internet.")]
     public class CodePasteModule : ModuleBase
     {
-        private CodePasteService _service;
+        private readonly CodePasteService _service;
 
         public CodePasteModule(CodePasteService service)
         {
@@ -18,7 +18,7 @@ namespace Modix.Modules
         [Command("paste"), Summary("Paste the rest of your message to the internet, and return the URL.")]
         public async Task Run([Remainder] string code)
         {
-            string url = null;
+            string url;
             string error = null;
             try
             {
