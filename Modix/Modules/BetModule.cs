@@ -31,9 +31,9 @@ namespace Modix.Modules
         private static BettingState _state;
         private static Timer _stageTimer;
         private static Timer _rollingTimer;
-        private static List<IUser> _joinedUsers = new List<IUser>();
-        private static Dictionary<IUser, int> _rolls = new Dictionary<IUser, int>();
-        private static Random _randomGenerator = new Random();
+        private static readonly List<IUser> _joinedUsers = new List<IUser>();
+        private static readonly Dictionary<IUser, int> _rolls = new Dictionary<IUser, int>();
+        private static readonly Random _randomGenerator = new Random();
 
         [Command("Stage"), Summary("Sets the stage for a new betting game. Players can join during this time with !bet join")]
         public async Task StageAsync()

@@ -12,7 +12,7 @@ namespace Modix.Modules
     [Name("StackExchange"), Summary("Query any site from Stack Exchange.")]
     public class StackExchangeModule : ModuleBase
     {
-        private ModixConfig _config;
+        private readonly ModixConfig _config;
 
         public StackExchangeModule(ModixConfig config)
         {
@@ -22,8 +22,8 @@ namespace Modix.Modules
         [Command("stack"), Summary("Returns top results from a Stack Exchange site. Usage: `!stack how do i parse json with c#? [site=stackoverflow tags=c#,json]`")]
         public async Task Run([Remainder] string phrase)
         {
-            int startLocation = phrase.IndexOf("[");
-            int endLocation = phrase.IndexOf("]");
+            var startLocation = phrase.IndexOf("[");
+            var endLocation = phrase.IndexOf("]");
 
             string site = null;
             string tags = null;

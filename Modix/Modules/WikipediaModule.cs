@@ -42,12 +42,12 @@ namespace Modix.Modules
                 // How many batches do we need to send?
                 // IE: 5000 / 2000 = 2.5
                 // Round up = 3
-                decimal batchCount = Math.Ceiling(decimal.Divide(message.Length, DiscordConfig.MaxMessageSize));
+                var batchCount = Math.Ceiling(decimal.Divide(message.Length, DiscordConfig.MaxMessageSize));
 
                 // Keep track of how many characters we've sent to the channel.
                 // Use the cursor to see the diff between what we've sent, and what is remaining to send
                 //  So we can satisfy the batch sending approach.
-                int cursor = 0;
+                var cursor = 0;
 
                 for (var i = 0; i < batchCount; i++)
                 {

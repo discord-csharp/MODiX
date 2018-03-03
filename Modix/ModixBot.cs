@@ -70,7 +70,7 @@ namespace Modix
            
             var provider = _map.BuildServiceProvider();
 
-            var loggerFactory = provider.GetService<ILoggerFactory>();
+            provider.GetService<ILoggerFactory>();
             using (var context = provider.GetService<ModixContext>())
             {
                 context.Database.Migrate();

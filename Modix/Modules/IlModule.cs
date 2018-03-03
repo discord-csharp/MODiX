@@ -18,14 +18,12 @@ namespace Modix.Modules
     {
         private const string ReplRemoteUrl = "http://CSDiscord/Il";
         private readonly CodePasteService _pasteService;
-        private readonly ModixConfig _config;
 
         private static readonly HttpClient _client = new HttpClient();
 
         public IlModule(ModixConfig config, CodePasteService pasteService)
         {
             _pasteService = pasteService;
-            _config = config;
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", config.ReplToken);
         }
 

@@ -10,9 +10,9 @@ namespace Modix.Utilities
 {
     public class DiscordWebhookSink : ILogEventSink
     {
-        private ulong _webhookId;
-        private string _webhookToken;
-        private IFormatProvider _formatProvider;
+        private readonly ulong _webhookId;
+        private readonly string _webhookToken;
+        private readonly IFormatProvider _formatProvider;
 
         public DiscordWebhookSink(ulong webhookId, string webhookToken, IFormatProvider formatProvider)
         {

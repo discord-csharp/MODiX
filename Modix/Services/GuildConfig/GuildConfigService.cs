@@ -10,8 +10,8 @@ namespace Modix.Services.GuildConfig
 {
     public sealed class GuildConfigService
     {
-        private DiscordGuildService _guildService;
-        private DiscordGuild _guild = null;
+        private readonly DiscordGuildService _guildService;
+        private readonly DiscordGuild _guild;
 
         public GuildConfigService(IGuild guild, ModixContext context)
         {

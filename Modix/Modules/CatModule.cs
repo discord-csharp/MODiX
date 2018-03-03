@@ -25,7 +25,7 @@
         [Command("cat"), Summary("Gets a cat")]
         public async Task Cat(string param = "")
         {
-            var message = string.Empty;
+            string message;
 
             // It can take a Media type parameter however the command has to be !cat picture or !cat gif all of the time. 
             // If !cat is used, it says too few parameters passed and fails. 

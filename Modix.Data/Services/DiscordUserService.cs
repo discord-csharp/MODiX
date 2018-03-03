@@ -9,7 +9,7 @@ namespace Modix.Data.Services
 {
     public class DiscordUserService : IDisposable
     {
-        private ModixContext _context;
+        private readonly ModixContext _context;
 
         public DiscordUserService(ModixContext context)
         {
