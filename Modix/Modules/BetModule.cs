@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Commands;
-using Modix.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,7 +24,6 @@ namespace Modix.Modules
         private const int StageStepLengthInSeconds = 5;
         private const int RollingDurationInSeconds = 30;
         private const int RollingStepLengthInSeconds = 5;
-        private const int MaxRoll = 50000;
 
         private static int _stageCounter;
         private static int _rollingCounter;

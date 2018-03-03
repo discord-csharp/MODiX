@@ -1,7 +1,7 @@
 ﻿namespace Modix.Modules
 {
     using Discord.Commands;
-    using Modix.Services.Cat;
+    using Services.Cat;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
