@@ -48,3 +48,6 @@ environment:
   ConnectionString:
     secure: NzFEWOWpZS9iEHzW51hyy1qhg+01bwLuH0LcmDDQbOWX0VCGX/Wl/p99ucZpAEVYMZmEbCqc1JJnqqjiIIr6uKvNYgmVutA1ohnB0XC3cUs=
   log_webhook_id: 382609729802862592
+  SentryToken:
+    secure: TSVcrUaf7lIi4YoOKrZhqrf6MvXh+XFUMO454dwB0q8ieNFOap49KhCYhw4x9sRflgQnDhppjzdbOrFiDnwQvID4rb3nXCxnJRzPLOUwOYlM4SfitMt2LnyGzyOdminq
+
