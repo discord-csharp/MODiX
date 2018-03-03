@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.Cat;
 using Serilog.Sinks.Sentry;
+using SharpRaven;
 
 namespace Modix
 {
