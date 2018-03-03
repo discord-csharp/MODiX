@@ -21,6 +21,7 @@ namespace Modix.Services.AutoCodePaste
 {4}";
 
         private const string _ApiReferenceUrl = "https://hastebin.com/";
+        private const string _FallbackApiReferenceUrl = "https://haste.charlesmilette.net/";
         private static readonly HttpClient client = new HttpClient();
         /// <summary>
         /// Uploads a given piece of code to the service, and returns the URL to the post.
@@ -29,17 +30,25 @@ namespace Modix.Services.AutoCodePaste
         /// <returns>The URL to the newly created post</returns>
         public async Task<string> UploadCode(string code, string language = null)
         {
-            var response = await client.PostAsync($"{_ApiReferenceUrl}documents", FormatUtilities.BuildContent(code));
+            var usingFallback = false;
+            var content = FormatUtilities.BuildContent(code);
+            var response = await client.PostAsync($"{_ApiReferenceUrl}documents", content);
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new WebException("Something failed while posting code to Hastebin.");
+                usingFallback = true;
+                response = await client.PostAsync($"{_FallbackApiReferenceUrl}documents", content);
+                if (!response.IsSuccessStatusCode)
+                {
+                    throw new WebException("Something failed while posting code to Hastebin.");
+                }
             }
 
             var urlResponse = await response.Content.ReadAsStringAsync();
             var pasteKey = JObject.Parse(urlResponse)["key"].Value<string>();
 
-            return $"{_ApiReferenceUrl}{pasteKey}.{language ?? (FormatUtilities.GetCodeLanguage(code) ?? "cs")}";
+            var domain = usingFallback ? _FallbackApiReferenceUrl : _ApiReferenceUrl;
+            return $"{domain}{pasteKey}.{language ?? (FormatUtilities.GetCodeLanguage(code) ?? "cs")}";
         }
 
         /// <summary>
