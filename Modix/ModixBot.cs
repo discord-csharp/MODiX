@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.Cat;
 using Serilog.Sinks.Sentry;
+using SharpRaven;
 
 namespace Modix
 {
@@ -137,6 +138,10 @@ namespace Modix
             _map.AddScoped<IQuoteService, QuoteService>();
             _map.AddSingleton<CodePasteService>();
             _map.AddSingleton<ICatService, CatService>();
+            _map.AddTransient(factory =>
+            {
+                return new RavenClient(_config.SentryToken);
+            });
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;
