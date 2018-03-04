@@ -72,10 +72,10 @@ namespace Modix
 
             provider.GetService<ILoggerFactory>();
 
-            using (var context = provider.GetService<ModixContext>())
+            /*using (var context = provider.GetService<ModixContext>())
             {
                 context.Database.Migrate();
-            }
+            }*/
 
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
@@ -84,7 +84,6 @@ namespace Modix
 
         public void LoadConfig()
         {
-
             _config = new ModixConfig
             {
                 DiscordToken = Environment.GetEnvironmentVariable("Token"),
@@ -139,6 +138,7 @@ namespace Modix
             _map.AddSingleton(_config);
             _map.AddScoped<IQuoteService, QuoteService>();
             _map.AddSingleton<CodePasteService>();
+            _map.AddSingleton<IHttpClient, HttpClient>();
             _map.AddSingleton<ICatService, CatService>();
 
             _client.MessageReceived += HandleCommand;

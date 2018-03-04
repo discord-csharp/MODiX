@@ -1,59 +1,71 @@
-﻿namespace Modix.Modules
+﻿using Discord.Commands;
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using Modix.Services.Cat;
+using Serilog;
+
+namespace Modix.Modules
 {
-    using Discord.Commands;
-    using Services.Cat;
-    using System;
-    using System.Threading.Tasks;
-
-    public enum Media
-    {
-        Picture, // 0
-        Gif // 1
-    }
-
-    [Group("cat"), Summary("Cat Related Commands")]
+    [Summary("Cat Related Commands")]
     public class CatModule : ModuleBase
     {
-        private static Media _mediaType;
         private readonly ICatService _catService;
+
+        private const string Gif = "gif";
 
         public CatModule(ICatService catService)
         {
             _catService = catService;
         }
 
-        [Command(RunMode = RunMode.Async)]
-        public async Task Cat(string param = "")
+        [Command("cat", RunMode = RunMode.Async)]
+        public async Task Cat(string parameter = null)
         {
-            string message;
+            var type = !string.IsNullOrWhiteSpace(parameter) && parameter.Contains(Gif) ? CatMediaType.Gif : CatMediaType.Jpg;
 
-            // It can take a Media type parameter however the command has to be !cat picture or !cat gif all of the time. 
-            // If !cat is used, it says too few parameters passed and fails. 
-            // I want to retain !cat functionality. 
-            if (string.IsNullOrWhiteSpace(param))
+            try
             {
-                _mediaType = Media.Picture;
-            }
-            else if (string.Equals("gif", param, StringComparison.OrdinalIgnoreCase))
-            {
-                _mediaType = Media.Gif;
-            }
-            else
-            {
-                await Context.Channel.SendMessageAsync("Use `!cat` or `!cat gif`");
-                return;
-            }
+                var cat = await _catService.Get(type);
 
-            //await _catService.
-
-            // Send the link
-            //await Context.Channel.SendMessageAsync(message);
+                if (cat != null)
+                {
+                    await ProcessCatResponse(type, cat);
+                }
+                else
+                {
+                    await ReplyAsync("The cat vending machine has run out :(");
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                await ReplyAsync("Couldn't get a cat in time :(");
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Failed getting cat", ex);
+            }
         }
 
-        [Command("poke")]
-        public async Task BuildCache()
+        private async Task ProcessCatResponse(CatMediaType type, CatResponse cat)
         {
-            _catService.Poke();
+            switch (cat)
+            {
+                case ByteCatResponse byteResponse:
+                    var fileName = "cat." + type.ToString().ToLower();
+
+                    using (var stream = new MemoryStream(byteResponse.Bytes))
+                        await Context.Channel.SendFileAsync(stream, fileName);
+                    break;
+
+                case UrlCatResponse urlResponse:
+                    await ReplyAsync(urlResponse.Url);
+                    break;
+
+                default:
+                    await ReplyAsync("Something went wrong while finding a kitty");
+                    break;
+            }
         }
     }
 }
