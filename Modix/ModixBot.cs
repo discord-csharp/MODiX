@@ -72,10 +72,10 @@ namespace Modix
 
             provider.GetService<ILoggerFactory>();
 
-            /*using (var context = provider.GetService<ModixContext>())
+            using (var context = provider.GetService<ModixContext>())
             {
                 context.Database.Migrate();
-            }*/
+            }
 
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
