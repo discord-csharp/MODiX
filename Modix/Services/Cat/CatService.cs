@@ -38,12 +38,10 @@
 
         public CatService()
         {
+            // Add the HTML header for authorization purpose for the imgur api
             Client.DefaultRequestHeaders.Add("Authorization", $"Client-ID {imgurClientId}");
 
-            // Is this okay? I feel like this isn't okay.
-            Task.Run(async () => { return webpageCache = await BuildWebCache(); }); 
-
-            Log.Information($"{webpageCache.Count} cats");
+            // Code to build web cache should go somewhere. AsyncLazy?
         }
 
         public string RandomizeCat()
