@@ -48,12 +48,20 @@
 
         public string RandomizeCat()
         { 
+            // Choose a random number
             var random = Random.Next(0, webpageCache.Count);
 
+            // Select a random cat from the link and get it's link
+            // Sometimes due to the Imgur API and how the images are uploaded, the links will be in different places within the JSON
+            // I believe this is due to how albums work
+            // If the webpageCache.link is blank, then the link to the image will be in webpageCache.images[].link
+            // .images[] can have multiple images within it. I just select the first one here.
             var catUrl = webpageCache[random].link ?? webpageCache[random].images[1].link;
             
+            // Remove the cat from the link
             webpageCache.RemoveAt(random);
 
+            // Return the URL
             return catUrl;
         }
 
@@ -116,14 +124,17 @@
             var objsDatums = new List<Datum>();
             var primaryJson = string.Empty;
 
+            // Download the json from the Imgur api
             using (var cts = new CancellationTokenSource(5000))
             {
                 var token = cts.Token;
                 primaryJson = await DownloadRequest($"{_primaryApi}{_imgurPageNumber}", token);
             }
 
+            // Deserialize the json
             var primaryObject = DeserializeJson(primaryJson);
 
+            // Add the deserialized json objects to the Webcache list we have
             objsDatums.AddRange(primaryObject.data);
 
             return objsDatums;
