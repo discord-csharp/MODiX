@@ -1,21 +1,18 @@
-﻿namespace Modix.Modules
+﻿using Discord.Commands;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Modix.Services.Cat;
+using Serilog;
+
+namespace Modix.Modules
 {
-    using Discord.Commands;
-    using Services.Cat;
-    using System;
-    using System.Threading.Tasks;
-
-    public enum Media
-    {
-        Picture, // 0
-        Gif // 1
-    }
-
-    [Group("cat"), Summary("Cat Related Commands")]
+    [Summary("Cat Related Commands")]
     public class CatModule : ModuleBase
     {
-        private static Media _mediaType;
         private readonly ICatService _catService;
+
+        private const string Gif = "gif";
 
         public CatModule(ICatService catService)
         {
@@ -23,37 +20,31 @@
         }
 
         [Command(RunMode = RunMode.Async)]
-        public async Task Cat(string param = "")
+        public async Task Cat(string param)
         {
-            string message;
+            var type = !string.IsNullOrWhiteSpace(param) && param.Contains(Gif) ? CatMediaType.Gif : CatMediaType.Image;
 
-            // It can take a Media type parameter however the command has to be !cat picture or !cat gif all of the time. 
-            // If !cat is used, it says too few parameters passed and fails. 
-            // I want to retain !cat functionality. 
-            if (string.IsNullOrWhiteSpace(param))
+            try
             {
-                _mediaType = Media.Picture;
+                var catUrl = await _catService.Get(type);
+
+                if (!string.IsNullOrWhiteSpace(catUrl))
+                {
+                    await ReplyAsync(catUrl);
+                }
+                else
+                {
+                    await ReplyAsync("The cat vending machine has run out :(");
+                }
             }
-            else if (string.Equals("gif", param, StringComparison.OrdinalIgnoreCase))
+            catch (TaskCanceledException)
             {
-                _mediaType = Media.Gif;
+                await ReplyAsync("Couldn't get a cat in time :(");
             }
-            else
+            catch (Exception ex)
             {
-                await Context.Channel.SendMessageAsync("Use `!cat` or `!cat gif`");
-                return;
+                Log.Error("Failed getting cat", ex);
             }
-
-            //await _catService.
-
-            // Send the link
-            //await Context.Channel.SendMessageAsync(message);
-        }
-
-        [Command("poke")]
-        public async Task BuildCache()
-        {
-            _catService.Poke();
         }
     }
 }
