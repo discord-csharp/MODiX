@@ -13,17 +13,13 @@ namespace Modix.Services.Cat.APIs.Imgur
         private const string Secret = "secret";
         private const string Url = "https://api.imgur.com/3/gallery/r/cats/page/";
 
-        private readonly IHttpClient _httpClient;
+        private readonly HttpClient _httpClient;
         private static readonly List<string> LinkPool = new List<string>();
 
-        public ImgurCatApi(IHttpClient httpClient)
+        public ImgurCatApi()
         {
-            _httpClient = httpClient;
-
-            // Add the header to the HTTP client for Imgur authorisation
-            // TODO Verify if HTTPClient allows for the same header to be applied multiple times
-            // We could have an error here, since the client is supposed to be singleton
-            httpClient.AddHeader("Authorization", $"Client-ID {Secret}");
+            _httpClient = new HttpClient();
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Client-ID {Secret}");
         }
 
         public async Task<CatResponse> Fetch(CatMediaType type, CancellationToken cancellationToken)
