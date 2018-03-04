@@ -49,7 +49,7 @@ namespace Modix.Services.Cat.APIs.Imgur
 
                         // We have a caching mechanism in place, therefore attempt to get
                         // all links of the URLs and cache
-                        var links = imgur.Album.SelectMany(x => x.Images).Select(x => x.Link).ToList();
+                        var links = imgur.Images.Select(x => x.Link).ToList();
 
                         // We want to return the first link, since we wanted to fetch a
                         // URL to begin with, so remove the first link and return that

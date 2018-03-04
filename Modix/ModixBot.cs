@@ -139,6 +139,7 @@ namespace Modix
             _map.AddSingleton(_config);
             _map.AddScoped<IQuoteService, QuoteService>();
             _map.AddSingleton<CodePasteService>();
+            _map.AddSingleton<IHttpClient, HttpClient>();
             _map.AddSingleton<ICatService, CatService>();
 
             _client.MessageReceived += HandleCommand;
