@@ -23,12 +23,12 @@ namespace Modix.Services.Cat
     {
         private readonly List<ICatApi> _apis;
 
-        public CatService(IHttpClient httpClient)
+        public CatService()
         {
             _apis = new List<ICatApi>
             {
-                new CaaSCatApi(httpClient),
-                new ImgurCatApi(httpClient)
+                new CaaSCatApi(),
+                new ImgurCatApi()
             };
         }
 

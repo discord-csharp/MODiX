@@ -1,16 +1,12 @@
-﻿using System.Threading;
+﻿using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Modix.Services.Cat.APIs.CaaS
 {
     public class CaaSCatApi : ICatApi
     {
-        private readonly IHttpClient _httpClient;
-
-        public CaaSCatApi(IHttpClient httpClient)
-        {
-            _httpClient = httpClient;
-        }
+        private readonly HttpClient _httpClient = new HttpClient();
 
         public async Task<CatResponse> Fetch(CatMediaType type, CancellationToken cancellationToken = default)
         {
