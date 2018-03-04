@@ -50,5 +50,3 @@ environment:
   log_webhook_id: 382609729802862592
   SentryToken:
     secure: TSVcrUaf7lIi4YoOKrZhqrf6MvXh+XFUMO454dwB0q8ieNFOap49KhCYhw4x9sRflgQnDhppjzdbOrFiDnwQvID4rb3nXCxnJRzPLOUwOYlM4SfitMt2LnyGzyOdminq
-  ImgurToken:
-    secure: 4a98fd6d74e936d079ae8cad473386ca5818283c
