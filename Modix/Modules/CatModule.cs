@@ -19,7 +19,7 @@ namespace Modix.Modules
             _catService = catService;
         }
 
-        [Command("cat")]
+        [Command("cat", RunMode = RunMode.Async)]
         public async Task Cat(string parameter = null)
         {
             var type = !string.IsNullOrWhiteSpace(parameter) && parameter.Contains(Gif) ? CatMediaType.Gif : CatMediaType.Jpg;
