@@ -12,12 +12,12 @@ namespace Modix.Services.Cat
 
     public class HttpClient : IHttpClient
     {
-        private static readonly System.Net.Http.HttpClient Client = new System.Net.Http.HttpClient();
+        private readonly System.Net.Http.HttpClient _client = new System.Net.Http.HttpClient();
 
         public Task<HttpResponseMessage> GetAsync(string uri, CancellationToken cancellationToken)
-            => Client.GetAsync(uri, cancellationToken);
+            => _client.GetAsync(uri, cancellationToken);
 
         public void AddHeader(string id, string value)
-            => Client.DefaultRequestHeaders.Add(id, value);
+            => _client.DefaultRequestHeaders.Add(id, value);
     }
 }
