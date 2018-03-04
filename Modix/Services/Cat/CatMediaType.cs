@@ -2,7 +2,7 @@
 {
     public enum CatMediaType
     {
-        Image,
+        Jpg,
         Gif
     }
 }

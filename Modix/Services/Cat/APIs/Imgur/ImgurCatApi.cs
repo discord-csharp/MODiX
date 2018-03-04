@@ -14,7 +14,7 @@ namespace Modix.Services.Cat.APIs.Imgur
         private const string Url = "https://api.imgur.com/3/gallery/r/cats/page/";
 
         private readonly IHttpClient _httpClient;
-        private readonly List<string> _linkPool = new List<string>();
+        private static readonly List<string> LinkPool = new List<string>();
 
         public ImgurCatApi(IHttpClient httpClient)
         {
@@ -26,14 +26,37 @@ namespace Modix.Services.Cat.APIs.Imgur
             httpClient.AddHeader("Authorization", $"Client-ID {Secret}");
         }
 
-        public async Task<string> Fetch(CancellationToken cancellationToken)
+        public async Task<CatResponse> Fetch(CatMediaType type, CancellationToken cancellationToken)
         {
+            string catUrl = null;
+
             try
             {
                 // If we have any cat URLs in the pool, try to fetch those first
-                if (_linkPool.Any())
-                    return GetCachedCat();
+                if (LinkPool.Any())
+                {
+                    catUrl = GetCachedCat();
+                }
+                else
+                {
+                    catUrl = await GetCatFromApi(cancellationToken);
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                Log.Warning("Failed fetching Imgur cat", ex.InnerException);
+            }
 
+            if(!string.IsNullOrWhiteSpace(catUrl))
+                return new UrlCatResponse(catUrl);
+
+            return new UrlCatResponse();
+        }
+
+        private async Task<string> GetCatFromApi(CancellationToken cancellationToken)
+        {
+            try
+            {
                 using (var response = await _httpClient.GetAsync(Url, cancellationToken))
                 {
                     if (response.IsSuccessStatusCode)
@@ -58,7 +81,7 @@ namespace Modix.Services.Cat.APIs.Imgur
 
                         links.Remove(primaryLink);
 
-                        _linkPool.AddRange(links);
+                        LinkPool.AddRange(links);
 
                         return primaryLink;
                     }
@@ -72,20 +95,19 @@ namespace Modix.Services.Cat.APIs.Imgur
                 Log.Warning("Failed fetching Imgur cat", ex.InnerException);
             }
 
-            // We somehow got nothing, so return null and deal in the invoker
             return null;
         }
 
         private static Response Deserialise(string content)
             => JsonConvert.DeserializeObject<Response>(content);
 
-        private string GetCachedCat()
+        private static string GetCachedCat()
         {
             // Get the top of the list
-            var cachedCat = _linkPool.First();
+            var cachedCat = LinkPool.First();
 
             // Remove the URL, so we don't recycle it
-            _linkPool.Remove(cachedCat);
+            LinkPool.Remove(cachedCat);
 
             return cachedCat;
         }

@@ -84,7 +84,6 @@ namespace Modix
 
         public void LoadConfig()
         {
-
             _config = new ModixConfig
             {
                 DiscordToken = Environment.GetEnvironmentVariable("Token"),

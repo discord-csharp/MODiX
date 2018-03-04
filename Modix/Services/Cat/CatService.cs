@@ -1,7 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Modix.Services.Cat.APIs;
+using Modix.Services.Cat.APIs.CaaS;
 using Modix.Services.Cat.APIs.Imgur;
 
 namespace Modix.Services.Cat
@@ -14,7 +16,7 @@ namespace Modix.Services.Cat
         /// <param name="type"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task<string> Get(CatMediaType type, CancellationToken cancellationToken = default);
+        Task<CatResponse> Get(CatMediaType type, CancellationToken cancellationToken = default);
     }
 
     public class CatService : ICatService
@@ -25,23 +27,25 @@ namespace Modix.Services.Cat
         {
             _apis = new List<ICatApi>
             {
+                new CaaSCatApi(httpClient),
                 new ImgurCatApi(httpClient)
             };
         }
 
-        public async Task<string> Get(CatMediaType type, CancellationToken cancellationToken)
+        public async Task<CatResponse> Get(CatMediaType type, CancellationToken cancellationToken)
         {
-            // TODO Take into account type of media requested by user
-
             // We may have many API providers, therefore iterate over all of them
             foreach (var api in _apis)
             {
-                // Fetch from the API
-                var response = await api.Fetch(cancellationToken);
+                using (var token = new CancellationTokenSource(TimeSpan.FromSeconds(15)))
+                {
+                    // Fetch from the API
+                    var response = await api.Fetch(type, token.Token);
 
-                // If the response is not null, we have a successful cat URL, return it
-                if (!string.IsNullOrWhiteSpace(response))
-                    return response;
+                    // If the response is not null, we have a successful cat URL, return it
+                    if (response.Success)
+                        return response;
+                }
 
                 // Check if we've timed out before progressing to the next API
                 cancellationToken.ThrowIfCancellationRequested();

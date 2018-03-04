@@ -6,9 +6,9 @@ namespace Modix.Services.Cat.APIs
     public interface ICatApi
     {
         /// <summary>
-        /// Fetches a random cat image URL
+        /// Fetches a random cat image
         /// </summary>
         /// <returns></returns>
-        Task<string> Fetch(CancellationToken cancellationToken = default);
+        Task<CatResponse> Fetch(CatMediaType type, CancellationToken cancellationToken = default);
     }
 }
