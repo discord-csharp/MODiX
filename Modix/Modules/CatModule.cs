@@ -3,7 +3,6 @@
     using Discord.Commands;
     using Services.Cat;
     using System;
-    using System.Threading;
     using System.Threading.Tasks;
 
     public enum Media
@@ -12,6 +11,7 @@
         Gif // 1
     }
 
+    [Group("cat"), Summary("Cat Related Commands")]
     public class CatModule : ModuleBase
     {
         private static Media _mediaType;
@@ -22,7 +22,7 @@
             _catService = catService;
         }
 
-        [Command("cat"), Summary("Gets a cat")]
+        [Command(RunMode = RunMode.Async)]
         public async Task Cat(string param = "")
         {
             string message;
@@ -44,15 +44,16 @@
                 return;
             }
 
-            using (var cts = new CancellationTokenSource(5000))
-            {
-                var token = cts.Token;
-
-                message = await _catService.HandleCat(_mediaType, token);
-            }
+            //await _catService.
 
             // Send the link
-            await Context.Channel.SendMessageAsync(message);
+            //await Context.Channel.SendMessageAsync(message);
+        }
+
+        [Command("poke")]
+        public async Task BuildCache()
+        {
+            _catService.Poke();
         }
     }
 }

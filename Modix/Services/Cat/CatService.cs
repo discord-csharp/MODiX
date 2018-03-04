@@ -1,39 +1,73 @@
 ﻿namespace Modix.Services.Cat
 {
-    using Newtonsoft.Json;
+    using System;
+    using System.Collections.Generic;
     using Serilog;
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-    using Modules;
+    using Modix.Services.Cat.Primary;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
+
+    enum ApiUrl
+    {
+        Primary,
+        Secondary,
+        Tertiary
+    }
 
     public interface ICatService
     {
-        Task<string> HandleCat(Media mediaType, CancellationToken token);
+        //Task<string> HandleCat(Media mediaType, CancellationToken token);
+        void Poke();
     }
 
     public class CatService : ICatService
     {
-        private static readonly HttpClient Client = new HttpClient();
+        private const string imgurClientId = "c482f6336b58ec4";
+        private const string _primaryApi = "https://api.imgur.com/3/gallery/r/cats/page/";
+        private const string _secondaryApi = "http://thecatapi.com/api/images/get?format=xml&results_per_page=10";
+        private const string _tertiaryApi = "http://random.cat/meow";
 
-        // Url for cat
-        private struct URL
+        private static readonly Random Random = new Random();
+        private static readonly HttpClient Client = new HttpClient();
+        private static List<Primary.Datum> webpageCache;
+
+        private int _imgurPageNumber { get; set; } = 1; 
+
+        public CatService()
         {
-            public string file { get; set; }
+            Client.DefaultRequestHeaders.Add("Authorization", $"Client-ID {imgurClientId}");
+
+            // Is this okay? I feel like this isn't okay.
+            Task.Run(async () => { return webpageCache = await BuildWebCache(); }); 
+
+            Log.Information($"{webpageCache.Count} cats");
         }
 
-        public async Task<string> HandleCat(Media mediaType, CancellationToken token)
+        public string RandomizeCat()
+        { 
+            var random = Random.Next(0, webpageCache.Count);
+
+            var catUrl = webpageCache[random].link ?? webpageCache[random].images[1].link;
+            
+            webpageCache.RemoveAt(random);
+
+            return catUrl;
+        }
+
+        /*public async Task<string> HandleCat(Media mediaType, CancellationToken token)
         {
-            var obj = new URL();
-            var json = string.Empty;
-            var fileFoundFlag = false;
+            var catUrl = string.Empty;
+            string json;
 
             while (!token.IsCancellationRequested)
             {
 	            try
                 {
 	                //Download a json string from the API
-	                json = await DownloadCatJson(token);
+	                //json = await DownloadCatJson(token);
 	            }
                 catch (TaskCanceledException)
                 {
@@ -43,61 +77,102 @@
 
                 // Check and make sure the string isn't empty before attempting to deserialize the
                 // json. If the website returns a blank string, something is wrong. Break the loop
-                if (string.IsNullOrWhiteSpace(json)) break;
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    break;
+                }
 
-                //Deserialize the json retrieved from the website
-                obj = DeserializeJson(json);
+                catUrl = JObject.Parse(json)["file"].Value<string>();
 
                 switch (mediaType)
                 {
-                    case Media.Picture when obj.file.EndsWith(".gif"):
+                    case Media.Picture when catUrl.EndsWith(".gif"):
                         continue;
-                    case Media.Gif when !obj.file.EndsWith(".gif"):
+                    case Media.Gif when !catUrl.EndsWith(".gif"):
                         continue;
                 }
 
-                // If a file is found on the first try, set the flag to true and break out of the
-                // loop. If the loop is canceled due to the CancellationToken, the flag remains false
-                // and the 404 error message is returned.
-                fileFoundFlag = true;
                 break;
             }
 
-            return fileFoundFlag ? obj.file : "404 cat gif not found";
+            return catUrl;
+        }*/
+
+        // Method handles the logic for selecting the api.
+        // Handles switch to fallback apis if necessary
+        private async Task ApiLogicHandler()
+        {
+
         }
 
-        private static async Task<string> DownloadCatJson(CancellationToken token)
+        public void Poke()
         {
-            var json = string.Empty;
+            // This is a debug command that serves to initialize the class because the class needs a first request to be initialized and ran
+        }
+
+        // Primary API will always be cache. Fallback APIs will be on demand.
+        public async Task<List<Primary.Datum>> BuildWebCache()
+        {
+            var objsDatums = new List<Datum>();
+            var primaryJson = string.Empty;
+
+            using (var cts = new CancellationTokenSource(5000))
+            {
+                var token = cts.Token;
+                primaryJson = await DownloadRequest($"{_primaryApi}{_imgurPageNumber}", token);
+            }
+
+            var primaryObject = DeserializeJson(primaryJson);
+
+            objsDatums.AddRange(primaryObject.data);
+
+            return objsDatums;
+        }
+
+        private Primary.Rootobject DeserializeJson(string content)
+        {
+            // This is the primary method for deserializing the json from the imgur api
+            return JsonConvert.DeserializeObject<Primary.Rootobject>(content);
+        }
+
+        private Secondary.response DeserializeXML(string content)
+        {
+            // This is the secondary method for deserializing the xml from the thecatapi.com
+            return content.DeserializeXML<Secondary.response>();
+        }
+
+        private string ParseJson(string content)
+        {
+            // This is the tertiary method for parsing the json from the random.cat/meow api
+            return JObject.Parse(content)["file"].Value<string>();
+        }
+
+        private async Task<string> DownloadRequest(string apiUrl, CancellationToken token)
+        {
+            var content = string.Empty;
 
             try
             {
-                using (var response = await Client.GetAsync("http://random.cat/meow", token))
+                using (var response = await Client.GetAsync(apiUrl,token))
                 {
                     if (response.IsSuccessStatusCode)
                     {
-                        // Read the JSON from the API
-                        json = await response.Content.ReadAsStringAsync();
+                        // Download the content
+                        content = await response.Content.ReadAsStringAsync();
                     }
                     else
                     {
-                        // If there is a bad result, an empty json string will be returned
+                        // If there is a bad result, empty string will be returned
                         Log.Warning("Invalid HTTP Status Code");
                     }
                 }
             }
             catch (HttpRequestException hre)
             {
-                Log.Error("Request Exception", hre.InnerException);
+                Log.Warning("HTTP Request Exception", hre.InnerException);
             }
 
-            return json;
-        }
-
-        private static URL DeserializeJson(string json)
-        {
-            // Deserialize JSON
-            return JsonConvert.DeserializeObject<URL>(json);
+            return content;
         }
     }
 }
