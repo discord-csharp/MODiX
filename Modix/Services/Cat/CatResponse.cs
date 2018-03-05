@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-
-namespace Modix.Services.Cat
+﻿namespace Modix.Services.Cat
 {
     public abstract class CatResponse
     {

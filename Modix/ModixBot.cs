@@ -81,6 +81,7 @@ namespace Modix
             }
 
             #endif
+
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
             await Task.Delay(-1);
