@@ -71,10 +71,16 @@ namespace Modix
             var provider = _map.BuildServiceProvider();
 
             provider.GetService<ILoggerFactory>();
+
+
+            #if !DEBUG
+
             using (var context = provider.GetService<ModixContext>())
             {
                 context.Database.Migrate();
             }
+
+            #endif
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
             await Task.Delay(-1);
@@ -82,7 +88,6 @@ namespace Modix
 
         public void LoadConfig()
         {
-
             _config = new ModixConfig
             {
                 DiscordToken = Environment.GetEnvironmentVariable("Token"),
