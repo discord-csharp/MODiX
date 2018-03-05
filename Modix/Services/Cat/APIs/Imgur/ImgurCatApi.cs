@@ -15,25 +15,11 @@
 
         // TODO Add rollover logic for multiple pages. 
         private const string Url = "https://api.imgur.com/3/gallery/r/cats/page/";
-        private int ImgurPageNumber { get; set; } = 1;
+        private byte ImgurPageNumber { get; set; }
+        private byte ImgurPageMaximum { get; } = 5;
 
         private readonly HttpClient _httpClient = new HttpClient();
-
-        /// I want to change this link pool to be a list of objects
-        /// I want to check these fields and make sure that when the user
-        /// requests a gif, that the animated is set to true
-        /// and it is of a image/gif type
-        /// 
-        /// Example response json
-        /// "type": "image/jpeg",
-        /// "animated": false,
-        /// 
-        /// Same goes for still pictures?
-        /// animated should be false
-        /// and type should be image/jpeg
-        
-
-        private static readonly List<string> LinkPool = new List<string>();
+        private static readonly List<Image> LinkPool = new List<Image>();
 
         public ImgurCatApi()
         {
@@ -54,6 +40,19 @@
                 }
                 else
                 {
+                    // This section executes if the pool is empty;
+
+                    // Each time the pool empties we want to go to the next page
+                    // Add one to the page
+                    ImgurPageNumber += 1;
+
+                    // Dirty page rollover code
+                    if (ImgurPageNumber > ImgurPageMaximum)
+                    {
+                        // Reset back at page one
+                        ImgurPageNumber = 1;
+                    }
+
                     Log.Information($"[{typeof(ImgurCatApi).Name}] Attempting to retrieve cats from api");
                     var success = await BuildLinkCache(cancellationToken);
 
@@ -104,7 +103,7 @@
 
                         // We have a caching mechanism in place, therefore attempt to get
                         // all links of the URLs and cache
-                        var links = imgur.Images.Select(x => x.Link).ToList();
+                        var links = imgur.Images.ToList();
 
                         Log.Information($"[{typeof(ImgurCatApi).Name}] Filling link pool");
                         LinkPool.AddRange(links);
@@ -131,39 +130,29 @@
 
         private static string GetCachedCat(CatMediaType type)
         {
-            var cachedCat = string.Empty;
+            var cachedCat = new Image();
+            var cachedCatLink = string.Empty;
 
-            if (type == CatMediaType.Gif)
+            switch (type)
             {
-                if(LinkPool.Exists(x => x.EndsWith("gif")))
-                {
+                case CatMediaType.Gif:
                     Log.Information($"[{typeof(ImgurCatApi).Name}] Pulling the first cat gif we can find");
-                    cachedCat = LinkPool.First(x => x.EndsWith("gif"));
-                }
-                else
-                {
-                    return null;
-                }
-            }
-            else if(type == CatMediaType.Jpg)
-            {
-                if(LinkPool.Exists(x => !x.EndsWith("gif")))
-                {
+                    cachedCat = LinkPool.FirstOrDefault(x => x.Animated);
+                    break;
+                case CatMediaType.Jpg:
                     Log.Information($"[{typeof(ImgurCatApi).Name}] Pulling the first cat picture we can find");
-                    cachedCat = LinkPool.First(x => !x.EndsWith("gif"));
-                }
-                else
-                {
-                    return null;
-                }
+                    cachedCat = LinkPool.FirstOrDefault(x => !x.Animated);
+                    break;
             }
 
-            // Remove the URL, so we don't recycle it
+            cachedCatLink = cachedCat?.Link;
+
+            // Remove the cat object, so we don't recycle it
             LinkPool.Remove(cachedCat);
 
             Log.Information($"[{typeof(ImgurCatApi).Name}] {LinkPool.Count} Cats in the pool");
 
-            return cachedCat;
+            return cachedCatLink;
         }
     }
 }

@@ -19,9 +19,6 @@ namespace Modix.Services.Cat.APIs.Imgur
         [JsonProperty("link")]
         public string Link { get; set; }
 
-        [JsonProperty("type")]
-        public string Type { get; set; }
-
         [JsonProperty("error")]
         public string Error { get; set; }
 
