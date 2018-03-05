@@ -32,8 +32,6 @@ namespace Modix.Services.Cat
             {
                 new ImgurCatApi(),
                 new CaaSCatApi(),
-                new TheCatApi(),
-                new RandomCatApi()
             };
         }
 
