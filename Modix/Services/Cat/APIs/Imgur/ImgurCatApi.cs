@@ -23,6 +23,8 @@
         /// I want to check these fields and make sure that when the user
         /// requests a gif, that the animated is set to true
         /// and it is of a image/gif type
+        /// 
+        /// Example response json
         /// "type": "image/jpeg",
         /// "animated": false,
         /// 
