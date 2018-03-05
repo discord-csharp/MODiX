@@ -10,16 +10,16 @@ namespace Modix.Services.Cat.APIs.Imgur
 {
     public class ImgurCatApi : ICatApi
     {
-        private const string Secret = "secret";
+        // This can be public
+        private const string ClientId = "c482f6336b58ec4";
         private const string Url = "https://api.imgur.com/3/gallery/r/cats/page/";
 
-        private readonly HttpClient _httpClient;
+        private readonly HttpClient _httpClient = new HttpClient();
         private static readonly List<string> LinkPool = new List<string>();
 
         public ImgurCatApi()
         {
-            _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Client-ID {Secret}");
+            _httpClient.DefaultRequestHeaders.Add("Authorization", $"Client-ID {ClientId}");
         }
 
         public async Task<CatResponse> Fetch(CatMediaType type, CancellationToken cancellationToken)

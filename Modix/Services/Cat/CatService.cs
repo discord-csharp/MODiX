@@ -8,6 +8,9 @@ using Modix.Services.Cat.APIs.Imgur;
 
 namespace Modix.Services.Cat
 {
+    using Modix.Services.Cat.APIs.RandomCat;
+    using Modix.Services.Cat.APIs.TheCatApi;
+
     public interface ICatService
     {
         /// <summary>
@@ -27,8 +30,10 @@ namespace Modix.Services.Cat
         {
             _apis = new List<ICatApi>
             {
+                new ImgurCatApi(),
                 new CaaSCatApi(),
-                new ImgurCatApi()
+                new TheCatApi(),
+                new RandomCatApi()
             };
         }
 
