@@ -8,11 +8,15 @@ using Serilog;
 
 namespace Modix.Services.Cat.APIs.Imgur
 {
+    using System.Reflection;
+
     public class ImgurCatApi : ICatApi
     {
         // This can be public
         private const string ClientId = "c482f6336b58ec4";
-        private const string Url = "https://api.imgur.com/3/gallery/r/cats/page/";
+
+        // TODO Add rollover logic for multiple pages. 
+        private const string Url = "https://api.imgur.com/3/gallery/r/cats/page/1";
 
         private readonly HttpClient _httpClient = new HttpClient();
         private static readonly List<string> LinkPool = new List<string>();
@@ -31,10 +35,12 @@ namespace Modix.Services.Cat.APIs.Imgur
                 // If we have any cat URLs in the pool, try to fetch those first
                 if (LinkPool.Any())
                 {
+                    Log.Information("Fetching a cached cat");
                     catUrl = GetCachedCat();
                 }
                 else
                 {
+                    Log.Information("Retrieving cat from API");
                     catUrl = await GetCatFromApi(cancellationToken);
                 }
             }
@@ -57,8 +63,10 @@ namespace Modix.Services.Cat.APIs.Imgur
                 {
                     if (response.IsSuccessStatusCode)
                     {
+                        Log.Information("Downloaded content");
                         var content = await response.Content.ReadAsStringAsync();
 
+                        Log.Information("Deserializing content");
                         var imgur = Deserialise(content);
 
                         // We may have succeeded in the response, but Imgur may not like us,
@@ -75,8 +83,10 @@ namespace Modix.Services.Cat.APIs.Imgur
                         // to the user
                         var primaryLink = links.First();
 
+                        Log.Information("Removing first cat from list to service");
                         links.Remove(primaryLink);
 
+                        Log.Information("Filling link pool");
                         LinkPool.AddRange(links);
 
                         return primaryLink;
@@ -104,6 +114,8 @@ namespace Modix.Services.Cat.APIs.Imgur
 
             // Remove the URL, so we don't recycle it
             LinkPool.Remove(cachedCat);
+
+            Log.Information($"{LinkPool.Count} Cats in the pool");
 
             return cachedCat;
         }
