@@ -35,7 +35,7 @@
                 // If we have any cat URLs in the pool, try to fetch those first
                 if (LinkPool.Any())
                 {
-                    Log.Information($"[{typeof(ImgurCatApi).Name}] Fetching a cached cat");
+                    Log.Information($"[{nameof(ImgurCatApi)}] Fetching a cached cat");
                     catUrl = GetCachedCat(type);
                 }
                 else
@@ -53,7 +53,7 @@
                         ImgurPageNumber = 1;
                     }
 
-                    Log.Information($"[{typeof(ImgurCatApi).Name}] Attempting to retrieve cats from api");
+                    Log.Information($"[{nameof(ImgurCatApi)}] Attempting to retrieve cats from api");
                     var success = await BuildLinkCache(cancellationToken);
 
                     if (success)
@@ -64,16 +64,16 @@
             }
             catch (HttpRequestException ex)
             {
-                Log.Warning($"[{typeof(ImgurCatApi).Name}] Failed fetching Imgur cat", ex.InnerException);
+                Log.Warning($"[{nameof(ImgurCatApi)}] Failed fetching Imgur cat", ex.InnerException);
             }
 
             if (!string.IsNullOrWhiteSpace(catUrl))
             {
-                Log.Information($"[{typeof(ImgurCatApi).Name}] Successful cat retrieval");
+                Log.Information($"[{nameof(ImgurCatApi)}] Successful cat retrieval");
                 return new UrlCatResponse(catUrl);
             }
                 
-            Log.Information($"[{typeof(ImgurCatApi).Name}] Failed cat retrieval");
+            Log.Information($"[{nameof(ImgurCatApi)}] Failed cat retrieval");
             return new UrlCatResponse();
         }
 
@@ -85,19 +85,19 @@
                 {
                     if (response.IsSuccessStatusCode)
                     {
-                        Log.Information($"[{typeof(ImgurCatApi).Name}] HTTP Status Code - {response.StatusCode}");
+                        Log.Information($"[{nameof(ImgurCatApi)}] HTTP Status Code - {response.StatusCode}");
 
-                        Log.Information($"[{typeof(ImgurCatApi).Name}] Downloaded content");
+                        Log.Information($"[{nameof(ImgurCatApi)}] Downloaded content");
                         var content = await response.Content.ReadAsStringAsync();
 
-                        Log.Information($"[{typeof(ImgurCatApi).Name}] Deserializing content");
+                        Log.Information($"[{nameof(ImgurCatApi)}] Deserializing content");
                         var imgur = Deserialise(content);
 
                         // We may have succeeded in the response, but Imgur may not like us,
                         // check if Imgur has returned us a successful result
                         if (!imgur.Success)
                         {
-                            Log.Warning($"[{typeof(ImgurCatApi).Name}] Failed response from Imgur", imgur.Images[1].Error);
+                            Log.Warning($"[{nameof(ImgurCatApi)}] Failed response from Imgur", imgur.Images[1].Error);
                             return false;
                         }
 
@@ -105,20 +105,20 @@
                         // all links of the URLs and cache
                         var links = imgur.Images.ToList();
 
-                        Log.Information($"[{typeof(ImgurCatApi).Name}] Filling link pool");
+                        Log.Information($"[{nameof(ImgurCatApi)}] Filling link pool");
                         LinkPool.AddRange(links);
                     }
                     else
                     {
                         // If there is a bad result, empty string will be returned
-                        Log.Warning($"[{typeof(ImgurCatApi).Name}] Invalid HTTP Status Code", response.StatusCode);
+                        Log.Warning($"[{nameof(ImgurCatApi)}] Invalid HTTP Status Code", response.StatusCode);
                         return false;
                     }
                 }
             }
             catch (HttpRequestException ex)
             {
-                Log.Warning($"[{typeof(ImgurCatApi).Name}] Failed fetching Imgur cat", ex.InnerException);
+                Log.Warning($"[{nameof(ImgurCatApi)}] Failed fetching Imgur cat", ex.InnerException);
                 return false;
             }
 
@@ -136,11 +136,11 @@
             switch (type)
             {
                 case CatMediaType.Gif:
-                    Log.Information($"[{typeof(ImgurCatApi).Name}] Pulling the first cat gif we can find");
+                    Log.Information($"[{nameof(ImgurCatApi)}] Pulling the first cat gif we can find");
                     cachedCat = LinkPool.FirstOrDefault(x => x.Animated);
                     break;
                 case CatMediaType.Jpg:
-                    Log.Information($"[{typeof(ImgurCatApi).Name}] Pulling the first cat picture we can find");
+                    Log.Information($"[{nameof(ImgurCatApi)}] Pulling the first cat picture we can find");
                     cachedCat = LinkPool.FirstOrDefault(x => !x.Animated);
                     break;
             }
@@ -150,7 +150,7 @@
             // Remove the cat object, so we don't recycle it
             LinkPool.Remove(cachedCat);
 
-            Log.Information($"[{typeof(ImgurCatApi).Name}] {LinkPool.Count} Cats in the pool");
+            Log.Information($"[{nameof(ImgurCatApi)}] {LinkPool.Count} Cats in the pool");
 
             return cachedCatLink;
         }
