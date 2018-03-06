@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using Modix.Services.Cat.APIs;
-using Modix.Services.Cat.APIs.CaaS;
-using Modix.Services.Cat.APIs.Imgur;
-
-namespace Modix.Services.Cat
+﻿namespace Modix.Services.Cat
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Modix.Services.Cat.APIs;
+    using Modix.Services.Cat.APIs.CaaS;
+    using Modix.Services.Cat.APIs.Imgur;
     using Modix.Services.Cat.APIs.RandomCat;
     using Modix.Services.Cat.APIs.TheCatApi;
 

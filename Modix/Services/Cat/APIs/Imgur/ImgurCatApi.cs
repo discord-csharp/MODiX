@@ -1,14 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Serilog;
-
-namespace Modix.Services.Cat.APIs.Imgur
+﻿namespace Modix.Services.Cat.APIs.Imgur
 {
-    using System.Reflection;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Net.Http;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using Newtonsoft.Json;
+    using Serilog;
 
     public class ImgurCatApi : ICatApi
     {
@@ -16,10 +14,12 @@ namespace Modix.Services.Cat.APIs.Imgur
         private const string ClientId = "c482f6336b58ec4";
 
         // TODO Add rollover logic for multiple pages. 
-        private const string Url = "https://api.imgur.com/3/gallery/r/cats/page/1";
+        private const string Url = "https://api.imgur.com/3/gallery/r/cats/page/";
+        private byte ImgurPageNumber { get; set; }
+        private byte ImgurPageMaximum { get; } = 5;
 
         private readonly HttpClient _httpClient = new HttpClient();
-        private static readonly List<string> LinkPool = new List<string>();
+        private static readonly List<Image> LinkPool = new List<Image>();
 
         public ImgurCatApi()
         {
@@ -35,27 +35,49 @@ namespace Modix.Services.Cat.APIs.Imgur
                 // If we have any cat URLs in the pool, try to fetch those first
                 if (LinkPool.Any())
                 {
-                    Log.Information("Fetching a cached cat");
-                    catUrl = GetCachedCat();
+                    Log.Information($"[{typeof(ImgurCatApi).Name}] Fetching a cached cat");
+                    catUrl = GetCachedCat(type);
                 }
                 else
                 {
-                    Log.Information("Retrieving cat from API");
-                    catUrl = await GetCatFromApi(cancellationToken);
+                    // This section executes if the pool is empty;
+
+                    // Each time the pool empties we want to go to the next page
+                    // Add one to the page
+                    ImgurPageNumber += 1;
+
+                    // Dirty page rollover code
+                    if (ImgurPageNumber > ImgurPageMaximum)
+                    {
+                        // Reset back at page one
+                        ImgurPageNumber = 1;
+                    }
+
+                    Log.Information($"[{typeof(ImgurCatApi).Name}] Attempting to retrieve cats from api");
+                    var success = await BuildLinkCache(cancellationToken);
+
+                    if (success)
+                    {
+                        catUrl = GetCachedCat(type);
+                    }
                 }
             }
             catch (HttpRequestException ex)
             {
-                Log.Warning("Failed fetching Imgur cat", ex.InnerException);
+                Log.Warning($"[{typeof(ImgurCatApi).Name}] Failed fetching Imgur cat", ex.InnerException);
             }
 
-            if(!string.IsNullOrWhiteSpace(catUrl))
+            if (!string.IsNullOrWhiteSpace(catUrl))
+            {
+                Log.Information($"[{typeof(ImgurCatApi).Name}] Successful cat retrieval");
                 return new UrlCatResponse(catUrl);
-
+            }
+                
+            Log.Information($"[{typeof(ImgurCatApi).Name}] Failed cat retrieval");
             return new UrlCatResponse();
         }
 
-        private async Task<string> GetCatFromApi(CancellationToken cancellationToken)
+        private async Task<bool> BuildLinkCache(CancellationToken cancellationToken)
         {
             try
             {
@@ -63,61 +85,74 @@ namespace Modix.Services.Cat.APIs.Imgur
                 {
                     if (response.IsSuccessStatusCode)
                     {
-                        Log.Information("Downloaded content");
+                        Log.Information($"[{typeof(ImgurCatApi).Name}] HTTP Status Code - {response.StatusCode}");
+
+                        Log.Information($"[{typeof(ImgurCatApi).Name}] Downloaded content");
                         var content = await response.Content.ReadAsStringAsync();
 
-                        Log.Information("Deserializing content");
+                        Log.Information($"[{typeof(ImgurCatApi).Name}] Deserializing content");
                         var imgur = Deserialise(content);
 
                         // We may have succeeded in the response, but Imgur may not like us,
                         // check if Imgur has returned us a successful result
                         if (!imgur.Success)
-                            return null;
+                        {
+                            Log.Warning($"[{typeof(ImgurCatApi).Name}] Failed response from Imgur", imgur.Images[1].Error);
+                            return false;
+                        }
 
                         // We have a caching mechanism in place, therefore attempt to get
                         // all links of the URLs and cache
-                        var links = imgur.Images.Select(x => x.Link).ToList();
+                        var links = imgur.Images.ToList();
 
-                        // We want to return the first link, since we wanted to fetch a
-                        // URL to begin with, so remove the first link and return that
-                        // to the user
-                        var primaryLink = links.First();
-
-                        Log.Information("Removing first cat from list to service");
-                        links.Remove(primaryLink);
-
-                        Log.Information("Filling link pool");
+                        Log.Information($"[{typeof(ImgurCatApi).Name}] Filling link pool");
                         LinkPool.AddRange(links);
-
-                        return primaryLink;
                     }
-
-                    // If there is a bad result, empty string will be returned
-                    Log.Warning("Invalid HTTP Status Code");
+                    else
+                    {
+                        // If there is a bad result, empty string will be returned
+                        Log.Warning($"[{typeof(ImgurCatApi).Name}] Invalid HTTP Status Code", response.StatusCode);
+                        return false;
+                    }
                 }
             }
             catch (HttpRequestException ex)
             {
-                Log.Warning("Failed fetching Imgur cat", ex.InnerException);
+                Log.Warning($"[{typeof(ImgurCatApi).Name}] Failed fetching Imgur cat", ex.InnerException);
+                return false;
             }
 
-            return null;
+            return true;
         }
 
         private static Response Deserialise(string content)
             => JsonConvert.DeserializeObject<Response>(content);
 
-        private static string GetCachedCat()
+        private static string GetCachedCat(CatMediaType type)
         {
-            // Get the top of the list
-            var cachedCat = LinkPool.First();
+            var cachedCat = new Image();
+            var cachedCatLink = string.Empty;
 
-            // Remove the URL, so we don't recycle it
+            switch (type)
+            {
+                case CatMediaType.Gif:
+                    Log.Information($"[{typeof(ImgurCatApi).Name}] Pulling the first cat gif we can find");
+                    cachedCat = LinkPool.FirstOrDefault(x => x.Animated);
+                    break;
+                case CatMediaType.Jpg:
+                    Log.Information($"[{typeof(ImgurCatApi).Name}] Pulling the first cat picture we can find");
+                    cachedCat = LinkPool.FirstOrDefault(x => !x.Animated);
+                    break;
+            }
+
+            cachedCatLink = cachedCat?.Link;
+
+            // Remove the cat object, so we don't recycle it
             LinkPool.Remove(cachedCat);
 
-            Log.Information($"{LinkPool.Count} Cats in the pool");
+            Log.Information($"[{typeof(ImgurCatApi).Name}] {LinkPool.Count} Cats in the pool");
 
-            return cachedCat;
+            return cachedCatLink;
         }
     }
 }
