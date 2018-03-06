@@ -46,7 +46,7 @@ environment:
   log_webhook_token:
     secure: /QjuIMGkGJIDgoyw+zeIsQQKjcbnrmydGAjcOhzYvFPHy2CFoev9vd2Bq8gv+oA/dUVv8mFShqPqvzFq+1PkwdUMIYVB21wcTRENTA4FjjQ=
   ConnectionString:
-    secure: NzFEWOWpZS9iEHzW51hyy1qhg+01bwLuH0LcmDDQbOWX0VCGX/Wl/p99ucZpAEVYMZmEbCqc1JJnqqjiIIr6uKvNYgmVutA1ohnB0XC3cUs=
+    secure: 8PVz6xxIRSSmArx6kk/fIh3cDkia6JTOhYsaIctm9cijgBRB9Bsvgv0szpGtzwHzVUw3MeDd28wYCgMZr0abDShhxjIsEOEYMJs1VzSPuXA=
   log_webhook_id: 382609729802862592
   SentryToken:
     secure: TSVcrUaf7lIi4YoOKrZhqrf6MvXh+XFUMO454dwB0q8ieNFOap49KhCYhw4x9sRflgQnDhppjzdbOrFiDnwQvID4rb3nXCxnJRzPLOUwOYlM4SfitMt2LnyGzyOdminq
