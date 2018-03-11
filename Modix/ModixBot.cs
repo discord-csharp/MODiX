@@ -63,24 +63,24 @@ namespace Modix
             });
 
             await Install(); // Setting up DependencyMap
-            _map.AddDbContext<ModixContext>(options =>
-            {
-                options.UseNpgsql(_config.PostgreConnectionString);                
-            });
+            //_map.AddDbContext<ModixContext>(options =>
+            //{
+            //    options.UseNpgsql(_config.PostgreConnectionString);                
+            //});
            
             var provider = _map.BuildServiceProvider();
 
             provider.GetService<ILoggerFactory>();
 
+            //disable until we migrate to Xero's host.
+            //#if !DEBUG
 
-            #if !DEBUG
+            //using (var context = provider.GetService<ModixContext>())
+            //{
+            //    context.Database.Migrate();
+            //}
 
-            using (var context = provider.GetService<ModixContext>())
-            {
-                context.Database.Migrate();
-            }
-
-            #endif
+            //#endif
 
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
