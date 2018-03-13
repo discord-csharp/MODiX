@@ -8,26 +8,31 @@ namespace Modix.Modules
     [Summary("Fox Related Commands")]
     public class FoxModule : ModuleBase
     {
+        private readonly IFoxService _foxService;
+
+        public FoxModule(IFoxService foxService)
+        {
+            _foxService = foxService;
+        }
+
         [Command("fox", RunMode = RunMode.Async)]
         public async Task Fox()
         {
-            string imageUrl;
+            string reply;
             try
             {
-                imageUrl = await new FoxService().GetFoxPicture();
+                reply = await _foxService.GetFoxPicture();
             }
             catch (TaskCanceledException)
             {
-                await ReplyAsync("Couldn't get a fox picture in time :(");
-                return;
+                reply = "Couldn't get a fox picture in time :(";
             }
             catch (Exception exc)
             {
-                await ReplyAsync($"Couldn't get a fox picture: {exc.Message}");
-                return;
+                reply = $"Couldn't get a fox picture: {exc.Message}";
             }
 
-            await ReplyAsync(imageUrl);
+            await ReplyAsync(reply);
         }
     }
 }

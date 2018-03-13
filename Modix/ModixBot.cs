@@ -18,6 +18,7 @@ using Modix.Services.AutoCodePaste;
 using Modix.Services.Cat;
 using Serilog.Sinks.Sentry;
 using SharpRaven;
+using Modix.Services.Fox;
 
 namespace Modix
 {
@@ -144,6 +145,7 @@ namespace Modix
             _map.AddScoped<IQuoteService, QuoteService>();
             _map.AddSingleton<CodePasteService>();
             _map.AddSingleton<ICatService, CatService>();
+            _map.AddSingleton<IFoxService, FoxService>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;
