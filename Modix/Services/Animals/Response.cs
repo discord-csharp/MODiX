@@ -1,18 +1,18 @@
-﻿namespace Modix.Services.Cat
+﻿namespace Modix.Services.Animals
 {
-    public abstract class CatResponse
+    public abstract class Response
     {
         public bool Success { get; set; }
     }
 
-    public class ByteCatResponse : CatResponse
+    public class ByteResponse : Response
     {
-        public ByteCatResponse()
+        public ByteResponse()
         {
             Success = false;
         }
 
-        public ByteCatResponse(byte[] bytes)
+        public ByteResponse(byte[] bytes)
         {
             Success = true;
             Bytes = bytes;
@@ -21,17 +21,17 @@
         public byte[] Bytes { get; set; }
     }
 
-    public class UrlCatResponse : CatResponse
+    public class UrlResponse : Response
     {
-        public UrlCatResponse()
+        public UrlResponse()
         {
             Success = false;
         }
 
-        public UrlCatResponse(string catUrl)
+        public UrlResponse(string url)
         {
             Success = true;
-            Url = catUrl;
+            Url = url;
         }
 
         public string Url { get; set; }

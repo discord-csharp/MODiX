@@ -18,10 +18,12 @@ using Modix.Services.AutoCodePaste;
 using Modix.Services.Cat;
 using Serilog.Sinks.Sentry;
 using SharpRaven;
-using Modix.Services.Fox;
 
 namespace Modix
 {
+    using Modix.Services;
+    using Modix.Services.Animals;
+
     public sealed class ModixBot
     {
         private readonly CommandService _commands = new CommandService(new CommandServiceConfig
@@ -144,8 +146,7 @@ namespace Modix
             _map.AddSingleton(_config);
             _map.AddScoped<IQuoteService, QuoteService>();
             _map.AddSingleton<CodePasteService>();
-            _map.AddSingleton<ICatService, CatService>();
-            _map.AddSingleton<IFoxService, FoxService>();
+            _map.AddSingleton<IAnimalService, AnimalService>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;

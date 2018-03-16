@@ -1,19 +1,23 @@
-﻿namespace Modix.Services.Cat.APIs.Imgur
+﻿namespace Modix.Services.Animals.Cat.APIs.Imgur
 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
+    using Modix.Modules;
+    using Modix.Services.Animals;
+    using Modix.Services.Cat.APIs.Imgur;
     using Newtonsoft.Json;
     using Serilog;
+    using Response = Modix.Services.Cat.APIs.Imgur.Response;
 
-    public class ImgurCatApi : ICatApi
+    public class ImgurCatApi : IAnimalApi
     {
         // This can be public
         private const string ClientId = "c482f6336b58ec4";
 
-        // TODO Add rollover logic for multiple pages. 
+        // TODO Add better rollover logic for multiple pages. 
         private const string Url = "https://api.imgur.com/3/gallery/r/cats/page/";
         private byte ImgurPageNumber { get; set; }
         private byte ImgurPageMaximum { get; } = 5;
@@ -26,7 +30,7 @@
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Client-ID {ClientId}");
         }
 
-        public async Task<CatResponse> Fetch(CatMediaType type, CancellationToken cancellationToken)
+        public async Task<Animals.Response> Fetch(MediaType mediaType, CancellationToken cancellationToken = default)
         {
             string catUrl = null;
 
@@ -36,7 +40,7 @@
                 if (LinkPool.Any())
                 {
                     Log.Information($"[{nameof(ImgurCatApi)}] Fetching a cached cat");
-                    catUrl = GetCachedCat(type);
+                    catUrl = GetCachedCat(mediaType);
                 }
                 else
                 {
@@ -58,7 +62,7 @@
 
                     if (success)
                     {
-                        catUrl = GetCachedCat(type);
+                        catUrl = GetCachedCat(mediaType);
                     }
                 }
             }
@@ -70,11 +74,11 @@
             if (!string.IsNullOrWhiteSpace(catUrl))
             {
                 Log.Information($"[{nameof(ImgurCatApi)}] Successful cat retrieval");
-                return new UrlCatResponse(catUrl);
+                return new UrlResponse(catUrl);
             }
                 
             Log.Information($"[{nameof(ImgurCatApi)}] Failed cat retrieval");
-            return new UrlCatResponse();
+            return new UrlResponse();
         }
 
         private async Task<bool> BuildLinkCache(CancellationToken cancellationToken)
@@ -128,18 +132,18 @@
         private static Response Deserialise(string content)
             => JsonConvert.DeserializeObject<Response>(content);
 
-        private static string GetCachedCat(CatMediaType type)
+        private static string GetCachedCat(MediaType type)
         {
             var cachedCat = new Image();
             var cachedCatLink = string.Empty;
 
             switch (type)
             {
-                case CatMediaType.Gif:
+                case MediaType.Gif:
                     Log.Information($"[{nameof(ImgurCatApi)}] Pulling the first cat gif we can find");
                     cachedCat = LinkPool.FirstOrDefault(x => x.Animated);
                     break;
-                case CatMediaType.Jpg:
+                case MediaType.Jpg:
                     Log.Information($"[{nameof(ImgurCatApi)}] Pulling the first cat picture we can find");
                     cachedCat = LinkPool.FirstOrDefault(x => !x.Animated);
                     break;
