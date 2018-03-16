@@ -2,7 +2,6 @@
 {
     using System;
     using System.IO;
-    using System.Runtime.InteropServices;
     using System.Threading.Tasks;
     using Discord.Commands;
     using Modix.Services.Animals;
@@ -18,7 +17,6 @@
     {
         Cat,
         Fox,
-        Dog
     }
 
     [Summary("Cute animals!")]
@@ -50,18 +48,18 @@
 
             Enum.TryParse(animalRequested, true, out AnimalType animalType);
 
-            await GetAnimal(animalType, mediaTypeRequested);
+            await GetAnimalAsync(animalType, mediaTypeRequested);
         }
 
         [Command("cat", RunMode = RunMode.Async), Alias("c")]
-        public async Task Cat(string mediaTypeRequested = null) => await GetAnimal(AnimalType.Cat, mediaTypeRequested);
+        public async Task Cat(string mediaTypeRequested = null) => await GetAnimalAsync(AnimalType.Cat, mediaTypeRequested);
 
         // I don't know if the fox api has gifs or not; therefore, pictures are only requested and returned.
         // Search logic for trying to find a gif has not been implemented for this api
         [Command("fox", RunMode = RunMode.Async), Alias("f")]
-        public async Task Fox() => await GetAnimal(AnimalType.Fox);
+        public async Task Fox() => await GetAnimalAsync(AnimalType.Fox);
 
-        private async Task GetAnimal(AnimalType animal, string mediaTypeRequested = null)
+        private async Task GetAnimalAsync(AnimalType animal, string mediaTypeRequested = null)
         {
             var mediaType = !string.IsNullOrWhiteSpace(mediaTypeRequested) && mediaTypeRequested.Contains(Gif)
                 ? MediaType.Gif
@@ -69,24 +67,24 @@
 
             try
             {
-                var reply = await _animalService.Get(animal, mediaType);
+                var reply = await _animalService.GetAsync(animal, mediaType);
 
                 if (reply != null)
                 {
-                    await ProcessResponse(mediaType, reply);
+                    await ProcessResponseAsync(mediaType, reply);
                 }
             }
             catch (TaskCanceledException)
             {
-                await ReplyAsync("Couldn't get a fox picture in time :(");
+                await ReplyAsync($"Couldn't get a {animal.ToString().ToLower()} picture in time :(");
             }
             catch (Exception exc)
             {
-                await ReplyAsync($"Couldn't get a fox picture: {exc.Message}");
+                await ReplyAsync($"Couldn't get a {animal.ToString().ToLower()} picture: {exc.Message}");
             }
         }
 
-        private async Task ProcessResponse(MediaType type, Response animal)
+        private async Task ProcessResponseAsync(MediaType type, Response animal)
         {
             switch (animal)
             {

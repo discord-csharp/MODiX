@@ -30,7 +30,7 @@
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Client-ID {ClientId}");
         }
 
-        public async Task<Animals.Response> Fetch(MediaType mediaType, CancellationToken cancellationToken = default)
+        public async Task<Animals.Response> FetchAsync(MediaType mediaType, CancellationToken cancellationToken = default)
         {
             string catUrl = null;
 

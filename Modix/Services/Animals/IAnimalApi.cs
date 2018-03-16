@@ -10,6 +10,6 @@
         /// Fetches a random image specified by the invoking module
         /// </summary>
         /// <returns></returns>
-        Task<Response> Fetch(MediaType mediaType, CancellationToken cancellationToken = default);
+        Task<Response> FetchAsync(MediaType mediaType, CancellationToken cancellationToken = default);
     }
 }

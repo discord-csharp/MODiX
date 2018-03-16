@@ -23,7 +23,7 @@
             _client = new HttpClient(handler);
         }
 
-        public async Task<Response> Fetch(MediaType mediaType, CancellationToken cancellationToken = default)
+        public async Task<Response> FetchAsync(MediaType mediaType, CancellationToken cancellationToken = default)
         {
             using (var response = await _client.GetAsync(FoxApiUrl, cancellationToken))
             {

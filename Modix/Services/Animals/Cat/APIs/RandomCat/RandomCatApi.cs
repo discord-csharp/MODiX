@@ -9,7 +9,7 @@
 
     class RandomCatApi : IAnimalApi
     {
-        public Task<Response> Fetch(MediaType type, CancellationToken cancellationToken = default)
+        public Task<Response> FetchAsync(MediaType type, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }

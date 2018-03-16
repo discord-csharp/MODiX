@@ -10,7 +10,7 @@
     {
         private readonly HttpClient _httpClient = new HttpClient();
 
-        public async Task<Response> Fetch(MediaType mediaType, CancellationToken cancellationToken = default)
+        public async Task<Response> FetchAsync(MediaType mediaType, CancellationToken cancellationToken = default)
         {
             var url = "https://cataas.com/cat";
 

@@ -18,14 +18,13 @@
         /// <param name="mediaType">The type of media we want: an animated gif or a still picture</param>
         /// <param name="cancellationToken">The cancellation token for our time limit</param>
         /// <returns></returns>
-        Task<Response> Get(AnimalType animalType, MediaType mediaType, CancellationToken cancellationToken = default);
+        Task<Response> GetAsync(AnimalType animalType, MediaType mediaType, CancellationToken cancellationToken = default);
     }
 
     public class AnimalService : IAnimalService
     {
         private readonly List<IAnimalApi> _catApis;
         private readonly List<IAnimalApi> _foxApis;
-        //private readonly List<IAnimalApi> _dogApis;
 
         public AnimalService()
         {
@@ -40,14 +39,9 @@
             {
                 new GiraffeDucksApi()
             };
-
-            /*_dogApis = new List<IAnimalApi>
-            {
-
-            };*/
         }
 
-        public async Task<Response> Get(AnimalType animalType, MediaType mediaType, CancellationToken cancellationToken = default)
+        public async Task<Response> GetAsync(AnimalType animalType, MediaType mediaType, CancellationToken cancellationToken = default)
         {
             var apisUsed = new List<IAnimalApi>();
 
@@ -59,9 +53,6 @@
                 case AnimalType.Fox:
                     apisUsed = _foxApis;
                     break;
-                //case AnimalType.Dog:
-                //    apisUsed = _dogApis;
-                //    break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(animalType), animalType, null);
             }
@@ -71,8 +62,8 @@
             {
                 using (var token = new CancellationTokenSource(TimeSpan.FromSeconds(15)))
                 {
-                    // Fetch from the API
-                    var response = await api.Fetch(mediaType, token.Token);
+                    // FetchAsync from the API
+                    var response = await api.FetchAsync(mediaType, token.Token);
 
                     // If the response is not null, we have a successful URL, return it
                     if (response.Success)
