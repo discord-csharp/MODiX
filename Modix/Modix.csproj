@@ -27,5 +27,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
+    <Folder Include="Services\Animals\Dog\" />
   </ItemGroup>
 </Project>
