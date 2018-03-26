@@ -3,9 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Modix.Modules;
     using Modix.Services.Animals;
-    using Modix.Services.Animals.Cat.APIs;
 
     class RandomCatApi : IAnimalApi
     {

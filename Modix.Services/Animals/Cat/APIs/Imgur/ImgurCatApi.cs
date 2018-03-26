@@ -5,12 +5,11 @@
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-    using Modix.Modules;
     using Modix.Services.Animals;
     using Modix.Services.Cat.APIs.Imgur;
     using Newtonsoft.Json;
     using Serilog;
-    using Response = Modix.Services.Cat.APIs.Imgur.Response;
+    using Response = Services.Cat.APIs.Imgur.Response;
 
     public class ImgurCatApi : IAnimalApi
     {

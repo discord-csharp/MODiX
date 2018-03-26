@@ -8,7 +8,7 @@
     using Serilog;
 
 
-    [Summary("Cute animals!")]
+    [Name("Animals"), Summary("Get pictures of cute animals!")]
     public class AnimalModule : ModuleBase
     {
         private readonly IAnimalService _animalService;
@@ -19,7 +19,7 @@
             _animalService = animalService;
         }
 
-        [Command("animal", RunMode = RunMode.Async), Alias("a")]
+        [Command("animal", RunMode = RunMode.Async), Alias("a"), Summary("Get an animal picture")]
         public async Task Animal(string animalRequested = null, string mediaTypeRequested = null)
         {
             /* There is one small bug.
@@ -40,12 +40,12 @@
             await GetAnimalAsync(animalType, mediaTypeRequested);
         }
 
-        [Command("cat", RunMode = RunMode.Async), Alias("c")]
+        [Command("cat", RunMode = RunMode.Async), Alias("c"), Summary("Get a picture of a cat")]
         public async Task Cat(string mediaTypeRequested = null) => await GetAnimalAsync(AnimalType.Cat, mediaTypeRequested);
 
         // I don't know if the fox api has gifs or not; therefore, pictures are only requested and returned.
         // Search logic for trying to find a gif has not been implemented for this api
-        [Command("fox", RunMode = RunMode.Async), Alias("f")]
+        [Command("fox", RunMode = RunMode.Async), Alias("f"), Summary("Get a picture of a fox")]
         public async Task Fox() => await GetAnimalAsync(AnimalType.Fox);
 
         private async Task GetAnimalAsync(AnimalType animal, string mediaTypeRequested = null)

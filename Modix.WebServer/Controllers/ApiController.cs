@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 
 namespace Modix.WebServer.Controllers
 {
-    [Authorize]
     public class ApiController : ModixController
     {
         private DiscordSocketClient _client;
@@ -22,6 +21,7 @@ namespace Modix.WebServer.Controllers
             _commandHelpService = commandHelpService;
         }
 
+        [Authorize]
         public async Task<IActionResult> Guilds()
         {
             var guildInfo = new Dictionary<string, List<GuildInfoResult>>();
@@ -33,7 +33,8 @@ namespace Modix.WebServer.Controllers
 
             return Ok(guildInfo);
         }
-        
+
+        [Authorize]
         public IActionResult UserInfo()
         {
             return Ok(DiscordUser);

@@ -5,7 +5,6 @@
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
-    using Modix.Modules;
     using Modix.Services.Animals;
 
     public class GiraffeDucksApi : IAnimalApi

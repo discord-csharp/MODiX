@@ -3,7 +3,6 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Modix.Modules;
     using Modix.Services.Animals;
 
     class TheCatApi : IAnimalApi
