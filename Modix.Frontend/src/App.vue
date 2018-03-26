@@ -5,15 +5,12 @@
 
                 <div class="sidebar-left">
                     <div class="navbar-brand">
-                        <a class="navbar-item" href="/">
-                            <img src="./assets/logo_small.png" alt="Bulma: a modern CSS framework based on Flexbox" width="112" height="28">
-                        </a>
+                        <router-link class="navbar-item" to="/" title="Home">
+                            <img class="is-hidden-mobile" src="./assets/logo_small.png" width="112" height="28">
+                            <img class="is-hidden-tablet" src="./assets/icon.png" width="28" height="28">
+                        </router-link>
                     </div>
 
-                    <div class="navbar-item link">
-                        <router-link active-class="is-active" to="/">Home</router-link>
-                    </div>
-                    
                     <div class="navbar-item link" v-if="$store.state.modix.user">
                         <router-link active-class="is-active" to="/stats">Stats</router-link>
                     </div>
@@ -94,19 +91,21 @@ nav
     display: flex;
     align-items: center;
 
-    &.link
+    @include mobile()
     {
-        @media screen and (max-width: 500px)
-        {
-            
-        }
+        font-size: 0.9em;
+        padding: 0.25rem 0.7rem;
     }
 }
 
-.profile
+.profile .title.is-4
 {
-    
+    @include mobile()
+    {
+        font-size: 1.25rem;
+    }
 }
+
 </style>
 
 <script lang="ts">

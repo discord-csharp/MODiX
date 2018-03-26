@@ -28,6 +28,7 @@ export default class CommandMenu extends Vue
 {
     // @ts-ignore
     @Prop() private commandModules: ModuleHelpData[];
-    @Prop() private highlightedModule: string = "";
+    // @ts-ignore
+    @Prop() private highlightedModule: string;
 }
 </script>

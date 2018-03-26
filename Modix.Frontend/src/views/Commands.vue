@@ -6,7 +6,7 @@
             <div class="container">
                 <div class="columns">
 
-                    <div class="column is-one-fifth">
+                    <div class="column is-one-fifth is-hidden-mobile">
                         <CommandMenu :commandModules="commandModules" :highlightedModule="highlightedModule" @moduleClicked="scrollTo($event)" />
                     </div>
                 
@@ -100,6 +100,7 @@ import * as store from "../app/Store";
 import {ModuleHelpData} from "../models/ModuleHelpData";
 import ModuleView from '@/components/Commands/ModuleView.vue';
 import CommandMenu from '@/components/Commands/CommandMenu.vue';
+import * as _ from 'lodash';
 
 @Component({
     components:
@@ -115,7 +116,7 @@ export default class Commands extends Vue
 
     get commandModules(): ModuleHelpData[]
     {
-        return this.$store.state.modix.commands;
+        return _.orderBy(this.$store.state.modix.commands, module => module.name);
     }
 
     get hash()
