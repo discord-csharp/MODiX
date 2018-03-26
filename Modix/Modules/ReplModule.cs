@@ -28,6 +28,7 @@ namespace Modix.Modules
         public string ReturnTypeName { get; set; }
     }
 
+    [Name("Repl"), Summary("Execute & demonstrate code snippets")]
     public class ReplModule : ModuleBase
     {
         private const string ReplRemoteUrl = "http://CSDiscord/Eval";
@@ -41,7 +42,7 @@ namespace Modix.Modules
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", config.ReplToken);
         }
 
-        [Command("exec", RunMode = RunMode.Async), Alias("eval"), Summary("Executes code!")]
+        [Command("exec", RunMode = RunMode.Async), Alias("eval"), Summary("Executes the given C# code and returns the result")]
         public async Task ReplInvoke([Remainder] string code)
         {
             if (!(Context.Channel is SocketGuildChannel))

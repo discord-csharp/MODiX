@@ -8,7 +8,6 @@ using Modix.Services.Wikipedia;
 
 namespace Modix.Modules
 {
-
     [Name("Wikipedia"), Summary("Search Wikipedia from Discord!")]
     public class WikipediaModule : ModuleBase
     {

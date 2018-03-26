@@ -1,6 +1,6 @@
 ﻿using Discord;
 using Modix.Data.Utilities;
-using Modix.Utilities;
+using Modix.Services.Utilities;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Net;

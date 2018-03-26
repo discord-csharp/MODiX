@@ -1,0 +1,48 @@
+{
+  "name": "Modix.Frontend",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "ci-deploy": "npm install && vue-cli-service build && xcopy /E dist ..\\obj\\Docker\\publish\\wwwroot\\"
+  },
+  "dependencies": {
+    "@types/lodash": "^4.14.105",
+    "axios": "^0.18.0",
+    "bulma": "^0.6.2",
+    "chart.js": "^2.7.2",
+    "dateformat": "^3.0.3",
+    "lodash": "^4.17.5",
+    "vue": "^2.5.13",
+    "vue-chartjs": "^3.2.1",
+    "vue-class-component": "^6.0.0",
+    "vue-property-decorator": "^6.0.0",
+    "vue-router": "^3.0.1",
+    "vuex": "^3.0.1",
+    "vuex-typescript": "^3.0.2"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "^3.0.0-beta.6",
+    "@vue/cli-plugin-typescript": "^3.0.0-beta.6",
+    "@vue/cli-service": "^3.0.0-beta.6",
+    "node-sass": "^4.7.2",
+    "sass-loader": "^6.0.6",
+    "vue-template-compiler": "^2.5.13"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ],
+  "vue": {
+    "devServer": {
+      "proxy": {
+        "/api": {
+          "target": "http://localhost:5000",
+          "changeOrigin": true
+        }
+      }
+    }
+  }
+}

@@ -65,12 +65,12 @@ namespace Modix.Services.AutoCodePaste
             }
         }
 
-        internal async Task ReactionAdded(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
+        public async Task ReactionAdded(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
         {
             await ModifyRatings(cachedMessage, reaction, ReactionState.Added);
         }
 
-        internal async Task ReactionRemoved(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
+        public async Task ReactionRemoved(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
         {
             await ModifyRatings(cachedMessage, reaction, ReactionState.Removed);
         }

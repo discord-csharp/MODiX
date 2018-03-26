@@ -7,7 +7,7 @@ using Serilog;
 
 namespace Modix.Modules
 {
-    [Summary("Cat Related Commands")]
+    [Name("Cat"), Summary("Cat Related Commands")]
     public class CatModule : ModuleBase
     {
         private readonly ICatService _catService;
@@ -19,8 +19,8 @@ namespace Modix.Modules
             _catService = catService;
         }
 
-        [Command("cat", RunMode = RunMode.Async)]
-        public async Task Cat(string parameter = null)
+        [Command("cat", RunMode = RunMode.Async), Summary("Get a random cat!")]
+        public async Task Cat([Summary("Optionally specify 'gif'")]string parameter = null)
         {
             var type = !string.IsNullOrWhiteSpace(parameter) && parameter.Contains(Gif) ? CatMediaType.Gif : CatMediaType.Jpg;
 

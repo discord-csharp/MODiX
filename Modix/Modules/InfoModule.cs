@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Modix.Services.CommandHelp;
 
 namespace Modix.Modules
 {
@@ -24,11 +25,21 @@ namespace Modix.Modules
 
             foreach (var module in _commandService.Modules)
             {
+                if (module.Attributes.Any(d=>d is HiddenAttribute))
+                {
+                    continue;
+                }
+
                 eb = eb.WithTitle($"Module: {module.Name ?? "Unknown"}")
                        .WithDescription(module.Summary ?? "Unknown");
 
                 foreach(var command in module.Commands)
                 {
+                    if (command.Attributes.Any(d => d is HiddenAttribute))
+                    {
+                        continue;
+                    }
+
                     eb.AddField(new EmbedFieldBuilder().WithName($"Command: !{module.Name ?? ""} {command.Name ?? ""} {GetParams(command)}").WithValue(command.Summary ?? "Unknown"));
                 }
 

@@ -18,6 +18,11 @@ using Modix.Services.AutoCodePaste;
 using Modix.Services.Cat;
 using Serilog.Sinks.Sentry;
 using SharpRaven;
+using Microsoft.AspNetCore.Hosting;
+using Modix.WebServer;
+using Modix.Services.GuildInfo;
+using Modix.Services.CodePaste;
+using Modix.Services.CommandHelp;
 
 namespace Modix
 {
@@ -27,8 +32,10 @@ namespace Modix
         {
             LogLevel = LogSeverity.Debug
         });
+
         private DiscordSocketClient _client;
         private readonly IServiceCollection _map = new ServiceCollection();
+        private IServiceProvider _provider;
         private readonly ModixBotHooks _hooks = new ModixBotHooks();
         private ModixConfig _config = new ModixConfig();
 
@@ -68,9 +75,11 @@ namespace Modix
             //    options.UseNpgsql(_config.PostgreConnectionString);                
             //});
            
-            var provider = _map.BuildServiceProvider();
+            //var provider = _map.BuildServiceProvider();
 
-            provider.GetService<ILoggerFactory>();
+            var host = ModixWebServer.BuildWebHost(_map, _config);
+
+            //provider.GetService<ILoggerFactory>();
 
             //disable until we migrate to Xero's host.
             //#if !DEBUG
@@ -84,6 +93,14 @@ namespace Modix
 
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
+
+            _provider = host.Services;
+
+            _client.Ready += async () =>
+            {
+                await host.StartAsync();
+            };
+
             await Task.Delay(-1);
         }
 
@@ -95,6 +112,8 @@ namespace Modix
                 ReplToken = Environment.GetEnvironmentVariable("ReplToken"),
                 StackoverflowToken = Environment.GetEnvironmentVariable("StackoverflowToken"),
                 PostgreConnectionString = Environment.GetEnvironmentVariable("MODIX_DB_CONNECTION"),
+                DiscordClientId = Environment.GetEnvironmentVariable("DiscordClientId"),
+                DiscordClientSecret = Environment.GetEnvironmentVariable("DiscordClientSecret"),
             };
 
             var id = Environment.GetEnvironmentVariable("log_webhook_id");
@@ -114,7 +133,6 @@ namespace Modix
 
         public async Task HandleCommand(SocketMessage messageParam)
         {
-
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
@@ -126,11 +144,15 @@ namespace Modix
                 return;
 
             var context = new CommandContext(_client, message);
-            var result = await _commands.ExecuteAsync(context, argPos, _map.BuildServiceProvider());
 
-            if (!result.IsSuccess)
+            using (var scope = _provider.CreateScope())
             {
-                Log.Error($"{result.Error}: {result.ErrorReason}");
+                var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
+
+                if (!result.IsSuccess)
+                {
+                    Log.Error($"{result.Error}: {result.ErrorReason}");
+                }
             }
 
             stopwatch.Stop();
@@ -141,9 +163,16 @@ namespace Modix
         {
             _map.AddSingleton(_client);
             _map.AddSingleton(_config);
+            _map.AddSingleton(_commands);
+
             _map.AddScoped<IQuoteService, QuoteService>();
             _map.AddSingleton<CodePasteService>();
             _map.AddSingleton<ICatService, CatService>();
+            _map.AddMemoryCache();
+
+            _map.AddSingleton<GuildInfoService>();
+            _map.AddSingleton<ICodePasteRepository, MemoryCodePasteRepository>();
+            _map.AddSingleton<CommandHelpService>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;

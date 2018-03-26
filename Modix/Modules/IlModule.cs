@@ -14,6 +14,7 @@ using Modix.Services.AutoCodePaste;
 
 namespace Modix.Modules
 {
+    [Name("Decompiler"), Summary("Compile code & view the IL")]
     public class IlModule : ModuleBase
     {
         private const string ReplRemoteUrl = "http://CSDiscord/Il";
@@ -27,7 +28,7 @@ namespace Modix.Modules
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", config.ReplToken);
         }
 
-        [Command("il", RunMode = RunMode.Async), Summary("Executes code!")]
+        [Command("il", RunMode = RunMode.Async), Summary("Compile & return the resulting IL of C# code")]
         public async Task ReplInvoke([Remainder] string code)
         {
             if (!(Context.Channel is SocketGuildChannel))

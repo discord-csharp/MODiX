@@ -9,6 +9,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Discord.Net" Version="1.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.0.2" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
     <PackageReference Include="Serilog" Version="2.6.0" />
     <PackageReference Include="Serilog.Extensions.Logging" Version="2.0.2" />
@@ -18,7 +19,9 @@
     <PackageReference Include="SharpRaven" Version="2.2.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Modix.Services\Modix.Services.csproj" />
     <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
+    <ProjectReference Include="..\Modix.WebServer\Modix.WebServer.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update=".dockerignore">
