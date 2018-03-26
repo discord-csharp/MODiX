@@ -1,8 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.Net;
 using Modix.Services.CommandHelp;
 
 namespace Modix.Modules
@@ -23,28 +25,36 @@ namespace Modix.Modules
             var eb = new EmbedBuilder();
             var userDm = await Context.User.GetOrCreateDMChannelAsync();
 
-            foreach (var module in _commandService.Modules)
+            try
             {
-                if (module.Attributes.Any(d=>d is HiddenAttribute))
+                foreach (var module in _commandService.Modules)
                 {
-                    continue;
-                }
-
-                eb = eb.WithTitle($"Module: {module.Name ?? "Unknown"}")
-                       .WithDescription(module.Summary ?? "Unknown");
-
-                foreach(var command in module.Commands)
-                {
-                    if (command.Attributes.Any(d => d is HiddenAttribute))
+                    if (module.Attributes.Any(d => d is HiddenAttribute))
                     {
                         continue;
                     }
 
-                    eb.AddField(new EmbedFieldBuilder().WithName($"Command: !{module.Name ?? ""} {command.Name ?? ""} {GetParams(command)}").WithValue(command.Summary ?? "Unknown"));
-                }
+                    eb = eb.WithTitle($"Module: {module.Name ?? "Unknown"}")
+                           .WithDescription(module.Summary ?? "Unknown");
 
-                await userDm.SendMessageAsync(string.Empty, embed: eb.Build());
-                eb = new EmbedBuilder();
+                    foreach (var command in module.Commands)
+                    {
+                        if (command.Attributes.Any(d => d is HiddenAttribute))
+                        {
+                            continue;
+                        }
+
+                        eb.AddField(new EmbedFieldBuilder().WithName($"Command: !{module.Name ?? ""} {command.Name ?? ""} {GetParams(command)}").WithValue(command.Summary ?? "Unknown"));
+                    }
+
+                    await userDm.SendMessageAsync(string.Empty, embed: eb.Build());
+                    eb = new EmbedBuilder();
+                }
+            }
+            catch (HttpException exc) when (exc.DiscordCode == 50007)
+            {
+                await ReplyAsync($"You have private messages for this server disabled, {Context.User.Mention}. Please enable them so I can send you help.");
+                return;
             }
             await ReplyAsync($"Check your private messages, {Context.User.Mention}");
         }
