@@ -5,7 +5,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "ci-deploy": "npm install && vue-cli-service build && xcopy /E dist ..\\obj\\Docker\\publish\\wwwroot\\"
+    "ci-deploy": "npm install && vue-cli-service build && xcopy /E dist ..\\Modix\\obj\\Docker\\publish\\wwwroot\\"
   },
   "dependencies": {
     "@types/lodash": "^4.14.105",
