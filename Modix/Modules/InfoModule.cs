@@ -29,7 +29,7 @@ namespace Modix.Modules
             {
                 foreach (var module in _commandService.Modules)
                 {
-                    if (module.Attributes.Any(d => d is HiddenAttribute))
+                    if (module.Attributes.Any(d => d is HiddenFromHelpAttribute))
                     {
                         continue;
                     }
@@ -39,7 +39,7 @@ namespace Modix.Modules
 
                     foreach (var command in module.Commands)
                     {
-                        if (command.Attributes.Any(d => d is HiddenAttribute))
+                        if (command.Attributes.Any(d => d is HiddenFromHelpAttribute))
                         {
                             continue;
                         }

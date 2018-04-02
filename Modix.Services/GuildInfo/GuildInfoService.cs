@@ -26,6 +26,14 @@ namespace Modix.Services.GuildInfo
         private object GetKeyForGuild(IGuild guild) => new { guild, Target = "GuildInfo" };
 
         /// <summary>
+        /// Clear the cache entry for the given guild
+        /// </summary>
+        public void ClearCacheEntry(IGuild guild)
+        {
+            _cache.Remove(GetKeyForGuild(guild));
+        }
+
+        /// <summary>
         /// Gets a list of GuildInfoResult objects representing the role distriution for the given guild.
         /// </summary>
         /// <param name="guild">The guild to retrieve roles/counts from</param>

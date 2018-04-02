@@ -39,7 +39,7 @@ namespace Modix
         private DiscordSocketClient _client;
         private readonly IServiceCollection _map = new ServiceCollection();
         private IServiceProvider _provider;
-        private readonly ModixBotHooks _hooks = new ModixBotHooks();
+        private ModixBotHooks _hooks;
         private ModixConfig _config = new ModixConfig();
 
         public ModixBot()
@@ -93,11 +93,13 @@ namespace Modix
             //}
 
             //#endif
+            
+            _provider = host.Services;
+
+            _hooks = new ModixBotHooks(_provider.GetRequiredService<GuildInfoService>());
 
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
-
-            _provider = host.Services;
 
             _client.Ready += async () =>
             {
@@ -169,6 +171,7 @@ namespace Modix
             _map.AddSingleton(_commands);
 
             _map.AddScoped<IQuoteService, QuoteService>();
+            _map.AddScoped<PermissionHelper>();
             _map.AddSingleton<CodePasteService>();
             _map.AddSingleton<IAnimalService, AnimalService>();
             _map.AddMemoryCache();
@@ -182,6 +185,9 @@ namespace Modix
             _client.MessageReceived += _hooks.HandleMessage;
             _client.ReactionAdded += _hooks.HandleAddReaction;
             _client.ReactionRemoved += _hooks.HandleRemoveReaction;
+            _client.UserJoined += _hooks.HandleUserJoined;
+            _client.UserLeft += _hooks.HandleUserLeft;
+
 
             _client.Log += _hooks.HandleLog;
             _commands.Log += _hooks.HandleLog;

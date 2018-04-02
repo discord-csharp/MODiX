@@ -23,7 +23,7 @@ namespace Modix.Services.CommandHelp
             foreach (var command in module.Commands)
             {
                 if (command.Preconditions.Any(precon => precon is RequireOwnerAttribute) ||
-                    command.Attributes.Any(attr => attr is HiddenAttribute))
+                    command.Attributes.Any(attr => attr is HiddenFromHelpAttribute))
                 {
                     continue;
                 }

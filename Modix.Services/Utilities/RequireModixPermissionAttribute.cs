@@ -24,17 +24,16 @@ namespace Modix.Services.Utilities
             if (!(context.User is IGuildUser))
                 return Task.FromResult(PreconditionResult.FromError("The current context isn't a guild"));
 
-            using (var db = map.GetService<ModixContext>())
+            var db = map.GetService<PermissionHelper>();
+            
+            var user = (IGuildUser)context.User;
+            var role = db.GetRoleByPermission(context, _requiredPermission);
+
+            if (user.RoleIds.Any(roleId => user.Guild.GetRole(roleId).Position > role.Position))
             {
-                var user = (IGuildUser)context.User;
-
-                var role = new PermissionHelper(db).GetRoleByPermission(context, _requiredPermission);
-
-                if (user.RoleIds.Any(roleId => user.Guild.GetRole(roleId).Position > role.Position))
-                {
-                    return Task.FromResult(PreconditionResult.FromSuccess());
-                }
+                return Task.FromResult(PreconditionResult.FromSuccess());
             }
+            
             return Task.FromResult(PreconditionResult.FromError("The current user doesn't satisfy a permission precondition"));
         }
     }

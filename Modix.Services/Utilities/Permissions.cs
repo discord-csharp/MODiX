@@ -1,4 +1,6 @@
-﻿using Discord;
+﻿using System;
+using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Modix.Data;
 using Modix.Data.Services;
@@ -10,14 +12,14 @@ namespace Modix.Services.Utilities
     public class PermissionHelper
     {
         private readonly DiscordGuildService GuildService;
-        public PermissionHelper(ModixContext context)
+        public PermissionHelper(ModixContext context) 
         {
             GuildService = new DiscordGuildService(context);
         }
 
-        public IRole GetRoleByPermission(ICommandContext context, Permissions perms)
+        public async Task<IRole> GetRoleByPermission(ICommandContext context, Permissions perms)
         {
-            var guild = GuildService.ObtainAsync(context.Guild).Result;
+            var guild = await GuildService.ObtainAsync(context.Guild);
             if (guild.Config == null)
             {
                 throw new GuildConfigException(

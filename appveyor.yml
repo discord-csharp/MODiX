@@ -56,3 +56,4 @@ environment:
     secure:
   DiscordClientSecret:
     secure: 
+  ASPNETCORE_URLS: http://0.0.0.0:8080

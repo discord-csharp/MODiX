@@ -24,7 +24,7 @@ namespace Modix.Services.CommandHelp
 
                 foreach (var module in _commandService.Modules)
                 {
-                    if (module.Attributes.Any(attr => attr is HiddenAttribute))
+                    if (module.Attributes.Any(attr => attr is HiddenFromHelpAttribute))
                     {
                         continue;
                     }

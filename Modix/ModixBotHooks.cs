@@ -5,11 +5,19 @@ using Discord.WebSocket;
 using Serilog;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.FileUpload;
+using Modix.Services.GuildInfo;
 
 namespace Modix
 {
     public class ModixBotHooks
     {
+        private GuildInfoService _infoService;
+
+        public ModixBotHooks(GuildInfoService infoService)
+        {
+            _infoService = infoService;
+        }
+
         private readonly CodePasteHandler _codePaste = new CodePasteHandler(new CodePasteService());
         private readonly FileUploadHandler _fileUploadHandler = new FileUploadHandler();
 
@@ -47,6 +55,18 @@ namespace Modix
         public async Task HandleRemoveReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
             await _codePaste.ReactionRemoved(message, channel, reaction);
+        }
+
+        public Task HandleUserJoined(SocketGuildUser user)
+        {
+            _infoService.ClearCacheEntry(user.Guild);
+            return Task.CompletedTask;
+        }
+
+        public Task HandleUserLeft(SocketGuildUser user)
+        {
+            _infoService.ClearCacheEntry(user.Guild);
+            return Task.CompletedTask;
         }
 
         public async Task HandleMessage(SocketMessage messageParam)
