@@ -11,14 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Modix.Services.Quote;
 using Modix.Utilities;
 using Serilog.Events;
-using Modix.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Modix.Services.AutoCodePaste;
-using Modix.Services.Cat;
-using Serilog.Sinks.Sentry;
-using SharpRaven;
-using Microsoft.AspNetCore.Hosting;
 using Modix.WebServer;
 using Modix.Services.GuildInfo;
 using Modix.Services.CodePaste;
@@ -26,7 +19,6 @@ using Modix.Services.CommandHelp;
 
 namespace Modix
 {
-    using Modix.Services;
     using Modix.Services.Animals;
     using Modix.Services.FileUpload;
 
