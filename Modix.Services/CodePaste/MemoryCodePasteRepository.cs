@@ -15,7 +15,7 @@ namespace Modix.Services.CodePaste
                 Id = 0,
                 ChannelName = "bots",
                 CreatorUsername = "jmazouri",
-                Created = DateTime.Now,
+                Created = DateTime.UtcNow,
                 Content = "public static void Main()" +
                 "\n{" +
                 "\n    public int Test {get; set;}" +
@@ -27,7 +27,7 @@ namespace Modix.Services.CodePaste
                 Id = 1,
                 ChannelName = "bots",
                 CreatorUsername = "jmazouri",
-                Created = DateTime.Now,
+                Created = DateTime.UtcNow,
                 Content = "public static void Main()" +
                 "\n{" +
                 "\n    public int Test {get; set;}" +
@@ -39,7 +39,7 @@ namespace Modix.Services.CodePaste
                 Id = 2,
                 ChannelName = "bots",
                 CreatorUsername = "jmazouri",
-                Created = DateTime.Now,
+                Created = DateTime.UtcNow,
                 Content = "public static void Main()" +
                 "\n{" +
                 "\n    public int Test {get; set;}" +

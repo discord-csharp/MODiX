@@ -28,6 +28,7 @@ namespace Modix
 {
     using Modix.Services;
     using Modix.Services.Animals;
+    using Modix.Services.FileUpload;
 
     public sealed class ModixBot
     {
@@ -39,7 +40,7 @@ namespace Modix
         private DiscordSocketClient _client;
         private readonly IServiceCollection _map = new ServiceCollection();
         private IServiceProvider _provider;
-        private ModixBotHooks _hooks;
+        private ModixBotHooks _hooks = new ModixBotHooks();
         private ModixConfig _config = new ModixConfig();
 
         public ModixBot()
@@ -96,7 +97,7 @@ namespace Modix
             
             _provider = host.Services;
 
-            _hooks = new ModixBotHooks(_provider.GetRequiredService<GuildInfoService>());
+            _hooks.ServiceProvider = _provider;
 
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
@@ -172,6 +173,8 @@ namespace Modix
 
             _map.AddScoped<IQuoteService, QuoteService>();
             _map.AddScoped<PermissionHelper>();
+            _map.AddSingleton<CodePasteHandler>();
+            _map.AddSingleton<FileUploadHandler>();
             _map.AddSingleton<CodePasteService>();
             _map.AddSingleton<IAnimalService, AnimalService>();
             _map.AddMemoryCache();

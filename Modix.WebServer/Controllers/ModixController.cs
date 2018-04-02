@@ -9,6 +9,7 @@ using Modix.WebServer.Models;
 namespace Modix.WebServer.Controllers
 {
     [ValidateAntiForgeryToken]
+    [Authorize]
     public class ModixController : Controller
     {
         protected DiscordUser DiscordUser { get; private set; }
