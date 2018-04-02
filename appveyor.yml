@@ -52,8 +52,7 @@ environment:
   log_webhook_id: 382609729802862592
   SentryToken:
     secure: TSVcrUaf7lIi4YoOKrZhqrf6MvXh+XFUMO454dwB0q8ieNFOap49KhCYhw4x9sRflgQnDhppjzdbOrFiDnwQvID4rb3nXCxnJRzPLOUwOYlM4SfitMt2LnyGzyOdminq
-  DiscordClientId:
-    secure:
+  DiscordClientId: 
   DiscordClientSecret:
     secure: 
   ASPNETCORE_URLS: http://0.0.0.0:8080
