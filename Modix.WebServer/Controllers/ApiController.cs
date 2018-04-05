@@ -10,18 +10,13 @@ namespace Modix.WebServer.Controllers
 {
     public class ApiController : ModixController
     {
-        private DiscordSocketClient _client;
         private GuildInfoService _guildInfoService;
-        private CommandHelpService _commandHelpService;
 
-        public ApiController(DiscordSocketClient client, GuildInfoService guildInfoService, CommandHelpService commandHelpService)
+        public ApiController(DiscordSocketClient client, GuildInfoService guildInfoService) : base(client)
         {
-            _client = client;
             _guildInfoService = guildInfoService;
-            _commandHelpService = commandHelpService;
         }
 
-        [Authorize]
         public async Task<IActionResult> Guilds()
         {
             var guildInfo = new Dictionary<string, List<GuildInfoResult>>();
@@ -34,15 +29,9 @@ namespace Modix.WebServer.Controllers
             return Ok(guildInfo);
         }
 
-        [Authorize]
         public IActionResult UserInfo()
         {
             return Ok(DiscordUser);
-        }
-
-        public IActionResult Commands()
-        {
-            return Ok(_commandHelpService.GetData());
         }
     }
 }
