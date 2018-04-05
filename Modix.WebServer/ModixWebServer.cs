@@ -1,16 +1,15 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Antiforgery;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Data.Models;
-using Modix.Services.CodePaste;
-using Modix.Services.GuildInfo;
+using Modix.WebServer.Auth;
 using System;
 using System.IO;
+using System.Net.Http;
 
 namespace Modix.WebServer
 {
@@ -34,16 +33,9 @@ namespace Modix.WebServer
                 options.LoginPath = "/api/unauthorized";
                 //options.LogoutPath = "/logout";
                 options.ExpireTimeSpan = new TimeSpan(7, 0, 0, 0);
-                
-            })
-            .AddDiscord(options =>
-            {
-                options.ClaimActions.MapJsonKey(claimType: "avatarHash", jsonKey: "avatar");
 
-                options.ClientId = _modixConfig.DiscordClientId;
-                options.ClientSecret = _modixConfig.DiscordClientSecret;
-                options.Scope.Add("identify");
-            });
+            })
+            .AddModix(_modixConfig);
 
             services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
 
