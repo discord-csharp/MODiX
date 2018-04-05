@@ -7,10 +7,12 @@ pull_requests:
 install:
   - dotnet --info
   - ps: choco install docker-compose
+  - ps: choco install nodejs
 before_build:
   - dotnet restore Modix\Modix.csproj
   - dotnet restore Modix.Data\Modix.Data.csproj
   - 7z a deploy-script.zip before-deploy.ps1
+  - cd Modix.Frontend && npm run ci-deploy
 build:
   project: Modix.sln
   verbosity: minimal
@@ -50,3 +52,7 @@ environment:
   log_webhook_id: 382609729802862592
   SentryToken:
     secure: TSVcrUaf7lIi4YoOKrZhqrf6MvXh+XFUMO454dwB0q8ieNFOap49KhCYhw4x9sRflgQnDhppjzdbOrFiDnwQvID4rb3nXCxnJRzPLOUwOYlM4SfitMt2LnyGzyOdminq
+  DiscordClientId: 279796300210372612
+  DiscordClientSecret:
+    secure: YdnkxXjIMPdHwqApk3pNZd36EJCnnfDjAldI0OOcBCGd8AfcFvXMy+ygI/it0e9B
+  ASPNETCORE_URLS: http://0.0.0.0:8080

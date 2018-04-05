@@ -31,12 +31,12 @@ namespace Modix.Data.Utilities
             }
             else
             {
-                var lines = value.Split("\n", StringSplitOptions.RemoveEmptyEntries);
+                var lines = value.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
                 
                 if (lines.Length > maxLines)
                 {
                     //merge everything back with newlines
-                    return String.Join('\n', lines.Take(maxLines));
+                    return String.Join("\n", lines.Take(maxLines));
                 }
 
                 return $"{value.Substring(0, maxLength).Trim()}{suffix}";

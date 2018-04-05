@@ -6,10 +6,10 @@ using Modix.Services.Csharp;
 
 namespace Modix.Modules
 {
-    [Name("Documentation"), Summary("Easy way to ban the bad guys.")]
+    [Name("Documentation"), Summary("Search for information within the .NET docs")]
     public class DocumentationModule : ModuleBase
     {
-        [Command("docs"), Summary("Shows class/method reference from the new unified .Net reference.")]
+        [Command("docs"), Summary("Shows class/method reference from the new unified .NET reference")]
         public async Task GetDocumentationAsync([Remainder]string term)
         {
             var response = await new DocumentationService().GetDocumentationResultsAsync(term);

@@ -9,7 +9,7 @@ using Modix.Data.Models;
 
 namespace Modix.Modules
 {
-    [Name("StackExchange"), Summary("Query any site from Stack Exchange.")]
+    [Name("Stack Exchange"), Summary("Query any site from Stack Exchange.")]
     public class StackExchangeModule : ModuleBase
     {
         private readonly ModixConfig _config;
@@ -19,7 +19,7 @@ namespace Modix.Modules
             _config = config;
         }
 
-        [Command("stack"), Summary("Returns top results from a Stack Exchange site. Usage: `!stack how do i parse json with c#? [site=stackoverflow tags=c#,json]`")]
+        [Command("stack"), Summary("Returns top results from a Stack Exchange site."), Remarks("Usage: `!stack how do i parse json with c#? [site=stackoverflow tags=c#,json]`")]
         public async Task Run([Remainder] string phrase)
         {
             var startLocation = phrase.IndexOf("[");

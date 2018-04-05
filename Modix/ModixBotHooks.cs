@@ -5,13 +5,14 @@ using Discord.WebSocket;
 using Serilog;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.FileUpload;
+using Modix.Services.GuildInfo;
+using System;
 
 namespace Modix
 {
     public class ModixBotHooks
     {
-        private readonly CodePasteHandler _codePaste = new CodePasteHandler(new CodePasteService());
-        private readonly FileUploadHandler _fileUploadHandler = new FileUploadHandler();
+        public IServiceProvider ServiceProvider { get; set; }
 
         public Task HandleLog(LogMessage message)
         {
@@ -41,12 +42,32 @@ namespace Modix
 
         public async Task HandleAddReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
-            await _codePaste.ReactionAdded(message, channel, reaction);
+            var codePaste = ServiceProvider.GetService(typeof(CodePasteHandler)) as CodePasteHandler;
+            await codePaste.ReactionAdded(message, channel, reaction);
         }
 
         public async Task HandleRemoveReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
-            await _codePaste.ReactionRemoved(message, channel, reaction);
+            var codePaste = ServiceProvider.GetService(typeof(CodePasteHandler)) as CodePasteHandler;
+            await codePaste.ReactionRemoved(message, channel, reaction);
+        }
+
+        public Task HandleUserJoined(SocketGuildUser user)
+        {
+            return InvalidateGuild(user.Guild);
+        }
+
+        public Task HandleUserLeft(SocketGuildUser user)
+        {
+            return InvalidateGuild(user.Guild);
+        }
+
+        private Task InvalidateGuild(IGuild guild)
+        {
+            var infoService = ServiceProvider.GetService(typeof(GuildInfoService)) as GuildInfoService;
+            infoService.ClearCacheEntry(guild);
+
+            return Task.CompletedTask;
         }
 
         public async Task HandleMessage(SocketMessage messageParam)
@@ -55,8 +76,12 @@ namespace Modix
 
             if (user == null) return;
 
+            var fileUploadHandler = ServiceProvider.GetService(typeof(FileUploadHandler)) as FileUploadHandler;
+
             if (messageParam.Attachments.Any())
-                await _fileUploadHandler.Handle(messageParam);
+            {
+                await fileUploadHandler.Handle(messageParam);
+            }
         }
     }
 }

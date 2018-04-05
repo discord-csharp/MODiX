@@ -7,7 +7,7 @@ using Serilog;
 
 namespace Modix.Modules
 {
-    [Name("Quote Message"), Summary("Quote a message from the Guild with its ID")]
+    [Name("Quoting"), Summary("Quote a message from the Guild with its ID")]
     public class QuoteModule : ModuleBase
     {
         private readonly IQuoteService _quoteService;
@@ -17,7 +17,7 @@ namespace Modix.Modules
             _quoteService = quoteService;
         }
 
-        [Command("quote")]
+        [Command("quote"), Summary("Quote the given message")]
         public async Task Run(ulong messageId)
         {
             IMessage message = null;
@@ -38,7 +38,7 @@ namespace Modix.Modules
             await ProcessRetrievedMessage(message);
         }
 
-        [Command("quote")]
+        [Command("quote"), Summary("Quote the given message from the given channel")]
         public async Task Run(ITextChannel channel, ulong messageId)
         {
             IMessage message = null;
@@ -56,7 +56,7 @@ namespace Modix.Modules
             await ProcessRetrievedMessage(message);
         }
 
-        [Command("quote")]
+        [Command("quote"), Summary("Quote the given message from the given channel")]
         public async Task Run(ulong messageId, ITextChannel channel)
             => await Run(channel, messageId);
 

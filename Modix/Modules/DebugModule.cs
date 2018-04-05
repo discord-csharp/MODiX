@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Modix.Services.CommandHelp;
 using Serilog;
 using System;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace Modix.Modules
     /// <summary>
     /// Used to test feature work on a private server. The contents of this module can be changed any time.
     /// </summary>
-    [Group("debug"), RequireUserPermission(GuildPermission.BanMembers)]
+    [Group("debug"), RequireUserPermission(GuildPermission.BanMembers), HiddenFromHelp]
     public class DebugModule : ModuleBase
     {
         [Command("throw")]
