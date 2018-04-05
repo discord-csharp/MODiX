@@ -8,7 +8,7 @@ using Modix.Services.CodePaste;
 namespace Modix.WebServer.Controllers
 {
     [Route("~/api")]
-    public class PasteController : ModixController
+    public class PasteController : Controller
     {
         private ICodePasteRepository _codePasteRepository;
 
