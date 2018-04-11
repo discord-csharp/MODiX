@@ -21,8 +21,8 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from 'vue-property-decorator';
-import PieChart from '@/components/PieChart.vue'; // @ is an alias to /src
-import * as store from "../app/Store";
+import PieChart from '@/components/PieChart.vue'; 
+import store from "../app/Store";
 import HeroHeader from "../components/HeroHeader.vue";
 
 @Component({
@@ -36,7 +36,7 @@ export default class Stats extends Vue
 {
     created()
     {
-        store.updateGuildInfo(this.$store);
+        store.retrieveGuildInfo();
     }
 }
 </script>

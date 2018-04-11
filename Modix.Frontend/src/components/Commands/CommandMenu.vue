@@ -11,6 +11,14 @@
 
 </template>
 
+<style lang="scss">
+@import "../../styles/variables";
+@import "~bulma/sass/utilities/_all";
+
+@import "~bulma/sass/components/menu";
+</style>
+
+
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
 import { ModuleHelpData, CommandHelpData } from '@/models/ModuleHelpData';

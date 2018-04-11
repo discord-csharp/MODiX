@@ -10,6 +10,14 @@
 
 </template>
 
+<style lang="scss">
+@import "../../styles/variables";
+@import "~bulma/sass/utilities/_all";
+@import "~bulma/sass/elements/tag";
+@import "~bulma/sass/elements/form";
+</style>
+
+
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
 import { ParameterHelpData } from '@/models/ModuleHelpData';

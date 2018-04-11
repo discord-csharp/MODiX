@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Discord.WebSocket;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -29,15 +32,21 @@ namespace Modix.WebServer.Controllers
             _client = client;
         }
 
-        public override void OnActionExecuting(ActionExecutingContext context)
+        public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
             if (HttpContext.User != null)
             {
                 DiscordUser = DiscordUser.FromClaimsPrincipal(HttpContext.User);
+
+                if (SocketUser == null)
+                {
+                    context.Result = new RedirectResult("/api/logout");
+                }
+
                 DiscordUser.UserRole = (IsStaff ? UserRole.Staff : UserRole.Member);
             }
 
-            base.OnActionExecuting(context);
+            await next();
         }
     }
 }

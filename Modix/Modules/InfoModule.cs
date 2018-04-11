@@ -12,9 +12,9 @@ namespace Modix.Modules
     [Name("Info"), Summary("General helper module")]
     public sealed class InfoModule : ModuleBase
     {
-        private readonly CommandService _commandService;
+        private readonly CommandHelpService _commandService;
 
-        public InfoModule(CommandService cs)
+        public InfoModule(CommandHelpService cs)
         {
             _commandService = cs;
         }
@@ -27,23 +27,13 @@ namespace Modix.Modules
 
             try
             {
-                foreach (var module in _commandService.Modules)
+                foreach (var module in _commandService.GetData())
                 {
-                    if (module.Attributes.Any(d => d is HiddenFromHelpAttribute))
-                    {
-                        continue;
-                    }
-
                     eb = eb.WithTitle($"Module: {module.Name ?? "Unknown"}")
                            .WithDescription(module.Summary ?? "Unknown");
 
                     foreach (var command in module.Commands)
                     {
-                        if (command.Attributes.Any(d => d is HiddenFromHelpAttribute))
-                        {
-                            continue;
-                        }
-
                         eb.AddField(new EmbedFieldBuilder().WithName($"Command: !{module.Name ?? ""} {command.Name ?? ""} {GetParams(command)}").WithValue(command.Summary ?? "Unknown"));
                     }
 
@@ -56,10 +46,11 @@ namespace Modix.Modules
                 await ReplyAsync($"You have private messages for this server disabled, {Context.User.Mention}. Please enable them so I can send you help.");
                 return;
             }
+
             await ReplyAsync($"Check your private messages, {Context.User.Mention}");
         }
 
-        private string GetParams(CommandInfo info)
+        private string GetParams(CommandHelpData info)
         {
             var sb = new StringBuilder();
             info.Parameters.ToList().ForEach(x =>

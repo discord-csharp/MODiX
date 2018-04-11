@@ -24,30 +24,8 @@
 
 @import "../styles/variables";
 @import "~bulma/sass/utilities/_all";
-@import "~bulma/sass/elements/box";
-@import "~bulma/sass/elements/tag";
-@import "~bulma/sass/elements/form";
-@import "~bulma/sass/components/menu";
 
-.command
-{
-    background: $light;
-    padding: 0.5em 1em;
 
-    .commandName
-    {
-        display: inline-block;
-        font-family: "Consolas", monospace;
-        font-size: 1.15em;
-        margin-right: 1em;
-        font-weight: bold;
-
-        &.overload
-        {
-            text-align: right;
-        }
-    }
-}
 
 .hidden
 {
@@ -96,7 +74,7 @@
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import HeroHeader from '@/components/HeroHeader.vue';
-import * as store from "../app/Store";
+import store from "../app/Store";
 import {ModuleHelpData} from "../models/ModuleHelpData";
 import ModuleView from '@/components/Commands/ModuleView.vue';
 import CommandMenu from '@/components/Commands/CommandMenu.vue';
@@ -132,7 +110,7 @@ export default class Commands extends Vue
 
     created()
     {
-        store.updateCommands(this.$store);
+        store.retrieveCommands();
     }
 
     updated()

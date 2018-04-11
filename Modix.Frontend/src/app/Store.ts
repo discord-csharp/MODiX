@@ -1,5 +1,6 @@
+import Vue from "vue";
 import * as Vuex from "vuex";
-import { getStoreAccessors } from "vuex-typescript";
+import { getStoreBuilder, BareActionContext } from "vuex-typex";
 import ModixState from "@/models/ModixState";
 import RootState from "@/models/RootState";
 import GeneralService from "@/services/GeneralService";
@@ -7,160 +8,100 @@ import User from "@/models/User";
 import {ModuleHelpData} from "@/models/ModuleHelpData";
 import GuildInfoResult from "@/models/GuildInfoResult";
 import UserCodePaste from "@/models/UserCodePaste";
+import PromotionCampaign from "@/models/PromotionCampaign";
+import { setupMaster } from "cluster";
+import { isNullOrUndefined } from "util";
 
-type ModixContext = Vuex.ActionContext<ModixState, RootState>;
+Vue.use(Vuex);
 
-export const modix =
+type ModixContext = BareActionContext<ModixState, RootState>;
+
+const modixState: ModixState =
 {
-    namespaced: true,
-
-    state:
-    {
-        user: null,
-        guildInfo: new Map<string, GuildInfoResult>(),
-        errors: [],
-        pastes: [],
-        currentPaste: null,
-        commands: []
-    },
-
-    getters:
-    {
-        getGuildInfo(state: ModixState)
-        {
-            return state.guildInfo;
-        }
-    },
-
-    mutations:
-    {
-        setUser(state: ModixState, user: User)
-        {
-            state.user = user;
-        },
-        setGuildInfo(state: ModixState, guildInfo: Map<string, GuildInfoResult>)
-        {
-            state.guildInfo = guildInfo;
-        },
-        setPastes(state: ModixState, pastes: UserCodePaste[])
-        {
-            state.pastes = pastes;
-        },
-        setCurrentPaste(state: ModixState, paste: UserCodePaste | null)
-        {
-            state.currentPaste = paste;
-        },
-        setCommands(state: ModixState, commands: ModuleHelpData[])
-        {
-            state.commands = commands;
-        },
-        pushError(state: ModixState, error: string)
-        {
-            state.errors.push(error);
-        },
-        removeError(state: ModixState, error: string)
-        {
-            state.errors.splice(state.errors.indexOf(error), 1); 
-        }
-    },
-
-    actions: 
-    {
-        async updateUserInfo(context: ModixContext): Promise<void>
-        {
-            try
-            {
-                context.commit('setUser', await GeneralService.getUser());
-            }
-            catch (err)
-            {
-                let message = "Couldn't retrieve user information: " + err;
-
-                console.error(message);
-                context.commit('setUser', null);
-
-                //context.commit('pushError', message);
-            }
-        },
-
-        async updateGuildInfo(context: ModixContext): Promise<void>
-        {
-            try
-            {
-                context.commit('setGuildInfo', await GeneralService.getGuildInfo());
-            }
-            catch (err)
-            {
-                let message = "Couldn't retrieve guild information: " + err;
-
-                console.error(message);
-                context.commit('setGuildInfo', new Map<string, GuildInfoResult>());
-
-                //context.commit('pushError', message);
-            }
-        },
-
-        async updatePastes(context: ModixContext): Promise<void>
-        {
-            try
-            {
-                context.commit('setPastes', await GeneralService.getPastes());
-            }
-            catch (err)
-            {
-                let message = "Couldn't retrieve paste information: " + err;
-
-                console.error(message);
-                context.commit('setPastes', new Array<UserCodePaste>());
-
-                //context.commit('pushError', message);
-            }
-        },
-
-        async getPaste(context: ModixContext, pasteId: number): Promise<void>
-        {
-            try
-            {
-                context.commit('setCurrentPaste', await GeneralService.getPaste(pasteId));
-            }
-            catch (err)
-            {
-                let message = "Couldn't retrieve paste information: " + err;
-
-                console.error(message);
-                context.commit('setCurrentPaste', null);
-
-                //context.commit('pushError', message);
-            }
-        },
-
-        async updateCommands(context: ModixContext): Promise<void>
-        {
-            try
-            {
-                context.commit('setCommands', await GeneralService.getCommands());
-            }
-            catch (err)
-            {
-                let message = "Couldn't retrieve command information: " + err;
-
-                console.error(message);
-                context.commit('setCommands', []);
-
-                //context.commit('pushError', message);
-            }
-        }
-    }
+    user: null,
+    guildInfo: new Map<string, GuildInfoResult>(),
+    errors: [],
+    pastes: [],
+    currentPaste: null,
+    commands: [],
+    campaigns: []
 };
 
-const { commit, read, dispatch } = getStoreAccessors<ModixState, RootState>("modix");
+const storeBuilder = getStoreBuilder<RootState>();
+const moduleBuilder = storeBuilder.module<ModixState>("modix", modixState);
 
-export const updateUserInfo = dispatch(modix.actions.updateUserInfo);
-export const updateGuildInfo = dispatch(modix.actions.updateGuildInfo);
-export const updatePastes = dispatch(modix.actions.updatePastes);
-export const getPaste = dispatch(modix.actions.getPaste);
+namespace modix
+{
+    const setUser = (state: ModixState, user: User) => state.user = user;
+    const setGuildInfo = (state: ModixState, guildInfo: Map<string, GuildInfoResult>) => state.guildInfo = guildInfo;
+    const setPastes = (state: ModixState, pastes: UserCodePaste[]) => state.pastes = pastes;
+    const setCurrentPaste = (state: ModixState, paste: UserCodePaste | null) => state.currentPaste = paste;
+    const setCommands = (state: ModixState, commands: ModuleHelpData[]) => state.commands = commands;
+    const setCampaigns = (state: ModixState, campaigns: PromotionCampaign[]) => state.campaigns = campaigns;
 
-export const getGuildInfo = read(modix.getters.getGuildInfo);
-export const removeError = commit(modix.mutations.removeError);
-export const setCurrentPaste = commit(modix.mutations.setCurrentPaste);
-export const updateCommands = dispatch(modix.actions.updateCommands);
+    const getUserIsStaff = (state: ModixState) => 
+    {
+        if (!state.user)
+        {
+            return false;
+        }
+        
+        return state.user.userRole == "Staff";
+    };
+
+    const getHasTriedAuth = (state: ModixState) => state.user != null;
+    const getIsLoggedIn = (state: ModixState) => state.user != null && state.user.userRole != "Invalid";
+
+    const pushError = (state: ModixState, error: string) => state.errors.push(error);
+    const removeError = (state: ModixState, error: string) => state.errors.splice(state.errors.indexOf(error), 1);
+    const clearErrors = (state: ModixState) => state.errors = [];
+
+    const updateUserInfo = async (context: ModixContext) => tryThing(GeneralService.getUser, setUser, err => setUser(modixState, new User()));
+    const updateGuildInfo = async (context: ModixContext) => tryThing(GeneralService.getGuildInfo, setGuildInfo);
+    const updatePastes = async (context: ModixContext) => tryThing(GeneralService.getPastes, setPastes);
+    const updateCommands = async (context: ModixContext) => tryThing(GeneralService.getCommands, setCommands);
+    const updateCampaigns = async (context: ModixContext) => tryThing(GeneralService.getCampaigns, setCampaigns);
+
+    export const retrieveUserInfo = moduleBuilder.dispatch(updateUserInfo);
+    export const retrieveGuildInfo = moduleBuilder.dispatch(updateGuildInfo);
+    export const retrievePastes = moduleBuilder.dispatch(updatePastes);
+    export const retrieveCommands = moduleBuilder.dispatch(updateCommands);
+    export const retrieveCampaigns = moduleBuilder.dispatch(updateCampaigns);
+
+    export const pushErrorMessage = moduleBuilder.commit(pushError);
+    export const removeErrorMessage = moduleBuilder.commit(removeError);
+    export const clearErrorMessages = moduleBuilder.commit(clearErrors);
+
+    export const hasTriedAuth = moduleBuilder.read(getHasTriedAuth);
+    export const isLoggedIn = moduleBuilder.read(getIsLoggedIn);
+    export const userIsStaff = moduleBuilder.read(getUserIsStaff);   
+}
+
+export default modix;
+
+const tryThing = async function<T>(serviceAction: () => Promise<T>, 
+                                   mutator: (state: ModixState, param: any) => void, 
+                                   actionError: ((err: Error) => void) | null = null)
+{
+    try
+    {
+        let result = await serviceAction();
+        mutator(modixState, result);
+    }
+    catch (err)
+    {
+        if (actionError != null)
+        {
+            actionError(err);
+        }
+        else
+        {
+            let message = "Couldn't retrieve: " + err;
+            mutator(modixState, null);
+
+            //console.error(message);
+        }
+    }
+}
+
+export const vuexStore = storeBuilder.vuexStore();

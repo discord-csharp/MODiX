@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Discord.Commands;
 
@@ -8,20 +9,29 @@ namespace Modix.Services.CommandHelp
     public class CommandHelpData
     {
         public string Name { get; set; }
+        public string Alias { get; set; }
         public string Summary { get; set; }
         public List<ParameterHelpData> Parameters { get; set; } = new List<ParameterHelpData>();
 
-        public static CommandHelpData FromCommandInfo(CommandInfo command)
+        public static IEnumerable<CommandHelpData> FromCommandInfo(CommandInfo command)
         {
-            var ret = new CommandHelpData
-            {
-                Name = command.Name,
-                Summary = command.Summary
-            };
+            List<CommandHelpData> ret = new List<CommandHelpData>();
 
-            foreach (var param in command.Parameters)
+            foreach (var alias in command.Aliases)
             {
-                ret.Parameters.Add(ParameterHelpData.FromParameterInfo(param));
+                var data = new CommandHelpData
+                {
+                    Alias = alias,
+                    Name = command.Name,
+                    Summary = command.Summary
+                };
+
+                foreach (var param in command.Parameters)
+                {
+                    data.Parameters.Add(ParameterHelpData.FromParameterInfo(param));
+                }
+
+                ret.Add(data);
             }
 
             return ret;

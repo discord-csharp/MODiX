@@ -7,6 +7,7 @@ export interface ModuleHelpData
 
 export interface CommandHelpData
 {
+    alias: string;
     name: string;
     summary: string;
     parameters: ParameterHelpData[];

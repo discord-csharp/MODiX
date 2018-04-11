@@ -28,7 +28,7 @@ namespace Modix.Services.CommandHelp
                     continue;
                 }
 
-                ret.Commands.Add(CommandHelpData.FromCommandInfo(command));
+                ret.Commands.AddRange(CommandHelpData.FromCommandInfo(command));
             }
 
             return ret;
