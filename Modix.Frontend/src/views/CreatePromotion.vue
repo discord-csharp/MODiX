@@ -96,7 +96,7 @@ export default class CreatePromotion extends Vue
     autocompletes: User[] = [];
     selectedAutocomplete: User = new User();
 
-    debouncedAutocomplete: Function;
+    debouncedAutocomplete: Function = () => null;
 
     @Watch('selectedAutocomplete')
     selectedChanged()
