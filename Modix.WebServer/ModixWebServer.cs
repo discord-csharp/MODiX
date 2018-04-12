@@ -29,8 +29,9 @@ namespace Modix.WebServer
             }
 
             //TODO: Un-hardcode this
-            services.AddDataProtection()
-                .PersistKeysToFileSystem(new DirectoryInfo(@"c:\app\config\dataprotection"));
+            //TODO: Uncomment this one perms are fixed
+            //services.AddDataProtection()
+            //    .PersistKeysToFileSystem(new DirectoryInfo(@"c:\app\config\dataprotection"));
 
             services
             .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

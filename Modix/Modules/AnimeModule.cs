@@ -35,7 +35,7 @@ namespace Modix.Modules
 
             var first = found.First();
 
-            string synopsis = first.Attributes.Synopsis.TruncateTo(350);
+            string synopsis = first.Attributes.Synopsis.TruncateTo(300);
 
             var embed = new EmbedBuilder()
                 .WithTitle($"**{first.Attributes.CanonicalTitle}** - {first.Type}")
