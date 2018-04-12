@@ -7,6 +7,12 @@
                 <h1 class="title is-size-4">
                     <span class="statusIcon">{{statusIcon}}</span>
                     {{campaign.username}}
+
+                    <span class="mobile-expander">
+                        <template v-if="expanded">⯅</template>
+                        <template v-else>⯆</template>
+                    </span>
+
                     <small class="date">started {{formatDate(campaign.startDate)}}</small>
                 </h1>
             </div>
@@ -27,6 +33,11 @@
 
                 <progress class="progress is-small" :class="sentimentColor(campaign)" 
                     :value="campaign.sentimentRatio" max="1" />       
+            </div>
+
+            <div class="column is-narrow expander is-hidden-mobile">
+                <template v-if="expanded">⯅</template>
+                <template v-else>⯆</template>
             </div>
         </div>
 
@@ -174,6 +185,18 @@
 .adminButtons
 {
     margin-top: -0.25em;
+}
+
+.mobile-expander
+{
+    display: block;
+    float: right;
+    margin-right: 0.5em;
+
+    @include tablet()
+    {
+        display: none;
+    }
 }
 
 </style>
