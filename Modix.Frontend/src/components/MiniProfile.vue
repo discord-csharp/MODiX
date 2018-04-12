@@ -3,7 +3,7 @@
         <template v-if="user && user.userRole != 'Invalid'">
             <img class="avatar-icon" :src="user.avatarUrl">
             <p class="title is-4">
-                {{user.name}}
+                <span class="username">{{user.name}}</span>
                 <a href="/api/logout" title="Log Out">👋</a>
             </p>
         </template>
@@ -26,11 +26,13 @@
     margin-right: 0.5em;
 }
 
-.profile .title.is-4
+.username
 {
+    margin-right: 0.2em;
+
     @include mobile()
     {
-        font-size: 1.25rem;
+        display: none;
     }
 }
 </style>

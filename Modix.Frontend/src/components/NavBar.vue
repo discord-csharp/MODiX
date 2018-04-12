@@ -51,6 +51,13 @@ nav
     }
 }
 
+.is-active
+{
+    font-weight: bold;
+    pointer-events: none;
+    color: black;
+}
+
 </style>
 
 <script lang="ts">
