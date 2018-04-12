@@ -28,7 +28,7 @@ namespace Modix.WebServer.Controllers
         }
 
         [HttpGet("user-autocomplete/{query}")]
-        public async Task<IActionResult> GetAutocomplete(string query)
+        public IActionResult GetAutocomplete(string query)
         {
             var result = _client.Guilds.First()
                 .Users.Where(d => d.Username.ToLowerInvariant().Contains(query))

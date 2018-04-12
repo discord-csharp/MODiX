@@ -144,6 +144,11 @@ export default class CreatePromotion extends Vue
                     return;
                 }
 
+                if (self.searchQuery.length <= 2)
+                {
+                    return;
+                }
+
                 self.loading = true;
                 self.autocompletes = await GeneralService.getAutocomplete(self.searchQuery);
                 self.loading = false;

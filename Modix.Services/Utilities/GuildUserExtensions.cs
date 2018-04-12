@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Discord;
 
@@ -9,7 +10,7 @@ namespace Modix.Services.Utilities
     {
         public static bool HasRole(this IGuildUser user, ulong roleId)
         {
-            return user.HasRole(roleId);
+            return user.RoleIds.Contains(roleId);
         }
     }
 }
