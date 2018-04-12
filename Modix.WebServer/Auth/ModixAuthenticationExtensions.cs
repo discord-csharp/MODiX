@@ -26,7 +26,7 @@ namespace Modix.WebServer.Auth
                 options.ClientId = config.DiscordClientId;
                 options.ClientSecret = config.DiscordClientSecret;
                 options.Scope.Add("identify");
-                options.Scope.Add("guilds");
+                //options.Scope.Add("guilds");
 
                 options.Events.OnRemoteFailure = context =>
                 {
