@@ -18,7 +18,7 @@ namespace Modix.WebServer.Controllers
     public class ModixController : Controller
     {
         //TODO: Un-hardcode this
-        private const ulong _staffRoleId = 371437486225752066;
+        private const ulong _staffRoleId = 268470383571632128;
 
         protected DiscordSocketClient _client;
         private SocketGuildUser _socketUser;

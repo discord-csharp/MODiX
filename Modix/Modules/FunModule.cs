@@ -22,7 +22,7 @@ namespace Modix.Modules
             if (Emote.TryParse(emoji, out found))
             {
                 HttpClient client = new HttpClient();
-                await Context.Channel.SendFileAsync(await client.GetStreamAsync(found.Url), Path.GetFileName(found.Url));
+                await Context.Channel.SendFileAsync(await client.GetStreamAsync(found.Url), Path.GetFileName(found.Url), $"`Context.Message.Author.Username`");
                 await Context.Message.DeleteAsync();
             }
             else

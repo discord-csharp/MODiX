@@ -13,7 +13,7 @@ namespace Modix.Services.Promotions
     {
         //TODO: Un-hardcode this
         private const ulong _regularRoleId = 246266977553874944;
-        private const ulong _staffRoleId = 371437486225752066;
+        private const ulong _staffRoleId = 268470383571632128;
 
         private DiscordSocketClient _client;
         private IPromotionRepository _repository;
