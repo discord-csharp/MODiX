@@ -21,7 +21,7 @@
     </nav>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 
 @import "~bulma/sass/utilities/_all";
 @import "~bulma/sass/base/_all";
