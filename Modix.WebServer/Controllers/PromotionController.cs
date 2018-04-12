@@ -26,18 +26,7 @@ namespace Modix.WebServer.Controllers
         {
             return Ok(await _promotionService.GetCampaigns());
         }
-
-        [HttpGet("user-autocomplete/{query}")]
-        public IActionResult GetAutocomplete(string query)
-        {
-            var result = _client.Guilds.First()
-                .Users.Where(d => d.Username.ToLowerInvariant().Contains(query))
-                .Take(10)
-                .Select(d=>new { Name = $"{d.Username}#{d.Discriminator}", UserId = d.Id.ToString(), AvatarHash = d.AvatarId });
-
-            return Ok(result);
-        }
-           
+        
         [HttpPut("campaigns/{campaignId}/comments")]
         public async Task<IActionResult> AddComment(int campaignId, [FromBody] PromotionCommentData commentData)
         {
@@ -90,7 +79,7 @@ namespace Modix.WebServer.Controllers
         }
 
         [HttpPut("campaigns")]
-        public async Task<IActionResult> Campaigns([FromBody] PromotionCreationData creationData)
+        public async Task<IActionResult> Create([FromBody] PromotionCreationData creationData)
         {
             var foundUser = _client.Guilds.First().GetUser(creationData?.UserId ?? 0);
 

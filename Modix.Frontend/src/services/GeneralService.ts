@@ -98,7 +98,7 @@ export default class GeneralService
 
     static async getAutocomplete(query: string): Promise<User[]>
     {
-        let response = (await client.get(`user-autocomplete/${query}`)).data;
+        let response = (await client.get(`autocomplete?query=${query}`)).data;
         return _.map(response, user => new User().deserializeFrom(user));
     }
 }

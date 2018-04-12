@@ -3,11 +3,8 @@
     <li class="command box">
 
         <div :class="{'field is-grouped is-grouped-multiline': overload.parameters.length > 0}" v-for="(overload, index) in commandGroup" :key="index">
-            <strong class="commandName" v-if="overload == commandGroup[0]">
-                !{{overload.name.toLowerCase()}}
-            </strong>
-            <span class="commandName overload" v-else-if="isAlias(overload)">
-                !{{overload.alias}}
+            <span class="commandName" v-if="overload == commandGroup[0] || isAlias(overload)">
+                !{{overload.alias.toLowerCase()}}
             </span>
             <span class="commandName overload" v-else>
                 or
@@ -47,11 +44,6 @@
         font-size: 1.15em;
         margin-right: 1em;
         font-weight: bold;
-
-        &.overload
-        {
-            text-align: right;
-        }
     }
 }
 
