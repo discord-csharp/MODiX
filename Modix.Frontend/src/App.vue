@@ -1,52 +1,19 @@
 <template>
     <div id="app">
-        <div class="container">
-            <nav class="navbar" role="navigation" aria-label="main navigation">
-
-                <div class="sidebar-left">
-                    <div class="navbar-brand">
-                        <router-link class="navbar-item" to="/" title="Home">
-                            <img class="is-hidden-mobile" src="./assets/logo_small.png" width="112" height="28">
-                            <img class="is-hidden-tablet" src="./assets/icon.png" width="28" height="28">
-                        </router-link>
-                    </div>
-
-                    <div class="navbar-item link" v-if="$store.state.modix.user">
-                        <router-link active-class="is-active" to="/stats">Stats</router-link>
-                    </div>
-
-                    <!--
-                    <div class="navbar-item link">
-                        <router-link active-class="is-active" to="/pastes">Pastes</router-link>
-                    </div>
-                    -->
-                    
-                    <div class="navbar-item link">
-                        <router-link active-class="is-active" to="/commands">Commands</router-link>
-                    </div>
-                </div>
-
-                <div class="navbar-item profile">
-                    <template v-if="$store.state.modix.user">
-                        <img class="avatar-icon" :src="$store.state.modix.user.avatarUrl">
-                        <p class="title is-4">
-                            {{$store.state.modix.user.name}}
-                            <a href="/api/logout" title="Log Out">👋</a>
-                        </p>
-                    </template>
-
-                    <template v-else>
-                        <p class="title is-4">
-                            <a href="/api/login">Log In</a>
-                        </p>
-                    </template>
-                </div>
-            </nav>
+        <div class="loader" :class="{'hidden': hasTriedAuth}">
+            <div class="spinner"></div>
+            <img class="spinnerCenter" src="./assets/icon.png" />
         </div>
 
-        <ErrorView />
+        <div class="root" :class="{'shown': hasTriedAuth}">
+            <div class="container">
+                <NavBar />
+            </div>
 
-        <router-view/>
+            <ErrorView />
+
+            <router-view/>
+        </div>
     </div>
 </template>
 
@@ -61,49 +28,79 @@
 
 @import "~bulma/sass/elements/title";
 @import "~bulma/sass/elements/container";
-@import "~bulma/sass/elements/notification";
 @import "~bulma/sass/elements/button";
 
 @import "~bulma/sass/components/navbar";
-@import "~bulma/sass/components/media";
 
+$default-transition: 0.5s cubic-bezier(0.77, 0, 0.175, 1);
 
-.avatar-icon
+@keyframes fadeOut
 {
-    margin-right: 0.5em;
+    0%
+    {
+        opacity: 1;
+    }
+    99%
+    {
+        opacity: 0;
+    }
+    100%
+    {
+        opacity: 0;
+        visibility: hidden;
+        z-index: -999;
+
+        animation: none;
+    }
 }
 
-nav
+.root
 {
-    display: flex;
-    justify-content: space-between;
+    transition: all $default-transition;
+    opacity: 0;
+
+    &.shown
+    {
+        opacity: 1;
+    }
 }
 
-.sidebar-left
+.loader.hidden
 {
-    display: flex;
+    animation: fadeOut $default-transition forwards;
+}
+
+#app .spinner
+{
+    @include loader();
+
+    position: absolute;
+
+    border-width: 24px;
+    top: 10%;
+    left: calc(50% - 256px);
     
-    justify-content: flex-start;
+    width: 512px;
+    height: 512px;
+
+    border-bottom-color: $primary;
+    border-left-color: $primary;
+
+    animation-iteration-count: 3;
 }
 
-.navbar-item
+.spinnerCenter
 {
-    display: flex;
-    align-items: center;
+    position: absolute;
 
-    @include mobile()
-    {
-        font-size: 0.9em;
-        padding: 0.25rem 0.7rem;
-    }
+    top: 20%;
+    left: calc(50% - 150px);
 }
 
-.profile .title.is-4
+html
 {
-    @include mobile()
-    {
-        font-size: 1.25rem;
-    }
+    //Minireset.css is dumb
+    overflow-y: auto !important;
 }
 
 </style>
@@ -111,27 +108,28 @@ nav
 <script lang="ts">
 import Vue from 'vue';
 import {Watch, Component, Prop} from 'vue-property-decorator';
-import { Route } from 'vue-router';
-import * as store from "./app/Store";
-import User from '@/models/User';
 import ErrorView from '@/components/ErrorView.vue';
-import HeroHeader from '@/components/HeroHeader.vue';
+import NavBar from '@/components/NavBar.vue';
 import {toTitleCase} from './app/Util';
+import store from './app/Store';
 
 @Component({
     components:
     {
         ErrorView,
-        HeroHeader
+        NavBar
     },
 })
 export default class App extends Vue
 {
     mounted()
     {
-        store.updateUserInfo(this.$store);
-
         this.onRouteChanged();
+    }
+
+    get hasTriedAuth()
+    {
+        return store.hasTriedAuth();
     }
 
     @Watch("$route")
@@ -139,7 +137,7 @@ export default class App extends Vue
     {
         if (this.$route.name)
         {
-            document.title = "Modix - " + toTitleCase(this.$route.name);
+            document.title = "Modix - " + toTitleCase(this.$route.meta.title || this.$route.name);
         }
         else
         {

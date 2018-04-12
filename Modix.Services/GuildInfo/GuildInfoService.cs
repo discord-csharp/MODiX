@@ -62,7 +62,8 @@ namespace Modix.Services.GuildInfo
                     Count = d.Count()
                 }).ToList();
 
-                ret.Add(new GuildInfoResult { Name = "Other", Color = "#808080", Count = members.Count - ret.Sum(d => d.Count) });
+                //Doesn't work great
+                //ret.Add(new GuildInfoResult { Name = "Other", Color = "#808080", Count = members.Count - ret.Sum(d => d.Count) });
 
                 _cache.Set(key, ret, _cacheEntryOptions);
             }

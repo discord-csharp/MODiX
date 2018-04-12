@@ -1,6 +1,12 @@
 import Axios, { AxiosResponse } from 'axios';
 import User from '@/models/User';
 import UserCodePaste from '@/models/UserCodePaste';
+import { ModuleHelpData } from '@/models/ModuleHelpData';
+import PromotionCreationData from '@/models/PromotionCreationData';
+import PromotionCampaign from '@/models/PromotionCampaign';
+import * as _ from 'lodash';
+import PromotionCommentData from '@/models/PromotionCommentData';
+import store from '@/app/Store';
 
 const client = Axios.create
 ({
@@ -14,7 +20,7 @@ export default class GeneralService
     static async getUser(): Promise<User>
     {
         let response = (await client.get("userInfo")).data;
-        let user = new User(response["name"], response["userId"], response["avatarHash"]);
+        let user = new User().deserializeFrom(response);
         
         return user;
     }
@@ -41,11 +47,61 @@ export default class GeneralService
         return response;
     }
 
-    static async getCommands(): Promise<any>
+    static async getCommands(): Promise<ModuleHelpData[]>
     {
         let response = (await client.get("commands")).data;
         return response;
     }
+
+    static async getCampaigns(): Promise<PromotionCampaign[]>
+    {
+        let response = (await client.get("campaigns")).data as PromotionCampaign[];
+        
+        _.forEach(response, campaign => 
+        {
+            campaign.startDate = new Date(campaign.startDate);
+            _.forEach(campaign.comments, comment => comment.postedDate = new Date(comment.postedDate));
+        });
+
+        return _.map(response, campaign => new PromotionCampaign().deserializeFrom(campaign));;
+    }
+
+    static async createCampaign(data: PromotionCreationData): Promise<any>
+    {
+        let response = (await client.put("campaigns", data)).data;
+        return response;
+    }
+
+    static async commentOnCampaign(campaign: PromotionCampaign, data: PromotionCommentData): Promise<any>
+    {
+        let response = (await client.put(`campaigns/${campaign.id}/comments`, data)).data;
+        return response;
+    }
+
+    static async approveCampaign(campaign: PromotionCampaign): Promise<any>
+    {
+        let response = (await client.post(`campaigns/${campaign.id}/approve`)).data;
+        return response;
+    }
+
+    static async denyCampaign(campaign: PromotionCampaign): Promise<any>
+    {
+        let response = (await client.post(`campaigns/${campaign.id}/deny`)).data;
+        return response;
+    }
+
+    static async activateCampaign(campaign: PromotionCampaign): Promise<any>
+    {
+        let response = (await client.post(`campaigns/${campaign.id}/activate`)).data;
+        return response;
+    }
+
+    static async getAutocomplete(query: string): Promise<User[]>
+    {
+        let response = (await client.get(`autocomplete?query=${query}`)).data;
+        return _.map(response, user => new User().deserializeFrom(user));
+    }
 }
 
+//For debugging
 (<any>window).service = GeneralService;

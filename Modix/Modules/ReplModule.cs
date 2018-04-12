@@ -3,7 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Modix.Data.Models;
 using Modix.Services.AutoCodePaste;
-using Modix.Utilities;
+using Modix.Services.Utilities;
 using Newtonsoft.Json;
 using Serilog;
 using System;

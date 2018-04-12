@@ -4,11 +4,9 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
     
 namespace Modix.WebServer.Models
 {
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum UserRole
     {
         Member,

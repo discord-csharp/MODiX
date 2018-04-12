@@ -8,9 +8,9 @@ using Discord.Commands;
 using Modix.Data.Models;
 using System.Threading;
 using Discord.WebSocket;
-using Modix.Utilities;
 using Serilog;
 using Modix.Services.AutoCodePaste;
+using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {

@@ -9,7 +9,6 @@ using Modix.Data.Models;
 using Serilog;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Services.Quote;
-using Modix.Utilities;
 using Serilog.Events;
 using Modix.Services.AutoCodePaste;
 using Modix.WebServer;
@@ -19,8 +18,11 @@ using Modix.Services.CommandHelp;
 
 namespace Modix
 {
+    using Microsoft.AspNetCore.Hosting;
     using Modix.Services.Animals;
     using Modix.Services.FileUpload;
+    using Modix.Services.Promotions;
+    using Modix.Services.Utilities;
 
     public sealed class ModixBot
     {
@@ -34,6 +36,7 @@ namespace Modix
         private IServiceProvider _provider;
         private ModixBotHooks _hooks = new ModixBotHooks();
         private ModixConfig _config = new ModixConfig();
+        private IWebHost _host;
 
         public ModixBot()
         {
@@ -73,7 +76,7 @@ namespace Modix
            
             //var provider = _map.BuildServiceProvider();
 
-            var host = ModixWebServer.BuildWebHost(_map, _config);
+            _host = ModixWebServer.BuildWebHost(_map, _config);
 
             //provider.GetService<ILoggerFactory>();
 
@@ -87,19 +90,24 @@ namespace Modix
 
             //#endif
             
-            _provider = host.Services;
+            _provider = _host.Services;
 
             _hooks.ServiceProvider = _provider;
 
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
 
-            _client.Ready += async () =>
-            {
-                await host.StartAsync();
-            };
+            _client.Ready += StartWebserver;
 
             await Task.Delay(-1);
+        }
+
+        public async Task StartWebserver()
+        {
+            //Start the server, but only once in case discord.net reconnects
+
+            await _host.StartAsync();
+            _client.Ready -= StartWebserver;
         }
 
         public void LoadConfig()
@@ -149,7 +157,10 @@ namespace Modix
 
                 if (!result.IsSuccess)
                 {
-                    Log.Error($"{result.Error}: {result.ErrorReason}");
+                    string error = $"{result.Error}: {result.ErrorReason}";
+
+                    Log.Error(error);
+                    await context.Channel.SendMessageAsync("Error: " + error);
                 }
             }
 
@@ -175,6 +186,8 @@ namespace Modix
             _map.AddSingleton<ICodePasteRepository, MemoryCodePasteRepository>();
             _map.AddSingleton<CommandHelpService>();
 
+            _map.AddSingleton<PromotionService>();
+            _map.AddSingleton<IPromotionRepository, FilePromotionRepository>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;

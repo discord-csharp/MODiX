@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modix.Services.CommandHelp;
 using Modix.Services.GuildInfo;
+using Modix.WebServer.Models;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Modix.WebServer.Controllers
@@ -32,6 +34,18 @@ namespace Modix.WebServer.Controllers
         public IActionResult UserInfo()
         {
             return Ok(DiscordUser);
+        }
+
+        public async Task<IActionResult> Autocomplete(string query)
+        {
+            await _client.Guilds.First().DownloadUsersAsync();
+
+            var result = _client.Guilds.First()
+                .Users.Where(d => d.Username.ToLowerInvariant().Contains(query))
+                .Take(10)
+                .Select(d => new DiscordUser { Name = $"{d.Username}#{d.Discriminator}", UserId = d.Id, AvatarHash = d.AvatarId });
+
+            return Ok(result);
         }
     }
 }

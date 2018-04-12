@@ -2,11 +2,13 @@
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Data.Models;
 using Modix.WebServer.Auth;
+using Newtonsoft.Json.Converters;
 using System;
 using System.IO;
 using System.Net.Http;
@@ -26,6 +28,10 @@ namespace Modix.WebServer
                 services.Add(service);
             }
 
+            //TODO: Un-hardcode this
+            services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(@"c:\app\config\dataprotection"));
+
             services
             .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options =>
@@ -39,7 +45,12 @@ namespace Modix.WebServer
 
             services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
 
-            services.AddMvc();
+            services
+            .AddMvc()
+            .AddJsonOptions(options =>
+            {
+                options.SerializerSettings.Converters.Add(new StringEnumConverter());
+            });
         }
 
         // Use this method to configure the HTTP request pipeline.
