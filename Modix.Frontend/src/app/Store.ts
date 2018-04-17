@@ -1,16 +1,14 @@
+import GuildInfoResult from "@/models/GuildInfoResult";
+import ModixState from "@/models/ModixState";
+import { ModuleHelpData } from "@/models/ModuleHelpData";
+import PromotionCampaign from "@/models/PromotionCampaign";
+import RootState from "@/models/RootState";
+import User from "@/models/User";
+import UserCodePaste from "@/models/UserCodePaste";
+import GeneralService from "@/services/GeneralService";
 import Vue from "vue";
 import * as Vuex from "vuex";
-import { getStoreBuilder, BareActionContext } from "vuex-typex";
-import ModixState from "@/models/ModixState";
-import RootState from "@/models/RootState";
-import GeneralService from "@/services/GeneralService";
-import User from "@/models/User";
-import {ModuleHelpData} from "@/models/ModuleHelpData";
-import GuildInfoResult from "@/models/GuildInfoResult";
-import UserCodePaste from "@/models/UserCodePaste";
-import PromotionCampaign from "@/models/PromotionCampaign";
-import { setupMaster } from "cluster";
-import { isNullOrUndefined } from "util";
+import { BareActionContext, getStoreBuilder } from "vuex-typex";
 
 Vue.use(Vuex);
 
@@ -56,11 +54,13 @@ namespace modix
     const removeError = (state: ModixState, error: string) => state.errors.splice(state.errors.indexOf(error), 1);
     const clearErrors = (state: ModixState) => state.errors = [];
 
-    const updateUserInfo = async (context: ModixContext) => tryThing(GeneralService.getUser, setUser, err => setUser(modixState, new User()));
-    const updateGuildInfo = async (context: ModixContext) => tryThing(GeneralService.getGuildInfo, setGuildInfo);
-    const updatePastes = async (context: ModixContext) => tryThing(GeneralService.getPastes, setPastes);
-    const updateCommands = async (context: ModixContext) => tryThing(GeneralService.getCommands, setCommands);
-    const updateCampaigns = async (context: ModixContext) => tryThing(GeneralService.getCampaigns, setCampaigns);
+    const updateUserInfo = async (context: ModixContext) => 
+        tryServiceCall(GeneralService.getUser, setUser, err => setUser(modixState, new User()));
+
+    const updateGuildInfo = async (context: ModixContext) => tryServiceCall(GeneralService.getGuildInfo, setGuildInfo);
+    const updatePastes = async (context: ModixContext) => tryServiceCall(GeneralService.getPastes, setPastes);
+    const updateCommands = async (context: ModixContext) => tryServiceCall(GeneralService.getCommands, setCommands);
+    const updateCampaigns = async (context: ModixContext) => tryServiceCall(GeneralService.getCampaigns, setCampaigns);
 
     export const retrieveUserInfo = moduleBuilder.dispatch(updateUserInfo);
     export const retrieveGuildInfo = moduleBuilder.dispatch(updateGuildInfo);
@@ -79,9 +79,12 @@ namespace modix
 
 export default modix;
 
-const tryThing = async function<T>(serviceAction: () => Promise<T>, 
-                                   mutator: (state: ModixState, param: any) => void, 
-                                   actionError: ((err: Error) => void) | null = null)
+const tryServiceCall = async function<T>
+(
+    serviceAction: () => Promise<T>, 
+    mutator: (state: ModixState, param: any) => void, 
+    actionError: ((err: Error) => void) | null = null
+)
 {
     try
     {

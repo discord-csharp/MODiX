@@ -10,8 +10,7 @@ import * as store from "../app/Store";
 })
 export default class PieChart extends Vue
 {
-    // @ts-ignore
-    @Prop() private guildName: string;
+    @Prop() private guildName!: string;
 
     get currentGuild(): GuildInfoResult[]
     {

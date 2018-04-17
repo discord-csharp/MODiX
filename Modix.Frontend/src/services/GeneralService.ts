@@ -1,12 +1,11 @@
-import Axios, { AxiosResponse } from 'axios';
+import { ModuleHelpData } from '@/models/ModuleHelpData';
+import PromotionCampaign from '@/models/PromotionCampaign';
+import PromotionCommentData from '@/models/PromotionCommentData';
+import PromotionCreationData from '@/models/PromotionCreationData';
 import User from '@/models/User';
 import UserCodePaste from '@/models/UserCodePaste';
-import { ModuleHelpData } from '@/models/ModuleHelpData';
-import PromotionCreationData from '@/models/PromotionCreationData';
-import PromotionCampaign from '@/models/PromotionCampaign';
+import Axios from 'axios';
 import * as _ from 'lodash';
-import PromotionCommentData from '@/models/PromotionCommentData';
-import store from '@/app/Store';
 
 const client = Axios.create
 ({
@@ -66,34 +65,29 @@ export default class GeneralService
         return _.map(response, campaign => new PromotionCampaign().deserializeFrom(campaign));;
     }
 
-    static async createCampaign(data: PromotionCreationData): Promise<any>
+    static async createCampaign(data: PromotionCreationData): Promise<void>
     {
-        let response = (await client.put("campaigns", data)).data;
-        return response;
+        await client.put("campaigns", data);
     }
 
-    static async commentOnCampaign(campaign: PromotionCampaign, data: PromotionCommentData): Promise<any>
+    static async commentOnCampaign(campaign: PromotionCampaign, data: PromotionCommentData): Promise<void>
     {
-        let response = (await client.put(`campaigns/${campaign.id}/comments`, data)).data;
-        return response;
+        await client.put(`campaigns/${campaign.id}/comments`, data);
     }
 
-    static async approveCampaign(campaign: PromotionCampaign): Promise<any>
+    static async approveCampaign(campaign: PromotionCampaign): Promise<void>
     {
-        let response = (await client.post(`campaigns/${campaign.id}/approve`)).data;
-        return response;
+        await client.post(`campaigns/${campaign.id}/approve`);
     }
 
-    static async denyCampaign(campaign: PromotionCampaign): Promise<any>
+    static async denyCampaign(campaign: PromotionCampaign): Promise<void>
     {
-        let response = (await client.post(`campaigns/${campaign.id}/deny`)).data;
-        return response;
+        await client.post(`campaigns/${campaign.id}/deny`);
     }
 
-    static async activateCampaign(campaign: PromotionCampaign): Promise<any>
+    static async activateCampaign(campaign: PromotionCampaign): Promise<void>
     {
-        let response = (await client.post(`campaigns/${campaign.id}/activate`)).data;
-        return response;
+        await client.post(`campaigns/${campaign.id}/activate`);
     }
 
     static async getAutocomplete(query: string): Promise<User[]>

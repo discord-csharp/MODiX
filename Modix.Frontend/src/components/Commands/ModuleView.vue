@@ -29,8 +29,7 @@ import * as _ from 'lodash';
 })
 export default class ModuleView extends Vue
 {
-    // @ts-ignore
-    @Prop() private commandModule: ModuleHelpData;
+    @Prop() private commandModule!: ModuleHelpData;
 
     overloads(commands: CommandHelpData[])
     {

@@ -69,8 +69,7 @@ import ParameterView from '@/components/Commands/ParameterView.vue';
 })
 export default class CommandView extends Vue
 {
-    // @ts-ignore
-    @Prop() private commandGroup: CommandHelpData[];
+    @Prop() private commandGroup!: CommandHelpData[];
 
     isAlias(overload: CommandHelpData)
     {

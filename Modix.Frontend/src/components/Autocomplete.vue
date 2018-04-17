@@ -62,8 +62,7 @@ import User from '@/models/User';
 })
 export default class Autocomplete extends Vue
 {
-    // @ts-ignore
-    @Prop() private entries: any[];
+    @Prop() private entries!: any[];
     //@Prop() private displayProp: string | null = null;
 
     hovered: any = null;

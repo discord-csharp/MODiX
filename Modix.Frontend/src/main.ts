@@ -1,11 +1,7 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
-
-import App from './App.vue'
-import RootState from '@/models/RootState';
-
-import router from './router'
-import {vuexStore} from '@/app/Store';
+import { vuexStore } from '@/app/Store';
+import Vue from 'vue';
+import App from './App.vue';
+import router from './router';
 
 Vue.config.productionTip = false;
 

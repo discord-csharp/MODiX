@@ -34,9 +34,7 @@ import { Module } from 'vuex';
 })
 export default class CommandMenu extends Vue
 {
-    // @ts-ignore
-    @Prop() private commandModules: ModuleHelpData[];
-    // @ts-ignore
-    @Prop() private highlightedModule: string;
+    @Prop() private commandModules!: ModuleHelpData[];
+    @Prop() private highlightedModule!: string;
 }
 </script>

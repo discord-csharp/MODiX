@@ -14,9 +14,13 @@ namespace Modix.Services.Promotions
         //TODO: Un-hardcode this
         private const ulong _regularRoleId = 246266977553874944;
         private const ulong _staffRoleId = 268470383571632128;
+        private const ulong _promotionChannelId = 411991461832294400;
 
         private DiscordSocketClient _client;
         private IPromotionRepository _repository;
+
+        private SocketGuild CurrentGuild => _client.Guilds.First();
+        private IMessageChannel PromotionChannel => CurrentGuild.GetChannel(_promotionChannelId) as IMessageChannel;
 
         public PromotionService(DiscordSocketClient client, IPromotionRepository repository)
         {
@@ -29,13 +33,10 @@ namespace Modix.Services.Promotions
 
         public async Task ApproveCampaign(SocketGuildUser promoter, PromotionCampaign campaign)
         {
-            if (!promoter.HasRole(_staffRoleId))
-            {
-                throw new ArgumentException("The given promoter is not a staff member.");
-            }
+            ThrowIfNotStaff(promoter);
 
-            var foundUser = _client.Guilds.First().GetUser(campaign.UserId);
-            var foundRole = _client.Guilds.First().Roles.FirstOrDefault(d => d.Id == _regularRoleId);
+            var foundUser = CurrentGuild.GetUser(campaign.UserId);
+            var foundRole = CurrentGuild.Roles.FirstOrDefault(d => d.Id == _regularRoleId);
 
             if (foundRole == null)
             {
@@ -46,14 +47,13 @@ namespace Modix.Services.Promotions
 
             campaign.Status = CampaignStatus.Approved;
             await _repository.UpdateCampaign(campaign);
+
+            await PromotionChannel?.SendMessageAsync($"{MentionUtils.MentionUser(campaign.UserId)} has been promoted to Regular! 🎉");
         }
 
         public async Task DenyCampaign(SocketGuildUser promoter, PromotionCampaign campaign)
         {
-            if (!promoter.HasRole(_staffRoleId))
-            {
-                throw new ArgumentException("The given promoter is not a staff member.");
-            }
+            ThrowIfNotStaff(promoter);
 
             campaign.Status = CampaignStatus.Denied;
             await _repository.UpdateCampaign(campaign);
@@ -61,16 +61,13 @@ namespace Modix.Services.Promotions
 
         public async Task ActivateCampaign(SocketGuildUser promoter, PromotionCampaign campaign)
         {
-            if (!promoter.HasRole(_staffRoleId))
-            {
-                throw new ArgumentException("The given promoter is not a staff member.");
-            }
+            ThrowIfNotStaff(promoter);
 
             campaign.Status = CampaignStatus.Active;
             await _repository.UpdateCampaign(campaign);
         }
 
-        public async Task AddComment(PromotionCampaign campaign, SocketGuildUser commentor, string comment, PromotionSentiment sentiment)
+        public async Task AddComment(PromotionCampaign campaign, string comment, PromotionSentiment sentiment)
         {
             if (comment.Length < 10)
             {
@@ -91,11 +88,18 @@ namespace Modix.Services.Promotions
             {
                 PostedDate = DateTimeOffset.UtcNow,
                 Body = comment,
-                Sentiment = sentiment,
-                Id = (campaign.Id.GetHashCode() / 2) + (commentor.Id.GetHashCode() / 2)
+                Sentiment = sentiment
             };
 
             await _repository.AddCommentToCampaign(campaign, promotionComment);
+        }
+
+        public void ThrowIfNotStaff(SocketGuildUser user)
+        {
+            if (!user.HasRole(_staffRoleId))
+            {
+                throw new ArgumentException("The given promoter is not a staff member.");
+            }
         }
 
         public async Task<PromotionCampaign> CreateCampaign(SocketGuildUser user, string commentBody)
@@ -122,11 +126,10 @@ namespace Modix.Services.Promotions
                 UserId = user.Id,
                 Username = user.Nickname ?? user.Username,
                 StartDate = DateTimeOffset.UtcNow,
-                Id = user.Id.GetHashCode(),
                 Status = CampaignStatus.Active
             };
 
-            await AddComment(ret, user, commentBody, PromotionSentiment.For);
+            await AddComment(ret, commentBody, PromotionSentiment.For);
 
             await _repository.AddCampaign(ret);
 

@@ -14,20 +14,34 @@ namespace Modix.Modules
     [Name("Fun"), Summary("A bunch of miscellaneous, fun commands")]
     public class FunModule : ModuleBase
     {
-        [Command("jumbo"), Summary("Jumbofy a server emoji")]
+        [Command("jumbo"), Summary("Jumbofy an emoji")]
         public async Task Jumbo(string emoji)
         {
-            Emote found;
+            string emojiUrl = null;
 
-            if (Emote.TryParse(emoji, out found))
+            if (Emote.TryParse(emoji, out Emote found))
             {
-                HttpClient client = new HttpClient();
-                await Context.Channel.SendFileAsync(await client.GetStreamAsync(found.Url), Path.GetFileName(found.Url), $"`Context.Message.Author.Username`");
-                await Context.Message.DeleteAsync();
+                emojiUrl = found.Url;
             }
             else
             {
-                await ReplyAsync("I don't recognize that emoji.");
+                int codepoint = Char.ConvertToUtf32(emoji, 0);
+                string codepointHex = codepoint.ToString("X").ToLower();
+
+                emojiUrl = $"https://raw.githubusercontent.com/twitter/twemoji/gh-pages/2/72x72/{codepointHex}.png";
+            }
+
+            try
+            {
+                HttpClient client = new HttpClient();
+                var req = await client.GetStreamAsync(emojiUrl);
+
+                await Context.Channel.SendFileAsync(req, Path.GetFileName(emojiUrl), Context.User.Mention);
+                await Context.Message.DeleteAsync();
+            }
+            catch (HttpRequestException)
+            {
+                await ReplyAsync($"Sorry {Context.User.Mention}, I don't recognize that emoji.");
             }
         }
     }

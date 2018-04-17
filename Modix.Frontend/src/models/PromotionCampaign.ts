@@ -1,5 +1,5 @@
-import { Dictionary } from "lodash";
-import _ from "lodash";
+import _, { Dictionary } from "lodash";
+import PromotionComment from "@/models/PromotionComment";
 
 export type PromotionSentiment = "For" | "Against" | "Neutral";  
 export type CampaignStatus = "Active" | "Approved" | "Denied";
@@ -58,12 +58,4 @@ export default class PromotionCampaign
 
         return this;
     }
-}
-
-export interface PromotionComment
-{
-    id: number;
-    postedDate: Date;
-    sentiment: PromotionSentiment;
-    body: string;
 }

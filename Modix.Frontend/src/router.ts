@@ -1,17 +1,14 @@
-import Vue from 'vue'
-import Router from 'vue-router'
-import Home from './views/Home.vue'
-import Stats from './views/Stats.vue'
-import Pastes from './views/Pastes.vue'
-import SinglePaste from './views/SinglePaste.vue'
-import Commands from './views/Commands.vue'
-import Promotions from './views/Promotions.vue'
-import CreatePromotion from './views/CreatePromotion.vue'
-
-import { getCookie } from './app/Util';
-
+import Vue from 'vue';
+import Router from 'vue-router';
 import store from './app/Store';
-import { url } from 'inspector';
+import { getCookie } from './app/Util';
+import Commands from './views/Commands.vue';
+import CreatePromotion from './views/CreatePromotion.vue';
+import Home from './views/Home.vue';
+import Pastes from './views/Pastes.vue';
+import Promotions from './views/Promotions.vue';
+import SinglePaste from './views/SinglePaste.vue';
+import Stats from './views/Stats.vue';
 
 Vue.use(Router)
 

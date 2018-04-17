@@ -11,10 +11,12 @@
                         compiler / eval module, documentation search, and most importantly: cat pictures. 
                     </p>
                     <p class="subtitle">
-                        Modix is constantly in development - if you'd like to contribute, stop by <a :href="inviteUrl">the server</a>,
+                        Modix is constantly in development - if you'd like to contribute, stop by the server,
                         and check out our <a href="https://github.com/discord-csharp/MODiX">GitHub repo</a>!
                     </p>
                 </div>
+
+                
 
                 <!--
                 <div class="column">
@@ -23,6 +25,10 @@
                 -->
                 
             </div>
+
+            <a :href="inviteUrl" class="inviteButton">
+                <img src="https://discordapp.com/api/guilds/143867839282020352/widget.png?style=banner1" />
+            </a>
         </section>
     </div>
 </template>
@@ -33,6 +39,13 @@ iframe
 {
     width: 100%;
     height: 640px;
+}
+
+.inviteButton
+{
+    display: block;
+    width: 320px;
+    margin: 0 auto;
 }
 
 </style>

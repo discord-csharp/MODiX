@@ -38,10 +38,8 @@ import {formatPasteDate} from '../app/Util';
 @Component
 export default class PasteView extends Vue
 {
-    // @ts-ignore
-    @Prop() private paste: UserCodePaste;
-    // @ts-ignore
-    @Prop({default: true}) private includeHeader: boolean;
+    @Prop() private paste!: UserCodePaste;
+    @Prop({default: true}) private includeHeader!: boolean;
 
     getFormatedDate(date: Date)
     {

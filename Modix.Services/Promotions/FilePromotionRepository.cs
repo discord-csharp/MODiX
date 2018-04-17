@@ -16,6 +16,8 @@ namespace Modix.Services.Promotions
 
         public async Task AddCommentToCampaign(PromotionCampaign campaign, PromotionComment comment)
         {
+            comment.Id = (campaign.Comments.Any() ? campaign.Comments.Max(d=>d.Id) + 1 : 0);
+
             campaign.Comments.Add(comment);
             await Save();
         }
@@ -42,6 +44,8 @@ namespace Modix.Services.Promotions
 
         public async Task AddCampaign(PromotionCampaign campaign)
         {
+            campaign.Id = (_campaigns.Any() ? _campaigns.Max(d => d.Id) + 1 : 0);
+
             _campaigns.Add(campaign);
             await Save();
         }

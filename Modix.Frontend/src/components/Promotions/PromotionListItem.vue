@@ -205,7 +205,8 @@
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import PromotionCommentView from './PromotionCommentView.vue';
-import PromotionCampaign, {PromotionComment, PromotionSentiment, SentimentIcons, StatusIcons} from '@/models/PromotionCampaign';
+import PromotionComment from '@/models/PromotionComment';
+import PromotionCampaign, {PromotionSentiment, SentimentIcons, StatusIcons} from '@/models/PromotionCampaign';
 import * as _ from 'lodash';
 import {formatPasteDate} from '@/app/Util';
 import { Dictionary } from 'vuex';
@@ -219,11 +220,9 @@ import GeneralService from '@/services/GeneralService';
 })
 export default class PromotionListItem extends Vue
 {
-    // @ts-ignore
-    @Prop() private campaign: PromotionCampaign;
+    @Prop() private campaign!: PromotionCampaign;
 
-    // @ts-ignore
-    newComment: PromotionCommentDate = {body: "", sentiment: "Neutral"};
+    newComment: PromotionCommentData = {body: "", sentiment: "Neutral"};
     expanded: boolean = false;
     error: string = "";
     commentSubmitting: boolean = false;

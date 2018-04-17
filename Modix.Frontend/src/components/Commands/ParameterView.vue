@@ -25,7 +25,6 @@ import { ParameterHelpData } from '@/models/ModuleHelpData';
 @Component
 export default class ParameterView extends Vue
 {
-    // @ts-ignore
-    @Prop() private param: ParameterHelpData;
+    @Prop() private param!: ParameterHelpData;
 }
 </script>

@@ -1,8 +1,8 @@
-import User from "@/models/User";
 import GuildInfoResult from "@/models/GuildInfoResult";
-import UserCodePaste from "@/models/UserCodePaste";
 import { ModuleHelpData } from "@/models/ModuleHelpData";
 import PromotionCampaign from "@/models/PromotionCampaign";
+import User from "@/models/User";
+import UserCodePaste from "@/models/UserCodePaste";
 
 export default interface ModixState
 {

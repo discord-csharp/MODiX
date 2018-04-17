@@ -34,7 +34,7 @@ namespace Modix.Modules
 
             EmbedBuilder embed = new EmbedBuilder();
 
-            foreach (var campaign in campaigns.Where(d => d.Status == CampaignStatus.Active))
+            foreach (var campaign in campaigns.Where(d => d.Status == CampaignStatus.Active).Take(5))
             {
                 StringBuilder barBuilder = new StringBuilder();
 
@@ -70,7 +70,7 @@ namespace Modix.Modules
                 });
             }
 
-            embed.Footer = new EmbedFooterBuilder { Text = "Comment at https://modix.cisien.com/promotions" };
+            embed.Footer = new EmbedFooterBuilder { Text = "See more & comment at https://mod.gg/promotions" };
 
             await ReplyAsync("**Active Campaigns**", false, embed);
         }

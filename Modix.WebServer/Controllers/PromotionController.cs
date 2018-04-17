@@ -39,7 +39,7 @@ namespace Modix.WebServer.Controllers
 
             try
             {
-                await _promotionService.AddComment(campaign, SocketUser, commentData.Body, commentData.Sentiment);
+                await _promotionService.AddComment(campaign, commentData.Body, commentData.Sentiment);
             }
             catch (ArgumentException ex)
             {

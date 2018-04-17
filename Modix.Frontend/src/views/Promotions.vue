@@ -125,7 +125,7 @@ import PromotionCommentView from '@/components/Promotions/PromotionCommentView.v
 
 import store from "../app/Store";
 import * as _ from 'lodash';
-import PromotionCampaign, {PromotionComment} from '@/models/PromotionCampaign';
+import PromotionCampaign from '@/models/PromotionCampaign';
 import GeneralService from '@/services/GeneralService';
 import {config, setConfig} from '@/models/PersistentConfig';
 import PersistentKeyValueService from '@/services/PersistentKeyValueService';
@@ -147,7 +147,7 @@ export default class Promotions extends Vue
     get campaigns(): PromotionCampaign[]
     {
         let campaigns = this.$store.state.modix.campaigns as PromotionCampaign[];
-        let ordered = _.orderBy(campaigns, campaign => [campaign.status == 'Active', campaign.startDate.getTime(), campaign.comments.length], ['desc', 'desc', 'desc']);
+        let ordered = _.orderBy(campaigns, campaign =>  [campaign.status == 'Active', campaign.startDate.getTime(), campaign.comments.length], ['desc', 'desc', 'desc']);
         return _.filter(ordered, campaign => (this.showInactive ? true : campaign.status == "Active"));
     }
 

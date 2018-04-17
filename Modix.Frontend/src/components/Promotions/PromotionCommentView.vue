@@ -63,11 +63,6 @@
     word-wrap: break-word;
 }
 
-.left
-{
-    
-}
-
 .commentBody
 {
     word-wrap: break-word;
@@ -82,10 +77,10 @@
     min-width: 36px;
     min-height: 24px;
 
-    margin-right: 0.4em;
+    margin-right: 0.33em;
     margin-left: 0.33em;
 
-    font-size: 1.5em;
+    font-size: 1.35em;
 }
 
 .date
@@ -100,13 +95,13 @@
 import { Component, Prop, Vue } from 'vue-property-decorator';
 
 import {formatPasteDate} from '@/app/Util';
-import {PromotionComment, SentimentIcons, PromotionSentiment} from '@/models/PromotionCampaign';
+import PromotionComment from '@/models/PromotionComment';
+import {SentimentIcons, PromotionSentiment} from '@/models/PromotionCampaign';
 
-@Component
+@Component({})
 export default class PromotionCommentView extends Vue
 {
-    // @ts-ignore
-    @Prop() private comment: PromotionComment;
+    @Prop() private comment!: PromotionComment;
 
     sentimentIcon(sentiment: PromotionSentiment)
     {

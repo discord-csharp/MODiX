@@ -20,8 +20,20 @@ namespace Modix.Modules
         }
 
         [Command("help"), Summary("Prints a neat list of all commands.")]
-        public async Task HelpAsync()
+        public async Task HelpAsync(string sendDm = null)
         {
+            if (sendDm == null)
+            {
+                var embed = new EmbedBuilder()
+                    .WithTitle("Help")
+                    .WithDescription("Visit https://mod.gg/commands to view all the commands!")
+                    .WithFooter("or do \"!help dm\" to have them DM'd to you (warning: spammy)");
+
+                await ReplyAsync("", false, embed);
+
+                return;
+            }
+
             var eb = new EmbedBuilder();
             var userDm = await Context.User.GetOrCreateDMChannelAsync();
 
@@ -34,7 +46,7 @@ namespace Modix.Modules
 
                     foreach (var command in module.Commands)
                     {
-                        eb.AddField(new EmbedFieldBuilder().WithName($"Command: !{module.Name ?? ""} {command.Name ?? ""} {GetParams(command)}").WithValue(command.Summary ?? "Unknown"));
+                        eb.AddField(new EmbedFieldBuilder().WithName($"Command: !{command.Name ?? ""} {GetParams(command)}").WithValue(command.Summary ?? "Unknown"));
                     }
 
                     await userDm.SendMessageAsync(string.Empty, embed: eb.Build());

@@ -58,7 +58,7 @@ namespace Modix.Services.GuildInfo
                 ret = roleCounts.Select(d => new GuildInfoResult
                 {
                     Name = d.Key.Name,
-                    Color = $"#{d.Key.Color.RawValue.ToString("X")}",
+                    Color = GetRoleColorHex(d.Key),
                     Count = d.Count()
                 }).ToList();
 
@@ -69,6 +69,18 @@ namespace Modix.Services.GuildInfo
             }
 
             return ret;
+        }
+
+        public string GetRoleColorHex(IRole role)
+        {
+            string ret = "99aab5"; //"Discord Grey"
+
+            if (role.Color.RawValue > 0)
+            {
+                ret = role.Color.RawValue.ToString("X");
+            }
+
+            return $"#{ret}";
         }
 
         /// <summary>

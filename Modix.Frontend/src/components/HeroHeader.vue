@@ -23,7 +23,6 @@ import { Component, Prop, Vue } from 'vue-property-decorator';
 @Component
 export default class HeroHeader extends Vue
 {
-    // @ts-ignore
-    @Prop() private text: string;
+    @Prop() private text!: string;
 }
 </script>

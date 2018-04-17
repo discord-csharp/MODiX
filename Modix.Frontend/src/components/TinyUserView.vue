@@ -44,7 +44,6 @@ import User from '@/models/User';
 @Component
 export default class TinyUserView extends Vue
 {
-    // @ts-ignore
-    @Prop() private user: User;
+    @Prop() private user!: User;
 }
 </script>
