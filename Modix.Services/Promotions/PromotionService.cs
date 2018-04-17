@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
@@ -11,6 +12,8 @@ namespace Modix.Services.Promotions
 {
     public class PromotionService
     {
+        private Regex _badCharacterRegex = new Regex(@"[\u200B-\u200D\uFEFF]");
+
         //TODO: Un-hardcode this
         private const ulong _regularRoleId = 246266977553874944;
         private const ulong _staffRoleId = 268470383571632128;
@@ -69,7 +72,9 @@ namespace Modix.Services.Promotions
 
         public async Task AddComment(PromotionCampaign campaign, string comment, PromotionSentiment sentiment)
         {
-            if (comment.Length < 10)
+            comment = _badCharacterRegex.Replace(comment, "");
+
+            if (comment.Trim().Length < 10)
             {
                 throw new ArgumentException("Comment is too short, must be more than 10 characters.");
             }
@@ -124,7 +129,7 @@ namespace Modix.Services.Promotions
             var ret = new PromotionCampaign
             {
                 UserId = user.Id,
-                Username = user.Nickname ?? user.Username,
+                Username = $"{user.Username}#{user.Discriminator}",
                 StartDate = DateTimeOffset.UtcNow,
                 Status = CampaignStatus.Active
             };

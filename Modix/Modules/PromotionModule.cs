@@ -95,7 +95,7 @@ namespace Modix.Modules
         [Command("approve"), Summary("Approve a user's campaign, promoting them")]
         public async Task Approve(SocketGuildUser user)
         {
-            var campaign = (await _service.GetCampaigns()).First(d => d.UserId == user.Id);
+            var campaign = (await _service.GetCampaigns()).FirstOrDefault(d => d.UserId == user.Id);
 
             if (campaign == null)
             {
@@ -109,11 +109,11 @@ namespace Modix.Modules
         [Command("deny"), Summary("Deny a user's campaign")]
         public async Task Deny(SocketGuildUser user)
         {
-            var campaign = (await _service.GetCampaigns()).First(d => d.UserId == user.Id);
+            var campaign = (await _service.GetCampaigns()).FirstOrDefault(d => d.UserId == user.Id);
 
             if (campaign == null)
             {
-                await ReplyAsync($"Error: no campaign started for *{user.Nickname ?? user.Username}*");
+                await ReplyAsync($"Error: no campaign started for **{user.Nickname ?? user.Username}**");
                 return;
             }
 
@@ -127,7 +127,7 @@ namespace Modix.Modules
 
             if (campaign == null)
             {
-                await ReplyAsync($"Error: no campaign started for *{user.Nickname ?? user.Username}*");
+                await ReplyAsync($"Error: no campaign started for **{user.Nickname ?? user.Username}**");
                 return;
             }
 

@@ -20,7 +20,7 @@ namespace Modix.Services.Utilities
         /// <returns>The resulting StringContent for HTTP operations</returns>
         public static StringContent BuildContent(string code)
         {
-            var cleanCode = StipFormatting(code);
+            var cleanCode = StripFormatting(code);
             return new StringContent(cleanCode, Encoding.UTF8, "text/plain");
         }
 
@@ -43,7 +43,7 @@ namespace Modix.Services.Utilities
             }
         }
 
-        public static string StipFormatting(string code)
+        public static string StripFormatting(string code)
         {
             var cleanCode = _buildContentRegex.Replace(code.Trim(), string.Empty); //strip out the ` characters and code block markers
             cleanCode = cleanCode.Replace("\t", "    "); //spaces > tabs

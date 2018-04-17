@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Serilog;
 
 namespace Modix.Modules
 {
@@ -37,7 +38,15 @@ namespace Modix.Modules
                 var req = await client.GetStreamAsync(emojiUrl);
 
                 await Context.Channel.SendFileAsync(req, Path.GetFileName(emojiUrl), Context.User.Mention);
-                await Context.Message.DeleteAsync();
+                
+                try
+                {
+                    await Context.Message.DeleteAsync();
+                }
+                catch (HttpRequestException)
+                {
+                    Log.Information("Couldn't delete message after jumbofying.");
+                }
             }
             catch (HttpRequestException)
             {

@@ -46,7 +46,7 @@ namespace Modix.Modules
 
                     foreach (var command in module.Commands)
                     {
-                        eb.AddField(new EmbedFieldBuilder().WithName($"Command: !{command.Name ?? ""} {GetParams(command)}").WithValue(command.Summary ?? "Unknown"));
+                        eb.AddField(new EmbedFieldBuilder().WithName($"Command: !{command.Alias.ToLowerInvariant() ?? ""} {GetParams(command)}").WithValue(command.Summary ?? "Unknown"));
                     }
 
                     await userDm.SendMessageAsync(string.Empty, embed: eb.Build());

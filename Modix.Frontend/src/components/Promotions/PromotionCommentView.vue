@@ -66,6 +66,7 @@
 .commentBody
 {
     word-wrap: break-word;
+    overflow: hidden; //no zalgo for you
 }
 
 .sentimentIcon

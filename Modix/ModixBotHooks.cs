@@ -7,6 +7,7 @@ using Modix.Services.AutoCodePaste;
 using Modix.Services.FileUpload;
 using Modix.Services.GuildInfo;
 using System;
+using Modix.Services.CommandHelp;
 
 namespace Modix
 {
@@ -43,13 +44,19 @@ namespace Modix
         public async Task HandleAddReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
             var codePaste = ServiceProvider.GetService(typeof(CodePasteHandler)) as CodePasteHandler;
+            var errorHelper = ServiceProvider.GetService(typeof(CommandErrorHandler)) as CommandErrorHandler;
+
             await codePaste.ReactionAdded(message, channel, reaction);
+            await errorHelper.ReactionAdded(message, channel, reaction);
         }
 
         public async Task HandleRemoveReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
             var codePaste = ServiceProvider.GetService(typeof(CodePasteHandler)) as CodePasteHandler;
+            var errorHelper = ServiceProvider.GetService(typeof(CommandErrorHandler)) as CommandErrorHandler;
+
             await codePaste.ReactionRemoved(message, channel, reaction);
+            await errorHelper.ReactionRemoved(message, channel, reaction);
         }
 
         public Task HandleUserJoined(SocketGuildUser user)

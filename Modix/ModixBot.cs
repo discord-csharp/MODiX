@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -18,6 +18,7 @@ using Modix.Services.CommandHelp;
 
 namespace Modix
 {
+    using System.Collections.Generic;
     using Microsoft.AspNetCore.Hosting;
     using Modix.Services.Animals;
     using Modix.Services.FileUpload;
@@ -160,7 +161,16 @@ namespace Modix
                     string error = $"{result.Error}: {result.ErrorReason}";
 
                     Log.Error(error);
-                    await context.Channel.SendMessageAsync("Error: " + error);
+                    
+                    if (result.Error != CommandError.Exception)
+                    {
+                        var handler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
+                        await handler.AssociateError(message, error);
+                    }
+                    else
+                    {
+                        await context.Channel.SendMessageAsync("Error: " + error);
+                    }
                 }
             }
 
@@ -188,6 +198,8 @@ namespace Modix
 
             _map.AddSingleton<PromotionService>();
             _map.AddSingleton<IPromotionRepository, FilePromotionRepository>();
+
+            _map.AddSingleton<CommandErrorHandler>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;
