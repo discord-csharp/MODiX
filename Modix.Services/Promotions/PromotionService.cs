@@ -58,6 +58,11 @@ namespace Modix.Services.Promotions
         {
             ThrowIfNotStaff(promoter);
 
+            if (campaign.Status == CampaignStatus.Denied)
+            {
+                throw new InvalidOperationException("The campaign has already been denied.");
+            }
+
             campaign.Status = CampaignStatus.Denied;
             await _repository.UpdateCampaign(campaign);
         }
@@ -65,6 +70,11 @@ namespace Modix.Services.Promotions
         public async Task ActivateCampaign(SocketGuildUser promoter, PromotionCampaign campaign)
         {
             ThrowIfNotStaff(promoter);
+
+            if (campaign.Status != CampaignStatus.Denied)
+            {
+                throw new InvalidOperationException("Cannot reactivate a campaign that has not been denied.");
+            }
 
             campaign.Status = CampaignStatus.Active;
             await _repository.UpdateCampaign(campaign);
@@ -101,6 +111,11 @@ namespace Modix.Services.Promotions
 
         public void ThrowIfNotStaff(SocketGuildUser user)
         {
+            if (CurrentGuild.Owner == user)
+            {
+                return;
+            }
+
             if (!user.HasRole(_staffRoleId))
             {
                 throw new ArgumentException("The given promoter is not a staff member.");

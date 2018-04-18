@@ -61,14 +61,21 @@ namespace Modix.Modules
         {
             var first = found.First();
 
+            string ratingString = "";
+
+            if (!String.IsNullOrWhiteSpace(first.Rating))
+            {
+                ratingString = $"Rating: {first.Rating}\n";
+            }
+
             var embed = new EmbedBuilder()
-                .WithTitle($"**{first.Title}** - {first.Type}")
-                .WithDescription($"Rating: {first.Rating}\n{first.Synopsis} **[More]({first.Url})**\n\nAlso see:")
+                .WithAuthor($"{first.Title} - {first.Type}", "", first.Url)
+                .WithDescription($"{ratingString}{first.Synopsis}\n\nAlso see:")
                 .WithThumbnailUrl(first.PosterThumbnail);
 
-            foreach (var entry in found.Skip(1).Take(4))
+            foreach (var entry in found.Skip(1).Take(2))
             {
-                embed.AddInlineField(entry.Title, $"[↪ Kitsu]({entry.Url})");
+                embed.AddInlineField(entry.Title, $"[⇒ Kitsu]({entry.Url})");
             }
 
             await ReplyAsync($"Results for **{query}**", false, embed);

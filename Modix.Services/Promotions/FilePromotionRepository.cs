@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Modix.Services.Promotions
 {
@@ -13,6 +15,10 @@ namespace Modix.Services.Promotions
         private const string _filePath = @"c:\app\config\promotions.json";
 
         private List<PromotionCampaign> _campaigns = null;
+        private readonly JsonSerializerSettings _settings = new JsonSerializerSettings
+        {
+            Converters = { new StringEnumConverter() }
+        };
 
         public async Task AddCommentToCampaign(PromotionCampaign campaign, PromotionComment comment)
         {
@@ -62,7 +68,7 @@ namespace Modix.Services.Promotions
             using (FileStream sourceStream = new FileStream(_filePath, FileMode.Create, FileAccess.Write))
             using (StreamWriter writer = new StreamWriter(sourceStream))
             {
-                await writer.WriteAsync(JsonConvert.SerializeObject(_campaigns));
+                await writer.WriteAsync(JsonConvert.SerializeObject(_campaigns, _settings));
             }
         }
 
@@ -78,7 +84,7 @@ namespace Modix.Services.Promotions
             {
                 string content = await reader.ReadToEndAsync();
 
-                _campaigns = JsonConvert.DeserializeObject<List<PromotionCampaign>>(content);
+                _campaigns = JsonConvert.DeserializeObject<List<PromotionCampaign>>(content, _settings);
             }
 
             if (_campaigns == null)

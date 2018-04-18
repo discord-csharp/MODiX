@@ -27,6 +27,7 @@ namespace Modix.Services.FileUpload
             ".cmd",
             ".vbs",
             ".js",
+            ".reg"
         };
 
         public async Task Handle(IMessage message)

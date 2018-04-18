@@ -208,7 +208,6 @@ namespace Modix
             _client.UserJoined += _hooks.HandleUserJoined;
             _client.UserLeft += _hooks.HandleUserLeft;
 
-
             _client.Log += _hooks.HandleLog;
             _commands.Log += _hooks.HandleLog;
 

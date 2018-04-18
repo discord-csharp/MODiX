@@ -131,12 +131,6 @@ namespace Modix.Modules
                 return;
             }
 
-            if (campaign.Status != CampaignStatus.Denied)
-            {
-                await ReplyAsync("Error: That campaign hasn't been denied.");
-                return;
-            }
-
             await _service.ActivateCampaign(Context.User as SocketGuildUser, campaign);
         }
     }

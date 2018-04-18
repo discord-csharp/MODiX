@@ -25,7 +25,7 @@ namespace Modix.WebServer.Controllers
 
         public DiscordUser DiscordUser { get; private set; }       
         public SocketGuildUser SocketUser => _socketUser ?? (_socketUser = _client.Guilds.First().GetUser(DiscordUser.UserId));
-        public bool IsStaff => SocketUser.Roles.Any(d => d.Id == _staffRoleId);
+        public bool IsStaff => SocketUser.Roles.Any(d => d.Id == _staffRoleId) || SocketUser.Guild.Owner == SocketUser;
 
         public ModixController(DiscordSocketClient client)
         {

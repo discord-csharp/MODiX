@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Modix.Services.CommandHelp;
 using Modix.Services.GuildInfo;
 using Modix.WebServer.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,7 +42,7 @@ namespace Modix.WebServer.Controllers
             await _client.Guilds.First().DownloadUsersAsync();
 
             var result = _client.Guilds.First()
-                .Users.Where(d => d.Username.ToLowerInvariant().Contains(query))
+                .Users.Where(d => d.Username.IndexOf(query, StringComparison.InvariantCultureIgnoreCase) > 0)
                 .Take(10)
                 .Select(d => new DiscordUser { Name = $"{d.Username}#{d.Discriminator}", UserId = d.Id, AvatarHash = d.AvatarId });
 

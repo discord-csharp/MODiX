@@ -5,29 +5,30 @@
         <section class="section">
             <div class="container">
 
-                <div class="level is-mobile">
+                <div class="level">
 
                         <div class="level-left">
 
                         <div class="level-item">
                             <h1 class="title">
-                                    Campaigns
+                                Campaigns
                             </h1>
                         </div>
 
                         </div>
 
-                        <div class="level-right">
-                        <div class="level-item">
-                            <label class="checkbox">
-                                <input type="checkbox" v-model="showInactive">
-                                Show Inactive
-                            </label>
-                        </div>
+                        <div class="level-right columns is-mobile">
 
-                        <div class="level-item">
-                            <router-link class="button is-pulled-right" to="/promotions/create">Start One</router-link>
-                        </div>
+                            <div class="column">
+                                <label class="checkbox">
+                                    <input type="checkbox" v-model="showInactive">
+                                    Show Inactive
+                                </label>
+                            </div>
+
+                            <div class="column is-narrow">
+                                <router-link class="button is-pulled-right" to="/promotions/create">Start One</router-link>
+                            </div>
                         
                         </div>
                     
@@ -60,7 +61,7 @@
                             <button v-else class="button is-success" @click="promote()">Promote</button>
                         </div>
                         <div class="level-right">
-                            <button class="button is-danger" @click="deny()">Deny</button>
+                            <button class="button is-danger" v-if="modalCampaign.status != 'Denied'" @click="deny()">Deny</button>
                         </div>
                     </footer>
                 </template>

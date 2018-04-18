@@ -97,12 +97,6 @@ $default-transition: 0.5s cubic-bezier(0.77, 0, 0.175, 1);
     left: calc(50% - 150px);
 }
 
-html
-{
-    //Minireset.css is dumb
-    overflow-y: auto !important;
-}
-
 </style>
 
 <script lang="ts">
