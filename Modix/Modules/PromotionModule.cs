@@ -30,7 +30,9 @@ namespace Modix.Modules
         [Command("campaigns"), Summary("List all active campaigns")]
         public async Task Campaigns()
         {
-            var campaigns = await _service.GetCampaigns();
+            var campaigns = (await _service.GetCampaigns())
+                .OrderByDescending(d => d.TotalVotes)
+                .ThenByDescending(d => d.ForVotes);
 
             EmbedBuilder embed = new EmbedBuilder();
 

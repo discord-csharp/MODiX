@@ -31,9 +31,12 @@ namespace Modix.WebServer.Auth
         {
             var baseResult = await base.CreateTicketAsync(identity, properties, tokens);
             var result = DiscordUser.FromClaimsPrincipal(baseResult.Principal);
+            var guild = _client.Guilds.FirstOrDefault();
+
+            await guild?.DownloadUsersAsync();
 
             //TODO: Un-hardcode this
-            if (_client.Guilds.First().GetUser(result.UserId) == null)
+            if (guild?.GetUser(result.UserId) == null)
             {
                 throw new UnauthorizedAccessException("You must be a member of the Discord C# server to log in.");
             }

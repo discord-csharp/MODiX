@@ -17,7 +17,6 @@ namespace Modix.WebServer.Models
     {
         public string Name { get; set; }
 
-        [JsonConverter(typeof(ToStringJsonConverter))]
         public ulong UserId { get; set; }
         public string AvatarHash { get; set; }
         public UserRole UserRole { get; set; } = UserRole.Member;

@@ -14,11 +14,16 @@ namespace Modix.Services.Promotions
     {
         private Regex _badCharacterRegex = new Regex(@"[\u200B-\u200D\uFEFF]");
 
+#if DEBUG
         //TODO: Un-hardcode this
+        private const ulong _regularRoleId = 385925278364598302;
+        private const ulong _staffRoleId = 268470383571632128;
+        private const ulong _promotionChannelId = 436251483017838594;
+#else
         private const ulong _regularRoleId = 246266977553874944;
         private const ulong _staffRoleId = 268470383571632128;
         private const ulong _promotionChannelId = 411991461832294400;
-
+#endif
         private DiscordSocketClient _client;
         private IPromotionRepository _repository;
 
@@ -152,6 +157,13 @@ namespace Modix.Services.Promotions
             await AddComment(ret, commentBody, PromotionSentiment.For);
 
             await _repository.AddCampaign(ret);
+
+            await PromotionChannel?.SendMessageAsync("", false, 
+                new EmbedBuilder()
+                .WithTitle("Campaign Started")
+                .WithAuthor(user)
+                .WithDescription(commentBody)
+                .WithFooter("Vote now at https://mod.gg/promotions"));
 
             return ret;
         }

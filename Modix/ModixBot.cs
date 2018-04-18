@@ -105,8 +105,9 @@ namespace Modix
 
         public async Task StartWebserver()
         {
-            //Start the server, but only once in case discord.net reconnects
+            await _client.SetGameAsync("https://mod.gg/");
 
+            //Start the webserver, but unbind the event in case discord.net reconnects
             await _host.StartAsync();
             _client.Ready -= StartWebserver;
         }

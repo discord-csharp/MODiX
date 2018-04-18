@@ -49,7 +49,22 @@
             <div class="modal-card">
                 <template v-if="modalCampaign">
                     <header class="modal-card-head">
-                        <p class="modal-card-title"><strong>{{modalCampaign.username}}</strong>'s Campaign</p>
+                        <p class="modal-card-title">
+                            <strong>{{modalCampaign.username}}</strong>'s Campaign
+                        </p>
+
+                        <div class="field has-addons is-hidden-mobile">
+                            <div class="control is-expanded">
+                                <a class="copyButton is-small button" title="Copy to Clipboard" 
+                                    :data-clipboard-text="'%info ' + modalCampaign.userId">
+                                    📋
+                                </a>
+                            </div>
+                            <div class="control">
+                                <input class="input is-small" :value="'%info ' + modalCampaign.userId" ></input>
+                            </div>
+                        </div>
+
                         <button class="delete" aria-label="close" @click="toggleModal()"></button>
                     </header>
                     <section class="modal-card-body">
@@ -85,9 +100,29 @@
 @import "~bulma/sass/elements/progress";
 @import "~bulma/sass/components/modal";
 
+.modal-card-head
+{
+    input
+    {
+        width: 14em;
+    }
+
+    .field.has-addons
+    {
+        position: relative;
+        top: 6px;
+        left: -20px;
+    }
+}
+
 .modal
 {
     z-index: -999;
+
+    code
+    {
+        color: gray;
+    }
 
     &.is-active
     {
@@ -130,6 +165,8 @@ import PromotionCampaign from '@/models/PromotionCampaign';
 import GeneralService from '@/services/GeneralService';
 import {config, setConfig} from '@/models/PersistentConfig';
 import PersistentKeyValueService from '@/services/PersistentKeyValueService';
+
+var Clipboard = require('clipboard');
 
 @Component({
     components:
@@ -213,6 +250,11 @@ export default class Promotions extends Vue
         await GeneralService.activateCampaign(this.modalCampaign);
         this.toggleModal();
         await this.refresh();
+    }
+
+    mounted()
+    {
+        new Clipboard('.copyButton');
     }
 
     updated()

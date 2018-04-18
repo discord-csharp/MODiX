@@ -51,6 +51,7 @@ namespace Modix.WebServer
             .AddJsonOptions(options =>
             {
                 options.SerializerSettings.Converters.Add(new StringEnumConverter());
+                options.SerializerSettings.Converters.Add(new StringULongConverter());
             });
         }
 

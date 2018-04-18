@@ -5,11 +5,11 @@ using Newtonsoft.Json;
 
 namespace Modix.WebServer
 {
-    public class ToStringJsonConverter : JsonConverter
+    public class StringULongConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {
-            return true;
+            return (objectType == typeof(ulong));
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
