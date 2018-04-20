@@ -61,7 +61,7 @@
                                 </a>
                             </div>
                             <div class="control">
-                                <input class="input is-small" :value="'%info ' + modalCampaign.userId" ></input>
+                                <input class="input is-small" readonly :value="'%info ' + modalCampaign.userId" ></input>
                             </div>
                         </div>
 

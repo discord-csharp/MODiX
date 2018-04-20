@@ -2,7 +2,7 @@
 
     <div class="campaign box" :class="{'expanded': expanded, 'inactive': campaign.status != 'Active'}" v-if="campaign">
         
-        <div class="columns" @click="expanded = !expanded" :title="'Status: '+campaign.status">
+        <div class="columns" @click="expandWithSentiment('Neutral')" :title="'Status: '+campaign.status">
             <div class="column">
                 <h1 class="title is-size-4">
                     <span class="statusIcon">{{statusIcon}}</span>
@@ -23,10 +23,10 @@
 
             <div class="column ratings is-narrow" v-if="campaign.comments.length > 0">
                 <div class="columns is-mobile">
-                    <div class="column rating">
+                    <div class="column rating" @click.stop="expandWithSentiment('For')">
                         {{sentimentIcon("For")}} {{campaign.votesFor}}
                     </div>
-                    <div class="column rating">
+                    <div class="column rating" @click.stop="expandWithSentiment('Against')">
                         {{sentimentIcon("Against")}} {{campaign.votesAgainst}}
                     </div>
                 </div>
@@ -315,6 +315,12 @@ export default class PromotionListItem extends Vue
         }
         
         this.$emit('showPanel');
+    }
+
+    expandWithSentiment(sentiment: PromotionSentiment)
+    {
+        this.newComment.sentiment = sentiment;
+        this.expanded = !this.expanded;
     }
 }
 </script>

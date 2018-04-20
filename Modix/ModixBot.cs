@@ -151,6 +151,9 @@ namespace Modix
             if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos)))
                 return;
 
+            if (message.Content.Length <= 1)
+                return;
+
             var context = new CommandContext(_client, message);
 
             using (var scope = _provider.CreateScope())
