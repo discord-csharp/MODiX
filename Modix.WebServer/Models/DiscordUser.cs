@@ -29,7 +29,7 @@ namespace Modix.WebServer.Models
             {
                 Name = user.Identity.Name,
                 UserId = ulong.Parse(user.Claims.FirstOrDefault(d => d.Type == ClaimTypes.NameIdentifier).Value),
-                AvatarHash = user.Claims.FirstOrDefault(d=>d.Type == "avatarHash").Value
+                AvatarHash = user.Claims.FirstOrDefault(d=>d.Type == "avatarHash")?.Value ?? ""
             };
         }
     }
