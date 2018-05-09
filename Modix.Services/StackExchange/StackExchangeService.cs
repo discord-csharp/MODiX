@@ -1,7 +1,10 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Modix.Services.StackExchange
@@ -23,15 +26,20 @@ namespace Modix.Services.StackExchange
             tags = Uri.EscapeDataString(tags);
             var query = _ApiReferenceUrl += $"&site={site}&tags={tags}&q={phrase}";
 
-            var client = new HttpClient();
+            var client = new HttpClient(new HttpClientHandler
+            {
+                AutomaticDecompression = DecompressionMethods.GZip
+            });
+
             var response = await client.GetAsync(query);
 
             if (!response.IsSuccessStatusCode)
             {
                 throw new WebException("Something failed while querying the Stack Exchange API.");
             }
-            var jsonResponse = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<StackExchangeResponse>(jsonResponse);
+
+            var json = await response.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<StackExchangeResponse>(json);
         }
     }
 }
