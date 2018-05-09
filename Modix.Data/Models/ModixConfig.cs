@@ -9,8 +9,8 @@
         public string WebhookToken { get; set; }
         public ulong WebhookId { get; set; }
         public string SentryToken { get; set; }
-
         public string DiscordClientId { get; set; }
         public string DiscordClientSecret { get; set; }
+        public string AlphaVantageToken { get; set; }
     }
 }
