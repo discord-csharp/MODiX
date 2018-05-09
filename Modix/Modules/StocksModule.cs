@@ -21,17 +21,12 @@ namespace Modix.Modules
         [Command("stock"), Summary("Gets the latest trade information for a given symbol.")]
         public async Task Run(string symbol)
         {
-            StockOverview response = null;
-            try
-            {
-                response = await new AlphaVantageStocksService().GetStockInformation(_config.AlphaVantageToken, "TIME_SERIES_INTRADAY", symbol);
-            }
-            catch
+            var response = await new AlphaVantageStocksService().GetStockInformation(_config.AlphaVantageToken, "TIME_SERIES_INTRADAY", symbol);
+            if (response == null)
             {
                 await ReplyAsync($"Unable to obtain market details for symbol [{symbol}]");
                 return;
             }
-
 
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("```");

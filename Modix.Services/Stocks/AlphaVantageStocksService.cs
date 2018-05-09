@@ -26,6 +26,11 @@ namespace Modix.Services.Stocks
 
             // The API is awful - need to dig pretty deep and form our own model based on the response.
             var jsonResponse = await response.Content.ReadAsStringAsync();
+            if(jsonResponse.Contains("Error Message"))
+            {
+                return null;
+            }
+
             var seriesRoot = JsonConvert.DeserializeObject<AlphaVantageStocksResponse>(jsonResponse);
             var seriesRaw = seriesRoot.SeriesData.Values.First().ToString();
 
