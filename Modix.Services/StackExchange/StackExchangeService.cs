@@ -8,6 +8,11 @@ namespace Modix.Services.StackExchange
 {
     public class StackExchangeService
     {
+        private static HttpClient HttpClient => new HttpClient(new HttpClientHandler
+        {
+            AutomaticDecompression = DecompressionMethods.GZip
+        });
+
         private string _ApiReferenceUrl =
             $"http://api.stackexchange.com/2.2/search/advanced" +
             "?key={0}" +
@@ -23,13 +28,13 @@ namespace Modix.Services.StackExchange
             tags = Uri.EscapeDataString(tags);
             var query = _ApiReferenceUrl += $"&site={site}&tags={tags}&q={phrase}";
 
-            var client = new HttpClient();
-            var response = await client.GetAsync(query);
+            var response = await HttpClient.GetAsync(query);
 
             if (!response.IsSuccessStatusCode)
             {
                 throw new WebException("Something failed while querying the Stack Exchange API.");
             }
+
             var jsonResponse = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<StackExchangeResponse>(jsonResponse);
         }
