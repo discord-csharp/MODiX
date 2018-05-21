@@ -1,66 +1,102 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using Modix.Services.CommandHelp;
+using Serilog;
 
 namespace Modix.Modules
 {
     [Name("Move Message"), RequireUserPermission(GuildPermission.ManageMessages), HiddenFromHelp]
     public class MoveMessageModule : ModuleBase
     {
-        [Command("move"), Summary("Moves a message from one channel to another."), Remarks("Usage: `!move 12345 #foo`")]
-        public async Task Run([Remainder] string command)
+        [Command("move"), Summary("Moves a message from one channel to another."), Remarks("Usage: !move 12345 #foo")]
+        public async Task Run(ulong messageId, SocketTextChannel channel, [Remainder] string reason)
         {
-            if (Context.User.IsBot) return;
+            // Ignore bots and same channel-to-channel requests
+            if (Context.User.IsBot || channel.Id == Context.Channel.Id) return;
 
-            var commandSplit = command.Split(' ');
+            IMessage message = null;
 
-            if (commandSplit.Length < 2)
+            try
             {
-                await ReplyAsync($"!move requires at least 2 arguments: The messae ID, and the target channel");
-                return;
+                message = await GetMessage(messageId, Context.Channel as ITextChannel);
+
+                if (message == null)
+                    message = await FindMessageInUnknownChannel(messageId);
             }
-
-            (ulong messageID, string channel, string reason) = (ulong.Parse(commandSplit[0]), commandSplit[1], string.Join(' ', commandSplit.Skip(2)));
-
-            // Source message
-            var message = await Context.Channel.GetMessageAsync(messageID, CacheMode.AllowDownload);
-            if (message == null)
+            catch (Exception e)
             {
-                await ReplyAsync($"`{message}` must be an existing message id. Right click on the message and choose `Copy ID` to grab its id");
-                return;
-            }
-
-            // Target channel
-            var channels = await Context.Guild.GetTextChannelsAsync();
-            var targetChannel = channels.SingleOrDefault(c => c.Mention.Equals(channel, StringComparison.OrdinalIgnoreCase));
-            if (targetChannel == null)
-            {
-                await ReplyAsync($"`{channel}` must be an existing channel, and referenced in a mention format: such as `#{channel}`");
-                return;
+                Log.Error(e, "Failed fetching message for Move command, ran by {User} with a Message ID of {MessageId}",
+                    Context.User.Mention, messageId);
             }
 
             // Format output
             var builder = new EmbedBuilder()
                     .WithColor(new Color(95, 186, 125))
-                    .WithDescription(message.Content)
-                    .WithFooter($"Message copied from #{message.Channel.Name} by @{Context.User.Username}");
+                    .WithDescription(message.Content);
 
-            // Optional reason
             if (!string.IsNullOrWhiteSpace(reason))
             {
-                builder.Footer.Text += $" with reason \"{reason}\"";
+                builder.AddInlineField("Reason", reason);
             }
 
-            builder.Build();
+            var mover = $"@{(Context.User as SocketGuildUser)?.Nickname ?? Context.User.Username}";
+            builder.WithFooter($"Message copied from #{message.Channel.Name} by {mover}");
 
-            await targetChannel.SendMessageAsync("", embed: builder);
+            await channel.SendMessageAsync("", embed: builder);
 
             // Delete the source message, and the command message that started this request
             await message.DeleteAsync();
             await Context.Message.DeleteAsync();
+            await Context.Channel.SendMessageAsync($"Message {messageId} moved by {mover}");
         }
+
+        [Command("move"), Summary("Moves a message from one channel to another."), Remarks("Usage: !move 12345 #foo")]
+        public async Task Run(ulong messageId, SocketTextChannel channel)
+            => await Run(messageId, channel, null);
+
+        [Command("move"), Summary("Moves a message from one channel to another."), Remarks("Usage: !move 12345 #foo")]
+        public async Task Run(SocketTextChannel channel, ulong messageId)
+            => await Run(messageId, channel, null);
+
+        [Command("move"), Summary("Moves a message from one channel to another."), Remarks("Usage: !move 12345 #foo")]
+        public async Task Run(SocketTextChannel channel, ulong messageId, [Remainder] string reason)
+            => await Run(messageId, channel, null);
+
+        private async Task<IMessage> FindMessageInUnknownChannel(ulong messageId)
+        {
+            IMessage message = null;
+
+            // We haven't found a message, now fetch all text
+            // channels and attempt to find the message
+
+            var channels = await Context.Guild.GetTextChannelsAsync();
+
+            foreach (var channel in channels)
+            {
+                try
+                {
+                    message = await GetMessage(messageId, channel);
+
+                    if (message != null)
+                        break;
+                }
+                catch (Exception e)
+                {
+                    Log.Debug(e, "Failed accessing channel {ChannelName} when searching for message {MessageId}",
+                        channel.Name, messageId);
+                }
+            }
+
+            return message;
+        }
+
+        private Task<IMessage> GetMessage(ulong messageId, ITextChannel channel)
+            => GetMessageInChannel(messageId, channel);
+
+        private static Task<IMessage> GetMessageInChannel(ulong messageId, ITextChannel channel)
+            => channel.GetMessageAsync(messageId);
     }
 }
