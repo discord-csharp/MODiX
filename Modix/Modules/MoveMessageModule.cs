@@ -12,7 +12,7 @@ namespace Modix.Modules
     public class MoveMessageModule : ModuleBase
     {
         [Command("move"), Summary("Moves a message from one channel to another."), Remarks("Usage: !move 12345 #foo")]
-        public async Task Run(ulong messageId, SocketTextChannel channel, [Remainder] string reason)
+        public async Task Run(ulong messageId, SocketTextChannel channel, [Remainder] string reason = null)
         {
             // Ignore bots and same channel-to-channel requests
             if (Context.User.IsBot || channel.Id == Context.Channel.Id) return;
@@ -21,7 +21,7 @@ namespace Modix.Modules
 
             try
             {
-                message = await GetMessage(messageId, Context.Channel as ITextChannel);
+                message = await channel.GetMessageAsync(messageId);
 
                 if (message == null)
                     message = await FindMessageInUnknownChannel(messageId);
@@ -54,15 +54,7 @@ namespace Modix.Modules
         }
 
         [Command("move"), Summary("Moves a message from one channel to another."), Remarks("Usage: !move 12345 #foo")]
-        public async Task Run(ulong messageId, SocketTextChannel channel)
-            => await Run(messageId, channel, null);
-
-        [Command("move"), Summary("Moves a message from one channel to another."), Remarks("Usage: !move 12345 #foo")]
-        public async Task Run(SocketTextChannel channel, ulong messageId)
-            => await Run(messageId, channel, null);
-
-        [Command("move"), Summary("Moves a message from one channel to another."), Remarks("Usage: !move 12345 #foo")]
-        public async Task Run(SocketTextChannel channel, ulong messageId, [Remainder] string reason)
+        public async Task Run(SocketTextChannel channel, ulong messageId, [Remainder] string reason = null)
             => await Run(messageId, channel, null);
 
         private async Task<IMessage> FindMessageInUnknownChannel(ulong messageId)
@@ -78,7 +70,7 @@ namespace Modix.Modules
             {
                 try
                 {
-                    message = await GetMessage(messageId, channel);
+                    message = await channel.GetMessageAsync(messageId);
 
                     if (message != null)
                         break;
@@ -92,11 +84,5 @@ namespace Modix.Modules
 
             return message;
         }
-
-        private Task<IMessage> GetMessage(ulong messageId, ITextChannel channel)
-            => GetMessageInChannel(messageId, channel);
-
-        private static Task<IMessage> GetMessageInChannel(ulong messageId, ITextChannel channel)
-            => channel.GetMessageAsync(messageId);
     }
 }
