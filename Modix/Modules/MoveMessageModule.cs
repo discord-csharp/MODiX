@@ -55,7 +55,7 @@ namespace Modix.Modules
 
         [Command("move"), Summary("Moves a message from one channel to another."), Remarks("Usage: !move 12345 #foo")]
         public async Task Run(SocketTextChannel channel, ulong messageId, [Remainder] string reason = null)
-            => await Run(messageId, channel, null);
+            => await Run(messageId, channel, reason);
 
         private async Task<IMessage> FindMessageInUnknownChannel(ulong messageId)
         {
