@@ -122,6 +122,7 @@ namespace Modix
                 PostgreConnectionString = Environment.GetEnvironmentVariable("MODIX_DB_CONNECTION"),
                 DiscordClientId = Environment.GetEnvironmentVariable("DiscordClientId"),
                 DiscordClientSecret = Environment.GetEnvironmentVariable("DiscordClientSecret"),
+                AlphaVantageToken = Environment.GetEnvironmentVariable("AlphaVantageToken"),
             };
 
             var id = Environment.GetEnvironmentVariable("log_webhook_id");
