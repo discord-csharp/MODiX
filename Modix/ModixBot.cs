@@ -164,8 +164,15 @@ namespace Modix
                 {
                     string error = $"{result.Error}: {result.ErrorReason}";
 
-                    Log.Error(error);
-                    
+                    if (!string.Equals(result.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Log.Warning(error);
+                    }
+                    else
+                    {
+                        Log.Error(error);
+                    }
+
                     if (result.Error != CommandError.Exception)
                     {
                         var handler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
