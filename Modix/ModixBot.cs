@@ -72,9 +72,9 @@ namespace Modix
             await Install(); // Setting up DependencyMap
             //_map.AddDbContext<ModixContext>(options =>
             //{
-            //    options.UseNpgsql(_config.PostgreConnectionString);                
+            //    options.UseNpgsql(_config.PostgreConnectionString);
             //});
-           
+
             //var provider = _map.BuildServiceProvider();
 
             _host = ModixWebServer.BuildWebHost(_map, _config);
@@ -90,7 +90,7 @@ namespace Modix
             //}
 
             //#endif
-            
+
             _provider = _host.Services;
 
             _hooks.ServiceProvider = _provider;
