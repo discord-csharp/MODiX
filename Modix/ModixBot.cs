@@ -72,9 +72,9 @@ namespace Modix
             await Install(); // Setting up DependencyMap
             //_map.AddDbContext<ModixContext>(options =>
             //{
-            //    options.UseNpgsql(_config.PostgreConnectionString);                
+            //    options.UseNpgsql(_config.PostgreConnectionString);
             //});
-           
+
             //var provider = _map.BuildServiceProvider();
 
             _host = ModixWebServer.BuildWebHost(_map, _config);
@@ -90,7 +90,7 @@ namespace Modix
             //}
 
             //#endif
-            
+
             _provider = _host.Services;
 
             _hooks.ServiceProvider = _provider;
@@ -164,8 +164,15 @@ namespace Modix
                 {
                     string error = $"{result.Error}: {result.ErrorReason}";
 
-                    Log.Error(error);
-                    
+                    if (!string.Equals(result.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Log.Warning(error);
+                    }
+                    else
+                    {
+                        Log.Error(error);
+                    }
+
                     if (result.Error != CommandError.Exception)
                     {
                         var handler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
