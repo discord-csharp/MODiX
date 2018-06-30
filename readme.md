@@ -41,3 +41,4 @@ We had no serious abuse after running it for almost 14 days.
 > Running it in the executing assembly would be way faster
 
 And also result in REPL-Sessions that can potentially crash the bot.
+WEW LAD
