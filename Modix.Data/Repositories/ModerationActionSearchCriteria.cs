@@ -1,19 +1,33 @@
-﻿using System;
+﻿using System.Collections.Generic;
 
 using Modix.Data.Models.Admin;
 
 namespace Modix.Data.Repositories
 {
+    /// <summary>
+    /// Describes a set of criteria for searching for <see cref="ModerationAction"/> entities within an <see cref="IModerationActionRepository"/>.
+    /// </summary>
     public class ModerationActionSearchCriteria
     {
-        public ModerationActionTypes[] Types { get; set; }
+        /// <summary>
+        /// A set of <see cref="ModerationAction.Type"/> values, defining the <see cref="ModerationAction"/> entities to be returned.
+        /// </summary>
+        public IEnumerable<ModerationActionTypes> Types { get; set; }
 
+        /// <summary>
+        /// A <see cref="ModerationAction.InfractionId"/> value, defining the <see cref="ModerationAction"/> entities to be returned.
+        /// </summary>
         public ulong? InfractionId { get; set; }
 
-        public DateTimeOffset? CreatedFrom { get; set; }
+        /// <summary>
+        /// A range of <see cref="ModerationAction.Created"/> values, defining the <see cref="ModerationAction"/> entities to be returned.
+        /// </summary>
+        public DateTimeOffsetRange? CreatedRange { get; set; }
 
-        public DateTimeOffset? CreatedTo { get; set; }
-
+        /// <summary>
+        /// A <see cref="ModerationAction.CreatedById"/> value, defining the <see cref="ModerationAction"/> entities to be returned.
+        /// </summary>
         public ulong? CreatedById { get; set; }
+
     }
 }

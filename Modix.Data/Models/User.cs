@@ -3,6 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Modix.Data.Models
 {
+    /// <summary>
+    /// Describes a Discord user that has at least once joined the Discord guild managed by MODiX.
+    /// </summary>
     public class User
     {
         /// <summary>

@@ -4,6 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Modix.Data.Models.Admin
 {
+    /// <summary>
+    /// Describes a moderation action performed by an authorized staff member.
+    /// </summary>
     public class ModerationAction
     {
         /// <summary>
