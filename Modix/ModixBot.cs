@@ -189,7 +189,6 @@ namespace Modix
             _map.AddSingleton(_commands);
 
             _map.AddScoped<IQuoteService, QuoteService>();
-            _map.AddScoped<PermissionHelper>();
             _map.AddSingleton<CodePasteHandler>();
             _map.AddSingleton<FileUploadHandler>();
             _map.AddSingleton<CodePasteService>();

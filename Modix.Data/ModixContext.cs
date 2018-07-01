@@ -9,13 +9,6 @@ namespace Modix.Data
     {
         public ModixContext(DbContextOptions<ModixContext> options): base(options) { }
 
-        // TODO: Deprecate and remove all these?
-        public DbSet<Ban> Bans { get; set; }
-        public DbSet<DiscordGuild> Guilds { get; set; }
-        public DbSet<DiscordMessage> Messages { get; set; }
-        public DbSet<DiscordUser> DiscordUsers { get; set; }
-        public DbSet<ChannelLimit> ChannelLimits { get; set; }
-
         public DbSet<User> Users { get; set; }
 
         public DbSet<ModerationAction> ModerationActions { get; set; }
