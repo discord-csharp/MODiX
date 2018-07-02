@@ -13,7 +13,7 @@ namespace Modix.Data.Repositories
         /// <summary>
         /// A set of <see cref="Infraction.Type"/> values, defining the <see cref="Infraction"/> entities to be returned.
         /// </summary>
-        public IEnumerable<InfractionTypes> Types { get; set; }
+        public IReadOnlyCollection<InfractionTypes> Types { get; set; }
 
         /// <summary>
         /// A <see cref="Infraction.SubjectId"/> value, defining the <see cref="Infraction"/> entities to be returned.

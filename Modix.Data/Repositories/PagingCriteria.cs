@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Modix.Data.Repositories
 {
@@ -11,42 +11,29 @@ namespace Modix.Data.Repositories
         /// The 0-based index of the first record to be returned.
         /// A value of null is equivalent to 0.
         /// </summary>
-        public ulong? FirstRecordIndex { get; set; }
+        [Range(0, int.MaxValue)]
+        public int? FirstRecordIndex { get; set; }
 
         /// <summary>
         /// The 0-based index of the last record to be returned.
         /// A value of null indicates that all records following <see cref="FirstRecordIndex"/> should be returned.
-        /// This value is coerced, based on <see cref="MaxPageSize"/>. That is, the value returned by this property
-        /// may not always be the last value that was assigned to this property.
         /// </summary>
-        public ulong? LastRecordIndex
-        {
-            get => MaxPageSize.HasValue
-                ? Math.Min(_lastRecordIndex.Value, (MaxPageSize.Value - 1) + (FirstRecordIndex ?? 0))
-                : _lastRecordIndex;
-            set => _lastRecordIndex = value;
-        }
-        private ulong? _lastRecordIndex;
-
+        [Range(0, int.MaxValue)]
+        public int? LastRecordIndex { get; set; }
+        
         /// <summary>
-        /// The total number of records to be returned, as defined by <see cref="FirstRecordIndex"/>, <see cref="LastRecordIndex"/> and <see cref="MaxPageSize"/>.
-        /// A value of null indicates that all records are to be returned.
+        /// The total number of records to be returned.
+        /// A value of null indicates that all records following <see cref="FirstRecordIndex"/> should be returned.
         /// </summary>
-        public ulong? PageSize
+        [Range(0, int.MaxValue)]
+        public int? PageSize
         {
-            get => MaxPageSize.HasValue
-                ? Math.Min(MaxPageSize.Value, RealPageSize)
-                : RealPageSize;
-            set => LastRecordIndex = (value - 1) + (FirstRecordIndex ?? 0);
+            get => LastRecordIndex.HasValue
+                ? (LastRecordIndex.Value + 1) - (FirstRecordIndex ?? 0)
+                : null as int?;
+            set => LastRecordIndex = value.HasValue
+                ? (value.Value - 1) + (FirstRecordIndex ?? 0)
+                : null as int?;
         }
-
-        /// <summary>
-        /// The maximum number of records to be returned.
-        /// A value of null indicates that <see cref="PageSize"/> should be determined only by <see cref="FirstRecordIndex"/> and <see cref="LastRecordIndex"/>.
-        /// </summary>
-        public ulong? MaxPageSize { get; set; }
-
-        private ulong RealPageSize
-            => (_lastRecordIndex ?? ulong.MaxValue) - (FirstRecordIndex ?? 0) + 1;
     }
 }
