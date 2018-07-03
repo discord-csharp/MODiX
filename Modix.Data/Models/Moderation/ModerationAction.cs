@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Modix.Data.Models.Admin
+namespace Modix.Data.Models.Moderation
 {
     /// <summary>
     /// Describes a moderation action performed by an authorized staff member.
@@ -15,7 +15,7 @@ namespace Modix.Data.Models.Admin
         [Key]
         [Required]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public ulong Id { get; set; }
+        public long Id { get; set; }
 
         /// <summary>
         /// The type of this <see cref="ModerationAction"/>.
@@ -28,7 +28,7 @@ namespace Modix.Data.Models.Admin
         /// </summary>
         [Required]
         [ForeignKey(nameof(Infraction))]
-        public ulong? InfractionId { get; set; }
+        public long? InfractionId { get; set; }
 
         /// <summary>
         /// The <see cref="Infraction"/> to which this <see cref="ModerationAction"/> applies.
@@ -48,7 +48,7 @@ namespace Modix.Data.Models.Admin
         /// </summary>
         [Required]
         [ForeignKey(nameof(CreatedBy))]
-        public ulong CreatedById { get; set; }
+        public long CreatedById { get; set; }
 
         /// <summary>
         /// The staff member that applied this moderation action

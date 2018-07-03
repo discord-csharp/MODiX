@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Modix.Data.Models
 {
@@ -9,11 +10,21 @@ namespace Modix.Data.Models
     public class User
     {
         /// <summary>
-        /// The unique identifier for this user within the Discord API.
+        /// A unique identifier for this user.
         /// </summary>
         [Key]
         [Required]
-        public ulong Id { get; set; }
+        public long Id { get; set; }
+
+        /// <summary>
+        /// The unique identifier for this user within the Discord API.
+        /// </summary>
+        [NotMapped]
+        public ulong DiscordId
+        {
+            get => (ulong)Id;
+            set => Id = (long)value;
+        }
 
         /// <summary>
         /// The "username" value of this user, within the Discord API.

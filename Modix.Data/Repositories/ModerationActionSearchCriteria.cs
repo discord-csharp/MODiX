@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-using Modix.Data.Models.Admin;
+using Modix.Data.Models.Moderation;
 
 namespace Modix.Data.Repositories
 {
@@ -17,7 +17,7 @@ namespace Modix.Data.Repositories
         /// <summary>
         /// A <see cref="ModerationAction.InfractionId"/> value, defining the <see cref="ModerationAction"/> entities to be returned.
         /// </summary>
-        public ulong? InfractionId { get; set; }
+        public long? InfractionId { get; set; }
 
         /// <summary>
         /// A range of <see cref="ModerationAction.Created"/> values, defining the <see cref="ModerationAction"/> entities to be returned.
@@ -27,7 +27,7 @@ namespace Modix.Data.Repositories
         /// <summary>
         /// A <see cref="ModerationAction.CreatedById"/> value, defining the <see cref="ModerationAction"/> entities to be returned.
         /// </summary>
-        public ulong? CreatedById { get; set; }
+        public long? CreatedById { get; set; }
 
     }
 }

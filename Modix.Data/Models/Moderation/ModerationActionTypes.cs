@@ -1,4 +1,4 @@
-﻿namespace Modix.Data.Models.Admin
+﻿namespace Modix.Data.Models.Moderation
 {
     public enum ModerationActionTypes
     {

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-using Modix.Data.Models.Admin;
+using Modix.Data.Models.Moderation;
 
 namespace Modix.Data.Repositories
 {
@@ -17,8 +17,11 @@ namespace Modix.Data.Repositories
         /// The <see cref="ModerationAction"/> to be inserted.
         /// The <see cref="ModerationAction.Id"/> and <see cref="ModerationAction.Created"/> values are generated automatically.
         /// </param>
-        /// <returns>A <see cref="Task"/> which will complete when the operation is complete.</returns>
-        Task InsertAsync(ModerationAction action);
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing the auto-generated <see cref="ModerationAction.Id"/> value assigned to <paramref name="action"/>.
+        /// </returns>
+        Task<long> InsertAsync(ModerationAction action);
 
         /// <summary>
         /// Searches the repository for <see cref="ModerationAction"/> entities, based on a given set of criteria.

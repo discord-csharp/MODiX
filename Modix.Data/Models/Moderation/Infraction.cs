@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Modix.Data.Models.Admin
+namespace Modix.Data.Models.Moderation
 {
     /// <summary>
     /// Describes the result of one or more moderation actions performed upon a user, by a staff member.
@@ -16,7 +16,7 @@ namespace Modix.Data.Models.Admin
         [Key]
         [Required]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public ulong Id { get; set; }
+        public long Id { get; set; }
 
         /// <summary>
         /// The type of <see cref="Infraction"/> recorded.
@@ -29,7 +29,7 @@ namespace Modix.Data.Models.Admin
         /// </summary>
         [Required]
         [ForeignKey(nameof(Subject))]
-        public ulong SubjectId { get; set; }
+        public long SubjectId { get; set; }
 
         /// <summary>
         /// The user upon which the <see cref="Infraction"/> was applied.
