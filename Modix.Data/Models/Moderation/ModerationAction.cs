@@ -24,7 +24,7 @@ namespace Modix.Data.Models.Moderation
         public ModerationActionTypes Type { get; set; }
         
         /// <summary>
-        /// The <see cref="Infraction.UserId"/> value of <see cref="Infraction"/>.
+        /// The <see cref="Infraction.SubjectId"/> value of <see cref="Infraction"/>.
         /// </summary>
         [Required]
         [ForeignKey(nameof(Infraction))]
@@ -44,7 +44,7 @@ namespace Modix.Data.Models.Moderation
         public DateTimeOffset Created { get; set; }
 
         /// <summary>
-        /// The <see cref="User.Id"/> value of <see cref="CreatedBy"/>.
+        /// The <see cref="DiscordUser.UserId"/> value of <see cref="CreatedBy"/>.
         /// </summary>
         [Required]
         [ForeignKey(nameof(CreatedBy))]
