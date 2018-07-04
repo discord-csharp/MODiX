@@ -19,8 +19,5 @@ namespace Modix.Data.Models
         public string Nickname { get; set; }
         public string Username { get; set; }
         public bool IsBot { get; set; }
-
-        [InverseProperty("UserInQuestion")]
-        public DbSet<Infraction> Infractions { get; set; }
     }
 }

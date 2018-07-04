@@ -37,6 +37,5 @@ namespace Modix.Data.Models
         public DiscordGuild Guild { get; set; }
         public string Reason { get; set; }
         public bool Active { get; set; }
-        public Infraction RelatedInfraction { get; set; }
     }
 }

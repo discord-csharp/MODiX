@@ -19,9 +19,9 @@ namespace Modix.Services.Promotions
 
         public async Task AddCampaign(PromotionCampaign campaign, SocketGuildUser user)
         {
-            var promoUser = await _context.Users.FirstOrDefaultAsync(u => (ulong) u.DiscordUserId == user.Id);
+            var promoUser = await _context.DiscordUsers.FirstOrDefaultAsync(u => (ulong) u.DiscordUserId == user.Id);
             if (promoUser == null)
-                await _context.Users.AddAsync(new DiscordUser
+                await _context.DiscordUsers.AddAsync(new DiscordUser
                 {
                     Username = $"{user.Username}#{user.Discriminator}",
                     DiscordUserId = (long) user.Id,
