@@ -13,7 +13,6 @@ namespace Modix.Data
         {
         }
 
-        public DbSet<Ban> Bans { get; set; }
         public DbSet<DiscordGuild> Guilds { get; set; }
         public DbSet<DiscordMessage> Messages { get; set; }
         public DbSet<DiscordUser> DiscordUsers { get; set; }
