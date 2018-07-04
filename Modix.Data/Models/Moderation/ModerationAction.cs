@@ -24,7 +24,7 @@ namespace Modix.Data.Models.Moderation
         public ModerationActionTypes Type { get; set; }
         
         /// <summary>
-        /// The <see cref="Infraction.Id"/> value of <see cref="Infraction"/>.
+        /// The <see cref="Infraction.UserId"/> value of <see cref="Infraction"/>.
         /// </summary>
         [Required]
         [ForeignKey(nameof(Infraction))]
@@ -54,7 +54,7 @@ namespace Modix.Data.Models.Moderation
         /// The staff member that applied this moderation action
         /// </summary>
         [Required]
-        public User CreatedBy { get; set; }
+        public DiscordUser CreatedBy { get; set; }
 
         /// <summary>
         /// A comment about the moderation action that was performed.

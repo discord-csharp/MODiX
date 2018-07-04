@@ -22,7 +22,7 @@ namespace Modix.Data.Services
 
             try
             {
-                return await _context.Guilds
+                return await _context.DiscordGuilds
                     .Where(guild => guild.DiscordGuildId == discordId)
                     .Include(guild => guild.Owner)
                     .Include(guild => guild.Config)
@@ -50,7 +50,7 @@ namespace Modix.Data.Services
                 Owner = await service.ObtainAsync(owner),
             };
 
-            var res = (await _context.Guilds.AddAsync(discordGuild)).Entity;
+            var res = (await _context.DiscordGuilds.AddAsync(discordGuild)).Entity;
             try
             {
                 await _context.SaveChangesAsync();
@@ -76,7 +76,7 @@ namespace Modix.Data.Services
                     ModeratorRoleId = permission == Permissions.Moderator ? roleId.ToLong() : 0,
                 };
 
-                _context.Guilds.Update(discordGuild);
+                _context.DiscordGuilds.Update(discordGuild);
                 await _context.SaveChangesAsync();
                 return;
             }
@@ -90,7 +90,7 @@ namespace Modix.Data.Services
                 discordGuild.Config.ModeratorRoleId = roleId.ToLong();
             }
 
-            _context.Guilds.Update(discordGuild);
+            _context.DiscordGuilds.Update(discordGuild);
             await _context.SaveChangesAsync();
         }
 
@@ -108,21 +108,19 @@ namespace Modix.Data.Services
                     c.ChannelId == channel.Id.ToLong())
                 .FirstOrDefaultAsync();
 
-            if (limit == null)
+            if (limit != null) return false;
+            
+            await _context.ChannelLimits.AddAsync(new ChannelLimit
             {
-                await _context.ChannelLimits.AddAsync(new ChannelLimit
-                {
-                    ModuleName = module,
-                    Guild = guild,
-                    ChannelId = channel.Id.ToLong()
-                });
+                ModuleName = module,
+                Guild = guild,
+                ChannelId = channel.Id.ToLong()
+            });
 
-                await _context.SaveChangesAsync();
-                return true;
-            }
+            await _context.SaveChangesAsync();
+            return true;
 
 
-            return false;
         }
 
         public async Task<bool> RemoveModuleLimitAsync(DiscordGuild guild, IMessageChannel channel, string module)

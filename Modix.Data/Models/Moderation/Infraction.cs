@@ -25,7 +25,7 @@ namespace Modix.Data.Models.Moderation
         public InfractionTypes Type { get; set; }
 
         /// <summary>
-        /// The <see cref="User.Id"/> value of <see cref="Subject"/>.
+        /// The <see cref="DiscordUser.UserId"/> value of <see cref="Subject"/>.
         /// </summary>
         [Required]
         [ForeignKey(nameof(Subject))]
@@ -35,7 +35,7 @@ namespace Modix.Data.Models.Moderation
         /// The user upon which the <see cref="Infraction"/> was applied.
         /// </summary>
         [Required]
-        public User Subject { get; set; }
+        public DiscordUser Subject { get; set; }
 
         /// <summary>
         /// The <see cref="ModerationAction"/> entities applicable to this <see cref="Infraction"/>.
