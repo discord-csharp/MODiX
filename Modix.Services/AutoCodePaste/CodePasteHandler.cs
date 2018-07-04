@@ -1,8 +1,8 @@
-﻿using Discord;
-using Discord.WebSocket;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using Discord;
+using Discord.WebSocket;
 
 namespace Modix.Services.AutoCodePaste
 {
@@ -14,47 +14,35 @@ namespace Modix.Services.AutoCodePaste
 
     public class CodePasteHandler
     {
+        private readonly Dictionary<ulong, int> _repasteRatings = new Dictionary<ulong, int>();
+        private readonly CodePasteService _service;
+
         public CodePasteHandler(CodePasteService service)
         {
             _service = service;
         }
 
-        private readonly Dictionary<ulong, int> _repasteRatings = new Dictionary<ulong, int>();
-        private readonly CodePasteService _service;
-
-        private async Task ModifyRatings(Cacheable<IUserMessage, ulong> cachedMessage, SocketReaction reaction, ReactionState state)
+        private async Task ModifyRatings(Cacheable<IUserMessage, ulong> cachedMessage, SocketReaction reaction,
+            ReactionState state)
         {
-            if (reaction.Emote.Name != "tldr")
-            {
-                return;
-            }
+            if (reaction.Emote.Name != "tldr") return;
 
             var message = await cachedMessage.GetOrDownloadAsync();
 
-            if (message.Content.Length < 100)
-            {
-                return;
-            }
+            if (message.Content.Length < 100) return;
 
             var roles = (reaction.User.GetValueOrDefault() as SocketGuildUser)?.Roles;
 
-            if (roles == null)
-            {
-                return;
-            }
+            if (roles == null) return;
 
-            _repasteRatings.TryGetValue(message.Id, out int currentRating);
+            _repasteRatings.TryGetValue(message.Id, out var currentRating);
 
-            int modifier = (state == ReactionState.Added ? 1 : -1);
+            var modifier = state == ReactionState.Added ? 1 : -1;
 
             if (roles.Count > 1)
-            {
                 currentRating += 2 * modifier;
-            }
             else
-            {
                 currentRating += 1 * modifier;
-            }
 
             _repasteRatings[message.Id] = currentRating;
 
@@ -65,12 +53,14 @@ namespace Modix.Services.AutoCodePaste
             }
         }
 
-        public async Task ReactionAdded(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
+        public async Task ReactionAdded(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel,
+            SocketReaction reaction)
         {
             await ModifyRatings(cachedMessage, reaction, ReactionState.Added);
         }
 
-        public async Task ReactionRemoved(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
+        public async Task ReactionRemoved(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel,
+            SocketReaction reaction)
         {
             await ModifyRatings(cachedMessage, reaction, ReactionState.Removed);
         }

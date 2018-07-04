@@ -1,11 +1,11 @@
-﻿using Discord;
-using Modix.Services.AutoCodePaste;
-using System.Linq;
+﻿using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Discord;
+using Modix.Services.AutoCodePaste;
 
 namespace Modix.Services.Utilities
 {
@@ -14,7 +14,7 @@ namespace Modix.Services.Utilities
         private static readonly Regex _buildContentRegex = new Regex(@"```([^\s]+|)");
 
         /// <summary>
-        /// Prepares a piece of input code for use in HTTP operations
+        ///     Prepares a piece of input code for use in HTTP operations
         /// </summary>
         /// <param name="code">The code to prepare</param>
         /// <returns>The resulting StringContent for HTTP operations</returns>
@@ -25,7 +25,7 @@ namespace Modix.Services.Utilities
         }
 
         /// <summary>
-        /// Attempts to get the language of the code piece
+        ///     Attempts to get the language of the code piece
         /// </summary>
         /// <param name="code">The code</param>
         /// <returns>The code language if a match is found, null of none are found</returns>
@@ -34,25 +34,25 @@ namespace Modix.Services.Utilities
             var match = _buildContentRegex.Match(message);
             if (match.Success)
             {
-                string codeLanguage = match.Groups[1].Value;
+                var codeLanguage = match.Groups[1].Value;
                 return string.IsNullOrEmpty(codeLanguage) ? null : codeLanguage;
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
         public static string StripFormatting(string code)
         {
-            var cleanCode = _buildContentRegex.Replace(code.Trim(), string.Empty); //strip out the ` characters and code block markers
+            var cleanCode =
+                _buildContentRegex.Replace(code.Trim(),
+                    string.Empty); //strip out the ` characters and code block markers
             cleanCode = cleanCode.Replace("\t", "    "); //spaces > tabs
             cleanCode = FixIndentation(cleanCode);
             return cleanCode;
         }
 
         /// <summary>
-        /// Attempts to fix the indentation of a piece of code by aligning the left sidie.
+        ///     Attempts to fix the indentation of a piece of code by aligning the left sidie.
         /// </summary>
         /// <param name="code">The code to align</param>
         /// <returns>The newly aligned code</returns>
@@ -60,7 +60,7 @@ namespace Modix.Services.Utilities
         {
             var lines = code.Split('\n');
             var indentLine = lines.SkipWhile(d => d.FirstOrDefault() != ' ').FirstOrDefault();
-            
+
             if (indentLine != null)
             {
                 var indent = indentLine.LastIndexOf(' ') + 1;
@@ -73,10 +73,10 @@ namespace Modix.Services.Utilities
             return code;
         }
 
-        public static async Task UploadToServiceIfBiggerThan(this EmbedBuilder embed, string content, string contentType, uint size, CodePasteService service)
+        public static async Task UploadToServiceIfBiggerThan(this EmbedBuilder embed, string content,
+            string contentType, uint size, CodePasteService service)
         {
             if (content.Length > size)
-            {
                 try
                 {
                     var resultLink = await service.UploadCode(content, contentType);
@@ -86,7 +86,6 @@ namespace Modix.Services.Utilities
                 {
                     embed.AddField(a => a.WithName("More...").WithValue(we.Message));
                 }
-            }
         }
     }
 }

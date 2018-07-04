@@ -5,26 +5,26 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Modix.Data.Models;
-using Serilog;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Modix.Services.Quote;
-using Serilog.Events;
+using Modix.Data;
+using Modix.Data.Models;
+using Modix.Services.Animals;
 using Modix.Services.AutoCodePaste;
-using Modix.WebServer;
-using Modix.Services.GuildInfo;
 using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
+using Modix.Services.FileUpload;
+using Modix.Services.GuildInfo;
+using Modix.Services.Promotions;
+using Modix.Services.Quote;
+using Modix.Services.Utilities;
+using Modix.WebServer;
+using Serilog;
+using Serilog.Events;
 
 namespace Modix
 {
-    using System.Collections.Generic;
-    using Microsoft.AspNetCore.Hosting;
-    using Modix.Services.Animals;
-    using Modix.Services.FileUpload;
-    using Modix.Services.Promotions;
-    using Modix.Services.Utilities;
-
     public sealed class ModixBot
     {
         private readonly CommandService _commands = new CommandService(new CommandServiceConfig
@@ -32,12 +32,14 @@ namespace Modix
             LogLevel = LogSeverity.Debug
         });
 
-        private DiscordSocketClient _client;
+        private readonly ModixBotHooks _hooks = new ModixBotHooks();
+
         private readonly IServiceCollection _map = new ServiceCollection();
-        private IServiceProvider _provider;
-        private ModixBotHooks _hooks = new ModixBotHooks();
+
+        private DiscordSocketClient _client;
         private ModixConfig _config = new ModixConfig();
         private IWebHost _host;
+        private IServiceProvider _provider;
 
         public ModixBot()
         {
@@ -46,17 +48,13 @@ namespace Modix
             var loggerConfig = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .WriteTo.LiterateConsole()
-                .WriteTo.RollingFile(@"logs\{Date}", restrictedToMinimumLevel: LogEventLevel.Debug);
+                .WriteTo.RollingFile(@"logs\{Date}", LogEventLevel.Debug);
 
             if (!string.IsNullOrWhiteSpace(_config.WebhookToken))
-            {
                 loggerConfig.WriteTo.DiscordWebhookSink(_config.WebhookId, _config.WebhookToken, LogEventLevel.Error);
-            }
 
-            if(!string.IsNullOrWhiteSpace(_config.SentryToken))
-            {
+            if (!string.IsNullOrWhiteSpace(_config.SentryToken))
                 loggerConfig.WriteTo.Sentry(_config.SentryToken, restrictedToMinimumLevel: LogEventLevel.Warning);
-            }
 
             Log.Logger = loggerConfig.CreateLogger();
             _map.AddLogging(bldr => bldr.AddSerilog(Log.Logger, true));
@@ -64,16 +62,13 @@ namespace Modix
 
         public async Task Run()
         {
-            _client = new DiscordSocketClient(config: new DiscordSocketConfig
+            _client = new DiscordSocketClient(new DiscordSocketConfig
             {
-                LogLevel = LogSeverity.Debug,
+                LogLevel = LogSeverity.Debug
             });
 
             await Install(); // Setting up DependencyMap
-            //_map.AddDbContext<ModixContext>(options =>
-            //{
-            //    options.UseNpgsql(_config.PostgreConnectionString);
-            //});
+            _map.AddDbContext<ModixContext>(options => { options.UseNpgsql(_config.PostgreConnectionString); });
 
             //var provider = _map.BuildServiceProvider();
 
@@ -119,9 +114,9 @@ namespace Modix
                 DiscordToken = Environment.GetEnvironmentVariable("Token"),
                 ReplToken = Environment.GetEnvironmentVariable("ReplToken"),
                 StackoverflowToken = Environment.GetEnvironmentVariable("StackoverflowToken"),
-                PostgreConnectionString = Environment.GetEnvironmentVariable("MODIX_DB_CONNECTION"),
+                PostgreConnectionString = Environment.GetEnvironmentVariable("PostgreConnectionString"),
                 DiscordClientId = Environment.GetEnvironmentVariable("DiscordClientId"),
-                DiscordClientSecret = Environment.GetEnvironmentVariable("DiscordClientSecret"),
+                DiscordClientSecret = Environment.GetEnvironmentVariable("DiscordClientSecret")
             };
 
             var id = Environment.GetEnvironmentVariable("log_webhook_id");
@@ -133,10 +128,7 @@ namespace Modix
             }
 
             var sentryToken = Environment.GetEnvironmentVariable("SentryToken");
-            if (!string.IsNullOrWhiteSpace(sentryToken))
-            {
-                _config.SentryToken = sentryToken;
-            }
+            if (!string.IsNullOrWhiteSpace(sentryToken)) _config.SentryToken = sentryToken;
         }
 
         public async Task HandleCommand(SocketMessage messageParam)
@@ -144,10 +136,9 @@ namespace Modix
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            var message = messageParam as SocketUserMessage;
-            if (message == null) return;
+            if (!(messageParam is SocketUserMessage message)) return;
 
-            int argPos = 0;
+            var argPos = 0;
             if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos)))
                 return;
 
@@ -162,16 +153,12 @@ namespace Modix
 
                 if (!result.IsSuccess)
                 {
-                    string error = $"{result.Error}: {result.ErrorReason}";
+                    var error = $"{result.Error}: {result.ErrorReason}";
 
                     if (!string.Equals(result.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
-                    {
                         Log.Warning(error);
-                    }
                     else
-                    {
                         Log.Error(error);
-                    }
 
                     if (result.Error != CommandError.Exception)
                     {
@@ -208,7 +195,7 @@ namespace Modix
             _map.AddSingleton<CommandHelpService>();
 
             _map.AddSingleton<PromotionService>();
-            _map.AddSingleton<IPromotionRepository, FilePromotionRepository>();
+            _map.AddSingleton<IPromotionRepository, DBPromotionRepository>();
 
             _map.AddSingleton<CommandErrorHandler>();
 

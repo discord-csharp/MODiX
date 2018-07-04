@@ -1,13 +1,13 @@
-﻿namespace Modix.Services.Animals
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Modix.Services.Animals.Cat.APIs.CaaS;
-    using Modix.Services.Animals.Cat.APIs.Imgur;
-    using Modix.Services.Animals.Fox.GiraffeDucks;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Modix.Services.Animals.Cat.APIs.CaaS;
+using Modix.Services.Animals.Cat.APIs.Imgur;
+using Modix.Services.Animals.Fox.GiraffeDucks;
 
+namespace Modix.Services.Animals
+{
     public enum MediaType
     {
         Jpg,
@@ -17,19 +17,20 @@
     public enum AnimalType
     {
         Cat,
-        Fox,
+        Fox
     }
 
     public interface IAnimalService
     {
         /// <summary>
-        /// Gets an image
+        ///     Gets an image
         /// </summary>
         /// <param name="animalType">The type of animal we want to see</param>
         /// <param name="mediaType">The type of media we want: an animated gif or a still picture</param>
         /// <param name="cancellationToken">The cancellation token for our time limit</param>
         /// <returns></returns>
-        Task<Response> GetAsync(AnimalType animalType, MediaType mediaType, CancellationToken cancellationToken = default);
+        Task<Response> GetAsync(AnimalType animalType, MediaType mediaType,
+            CancellationToken cancellationToken = default);
     }
 
     public class AnimalService : IAnimalService
@@ -43,7 +44,7 @@
             _catApis = new List<IAnimalApi>
             {
                 new ImgurCatApi(),
-                new CaaSCatApi(),
+                new CaaSCatApi()
             };
 
             _foxApis = new List<IAnimalApi>
@@ -52,7 +53,8 @@
             };
         }
 
-        public async Task<Response> GetAsync(AnimalType animalType, MediaType mediaType, CancellationToken cancellationToken = default)
+        public async Task<Response> GetAsync(AnimalType animalType, MediaType mediaType,
+            CancellationToken cancellationToken = default)
         {
             var apisUsed = new List<IAnimalApi>();
 

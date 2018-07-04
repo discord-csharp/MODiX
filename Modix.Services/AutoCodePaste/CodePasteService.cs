@@ -1,11 +1,11 @@
-﻿using Discord;
-using Modix.Data.Utilities;
-using Modix.Services.Utilities;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Discord;
+using Modix.Data.Utilities;
+using Modix.Services.Utilities;
+using Newtonsoft.Json.Linq;
 
 namespace Modix.Services.AutoCodePaste
 {
@@ -22,12 +22,14 @@ namespace Modix.Services.AutoCodePaste
 
         private const string _ApiReferenceUrl = "https://hastebin.com/";
         private const string _FallbackApiReferenceUrl = "https://haste.charlesmilette.net/";
+
         private static readonly HttpClient client = new HttpClient
         {
             Timeout = TimeSpan.FromSeconds(5)
         };
+
         /// <summary>
-        /// Uploads a given piece of code to the service, and returns the URL to the post.
+        ///     Uploads a given piece of code to the service, and returns the URL to the post.
         /// </summary>
         /// <param name="code">The code to post</param>
         /// <returns>The URL to the newly created post</returns>
@@ -48,9 +50,7 @@ namespace Modix.Services.AutoCodePaste
             }
 
             if (!response.IsSuccessStatusCode)
-            {
                 throw new WebException("Something failed while posting code to Hastebin.");
-            }
 
             var urlResponse = await response.Content.ReadAsStringAsync();
             var pasteKey = JObject.Parse(urlResponse)["key"].Value<string>();
@@ -60,7 +60,7 @@ namespace Modix.Services.AutoCodePaste
         }
 
         /// <summary>
-        /// Uploads the code in the given message to the service, and returns the URL to the post.
+        ///     Uploads the code in the given message to the service, and returns the URL to the post.
         /// </summary>
         /// <param name="msg">The Discord message to upload</param>
         /// <param name="code">The string to upload instead of message content</param>
@@ -69,7 +69,7 @@ namespace Modix.Services.AutoCodePaste
         {
             var formatted = string.Format(Header,
                 $"{msg.Author.Username}#{msg.Author.DiscriminatorValue}", msg.Channel.Name,
-                DateTime.Now.ToString("dddd, MMMM d yyyy @ H:mm:ss"), msg.Id, 
+                DateTime.Now.ToString("dddd, MMMM d yyyy @ H:mm:ss"), msg.Id,
                 FormatUtilities.FixIndentation(code ?? msg.Content));
 
             return await UploadCode(formatted);

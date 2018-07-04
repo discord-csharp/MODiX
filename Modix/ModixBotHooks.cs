@@ -1,13 +1,13 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
-using Serilog;
 using Modix.Services.AutoCodePaste;
+using Modix.Services.CommandHelp;
 using Modix.Services.FileUpload;
 using Modix.Services.GuildInfo;
-using System;
-using Modix.Services.CommandHelp;
+using Serilog;
 
 namespace Modix
 {
@@ -38,10 +38,12 @@ namespace Modix
                     Log.Verbose(message.ToString());
                     break;
             }
+
             return Task.CompletedTask;
         }
 
-        public async Task HandleAddReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+        public async Task HandleAddReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel,
+            SocketReaction reaction)
         {
             var codePaste = ServiceProvider.GetService(typeof(CodePasteHandler)) as CodePasteHandler;
             var errorHelper = ServiceProvider.GetService(typeof(CommandErrorHandler)) as CommandErrorHandler;
@@ -50,7 +52,8 @@ namespace Modix
             await errorHelper.ReactionAdded(message, channel, reaction);
         }
 
-        public async Task HandleRemoveReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+        public async Task HandleRemoveReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel,
+            SocketReaction reaction)
         {
             var codePaste = ServiceProvider.GetService(typeof(CodePasteHandler)) as CodePasteHandler;
             var errorHelper = ServiceProvider.GetService(typeof(CommandErrorHandler)) as CommandErrorHandler;
@@ -79,16 +82,13 @@ namespace Modix
 
         public async Task HandleMessage(SocketMessage messageParam)
         {
-            var user = ((messageParam as SocketUserMessage)?.Author as SocketGuildUser);
+            var user = (messageParam as SocketUserMessage)?.Author as SocketGuildUser;
 
             if (user == null) return;
 
             var fileUploadHandler = ServiceProvider.GetService(typeof(FileUploadHandler)) as FileUploadHandler;
 
-            if (messageParam.Attachments.Any())
-            {
-                await fileUploadHandler.Handle(messageParam);
-            }
+            if (messageParam.Attachments.Any()) await fileUploadHandler.Handle(messageParam);
         }
     }
 }

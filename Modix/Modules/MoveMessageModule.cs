@@ -34,13 +34,10 @@ namespace Modix.Modules
 
             // Format output
             var builder = new EmbedBuilder()
-                    .WithColor(new Color(95, 186, 125))
-                    .WithDescription(message.Content);
+                .WithColor(new Color(95, 186, 125))
+                .WithDescription(message.Content);
 
-            if (!string.IsNullOrWhiteSpace(reason))
-            {
-                builder.AddInlineField("Reason", reason);
-            }
+            if (!string.IsNullOrWhiteSpace(reason)) builder.AddInlineField("Reason", reason);
 
             var mover = $"@{(Context.User as SocketGuildUser)?.Nickname ?? Context.User.Username}";
             builder.WithFooter($"Message copied from #{message.Channel.Name} by {mover}");
@@ -55,7 +52,9 @@ namespace Modix.Modules
 
         [Command("move"), Summary("Moves a message from one channel to another."), Remarks("Usage: !move 12345 #foo")]
         public async Task Run(SocketTextChannel channel, ulong messageId, [Remainder] string reason = null)
-            => await Run(messageId, channel, reason);
+        {
+            await Run(messageId, channel, reason);
+        }
 
         private async Task<IMessage> FindMessageInUnknownChannel(ulong messageId)
         {
@@ -67,7 +66,6 @@ namespace Modix.Modules
             var channels = await Context.Guild.GetTextChannelsAsync();
 
             foreach (var channel in channels)
-            {
                 try
                 {
                     message = await channel.GetMessageAsync(messageId);
@@ -80,7 +78,6 @@ namespace Modix.Modules
                     Log.Debug(e, "Failed accessing channel {ChannelName} when searching for message {MessageId}",
                         channel.Name, messageId);
                 }
-            }
 
             return message;
         }

@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using Discord.Commands;
 using Discord;
-using Modix.Services.Utilities;
-using System.Text.RegularExpressions;
+using Discord.Commands;
+using Kitsu;
 using Kitsu.Anime;
 using Kitsu.Manga;
-using Kitsu;
+using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
@@ -20,14 +14,14 @@ namespace Modix.Modules
     public class AnimeModule : ModuleBase
     {
         [Command("anime search"), Summary("Searches the Kitsu anime database")]
-        public async Task SearchAnime([Remainder]string query)
+        public async Task SearchAnime([Remainder] string query)
         {
             try
             {
                 var result = await Anime.GetAnimeAsync(query);
 
                 var found = result.Data
-                    .Where(d=>!d.Attributes.Nsfw && d.Attributes.AgeRating != "R18")
+                    .Where(d => !d.Attributes.Nsfw && d.Attributes.AgeRating != "R18")
                     .Select(d => WeebDataAbstraction.FromAnime(d));
 
                 await ReplyWithEmbed(query, found);
@@ -39,7 +33,7 @@ namespace Modix.Modules
         }
 
         [Command("manga search"), Summary("Searches the Kitsu manga database")]
-        public async Task SearchManga([Remainder]string query)
+        public async Task SearchManga([Remainder] string query)
         {
             try
             {
@@ -61,22 +55,16 @@ namespace Modix.Modules
         {
             var first = found.First();
 
-            string ratingString = "";
+            var ratingString = "";
 
-            if (!String.IsNullOrWhiteSpace(first.Rating))
-            {
-                ratingString = $"Rating: {first.Rating}\n";
-            }
+            if (!string.IsNullOrWhiteSpace(first.Rating)) ratingString = $"Rating: {first.Rating}\n";
 
             var embed = new EmbedBuilder()
                 .WithAuthor($"{first.Title} - {first.Type}", "", first.Url)
                 .WithDescription($"{ratingString}{first.Synopsis}\n\nAlso see:")
                 .WithThumbnailUrl(first.PosterThumbnail);
 
-            foreach (var entry in found.Skip(1).Take(2))
-            {
-                embed.AddInlineField(entry.Title, $"[⇒ Kitsu]({entry.Url})");
-            }
+            foreach (var entry in found.Skip(1).Take(2)) embed.AddInlineField(entry.Title, $"[⇒ Kitsu]({entry.Url})");
 
             await ReplyAsync($"Results for **{query}**", false, embed);
         }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -21,9 +18,10 @@ namespace Modix.WebServer.Controllers
         [HttpGet("login")]
         public IActionResult LogIn()
         {
-            return Challenge(new AuthenticationProperties { RedirectUri = "/" }, DiscordAuthenticationDefaults.AuthenticationScheme);
+            return Challenge(new AuthenticationProperties {RedirectUri = "/"},
+                DiscordAuthenticationDefaults.AuthenticationScheme);
         }
-        
+
         [HttpGet("logout")]
         public async Task<IActionResult> LogOut()
         {

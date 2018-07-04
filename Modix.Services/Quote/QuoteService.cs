@@ -23,7 +23,10 @@ namespace Modix.Services.Quote
         }
 
         private static string GetPostedMeta(IMessage message)
-            => string.Format("{0:dddd, dd}{1} {0:MMMM yyyy} at {0:HH:mm}, in #{2}", message.Timestamp, GetDaySuffix(message.Timestamp.Day), message.Channel.Name);
+        {
+            return string.Format("{0:dddd, dd}{1} {0:MMMM yyyy} at {0:HH:mm}, in #{2}", message.Timestamp,
+                GetDaySuffix(message.Timestamp.Day), message.Channel.Name);
+        }
 
         private static string GetDaySuffix(int day)
         {

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Discord.Commands;
 
 namespace Modix.Services.CommandHelp
@@ -24,9 +22,7 @@ namespace Modix.Services.CommandHelp
             {
                 if (command.Preconditions.Any(precon => precon is RequireOwnerAttribute) ||
                     command.Attributes.Any(attr => attr is HiddenFromHelpAttribute))
-                {
                     continue;
-                }
 
                 ret.Commands.AddRange(CommandHelpData.FromCommandInfo(command));
             }

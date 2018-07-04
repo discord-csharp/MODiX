@@ -17,13 +17,18 @@ namespace Modix.Data.Services
             _context = context;
         }
 
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            _context.Dispose();
+        }
+
         public async Task<DiscordGuild> GetAsync(ulong discordId)
         {
-
             try
             {
                 return await _context.Guilds
-                    .Where(guild => guild.DiscordId == discordId.ToLong())
+                    .Where(guild => guild.DiscordGuildID == discordId)
                     .Include(guild => guild.Owner)
                     .Include(guild => guild.Config)
                     .FirstAsync();
@@ -32,22 +37,20 @@ namespace Modix.Data.Services
             {
                 return null;
             }
-
         }
 
         public async Task<DiscordGuild> AddAsync(IGuild guild)
         {
-
             var service = new DiscordUserService(_context);
             var owner = await guild.GetOwnerAsync();
 
-            var discordGuild = new DiscordGuild()
+            var discordGuild = new DiscordGuild
             {
                 Config = new GuildConfig(),
-                DiscordId = guild.Id.ToLong(),
+                DiscordGuildID = guild.Id,
                 Name = guild.Name,
                 CreatedAt = guild.CreatedAt.DateTime,
-                Owner = await service.ObtainAsync(owner),
+                Owner = await service.ObtainAsync(owner)
             };
 
             var res = (await _context.Guilds.AddAsync(discordGuild)).Entity;
@@ -59,8 +62,8 @@ namespace Modix.Data.Services
             {
                 return null;
             }
-            return res;
 
+            return res;
         }
 
         public async void SetPermissionAsync(IGuild guild, Permissions permission, ulong roleId)
@@ -73,7 +76,7 @@ namespace Modix.Data.Services
                 {
                     GuildId = guild.Id.ToLong(),
                     AdminRoleId = permission == Permissions.Administrator ? roleId.ToLong() : 0,
-                    ModeratorRoleId = permission == Permissions.Moderator ? roleId.ToLong() : 0,
+                    ModeratorRoleId = permission == Permissions.Moderator ? roleId.ToLong() : 0
                 };
 
                 _context.Guilds.Update(discordGuild);
@@ -82,13 +85,9 @@ namespace Modix.Data.Services
             }
 
             if (permission == Permissions.Administrator)
-            {
                 discordGuild.Config.AdminRoleId = roleId.ToLong();
-            }
             else
-            {
                 discordGuild.Config.ModeratorRoleId = roleId.ToLong();
-            }
 
             _context.Guilds.Update(discordGuild);
             await _context.SaveChangesAsync();
@@ -104,7 +103,7 @@ namespace Modix.Data.Services
             var limit = await _context.ChannelLimits
                 .Where(c =>
                     c.ModuleName.ToUpper() == module.ToUpper() &&
-                    c.Guild.Id == guild.Id &&
+                    c.Guild.DiscordGuildID == guild.DiscordGuildID &&
                     c.ChannelId == channel.Id.ToLong())
                 .FirstOrDefaultAsync();
 
@@ -130,7 +129,7 @@ namespace Modix.Data.Services
             var limit = await _context.ChannelLimits
                 .Where(c =>
                     c.ModuleName.ToUpper() == module.ToUpper() &&
-                    c.Guild.Id == guild.Id &&
+                    c.Guild.DiscordGuildID == guild.DiscordGuildID &&
                     c.ChannelId == channel.Id.ToLong())
                 .FirstOrDefaultAsync();
 
@@ -144,12 +143,6 @@ namespace Modix.Data.Services
 
 
             return false;
-        }
-        
-        public void Dispose()
-        {
-            GC.SuppressFinalize(this);
-            _context.Dispose();
         }
     }
 }

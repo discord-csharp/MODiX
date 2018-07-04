@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
@@ -42,12 +41,12 @@ namespace Modix.Modules
                 foreach (var module in _commandService.GetData())
                 {
                     eb = eb.WithTitle($"Module: {module.Name ?? "Unknown"}")
-                           .WithDescription(module.Summary ?? "Unknown");
+                        .WithDescription(module.Summary ?? "Unknown");
 
                     foreach (var command in module.Commands)
-                    {
-                        eb.AddField(new EmbedFieldBuilder().WithName($"Command: !{command.Alias.ToLowerInvariant() ?? ""} {GetParams(command)}").WithValue(command.Summary ?? "Unknown"));
-                    }
+                        eb.AddField(new EmbedFieldBuilder()
+                            .WithName($"Command: !{command.Alias.ToLowerInvariant() ?? ""} {GetParams(command)}")
+                            .WithValue(command.Summary ?? "Unknown"));
 
                     await userDm.SendMessageAsync(string.Empty, embed: eb.Build());
                     eb = new EmbedBuilder();
@@ -55,7 +54,8 @@ namespace Modix.Modules
             }
             catch (HttpException exc) when (exc.DiscordCode == 50007)
             {
-                await ReplyAsync($"You have private messages for this server disabled, {Context.User.Mention}. Please enable them so I can send you help.");
+                await ReplyAsync(
+                    $"You have private messages for this server disabled, {Context.User.Mention}. Please enable them so I can send you help.");
                 return;
             }
 

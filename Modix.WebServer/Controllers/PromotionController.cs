@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
 using Modix.Services.Promotions;
-using Modix.WebServer.Filters;
 using Modix.WebServer.Models;
 
 namespace Modix.WebServer.Controllers
@@ -14,7 +11,7 @@ namespace Modix.WebServer.Controllers
     [Route("~/api")]
     public class PromotionController : ModixController
     {
-        private PromotionService _promotionService;
+        private readonly PromotionService _promotionService;
 
         public PromotionController(DiscordSocketClient client, PromotionService promotionService) : base(client)
         {
@@ -26,16 +23,13 @@ namespace Modix.WebServer.Controllers
         {
             return Ok(await _promotionService.GetCampaigns());
         }
-        
+
         [HttpPut("campaigns/{campaignId}/comments")]
         public async Task<IActionResult> AddComment(int campaignId, [FromBody] PromotionCommentData commentData)
         {
             var campaign = await _promotionService.GetCampaign(campaignId);
 
-            if (campaign == null)
-            {
-                return BadRequest($"Invalid campaign ID specified ({campaignId})");
-            }
+            if (campaign == null) return BadRequest($"Invalid campaign ID specified ({campaignId})");
 
             try
             {
@@ -83,10 +77,7 @@ namespace Modix.WebServer.Controllers
         {
             var foundUser = _client.Guilds.First().GetUser(creationData?.UserId ?? 0);
 
-            if (foundUser == null)
-            {
-                return BadRequest($"User not found.");
-            }
+            if (foundUser == null) return BadRequest($"User not found.");
 
             try
             {

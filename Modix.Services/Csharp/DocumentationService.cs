@@ -15,9 +15,7 @@ namespace Modix.Services.Csharp
             var response = await client.GetAsync(ApiReferenceUrl + term);
 
             if (!response.IsSuccessStatusCode)
-            {
                 throw new WebException("Something failed while querying the .NET Api docs.");
-            }
             var jsonResponse = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<DocumentationApiResponse>(jsonResponse);
         }
