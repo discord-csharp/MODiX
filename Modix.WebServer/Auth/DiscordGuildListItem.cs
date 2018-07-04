@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Modix.WebServer.Auth
+﻿namespace Modix.WebServer.Auth
 {
     public class DiscordGuildListItem
     {

@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Modix.Data.Models;
 using Modix.Services.Promotions;
 
 namespace Modix.Modules
@@ -14,13 +14,14 @@ namespace Modix.Modules
     public class PromotionModule : ModuleBase
     {
         /// <summary>
-        /// Total width (in characters) of the rating bar
+        ///     Total width (in characters) of the rating bar
         /// </summary>
-        const int BarSize = 10;
-        const char FullBar = '⣿';
-        const char EmptyBar = '⣀';
+        private const int BarSize = 10;
 
-        private PromotionService _service;
+        private const char FullBar = '⣿';
+        private const char EmptyBar = '⣀';
+
+        private readonly PromotionService _service;
 
         public PromotionModule(PromotionService service)
         {
@@ -34,55 +35,47 @@ namespace Modix.Modules
                 .OrderByDescending(d => d.TotalVotes)
                 .ThenByDescending(d => d.ForVotes);
 
-            EmbedBuilder embed = new EmbedBuilder();
+            var embed = new EmbedBuilder();
 
             foreach (var campaign in campaigns.Where(d => d.Status == CampaignStatus.Active).Take(5))
             {
-                StringBuilder barBuilder = new StringBuilder();
+                var barBuilder = new StringBuilder();
 
                 //Number of characters that should be "filled"
-                int forSize = (int)Math.Round(campaign.VoteRatio * BarSize);
+                var forSize = (int) Math.Round(campaign.VoteRatio * BarSize);
 
                 barBuilder.Append($"{campaign.SentimentIcon}  `");
 
-                for (int i = 0; i < forSize; i++)
-                {
-                    barBuilder.Append(FullBar);
-                }
+                for (var i = 0; i < forSize; i++) barBuilder.Append(FullBar);
 
-                for (int i = 0; i < BarSize - forSize; i++)
-                {
-                    barBuilder.Append(EmptyBar);
-                }
+                for (var i = 0; i < BarSize - forSize; i++) barBuilder.Append(EmptyBar);
 
                 barBuilder.Append($"`  {campaign.TotalVotes} vote");
 
-                if (campaign.TotalVotes > 1)
-                {
-                    barBuilder.Append("s");
-                }
+                if (campaign.TotalVotes > 1) barBuilder.Append("s");
 
                 barBuilder.AppendLine();
 
                 embed.Fields.Add(new EmbedFieldBuilder
                 {
-                    Name = campaign.Username,
+                    Name = campaign.PromotionFor.Username,
                     IsInline = false,
                     Value = barBuilder.ToString()
                 });
             }
 
-            embed.Footer = new EmbedFooterBuilder { Text = "See more & comment at https://mod.gg/promotions" };
+            embed.Footer = new EmbedFooterBuilder {Text = "See more & comment at https://mod.gg/promotions"};
 
             await ReplyAsync("**Active Campaigns**", false, embed);
         }
 
         [Command("nominate"), Summary("Nominate the given user for promotion!")]
-        public async Task Nominate([Summary("The user to nominate - must be unranked")] SocketGuildUser user, 
-                                   [Remainder, Summary("A few words on their behalf")] string reason)
+        public async Task Nominate([Summary("The user to nominate - must be unranked")]
+            SocketGuildUser user,
+            [Remainder, Summary("A few words on their behalf")] 
+            string reason)
         {
-            if (Context.User is SocketGuildUser socketGuildUser)
-            {
+            if (Context.User is SocketGuildUser)
                 try
                 {
                     await _service.CreateCampaign(user, reason);
@@ -91,13 +84,13 @@ namespace Modix.Modules
                 {
                     await ReplyAsync($"Error: {ex.Message}");
                 }
-            }
         }
 
         [Command("approve"), Summary("Approve a user's campaign, promoting them")]
         public async Task Approve(SocketGuildUser user)
         {
-            var campaign = (await _service.GetCampaigns()).FirstOrDefault(d => d.UserId == user.Id);
+            var campaign =
+                (await _service.GetCampaigns()).FirstOrDefault(d => d.PromotionFor.DiscordUserID == (long) user.Id);
 
             if (campaign == null)
             {
@@ -111,7 +104,8 @@ namespace Modix.Modules
         [Command("deny"), Summary("Deny a user's campaign")]
         public async Task Deny(SocketGuildUser user)
         {
-            var campaign = (await _service.GetCampaigns()).FirstOrDefault(d => d.UserId == user.Id);
+            var campaign =
+                (await _service.GetCampaigns()).FirstOrDefault(d => d.PromotionFor.DiscordUserID == (long) user.Id);
 
             if (campaign == null)
             {
@@ -125,7 +119,7 @@ namespace Modix.Modules
         [Command("reactivate"), Summary("Reactivate a user's campaign")]
         public async Task Reactivate(SocketGuildUser user)
         {
-            var campaign = (await _service.GetCampaigns()).First(d => d.UserId == user.Id);
+            var campaign = (await _service.GetCampaigns()).First(d => d.PromotionFor.DiscordUserID == (long) user.Id);
 
             if (campaign == null)
             {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Microsoft.Extensions.Caching.Memory;
@@ -10,9 +9,9 @@ namespace Modix.Services.GuildInfo
 {
     public class GuildInfoService
     {
-        private IMemoryCache _cache;
+        private readonly IMemoryCache _cache;
 
-        private readonly MemoryCacheEntryOptions _cacheEntryOptions = 
+        private readonly MemoryCacheEntryOptions _cacheEntryOptions =
             new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromDays(1));
 
         public GuildInfoService(IMemoryCache cache)
@@ -21,12 +20,15 @@ namespace Modix.Services.GuildInfo
         }
 
         /// <summary>
-        /// Create a unique key object for the cache
+        ///     Create a unique key object for the cache
         /// </summary>
-        private object GetKeyForGuild(IGuild guild) => new { guild, Target = "GuildInfo" };
+        private object GetKeyForGuild(IGuild guild)
+        {
+            return new {guild, Target = "GuildInfo"};
+        }
 
         /// <summary>
-        /// Clear the cache entry for the given guild
+        ///     Clear the cache entry for the given guild
         /// </summary>
         public void ClearCacheEntry(IGuild guild)
         {
@@ -34,7 +36,7 @@ namespace Modix.Services.GuildInfo
         }
 
         /// <summary>
-        /// Gets a list of GuildInfoResult objects representing the role distriution for the given guild.
+        ///     Gets a list of GuildInfoResult objects representing the role distriution for the given guild.
         /// </summary>
         /// <param name="guild">The guild to retrieve roles/counts from</param>
         /// <returns>A list of GuildInfoResult(s), each representing a role in the guild</returns>
@@ -51,7 +53,7 @@ namespace Modix.Services.GuildInfo
 
                 //Group the users by their highest priority role (if they have one)
                 var groupings = members.GroupBy(member => GetHighestRankingRole(serverRoles, member))
-                    .Where(d=>d.Key != null);
+                    .Where(d => d.Key != null);
 
                 var roleCounts = groupings.OrderByDescending(d => d.Count());
 
@@ -73,20 +75,18 @@ namespace Modix.Services.GuildInfo
 
         public string GetRoleColorHex(IRole role)
         {
-            string ret = "99aab5"; //"Discord Grey"
+            var ret = "99aab5"; //"Discord Grey"
 
-            if (role.Color.RawValue > 0)
-            {
-                ret = role.Color.RawValue.ToString("X");
-            }
+            if (role.Color.RawValue > 0) ret = role.Color.RawValue.ToString("X");
 
             return $"#{ret}";
         }
 
         /// <summary>
-        /// Get the user's highest position role
+        ///     Get the user's highest position role
         /// </summary>
         /// <param name="serverRoles">A dictionary of role IDs to roles in the server</param>
+        /// <param name="user">Discord User</param>
         /// <returns>The highest position role</returns>
         private IRole GetHighestRankingRole(IDictionary<ulong, IRole> serverRoles, IGuildUser user)
         {
@@ -95,7 +95,7 @@ namespace Modix.Services.GuildInfo
 
             //Try to get their highest role
             var highestPosition = roles
-                .Where(d=>d.Name != "@everyone" && !d.IsManaged)
+                .Where(d => d.Name != "@everyone" && !d.IsManaged)
                 .OrderByDescending(role => role.IsHoisted)
                 .ThenByDescending(role => role.Position)
                 .FirstOrDefault();

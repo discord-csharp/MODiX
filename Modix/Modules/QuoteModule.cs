@@ -1,7 +1,7 @@
 ﻿using System;
-using Discord.Commands;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Commands;
 using Modix.Services.Quote;
 using Serilog;
 
@@ -31,7 +31,8 @@ namespace Modix.Modules
             }
             catch (Exception e)
             {
-                Log.Error(e, "Failed fetching message for Quote command, ran by {User} with a Message ID of {MessageId}", 
+                Log.Error(e,
+                    "Failed fetching message for Quote command, ran by {User} with a Message ID of {MessageId}",
                     Context.User.Mention, messageId);
             }
 
@@ -49,7 +50,8 @@ namespace Modix.Modules
             }
             catch (Exception e)
             {
-                Log.Error(e, "Failed fetching message for Quote command, ran by {User} with a Message ID of {MessageId} for channel {Channel}", 
+                Log.Error(e,
+                    "Failed fetching message for Quote command, ran by {User} with a Message ID of {MessageId} for channel {Channel}",
                     Context.User.Mention, messageId, channel.Name);
             }
 
@@ -58,7 +60,9 @@ namespace Modix.Modules
 
         [Command("quote"), Summary("Quote the given message from the given channel")]
         public async Task Run(ulong messageId, ITextChannel channel)
-            => await Run(channel, messageId);
+        {
+            await Run(channel, messageId);
+        }
 
         private async Task ProcessRetrievedMessage(IMessage message)
         {
@@ -87,7 +91,6 @@ namespace Modix.Modules
             var channels = await Context.Guild.GetTextChannelsAsync();
 
             foreach (var channel in channels)
-            {
                 try
                 {
                     message = await GetMessage(messageId, channel);
@@ -100,17 +103,23 @@ namespace Modix.Modules
                     Log.Debug(e, "Failed accessing channel {ChannelName} when searching for message {MessageId}",
                         channel.Name, messageId);
                 }
-            }
 
             return message;
         }
 
         private Task<IMessage> GetMessage(ulong messageId, ITextChannel channel)
-            => GetMessageInChannel(messageId, channel);
+        {
+            return GetMessageInChannel(messageId, channel);
+        }
 
-        private static Task<IMessage> GetMessageInChannel(ulong messageId, ITextChannel channel) 
-            => channel.GetMessageAsync(messageId);
+        private static Task<IMessage> GetMessageInChannel(ulong messageId, ITextChannel channel)
+        {
+            return channel.GetMessageAsync(messageId);
+        }
 
-        private Task ReplyFailure() => ReplyAsync($"I couldn't find the message you're referring to {Context.User.Mention}");
+        private Task ReplyFailure()
+        {
+            return ReplyAsync($"I couldn't find the message you're referring to {Context.User.Mention}");
+        }
     }
 }

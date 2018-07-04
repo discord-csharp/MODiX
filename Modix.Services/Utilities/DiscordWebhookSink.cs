@@ -1,18 +1,18 @@
 ﻿using System;
+using Discord;
+using Discord.Webhook;
 using Serilog;
+using Serilog.Configuration;
 using Serilog.Core;
 using Serilog.Events;
-using Serilog.Configuration;
-using Discord.Webhook;
-using Discord;
 
 namespace Modix.Services.Utilities
 {
     public class DiscordWebhookSink : ILogEventSink
     {
+        private readonly IFormatProvider _formatProvider;
         private readonly ulong _webhookId;
         private readonly string _webhookToken;
-        private readonly IFormatProvider _formatProvider;
 
         public DiscordWebhookSink(ulong webhookId, string webhookToken, IFormatProvider formatProvider)
         {
@@ -20,6 +20,7 @@ namespace Modix.Services.Utilities
             _webhookToken = webhookToken;
             _formatProvider = formatProvider;
         }
+
         public void Emit(LogEvent logEvent)
         {
             var formattedMessage = logEvent.RenderMessage(_formatProvider);
@@ -33,14 +34,16 @@ namespace Modix.Services.Utilities
                 .AddField(new EmbedFieldBuilder()
                     .WithIsInline(false)
                     .WithName($"LogLevel: {logEvent.Level}")
-                    .WithValue(Format.Code($"{formattedMessage}\n{logEvent.Exception?.ToString()}".TruncateTo(1010))));
+                    .WithValue(Format.Code($"{formattedMessage}\n{logEvent.Exception}".TruncateTo(1010))));
 
-            webhookClient.SendMessageAsync(string.Empty, embeds: new[] { message.Build() }, username: "Modix Logger");
+            webhookClient.SendMessageAsync(string.Empty, embeds: new[] {message.Build()}, username: "Modix Logger");
         }
     }
+
     public static class DiscordWebhookSinkExtensions
     {
-        public static LoggerConfiguration DiscordWebhookSink(this LoggerSinkConfiguration config, ulong id, string token, LogEventLevel minLevel)
+        public static LoggerConfiguration DiscordWebhookSink(this LoggerSinkConfiguration config, ulong id,
+            string token, LogEventLevel minLevel)
         {
             return config.Sink(new DiscordWebhookSink(id, token, null), minLevel);
         }
@@ -50,10 +53,7 @@ namespace Modix.Services.Utilities
     {
         public static string TruncateTo(this string str, int length)
         {
-            if(str.Length < length)
-            {
-                return str;
-            }
+            if (str.Length < length) return str;
 
             return str.Substring(0, length);
         }

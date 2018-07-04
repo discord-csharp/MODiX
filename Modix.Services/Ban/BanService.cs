@@ -5,14 +5,13 @@ using Discord;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data;
 using Modix.Data.Services;
-using Modix.Data.Utilities;
 
 namespace Modix.Services.Ban
 {
     public class BanService
     {
-        private readonly DiscordGuildService _guildService;
         private readonly ModixContext _context;
+        private readonly DiscordGuildService _guildService;
 
         public BanService(ModixContext context)
         {
@@ -26,32 +25,29 @@ namespace Modix.Services.Ban
 
             var ban = new Data.Models.Ban
             {
-                CreatorId = author.Id.ToLong(),
-                UserId = user.Id.ToLong(),
+                DiscordCreatorID = author.Id,
+                DiscordUserID = user.Id,
                 Reason = reason,
-                Guild = dbGuild,
+                Guild = dbGuild
             };
 
             await _context.Bans.AddAsync(ban);
             await _context.SaveChangesAsync();
-
         }
 
         public async Task UnbanAsync(ulong guildId, ulong userId)
         {
             var banResult = await _context.Bans.AsQueryable()
-                                .Where(ban => ban.UserId == userId.ToLong() && ban.Guild.Id == guildId.ToLong())
-                                .FirstAsync();
+                .FirstAsync(ban => ban.DiscordUserID == userId && ban.Guild.DiscordGuildID == guildId);
 
             banResult.Active = false;
             _context.Bans.Update(banResult);
             await _context.SaveChangesAsync();
-
         }
 
         public async Task<string> GetAllBans(IGuildUser user)
         {
-            var bans = _context.Bans.Where(x => x.Active && x.Guild.Id == user.GuildId.ToLong()).ToAsyncEnumerable();
+            var bans = _context.Bans.Where(x => x.Active && x.Guild.DiscordGuildID == user.GuildId).ToAsyncEnumerable();
 
             var sb = new StringBuilder();
             await bans.ForEachAsync(ban => sb.AppendLine($"{ban.Reason} | Active: {ban.Active}"));

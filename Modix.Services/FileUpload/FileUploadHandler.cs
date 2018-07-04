@@ -4,14 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using Modix.Data.Models;
 using Serilog;
 
 namespace Modix.Services.FileUpload
 {
     public class FileUploadHandler
     {
-        private const ulong ChannelIdToPostModerationLog = 360507591488438283;
-
         private readonly List<string> _blacklistedExtensions = new List<string>
         {
             ".exe",
@@ -30,6 +29,13 @@ namespace Modix.Services.FileUpload
             ".reg"
         };
 
+        private readonly ulong logChannelID;
+
+        public FileUploadHandler(ModixConfig config)
+        {
+            logChannelID = config.ModixPrivateLogChannelID;
+        }
+
         public async Task Handle(IMessage message)
         {
             // Check if the attachment's file name ends in anything suspicious first
@@ -41,18 +47,17 @@ namespace Modix.Services.FileUpload
             await TryDeleteAndReplyToUser(message);
         }
 
-        private static async Task TryPostToModerationChannel(IMessage message)
+        private async Task TryPostToModerationChannel(IMessage message)
         {
             try
             {
                 if (!(message.Channel is SocketTextChannel channel))
                     return;
 
-                var moderationChannel = channel.Guild.Channels.SingleOrDefault(x => x.Id == ChannelIdToPostModerationLog) as SocketTextChannel;
-
-                if (moderationChannel == null)
+                if (!(channel.Guild.Channels.SingleOrDefault(x => x.Id == logChannelID) is SocketTextChannel
+                    moderationChannel))
                 {
-                    Log.Debug("Moderation channel with ID: {id} not found", ChannelIdToPostModerationLog);
+                    Log.Debug("Moderation channel with ID: {id} not found", logChannelID);
                     return;
                 }
 
@@ -61,7 +66,7 @@ namespace Modix.Services.FileUpload
             }
             catch (Exception e)
             {
-                Log.Debug(e, "Failed posting to moderation channel {channelId}", ChannelIdToPostModerationLog);
+                Log.Debug(e, "Failed posting to moderation channel {channelId}", logChannelID);
             }
         }
 
@@ -77,7 +82,8 @@ namespace Modix.Services.FileUpload
             }
             catch (Exception e)
             {
-                Log.Warning(e, "Failed to remove message {messageId} with suspicious file(s) attached in {channelName}", message.Id, message.Channel.Name);
+                Log.Warning(e, "Failed to remove message {messageId} with suspicious file(s) attached in {channelName}",
+                    message.Id, message.Channel.Name);
             }
         }
 
@@ -92,7 +98,8 @@ namespace Modix.Services.FileUpload
 
             var files = string.Join(", ", message.Attachments.Select(x => x.Filename));
 
-            embed.AddField(a => a.WithName("Files").WithValue($"{message.Attachments.Count} file(s) attached: {files}"));
+            embed.AddField(a =>
+                a.WithName("Files").WithValue($"{message.Attachments.Count} file(s) attached: {files}"));
 
             embed.AddField(a => a.WithName("Time").WithValue($"{message.Timestamp:yyyy/MM/dd HH:mm}"));
 
@@ -106,6 +113,9 @@ namespace Modix.Services.FileUpload
         }
 
         private static string GetReplyToUser(IMessage message)
-            => $"Please don't upload any potentially harmful files {message.Author.Mention}, your message has been removed";
+        {
+            return
+                $"Please don't upload any potentially harmful files {message.Author.Mention}, your message has been removed";
+        }
     }
 }

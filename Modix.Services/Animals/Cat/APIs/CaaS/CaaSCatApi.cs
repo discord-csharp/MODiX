@@ -1,10 +1,9 @@
-﻿namespace Modix.Services.Animals.Cat.APIs.CaaS
-{
-    using System.Net.Http;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Modix.Services.Animals;
+﻿using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
+namespace Modix.Services.Animals.Cat.APIs.CaaS
+{
     public class CaaSCatApi : IAnimalApi
     {
         private readonly HttpClient _httpClient = new HttpClient();

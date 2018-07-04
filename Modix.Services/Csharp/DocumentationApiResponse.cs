@@ -4,7 +4,7 @@ namespace Modix.Services.Csharp
 {
     public class DocumentationApiResponse
     {
-        public List<DocumentationMember> Results { get; set; }= new List<DocumentationMember>();
+        public List<DocumentationMember> Results { get; set; } = new List<DocumentationMember>();
         public int Count { get; set; }
     }
 
@@ -21,7 +21,7 @@ namespace Modix.Services.Csharp
     {
         Type,
         Namespace,
-        Member,
+        Member
     }
 
     public enum Kind

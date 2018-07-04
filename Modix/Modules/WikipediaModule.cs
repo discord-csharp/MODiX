@@ -1,9 +1,9 @@
-﻿using Discord;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Discord;
+using Discord.Commands;
 using Modix.Services.Wikipedia;
 
 namespace Modix.Modules
@@ -51,9 +51,10 @@ namespace Modix.Modules
                 for (var i = 0; i < batchCount; i++)
                 {
                     var builder = new EmbedBuilder()
-                       .WithColor(new Color(95, 186, 125))
-                       .WithTitle($"Results for {phrase} (pt {i + 1})")
-                       .WithDescription(message.Substring(cursor, (i == batchCount - 1) ? message.Length - cursor : DiscordConfig.MaxMessageSize));
+                        .WithColor(new Color(95, 186, 125))
+                        .WithTitle($"Results for {phrase} (pt {i + 1})")
+                        .WithDescription(message.Substring(cursor,
+                            i == batchCount - 1 ? message.Length - cursor : DiscordConfig.MaxMessageSize));
                     builder.Build();
                     await ReplyAsync("", embed: builder);
                     cursor += DiscordConfig.MaxMessageSize;

@@ -1,11 +1,12 @@
-﻿using Discord.Commands;
-using Modix.Services.AutoCodePaste;
-using System.Net;
+﻿using System.Net;
 using System.Threading.Tasks;
+using Discord.Commands;
+using Modix.Services.AutoCodePaste;
 
 namespace Modix.Modules
 {
-    [Name("Code Paste"), Summary("Paste some code to the internet.")]
+    [Name("Code Paste")]
+    [Summary("Paste some code to the internet.")]
     public class CodePasteModule : ModuleBase
     {
         private readonly CodePasteService _service;
@@ -15,7 +16,8 @@ namespace Modix.Modules
             _service = service;
         }
 
-        [Command("paste"), Summary("Paste the rest of your message to the internet, and return the URL.")]
+        [Command("paste")]
+        [Summary("Paste the rest of your message to the internet, and return the URL.")]
         public async Task Run([Remainder] string code)
         {
             string url;

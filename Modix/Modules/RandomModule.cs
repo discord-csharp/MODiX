@@ -1,9 +1,9 @@
-﻿namespace Modix.Modules
-{
-    using System;
-    using System.Threading.Tasks;
-    using Discord.Commands;
+﻿using System;
+using System.Threading.Tasks;
+using Discord.Commands;
 
+namespace Modix.Modules
+{
     [Group("random"), Name("Random"), Summary("A bunch of random commands")]
     public class RandomModule : ModuleBase
     {
@@ -29,13 +29,9 @@
             var coin = Random.Next(0, 2);
 
             if (coin == 0)
-            {
                 await Context.Channel.SendMessageAsync("heads");
-            }
             else
-            {
                 await Context.Channel.SendMessageAsync("tails");
-            }
         }
 
         [Command("pick"), Summary("Picks from a defined list of inputs")]

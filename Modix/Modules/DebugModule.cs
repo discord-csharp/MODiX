@@ -1,21 +1,23 @@
-﻿using Discord;
+﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Modix.Services.CommandHelp;
 using Serilog;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Modix.Modules
 {
     /// <summary>
-    /// Used to test feature work on a private server. The contents of this module can be changed any time.
+    ///     Used to test feature work on a private server. The contents of this module can be changed any time.
     /// </summary>
-    [Group("debug"), RequireUserPermission(GuildPermission.BanMembers), HiddenFromHelp]
+    [Group("debug")]
+    [RequireUserPermission(GuildPermission.BanMembers)]
+    [HiddenFromHelp]
     public class DebugModule : ModuleBase
     {
         [Command("throw")]
-        public Task Throw([Remainder]string text)
+        public Task Throw([Remainder] string text)
         {
             Log.Error("Error event");
             Log.Error(new Exception("ExceptionEvent"), "ExceptionEvent Template");
@@ -29,7 +31,7 @@ namespace Modix.Modules
         {
             var guild = await Context.Client.GetGuildAsync(guildId);
 
-            if(guild == null)
+            if (guild == null)
             {
                 await ReplyAsync($"Modix is not joined to a guild with id {guildId}");
                 return;

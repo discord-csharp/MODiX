@@ -10,7 +10,7 @@ namespace Modix.Modules
     public class DocumentationModule : ModuleBase
     {
         [Command("docs"), Summary("Shows class/method reference from the new unified .NET reference")]
-        public async Task GetDocumentationAsync([Remainder]string term)
+        public async Task GetDocumentationAsync([Remainder] string term)
         {
             var response = await new DocumentationService().GetDocumentationResultsAsync(term);
 
@@ -19,7 +19,7 @@ namespace Modix.Modules
                 await ReplyAsync("Could not find documentation for your requested term.");
                 return;
             }
-            
+
             var embedCount = 0;
 
             foreach (var res in response.Results.Take(3).OrderBy(x => x.DisplayName))
@@ -35,10 +35,12 @@ namespace Modix.Modules
                 if (embedCount == 3)
                 {
                     builder.WithFooter(
-                        new EmbedFooterBuilder().WithText($"{embedCount}/{response.Results.Count} https://docs.microsoft.com/dotnet/api/?term={term}")
+                        new EmbedFooterBuilder().WithText(
+                            $"{embedCount}/{response.Results.Count} https://docs.microsoft.com/dotnet/api/?term={term}")
                     );
                     builder.Footer.Build();
                 }
+
                 builder.Build();
                 await ReplyAsync("", embed: builder);
             }

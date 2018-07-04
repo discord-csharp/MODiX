@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Modix.Services.CodePaste
 {
@@ -17,10 +16,10 @@ namespace Modix.Services.CodePaste
                 CreatorUsername = "jmazouri",
                 Created = DateTime.UtcNow,
                 Content = "public static void Main()" +
-                "\n{" +
-                "\n    public int Test {get; set;}" +
-                "\n    public string Something {get; set;}" +
-                "\n}"
+                          "\n{" +
+                          "\n    public int Test {get; set;}" +
+                          "\n    public string Something {get; set;}" +
+                          "\n}"
             });
             _pastes.Add(new UserCodePaste
             {
@@ -29,10 +28,10 @@ namespace Modix.Services.CodePaste
                 CreatorUsername = "jmazouri",
                 Created = DateTime.UtcNow,
                 Content = "public static void Main()" +
-                "\n{" +
-                "\n    public int Test {get; set;}" +
-                "\n    public string Something {get; set;}" +
-                "\n}"
+                          "\n{" +
+                          "\n    public int Test {get; set;}" +
+                          "\n    public string Something {get; set;}" +
+                          "\n}"
             });
             _pastes.Add(new UserCodePaste
             {
@@ -41,10 +40,10 @@ namespace Modix.Services.CodePaste
                 CreatorUsername = "jmazouri",
                 Created = DateTime.UtcNow,
                 Content = "public static void Main()" +
-                "\n{" +
-                "\n    public int Test {get; set;}" +
-                "\n    public string Something {get; set;}" +
-                "\n}"
+                          "\n{" +
+                          "\n    public int Test {get; set;}" +
+                          "\n    public string Something {get; set;}" +
+                          "\n}"
             });
         }
 

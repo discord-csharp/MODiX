@@ -1,10 +1,10 @@
-﻿namespace Modix.Services.Cat
-{
-    using System.IO;
-    using System.Xml;
-    using System.Xml.Serialization;
+﻿using System.IO;
+using System.Xml;
+using System.Xml.Serialization;
 
-    internal static class XmlHelper
+namespace Modix.Services.Cat
+{
+    static class XmlHelper
     {
         public static Stream ToStream(this string @this)
         {

@@ -1,16 +1,14 @@
-﻿namespace Modix.Services.Animals.Cat.APIs.Imgur
-{
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Net.Http;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Modix.Services.Animals;
-    using Modix.Services.Cat.APIs.Imgur;
-    using Newtonsoft.Json;
-    using Serilog;
-    using Response = Services.Cat.APIs.Imgur.Response;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using Modix.Services.Cat.APIs.Imgur;
+using Newtonsoft.Json;
+using Serilog;
 
+namespace Modix.Services.Animals.Cat.APIs.Imgur
+{
     public class ImgurCatApi : IAnimalApi
     {
         // This can be public
@@ -18,18 +16,19 @@
 
         // TODO Add better rollover logic for multiple pages. 
         private const string Url = "https://api.imgur.com/3/gallery/r/cats/page/";
-        private byte ImgurPageNumber { get; set; }
-        private byte ImgurPageMaximum { get; } = 5;
+        private static readonly List<Image> LinkPool = new List<Image>();
 
         private readonly HttpClient _httpClient = new HttpClient();
-        private static readonly List<Image> LinkPool = new List<Image>();
 
         public ImgurCatApi()
         {
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Client-ID {ClientId}");
         }
 
-        public async Task<Animals.Response> FetchAsync(MediaType mediaType, CancellationToken cancellationToken = default)
+        private byte ImgurPageNumber { get; set; }
+        private byte ImgurPageMaximum { get; } = 5;
+
+        public async Task<Response> FetchAsync(MediaType mediaType, CancellationToken cancellationToken = default)
         {
             string catUrl = null;
 
@@ -50,19 +49,12 @@
                     ImgurPageNumber += 1;
 
                     // Dirty page rollover code
-                    if (ImgurPageNumber > ImgurPageMaximum)
-                    {
-                        // Reset back at page one
-                        ImgurPageNumber = 1;
-                    }
+                    if (ImgurPageNumber > ImgurPageMaximum) ImgurPageNumber = 1;
 
                     Log.Information($"[{nameof(ImgurCatApi)}] Attempting to retrieve cats from api");
                     var success = await BuildLinkCache(cancellationToken);
 
-                    if (success)
-                    {
-                        catUrl = GetCachedCat(mediaType);
-                    }
+                    if (success) catUrl = GetCachedCat(mediaType);
                 }
             }
             catch (HttpRequestException ex)
@@ -75,7 +67,7 @@
                 Log.Information($"[{nameof(ImgurCatApi)}] Successful cat retrieval");
                 return new UrlResponse(catUrl);
             }
-                
+
             Log.Information($"[{nameof(ImgurCatApi)}] Failed cat retrieval");
             return new UrlResponse();
         }
@@ -128,8 +120,10 @@
             return true;
         }
 
-        private static Response Deserialise(string content)
-            => JsonConvert.DeserializeObject<Response>(content);
+        private static Services.Cat.APIs.Imgur.Response Deserialise(string content)
+        {
+            return JsonConvert.DeserializeObject<Services.Cat.APIs.Imgur.Response>(content);
+        }
 
         private static string GetCachedCat(MediaType type)
         {

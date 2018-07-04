@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Modix.Data;
@@ -12,7 +11,8 @@ namespace Modix.Services.Utilities
     public class PermissionHelper
     {
         private readonly DiscordGuildService GuildService;
-        public PermissionHelper(ModixContext context) 
+
+        public PermissionHelper(ModixContext context)
         {
             GuildService = new DiscordGuildService(context);
         }
@@ -21,10 +21,8 @@ namespace Modix.Services.Utilities
         {
             var guild = await GuildService.ObtainAsync(context.Guild);
             if (guild.Config == null)
-            {
                 throw new GuildConfigException(
                     "DiscordGuild is not configured yet. Please use the config module to set it up!");
-            }
 
             switch (perms)
             {
@@ -33,6 +31,7 @@ namespace Modix.Services.Utilities
                 case Permissions.Moderator:
                     return context.Guild.GetRole(guild.Config.ModeratorRoleId.ToUlong());
             }
+
             // If I ever fuck this up, blame obsi :D
             throw new GuildConfigException(
                 "DiscordGuild is not configured yet. Please use the config module to set it up!");

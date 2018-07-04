@@ -8,18 +8,22 @@ using Modix.Services.GuildConfig;
 
 namespace Modix.Modules
 {
-    [Group("config"), Name("Config"), Summary("Configures MODiX for use on your server")]
+    [Group("config")]
+    [Name("Config")]
+    [Summary("Configures MODiX for use on your server")]
     public class GuildConfigModule : ModuleBase
     {
-        private GuildConfigService _service;
         private readonly ModixContext _context;
+        private GuildConfigService _service;
 
         public GuildConfigModule(ModixContext context)
         {
             _context = context;
         }
 
-        [Command("SetAdmin"), Summary("Allows you to set the role ID of the Administrators"), RequireOwner]
+        [Command("SetAdmin")]
+        [Summary("Allows you to set the role ID of the Administrators")]
+        [RequireOwner]
         public async Task SetAdminAsync(ulong roleId)
         {
             _service = new GuildConfigService(Context.Guild, _context);
@@ -28,7 +32,9 @@ namespace Modix.Modules
             await ReplyAsync($"Permission for Administrators has been successfully updated to {roleId}");
         }
 
-        [Command("SetModerator"), Summary("Allows you to set the role ID of the Moderators"), RequireOwner]
+        [Command("SetModerator")]
+        [Summary("Allows you to set the role ID of the Moderators")]
+        [RequireOwner]
         public async Task SetModeratorAsync(ulong roleId)
         {
             _service = new GuildConfigService(Context.Guild, _context);
@@ -37,7 +43,8 @@ namespace Modix.Modules
             await ReplyAsync($"Permission for Moderators has been successfully updated to {roleId}");
         }
 
-        [Command("show"), Summary("Shows current config.")]
+        [Command("show")]
+        [Summary("Shows current config.")]
         public async Task ShowConfigAsync()
         {
             _service = new GuildConfigService(Context.Guild, _context);
@@ -46,41 +53,38 @@ namespace Modix.Modules
             await ReplyAsync(res);
         }
 
-        [Command("GetRoles"), Summary("Shows a list of all roles including their Ids that are on this guild.")]
+        [Command("GetRoles")]
+        [Summary("Shows a list of all roles including their Ids that are on this guild.")]
         public async Task GetRolesAsync()
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             foreach (var role in Context.Guild.Roles.OrderBy(r => r.Position))
-            {
                 // Replacing to avoid those nasty pings.
                 sb.Append($"{role.Name} - {role.Id}\n".Replace("@everyone", "everyone"));
-            }
             await ReplyAsync(sb.ToString());
         }
 
-        [Command("RemoveLimit"), Summary("Removes a limit from a module to a channel."), RequireOwner]
+        [Command("RemoveLimit")]
+        [Summary("Removes a limit from a module to a channel.")]
+        [RequireOwner]
         public async Task RemoveLimitModuleAsync(string module)
         {
             _service = new GuildConfigService(Context.Guild, _context);
 
             var result = await _service.RemoveModuleLimitAsync(Context.Channel, module);
-            if (result)
-            {
-                await ReplyAsync($"{module}'s limit has been removed from channel {Context.Channel.Name}");
-            }
+            if (result) await ReplyAsync($"{module}'s limit has been removed from channel {Context.Channel.Name}");
         }
 
-        [Command("AddLimit"), Summary("Limits a module to a channel."), RequireOwner]
+        [Command("AddLimit")]
+        [Summary("Limits a module to a channel.")]
+        [RequireOwner]
         public async Task LimitModuleAsync(string module)
         {
             _service = new GuildConfigService(Context.Guild, _context);
 
             var result = await _service.AddModuleLimitAsync(Context.Channel, module);
-            if (result)
-            {
-                await ReplyAsync($"{module} has been granted permissions to channel {Context.Channel.Name}");
-            }
+            if (result) await ReplyAsync($"{module} has been granted permissions to channel {Context.Channel.Name}");
         }
     }
 }

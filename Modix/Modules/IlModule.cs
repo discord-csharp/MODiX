@@ -2,15 +2,15 @@
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Modix.Data.Models;
-using System.Threading;
 using Discord.WebSocket;
-using Serilog;
+using Modix.Data.Models;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.Utilities;
+using Serilog;
 
 namespace Modix.Modules
 {
@@ -18,9 +18,9 @@ namespace Modix.Modules
     public class IlModule : ModuleBase
     {
         private const string ReplRemoteUrl = "http://CSDiscord/Il";
-        private readonly CodePasteService _pasteService;
 
         private static readonly HttpClient _client = new HttpClient();
+        private readonly CodePasteService _pasteService;
 
         public IlModule(ModixConfig config, CodePasteService pasteService)
         {
@@ -36,6 +36,7 @@ namespace Modix.Modules
                 await ReplyAsync("il can only be executed in public guild channels.");
                 return;
             }
+
             code = FormatUtilities.StripFormatting(code);
             if (code.Length > 1000)
             {
@@ -56,7 +57,10 @@ namespace Modix.Modules
             }
             catch (TaskCanceledException)
             {
-                await message.ModifyAsync(a => { a.Content = $"Gave up waiting for a response from the Decompile service."; });
+                await message.ModifyAsync(a =>
+                {
+                    a.Content = $"Gave up waiting for a response from the Decompile service.";
+                });
                 return;
             }
             catch (Exception ex)
@@ -66,7 +70,7 @@ namespace Modix.Modules
                 return;
             }
 
-            if (!res.IsSuccessStatusCode & res.StatusCode != HttpStatusCode.BadRequest)
+            if (!res.IsSuccessStatusCode & (res.StatusCode != HttpStatusCode.BadRequest))
             {
                 await message.ModifyAsync(a => { a.Content = $"Decompile failed: {res.StatusCode}"; });
                 return;
@@ -90,15 +94,16 @@ namespace Modix.Modules
             var failed = result.Contains("Emit Failed");
 
             var embed = new EmbedBuilder()
-               .WithTitle("Decompile Result")
-               .WithDescription(result.Contains("Emit Failed") ? "Failed" : "Successful")
-               .WithColor(failed ? new Color(255, 0, 0) : new Color(0, 255, 0))
-               .WithAuthor(a => a.WithIconUrl(Context.User.GetAvatarUrl()).WithName(guildUser?.Nickname ?? Context.User.Username));
+                .WithTitle("Decompile Result")
+                .WithDescription(result.Contains("Emit Failed") ? "Failed" : "Successful")
+                .WithColor(failed ? new Color(255, 0, 0) : new Color(0, 255, 0))
+                .WithAuthor(a =>
+                    a.WithIconUrl(Context.User.GetAvatarUrl()).WithName(guildUser?.Nickname ?? Context.User.Username));
 
             embed.AddField(a => a.WithName("Code").WithValue(Format.Code(code, "cs")));
 
             embed.AddField(a => a.WithName($"Result:")
-                 .WithValue(Format.Code(result.TruncateTo(990), "asm")));
+                .WithValue(Format.Code(result.TruncateTo(990), "asm")));
 
             await embed.UploadToServiceIfBiggerThan(result, "asm", 990, _pasteService);
 

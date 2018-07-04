@@ -1,11 +1,11 @@
-﻿using Discord;
-using Discord.Commands;
-using Modix.Services.StackExchange;
-using System;
+﻿using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Discord;
+using Discord.Commands;
 using Modix.Data.Models;
+using Modix.Services.StackExchange;
 
 namespace Modix.Modules
 {
@@ -19,7 +19,8 @@ namespace Modix.Modules
             _config = config;
         }
 
-        [Command("stack"), Summary("Returns top results from a Stack Exchange site."), Remarks("Usage: `!stack how do i parse json with c#? [site=stackoverflow tags=c#,json]`")]
+        [Command("stack"), Summary("Returns top results from a Stack Exchange site."),
+         Remarks("Usage: `!stack how do i parse json with c#? [site=stackoverflow tags=c#,json]`")]
         public async Task Run([Remainder] string phrase)
         {
             var startLocation = phrase.IndexOf("[");
@@ -31,34 +32,24 @@ namespace Modix.Modules
             if (startLocation > 0 && endLocation > 0)
             {
                 var query = phrase.Substring(startLocation, endLocation - (startLocation - 1));
-                var parts = query.Replace("[", "").Replace("]", "").Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                var parts = query.Replace("[", "").Replace("]", "")
+                    .Split(new[] {' '}, StringSplitOptions.RemoveEmptyEntries);
 
                 foreach (var part in parts)
-                {
                     if (part.IndexOf("site=") >= 0)
-                    {
-                        site = part.Split(new[] { "site=" }, StringSplitOptions.None)[1];
-                    }
-                    else if (part.IndexOf("tags=") >= 0)
-                    {
-                        tags = part.Split(new[] { "tags=" }, StringSplitOptions.None)[1];
-                    }
-                }
+                        site = part.Split(new[] {"site="}, StringSplitOptions.None)[1];
+                    else if (part.IndexOf("tags=") >= 0) tags = part.Split(new[] {"tags="}, StringSplitOptions.None)[1];
 
                 phrase = phrase.Remove(startLocation, endLocation - (startLocation - 1)).Trim();
             }
 
-            if (site == null)
-            {
-                site = "stackoverflow";
-            }
+            if (site == null) site = "stackoverflow";
 
-            if (tags == null)
-            {
-                tags = "c#";
-            }
+            if (tags == null) tags = "c#";
 
-            var response = await new StackExchangeService().GetStackExchangeResultsAsync(_config.StackoverflowToken, phrase, site, tags);
+            var response =
+                await new StackExchangeService().GetStackExchangeResultsAsync(_config.StackoverflowToken, phrase, site,
+                    tags);
             var filteredRes = response.Items.Where(x => x.Tags.Contains(tags));
             foreach (var res in filteredRes.Take(3))
             {
@@ -74,7 +65,8 @@ namespace Modix.Modules
             var footer = new EmbedBuilder()
                 .WithColor(new Color(50, 50, 50))
                 .WithFooter(
-                     new EmbedFooterBuilder().WithText($"tags: {tags} | site: {site}. !stack foobar [site=stackexchange tags=c#]"));
+                    new EmbedFooterBuilder().WithText(
+                        $"tags: {tags} | site: {site}. !stack foobar [site=stackexchange tags=c#]"));
             footer.Build();
             await ReplyAsync("", embed: footer);
         }

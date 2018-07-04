@@ -1,17 +1,15 @@
-﻿using Microsoft.AspNetCore;
+﻿using System;
+using System.IO;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Data.Models;
 using Modix.WebServer.Auth;
 using Newtonsoft.Json.Converters;
-using System;
-using System.IO;
-using System.Net.Http;
 
 namespace Modix.WebServer
 {
@@ -23,36 +21,35 @@ namespace Modix.WebServer
         // Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            foreach (var service in _additionalServices)
-            {
-                services.Add(service);
-            }
+            foreach (var service in _additionalServices) services.Add(service);
 
             //TODO: Un-hardcode this
             //TODO: Uncomment this one perms are fixed
             //services.AddDataProtection()
             //    .PersistKeysToFileSystem(new DirectoryInfo(@"c:\app\config\dataprotection"));
 
-            services
-            .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-            .AddCookie(options =>
-            {
-                options.LoginPath = "/api/unauthorized";
-                //options.LogoutPath = "/logout";
-                options.ExpireTimeSpan = new TimeSpan(7, 0, 0, 0);
+            // Initialize Static Fields for Exception Messages
+            ModixAuthenticationHandler.WebAuthenticationErrorMessage = _modixConfig.WebAuthenticationError;
 
-            })
-            .AddModix(_modixConfig);
+            services
+                .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/api/unauthorized";
+                    //options.LogoutPath = "/logout";
+                    options.ExpireTimeSpan = new TimeSpan(7, 0, 0, 0);
+                })
+                .AddModix(_modixConfig);
 
             services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
 
             services
-            .AddMvc()
-            .AddJsonOptions(options =>
-            {
-                options.SerializerSettings.Converters.Add(new StringEnumConverter());
-                options.SerializerSettings.Converters.Add(new StringULongConverter());
-            });
+                .AddMvc()
+                .AddJsonOptions(options =>
+                {
+                    options.SerializerSettings.Converters.Add(new StringEnumConverter());
+                    options.SerializerSettings.Converters.Add(new StringULongConverter());
+                });
         }
 
         // Use this method to configure the HTTP request pipeline.
@@ -66,29 +63,29 @@ namespace Modix.WebServer
                 //Tiny middleware to redirect invalid requests to index.html,
                 //this ensures that our frontend routing works on fresh requests
                 builder.Use(async (context, next) =>
-                {
-                    await next();
-                    if (context.Response.StatusCode == 404 && !Path.HasExtension(context.Request.Path.Value))
                     {
-                        context.Request.Path = "/index.html";
                         await next();
-                    }
-                })
-                .UseDefaultFiles()
-                .UseStaticFiles(new StaticFileOptions
-                {
-                    //Set up our antiforgery stuff when the user hits the page
-                    OnPrepareResponse = fileResponse =>
-                    {
-                        if (fileResponse.File.Name == "index.html")
+                        if (context.Response.StatusCode == 404 && !Path.HasExtension(context.Request.Path.Value))
                         {
-                            var tokens = antiforgery.GetAndStoreTokens(fileResponse.Context);
-
-                            fileResponse.Context.Response.Cookies.Append(
-                                "XSRF-TOKEN", tokens.RequestToken, new CookieOptions() { HttpOnly = false });
+                            context.Request.Path = "/index.html";
+                            await next();
                         }
-                    }
-                });
+                    })
+                    .UseDefaultFiles()
+                    .UseStaticFiles(new StaticFileOptions
+                    {
+                        //Set up our antiforgery stuff when the user hits the page
+                        OnPrepareResponse = fileResponse =>
+                        {
+                            if (fileResponse.File.Name == "index.html")
+                            {
+                                var tokens = antiforgery.GetAndStoreTokens(fileResponse.Context);
+
+                                fileResponse.Context.Response.Cookies.Append(
+                                    "XSRF-TOKEN", tokens.RequestToken, new CookieOptions {HttpOnly = false});
+                            }
+                        }
+                    });
             });
 
             //Defer to MVC for anything that doesn't match (and ostensibly 
@@ -102,8 +99,8 @@ namespace Modix.WebServer
             _modixConfig = modixConfig;
 
             var host = WebHost.CreateDefaultBuilder()
-                              .UseStartup<ModixWebServer>()
-                              .Build();
+                .UseStartup<ModixWebServer>()
+                .Build();
 
             return host;
         }

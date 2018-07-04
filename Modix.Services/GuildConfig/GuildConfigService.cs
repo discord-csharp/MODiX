@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Modix.Data;
@@ -10,8 +11,8 @@ namespace Modix.Services.GuildConfig
 {
     public sealed class GuildConfigService
     {
-        private readonly DiscordGuildService _guildService;
         private readonly DiscordGuild _guild;
+        private readonly DiscordGuildService _guildService;
 
         public GuildConfigService(IGuild guild, ModixContext context)
         {
@@ -22,9 +23,8 @@ namespace Modix.Services.GuildConfig
         public Task<bool> IsPermittedAsync(IGuild guild, IGuildUser user, Permissions reqPerm)
         {
             if (_guild.Config == null)
-            {
-                throw new GuildConfigException("Guild is not configured yet. Please use the config module to set it up!");
-            }
+                throw new GuildConfigException(
+                    "Guild is not configured yet. Please use the config module to set it up!");
 
             ulong requiredRoleId = 0;
 
@@ -36,6 +36,8 @@ namespace Modix.Services.GuildConfig
                 case Permissions.Moderator:
                     requiredRoleId = _guild.Config.ModeratorRoleId.ToUlong();
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(reqPerm), reqPerm, null);
             }
 
             return Task.Run(() => user.RoleIds.Any(x => x == guild.GetRole(requiredRoleId).Id));
@@ -48,12 +50,9 @@ namespace Modix.Services.GuildConfig
 
         public string GenerateFormattedConfig(IGuild guild)
         {
-            if (_guild.Config == null)
-            {
-                return "This guild has no configuration at the moment. You can create a configuration by setting up roles through !config.";
-            }
-
-            return $"AdminRole: {_guild.Config.AdminRoleId}\nModerationRole: {_guild.Config.ModeratorRoleId}";
+            return _guild.Config == null
+                ? "This guild has no configuration at the moment. You can create a configuration by setting up roles through !config."
+                : $"AdminRole: {_guild.Config.AdminRoleId}\nModerationRole: {_guild.Config.ModeratorRoleId}";
         }
 
         public async Task<bool> AddModuleLimitAsync(IMessageChannel channel, string module)

@@ -1,19 +1,17 @@
-﻿using Discord.WebSocket;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Modix.Services.CommandHelp;
-using Modix.Services.GuildInfo;
-using Modix.WebServer.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Discord.WebSocket;
+using Microsoft.AspNetCore.Mvc;
+using Modix.Services.GuildInfo;
+using Modix.WebServer.Models;
 
 namespace Modix.WebServer.Controllers
 {
     public class ApiController : ModixController
     {
-        private GuildInfoService _guildInfoService;
+        private readonly GuildInfoService _guildInfoService;
 
         public ApiController(DiscordSocketClient client, GuildInfoService guildInfoService) : base(client)
         {
@@ -25,9 +23,7 @@ namespace Modix.WebServer.Controllers
             var guildInfo = new Dictionary<string, List<GuildInfoResult>>();
 
             foreach (var guild in _client.Guilds)
-            {
-                guildInfo.Add(guild.Name, (await _guildInfoService.GetGuildMemberDistribution(guild)));
-            }
+                guildInfo.Add(guild.Name, await _guildInfoService.GetGuildMemberDistribution(guild));
 
             return Ok(guildInfo);
         }
@@ -44,7 +40,8 @@ namespace Modix.WebServer.Controllers
             var result = _client.Guilds.First()
                 .Users.Where(d => d.Username.IndexOf(query, StringComparison.InvariantCultureIgnoreCase) > 0)
                 .Take(10)
-                .Select(d => new DiscordUser { Name = $"{d.Username}#{d.Discriminator}", UserId = d.Id, AvatarHash = d.AvatarId });
+                .Select(d =>
+                    new DiscordUser {Name = $"{d.Username}#{d.Discriminator}", UserId = d.Id, AvatarHash = d.AvatarId});
 
             return Ok(result);
         }

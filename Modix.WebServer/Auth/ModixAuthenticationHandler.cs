@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
@@ -13,21 +10,27 @@ using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Modix.WebServer.Models;
-using Newtonsoft.Json;
 
 namespace Modix.WebServer.Auth
 {
     public class ModixAuthenticationHandler : DiscordAuthenticationHandler
     {
-        private DiscordSocketClient _client;
+        private readonly DiscordSocketClient _client;
 
-        public ModixAuthenticationHandler(IOptionsMonitor<DiscordAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, DiscordSocketClient client) 
+        public ModixAuthenticationHandler(IOptionsMonitor<DiscordAuthenticationOptions> options, ILoggerFactory logger,
+            UrlEncoder encoder, ISystemClock clock, DiscordSocketClient client)
             : base(options, logger, encoder, clock)
         {
             _client = client;
         }
 
-        protected override async Task<AuthenticationTicket> CreateTicketAsync(ClaimsIdentity identity, AuthenticationProperties properties, OAuthTokenResponse tokens)
+        // Not sure what the best way to pass exception message through,
+        // so I settled for static since it's unlikely to see any changes to this at runtime.
+        // TODO: Review this.
+        public static string WebAuthenticationErrorMessage { get; set; }
+
+        protected override async Task<AuthenticationTicket> CreateTicketAsync(ClaimsIdentity identity,
+            AuthenticationProperties properties, OAuthTokenResponse tokens)
         {
             var baseResult = await base.CreateTicketAsync(identity, properties, tokens);
             var result = DiscordUser.FromClaimsPrincipal(baseResult.Principal);
@@ -35,11 +38,8 @@ namespace Modix.WebServer.Auth
 
             await guild?.DownloadUsersAsync();
 
-            //TODO: Un-hardcode this
             if (guild?.GetUser(result.UserId) == null)
-            {
-                throw new UnauthorizedAccessException("You must be a member of the Discord C# server to log in.");
-            }
+                throw new UnauthorizedAccessException(WebAuthenticationErrorMessage);
 
             return baseResult;
         }
