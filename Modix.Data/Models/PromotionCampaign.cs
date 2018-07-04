@@ -15,20 +15,26 @@ namespace Modix.Data.Models
 
     public class PromotionCampaign
     {
-        [Key, Required] public long PromotionCampaignId { get; set; }
+        [Key, Required, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long PromotionCampaignId { get; set; }
 
-        [Required] public DiscordUser PromotionFor { get; set; }
+        [Required]
+        public DiscordUser PromotionFor { get; set; }
 
         public DateTimeOffset StartDate { get; set; }
         public CampaignStatus Status { get; set; }
 
-        [NotMapped] public int ForVotes => Comments.Count(d => d.Sentiment == PromotionSentiment.For);
+        [NotMapped]
+        public int ForVotes => Comments.Count(d => d.Sentiment == PromotionSentiment.For);
 
-        [NotMapped] public int AgainstVotes => Comments.Count(d => d.Sentiment == PromotionSentiment.Against);
+        [NotMapped]
+        public int AgainstVotes => Comments.Count(d => d.Sentiment == PromotionSentiment.Against);
 
-        [NotMapped] public int TotalVotes => Comments.Count(d => d.Sentiment != PromotionSentiment.Neutral);
+        [NotMapped]
+        public int TotalVotes => Comments.Count(d => d.Sentiment != PromotionSentiment.Neutral);
 
-        [NotMapped] public float VoteRatio => (float) ForVotes / (ForVotes + AgainstVotes);
+        [NotMapped]
+        public float VoteRatio => (float) ForVotes / (ForVotes + AgainstVotes);
 
         [NotMapped]
         public string SentimentIcon

@@ -13,7 +13,8 @@ namespace Modix.Data.Models
 
     public class PromotionComment
     {
-        [Key] public long PromotionCommentId { get; set; }
+        [Key, Required, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long PromotionCommentId { get; set; }
 
         public DateTimeOffset PostedDate { get; set; }
         public PromotionSentiment Sentiment { get; set; } = PromotionSentiment.Neutral;

@@ -5,7 +5,8 @@ namespace Modix.Data.Models
 {
     public class Ban
     {
-        [Key] public long BanId { get; set; }
+        [Key, Required, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long BanId { get; set; }
 
         [NotMapped]
         public ulong DiscordBanId
@@ -14,6 +15,7 @@ namespace Modix.Data.Models
             set => BanId = (long) value;
         }
 
+        [Required]
         public long UserId { get; set; }
 
         [NotMapped]

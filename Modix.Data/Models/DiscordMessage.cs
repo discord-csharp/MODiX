@@ -1,10 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Modix.Data.Models
 {
     public class DiscordMessage
     {
-        [Required] public long DiscordMessageId { get; set; }
+        [Key, Required]
+        public long MessageId { get; set; }
+        
+        [NotMapped]
+        public ulong DiscordMessageId { get => (ulong)MessageId; set => MessageId = (long)value; }
 
         public long DiscordId { get; set; }
         public DiscordGuild DiscordGuild { get; set; }

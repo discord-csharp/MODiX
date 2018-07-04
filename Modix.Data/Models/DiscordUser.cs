@@ -7,7 +7,8 @@ namespace Modix.Data.Models
 {
     public class DiscordUser
     {
-        [Required] public long DiscordUserId { get; set; }
+        [Required, Key]
+        public long DiscordUserId { get; set; }
 
         /// <summary>
         ///     Contains when the user joined Discord
@@ -19,6 +20,7 @@ namespace Modix.Data.Models
         public string Username { get; set; }
         public bool IsBot { get; set; }
 
-        [InverseProperty("UserInQuestion")] public DbSet<Infraction> Infractions { get; set; }
+        [InverseProperty("UserInQuestion")]
+        public DbSet<Infraction> Infractions { get; set; }
     }
 }

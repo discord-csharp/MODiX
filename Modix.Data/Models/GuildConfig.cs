@@ -4,7 +4,8 @@ namespace Modix.Data.Models
 {
     public class GuildConfig
     {
-        [Key, Required] public long GuildConfigId { get; set; }
+        [Key, Required]
+        public long GuildConfigId { get; set; }
 
         public long GuildId { get; set; }
         public long AdminRoleId { get; set; }
