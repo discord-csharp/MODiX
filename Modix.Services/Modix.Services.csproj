@@ -14,7 +14,4 @@
   <ItemGroup>
     <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Ban" />
-  </ItemGroup>
 </Project>
