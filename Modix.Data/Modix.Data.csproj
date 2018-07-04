@@ -13,7 +13,4 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.1.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.1.0" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Migrations" />
-  </ItemGroup>
 </Project>
