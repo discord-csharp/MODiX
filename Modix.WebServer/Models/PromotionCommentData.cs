@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Modix.Services.Promotions;
+﻿using Modix.Data.Models;
 
 namespace Modix.WebServer.Models
 {

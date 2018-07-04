@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Modix.Data.Models;
 using Modix.Services.Promotions;
 
 namespace Modix.Modules
@@ -66,7 +67,7 @@ namespace Modix.Modules
 
                 embed.Fields.Add(new EmbedFieldBuilder
                 {
-                    Name = campaign.Username,
+                    Name = campaign.PromotionFor.Username,
                     IsInline = false,
                     Value = barBuilder.ToString()
                 });
@@ -81,7 +82,7 @@ namespace Modix.Modules
         public async Task Nominate([Summary("The user to nominate - must be unranked")] SocketGuildUser user, 
                                    [Remainder, Summary("A few words on their behalf")] string reason)
         {
-            if (Context.User is SocketGuildUser socketGuildUser)
+            if (Context.User is SocketGuildUser)
             {
                 try
                 {
@@ -97,7 +98,7 @@ namespace Modix.Modules
         [Command("approve"), Summary("Approve a user's campaign, promoting them")]
         public async Task Approve(SocketGuildUser user)
         {
-            var campaign = (await _service.GetCampaigns()).FirstOrDefault(d => d.UserId == user.Id);
+            var campaign = (await _service.GetCampaigns()).FirstOrDefault(d => d.PromotionFor.DiscordUserId == (long)user.Id);
 
             if (campaign == null)
             {
@@ -111,7 +112,7 @@ namespace Modix.Modules
         [Command("deny"), Summary("Deny a user's campaign")]
         public async Task Deny(SocketGuildUser user)
         {
-            var campaign = (await _service.GetCampaigns()).FirstOrDefault(d => d.UserId == user.Id);
+            var campaign = (await _service.GetCampaigns()).FirstOrDefault(d => d.PromotionFor.DiscordUserId == (long)user.Id);
 
             if (campaign == null)
             {
@@ -125,7 +126,7 @@ namespace Modix.Modules
         [Command("reactivate"), Summary("Reactivate a user's campaign")]
         public async Task Reactivate(SocketGuildUser user)
         {
-            var campaign = (await _service.GetCampaigns()).First(d => d.UserId == user.Id);
+            var campaign = (await _service.GetCampaigns()).First(d => d.PromotionFor.DiscordUserId == (long)user.Id);
 
             if (campaign == null)
             {
