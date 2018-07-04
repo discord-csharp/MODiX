@@ -18,12 +18,11 @@ using Modix.Services.CommandHelp;
 
 namespace Modix
 {
-    using System.Collections.Generic;
     using Microsoft.AspNetCore.Hosting;
-    using Modix.Services.Animals;
-    using Modix.Services.FileUpload;
-    using Modix.Services.Promotions;
-    using Modix.Services.Utilities;
+    using Services.Animals;
+    using Services.FileUpload;
+    using Services.Promotions;
+    using Services.Utilities;
 
     public sealed class ModixBot
     {
@@ -208,7 +207,7 @@ namespace Modix
             _map.AddSingleton<CommandHelpService>();
 
             _map.AddSingleton<PromotionService>();
-            _map.AddSingleton<IPromotionRepository, FilePromotionRepository>();
+            _map.AddSingleton<IPromotionRepository, DBPromotionRepository>();
 
             _map.AddSingleton<CommandErrorHandler>();
 

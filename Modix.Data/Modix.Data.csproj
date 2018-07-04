@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-      <TargetFramework>netstandard2.0</TargetFramework>
-      <LangVersion>latest</LangVersion>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <!-- 
     Fix for "Could not load System.Diagnostics.DiagnosticSource" 
@@ -16,5 +16,8 @@
   <ItemGroup>
     <PackageReference Include="Discord.Net.Core" Version="1.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Migrations" />
   </ItemGroup>
 </Project>

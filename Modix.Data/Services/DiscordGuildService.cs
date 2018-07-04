@@ -23,7 +23,7 @@ namespace Modix.Data.Services
             try
             {
                 return await _context.Guilds
-                    .Where(guild => guild.DiscordId == discordId.ToLong())
+                    .Where(guild => guild.DiscordGuildId == discordId)
                     .Include(guild => guild.Owner)
                     .Include(guild => guild.Config)
                     .FirstAsync();
@@ -44,7 +44,7 @@ namespace Modix.Data.Services
             var discordGuild = new DiscordGuild()
             {
                 Config = new GuildConfig(),
-                DiscordId = guild.Id.ToLong(),
+                DiscordGuildId = guild.Id,
                 Name = guild.Name,
                 CreatedAt = guild.CreatedAt.DateTime,
                 Owner = await service.ObtainAsync(owner),
@@ -103,8 +103,8 @@ namespace Modix.Data.Services
         {
             var limit = await _context.ChannelLimits
                 .Where(c =>
-                    c.ModuleName.ToUpper() == module.ToUpper() &&
-                    c.Guild.Id == guild.Id &&
+                    string.Equals(c.ModuleName, module, StringComparison.CurrentCultureIgnoreCase) &&
+                    c.Guild.DiscordGuildId == guild.DiscordGuildId &&
                     c.ChannelId == channel.Id.ToLong())
                 .FirstOrDefaultAsync();
 
@@ -129,21 +129,20 @@ namespace Modix.Data.Services
         {
             var limit = await _context.ChannelLimits
                 .Where(c =>
-                    c.ModuleName.ToUpper() == module.ToUpper() &&
-                    c.Guild.Id == guild.Id &&
+                    string.Equals(c.ModuleName, module, StringComparison.CurrentCultureIgnoreCase) &&
+                    c.Guild.DiscordGuildId == guild.DiscordGuildId &&
                     c.ChannelId == channel.Id.ToLong())
                 .FirstOrDefaultAsync();
 
-            if (limit != null)
-            {
-                _context.ChannelLimits.Remove(limit);
+            if (limit == null)
+                return false;
+            
+            _context.ChannelLimits.Remove(limit);
 
-                await _context.SaveChangesAsync();
-                return true;
-            }
+            await _context.SaveChangesAsync();
+            return true;
 
 
-            return false;
         }
         
         public void Dispose()

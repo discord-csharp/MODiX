@@ -40,7 +40,7 @@ namespace Modix.Services.Ban
         public async Task UnbanAsync(ulong guildId, ulong userId)
         {
             var banResult = await _context.Bans.AsQueryable()
-                                .Where(ban => ban.UserId == userId.ToLong() && ban.Guild.Id == guildId.ToLong())
+                                .Where(ban => ban.UserId == userId.ToLong() && ban.Guild.DiscordGuildId == guildId)
                                 .FirstAsync();
 
             banResult.Active = false;
@@ -51,7 +51,7 @@ namespace Modix.Services.Ban
 
         public async Task<string> GetAllBans(IGuildUser user)
         {
-            var bans = _context.Bans.Where(x => x.Active && x.Guild.Id == user.GuildId.ToLong()).ToAsyncEnumerable();
+            var bans = _context.Bans.Where(x => x.Active && x.Guild.DiscordGuildId == user.GuildId).ToAsyncEnumerable();
 
             var sb = new StringBuilder();
             await bans.ForEachAsync(ban => sb.AppendLine($"{ban.Reason} | Active: {ban.Active}"));

@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Modix.Services.Promotions
+namespace Modix.Data.Models
 {
     public enum PromotionSentiment
     {
@@ -15,12 +13,14 @@ namespace Modix.Services.Promotions
 
     public class PromotionComment
     {
-        public int Id { get; set; }
+        [Key] public long PromotionCommentId { get; set; }
 
         public DateTimeOffset PostedDate { get; set; }
         public PromotionSentiment Sentiment { get; set; } = PromotionSentiment.Neutral;
         public string Body { get; set; }
+        public PromotionCampaign PromotionCampaign { get; set; }
 
+        [NotMapped]
         public string StatusEmoji
         {
             get
@@ -33,9 +33,9 @@ namespace Modix.Services.Promotions
                         return "👎";
                     case PromotionSentiment.Neutral:
                         return "😐";
+                    default:
+                        return "?";
                 }
-
-                return "?";
             }
         }
     }

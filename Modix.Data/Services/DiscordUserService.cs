@@ -20,7 +20,7 @@ namespace Modix.Data.Services
         {
             try
             {
-                return await _context.Users.SingleAsync(x => x.DiscordId == user.Id.ToLong());
+                return await _context.Users.SingleAsync(x => x.DiscordUserId == (long)user.Id);
             }
             catch (InvalidOperationException)
             {
@@ -33,7 +33,7 @@ namespace Modix.Data.Services
         {
             var discordUser = new DiscordUser()
             {
-                DiscordId = user.Id.ToLong(),
+                DiscordUserId = (long)user.Id,
                 AvatarUrl = user.GetAvatarUrl(),
                 CreatedAt = user.CreatedAt.DateTime,
                 IsBot = user.IsBot,
