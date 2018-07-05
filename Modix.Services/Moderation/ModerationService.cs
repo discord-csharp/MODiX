@@ -22,7 +22,7 @@ namespace Modix.Services.Moderation
 
         public async Task<QueryPage<Infraction>> FindInfractionsAsync(InfractionSearchCriteria searchCriteria, PagingCriteria pagingCriteria)
         {
-            await AuthorizationService.RequireClaimsAsync(AuthorizationClaims.ModerationRead);
+            await AuthorizationService.RequireClaimsAsync(AuthorizationClaim.ModerationRead);
 
             return await InfractionRepository.SearchAsync(searchCriteria, pagingCriteria);
         }
@@ -45,9 +45,9 @@ namespace Modix.Services.Moderation
 
         public async Task RescindInfractionAsync(long infractionId, string comment)
         {
-            await AuthorizationService.RequireClaimsAsync(AuthorizationClaims.ModerationRescind);
+            await AuthorizationService.RequireClaimsAsync(AuthorizationClaim.ModerationRescind);
 
-            await InfractionRepository.UpdateIsRescindedAsync(infractionId, true);
+            await InfractionRepository.UpdateIsRescindedAsync(infractionId, AuthenticationService.CurrentUserId.Value);
 
             await CreateModerationActionAsync(infractionId, ModerationActionType.InfractionModified, comment);
         }
@@ -79,13 +79,13 @@ namespace Modix.Services.Moderation
 
         protected internal IModerationActionRepository ModerationActionRepository { get; }
 
-        private static readonly Dictionary<InfractionType, AuthorizationClaims> _recordInfractionClaimsByType
-            = new Dictionary<InfractionType, AuthorizationClaims>()
+        private static readonly Dictionary<InfractionType, AuthorizationClaim> _recordInfractionClaimsByType
+            = new Dictionary<InfractionType, AuthorizationClaim>()
             {
-                {InfractionType.Notice, AuthorizationClaims.ModerationNote },
-                {InfractionType.Warning, AuthorizationClaims.ModerationWarn },
-                {InfractionType.Mute, AuthorizationClaims.ModerationMute },
-                {InfractionType.Ban, AuthorizationClaims.ModerationBan }
+                {InfractionType.Notice, AuthorizationClaim.ModerationNote },
+                {InfractionType.Warning, AuthorizationClaim.ModerationWarn },
+                {InfractionType.Mute, AuthorizationClaim.ModerationMute },
+                {InfractionType.Ban, AuthorizationClaim.ModerationBan }
             };
     }
 }

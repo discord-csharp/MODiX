@@ -60,7 +60,8 @@ namespace Modix.Services.Promotions
 
             if (PromotionChannel == null)
                 throw new NullReferenceException(nameof(PromotionChannel));
-            await PromotionChannel?.SendMessageAsync(
+            
+            await PromotionChannel.SendMessageAsync(
                 $"{MentionUtils.MentionUser(campaign.PromotionFor.DiscordUserId)} has been promoted to Regular! 🎉");
         }
 
@@ -147,7 +148,7 @@ namespace Modix.Services.Promotions
             if (PromotionChannel == null)
                 throw new NullReferenceException(nameof(promotionChannelID));
 
-            await PromotionChannel?.SendMessageAsync("", false,
+            await PromotionChannel.SendMessageAsync("", false,
                 new EmbedBuilder()
                     .WithTitle("Campaign Started")
                     .WithAuthor(user)

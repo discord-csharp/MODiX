@@ -2,9 +2,9 @@
 {
     public enum InfractionType
     {
-        Notice,
-        Warning,
-        Mute,
-        Ban,
+        Notice = 0,
+        Warning = 1,
+        Mute = 2,
+        Ban = 3,
     }
 }

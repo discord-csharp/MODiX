@@ -37,7 +37,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// The <see cref="ModerationAction"/> entities applicable to this <see cref="Infraction"/>.
         /// </summary>
-        public ICollection<ModerationAction> ModerationActions { get; set; }
+        public virtual ICollection<ModerationAction> ModerationActions { get; set; }
 
         /// <summary>
         /// The duration from <see cref="Created"/>, indicating when the infraction should be considered "expired".
@@ -52,9 +52,20 @@ namespace Modix.Data.Models.Moderation
         public string Reason { get; set; }
 
         /// <summary>
-        /// A flag indicating whether this infraction has been rescinded.
+        /// A nullable timestamp indicating whether this infraction has been rescinded or not and include timestamp
+        /// information if the infraction has been rescinded.
         /// </summary>
-        [Required]
-        public bool IsRescinded { get; set; }
+        public DateTimeOffset? RescindedTimestamp { get; set; }
+
+        /// <summary>
+        /// Person who rescinded the infraction.
+        /// </summary>
+        public DiscordUser Rescinder { get; set; }
+        
+        /// <summary>
+        /// Discord User Identifier for the Rescinder
+        /// </summary>
+        [ForeignKey("Rescinder")]
+        public long RescinderId { get; set; }
     }
 }

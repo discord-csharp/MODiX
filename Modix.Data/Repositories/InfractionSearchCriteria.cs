@@ -40,8 +40,13 @@ namespace Modix.Data.Repositories
         public bool? IsExpired { get; set; }
 
         /// <summary>
-        /// A <see cref="Infraction.IsRescinded"/> value, defining the <see cref="Infraction"/> entities to be returned.
+        /// A <see cref="Infraction.Rescinder"/> value, defining the <see cref="Infraction"/> entities to be returned.
         /// </summary>
-        public bool? IsRescinded { get; set; }
+        public long? RescinderId { get; set; }
+        
+        /// <summary>
+        /// A range of values defining the <see cref="Infraction"/> entities to be returned,
+        /// </summary>
+        public DateTimeOffsetRange? RescindedRange { get; set; }
     }
 }

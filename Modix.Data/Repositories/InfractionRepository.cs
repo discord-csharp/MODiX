@@ -41,7 +41,7 @@ namespace Modix.Data.Repositories
         /// <param name="id">The <see cref="Infraction.InfractionId"/> value of the <see cref="Infraction"/> to be updated.</param>
         /// <param name="isRescinded">The new <see cref="Infraction.IsRescinded"/> value to be saved into the repository.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation is complete.</returns>
-        Task UpdateIsRescindedAsync(long id, bool isRescinded);
+        Task UpdateIsRescindedAsync(long id, long rescinderId);
 
         /// <summary>
         /// Searches the repository for <see cref="Infraction"/> entities, based on a given set of criteria.
@@ -104,8 +104,11 @@ namespace Modix.Data.Repositories
                                 > DateTimeOffset.UtcNow)
                             == searchCriteria.IsExpired.Value);
 
-                    if (searchCriteria.IsRescinded.HasValue)
-                        query = query.Where(x => x.IsRescinded == searchCriteria.IsRescinded.Value);
+                    if (searchCriteria.RescinderId.HasValue)
+                        query = query.Where(x => x.RescinderId == searchCriteria.RescinderId.Value);
+                   
+                    // TODO: RescindedTimestamp isn't implemented
+                    // May have to redo QueryPageBuilder to something more sensible.
 
                     return query;
                 },
@@ -122,15 +125,17 @@ namespace Modix.Data.Repositories
             await ModixContext.UpdateEntityPropertiesAsync(infraction, x => x.Duration);
         }
 
-        public async Task UpdateIsRescindedAsync(long id, bool isRescinded)
+        public async Task UpdateIsRescindedAsync(long id, long rescinderId)
         {
             var infraction = new Infraction()
             {
                 InfractionId = id,
-                IsRescinded = isRescinded
+                RescindedTimestamp = DateTimeOffset.UtcNow,
+                RescinderId = rescinderId
             };
 
-            await ModixContext.UpdateEntityPropertiesAsync(infraction, x => x.IsRescinded);
+            await ModixContext.UpdateEntityPropertiesAsync(infraction, x => x.RescindedTimestamp);
+            await ModixContext.UpdateEntityPropertiesAsync(infraction, x => x.RescinderId);
         }
 
         protected internal ModixContext ModixContext { get; }
