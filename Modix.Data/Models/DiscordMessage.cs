@@ -4,7 +4,8 @@ namespace Modix.Data.Models
 {
     public class DiscordMessage
     {
-        [Required] public long DiscordMessageId { get; set; }
+        [Required]
+        public long DiscordMessageId { get; set; }
 
         public long DiscordId { get; set; }
         public DiscordGuild DiscordGuild { get; set; }

@@ -13,7 +13,7 @@ namespace Modix.Data.Repositories
         /// <summary>
         /// A set of <see cref="Infraction.Type"/> values, defining the <see cref="Infraction"/> entities to be returned.
         /// </summary>
-        public IReadOnlyCollection<InfractionTypes> Types { get; set; }
+        public IReadOnlyCollection<InfractionType> Types { get; set; }
 
         /// <summary>
         /// A <see cref="Infraction.SubjectId"/> value, defining the <see cref="Infraction"/> entities to be returned.
@@ -23,14 +23,14 @@ namespace Modix.Data.Repositories
         /// <summary>
         /// A range of values defining the <see cref="Infraction"/> entities to be returned,
         /// according to the <see cref="ModerationAction.Created"/> value of associated <see cref="ModerationAction"/> entities,
-        /// with a <see cref="ModerationAction.Type"/> value of <see cref="ModerationActionTypes.InfractionCreated"/>.
+        /// with a <see cref="ModerationAction.Type"/> value of <see cref="ModerationActionType.InfractionCreated"/>.
         /// </summary>
         public DateTimeOffsetRange? CreatedRange { get; set; }
 
         /// <summary>
         /// A value defining the <see cref="Infraction"/> entities to be returned.
         /// according to the <see cref="ModerationAction.Created"/> value of associated <see cref="ModerationAction"/> entities,
-        /// with a <see cref="ModerationAction.Type"/> value of <see cref="ModerationActionTypes.InfractionCreated"/>.
+        /// with a <see cref="ModerationAction.Type"/> value of <see cref="ModerationActionType.InfractionCreated"/>.
         /// </summary>
         public long? CreatedById { get; set; }
 

@@ -1,6 +1,6 @@
 ﻿namespace Modix.Data.Models.Moderation
 {
-    public enum InfractionTypes
+    public enum InfractionType
     {
         Notice,
         Warning,

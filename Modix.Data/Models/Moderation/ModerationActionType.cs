@@ -1,6 +1,6 @@
 ﻿namespace Modix.Data.Models.Moderation
 {
-    public enum ModerationActionTypes
+    public enum ModerationActionType
     {
         InfractionCreated,
         InfractionModified,

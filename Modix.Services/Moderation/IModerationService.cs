@@ -8,7 +8,7 @@ namespace Modix.Services.Moderation
 {
     public interface IModerationService
     {
-        Task RecordInfractionAsync(InfractionTypes type, long subjectId, string reason, TimeSpan? duration);
+        Task RecordInfractionAsync(InfractionType type, long subjectId, string reason, TimeSpan? duration);
 
         Task RescindInfractionAsync(long infractionId, string comment);
 

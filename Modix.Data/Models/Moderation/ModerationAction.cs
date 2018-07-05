@@ -12,22 +12,19 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// A unique identifier for this <see cref="Infraction"/>.
         /// </summary>
-        [Key]
-        [Required]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Key, Required, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
 
         /// <summary>
         /// The type of this <see cref="ModerationAction"/>.
         /// </summary>
         [Required]
-        public ModerationActionTypes Type { get; set; }
+        public ModerationActionType Type { get; set; }
         
         /// <summary>
         /// The <see cref="Infraction.SubjectId"/> value of <see cref="Infraction"/>.
         /// </summary>
-        [Required]
-        [ForeignKey(nameof(Infraction))]
+        [Required, ForeignKey(nameof(Infraction))]
         public long? InfractionId { get; set; }
 
         /// <summary>
@@ -46,8 +43,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// The <see cref="DiscordUser.UserId"/> value of <see cref="CreatedBy"/>.
         /// </summary>
-        [Required]
-        [ForeignKey(nameof(CreatedBy))]
+        [Required, ForeignKey(nameof(CreatedBy))]
         public long CreatedById { get; set; }
 
         /// <summary>

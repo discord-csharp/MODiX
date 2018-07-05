@@ -19,18 +19,18 @@ namespace Modix.Data.Repositories
         /// </summary>
         /// <param name="infraction">
         /// The <see cref="Infraction"/> to be inserted.
-        /// The <see cref="Infraction.Id"/> values are generated automatically.
+        /// The <see cref="Infraction.InfractionId"/> values are generated automatically.
         /// </param>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing the auto-generated <see cref="Infraction.Id"/> value assigned to <paramref name="infraction"/>.
+        /// containing the auto-generated <see cref="Infraction.InfractionId"/> value assigned to <paramref name="infraction"/>.
         /// </returns>
         Task<long> InsertAsync(Infraction infraction);
 
         /// <summary>
         /// Updates the <see cref="Infraction.Duration"/> value of an existing <see cref="Infraction"/> within the repository.
         /// </summary>
-        /// <param name="id">The <see cref="Infraction.Id"/> value of the <see cref="Infraction"/> to be updated.</param>
+        /// <param name="id">The <see cref="Infraction.InfractionId"/> value of the <see cref="Infraction"/> to be updated.</param>
         /// <param name="duration">The new <see cref="Infraction.Duration"/> value to be saved into the repository.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation is complete.</returns>
         Task UpdateDurationAsync(long id, TimeSpan duration);
@@ -38,7 +38,7 @@ namespace Modix.Data.Repositories
         /// <summary>
         /// Updates the <see cref="Infraction.IsRescinded"/> value of an existing <see cref="Infraction"/> within the repository.
         /// </summary>
-        /// <param name="id">The <see cref="Infraction.Id"/> value of the <see cref="Infraction"/> to be updated.</param>
+        /// <param name="id">The <see cref="Infraction.InfractionId"/> value of the <see cref="Infraction"/> to be updated.</param>
         /// <param name="isRescinded">The new <see cref="Infraction.IsRescinded"/> value to be saved into the repository.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation is complete.</returns>
         Task UpdateIsRescindedAsync(long id, bool isRescinded);
@@ -67,7 +67,7 @@ namespace Modix.Data.Repositories
 
             await ModixContext.SaveChangesAsync();
 
-            return infraction.Id;
+            return infraction.InfractionId;
         }
 
         public async Task<QueryPage<Infraction>> SearchAsync(InfractionSearchCriteria searchCriteria, PagingCriteria pagingCriteria)
@@ -84,22 +84,22 @@ namespace Modix.Data.Repositories
 
                     if ((searchCriteria.CreatedRange.HasValue) && (searchCriteria.CreatedRange.Value.From.HasValue))
                         query = query.Where(x => ModixContext.ModerationActions.Any(y =>
-                            (y.InfractionId == x.Id) && (y.Type == ModerationActionTypes.InfractionCreated)
+                            (y.InfractionId == x.InfractionId) && (y.Type == ModerationActionType.InfractionCreated)
                             && (y.Created >= searchCriteria.CreatedRange.Value.From.Value)));
 
                     if ((searchCriteria.CreatedRange.HasValue) && (searchCriteria.CreatedRange.Value.To.HasValue))
                         query = query.Where(x => ModixContext.ModerationActions.Any(y =>
-                            (y.InfractionId == x.Id) && (y.Type == ModerationActionTypes.InfractionCreated)
+                            (y.InfractionId == x.InfractionId) && (y.Type == ModerationActionType.InfractionCreated)
                             && (y.Created <= searchCriteria.CreatedRange.Value.To.Value)));
 
                     if (searchCriteria.CreatedById.HasValue)
                         query = query.Where(x => ModixContext.ModerationActions.Any(y =>
-                            (y.InfractionId == x.Id) && (y.Type == ModerationActionTypes.InfractionCreated)
+                            (y.InfractionId == x.InfractionId) && (y.Type == ModerationActionType.InfractionCreated)
                             && (y.CreatedById == searchCriteria.CreatedById.Value)));
 
                     if (searchCriteria.IsExpired.HasValue)
                         query = query.Where(x => x.Duration.HasValue
-                            && ((ModixContext.ModerationActions.First(y => (y.InfractionId == x.Id) && (y.Type == ModerationActionTypes.InfractionCreated))
+                            && ((ModixContext.ModerationActions.First(y => (y.InfractionId == x.InfractionId) && (y.Type == ModerationActionType.InfractionCreated))
                                     .Created + x.Duration.Value)
                                 > DateTimeOffset.UtcNow)
                             == searchCriteria.IsExpired.Value);
@@ -115,7 +115,7 @@ namespace Modix.Data.Repositories
         {
             var infraction = new Infraction()
             {
-                Id = id,
+                InfractionId = id,
                 Duration = duration
             };
 
@@ -126,13 +126,13 @@ namespace Modix.Data.Repositories
         {
             var infraction = new Infraction()
             {
-                Id = id,
+                InfractionId = id,
                 IsRescinded = isRescinded
             };
 
             await ModixContext.UpdateEntityPropertiesAsync(infraction, x => x.IsRescinded);
         }
 
-        internal protected ModixContext ModixContext { get; }
+        protected internal ModixContext ModixContext { get; }
     }
 }

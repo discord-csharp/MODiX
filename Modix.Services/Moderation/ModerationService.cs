@@ -27,7 +27,7 @@ namespace Modix.Services.Moderation
             return await InfractionRepository.SearchAsync(searchCriteria, pagingCriteria);
         }
 
-        public async Task RecordInfractionAsync(InfractionTypes type, long subjectId, string reason, TimeSpan? duration)
+        public async Task RecordInfractionAsync(InfractionType type, long subjectId, string reason, TimeSpan? duration)
         {
             await AuthorizationService.RequireClaimsAsync(_recordInfractionClaimsByType[type]);
 
@@ -40,7 +40,7 @@ namespace Modix.Services.Moderation
                 Duration = duration
             });
 
-            await CreateModerationActionAsync(infractionId, ModerationActionTypes.InfractionCreated, reason);
+            await CreateModerationActionAsync(infractionId, ModerationActionType.InfractionCreated, reason);
         }
 
         public async Task RescindInfractionAsync(long infractionId, string comment)
@@ -49,12 +49,12 @@ namespace Modix.Services.Moderation
 
             await InfractionRepository.UpdateIsRescindedAsync(infractionId, true);
 
-            await CreateModerationActionAsync(infractionId, ModerationActionTypes.InfractionModified, comment);
+            await CreateModerationActionAsync(infractionId, ModerationActionType.InfractionModified, comment);
         }
 
         public event EventHandler<ModerationActionCreatedEventArgs> ModerationActionCreated;
 
-        private async Task<long> CreateModerationActionAsync(long infractionId, ModerationActionTypes type, string comment)
+        private async Task<long> CreateModerationActionAsync(long infractionId, ModerationActionType type, string comment)
         {
             var action = new ModerationAction()
             {
@@ -71,21 +71,21 @@ namespace Modix.Services.Moderation
             return actionId;
         }
 
-        internal protected IAuthenticationService AuthenticationService { get; }
+        protected internal IAuthenticationService AuthenticationService { get; }
 
-        internal protected IAuthorizationService AuthorizationService { get; }
+        protected internal IAuthorizationService AuthorizationService { get; }
 
-        internal protected IInfractionRepository InfractionRepository { get; }
+        protected internal IInfractionRepository InfractionRepository { get; }
 
-        internal protected IModerationActionRepository ModerationActionRepository { get; }
+        protected internal IModerationActionRepository ModerationActionRepository { get; }
 
-        private static readonly Dictionary<InfractionTypes, AuthorizationClaims> _recordInfractionClaimsByType
-            = new Dictionary<InfractionTypes, AuthorizationClaims>()
+        private static readonly Dictionary<InfractionType, AuthorizationClaims> _recordInfractionClaimsByType
+            = new Dictionary<InfractionType, AuthorizationClaims>()
             {
-                {InfractionTypes.Notice, AuthorizationClaims.ModerationNote },
-                {InfractionTypes.Warning, AuthorizationClaims.ModerationWarn },
-                {InfractionTypes.Mute, AuthorizationClaims.ModerationMute },
-                {InfractionTypes.Ban, AuthorizationClaims.ModerationBan }
+                {InfractionType.Notice, AuthorizationClaims.ModerationNote },
+                {InfractionType.Warning, AuthorizationClaims.ModerationWarn },
+                {InfractionType.Mute, AuthorizationClaims.ModerationMute },
+                {InfractionType.Ban, AuthorizationClaims.ModerationBan }
             };
     }
 }

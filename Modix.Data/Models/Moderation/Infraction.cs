@@ -13,22 +13,19 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// A unique identifier for this <see cref="Infraction"/>.
         /// </summary>
-        [Key]
-        [Required]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long Id { get; set; }
+        [Key, Required, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long InfractionId { get; set; }
 
         /// <summary>
         /// The type of <see cref="Infraction"/> recorded.
         /// </summary>
         [Required]
-        public InfractionTypes Type { get; set; }
+        public InfractionType Type { get; set; }
 
         /// <summary>
         /// The <see cref="DiscordUser.UserId"/> value of <see cref="Subject"/>.
         /// </summary>
-        [Required]
-        [ForeignKey(nameof(Subject))]
+        [Required, ForeignKey(nameof(Subject))]
         public long SubjectId { get; set; }
 
         /// <summary>
