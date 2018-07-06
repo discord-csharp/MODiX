@@ -1,20 +1,17 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
-
   <ItemGroup>
+    <PackageReference Include="Microsoft.NETCore.App" Version="2.1.0" />
     <PackageReference Include="Discord.Net" Version="1.0.2" />
     <PackageReference Include="Kitsu" Version="1.3.2" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="Serilog" Version="2.6.0" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
   </ItemGroup>
-
 </Project>

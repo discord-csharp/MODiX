@@ -10,6 +10,6 @@ namespace Modix.Services.Authentication
     {
         long? CurrentUserId { get; }
 
-        ICollection<AuthorizationClaims> Claims { get; }
+        ICollection<AuthorizationClaim> Claims { get; }
     }
 }

@@ -7,23 +7,22 @@ namespace Modix.Data.Models
     /// <summary>
     /// Describes a Discord user that has at least once joined the Discord guild managed by MODiX.
     /// </summary>
-    public class User
+    public class DiscordUser
     {
         /// <summary>
         /// A unique identifier for this user.
         /// </summary>
-        [Key]
-        [Required]
-        public long Id { get; set; }
+        [Key, Required]
+        public long UserId { get; set; }
 
         /// <summary>
         /// The unique identifier for this user within the Discord API.
         /// </summary>
         [NotMapped]
-        public ulong DiscordId
+        public ulong DiscordUserId
         {
-            get => (ulong)Id;
-            set => Id = (long)value;
+            get => (ulong)UserId;
+            set => UserId = (long)value;
         }
 
         /// <summary>
@@ -31,12 +30,22 @@ namespace Modix.Data.Models
         /// </summary>
         [Required]
         public string Username { get; set; }
+        
+        /// <summary>
+        /// The provided Nickname value of this server, within the Discord API.
+        /// </summary>
+        public string Nickname { get; set; }
 
         /// <summary>
         /// The "discriminator" value of this user, within the Discord API.
         /// </summary>
         [Required]
         public uint Discriminator { get; set; }
+        
+        /// <summary>
+        /// A timestamp indictating when this Discord User account was created.
+        /// </summary>
+        public DateTimeOffset CreatedAt { get; set; }
 
         /// <summary>
         /// A timestamp indicating the first time a message was received from this user.
@@ -49,5 +58,15 @@ namespace Modix.Data.Models
         /// </summary>
         [Required]
         public DateTimeOffset LastSeen { get; set; }
+        
+        /// <summary>
+        /// A url link to Avatar image
+        /// </summary>
+        public string AvatarUrl { get; set; }
+        
+        /// <summary>
+        /// A boolean indicating whether or not if this user is a bot. 
+        /// </summary>
+        public bool IsBot { get; set; }
     }
 }

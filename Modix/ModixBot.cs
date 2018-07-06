@@ -18,12 +18,11 @@ using Modix.Services.CommandHelp;
 
 namespace Modix
 {
-    using System.Collections.Generic;
     using Microsoft.AspNetCore.Hosting;
-    using Modix.Services.Animals;
-    using Modix.Services.FileUpload;
-    using Modix.Services.Promotions;
-    using Modix.Services.Utilities;
+    using Services.Animals;
+    using Services.FileUpload;
+    using Services.Promotions;
+    using Services.Utilities;
 
     public sealed class ModixBot
     {
@@ -72,9 +71,9 @@ namespace Modix
             await Install(); // Setting up DependencyMap
             //_map.AddDbContext<ModixContext>(options =>
             //{
-            //    options.UseNpgsql(_config.PostgreConnectionString);                
+            //    options.UseNpgsql(_config.PostgreConnectionString);
             //});
-           
+
             //var provider = _map.BuildServiceProvider();
 
             _host = ModixWebServer.BuildWebHost(_map, _config);
@@ -90,7 +89,7 @@ namespace Modix
             //}
 
             //#endif
-            
+
             _provider = _host.Services;
 
             _hooks.ServiceProvider = _provider;
@@ -164,8 +163,15 @@ namespace Modix
                 {
                     string error = $"{result.Error}: {result.ErrorReason}";
 
-                    Log.Error(error);
-                    
+                    if (!string.Equals(result.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Log.Warning(error);
+                    }
+                    else
+                    {
+                        Log.Error(error);
+                    }
+
                     if (result.Error != CommandError.Exception)
                     {
                         var handler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
@@ -200,7 +206,7 @@ namespace Modix
             _map.AddSingleton<CommandHelpService>();
 
             _map.AddSingleton<PromotionService>();
-            _map.AddSingleton<IPromotionRepository, FilePromotionRepository>();
+            _map.AddSingleton<IPromotionRepository, DBPromotionRepository>();
 
             _map.AddSingleton<CommandErrorHandler>();
 

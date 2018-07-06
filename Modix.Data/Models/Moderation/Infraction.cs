@@ -13,34 +13,31 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// A unique identifier for this <see cref="Infraction"/>.
         /// </summary>
-        [Key]
-        [Required]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long Id { get; set; }
+        [Key, Required, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long InfractionId { get; set; }
 
         /// <summary>
         /// The type of <see cref="Infraction"/> recorded.
         /// </summary>
         [Required]
-        public InfractionTypes Type { get; set; }
+        public InfractionType Type { get; set; }
 
         /// <summary>
-        /// The <see cref="User.Id"/> value of <see cref="Subject"/>.
+        /// The <see cref="DiscordUser.UserId"/> value of <see cref="Subject"/>.
         /// </summary>
-        [Required]
-        [ForeignKey(nameof(Subject))]
+        [Required, ForeignKey(nameof(Subject))]
         public long SubjectId { get; set; }
 
         /// <summary>
         /// The user upon which the <see cref="Infraction"/> was applied.
         /// </summary>
         [Required]
-        public User Subject { get; set; }
+        public DiscordUser Subject { get; set; }
 
         /// <summary>
         /// The <see cref="ModerationAction"/> entities applicable to this <see cref="Infraction"/>.
         /// </summary>
-        public ICollection<ModerationAction> ModerationActions { get; set; }
+        public virtual ICollection<ModerationAction> ModerationActions { get; set; }
 
         /// <summary>
         /// The duration from <see cref="Created"/>, indicating when the infraction should be considered "expired".
@@ -55,9 +52,20 @@ namespace Modix.Data.Models.Moderation
         public string Reason { get; set; }
 
         /// <summary>
-        /// A flag indicating whether this infraction has been rescinded.
+        /// A nullable timestamp indicating whether this infraction has been rescinded or not and include timestamp
+        /// information if the infraction has been rescinded.
         /// </summary>
-        [Required]
-        public bool IsRescinded { get; set; }
+        public DateTimeOffset? RescindedTimestamp { get; set; }
+
+        /// <summary>
+        /// Person who rescinded the infraction.
+        /// </summary>
+        public DiscordUser Rescinder { get; set; }
+        
+        /// <summary>
+        /// Discord User Identifier for the Rescinder
+        /// </summary>
+        [ForeignKey("Rescinder")]
+        public long RescinderId { get; set; }
     }
 }

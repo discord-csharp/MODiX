@@ -12,7 +12,7 @@ namespace Modix.Data.Repositories
         /// <summary>
         /// A set of <see cref="ModerationAction.Type"/> values, defining the <see cref="ModerationAction"/> entities to be returned.
         /// </summary>
-        public IEnumerable<ModerationActionTypes> Types { get; set; }
+        public IEnumerable<ModerationActionType> Types { get; set; }
 
         /// <summary>
         /// A <see cref="ModerationAction.InfractionId"/> value, defining the <see cref="ModerationAction"/> entities to be returned.
