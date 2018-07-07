@@ -4,7 +4,8 @@ namespace Modix.Data.Models.Core
 {
     public class DiscordMessageEntity
     {
-        [Required] public long DiscordMessageId { get; set; }
+        [Required]
+        public long DiscordMessageId { get; set; }
 
         public long DiscordId { get; set; }
         public DiscordGuildEntity DiscordGuild { get; set; }

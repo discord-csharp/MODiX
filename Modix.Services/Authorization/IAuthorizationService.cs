@@ -4,6 +4,6 @@ namespace Modix.Services.Authorization
 {
     public interface IAuthorizationService
     {
-        Task RequireClaimsAsync(params AuthorizationClaims[] claims);
+        Task RequireClaimsAsync(params AuthorizationClaim[] claim);
     }
 }

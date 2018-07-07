@@ -33,6 +33,7 @@ namespace Modix.Data.Repositories
             var filteredQuery = (WhereClause == null) ? Query : WhereClause(Query);
 
             var pagedQuery = (OrderByClause == null) ? filteredQuery : OrderByClause(filteredQuery);
+            
             if (pagingCriteria.FirstRecordIndex.HasValue && (pagingCriteria.FirstRecordIndex.Value != 0))
                 pagedQuery = pagedQuery.Skip(pagingCriteria.FirstRecordIndex.Value);
             if (pagingCriteria.LastRecordIndex.HasValue || MaxPageSize.HasValue)

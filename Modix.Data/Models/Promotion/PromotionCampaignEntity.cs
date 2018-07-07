@@ -49,6 +49,7 @@ namespace Modix.Data.Models.Promotion
             }
         }
 
+        [InverseProperty("PromotionCampaign")]
         public DbSet<PromotionCommentEntity> Comments { get; set; }
     }
 }

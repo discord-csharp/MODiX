@@ -15,22 +15,19 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// A unique identifier for this <see cref="InfractionEntity"/>.
         /// </summary>
-        [Key]
-        [Required]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long Id { get; set; }
+        [Key, Required, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long InfractionId { get; set; }
 
         /// <summary>
         /// The type of <see cref="InfractionEntity"/> recorded.
         /// </summary>
         [Required]
-        public InfractionTypes Type { get; set; }
+        public InfractionType Type { get; set; }
 
         /// <summary>
         /// The <see cref="DiscordUserEntity.UserId"/> value of <see cref="Subject"/>.
         /// </summary>
-        [Required]
-        [ForeignKey(nameof(Subject))]
+        [Required, ForeignKey(nameof(Subject))]
         public long SubjectId { get; set; }
 
         /// <summary>
@@ -42,7 +39,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// The <see cref="ModerationActionEntity"/> entities applicable to this <see cref="InfractionEntity"/>.
         /// </summary>
-        public ICollection<ModerationActionEntity> ModerationActions { get; set; }
+        public virtual ICollection<ModerationActionEntity> ModerationActions { get; set; }
 
         /// <summary>
         /// The duration from <see cref="Created"/>, indicating when the infraction should be considered "expired".
@@ -56,10 +53,6 @@ namespace Modix.Data.Models.Moderation
         [Required]
         public string Reason { get; set; }
 
-        /// <summary>
-        /// A flag indicating whether this infraction has been rescinded.
-        /// </summary>
-        [Required]
         public bool IsRescinded { get; set; }
     }
 }

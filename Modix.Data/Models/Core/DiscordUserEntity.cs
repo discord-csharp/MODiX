@@ -12,8 +12,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// A unique identifier for this user.
         /// </summary>
-        [Key]
-        [Required]
+        [Key, Required]
         public long UserId { get; set; }
 
         /// <summary>

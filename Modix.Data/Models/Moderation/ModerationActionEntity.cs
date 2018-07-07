@@ -14,21 +14,18 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// A unique identifier for this <see cref="Infraction"/>.
         /// </summary>
-        [Key]
-        [Required]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Key, Required, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
 
         /// <summary>
         /// The type of this <see cref="ModerationActionEntity"/>.
         /// </summary>
         [Required]
-        public ModerationActionTypes Type { get; set; }
+        public ModerationActionType Type { get; set; }
         
         /// <summary>
         /// The <see cref="InfractionEntity.SubjectId"/> value of <see cref="Infraction"/>.
         /// </summary>
-        [Required]
         [ForeignKey(nameof(Infraction))]
         public long? InfractionId { get; set; }
 
@@ -48,15 +45,14 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// The <see cref="DiscordUserEntity.UserId"/> value of <see cref="CreatedBy"/>.
         /// </summary>
-        [Required]
-        [ForeignKey(nameof(CreatedBy))]
+        [Required, ForeignKey(nameof(CreatedBy))]
         public long CreatedById { get; set; }
 
         /// <summary>
         /// The staff member that applied this moderation action
         /// </summary>
         [Required]
-        public DiscordUserEntity CreatedBy { get; set; }
+        public virtual DiscordUserEntity CreatedBy { get; set; }
 
         /// <summary>
         /// A comment about the moderation action that was performed.

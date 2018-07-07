@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Modix.Services.Authorization
 {
-    public enum AuthorizationClaims
+    public enum AuthorizationClaim
     {
         ModerationRead,
         ModerationNote,

@@ -41,7 +41,7 @@ namespace Modix.Data.Repositories
         /// <param name="id">The <see cref="InfractionEntity.Id"/> value of the <see cref="InfractionEntity"/> to be updated.</param>
         /// <param name="isRescinded">The new <see cref="InfractionEntity.IsRescinded"/> value to be saved into the repository.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation is complete.</returns>
-        Task UpdateIsRescindedAsync(long id, bool isRescinded);
+        Task UpdateIsRescindedAsync(long id, long rescinderId);
 
         /// <summary>
         /// Searches the repository for <see cref="InfractionEntity"/> entities, based on a given set of criteria.
@@ -67,7 +67,7 @@ namespace Modix.Data.Repositories
 
             await ModixContext.SaveChangesAsync();
 
-            return infraction.Id;
+            return infraction.InfractionId;
         }
 
         public async Task<QueryPage<InfractionEntity>> SearchAsync(InfractionSearchCriteria searchCriteria, PagingCriteria pagingCriteria)
@@ -84,28 +84,31 @@ namespace Modix.Data.Repositories
 
                     if ((searchCriteria.CreatedRange.HasValue) && (searchCriteria.CreatedRange.Value.From.HasValue))
                         query = query.Where(x => ModixContext.ModerationActions.Any(y =>
-                            (y.InfractionId == x.Id) && (y.Type == ModerationActionTypes.InfractionCreated)
+                            (y.InfractionId == x.InfractionId) && (y.Type == ModerationActionType.InfractionCreated)
                             && (y.Created >= searchCriteria.CreatedRange.Value.From.Value)));
 
                     if ((searchCriteria.CreatedRange.HasValue) && (searchCriteria.CreatedRange.Value.To.HasValue))
                         query = query.Where(x => ModixContext.ModerationActions.Any(y =>
-                            (y.InfractionId == x.Id) && (y.Type == ModerationActionTypes.InfractionCreated)
+                            (y.InfractionId == x.InfractionId) && (y.Type == ModerationActionType.InfractionCreated)
                             && (y.Created <= searchCriteria.CreatedRange.Value.To.Value)));
 
                     if (searchCriteria.CreatedById.HasValue)
                         query = query.Where(x => ModixContext.ModerationActions.Any(y =>
-                            (y.InfractionId == x.Id) && (y.Type == ModerationActionTypes.InfractionCreated)
+                            (y.InfractionId == x.InfractionId) && (y.Type == ModerationActionType.InfractionCreated)
                             && (y.CreatedById == searchCriteria.CreatedById.Value)));
 
                     if (searchCriteria.IsExpired.HasValue)
                         query = query.Where(x => x.Duration.HasValue
-                            && ((ModixContext.ModerationActions.First(y => (y.InfractionId == x.Id) && (y.Type == ModerationActionTypes.InfractionCreated))
+                            && ((ModixContext.ModerationActions.First(y => (y.InfractionId == x.InfractionId) && (y.Type == ModerationActionType.InfractionCreated))
                                     .Created + x.Duration.Value)
                                 > DateTimeOffset.UtcNow)
                             == searchCriteria.IsExpired.Value);
 
                     if (searchCriteria.IsRescinded.HasValue)
                         query = query.Where(x => x.IsRescinded == searchCriteria.IsRescinded.Value);
+                   
+                    // TODO: RescindedTimestamp isn't implemented
+                    // May have to redo QueryPageBuilder to something more sensible.
 
                     return query;
                 },
@@ -115,24 +118,24 @@ namespace Modix.Data.Repositories
         {
             var infraction = new InfractionEntity()
             {
-                Id = id,
+                InfractionId = id,
                 Duration = duration
             };
 
             await ModixContext.UpdateEntityPropertiesAsync(infraction, x => x.Duration);
         }
 
-        public async Task UpdateIsRescindedAsync(long id, bool isRescinded)
+        public async Task UpdateIsRescindedAsync(long id, long rescinderId)
         {
             var infraction = new InfractionEntity()
             {
-                Id = id,
-                IsRescinded = isRescinded
+                InfractionId = id,
+                IsRescinded = true
             };
 
             await ModixContext.UpdateEntityPropertiesAsync(infraction, x => x.IsRescinded);
         }
 
-        internal protected ModixContext ModixContext { get; }
+        protected internal ModixContext ModixContext { get; }
     }
 }

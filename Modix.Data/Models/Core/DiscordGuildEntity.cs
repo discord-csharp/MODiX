@@ -6,7 +6,8 @@ namespace Modix.Data.Models.Core
 {
     public class DiscordGuildEntity
     {
-        [Key, Required] public long GuildId { get; set; }
+        [Key, Required]
+        public long GuildId { get; set; }
 
         [NotMapped]
         public ulong DiscordGuildId
@@ -19,7 +20,8 @@ namespace Modix.Data.Models.Core
 
         [Required] public DiscordUserEntity Owner { get; set; }
 
-        [Required] public DateTime CreatedAt { get; set; }
+        [Required]
+        public DateTime CreatedAt { get; set; }
 
         public GuildConfig Config { get; set; }
     }
