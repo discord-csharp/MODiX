@@ -1,4 +1,4 @@
-﻿using Modix.Data.Models;
+﻿using Modix.Data.Models.Promotion;
 
 namespace Modix.WebServer.Models
 {

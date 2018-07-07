@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Microsoft.EntityFrameworkCore;
-using Modix.Data.Models;
+using Modix.Data.Models.Core;
 using Modix.Data.Utilities;
 
 namespace Modix.Data.Services

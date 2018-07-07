@@ -4,7 +4,8 @@ using System.Threading.Tasks;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data;
-using Modix.Data.Models;
+using Modix.Data.Models.Core;
+using Modix.Data.Models.Promotion;
 
 namespace Modix.Services.Promotions
 {

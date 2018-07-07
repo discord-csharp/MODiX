@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Modix.Data.Models
+namespace Modix.Data.Models.Core
 {
     /// <summary>
     /// Describes a Discord user that has at least once joined the Discord guild managed by MODiX.

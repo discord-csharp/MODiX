@@ -5,7 +5,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
-using Modix.Data.Models;
+using Modix.Data.Models.Core;
+using Modix.Data.Models.Promotion;
 using Modix.Services.Utilities;
 
 namespace Modix.Services.Promotions

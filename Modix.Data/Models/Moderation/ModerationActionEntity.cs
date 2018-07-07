@@ -2,6 +2,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using Modix.Data.Models.Core;
+
 namespace Modix.Data.Models.Moderation
 {
     /// <summary>

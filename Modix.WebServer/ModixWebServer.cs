@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Modix.Data.Models;
+using Modix.Data.Models.Core;
 using Modix.WebServer.Auth;
 using Newtonsoft.Json.Converters;
 using System;

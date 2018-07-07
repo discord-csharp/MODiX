@@ -4,7 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 
-namespace Modix.Data.Models
+using Modix.Data.Models.Core;
+
+namespace Modix.Data.Models.Promotion
 {
     public enum CampaignStatus
     {
