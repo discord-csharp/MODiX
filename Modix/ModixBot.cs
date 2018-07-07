@@ -15,6 +15,7 @@ using Modix.WebServer;
 using Modix.Services.GuildInfo;
 using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
+using Modix.Services.Configuration;
 
 namespace Modix
 {
@@ -37,6 +38,10 @@ namespace Modix
         private ModixBotHooks _hooks = new ModixBotHooks();
         private ModixConfig _config = new ModixConfig();
         private IWebHost _host;
+
+        private readonly IConfigurationService _configurationService = new ConfigurationService();
+
+        private DiscordBotConfiguration _botConfiguration;
 
         public ModixBot()
         {
@@ -69,6 +74,9 @@ namespace Modix
             });
 
             await Install(); // Setting up DependencyMap
+
+            LoadBotConfiguration();
+
             //_map.AddDbContext<ModixContext>(options =>
             //{
             //    options.UseNpgsql(_config.PostgreConnectionString);
@@ -93,6 +101,7 @@ namespace Modix
             _provider = _host.Services;
 
             _hooks.ServiceProvider = _provider;
+            _hooks.ConfigurationService = _configurationService;
 
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
@@ -102,7 +111,12 @@ namespace Modix
             await Task.Delay(-1);
         }
 
-        public async Task StartWebserver()
+        private void LoadBotConfiguration()
+        {
+            _configurationService.LoadDiscordBotConfiguration();
+        }
+
+        private async Task StartWebserver()
         {
             await _client.SetGameAsync("https://mod.gg/");
 
@@ -111,7 +125,7 @@ namespace Modix
             _client.Ready -= StartWebserver;
         }
 
-        public void LoadConfig()
+        private void LoadConfig()
         {
             _config = new ModixConfig
             {
@@ -136,17 +150,21 @@ namespace Modix
             {
                 _config.SentryToken = sentryToken;
             }
+
+            _botConfiguration = _configurationService.LoadDiscordBotConfiguration();
         }
 
-        public async Task HandleCommand(SocketMessage messageParam)
+        private async Task HandleCommand(SocketMessage messageParam)
         {
             var stopwatch = new Stopwatch();
+
             stopwatch.Start();
 
             var message = messageParam as SocketUserMessage;
+
             if (message == null) return;
 
-            int argPos = 0;
+            var argPos = 0;
             if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos)))
                 return;
 
@@ -188,17 +206,19 @@ namespace Modix
             Log.Information($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
         }
 
-        public async Task Install()
+        private async Task Install()
         {
             _map.AddSingleton(_client);
             _map.AddSingleton(_config);
             _map.AddSingleton(_commands);
+            _map.AddSingleton(_botConfiguration);
 
             _map.AddScoped<IQuoteService, QuoteService>();
             _map.AddSingleton<CodePasteHandler>();
             _map.AddSingleton<FileUploadHandler>();
             _map.AddSingleton<CodePasteService>();
             _map.AddSingleton<IAnimalService, AnimalService>();
+
             _map.AddMemoryCache();
 
             _map.AddSingleton<GuildInfoService>();
