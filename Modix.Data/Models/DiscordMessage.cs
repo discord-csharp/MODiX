@@ -1,8 +1,11 @@
-﻿namespace Modix.Data.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Modix.Data.Models
 {
     public class DiscordMessage
     {
-        public int Id { get; set; }
+        [Required] public long DiscordMessageId { get; set; }
+
         public long DiscordId { get; set; }
         public DiscordGuild DiscordGuild { get; set; }
         public string Content { get; set; }

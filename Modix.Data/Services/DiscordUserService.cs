@@ -20,7 +20,7 @@ namespace Modix.Data.Services
         {
             try
             {
-                return await _context.Users.SingleAsync(x => x.DiscordId == user.Id.ToLong());
+                return await _context.DiscordUsers.SingleAsync(x => x.DiscordUserId == user.Id);
             }
             catch (InvalidOperationException)
             {
@@ -33,7 +33,7 @@ namespace Modix.Data.Services
         {
             var discordUser = new DiscordUser()
             {
-                DiscordId = user.Id.ToLong(),
+                DiscordUserId = user.Id,
                 AvatarUrl = user.GetAvatarUrl(),
                 CreatedAt = user.CreatedAt.DateTime,
                 IsBot = user.IsBot,
@@ -41,7 +41,7 @@ namespace Modix.Data.Services
                 Nickname = user.Nickname,
             };
 
-            var res = (await _context.Users.AddAsync(discordUser)).Entity;
+            var res = (await _context.DiscordUsers.AddAsync(discordUser)).Entity;
             await _context.SaveChangesAsync();
             return res;
 
