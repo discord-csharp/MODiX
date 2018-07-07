@@ -59,7 +59,7 @@ namespace Modix
         {
             var config = new ModixConfig
             {
-                DiscordToken = Environment.GetEnvironmentVariable("Token"),
+                DiscordToken = Environment.GetEnvironmentVariable("DiscordToken"),
                 ReplToken = Environment.GetEnvironmentVariable("ReplToken"),
                 StackoverflowToken = Environment.GetEnvironmentVariable("StackoverflowToken"),
                 PostgreConnectionString = Environment.GetEnvironmentVariable("MODIX_DB_CONNECTION"),
