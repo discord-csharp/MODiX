@@ -7,7 +7,7 @@ namespace Modix.Data.Models.Moderation
     /// <summary>
     /// Describes a moderation action performed by an authorized staff member.
     /// </summary>
-    public class ModerationAction
+    public class ModerationActionEntity
     {
         /// <summary>
         /// A unique identifier for this <see cref="Infraction"/>.
@@ -18,33 +18,33 @@ namespace Modix.Data.Models.Moderation
         public long Id { get; set; }
 
         /// <summary>
-        /// The type of this <see cref="ModerationAction"/>.
+        /// The type of this <see cref="ModerationActionEntity"/>.
         /// </summary>
         [Required]
         public ModerationActionTypes Type { get; set; }
         
         /// <summary>
-        /// The <see cref="Infraction.SubjectId"/> value of <see cref="Infraction"/>.
+        /// The <see cref="InfractionEntity.SubjectId"/> value of <see cref="Infraction"/>.
         /// </summary>
         [Required]
         [ForeignKey(nameof(Infraction))]
         public long? InfractionId { get; set; }
 
         /// <summary>
-        /// The <see cref="Infraction"/> to which this <see cref="ModerationAction"/> applies.
-        /// Null, if an <see cref="Infraction"/> was involved in this <see cref="ModerationAction"/>.
+        /// The <see cref="Infraction"/> to which this <see cref="ModerationActionEntity"/> applies.
+        /// Null, if an <see cref="Infraction"/> was involved in this <see cref="ModerationActionEntity"/>.
         /// </summary>
         [Required]
-        public Infraction Infraction { get; set; }
+        public InfractionEntity Infraction { get; set; }
 
         /// <summary>
-        /// A timestamp indicating when this <see cref="ModerationAction"/> occurred.
+        /// A timestamp indicating when this <see cref="ModerationActionEntity"/> occurred.
         /// </summary>
         [Required]
         public DateTimeOffset Created { get; set; }
 
         /// <summary>
-        /// The <see cref="DiscordUser.UserId"/> value of <see cref="CreatedBy"/>.
+        /// The <see cref="DiscordUserEntity.UserId"/> value of <see cref="CreatedBy"/>.
         /// </summary>
         [Required]
         [ForeignKey(nameof(CreatedBy))]
@@ -54,7 +54,7 @@ namespace Modix.Data.Models.Moderation
         /// The staff member that applied this moderation action
         /// </summary>
         [Required]
-        public DiscordUser CreatedBy { get; set; }
+        public DiscordUserEntity CreatedBy { get; set; }
 
         /// <summary>
         /// A comment about the moderation action that was performed.

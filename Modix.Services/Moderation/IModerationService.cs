@@ -12,7 +12,7 @@ namespace Modix.Services.Moderation
 
         Task RescindInfractionAsync(long infractionId, string comment);
 
-        Task<QueryPage<Infraction>> FindInfractionsAsync(InfractionSearchCriteria criteria, PagingCriteria pagingCriteria);
+        Task<QueryPage<InfractionEntity>> FindInfractionsAsync(InfractionSearchCriteria criteria, PagingCriteria pagingCriteria);
 
         // TODO: AsyncEventHandler?
         event EventHandler<ModerationActionCreatedEventArgs> ModerationActionCreated;

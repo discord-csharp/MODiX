@@ -7,7 +7,7 @@ namespace Modix.Data.Models
     /// <summary>
     /// Describes a Discord user that has at least once joined the Discord guild managed by MODiX.
     /// </summary>
-    public class DiscordUser
+    public class DiscordUserEntity
     {
         /// <summary>
         /// A unique identifier for this user.

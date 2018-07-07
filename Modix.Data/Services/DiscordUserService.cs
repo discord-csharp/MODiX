@@ -16,7 +16,7 @@ namespace Modix.Data.Services
             _context = context;
         }
 
-        public async Task<DiscordUser> GetAsync(IGuildUser user)
+        public async Task<DiscordUserEntity> GetAsync(IGuildUser user)
         {
             try
             {
@@ -29,9 +29,9 @@ namespace Modix.Data.Services
 
         }
 
-        public async Task<DiscordUser> AddAsync(IGuildUser user)
+        public async Task<DiscordUserEntity> AddAsync(IGuildUser user)
         {
-            var discordUser = new DiscordUser()
+            var discordUser = new DiscordUserEntity()
             {
                 DiscordUserId = user.Id,
                 AvatarUrl = user.GetAvatarUrl(),
@@ -47,7 +47,7 @@ namespace Modix.Data.Services
 
         }
 
-        public async Task<DiscordUser> ObtainAsync(IGuildUser user)
+        public async Task<DiscordUserEntity> ObtainAsync(IGuildUser user)
         {
             return await GetAsync(user) ?? await AddAsync(user);
         }

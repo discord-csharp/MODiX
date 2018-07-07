@@ -17,7 +17,7 @@ namespace Modix.Data.Services
             _context = context;
         }
 
-        public async Task<DiscordGuild> GetAsync(ulong discordId)
+        public async Task<DiscordGuildEntity> GetAsync(ulong discordId)
         {
 
             try
@@ -35,13 +35,13 @@ namespace Modix.Data.Services
 
         }
 
-        public async Task<DiscordGuild> AddAsync(IGuild guild)
+        public async Task<DiscordGuildEntity> AddAsync(IGuild guild)
         {
 
             var service = new DiscordUserService(_context);
             var owner = await guild.GetOwnerAsync();
 
-            var discordGuild = new DiscordGuild()
+            var discordGuild = new DiscordGuildEntity()
             {
                 Config = new GuildConfig(),
                 DiscordGuildId = guild.Id,
@@ -94,12 +94,12 @@ namespace Modix.Data.Services
             await _context.SaveChangesAsync();
         }
 
-        public async Task<DiscordGuild> ObtainAsync(IGuild guild)
+        public async Task<DiscordGuildEntity> ObtainAsync(IGuild guild)
         {
             return await GetAsync(guild.Id) ?? await AddAsync(guild);
         }
 
-        public async Task<bool> AddModuleLimitAsync(DiscordGuild guild, IMessageChannel channel, string module)
+        public async Task<bool> AddModuleLimitAsync(DiscordGuildEntity guild, IMessageChannel channel, string module)
         {
             var limit = await _context.ChannelLimits
                 .Where(c =>
@@ -110,7 +110,7 @@ namespace Modix.Data.Services
 
             if (limit != null) return false;
             
-            await _context.ChannelLimits.AddAsync(new ChannelLimit
+            await _context.ChannelLimits.AddAsync(new ChannelLimitEntity
             {
                 ModuleName = module,
                 Guild = guild,
@@ -123,7 +123,7 @@ namespace Modix.Data.Services
 
         }
 
-        public async Task<bool> RemoveModuleLimitAsync(DiscordGuild guild, IMessageChannel channel, string module)
+        public async Task<bool> RemoveModuleLimitAsync(DiscordGuildEntity guild, IMessageChannel channel, string module)
         {
             var limit = await _context.ChannelLimits
                 .Where(c =>

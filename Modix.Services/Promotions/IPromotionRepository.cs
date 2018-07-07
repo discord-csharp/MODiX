@@ -7,10 +7,10 @@ namespace Modix.Services.Promotions
 {
     public interface IPromotionRepository
     {
-        Task<IEnumerable<PromotionCampaign>> GetCampaigns();
-        Task<PromotionCampaign> GetCampaign(long id);
-        Task AddCampaign(PromotionCampaign campaign, SocketGuildUser user);
-        Task AddCommentToCampaign(PromotionCampaign campaign, PromotionComment comment);
-        Task UpdateCampaign(PromotionCampaign campaign);
+        Task<IEnumerable<PromotionCampaignEntity>> GetCampaigns();
+        Task<PromotionCampaignEntity> GetCampaign(long id);
+        Task AddCampaign(PromotionCampaignEntity campaign, SocketGuildUser user);
+        Task AddCommentToCampaign(PromotionCampaignEntity campaign, PromotionCommentEntity comment);
+        Task UpdateCampaign(PromotionCampaignEntity campaign);
     }
 }

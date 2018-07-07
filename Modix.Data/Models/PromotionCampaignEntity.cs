@@ -13,13 +13,13 @@ namespace Modix.Data.Models
         Denied
     }
 
-    public class PromotionCampaign
+    public class PromotionCampaignEntity
     {
         [Key, Required, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long PromotionCampaignId { get; set; }
 
         [Required]
-        public DiscordUser PromotionFor { get; set; }
+        public DiscordUserEntity PromotionFor { get; set; }
 
         public DateTimeOffset StartDate { get; set; }
         public CampaignStatus Status { get; set; }
@@ -47,6 +47,6 @@ namespace Modix.Data.Models
             }
         }
 
-        public DbSet<PromotionComment> Comments { get; set; }
+        public DbSet<PromotionCommentEntity> Comments { get; set; }
     }
 }

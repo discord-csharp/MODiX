@@ -20,7 +20,7 @@ namespace Modix.Services.Moderation
             ModerationActionRepository = moderationActionRepository ?? throw new ArgumentNullException(nameof(moderationActionRepository));
         }
 
-        public async Task<QueryPage<Infraction>> FindInfractionsAsync(InfractionSearchCriteria searchCriteria, PagingCriteria pagingCriteria)
+        public async Task<QueryPage<InfractionEntity>> FindInfractionsAsync(InfractionSearchCriteria searchCriteria, PagingCriteria pagingCriteria)
         {
             await AuthorizationService.RequireClaimsAsync(AuthorizationClaims.ModerationRead);
 
@@ -31,7 +31,7 @@ namespace Modix.Services.Moderation
         {
             await AuthorizationService.RequireClaimsAsync(_recordInfractionClaimsByType[type]);
 
-            var infractionId = await InfractionRepository.InsertAsync(new Infraction()
+            var infractionId = await InfractionRepository.InsertAsync(new InfractionEntity()
             {
                 Type = type,
                 SubjectId = subjectId,
@@ -56,7 +56,7 @@ namespace Modix.Services.Moderation
 
         private async Task<long> CreateModerationActionAsync(long infractionId, ModerationActionTypes type, string comment)
         {
-            var action = new ModerationAction()
+            var action = new ModerationActionEntity()
             {
                 InfractionId = infractionId,
                 Type = type,

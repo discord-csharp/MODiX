@@ -19,14 +19,14 @@ namespace Modix.Data
         {
         }
 
-        public DbSet<ModerationAction> ModerationActions { get; set; }
-        public DbSet<Infraction> Infractions { get; set; }
-        public DbSet<DiscordUser> DiscordUsers { get; set; }
-        public DbSet<DiscordMessage> DiscordMessages { get; set; }
-        public DbSet<DiscordGuild> DiscordGuilds { get; set; }
-        public DbSet<ChannelLimit> ChannelLimits { get; set; }
-        public DbSet<PromotionCampaign> PromotionCampaigns { get; set; }
-        public DbSet<PromotionComment> PromotionComments { get; set; }
+        public DbSet<ModerationActionEntity> ModerationActions { get; set; }
+        public DbSet<InfractionEntity> Infractions { get; set; }
+        public DbSet<DiscordUserEntity> DiscordUsers { get; set; }
+        public DbSet<DiscordMessageEntity> DiscordMessages { get; set; }
+        public DbSet<DiscordGuildEntity> DiscordGuilds { get; set; }
+        public DbSet<ChannelLimitEntity> ChannelLimits { get; set; }
+        public DbSet<PromotionCampaignEntity> PromotionCampaigns { get; set; }
+        public DbSet<PromotionCommentEntity> PromotionComments { get; set; }
 
         public bool IsAttached<TEntity>(TEntity entity) where TEntity : class
             => Set<TEntity>().Local.Contains(entity);

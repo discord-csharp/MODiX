@@ -11,7 +11,7 @@ namespace Modix.Data.Models
         Neutral
     }
 
-    public class PromotionComment
+    public class PromotionCommentEntity
     {
         [Key, Required, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long PromotionCommentId { get; set; }
@@ -19,7 +19,7 @@ namespace Modix.Data.Models
         public DateTimeOffset PostedDate { get; set; }
         public PromotionSentiment Sentiment { get; set; } = PromotionSentiment.Neutral;
         public string Body { get; set; }
-        public PromotionCampaign PromotionCampaign { get; set; }
+        public PromotionCampaignEntity PromotionCampaign { get; set; }
 
         [NotMapped]
         public string StatusEmoji

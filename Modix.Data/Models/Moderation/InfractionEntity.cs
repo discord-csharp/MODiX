@@ -8,10 +8,10 @@ namespace Modix.Data.Models.Moderation
     /// <summary>
     /// Describes the result of one or more moderation actions performed upon a user, by a staff member.
     /// </summary>
-    public class Infraction
+    public class InfractionEntity
     {
         /// <summary>
-        /// A unique identifier for this <see cref="Infraction"/>.
+        /// A unique identifier for this <see cref="InfractionEntity"/>.
         /// </summary>
         [Key]
         [Required]
@@ -19,28 +19,28 @@ namespace Modix.Data.Models.Moderation
         public long Id { get; set; }
 
         /// <summary>
-        /// The type of <see cref="Infraction"/> recorded.
+        /// The type of <see cref="InfractionEntity"/> recorded.
         /// </summary>
         [Required]
         public InfractionTypes Type { get; set; }
 
         /// <summary>
-        /// The <see cref="DiscordUser.UserId"/> value of <see cref="Subject"/>.
+        /// The <see cref="DiscordUserEntity.UserId"/> value of <see cref="Subject"/>.
         /// </summary>
         [Required]
         [ForeignKey(nameof(Subject))]
         public long SubjectId { get; set; }
 
         /// <summary>
-        /// The user upon which the <see cref="Infraction"/> was applied.
+        /// The user upon which the <see cref="InfractionEntity"/> was applied.
         /// </summary>
         [Required]
-        public DiscordUser Subject { get; set; }
+        public DiscordUserEntity Subject { get; set; }
 
         /// <summary>
-        /// The <see cref="ModerationAction"/> entities applicable to this <see cref="Infraction"/>.
+        /// The <see cref="ModerationActionEntity"/> entities applicable to this <see cref="InfractionEntity"/>.
         /// </summary>
-        public ICollection<ModerationAction> ModerationActions { get; set; }
+        public ICollection<ModerationActionEntity> ModerationActions { get; set; }
 
         /// <summary>
         /// The duration from <see cref="Created"/>, indicating when the infraction should be considered "expired".
