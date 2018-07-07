@@ -7,7 +7,6 @@ using Modix.Services.AutoCodePaste;
 using Modix.Services.FileUpload;
 using Modix.Services.GuildInfo;
 using System;
-using Modix.Common;
 using Modix.Handlers;
 using Modix.Services.CommandHelp;
 using Modix.Services.Configuration;
@@ -86,7 +85,7 @@ namespace Modix
         {
             var user = ((message as SocketUserMessage)?.Author as SocketGuildUser);
 
-            if (user == null) return;
+            if (user == null || user.IsBot) return;
 
             var inviteLinkHandler = (InviteLinkHandler)ServiceProvider.GetService(typeof(InviteLinkHandler));
 

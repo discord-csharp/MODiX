@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
-using Modix.Common;
 using Modix.Services.Configuration;
 using Serilog;
 
@@ -12,6 +12,8 @@ namespace Modix.Handlers
     public class InviteLinkHandler
     {
         private readonly DiscordBotConfiguration _botConfiguration;
+
+        private const string InviteLinkPattern = @"(https?:\/\/)?(www\.)?(discord\.(gg|io|me|li)|discordapp\.com\/invite)\/.+[a-z]";
 
         public InviteLinkHandler(DiscordBotConfiguration botConfiguration)
         {
@@ -29,9 +31,7 @@ namespace Modix.Handlers
             if (!_botConfiguration.PurgeInvites)
                 return false;
 
-            var inviteRegex = _botConfiguration.InvitePurging.ValidatingRegex;
-
-            var matches = inviteRegex.CheckMatch().Matches(message.Content);
+            var matches = GetRegexCheck(InviteLinkPattern).Matches(message.Content);
 
             var invites = await channel.GetInvitesAsync();
 
@@ -64,23 +64,23 @@ namespace Modix.Handlers
         {
             try
             {
-                var moderationChannel = originalChannel.Guild.Channels.SingleOrDefault(x => x.Id == _botConfiguration.InvitePurging.LoggingChannelId) as SocketTextChannel;
+                var loggingChannel = originalChannel.Guild.Channels.SingleOrDefault(x => x.Id == _botConfiguration.InvitePurging.LoggingChannelId) as SocketTextChannel;
 
-                if (moderationChannel == null)
+                if (loggingChannel == null)
                 {
-                    Log.Debug("Moderation channel with ID: {id} not found", _botConfiguration.InvitePurging.LoggingChannelId);
+                    Log.Debug("logging channel with ID: {id} not found", _botConfiguration.InvitePurging.LoggingChannelId);
                     return;
                 }
 
-                await SendToLoggingChannel(message);
+                await SendToLoggingChannel(loggingChannel, message);
             }
             catch (Exception e)
             {
-                Log.Debug(e, "Failed posting to moderation channel {channelId}", _botConfiguration.InvitePurging.LoggingChannelId);
+                Log.Debug(e, "Failed posting to logging channel {channelId}", _botConfiguration.InvitePurging.LoggingChannelId);
             }
         }
 
-        private async Task TryNotifyUser(SocketTextChannel originalChannel, IMessage message)
+        private async Task TryNotifyUser(ISocketMessageChannel originalChannel, IMessage message)
         {
             try
             {
@@ -92,13 +92,16 @@ namespace Modix.Handlers
             }
         }
 
-        private static Task SendToLoggingChannel(IMessage originalMessage)
+        private static Task SendToLoggingChannel(ISocketMessageChannel loggingChannel, IMessage originalMessage)
         {
-            var header = $"🚧 Invite purged - Originally posted by {originalMessage.Author.Username} ({originalMessage.Author.Id}) at `{originalMessage.Timestamp:dd/MM/yyyy HH:mm:ss}`";
+            var header = $"🚧 Invite purged - Originally posted by `{originalMessage.Author.Mention}` `({originalMessage.Author.Id})` at `{originalMessage.Timestamp:dd/MM/yyyy HH:mm:ss}`";
 
-            var formattedContent = "\n\n```" + originalMessage.Content + "```";
+            var formattedContent = "\n```" + originalMessage.Content + "```";
 
-            return originalMessage.Channel.SendMessageAsync(header + formattedContent);
+            return loggingChannel.SendMessageAsync(header + formattedContent);
         }
+
+        private static Regex GetRegexCheck(string pattern)
+            => new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
     }
 }

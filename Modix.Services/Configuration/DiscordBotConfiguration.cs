@@ -11,7 +11,6 @@ namespace Modix.Services.Configuration
         public class InvitePurgingConfiguration
         {
             public List<ulong> ExemptRoles { get; set; }
-            public string ValidatingRegex { get; set; }
             public ulong LoggingChannelId { get; set; }
         }
     }

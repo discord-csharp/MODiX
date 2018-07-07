@@ -10,7 +10,7 @@ namespace Modix.Services.Configuration
 
     public class ConfigurationService : IConfigurationService
     {
-        private const string DiscordBotConfigurationPath = "configuration.toml";
+        private const string DiscordBotConfigurationPath = "configuration.tml";
 
         public DiscordBotConfiguration LoadDiscordBotConfiguration()
         {

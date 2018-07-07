@@ -8,6 +8,7 @@ using Discord.WebSocket;
 using Modix.Data.Models;
 using Serilog;
 using Microsoft.Extensions.DependencyInjection;
+using Modix.Handlers;
 using Modix.Services.Quote;
 using Serilog.Events;
 using Modix.Services.AutoCodePaste;
@@ -216,6 +217,7 @@ namespace Modix
             _map.AddScoped<IQuoteService, QuoteService>();
             _map.AddSingleton<CodePasteHandler>();
             _map.AddSingleton<FileUploadHandler>();
+            _map.AddSingleton<InviteLinkHandler>();
             _map.AddSingleton<CodePasteService>();
             _map.AddSingleton<IAnimalService, AnimalService>();
 
