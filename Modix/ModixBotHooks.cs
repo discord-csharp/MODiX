@@ -7,13 +7,17 @@ using Modix.Services.AutoCodePaste;
 using Modix.Services.FileUpload;
 using Modix.Services.GuildInfo;
 using System;
+using Modix.Handlers;
 using Modix.Services.CommandHelp;
+using Modix.Services.Configuration;
 
 namespace Modix
 {
     public class ModixBotHooks
     {
         public IServiceProvider ServiceProvider { get; set; }
+
+        public IConfigurationService ConfigurationService { get; set; }
 
         public Task HandleLog(LogMessage message)
         {
@@ -77,17 +81,22 @@ namespace Modix
             return Task.CompletedTask;
         }
 
-        public async Task HandleMessage(SocketMessage messageParam)
+        public async Task HandleMessage(SocketMessage message)
         {
-            var user = ((messageParam as SocketUserMessage)?.Author as SocketGuildUser);
+            var user = ((message as SocketUserMessage)?.Author as SocketGuildUser);
 
-            if (user == null) return;
+            if (user == null || user.IsBot) return;
 
-            var fileUploadHandler = ServiceProvider.GetService(typeof(FileUploadHandler)) as FileUploadHandler;
+            var inviteLinkHandler = (InviteLinkHandler)ServiceProvider.GetService(typeof(InviteLinkHandler));
 
-            if (messageParam.Attachments.Any())
+            if(await inviteLinkHandler.PurgeInviteLink(message))
+                return; // if we've purged the message with the invite link, return here
+
+            if (message.Attachments.Any())
             {
-                await fileUploadHandler.Handle(messageParam);
+                var fileUploadHandler = (FileUploadHandler)ServiceProvider.GetService(typeof(FileUploadHandler));
+
+                await fileUploadHandler.Handle(message);
             }
         }
     }
