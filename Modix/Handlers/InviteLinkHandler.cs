@@ -94,7 +94,7 @@ namespace Modix.Handlers
 
         private static Task SendToLoggingChannel(ISocketMessageChannel loggingChannel, IMessage originalMessage)
         {
-            var header = $"🚧 Invite purged - Originally posted by `{originalMessage.Author.Mention}` `({originalMessage.Author.Id})` at `{originalMessage.Timestamp:dd/MM/yyyy HH:mm:ss}`";
+            var header = $"🚧 Invite purged - Originally posted by {originalMessage.Author.Mention} `({originalMessage.Author.Id})` at `{originalMessage.Timestamp:dd/MM/yyyy HH:mm:ss}` in #{originalMessage.Channel.Name} `({originalMessage.Channel.Id})`";
 
             var formattedContent = "\n```" + originalMessage.Content + "```";
 
