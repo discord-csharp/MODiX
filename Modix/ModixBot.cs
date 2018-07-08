@@ -14,6 +14,7 @@ using Modix.Services.GuildInfo;
 using Modix.Services.Quote;
 using Modix.WebServer;
 using Serilog;
+using System.Linq;
 
 namespace Modix
 {
@@ -55,8 +56,7 @@ namespace Modix
             _map.AddDbContext<ModixContext>(options =>
             {
                 options.UseNpgsql(_config.PostgreConnectionString);
-
-            });
+            }, ServiceLifetime.Transient);
 
             _host = ModixWebServer.BuildWebHost(_map, _config);
 
@@ -71,6 +71,12 @@ namespace Modix
             {
                 context.Database.Migrate();
             }
+
+            using (var context = _provider.GetService<ModixContext>())
+            {
+                context.ChannelLimits.ToList();
+            }
+
 
             _hooks.ServiceProvider = _provider;
 
