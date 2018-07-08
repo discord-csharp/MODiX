@@ -67,7 +67,6 @@ namespace Modix
 
             _provider = _host.Services;
 
-            _provider = _map.BuildServiceProvider();
             using (var context = _provider.GetService<ModixContext>())
             {
                 context.Database.Migrate();
@@ -109,8 +108,8 @@ namespace Modix
 
             var context = new CommandContext(_client, message);
 
-            //using (var scope = _provider.CreateScope())
-            //{
+            using (var scope = _provider.CreateScope())
+            {
                 var result = await _commands.ExecuteAsync(context, argPos, _provider);
 
                 if (!result.IsSuccess)
@@ -136,7 +135,7 @@ namespace Modix
                         await context.Channel.SendMessageAsync("Error: " + error);
                     }
                 }
-            //}
+            }
 
             stopwatch.Stop();
             Log.Information($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
