@@ -18,6 +18,8 @@ using Serilog;
 namespace Modix
 {
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.EntityFrameworkCore;
+    using Modix.Data;
     using Services.Animals;
     using Services.FileUpload;
     using Services.Promotions;
@@ -50,28 +52,26 @@ namespace Modix
             });
 
             await Install(); // Setting up DependencyMap
-            //_map.AddDbContext<ModixContext>(options =>
-            //{
-            //    options.UseNpgsql(_config.PostgreConnectionString);
-            //});
+            _map.AddDbContext<ModixContext>(options =>
+            {
+                options.UseNpgsql(_config.PostgreConnectionString);
 
-            //var provider = _map.BuildServiceProvider();
+            });
 
             _host = ModixWebServer.BuildWebHost(_map, _config);
-
-            //provider.GetService<ILoggerFactory>();
 
             //disable until we migrate to Xero's host.
             //#if !DEBUG
 
-            //using (var context = provider.GetService<ModixContext>())
-            //{
-            //    context.Database.Migrate();
-            //}
-
             //#endif
 
             _provider = _host.Services;
+
+            _provider = _map.BuildServiceProvider();
+            using (var context = _provider.GetService<ModixContext>())
+            {
+                context.Database.Migrate();
+            }
 
             _hooks.ServiceProvider = _provider;
 
@@ -88,7 +88,7 @@ namespace Modix
             await _client.SetGameAsync("https://mod.gg/");
 
             //Start the webserver, but unbind the event in case discord.net reconnects
-            await _host.StartAsync();
+            await  _host.StartAsync();
             _client.Ready -= StartWebserver;
         }
 
@@ -109,9 +109,9 @@ namespace Modix
 
             var context = new CommandContext(_client, message);
 
-            using (var scope = _provider.CreateScope())
-            {
-                var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
+            //using (var scope = _provider.CreateScope())
+            //{
+                var result = await _commands.ExecuteAsync(context, argPos, _provider);
 
                 if (!result.IsSuccess)
                 {
@@ -128,7 +128,7 @@ namespace Modix
 
                     if (result.Error != CommandError.Exception)
                     {
-                        var handler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
+                        var handler = _provider.GetRequiredService<CommandErrorHandler>();
                         await handler.AssociateError(message, error);
                     }
                     else
@@ -136,7 +136,7 @@ namespace Modix
                         await context.Channel.SendMessageAsync("Error: " + error);
                     }
                 }
-            }
+            //}
 
             stopwatch.Stop();
             Log.Information($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
