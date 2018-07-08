@@ -22,8 +22,8 @@ namespace Modix.Data.Services
 
             try
             {
-                return await _context.Guilds
-                    .Where(guild => guild.DiscordId == discordId.ToLong())
+                return await _context.DiscordGuilds
+                    .Where(guild => guild.DiscordGuildId == discordId)
                     .Include(guild => guild.Owner)
                     .Include(guild => guild.Config)
                     .FirstAsync();
@@ -44,13 +44,13 @@ namespace Modix.Data.Services
             var discordGuild = new DiscordGuild()
             {
                 Config = new GuildConfig(),
-                DiscordId = guild.Id.ToLong(),
+                DiscordGuildId = guild.Id,
                 Name = guild.Name,
                 CreatedAt = guild.CreatedAt.DateTime,
                 Owner = await service.ObtainAsync(owner),
             };
 
-            var res = (await _context.Guilds.AddAsync(discordGuild)).Entity;
+            var res = (await _context.DiscordGuilds.AddAsync(discordGuild)).Entity;
             try
             {
                 await _context.SaveChangesAsync();
@@ -76,7 +76,7 @@ namespace Modix.Data.Services
                     ModeratorRoleId = permission == Permissions.Moderator ? roleId.ToLong() : 0,
                 };
 
-                _context.Guilds.Update(discordGuild);
+                _context.DiscordGuilds.Update(discordGuild);
                 await _context.SaveChangesAsync();
                 return;
             }
@@ -90,7 +90,7 @@ namespace Modix.Data.Services
                 discordGuild.Config.ModeratorRoleId = roleId.ToLong();
             }
 
-            _context.Guilds.Update(discordGuild);
+            _context.DiscordGuilds.Update(discordGuild);
             await _context.SaveChangesAsync();
         }
 
@@ -103,47 +103,44 @@ namespace Modix.Data.Services
         {
             var limit = await _context.ChannelLimits
                 .Where(c =>
-                    c.ModuleName.ToUpper() == module.ToUpper() &&
-                    c.Guild.Id == guild.Id &&
+                    string.Equals(c.ModuleName, module, StringComparison.CurrentCultureIgnoreCase) &&
+                    c.Guild.DiscordGuildId == guild.DiscordGuildId &&
                     c.ChannelId == channel.Id.ToLong())
                 .FirstOrDefaultAsync();
 
-            if (limit == null)
+            if (limit != null) return false;
+            
+            await _context.ChannelLimits.AddAsync(new ChannelLimit
             {
-                await _context.ChannelLimits.AddAsync(new ChannelLimit
-                {
-                    ModuleName = module,
-                    Guild = guild,
-                    ChannelId = channel.Id.ToLong()
-                });
+                ModuleName = module,
+                Guild = guild,
+                ChannelId = channel.Id.ToLong()
+            });
 
-                await _context.SaveChangesAsync();
-                return true;
-            }
+            await _context.SaveChangesAsync();
+            return true;
 
 
-            return false;
         }
 
         public async Task<bool> RemoveModuleLimitAsync(DiscordGuild guild, IMessageChannel channel, string module)
         {
             var limit = await _context.ChannelLimits
                 .Where(c =>
-                    c.ModuleName.ToUpper() == module.ToUpper() &&
-                    c.Guild.Id == guild.Id &&
+                    string.Equals(c.ModuleName, module, StringComparison.CurrentCultureIgnoreCase) &&
+                    c.Guild.DiscordGuildId == guild.DiscordGuildId &&
                     c.ChannelId == channel.Id.ToLong())
                 .FirstOrDefaultAsync();
 
-            if (limit != null)
-            {
-                _context.ChannelLimits.Remove(limit);
+            if (limit == null)
+                return false;
+            
+            _context.ChannelLimits.Remove(limit);
 
-                await _context.SaveChangesAsync();
-                return true;
-            }
+            await _context.SaveChangesAsync();
+            return true;
 
 
-            return false;
         }
         
         public void Dispose()

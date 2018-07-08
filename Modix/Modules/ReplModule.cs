@@ -31,7 +31,7 @@ namespace Modix.Modules
     [Name("Repl"), Summary("Execute & demonstrate code snippets")]
     public class ReplModule : ModuleBase
     {
-        private const string ReplRemoteUrl = "http://CSDiscord/Eval";
+        private const string ReplRemoteUrl = "http://csdiscord-repl-service:31337/Eval";
         private readonly CodePasteService _pasteService;
 
         private static readonly HttpClient _client = new HttpClient();
