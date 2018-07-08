@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Modix.Data.Repositories
+namespace Modix.Data.Models
 {
     /// <summary>
     /// Describes an open-ended or close-ended range of <see cref="DateTimeOffset"/> values.

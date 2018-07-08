@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-using Modix.Data.Models.Moderation;
-
-namespace Modix.Data.Repositories
+namespace Modix.Data.Models.Moderation
 {
     /// <summary>
     /// Describes a set of criteria for searching for <see cref="InfractionEntity"/> entities within an <see cref="IInfractionRepository"/>.

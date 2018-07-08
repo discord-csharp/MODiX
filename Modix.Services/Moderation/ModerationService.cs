@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Repositories;
 
@@ -20,48 +21,44 @@ namespace Modix.Services.Moderation
             ModerationActionRepository = moderationActionRepository ?? throw new ArgumentNullException(nameof(moderationActionRepository));
         }
 
-        public async Task<QueryPage<InfractionEntity>> FindInfractionsAsync(InfractionSearchCriteria searchCriteria, PagingCriteria pagingCriteria)
+        public async Task<RecordsPage<InfractionSearchResult>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
         {
             await AuthorizationService.RequireClaimsAsync(AuthorizationClaim.ModerationRead);
 
-            return await InfractionRepository.SearchAsync(searchCriteria, pagingCriteria);
+            return await InfractionRepository.SearchAsync(searchCriteria, sortingCriteria, pagingCriteria);
         }
 
-        public async Task RecordInfractionAsync(InfractionType type, long subjectId, string reason, TimeSpan? duration)
+        public async Task CreateInfractionAsync(InfractionType type, long subjectId, string reason, TimeSpan? duration)
         {
-            await AuthorizationService.RequireClaimsAsync(_recordInfractionClaimsByType[type]);
+            await AuthorizationService.RequireClaimsAsync(_createInfractionClaimsByType[type]);
 
             var infractionId = await InfractionRepository.InsertAsync(new InfractionEntity()
             {
                 Type = type,
                 SubjectId = subjectId,
-
-                Reason = reason,
                 Duration = duration
             });
 
             await CreateModerationActionAsync(infractionId, ModerationActionType.InfractionCreated, reason);
         }
 
-        public async Task RescindInfractionAsync(long infractionId, string comment)
+        public async Task RescindInfractionAsync(long infractionId, string reason)
         {
             await AuthorizationService.RequireClaimsAsync(AuthorizationClaim.ModerationRescind);
 
-            await InfractionRepository.UpdateIsRescindedAsync(infractionId, AuthenticationService.CurrentUserId.Value);
-
-            await CreateModerationActionAsync(infractionId, ModerationActionType.InfractionModified, comment);
+            await CreateModerationActionAsync(infractionId, ModerationActionType.InfractionRescinded, reason);
         }
 
         public event EventHandler<ModerationActionCreatedEventArgs> ModerationActionCreated;
 
-        private async Task<long> CreateModerationActionAsync(long infractionId, ModerationActionType type, string comment)
+        private async Task<long> CreateModerationActionAsync(long infractionId, ModerationActionType type, string reason)
         {
             var action = new ModerationActionEntity()
             {
                 InfractionId = infractionId,
                 Type = type,
                 CreatedById = AuthenticationService.CurrentUserId.Value,
-                Comment = comment
+                Reason = reason
             };
 
             var actionId = await ModerationActionRepository.InsertAsync(action);
@@ -71,15 +68,15 @@ namespace Modix.Services.Moderation
             return actionId;
         }
 
-        protected internal IAuthenticationService AuthenticationService { get; }
+        internal protected IAuthenticationService AuthenticationService { get; }
 
-        protected internal IAuthorizationService AuthorizationService { get; }
+        internal protected IAuthorizationService AuthorizationService { get; }
 
-        protected internal IInfractionRepository InfractionRepository { get; }
+        internal protected IInfractionRepository InfractionRepository { get; }
 
-        protected internal IModerationActionRepository ModerationActionRepository { get; }
+        internal protected IModerationActionRepository ModerationActionRepository { get; }
 
-        private static readonly Dictionary<InfractionType, AuthorizationClaim> _recordInfractionClaimsByType
+        private static readonly Dictionary<InfractionType, AuthorizationClaim> _createInfractionClaimsByType
             = new Dictionary<InfractionType, AuthorizationClaim>()
             {
                 {InfractionType.Notice, AuthorizationClaim.ModerationNote },

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Modix.Data.Repositories
+namespace Modix.Data.Models
 {
     /// <summary>
     /// Describes a set of criteria for selecting a continguous subset of records within a larger recordset.

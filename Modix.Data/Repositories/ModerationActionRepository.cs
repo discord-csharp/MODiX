@@ -1,34 +1,49 @@
-﻿using System.Collections.Generic;
+﻿using System;
 using System.Threading.Tasks;
 
+using Microsoft.EntityFrameworkCore;
+
 using Modix.Data.Models.Moderation;
+using Modix.Data.Utilities;
 
 namespace Modix.Data.Repositories
 {
-    /// <summary>
-    /// Describes a repository for managing <see cref="ModerationActionEntity"/> entities, within an underlying data storage provider.
-    /// </summary>
-    public interface IModerationActionRepository
+    /// <inheritdoc />
+    public class ModerationActionRepository : RepositoryBase, IModerationActionRepository
     {
         /// <summary>
-        /// Inserts a new <see cref="ModerationActionEntity"/> into the repository.
+        /// Creates a new <see cref="ModerationActionRepository"/>.
+        /// See <see cref="RepositoryBase(ModixContext)"/> for details.
         /// </summary>
-        /// <param name="action">
-        /// The <see cref="ModerationActionEntity"/> to be inserted.
-        /// The <see cref="ModerationActionEntity.Id"/> and <see cref="ModerationActionEntity.Created"/> values are generated automatically.
-        /// </param>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing the auto-generated <see cref="ModerationActionEntity.Id"/> value assigned to <paramref name="action"/>.
-        /// </returns>
-        Task<long> InsertAsync(ModerationActionEntity action);
+        public ModerationActionRepository(ModixContext modixContext)
+            : base(modixContext) { }
 
-        /// <summary>
-        /// Searches the repository for <see cref="ModerationActionEntity"/> entities, based on a given set of criteria.
-        /// </summary>
-        /// <param name="searchCriteria">The criteria for selecting <see cref="ModerationActionEntity"/> entities to be returned.</param>
-        /// <param name="pagingCriteria">The criteria for selecting a subset of matching entities to be returned.</param>
-        /// <returns>A <see cref="Task"/> which will complete when the requested entities have been retrieved.</returns>
-        Task<ICollection<ModerationActionEntity>> SearchAsync(ModerationActionSearchCriteria searchCriteria, PagingCriteria pagingCriteria);
+        /// <inheritdoc />
+        public async Task<long> InsertAsync(ModerationActionEntity action)
+        {
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
+
+            action.Created = DateTimeOffset.Now;
+
+            await ModixContext.ModerationActions.AddAsync(action);
+
+            await ModixContext.SaveChangesAsync();
+
+            return action.Id;
+        }
+
+        /// <inheritdoc />
+        public async Task SetInfractionAsync(long actionId, long infractionId)
+        {
+            var action = await ModixContext.ModerationActions
+                .SingleAsync(x => x.Id == actionId);
+
+            action.InfractionId = infractionId;
+
+            ModixContext.UpdateProperty(action, x => x.InfractionId);
+
+            await ModixContext.SaveChangesAsync();
+        }
     }
 }

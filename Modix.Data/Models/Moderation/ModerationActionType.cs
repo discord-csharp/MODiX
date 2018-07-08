@@ -3,6 +3,6 @@
     public enum ModerationActionType
     {
         InfractionCreated = 0,
-        InfractionModified = 1,
+        InfractionRescinded = 1,
     }
 }

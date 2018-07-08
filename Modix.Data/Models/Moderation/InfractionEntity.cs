@@ -16,13 +16,19 @@ namespace Modix.Data.Models.Moderation
         /// A unique identifier for this <see cref="InfractionEntity"/>.
         /// </summary>
         [Key, Required, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long InfractionId { get; set; }
+        public long Id { get; set; }
 
         /// <summary>
         /// The type of <see cref="InfractionEntity"/> recorded.
         /// </summary>
         [Required]
         public InfractionType Type { get; set; }
+
+        /// <summary>
+        /// The duration from <see cref="Created"/>, indicating when the infraction should be considered "expired".
+        /// A null value indicates that the action does not expire.
+        /// </summary>
+        public TimeSpan? Duration { get; set; }
 
         /// <summary>
         /// The <see cref="DiscordUserEntity.UserId"/> value of <see cref="Subject"/>.
@@ -34,25 +40,31 @@ namespace Modix.Data.Models.Moderation
         /// The user upon which the <see cref="InfractionEntity"/> was applied.
         /// </summary>
         [Required]
-        public DiscordUserEntity Subject { get; set; }
+        public virtual DiscordUserEntity Subject { get; set; }
 
         /// <summary>
-        /// The <see cref="ModerationActionEntity"/> entities applicable to this <see cref="InfractionEntity"/>.
+        /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="CreateAction"/>.
         /// </summary>
-        public virtual ICollection<ModerationActionEntity> ModerationActions { get; set; }
+        [Required, ForeignKey(nameof(CreateAction))]
+        public long CreateActionId { get; set; }
 
         /// <summary>
-        /// The duration from <see cref="Created"/>, indicating when the infraction should be considered "expired".
-        /// A null value indicates that the action does not expire.
-        /// </summary>
-        public TimeSpan? Duration { get; set; }
-
-        /// <summary>
-        /// A message from <see cref="Staffer"/> describing the reason why this moderation action was performed.
+        /// The <see cref="ModerationActionEntity"/> that created this <see cref="InfractionEntity"/>.
         /// </summary>
         [Required]
-        public string Reason { get; set; }
+        [InverseProperty(nameof(ModerationActionEntity.CreatedInfraction))]
+        public virtual ModerationActionEntity CreateAction { get; set; }
 
-        public bool IsRescinded { get; set; }
+        /// <summary>
+        /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="RescindAction"/>.
+        /// </summary>
+        [ForeignKey(nameof(RescindAction))]
+        public long? RescindActionId { get; set; }
+
+        /// <summary>
+        /// The <see cref="ModerationActionEntity"/> (if any) that rescinded this <see cref="InfractionEntity"/>.
+        /// </summary>
+        [InverseProperty(nameof(ModerationActionEntity.RescindedInfraction))]
+        public virtual ModerationActionEntity RescindAction { get; set; }
     }
 }
