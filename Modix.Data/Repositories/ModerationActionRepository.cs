@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
@@ -19,19 +20,28 @@ namespace Modix.Data.Repositories
             : base(modixContext) { }
 
         /// <inheritdoc />
-        public async Task<long> InsertAsync(ModerationActionEntity action)
+        public async Task<long> InsertAsync(ModerationActionData action)
         {
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
 
-            action.Created = DateTimeOffset.Now;
+            var entity = action.ToEntity();
 
-            await ModixContext.ModerationActions.AddAsync(action);
+            entity.Created = DateTimeOffset.Now;
+
+            await ModixContext.ModerationActions.AddAsync(entity);
 
             await ModixContext.SaveChangesAsync();
 
-            return action.Id;
+            return entity.Id;
         }
+
+        /// <inheritdoc />
+        public async Task<ModerationActionSummary> GetAsync(long actionId)
+            => await ModixContext.ModerationActions.AsNoTracking()
+                .Where(x => x.Id == actionId)
+                .Select(ModerationActionSummary.FromEntityProjection)
+                .FirstOrDefaultAsync();
 
         /// <inheritdoc />
         public async Task SetInfractionAsync(long actionId, long infractionId)

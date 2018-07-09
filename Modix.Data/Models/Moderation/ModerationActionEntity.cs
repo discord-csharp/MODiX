@@ -24,22 +24,16 @@ namespace Modix.Data.Models.Moderation
         public ModerationActionType Type { get; set; }
 
         /// <summary>
-        /// The <see cref="InfractionEntity.Id"/> value of <see cref="Infraction"/>.
-        /// </summary>
-        [ForeignKey(nameof(Infraction))]
-        public long? InfractionId { get; set; }
-
-        /// <summary>
-        /// The <see cref="Infraction"/> to which this <see cref="ModerationActionEntity"/> applies.
-        /// Null, if an <see cref="Infraction"/> was involved in this <see cref="ModerationActionEntity"/>.
-        /// </summary>
-        public virtual InfractionEntity Infraction { get; set; }
-
-        /// <summary>
         /// A timestamp indicating when this <see cref="ModerationActionEntity"/> occurred.
         /// </summary>
         [Required]
         public DateTimeOffset Created { get; set; }
+
+        /// <summary>
+        /// A comment about the moderation action that was performed.
+        /// </summary>
+        [Required]
+        public string Reason { get; set; }
 
         /// <summary>
         /// The <see cref="DiscordUserEntity.UserId"/> value of <see cref="CreatedBy"/>.
@@ -54,10 +48,16 @@ namespace Modix.Data.Models.Moderation
         public virtual DiscordUserEntity CreatedBy { get; set; }
 
         /// <summary>
-        /// A comment about the moderation action that was performed.
+        /// The <see cref="InfractionEntity.Id"/> value of <see cref="Infraction"/>.
         /// </summary>
-        [Required]
-        public string Reason { get; set; }
+        [ForeignKey(nameof(Infraction))]
+        public long? InfractionId { get; set; }
+
+        /// <summary>
+        /// The <see cref="Infraction"/> to which this <see cref="ModerationActionEntity"/> applies.
+        /// Null, if an <see cref="Infraction"/> was involved in this <see cref="ModerationActionEntity"/>.
+        /// </summary>
+        public virtual InfractionEntity Infraction { get; set; }
 
         /// <summary>
         /// For <see cref="Type"/> values of <see cref="ModerationActionType.InfractionCreated"/>,

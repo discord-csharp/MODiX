@@ -10,7 +10,7 @@ namespace Modix.Data.Models.Moderation
     /// Describes an <see cref="InfractionEntity"/>, and related entities, from the perspective of a user
     /// searching through the <see cref="ModixContext.Infractions"/> dataset.
     /// </summary>
-    public class InfractionSearchResult
+    public class InfractionSummary
     {
         /// <summary>
         /// See <see cref="InfractionEntity.Id"/>.
@@ -51,14 +51,14 @@ namespace Modix.Data.Models.Moderation
         public bool IsExpired { get; set; }
 
         /// <summary>
-        /// Defines the sortable properties of an <see cref="InfractionSearchResult"/>
-        /// by defining the <see cref="SortingCriteria.PropertyName"/> values that are legal for use with <see cref="InfractionSearchResult"/> records.
+        /// Defines the sortable properties of an <see cref="InfractionSummary"/>
+        /// by defining the <see cref="SortingCriteria.PropertyName"/> values that are legal for use with <see cref="InfractionSummary"/> records.
         /// </summary>
         public static ICollection<string> SortablePropertyNames
             => SortablePropertyMap.Keys;
 
-        internal static IDictionary<string, Expression<Func<InfractionSearchResult, object>>> SortablePropertyMap { get; }
-            = new Dictionary<string, Expression<Func<InfractionSearchResult, object>>>()
+        internal static IDictionary<string, Expression<Func<InfractionSummary, object>>> SortablePropertyMap { get; }
+            = new Dictionary<string, Expression<Func<InfractionSummary, object>>>()
             {
                 {
                     nameof(Type),
@@ -69,37 +69,37 @@ namespace Modix.Data.Models.Moderation
                     x => x.Duration
                 },
                 {
-                    $"{nameof(Subject)}.{nameof(InfractionSearchResult.Subject.Username)}",
+                    $"{nameof(Subject)}.{nameof(InfractionSummary.Subject.Username)}",
                     x => x.Subject.Username
                 },
                 {
-                    $"{nameof(Subject)}.{nameof(InfractionSearchResult.Subject.Nickname)}",
+                    $"{nameof(Subject)}.{nameof(InfractionSummary.Subject.Nickname)}",
                     x => x.Subject.Nickname
                 },
                 {
-                    $"{nameof(Subject)}.{nameof(InfractionSearchResult.Subject.Discriminator)}",
+                    $"{nameof(Subject)}.{nameof(InfractionSummary.Subject.Discriminator)}",
                     x => x.Subject.Discriminator
                 },
                 {
-                    $"{nameof(CreateAction)}.{nameof(InfractionSearchResult.CreateAction.Created)}",
+                    $"{nameof(CreateAction)}.{nameof(InfractionSummary.CreateAction.Created)}",
                     x => x.CreateAction.Created
                 },
                 {
-                    $"{nameof(CreateAction)}.{nameof(InfractionSearchResult.CreateAction.CreatedBy)}.{nameof(InfractionSearchResult.CreateAction.CreatedBy.Username)}",
+                    $"{nameof(CreateAction)}.{nameof(InfractionSummary.CreateAction.CreatedBy)}.{nameof(InfractionSummary.CreateAction.CreatedBy.Username)}",
                     x => x.CreateAction.CreatedBy.Username
                 },
                 {
-                    $"{nameof(CreateAction)}.{nameof(InfractionSearchResult.CreateAction.CreatedBy)}.{nameof(InfractionSearchResult.CreateAction.CreatedBy.Nickname)}",
+                    $"{nameof(CreateAction)}.{nameof(InfractionSummary.CreateAction.CreatedBy)}.{nameof(InfractionSummary.CreateAction.CreatedBy.Nickname)}",
                     x => x.CreateAction.CreatedBy.Nickname
                 },
                 {
-                    $"{nameof(CreateAction)}.{nameof(InfractionSearchResult.CreateAction.CreatedBy)}.{nameof(InfractionSearchResult.CreateAction.CreatedBy.Discriminator)}",
+                    $"{nameof(CreateAction)}.{nameof(InfractionSummary.CreateAction.CreatedBy)}.{nameof(InfractionSummary.CreateAction.CreatedBy.Discriminator)}",
                     x => x.CreateAction.CreatedBy.Discriminator
                 },
             };
 
-        internal static Expression<Func<InfractionEntity, InfractionSearchResult>> FromEntityProjection { get; }
-            = entity => new InfractionSearchResult()
+        internal static Expression<Func<InfractionEntity, InfractionSummary>> FromEntityProjection { get; }
+            = entity => new InfractionSummary()
             {
                 Id = entity.Id,
                 Type = entity.Type,

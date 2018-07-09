@@ -22,17 +22,31 @@ namespace Modix.Data.Repositories
             : base(modixContext) { }
 
         /// <inheritdoc />
-        public async Task<long> InsertAsync(InfractionEntity infraction)
+        public async Task<long> InsertAsync(InfractionData infraction)
         {
             if (infraction == null)
                 throw new ArgumentNullException(nameof(infraction));
 
-            await ModixContext.Infractions.AddAsync(infraction);
+            var entity = infraction.ToEntity();
+
+            await ModixContext.Infractions.AddAsync(entity);
 
             await ModixContext.SaveChangesAsync();
 
-            return infraction.Id;
+            return entity.Id;
         }
+
+        /// <inheritdoc />
+        public async Task<bool> ExistsAsync(long infractionId)
+            => await ModixContext.Infractions
+                .AnyAsync(x => x.Id == infractionId);
+
+        /// <inheritdoc />
+        public async Task<InfractionSummary> GetAsync(long infractionId)
+            => await ModixContext.Infractions.AsNoTracking()
+                .Where(x => x.Id == infractionId)
+                .Select(InfractionSummary.FromEntityProjection)
+                .FirstOrDefaultAsync();
 
         /// <inheritdoc />
         public async Task SetRescindActionAsync(long infractionId, long rescindActionId)
@@ -48,25 +62,25 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<InfractionSearchResult>> SearchAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria)
+        public async Task<IReadOnlyCollection<InfractionSummary>> SearchAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria)
             => await SearchInfractionsBy(ModixContext.Infractions.AsNoTracking(), searchCriteria)
-                .SortBy(sortingCriteria, InfractionSearchResult.SortablePropertyMap)
+                .SortBy(sortingCriteria, InfractionSummary.SortablePropertyMap)
                 .ToArrayAsync();
 
         /// <inheritdoc />
-        public async Task<RecordsPage<InfractionSearchResult>> SearchAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
+        public async Task<RecordsPage<InfractionSummary>> SearchAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
         {
             var sourceQuery = ModixContext.Infractions.AsNoTracking();
 
             var filteredQuery = SearchInfractionsBy(sourceQuery, searchCriteria);
 
             var pagedQuery = filteredQuery
-                .SortBy(sortingCriteria, InfractionSearchResult.SortablePropertyMap)
+                .SortBy(sortingCriteria, InfractionSummary.SortablePropertyMap)
                 // Always sort by Id last, otherwise ordering of records with matching fields is not guaranteed by the DB
                 .OrderThenBy(x => x.Id, SortDirection.Ascending)
                 .PageBy(pagingCriteria);
 
-            return new RecordsPage<InfractionSearchResult>()
+            return new RecordsPage<InfractionSummary>()
             {
                 TotalRecordCount = await sourceQuery.LongCountAsync(),
                 FilteredRecordCount = await filteredQuery.LongCountAsync(),
@@ -74,10 +88,10 @@ namespace Modix.Data.Repositories
             };
         }
 
-        private static IQueryable<InfractionSearchResult> SearchInfractionsBy(IQueryable<InfractionEntity> query, InfractionSearchCriteria criteria)
+        private static IQueryable<InfractionSummary> SearchInfractionsBy(IQueryable<InfractionEntity> query, InfractionSearchCriteria criteria)
             =>  (criteria == null)
                 ? query
-                    .Select(InfractionSearchResult.FromEntityProjection)
+                    .Select(InfractionSummary.FromEntityProjection)
                 : query
                     .FilterBy(
                         x => criteria.Types.Contains(x.Type),
@@ -91,7 +105,7 @@ namespace Modix.Data.Repositories
                     .FilterBy(
                         x => x.RescindActionId.HasValue == criteria.IsRescinded.Value,
                         criteria.IsRescinded.HasValue)
-                    .Select(InfractionSearchResult.FromEntityProjection)
+                    .Select(InfractionSummary.FromEntityProjection)
                     .FilterBy(
                         x => x.CreateAction.Created >= criteria.CreatedRange.Value.From.Value,
                         (criteria.CreatedRange.HasValue) && (criteria.CreatedRange.Value.From.HasValue))

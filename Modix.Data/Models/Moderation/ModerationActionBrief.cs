@@ -22,14 +22,14 @@ namespace Modix.Data.Models.Moderation
         public DateTimeOffset Created { get; set; }
 
         /// <summary>
-        /// See <see cref="ModerationActionEntity.CreatedBy"/>.
-        /// </summary>
-        public DiscordUserIdentity CreatedBy { get; set; }
-
-        /// <summary>
         /// See <see cref="ModerationActionEntity.Reason"/>.
         /// </summary>
         public string Reason { get; set; }
+
+        /// <summary>
+        /// See <see cref="ModerationActionEntity.CreatedBy"/>.
+        /// </summary>
+        public DiscordUserIdentity CreatedBy { get; set; }
 
         internal static Expression<Func<ModerationActionEntity, ModerationActionBrief>> FromEntityProjection { get; }
             = entity => new ModerationActionBrief()
