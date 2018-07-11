@@ -67,15 +67,16 @@ namespace Modix
 
             _provider = _host.Services;
 
-            using (var context = _provider.GetService<ModixContext>())
-            {
-                context.Database.Migrate();
-            }
-
-            using (var context = _provider.GetService<ModixContext>())
-            {
-                context.ChannelLimits.ToList();
-            }
+            //TODO: uncomment later. Lol.
+//            using (var context = _provider.GetService<ModixContext>())
+//            {
+//                context.Database.Migrate();
+//            }
+//
+//            using (var context = _provider.GetService<ModixContext>())
+//            {
+//                context.ChannelLimits.ToList();
+//            }
 
 
             _hooks.ServiceProvider = _provider;

@@ -1,15 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <TargetFramework>netcoreapp2.1</TargetFramework>
-        <LangVersion>latest</LangVersion>
-    </PropertyGroup>
-    <PropertyGroup>
-        <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    </PropertyGroup>
-    <ItemGroup>
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+  </PropertyGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.App" Version="2.1.0" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.1" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.1.1" />
-        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.1.1" />
-    </ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.1.1" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.1.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Discord.Net.Core, Version=1.0.2.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>C:\Users\Matt\.nuget\packages\discord.net.core\1.0.2\lib\netstandard1.1\Discord.Net.Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
 </Project>
