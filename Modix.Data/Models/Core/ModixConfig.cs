@@ -1,4 +1,4 @@
-﻿namespace Modix.Data.Models
+﻿namespace Modix.Data.Models.Core
 {
     public class ModixConfig
     {

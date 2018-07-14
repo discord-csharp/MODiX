@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Modix.Data.Models.Core;
+using Serilog;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Data.Models;
 using Modix.Services.AutoCodePaste;

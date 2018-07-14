@@ -1,15 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Modix.Data.Models
+namespace Modix.Data.Models.Core
 {
-    public class DiscordMessage
+    public class DiscordMessageEntity
     {
         [Required] public long DiscordMessageId { get; set; }
 
         public long DiscordId { get; set; }
-        public DiscordGuild DiscordGuild { get; set; }
+        public DiscordGuildEntity DiscordGuild { get; set; }
         public string Content { get; set; }
-        public DiscordUser Author { get; set; }
+        public DiscordUserEntity Author { get; set; }
         public string Attachments { get; set; }
     }
 }

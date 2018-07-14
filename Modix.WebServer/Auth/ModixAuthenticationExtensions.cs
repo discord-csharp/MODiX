@@ -9,7 +9,7 @@ using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Modix.Data.Models;
+using Modix.Data.Models.Core;
 using Newtonsoft.Json;
 using Serilog;
 

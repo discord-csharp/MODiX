@@ -2,9 +2,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Modix.Data.Models
+namespace Modix.Data.Models.Core
 {
-    public class DiscordGuild
+    public class DiscordGuildEntity
     {
         [Key, Required] public long GuildId { get; set; }
 
@@ -17,7 +17,7 @@ namespace Modix.Data.Models
 
         public string Name { get; set; }
 
-        [Required] public DiscordUser Owner { get; set; }
+        [Required] public DiscordUserEntity Owner { get; set; }
 
         [Required] public DateTime CreatedAt { get; set; }
 

@@ -10,46 +10,46 @@ using Modix.Data.Models.Moderation;
 namespace Modix.Data.Repositories
 {
     /// <summary>
-    /// Describes a repository for managing <see cref="Infraction"/> entities, within an underlying data storage provider.
+    /// Describes a repository for managing <see cref="InfractionEntity"/> entities, within an underlying data storage provider.
     /// </summary>
     public interface IInfractionRepository
     {
         /// <summary>
-        /// Inserts a new <see cref="Infraction"/> into the repository.
+        /// Inserts a new <see cref="InfractionEntity"/> into the repository.
         /// </summary>
         /// <param name="infraction">
-        /// The <see cref="Infraction"/> to be inserted.
-        /// The <see cref="Infraction.Id"/> values are generated automatically.
+        /// The <see cref="InfractionEntity"/> to be inserted.
+        /// The <see cref="InfractionEntity.Id"/> values are generated automatically.
         /// </param>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing the auto-generated <see cref="Infraction.Id"/> value assigned to <paramref name="infraction"/>.
+        /// containing the auto-generated <see cref="InfractionEntity.Id"/> value assigned to <paramref name="infraction"/>.
         /// </returns>
-        Task<long> InsertAsync(Infraction infraction);
+        Task<long> InsertAsync(InfractionEntity infraction);
 
         /// <summary>
-        /// Updates the <see cref="Infraction.Duration"/> value of an existing <see cref="Infraction"/> within the repository.
+        /// Updates the <see cref="InfractionEntity.Duration"/> value of an existing <see cref="InfractionEntity"/> within the repository.
         /// </summary>
-        /// <param name="id">The <see cref="Infraction.Id"/> value of the <see cref="Infraction"/> to be updated.</param>
-        /// <param name="duration">The new <see cref="Infraction.Duration"/> value to be saved into the repository.</param>
+        /// <param name="id">The <see cref="InfractionEntity.Id"/> value of the <see cref="InfractionEntity"/> to be updated.</param>
+        /// <param name="duration">The new <see cref="InfractionEntity.Duration"/> value to be saved into the repository.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation is complete.</returns>
         Task UpdateDurationAsync(long id, TimeSpan duration);
 
         /// <summary>
-        /// Updates the <see cref="Infraction.IsRescinded"/> value of an existing <see cref="Infraction"/> within the repository.
+        /// Updates the <see cref="InfractionEntity.IsRescinded"/> value of an existing <see cref="InfractionEntity"/> within the repository.
         /// </summary>
-        /// <param name="id">The <see cref="Infraction.Id"/> value of the <see cref="Infraction"/> to be updated.</param>
-        /// <param name="isRescinded">The new <see cref="Infraction.IsRescinded"/> value to be saved into the repository.</param>
+        /// <param name="id">The <see cref="InfractionEntity.Id"/> value of the <see cref="InfractionEntity"/> to be updated.</param>
+        /// <param name="isRescinded">The new <see cref="InfractionEntity.IsRescinded"/> value to be saved into the repository.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation is complete.</returns>
         Task UpdateIsRescindedAsync(long id, bool isRescinded);
 
         /// <summary>
-        /// Searches the repository for <see cref="Infraction"/> entities, based on a given set of criteria.
+        /// Searches the repository for <see cref="InfractionEntity"/> entities, based on a given set of criteria.
         /// </summary>
-        /// <param name="searchCriteria">The criteria for selecting <see cref="Infraction"/> entities to be returned.</param>
+        /// <param name="searchCriteria">The criteria for selecting <see cref="InfractionEntity"/> entities to be returned.</param>
         /// <param name="pagingCriteria">The criteria for selecting a subset of matching entities to be returned.</param>
         /// <returns>A <see cref="Task"/> which will complete when the requested entities have been retrieved.</returns>
-        Task<QueryPage<Infraction>> SearchAsync(InfractionSearchCriteria searchCriteria, PagingCriteria pagingCriteria);
+        Task<QueryPage<InfractionEntity>> SearchAsync(InfractionSearchCriteria searchCriteria, PagingCriteria pagingCriteria);
     }
 
     /// <inheritdoc />
@@ -61,7 +61,7 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<long> InsertAsync(Infraction infraction)
+        public async Task<long> InsertAsync(InfractionEntity infraction)
         {
             await ModixContext.Infractions.AddAsync(infraction);
 
@@ -70,8 +70,8 @@ namespace Modix.Data.Repositories
             return infraction.Id;
         }
 
-        public async Task<QueryPage<Infraction>> SearchAsync(InfractionSearchCriteria searchCriteria, PagingCriteria pagingCriteria)
-            => await new QueryPageBuilder<Infraction>()
+        public async Task<QueryPage<InfractionEntity>> SearchAsync(InfractionSearchCriteria searchCriteria, PagingCriteria pagingCriteria)
+            => await new QueryPageBuilder<InfractionEntity>()
             {
                 Query = ModixContext.Infractions,
                 WhereClause = query =>
@@ -113,7 +113,7 @@ namespace Modix.Data.Repositories
 
         public async Task UpdateDurationAsync(long id, TimeSpan duration)
         {
-            var infraction = new Infraction()
+            var infraction = new InfractionEntity()
             {
                 Id = id,
                 Duration = duration
@@ -124,7 +124,7 @@ namespace Modix.Data.Repositories
 
         public async Task UpdateIsRescindedAsync(long id, bool isRescinded)
         {
-            var infraction = new Infraction()
+            var infraction = new InfractionEntity()
             {
                 Id = id,
                 IsRescinded = isRescinded
