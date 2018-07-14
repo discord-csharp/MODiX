@@ -8,21 +8,24 @@ using Discord.WebSocket;
 using Modix.Data.Models.Core;
 using Serilog;
 using Microsoft.Extensions.DependencyInjection;
-using Modix.Services.Quote;
-using Serilog.Events;
+using Modix.Data.Models;
 using Modix.Services.AutoCodePaste;
-using Modix.WebServer;
-using Modix.Services.GuildInfo;
 using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
+using Modix.Services.GuildInfo;
+using Modix.Services.Quote;
+using Modix.WebServer;
+using Serilog;
+using System.Linq;
 
 namespace Modix
 {
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.EntityFrameworkCore;
+    using Modix.Data;
     using Services.Animals;
     using Services.FileUpload;
     using Services.Promotions;
-    using Services.Utilities;
 
     public sealed class ModixBot
     {
@@ -35,30 +38,13 @@ namespace Modix
         private readonly IServiceCollection _map = new ServiceCollection();
         private IServiceProvider _provider;
         private ModixBotHooks _hooks = new ModixBotHooks();
-        private ModixConfig _config = new ModixConfig();
+        private readonly ModixConfig _config;
         private IWebHost _host;
 
-        public ModixBot()
+        public ModixBot(ModixConfig config, ILogger logger)
         {
-            LoadConfig();
-
-            var loggerConfig = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .WriteTo.LiterateConsole()
-                .WriteTo.RollingFile(@"logs\{Date}", restrictedToMinimumLevel: LogEventLevel.Debug);
-
-            if (!string.IsNullOrWhiteSpace(_config.WebhookToken))
-            {
-                loggerConfig.WriteTo.DiscordWebhookSink(_config.WebhookId, _config.WebhookToken, LogEventLevel.Error);
-            }
-
-            if(!string.IsNullOrWhiteSpace(_config.SentryToken))
-            {
-                loggerConfig.WriteTo.Sentry(_config.SentryToken, restrictedToMinimumLevel: LogEventLevel.Warning);
-            }
-
-            Log.Logger = loggerConfig.CreateLogger();
-            _map.AddLogging(bldr => bldr.AddSerilog(Log.Logger, true));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+            _map.AddLogging(bldr => bldr.AddSerilog(logger ?? Log.Logger));
         }
 
         public async Task Run()
@@ -69,28 +55,30 @@ namespace Modix
             });
 
             await Install(); // Setting up DependencyMap
-            //_map.AddDbContext<ModixContext>(options =>
-            //{
-            //    options.UseNpgsql(_config.PostgreConnectionString);
-            //});
-
-            //var provider = _map.BuildServiceProvider();
+            _map.AddDbContext<ModixContext>(options =>
+            {
+                options.UseNpgsql(_config.PostgreConnectionString);
+            }, ServiceLifetime.Transient);
 
             _host = ModixWebServer.BuildWebHost(_map, _config);
-
-            //provider.GetService<ILoggerFactory>();
 
             //disable until we migrate to Xero's host.
             //#if !DEBUG
 
-            //using (var context = provider.GetService<ModixContext>())
-            //{
-            //    context.Database.Migrate();
-            //}
-
             //#endif
 
             _provider = _host.Services;
+
+            using (var context = _provider.GetService<ModixContext>())
+            {
+                context.Database.Migrate();
+            }
+
+            using (var context = _provider.GetService<ModixContext>())
+            {
+                context.ChannelLimits.ToList();
+            }
+
 
             _hooks.ServiceProvider = _provider;
 
@@ -107,35 +95,8 @@ namespace Modix
             await _client.SetGameAsync("https://mod.gg/");
 
             //Start the webserver, but unbind the event in case discord.net reconnects
-            await _host.StartAsync();
+            await  _host.StartAsync();
             _client.Ready -= StartWebserver;
-        }
-
-        public void LoadConfig()
-        {
-            _config = new ModixConfig
-            {
-                DiscordToken = Environment.GetEnvironmentVariable("Token"),
-                ReplToken = Environment.GetEnvironmentVariable("ReplToken"),
-                StackoverflowToken = Environment.GetEnvironmentVariable("StackoverflowToken"),
-                PostgreConnectionString = Environment.GetEnvironmentVariable("MODIX_DB_CONNECTION"),
-                DiscordClientId = Environment.GetEnvironmentVariable("DiscordClientId"),
-                DiscordClientSecret = Environment.GetEnvironmentVariable("DiscordClientSecret"),
-            };
-
-            var id = Environment.GetEnvironmentVariable("log_webhook_id");
-
-            if (!string.IsNullOrWhiteSpace(id))
-            {
-                _config.WebhookId = ulong.Parse(id);
-                _config.WebhookToken = Environment.GetEnvironmentVariable("log_webhook_token");
-            }
-
-            var sentryToken = Environment.GetEnvironmentVariable("SentryToken");
-            if (!string.IsNullOrWhiteSpace(sentryToken))
-            {
-                _config.SentryToken = sentryToken;
-            }
         }
 
         public async Task HandleCommand(SocketMessage messageParam)
@@ -157,7 +118,7 @@ namespace Modix
 
             using (var scope = _provider.CreateScope())
             {
-                var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
+                var result = await _commands.ExecuteAsync(context, argPos, _provider);
 
                 if (!result.IsSuccess)
                 {
@@ -174,7 +135,7 @@ namespace Modix
 
                     if (result.Error != CommandError.Exception)
                     {
-                        var handler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
+                        var handler = _provider.GetRequiredService<CommandErrorHandler>();
                         await handler.AssociateError(message, error);
                     }
                     else

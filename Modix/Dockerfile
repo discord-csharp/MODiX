@@ -1,8 +1,6 @@
-FROM microsoft/aspnetcore:2.0
+FROM microsoft/dotnet:2.1-aspnetcore-runtime
 ARG source
 WORKDIR /app
 COPY ${source:-obj/Docker/publish} .
-SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop';"]
-RUN set-itemproperty -path 'HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters' -Name ServerPriorityTimeLimit -Value 0 -Type DWord
 EXPOSE 8080/tcp
 ENTRYPOINT ["dotnet", "Modix.dll"]
