@@ -5,134 +5,115 @@ using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
+using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
+using Modix.Data.Utilities;
 
 namespace Modix.Data.Repositories
 {
-    /// <summary>
-    /// Describes a repository for managing <see cref="Infraction"/> entities, within an underlying data storage provider.
-    /// </summary>
-    public interface IInfractionRepository
-    {
-        /// <summary>
-        /// Inserts a new <see cref="Infraction"/> into the repository.
-        /// </summary>
-        /// <param name="infraction">
-        /// The <see cref="Infraction"/> to be inserted.
-        /// The <see cref="Infraction.Id"/> values are generated automatically.
-        /// </param>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing the auto-generated <see cref="Infraction.Id"/> value assigned to <paramref name="infraction"/>.
-        /// </returns>
-        Task<long> InsertAsync(Infraction infraction);
-
-        /// <summary>
-        /// Updates the <see cref="Infraction.Duration"/> value of an existing <see cref="Infraction"/> within the repository.
-        /// </summary>
-        /// <param name="id">The <see cref="Infraction.Id"/> value of the <see cref="Infraction"/> to be updated.</param>
-        /// <param name="duration">The new <see cref="Infraction.Duration"/> value to be saved into the repository.</param>
-        /// <returns>A <see cref="Task"/> which will complete when the operation is complete.</returns>
-        Task UpdateDurationAsync(long id, TimeSpan duration);
-
-        /// <summary>
-        /// Updates the <see cref="Infraction.IsRescinded"/> value of an existing <see cref="Infraction"/> within the repository.
-        /// </summary>
-        /// <param name="id">The <see cref="Infraction.Id"/> value of the <see cref="Infraction"/> to be updated.</param>
-        /// <param name="isRescinded">The new <see cref="Infraction.IsRescinded"/> value to be saved into the repository.</param>
-        /// <returns>A <see cref="Task"/> which will complete when the operation is complete.</returns>
-        Task UpdateIsRescindedAsync(long id, bool isRescinded);
-
-        /// <summary>
-        /// Searches the repository for <see cref="Infraction"/> entities, based on a given set of criteria.
-        /// </summary>
-        /// <param name="searchCriteria">The criteria for selecting <see cref="Infraction"/> entities to be returned.</param>
-        /// <param name="pagingCriteria">The criteria for selecting a subset of matching entities to be returned.</param>
-        /// <returns>A <see cref="Task"/> which will complete when the requested entities have been retrieved.</returns>
-        Task<QueryPage<Infraction>> SearchAsync(InfractionSearchCriteria searchCriteria, PagingCriteria pagingCriteria);
-    }
-
     /// <inheritdoc />
-    public class InfractionRepository : IInfractionRepository
+    public class InfractionRepository : RepositoryBase, IInfractionRepository
     {
+        /// <summary>
+        /// Creates a new <see cref="InfractionRepository"/>.
+        /// See <see cref="RepositoryBase(ModixContext)"/> for details.
+        /// </summary>
         public InfractionRepository(ModixContext modixContext)
-        {
-            ModixContext = modixContext ?? throw new ArgumentNullException(nameof(modixContext));
-        }
+            : base(modixContext) { }
 
         /// <inheritdoc />
-        public async Task<long> InsertAsync(Infraction infraction)
+        public async Task<long> InsertAsync(InfractionData infraction)
         {
-            await ModixContext.Infractions.AddAsync(infraction);
+            if (infraction == null)
+                throw new ArgumentNullException(nameof(infraction));
+
+            var entity = infraction.ToEntity();
+
+            await ModixContext.Infractions.AddAsync(entity);
 
             await ModixContext.SaveChangesAsync();
 
-            return infraction.Id;
+            return entity.Id;
         }
 
-        public async Task<QueryPage<Infraction>> SearchAsync(InfractionSearchCriteria searchCriteria, PagingCriteria pagingCriteria)
-            => await new QueryPageBuilder<Infraction>()
-            {
-                Query = ModixContext.Infractions,
-                WhereClause = query =>
-                {
-                    if ((searchCriteria.Types != null) && (searchCriteria.Types.Count > 0))
-                        query = query.Where(x => searchCriteria.Types.Contains(x.Type));
+        /// <inheritdoc />
+        public async Task<bool> ExistsAsync(long infractionId)
+            => await ModixContext.Infractions
+                .AnyAsync(x => x.Id == infractionId);
 
-                    if (searchCriteria.SubjectId.HasValue)
-                        query = query.Where(x => x.SubjectId == searchCriteria.SubjectId.Value);
+        /// <inheritdoc />
+        public async Task<InfractionSummary> GetAsync(long infractionId)
+            => await ModixContext.Infractions.AsNoTracking()
+                .Where(x => x.Id == infractionId)
+                .Select(InfractionSummary.FromEntityProjection)
+                .FirstOrDefaultAsync();
 
-                    if ((searchCriteria.CreatedRange.HasValue) && (searchCriteria.CreatedRange.Value.From.HasValue))
-                        query = query.Where(x => ModixContext.ModerationActions.Any(y =>
-                            (y.InfractionId == x.Id) && (y.Type == ModerationActionTypes.InfractionCreated)
-                            && (y.Created >= searchCriteria.CreatedRange.Value.From.Value)));
-
-                    if ((searchCriteria.CreatedRange.HasValue) && (searchCriteria.CreatedRange.Value.To.HasValue))
-                        query = query.Where(x => ModixContext.ModerationActions.Any(y =>
-                            (y.InfractionId == x.Id) && (y.Type == ModerationActionTypes.InfractionCreated)
-                            && (y.Created <= searchCriteria.CreatedRange.Value.To.Value)));
-
-                    if (searchCriteria.CreatedById.HasValue)
-                        query = query.Where(x => ModixContext.ModerationActions.Any(y =>
-                            (y.InfractionId == x.Id) && (y.Type == ModerationActionTypes.InfractionCreated)
-                            && (y.CreatedById == searchCriteria.CreatedById.Value)));
-
-                    if (searchCriteria.IsExpired.HasValue)
-                        query = query.Where(x => x.Duration.HasValue
-                            && ((ModixContext.ModerationActions.First(y => (y.InfractionId == x.Id) && (y.Type == ModerationActionTypes.InfractionCreated))
-                                    .Created + x.Duration.Value)
-                                > DateTimeOffset.UtcNow)
-                            == searchCriteria.IsExpired.Value);
-
-                    if (searchCriteria.IsRescinded.HasValue)
-                        query = query.Where(x => x.IsRescinded == searchCriteria.IsRescinded.Value);
-
-                    return query;
-                },
-            }.BuildAsync(pagingCriteria);
-
-        public async Task UpdateDurationAsync(long id, TimeSpan duration)
+        /// <inheritdoc />
+        public async Task SetRescindActionAsync(long infractionId, long rescindActionId)
         {
-            var infraction = new Infraction()
-            {
-                Id = id,
-                Duration = duration
-            };
+            var infraction = await ModixContext.Infractions
+                .SingleAsync(x => x.Id == infractionId);
 
-            await ModixContext.UpdateEntityPropertiesAsync(infraction, x => x.Duration);
+            infraction.RescindActionId = rescindActionId;
+
+            ModixContext.UpdateProperty(infraction, x => x.RescindActionId);
+
+            await ModixContext.SaveChangesAsync();
         }
 
-        public async Task UpdateIsRescindedAsync(long id, bool isRescinded)
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<InfractionSummary>> SearchAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria)
+            => await SearchInfractionsBy(ModixContext.Infractions.AsNoTracking(), searchCriteria)
+                .SortBy(sortingCriteria, InfractionSummary.SortablePropertyMap)
+                .ToArrayAsync();
+
+        /// <inheritdoc />
+        public async Task<RecordsPage<InfractionSummary>> SearchAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
         {
-            var infraction = new Infraction()
-            {
-                Id = id,
-                IsRescinded = isRescinded
-            };
+            var sourceQuery = ModixContext.Infractions.AsNoTracking();
 
-            await ModixContext.UpdateEntityPropertiesAsync(infraction, x => x.IsRescinded);
+            var filteredQuery = SearchInfractionsBy(sourceQuery, searchCriteria);
+
+            var pagedQuery = filteredQuery
+                .SortBy(sortingCriteria, InfractionSummary.SortablePropertyMap)
+                // Always sort by Id last, otherwise ordering of records with matching fields is not guaranteed by the DB
+                .OrderThenBy(x => x.Id, SortDirection.Ascending)
+                .PageBy(pagingCriteria);
+
+            return new RecordsPage<InfractionSummary>()
+            {
+                TotalRecordCount = await sourceQuery.LongCountAsync(),
+                FilteredRecordCount = await filteredQuery.LongCountAsync(),
+                Records = await pagedQuery.ToArrayAsync()
+            };
         }
 
-        internal protected ModixContext ModixContext { get; }
+        private static IQueryable<InfractionSummary> SearchInfractionsBy(IQueryable<InfractionEntity> query, InfractionSearchCriteria criteria)
+            =>  (criteria == null)
+                ? query
+                    .Select(InfractionSummary.FromEntityProjection)
+                : query
+                    .FilterBy(
+                        x => criteria.Types.Contains(x.Type),
+                        (criteria.Types != null) && criteria.Types.Any())
+                    .FilterBy(
+                        x => x.SubjectId == criteria.SubjectId.Value,
+                        (criteria.Types != null) && criteria.Types.Any())
+                    .FilterBy(
+                        x => x.CreateAction.CreatedById == criteria.CreatedById.Value,
+                        criteria.CreatedById.HasValue)
+                    .FilterBy(
+                        x => x.RescindActionId.HasValue == criteria.IsRescinded.Value,
+                        criteria.IsRescinded.HasValue)
+                    .Select(InfractionSummary.FromEntityProjection)
+                    .FilterBy(
+                        x => x.CreateAction.Created >= criteria.CreatedRange.Value.From.Value,
+                        (criteria.CreatedRange.HasValue) && (criteria.CreatedRange.Value.From.HasValue))
+                    .FilterBy(
+                        x => x.CreateAction.Created <= criteria.CreatedRange.Value.To.Value,
+                        (criteria.CreatedRange.HasValue) && (criteria.CreatedRange.Value.To.HasValue))
+                    .FilterBy(
+                        x => x.IsExpired == criteria.IsExpired.Value,
+                        criteria.IsExpired.HasValue);
     }
 }

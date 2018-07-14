@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
+using AsyncEvent;
+
+using Modix.Data.Models;
+using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Repositories;
 
@@ -10,8 +14,22 @@ using Modix.Services.Authorization;
 
 namespace Modix.Services.Moderation
 {
+    /// <inheritdoc />
     public class ModerationService : IModerationService
     {
+        /// <summary>
+        /// Creates a new <see cref="ModerationService"/>.
+        /// </summary>
+        /// <param name="authenticationService">The value to use for <see cref="AuthenticationService"/>.</param>
+        /// <param name="authorizationService">The value to use for <see cref="AuthorizationService"/>.</param>
+        /// <param name="infractionRepository">The value to use for <see cref="InfractionRepository"/>.</param>
+        /// <param name="moderationActionRepository">The value to use for <see cref="ModerationActionRepository"/>.</param>
+        /// <exception cref="ArgumentNullException">
+        /// Throws for <paramref name="authenticationService"/>,
+        /// <paramref name="authorizationService"/>,
+        /// <paramref name="infractionRepository"/>,
+        /// and <paramref name="moderationActionRepository"/>.
+        /// </exception>
         public ModerationService(IAuthenticationService authenticationService, IAuthorizationService authorizationService, IInfractionRepository infractionRepository, IModerationActionRepository moderationActionRepository)
         {
             AuthenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
@@ -20,72 +38,108 @@ namespace Modix.Services.Moderation
             ModerationActionRepository = moderationActionRepository ?? throw new ArgumentNullException(nameof(moderationActionRepository));
         }
 
-        public async Task<QueryPage<Infraction>> FindInfractionsAsync(InfractionSearchCriteria searchCriteria, PagingCriteria pagingCriteria)
+        /// <inheritdoc />
+        public async Task CreateInfractionAsync(InfractionType type, long subjectId, string reason, TimeSpan? duration)
         {
-            await AuthorizationService.RequireClaimsAsync(AuthorizationClaims.ModerationRead);
+            await AuthorizationService.RequireClaimsAsync(_createInfractionClaimsByType[type]);
 
-            return await InfractionRepository.SearchAsync(searchCriteria, pagingCriteria);
-        }
+            // TODO: Check whether subjectId exists.
 
-        public async Task RecordInfractionAsync(InfractionTypes type, long subjectId, string reason, TimeSpan? duration)
-        {
-            await AuthorizationService.RequireClaimsAsync(_recordInfractionClaimsByType[type]);
+            // TODO: Perform muting/banning with Discord.NET
 
-            var infractionId = await InfractionRepository.InsertAsync(new Infraction()
+            var actionId = await ModerationActionRepository.InsertAsync(new ModerationActionData()
+            {
+                Type = ModerationActionType.InfractionCreated,
+                CreatedById = AuthenticationService.CurrentUserId.Value,
+                Reason = reason
+            });
+
+            var infractionId = await InfractionRepository.InsertAsync(new InfractionData()
             {
                 Type = type,
                 SubjectId = subjectId,
-
-                Reason = reason,
-                Duration = duration
+                Duration = duration,
+                CreateActionId = actionId
             });
 
-            await CreateModerationActionAsync(infractionId, ModerationActionTypes.InfractionCreated, reason);
+            await ModerationActionRepository.SetInfractionAsync(actionId, infractionId);
+
+            await RaiseModerationActionCreatedAsync(actionId);
         }
 
-        public async Task RescindInfractionAsync(long infractionId, string comment)
+        /// <inheritdoc />
+        public async Task RescindInfractionAsync(long infractionId, string reason)
         {
-            await AuthorizationService.RequireClaimsAsync(AuthorizationClaims.ModerationRescind);
+            await AuthorizationService.RequireClaimsAsync(AuthorizationClaim.ModerationRescind);
 
-            await InfractionRepository.UpdateIsRescindedAsync(infractionId, true);
+            if (!await InfractionRepository.ExistsAsync(infractionId))
+                throw new ArgumentException("Infraction does not exist", nameof(infractionId));
 
-            await CreateModerationActionAsync(infractionId, ModerationActionTypes.InfractionModified, comment);
-        }
+            // TODO: Perform unmuting/unbanning with Discord.NET
 
-        public event EventHandler<ModerationActionCreatedEventArgs> ModerationActionCreated;
-
-        private async Task<long> CreateModerationActionAsync(long infractionId, ModerationActionTypes type, string comment)
-        {
-            var action = new ModerationAction()
+            var actionId = await ModerationActionRepository.InsertAsync(new ModerationActionData()
             {
-                InfractionId = infractionId,
-                Type = type,
+                Type = ModerationActionType.InfractionRescinded,
                 CreatedById = AuthenticationService.CurrentUserId.Value,
-                Comment = comment
-            };
+                Reason = reason,
+                InfractionId = infractionId
+            });
 
-            var actionId = await ModerationActionRepository.InsertAsync(action);
-
-            ModerationActionCreated?.Invoke(this, new ModerationActionCreatedEventArgs(action));
-
-            return actionId;
+            await RaiseModerationActionCreatedAsync(actionId);
         }
 
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria)
+        {
+            await AuthorizationService.RequireClaimsAsync(AuthorizationClaim.ModerationRead);
+
+            return await InfractionRepository.SearchAsync(searchCriteria, sortingCriteria);
+        }
+
+        /// <inheritdoc />
+        public async Task<RecordsPage<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
+        {
+            await AuthorizationService.RequireClaimsAsync(AuthorizationClaim.ModerationRead);
+
+            return await InfractionRepository.SearchAsync(searchCriteria, sortingCriteria, pagingCriteria);
+        }
+
+        /// <inheritdoc />
+        public event AsyncEventHandler<ModerationActionCreatedEventArgs> ModerationActionCreated;
+
+        /// <summary>
+        /// An <see cref="IAuthenticationService"/> for interacting with the current authenticated user, within the application.
+        /// </summary>
         internal protected IAuthenticationService AuthenticationService { get; }
 
+        /// <summary>
+        /// An <see cref="IAuthorizationService"/> for interacting with the permissions of the current user, within the application.
+        /// </summary>
         internal protected IAuthorizationService AuthorizationService { get; }
 
+        /// <summary>
+        /// An <see cref="IInfractionRepository"/> for storing and retrieving infraction data.
+        /// </summary>
         internal protected IInfractionRepository InfractionRepository { get; }
 
+        /// <summary>
+        /// An <see cref="IModerationActionRepository"/> for storing and retrieving moderation action data.
+        /// </summary>
         internal protected IModerationActionRepository ModerationActionRepository { get; }
 
-        private static readonly Dictionary<InfractionTypes, AuthorizationClaims> _recordInfractionClaimsByType
-            = new Dictionary<InfractionTypes, AuthorizationClaims>()
+        internal protected async Task RaiseModerationActionCreatedAsync(long actionId)
+            => await ModerationActionCreated.InvokeAsync(
+                this,
+                new ModerationActionCreatedEventArgs(
+                    await ModerationActionRepository.GetAsync(actionId)));
+
+        private static readonly Dictionary<InfractionType, AuthorizationClaim> _createInfractionClaimsByType
+            = new Dictionary<InfractionType, AuthorizationClaim>()
             {
-                {InfractionTypes.Notice, AuthorizationClaims.ModerationNote },
-                {InfractionTypes.Warning, AuthorizationClaims.ModerationWarn },
-                {InfractionTypes.Mute, AuthorizationClaims.ModerationMute },
-                {InfractionTypes.Ban, AuthorizationClaims.ModerationBan }
+                {InfractionType.Notice, AuthorizationClaim.ModerationNote },
+                {InfractionType.Warning, AuthorizationClaim.ModerationWarn },
+                {InfractionType.Mute, AuthorizationClaim.ModerationMute },
+                {InfractionType.Ban, AuthorizationClaim.ModerationBan }
             };
     }
 }

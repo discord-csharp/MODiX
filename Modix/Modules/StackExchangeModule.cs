@@ -5,7 +5,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Modix.Data.Models;
+using Modix.Data.Models.Core;
 
 namespace Modix.Modules
 {

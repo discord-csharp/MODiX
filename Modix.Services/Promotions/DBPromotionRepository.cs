@@ -4,7 +4,8 @@ using System.Threading.Tasks;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data;
-using Modix.Data.Models;
+using Modix.Data.Models.Core;
+using Modix.Data.Models.Promotion;
 
 namespace Modix.Services.Promotions
 {
@@ -17,11 +18,11 @@ namespace Modix.Services.Promotions
             _context = context;
         }
 
-        public async Task AddCampaign(PromotionCampaign campaign, SocketGuildUser user)
+        public async Task AddCampaign(PromotionCampaignEntity campaign, SocketGuildUser user)
         {
             var promoUser = await _context.DiscordUsers.FirstOrDefaultAsync(u => u.DiscordUserId == user.Id);
             if (promoUser == null)
-                await _context.DiscordUsers.AddAsync(new DiscordUser
+                await _context.DiscordUsers.AddAsync(new DiscordUserEntity
                 {
                     Username = $"{user.Username}#{user.Discriminator}",
                     DiscordUserId = user.Id,
@@ -38,24 +39,24 @@ namespace Modix.Services.Promotions
             await _context.SaveChangesAsync();
         }
 
-        public async Task AddCommentToCampaign(PromotionCampaign campaign, PromotionComment comment)
+        public async Task AddCommentToCampaign(PromotionCampaignEntity campaign, PromotionCommentEntity comment)
         {
             await campaign.Comments.AddAsync(comment);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateCampaign(PromotionCampaign campaign)
+        public async Task UpdateCampaign(PromotionCampaignEntity campaign)
         {
             _context.Update(campaign);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PromotionCampaign> GetCampaign(long id)
+        public async Task<PromotionCampaignEntity> GetCampaign(long id)
         {
             return await _context.PromotionCampaigns.FirstOrDefaultAsync(p => p.PromotionCampaignId == id);
         }
 
-        public async Task<IEnumerable<PromotionCampaign>> GetCampaigns()
+        public async Task<IEnumerable<PromotionCampaignEntity>> GetCampaigns()
         {
             return await _context.PromotionCampaigns.ToArrayAsync();
         }

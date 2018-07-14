@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
-using Modix.Data.Models;
+using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
+using Modix.Data.Models.Promotion;
 
 namespace Modix.Data
 {
@@ -15,36 +16,25 @@ namespace Modix.Data
         {
         }
 
-        private ModixContext()
+        // For building fakes during testing
+        public ModixContext()
         {
         }
 
-        public DbSet<ModerationAction> ModerationActions { get; set; }
-        public DbSet<Infraction> Infractions { get; set; }
-        public DbSet<DiscordUser> DiscordUsers { get; set; }
-        public DbSet<DiscordMessage> DiscordMessages { get; set; }
-        public DbSet<DiscordGuild> DiscordGuilds { get; set; }
-        public DbSet<ChannelLimit> ChannelLimits { get; set; }
-        public DbSet<PromotionCampaign> PromotionCampaigns { get; set; }
-        public DbSet<PromotionComment> PromotionComments { get; set; }
+        public DbSet<DiscordUserEntity> DiscordUsers { get; set; }
 
-        public bool IsAttached<TEntity>(TEntity entity) where TEntity : class
-            => Set<TEntity>().Local.Contains(entity);
+        public DbSet<DiscordMessageEntity> DiscordMessages { get; set; }
 
-        public async Task UpdateEntityPropertiesAsync<TEntity, TProperty>(TEntity entity,
-            params Expression<Func<TEntity, TProperty>>[] propertyExpressions) where TEntity : class
-        {
-            var isAttached = IsAttached(entity);
-            if (!isAttached)
-                Attach(entity);
+        public DbSet<DiscordGuildEntity> DiscordGuilds { get; set; }
 
-            var entityEntry = Entry(entity);
-            foreach (var propertyExpression in propertyExpressions)
-                entityEntry.Property(propertyExpression).IsModified = true;
-            await SaveChangesAsync();
+        public DbSet<ChannelLimitEntity> ChannelLimits { get; set; }
 
-            if (!isAttached)
-                entityEntry.State = EntityState.Detached;
-        }
+        public DbSet<InfractionEntity> Infractions { get; set; }
+
+        public DbSet<ModerationActionEntity> ModerationActions { get; set; }
+
+        public DbSet<PromotionCampaignEntity> PromotionCampaigns { get; set; }
+
+        public DbSet<PromotionCommentEntity> PromotionComments { get; set; }
     }
 }

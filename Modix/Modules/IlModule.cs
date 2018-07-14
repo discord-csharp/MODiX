@@ -5,7 +5,7 @@ using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Modix.Data.Models;
+using Modix.Data.Models.Core;
 using System.Threading;
 using Discord.WebSocket;
 using Serilog;
