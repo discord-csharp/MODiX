@@ -14,8 +14,9 @@ namespace Modix.Services.Moderation
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/> to which the Moderation services are to be added.</param>
         /// <returns><paramref name="services"/></returns>
-        public static IServiceCollection AddModeration(this IServiceCollection services)
+        public static IServiceCollection AddModixModeration(this IServiceCollection services)
             => services
+                .AddSingleton<IBehavior, ModerationAutoConfigBehavior>()
                 .AddSingleton<IModerationEventManager, ModerationEventManager>()
                 .AddScoped<IModerationService, ModerationService>()
                 .AddScoped<IModerationConfigRepository, ModerationConfigRepository>()

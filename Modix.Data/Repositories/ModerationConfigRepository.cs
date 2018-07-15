@@ -39,10 +39,13 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public Task<ModerationConfigSummary> ReadAsync(ulong guildId)
-            => ModixContext.ModerationConfigs.AsNoTracking()
-                .Where(x => x.GuildId == (long)guildId)
+        {
+            var longId = (long)guildId;
+            return ModixContext.ModerationConfigs.AsNoTracking()
+                .Where(x => x.GuildId == longId)
                 .Select(ModerationConfigSummary.FromEntityProjection)
                 .FirstOrDefaultAsync();
+        }
 
         /// <inheritdoc />
         public async Task<bool> UpdateAsync(ulong guildId, Action<ModerationConfigMutationData> updateAction)

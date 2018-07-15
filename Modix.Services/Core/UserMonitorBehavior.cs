@@ -14,7 +14,7 @@ namespace Modix.Services.Core
     /// <summary>
     /// Implements a behavior for keeping the data within an <see cref="IUserRepository"/> synchronized with Discord.NET.
     /// </summary>
-    public class UserMonitorBehavior : BehaviorBase, IDisposable
+    public class UserMonitorBehavior : BehaviorBase
     {
         // TODO: Abstract DiscordSocketClient to IDiscordSocketClient, or something, to make this testable
         /// <summary>
@@ -28,43 +28,32 @@ namespace Modix.Services.Core
             : base(serviceProvider)
         {
             DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
+        }
 
+        internal protected override Task OnStartingAsync()
+        {
             DiscordClient.UserJoined += OnUserJoinedAsync;
             DiscordClient.GuildMemberUpdated += OnGuildMemberUpdatedAsync;
             DiscordClient.MessageReceived += OnMessageReceivedAsync;
+
+            return Task.CompletedTask;
         }
 
-        ~UserMonitorBehavior()
-            => Dispose(false);
-
-        /// <summary>
-        /// See <see cref="IDisposable.Dispose"/>.
-        /// </summary>
-        public void Dispose()
+        internal protected override Task OnStoppingAsync()
         {
-            if(!_hasDisposed)
-            {
-                Dispose(true);
-                GC.SuppressFinalize(this);
-                _hasDisposed = true;
-            }
+            DiscordClient.UserJoined -= OnUserJoinedAsync;
+            DiscordClient.GuildMemberUpdated -= OnGuildMemberUpdatedAsync;
+            DiscordClient.MessageReceived -= OnMessageReceivedAsync;
+
+            return Task.CompletedTask;
         }
 
-        private bool _hasDisposed
-            = false;
-
-        /// <summary>
-        /// Allows subclasses to inject logic into <see cref="Dispose"/>.
-        /// </summary>
-        /// <param name="disposeManaged">A flag indicating whether managed resources should be disposed.</param>
-        internal protected void Dispose(bool disposeManaged)
+        internal protected override void Dispose(bool disposeManaged)
         {
-            if(disposeManaged)
-            {
-                DiscordClient.UserJoined -= OnUserJoinedAsync;
-                DiscordClient.GuildMemberUpdated -= OnGuildMemberUpdatedAsync;
-                DiscordClient.MessageReceived -= OnMessageReceivedAsync;
-            }
+            if (disposeManaged && IsStarted)
+                OnStoppingAsync();
+
+            base.Dispose(disposeManaged);
         }
 
         /// <summary>
@@ -74,15 +63,15 @@ namespace Modix.Services.Core
         internal protected DiscordSocketClient DiscordClient { get; }
 
         private Task OnUserJoinedAsync(IGuildUser guildUser)
-            => ExecuteScopedAsync(serviceProvider => CreateOrUpdateUser(serviceProvider, guildUser));
+            => ExecuteScopedAsync(serviceProvider => CreateOrUpdateUserAsync(serviceProvider, guildUser));
 
         private Task OnGuildMemberUpdatedAsync(IGuildUser oldUser, IGuildUser newUser)
-            => ExecuteScopedAsync(serviceProvider => CreateOrUpdateUser(serviceProvider, newUser));
+            => ExecuteScopedAsync(serviceProvider => CreateOrUpdateUserAsync(serviceProvider, newUser));
 
         private Task OnMessageReceivedAsync(IMessage message)
-            => ExecuteScopedAsync(serviceProvider => CreateOrUpdateUser(serviceProvider, message.Author));
+            => ExecuteScopedAsync(serviceProvider => CreateOrUpdateUserAsync(serviceProvider, message.Author));
 
-        private async Task CreateOrUpdateUser(IServiceProvider serviceProvider, IUser user)
+        private async Task CreateOrUpdateUserAsync(IServiceProvider serviceProvider, IUser user)
         {
             var userRepository = ServiceProvider.GetService<IUserRepository>();
 
@@ -99,14 +88,14 @@ namespace Modix.Services.Core
                 }
             });
 
-            if (!success && (guildUser != null))
+            if (!success)
             {
                 await userRepository.CreateAsync(new UserCreationData()
                 {
                     Id = user.Id,
                     Username = user.Username,
                     Discriminator = user.Discriminator,
-                    Nickname = guildUser.Nickname,
+                    Nickname = guildUser?.Nickname,
                     FirstSeen = DateTimeOffset.Now,
                     LastSeen = DateTimeOffset.Now
                 });

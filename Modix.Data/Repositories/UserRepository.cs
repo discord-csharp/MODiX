@@ -36,8 +36,12 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public Task<bool> ExistsAsync(ulong userId)
-            => ModixContext.Users.AsNoTracking()
-                .AnyAsync(x => x.Id == (long)userId);
+        {
+            var longId = (long)userId;
+            
+            return ModixContext.Users.AsNoTracking()
+                .AnyAsync(x => x.Id == longId);
+        }
 
         /// <inheritdoc />
         public async Task<bool> UpdateAsync(ulong userId, Action<UserMutationData> updateAction)
@@ -45,8 +49,9 @@ namespace Modix.Data.Repositories
             if (updateAction == null)
                 throw new ArgumentNullException(nameof(updateAction));
 
+            var longId = (long)userId;
             var entity = await ModixContext.Users
-                .SingleOrDefaultAsync(x => x.Id == (long)userId);
+                .SingleOrDefaultAsync(x => x.Id == longId);
 
             if (entity == null)
                 return false;

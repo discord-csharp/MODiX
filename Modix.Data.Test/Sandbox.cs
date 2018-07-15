@@ -28,7 +28,7 @@ namespace Modix.Data.Test
     public class Sandbox
     {
         [Test]
-        public async Task Main()
+        public void Main()
         {
             var optionsBuilder = new DbContextOptionsBuilder<ModixContext>();
 

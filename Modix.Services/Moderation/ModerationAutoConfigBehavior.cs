@@ -25,11 +25,34 @@ namespace Modix.Services.Moderation
             : base(serviceProvider)
         {
             DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
+        }
 
+        internal protected override Task OnStartingAsync()
+        {
             DiscordClient.GuildAvailable += OnGuildAvailableAsync;
             DiscordClient.ChannelCreated += OnChannelCreated;
             DiscordClient.ChannelUpdated += OnChannelUpdated;
             DiscordClient.LeftGuild += OnLeftGuild;
+
+            return Task.CompletedTask;
+        }
+
+        internal protected override Task OnStoppingAsync()
+        {
+            DiscordClient.GuildAvailable -= OnGuildAvailableAsync;
+            DiscordClient.ChannelCreated -= OnChannelCreated;
+            DiscordClient.ChannelUpdated -= OnChannelUpdated;
+            DiscordClient.LeftGuild -= OnLeftGuild;
+
+            return Task.CompletedTask;
+        }
+
+        internal protected override void Dispose(bool disposeManaged)
+        {
+            if (disposeManaged && IsStarted)
+                OnStoppingAsync();
+
+            base.Dispose(disposeManaged);
         }
 
         // TODO: Abstract DiscordSocketClient to IDiscordSocketClient, or something, to make this testable

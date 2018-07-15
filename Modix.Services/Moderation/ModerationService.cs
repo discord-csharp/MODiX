@@ -272,21 +272,23 @@ namespace Modix.Services.Moderation
             }
         }
 
-        private async Task ConfigureChannelMuteRolePermissions(IGuildChannel channel, IRole muteRole)
+        private Task ConfigureChannelMuteRolePermissions(IGuildChannel channel, IRole muteRole)
         {
-            var overwrite = channel.PermissionOverwrites
-                .FirstOrDefault(x => (x.TargetType == PermissionTarget.Role) && (x.TargetId == muteRole.Id));
+            // TODO: GetPermissionOverwrite and AddPermissionOverwriteAsync are bugged in Discord.NET 1.0.2.
+            // Probably need to upgrade Discord.NET to get this functionality.
+            return Task.CompletedTask;
 
-            if (overwrite.TargetId != 0)
-            {
-                if ((overwrite.Permissions.AllowValue == _mutePermissions.AllowValue) &&
-                    (overwrite.Permissions.DenyValue == _mutePermissions.DenyValue))
-                    return;
+            //var permissionOverwrite = channel.GetPermissionOverwrite(muteRole);
+            //if (permissionOverwrite != null)
+            //{
+            //    if ((permissionOverwrite.Value.AllowValue == _mutePermissions.AllowValue) &&
+            //        (permissionOverwrite.Value.DenyValue == _mutePermissions.DenyValue))
+            //        return;
 
-                await channel.RemovePermissionOverwriteAsync(muteRole);
-            }
+            //    await channel.RemovePermissionOverwriteAsync(muteRole);
+            //}
 
-            await channel.AddPermissionOverwriteAsync(muteRole, _mutePermissions);
+            //await channel.AddPermissionOverwriteAsync(muteRole, _mutePermissions);
         }
 
         private async Task DoDiscordMuteAsync(ulong subjectId)

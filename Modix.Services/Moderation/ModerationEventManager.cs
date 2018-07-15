@@ -17,7 +17,9 @@ namespace Modix.Services.Moderation
             if (argsFactory == null)
                 throw new ArgumentNullException(nameof(argsFactory));
 
-            await ModerationActionCreated?.InvokeAsync(this, await argsFactory.Invoke());
+            var handler = ModerationActionCreated;
+            if (handler != null)
+                await ModerationActionCreated.InvokeAsync(this, await argsFactory.Invoke());
         }
     }
 }
