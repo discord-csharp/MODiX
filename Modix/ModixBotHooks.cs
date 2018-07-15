@@ -7,6 +7,7 @@ using Modix.Services.AutoCodePaste;
 using Modix.Services.FileUpload;
 using Modix.Services.GuildInfo;
 using System;
+using Microsoft.Extensions.DependencyInjection;
 using Modix.Services.CommandHelp;
 
 namespace Modix
@@ -43,20 +44,26 @@ namespace Modix
 
         public async Task HandleAddReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
-            var codePaste = ServiceProvider.GetService(typeof(CodePasteHandler)) as CodePasteHandler;
-            var errorHelper = ServiceProvider.GetService(typeof(CommandErrorHandler)) as CommandErrorHandler;
+            using (var scope = ServiceProvider.CreateScope())
+            {
+                var codePaste = scope.ServiceProvider.GetRequiredService<CodePasteHandler>();
+                var errorHelper = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
 
-            await codePaste.ReactionAdded(message, channel, reaction);
-            await errorHelper.ReactionAdded(message, channel, reaction);
+                await codePaste.ReactionAdded(message, channel, reaction);
+                await errorHelper.ReactionAdded(message, channel, reaction);
+            }
         }
 
         public async Task HandleRemoveReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
-            var codePaste = ServiceProvider.GetService(typeof(CodePasteHandler)) as CodePasteHandler;
-            var errorHelper = ServiceProvider.GetService(typeof(CommandErrorHandler)) as CommandErrorHandler;
+            using (var scope = ServiceProvider.CreateScope())
+            {
+                var codePaste = scope.ServiceProvider.GetRequiredService<CodePasteHandler>();
+                var errorHelper = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
 
-            await codePaste.ReactionRemoved(message, channel, reaction);
-            await errorHelper.ReactionRemoved(message, channel, reaction);
+                await codePaste.ReactionRemoved(message, channel, reaction);
+                await errorHelper.ReactionRemoved(message, channel, reaction);
+            }
         }
 
         public Task HandleUserJoined(SocketGuildUser user)
@@ -71,23 +78,27 @@ namespace Modix
 
         private Task InvalidateGuild(IGuild guild)
         {
-            var infoService = ServiceProvider.GetService(typeof(GuildInfoService)) as GuildInfoService;
-            infoService.ClearCacheEntry(guild);
+            using (var scope = ServiceProvider.CreateScope())
+            {
+                var infoService = scope.ServiceProvider.GetRequiredService<GuildInfoService>();
+                infoService.ClearCacheEntry(guild);
 
-            return Task.CompletedTask;
+                return Task.CompletedTask;
+            }
         }
 
         public async Task HandleMessage(SocketMessage messageParam)
         {
-            var user = ((messageParam as SocketUserMessage)?.Author as SocketGuildUser);
-
-            if (user == null) return;
-
-            var fileUploadHandler = ServiceProvider.GetService(typeof(FileUploadHandler)) as FileUploadHandler;
-
-            if (messageParam.Attachments.Any())
+            if (messageParam is SocketUserMessage userMessage &&
+                userMessage.Author is SocketGuildUser _ &&
+                messageParam.Attachments.Any())
             {
-                await fileUploadHandler.Handle(messageParam);
+                using (var scope = ServiceProvider.CreateScope())
+                {
+                    var fileUploadHandler = scope.ServiceProvider.GetRequiredService<FileUploadHandler>();
+
+                    await fileUploadHandler.Handle(messageParam);
+                }
             }
         }
     }
