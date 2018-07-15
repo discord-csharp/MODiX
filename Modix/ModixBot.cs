@@ -34,7 +34,7 @@ namespace Modix
 
         private DiscordSocketClient _client;
         private readonly IServiceCollection _map = new ServiceCollection();
-        private IServiceProvider _provider;
+        private IServiceScope _scope;
         private ModixBotHooks _hooks = new ModixBotHooks();
         private readonly ModixConfig _config;
         private IWebHost _host;
@@ -65,20 +65,20 @@ namespace Modix
 
             //#endif
 
-            _provider = _host.Services;
+            _scope = _host.Services.CreateScope();
 
-            using (var context = _provider.GetService<ModixContext>())
+            using (var context = _scope.ServiceProvider.GetService<ModixContext>())
             {
                 context.Database.Migrate();
             }
 
-            using (var context = _provider.GetService<ModixContext>())
+            using (var context = _scope.ServiceProvider.GetService<ModixContext>())
             {
                 context.ChannelLimits.ToList();
             }
 
 
-            _hooks.ServiceProvider = _provider;
+            _hooks.ServiceProvider = _scope.ServiceProvider;
 
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
@@ -114,7 +114,7 @@ namespace Modix
 
             var context = new CommandContext(_client, message);
 
-            using (var scope = _provider.CreateScope())
+            using (var scope = _scope.ServiceProvider.CreateScope())
             {
                 var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
 
