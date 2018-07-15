@@ -116,7 +116,7 @@ namespace Modix
 
             using (var scope = _provider.CreateScope())
             {
-                var result = await _commands.ExecuteAsync(context, argPos, _provider);
+                var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
 
                 if (!result.IsSuccess)
                 {
@@ -133,7 +133,7 @@ namespace Modix
 
                     if (result.Error != CommandError.Exception)
                     {
-                        var handler = _provider.GetRequiredService<CommandErrorHandler>();
+                        var handler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
                         await handler.AssociateError(message, error);
                     }
                     else
