@@ -2,7 +2,7 @@
 <Project ToolsVersion="15.0" Sdk="Microsoft.Docker.Sdk">
   <PropertyGroup Label="Globals">
     <ProjectGuid>330066af-9fdc-447e-a8fc-3556e011ec5b</ProjectGuid>
-    <DockerTargetOS>Windows</DockerTargetOS>
+    <DockerTargetOS>Linux</DockerTargetOS>
     <ProjectVersion>2.1</ProjectVersion>
   </PropertyGroup>
   <ItemGroup>
