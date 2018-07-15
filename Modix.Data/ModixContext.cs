@@ -21,17 +21,13 @@ namespace Modix.Data
         {
         }
 
-        public DbSet<DiscordUserEntity> DiscordUsers { get; set; }
+        public DbSet<UserEntity> Users { get; set; }
 
-        public DbSet<DiscordMessageEntity> DiscordMessages { get; set; }
-
-        public DbSet<DiscordGuildEntity> DiscordGuilds { get; set; }
-
-        public DbSet<ChannelLimitEntity> ChannelLimits { get; set; }
-
-        public DbSet<InfractionEntity> Infractions { get; set; }
+        public DbSet<ModerationConfigEntity> ModerationConfigs { get; set; }
 
         public DbSet<ModerationActionEntity> ModerationActions { get; set; }
+
+        public DbSet<InfractionEntity> Infractions { get; set; }
 
         public DbSet<PromotionCampaignEntity> PromotionCampaigns { get; set; }
 

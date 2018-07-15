@@ -5,7 +5,7 @@ using Modix.Data.Models.Moderation;
 namespace Modix.Services.Moderation
 {
     /// <summary>
-    /// Describes data about the <see cref="IModerationService.ModerationActionCreated"/> event.
+    /// Describes data about the <see cref="IModerationEventManager.ModerationActionCreated"/> event.
     /// </summary>
     public class ModerationActionCreatedEventArgs : EventArgs
     {

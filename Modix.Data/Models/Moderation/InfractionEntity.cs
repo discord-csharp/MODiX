@@ -18,6 +18,12 @@ namespace Modix.Data.Models.Moderation
         public long Id { get; set; }
 
         /// <summary>
+        /// A timestamp indicating when this entity was created, for auditing purposes.
+        /// </summary>
+        [Required]
+        public DateTimeOffset Created { get; set; }
+
+        /// <summary>
         /// The type of <see cref="InfractionEntity"/> recorded.
         /// </summary>
         [Required]
@@ -30,7 +36,7 @@ namespace Modix.Data.Models.Moderation
         public TimeSpan? Duration { get; set; }
 
         /// <summary>
-        /// The <see cref="DiscordUserEntity.UserId"/> value of <see cref="Subject"/>.
+        /// The <see cref="UserEntity.Id"/> value of <see cref="Subject"/>.
         /// </summary>
         [Required, ForeignKey(nameof(Subject))]
         public long SubjectId { get; set; }
@@ -39,7 +45,7 @@ namespace Modix.Data.Models.Moderation
         /// The user upon which the <see cref="InfractionEntity"/> was applied.
         /// </summary>
         [Required]
-        public virtual DiscordUserEntity Subject { get; set; }
+        public virtual UserEntity Subject { get; set; }
 
         /// <summary>
         /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="CreateAction"/>.

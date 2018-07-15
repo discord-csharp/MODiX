@@ -20,16 +20,14 @@ namespace Modix.Services.Promotions
 
         public async Task AddCampaign(PromotionCampaignEntity campaign, SocketGuildUser user)
         {
-            var promoUser = await _context.DiscordUsers.FirstOrDefaultAsync(u => u.DiscordUserId == user.Id);
+            var promoUser = await _context.Users.FirstOrDefaultAsync(u => (ulong)u.Id == user.Id);
             if (promoUser == null)
-                await _context.DiscordUsers.AddAsync(new DiscordUserEntity
+                await _context.Users.AddAsync(new UserEntity
                 {
                     Username = $"{user.Username}#{user.Discriminator}",
-                    DiscordUserId = user.Id,
-                    CreatedAt = DateTime.UtcNow,
-                    IsBot = false,
+                    Id = (long)user.Id,
+                    Created = DateTime.UtcNow,
                     Nickname = user.Nickname,
-                    AvatarUrl = user.GetAvatarUrl()
                 });
 
             campaign.PromotionFor = promoUser;

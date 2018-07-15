@@ -7,8 +7,7 @@ using Modix.Data.Models.Core;
 namespace Modix.Data.Models.Moderation
 {
     /// <summary>
-    /// Describes an <see cref="InfractionEntity"/>, and related entities, from the perspective of a user
-    /// searching through the <see cref="ModixContext.Infractions"/> dataset.
+    /// Describes a summary view of a. <see cref="InfractionEntity"/>, for use in higher layers of the application.
     /// </summary>
     public class InfractionSummary
     {
@@ -30,7 +29,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="InfractionEntity.Subject"/>.
         /// </summary>
-        public DiscordUserIdentity Subject { get; set; }
+        public UserIdentity Subject { get; set; }
 
         /// <summary>
         /// The associated <see cref="ModerationActionEntity"/> from <see cref="InfractionEntity.ModerationActions"/>,
@@ -104,9 +103,9 @@ namespace Modix.Data.Models.Moderation
                 Id = entity.Id,
                 Type = entity.Type,
                 Duration = entity.Duration,
-                Subject = new DiscordUserIdentity()
+                Subject = new UserIdentity()
                 {
-                    UserId = entity.Subject.UserId,
+                    Id = (ulong)entity.Subject.Id,
                     Username = entity.Subject.Username,
                     Discriminator = entity.Subject.Discriminator,
                     Nickname = entity.Subject.Nickname
@@ -115,9 +114,9 @@ namespace Modix.Data.Models.Moderation
                 {
                     Id = entity.CreateAction.Id,
                     Created = entity.CreateAction.Created,
-                    CreatedBy = new DiscordUserIdentity()
+                    CreatedBy = new UserIdentity()
                     {
-                        UserId = entity.CreateAction.CreatedBy.UserId,
+                        Id = (ulong)entity.CreateAction.CreatedBy.Id,
                         Username = entity.CreateAction.CreatedBy.Username,
                         Discriminator = entity.CreateAction.CreatedBy.Discriminator,
                         Nickname = entity.CreateAction.CreatedBy.Nickname
@@ -128,16 +127,15 @@ namespace Modix.Data.Models.Moderation
                 {
                     Id = entity.RescindAction.Id,
                     Created = entity.RescindAction.Created,
-                    CreatedBy = new DiscordUserIdentity()
+                    CreatedBy = new UserIdentity()
                     {
-                        UserId = entity.RescindAction.CreatedBy.UserId,
+                        Id = (ulong)entity.RescindAction.CreatedBy.Id,
                         Username = entity.RescindAction.CreatedBy.Username,
                         Discriminator = entity.RescindAction.CreatedBy.Discriminator,
                         Nickname = entity.RescindAction.CreatedBy.Nickname
                     },
                     Reason = entity.RescindAction.Reason
                 },
-                // DateTimeOffset.Now doesn't map properly, throws a NullReferenceException. Not sure if using DateTime.Now instead is problematic.
                 IsExpired = (entity.Duration.HasValue && ((entity.CreateAction.Created + entity.Duration.Value) > DateTime.Now))
             };
     }

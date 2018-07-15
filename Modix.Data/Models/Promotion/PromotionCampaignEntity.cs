@@ -21,7 +21,7 @@ namespace Modix.Data.Models.Promotion
         public long PromotionCampaignId { get; set; }
 
         [Required]
-        public DiscordUserEntity PromotionFor { get; set; }
+        public UserEntity PromotionFor { get; set; }
 
         public DateTimeOffset StartDate { get; set; }
         public CampaignStatus Status { get; set; }

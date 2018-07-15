@@ -12,10 +12,16 @@ namespace Modix.Data.Models.Moderation
     public class ModerationActionEntity
     {
         /// <summary>
-        /// A unique identifier for this <see cref="Infraction"/>.
+        /// A unique identifier for this <see cref="ModerationActionEntity"/>.
         /// </summary>
         [Key, Required, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
+
+        /// <summary>
+        /// A timestamp indicating when this entity was created, for auditing purposes.
+        /// </summary>
+        [Required]
+        public DateTimeOffset Created { get; set; }
 
         /// <summary>
         /// The type of this <see cref="ModerationActionEntity"/>.
@@ -24,19 +30,13 @@ namespace Modix.Data.Models.Moderation
         public ModerationActionType Type { get; set; }
 
         /// <summary>
-        /// A timestamp indicating when this <see cref="ModerationActionEntity"/> occurred.
-        /// </summary>
-        [Required]
-        public DateTimeOffset Created { get; set; }
-
-        /// <summary>
         /// A comment about the moderation action that was performed.
         /// </summary>
         [Required]
         public string Reason { get; set; }
 
         /// <summary>
-        /// The <see cref="DiscordUserEntity.UserId"/> value of <see cref="CreatedBy"/>.
+        /// The <see cref="UserEntity.Id"/> value of <see cref="CreatedBy"/>.
         /// </summary>
         [Required, ForeignKey(nameof(CreatedBy))]
         public long CreatedById { get; set; }
@@ -45,7 +45,7 @@ namespace Modix.Data.Models.Moderation
         /// The staff member that applied this moderation action
         /// </summary>
         [Required]
-        public virtual DiscordUserEntity CreatedBy { get; set; }
+        public virtual UserEntity CreatedBy { get; set; }
 
         /// <summary>
         /// The <see cref="InfractionEntity.Id"/> value of <see cref="Infraction"/>.

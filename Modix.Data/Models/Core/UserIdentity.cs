@@ -4,35 +4,35 @@ using System.Linq.Expressions;
 namespace Modix.Data.Models.Core
 {
     /// <summary>
-    /// Describes the identifying properties of a <see cref="DiscordUserEntity"/>.
+    /// Describes the identifying properties of a <see cref="UserEntity"/>.
     /// This is generally for use within other models, to refer to related users.
     /// </summary>
-    public class DiscordUserIdentity
+    public class UserIdentity
     {
         /// <summary>
-        /// See <see cref="DiscordUserEntity.UserId"/>.
+        /// See <see cref="UserEntity.Id"/>.
         /// </summary>
-        public long UserId { get; set; }
+        public ulong Id { get; set; }
 
         /// <summary>
-        /// See <see cref="DiscordUserEntity.Username"/>.
+        /// See <see cref="UserEntity.Username"/>.
         /// </summary>
         public string Username { get; set; }
 
         /// <summary>
-        /// See <see cref="DiscordUserEntity.Discriminator"/>.
+        /// See <see cref="UserEntity.Discriminator"/>.
         /// </summary>
-        public uint Discriminator { get; set; }
+        public string Discriminator { get; set; }
 
         /// <summary>
-        /// See <see cref="DiscordUserEntity.Nickname"/>.
+        /// See <see cref="UserEntity.Nickname"/>.
         /// </summary>
         public string Nickname { get; set; }
 
-        internal static Expression<Func<DiscordUserEntity, DiscordUserIdentity>> FromEntityProjection { get; }
-            = entity => new DiscordUserIdentity()
+        internal static readonly Expression<Func<UserEntity, UserIdentity>> FromEntityProjection
+            = entity => new UserIdentity()
             {
-                UserId = entity.UserId,
+                Id = (ulong)entity.Id,
                 Username = entity.Username,
                 Discriminator = entity.Discriminator,
                 Nickname = entity.Nickname

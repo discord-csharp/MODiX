@@ -6,8 +6,7 @@ using Modix.Data.Models.Core;
 namespace Modix.Data.Models.Moderation
 {
     /// <summary>
-    /// Describes a brief subset of the properties of a <see cref="ModerationActionEntity"/>.
-    /// This is generally for use within other models, to refer to related users.
+    /// Describes a partial view of an <see cref="ModerationActionEntity"/>, for contextual display within a UI.
     /// </summary>
     public class ModerationActionBrief
     {
@@ -29,16 +28,16 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="ModerationActionEntity.CreatedBy"/>.
         /// </summary>
-        public DiscordUserIdentity CreatedBy { get; set; }
+        public UserIdentity CreatedBy { get; set; }
 
         internal static Expression<Func<ModerationActionEntity, ModerationActionBrief>> FromEntityProjection { get; }
             = entity => new ModerationActionBrief()
             {
                 Id = entity.Id,
                 Created = entity.Created,
-                CreatedBy = new DiscordUserIdentity()
+                CreatedBy = new UserIdentity()
                 {
-                    UserId = entity.CreatedBy.UserId,
+                    Id = (ulong)entity.CreatedBy.Id,
                     Username = entity.CreatedBy.Username,
                     Discriminator = entity.CreatedBy.Discriminator,
                     Nickname = entity.CreatedBy.Nickname

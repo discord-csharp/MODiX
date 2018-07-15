@@ -20,13 +20,12 @@ namespace Modix.Data.Repositories
             : base(modixContext) { }
 
         /// <inheritdoc />
-        public async Task<long> InsertAsync(ModerationActionData action)
+        public async Task<long> CreateAsync(ModerationActionCreationData data)
         {
-            if (action == null)
-                throw new ArgumentNullException(nameof(action));
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
 
-            var entity = action.ToEntity();
-
+            var entity = data.ToEntity();
             entity.Created = DateTimeOffset.Now;
 
             await ModixContext.ModerationActions.AddAsync(entity);
@@ -37,23 +36,39 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<ModerationActionSummary> GetAsync(long actionId)
-            => await ModixContext.ModerationActions.AsNoTracking()
+        public Task<bool> ExistsAsync(long actionId)
+            => ModixContext.ModerationActions.AsNoTracking()
+                .AnyAsync(x => x.Id == actionId);
+
+        /// <inheritdoc />
+        public Task<ModerationActionSummary> ReadAsync(long actionId)
+            => ModixContext.ModerationActions.AsNoTracking()
                 .Where(x => x.Id == actionId)
                 .Select(ModerationActionSummary.FromEntityProjection)
                 .FirstOrDefaultAsync();
 
         /// <inheritdoc />
-        public async Task SetInfractionAsync(long actionId, long infractionId)
+        public async Task<bool> UpdateAsync(long actionId, Action<ModerationActionMutationData> updateAction)
         {
-            var action = await ModixContext.ModerationActions
-                .SingleAsync(x => x.Id == actionId);
+            if (updateAction == null)
+                throw new ArgumentNullException(nameof(updateAction));
 
-            action.InfractionId = infractionId;
+            var entity = await ModixContext.ModerationActions
+                .Where(x => x.Id == actionId)
+                .FirstOrDefaultAsync();
 
-            ModixContext.UpdateProperty(action, x => x.InfractionId);
+            if (entity == null)
+                return false;
+
+            var data = ModerationActionMutationData.FromEntity(entity);
+            updateAction.Invoke(data);
+            data.ApplyTo(entity);
+
+            ModixContext.UpdateProperty(entity, x => x.InfractionId);
 
             await ModixContext.SaveChangesAsync();
+
+            return true;
         }
     }
 }

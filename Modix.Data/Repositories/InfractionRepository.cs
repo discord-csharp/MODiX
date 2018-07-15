@@ -22,12 +22,13 @@ namespace Modix.Data.Repositories
             : base(modixContext) { }
 
         /// <inheritdoc />
-        public async Task<long> InsertAsync(InfractionData infraction)
+        public async Task<long> CreateAsync(InfractionCreationData data)
         {
-            if (infraction == null)
-                throw new ArgumentNullException(nameof(infraction));
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
 
-            var entity = infraction.ToEntity();
+            var entity = data.ToEntity();
+            entity.Created = DateTimeOffset.Now;
 
             await ModixContext.Infractions.AddAsync(entity);
 
@@ -37,38 +38,25 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<bool> ExistsAsync(long infractionId)
-            => await ModixContext.Infractions
+        public Task<bool> ExistsAsync(long infractionId)
+            => ModixContext.Infractions
                 .AnyAsync(x => x.Id == infractionId);
 
         /// <inheritdoc />
-        public async Task<InfractionSummary> GetAsync(long infractionId)
-            => await ModixContext.Infractions.AsNoTracking()
+        public Task<InfractionSummary> ReadAsync(long infractionId)
+            => ModixContext.Infractions.AsNoTracking()
                 .Where(x => x.Id == infractionId)
                 .Select(InfractionSummary.FromEntityProjection)
                 .FirstOrDefaultAsync();
 
         /// <inheritdoc />
-        public async Task SetRescindActionAsync(long infractionId, long rescindActionId)
-        {
-            var infraction = await ModixContext.Infractions
-                .SingleAsync(x => x.Id == infractionId);
-
-            infraction.RescindActionId = rescindActionId;
-
-            ModixContext.UpdateProperty(infraction, x => x.RescindActionId);
-
-            await ModixContext.SaveChangesAsync();
-        }
-
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<InfractionSummary>> SearchAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria)
+        public async Task<IReadOnlyCollection<InfractionSummary>> SearchSummariesAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria)
             => await SearchInfractionsBy(ModixContext.Infractions.AsNoTracking(), searchCriteria)
                 .SortBy(sortingCriteria, InfractionSummary.SortablePropertyMap)
                 .ToArrayAsync();
 
         /// <inheritdoc />
-        public async Task<RecordsPage<InfractionSummary>> SearchAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
+        public async Task<RecordsPage<InfractionSummary>> SearchSummariesPagedAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
         {
             var sourceQuery = ModixContext.Infractions.AsNoTracking();
 
@@ -88,6 +76,31 @@ namespace Modix.Data.Repositories
             };
         }
 
+        /// <inheritdoc />
+        public async Task<bool> UpdateAsync(long infractionId, Action<InfractionMutationData> updateAction)
+        {
+            if (updateAction == null)
+                throw new ArgumentNullException(nameof(updateAction));
+
+            var entity = await ModixContext.Infractions
+                .Where(x => x.Id == infractionId)
+                .FirstOrDefaultAsync();
+
+            if (entity == null)
+                return false;
+
+            var data = InfractionMutationData.FromEntity(entity);
+            updateAction.Invoke(data);
+            data.ApplyTo(entity);
+
+            ModixContext.UpdateProperty(entity, x => x.RescindActionId);
+
+            await ModixContext.SaveChangesAsync();
+
+            return true;
+        }
+
+        /// <inheritdoc />
         private static IQueryable<InfractionSummary> SearchInfractionsBy(IQueryable<InfractionEntity> query, InfractionSearchCriteria criteria)
             =>  (criteria == null)
                 ? query

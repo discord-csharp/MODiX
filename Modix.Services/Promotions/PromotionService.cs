@@ -48,7 +48,7 @@ namespace Modix.Services.Promotions
         {
             ThrowIfNotStaff(promoter);
 
-            var foundUser = CurrentGuild.GetUser(campaign.PromotionFor.DiscordUserId);
+            var foundUser = CurrentGuild.GetUser((ulong)campaign.PromotionFor.Id);
             var foundRole = CurrentGuild.Roles.FirstOrDefault(d => d.Id == allowedToCommentRoleID);
 
             if (foundRole == null)
@@ -63,7 +63,7 @@ namespace Modix.Services.Promotions
                 throw new NullReferenceException(nameof(PromotionChannel));
             
             await PromotionChannel.SendMessageAsync(
-                $"{MentionUtils.MentionUser(campaign.PromotionFor.DiscordUserId)} has been promoted to Regular! 🎉");
+                $"{MentionUtils.MentionUser((ulong)campaign.PromotionFor.Id)} has been promoted to Regular! 🎉");
         }
 
         public async Task DenyCampaign(SocketGuildUser promoter, PromotionCampaignEntity campaign)
@@ -125,7 +125,7 @@ namespace Modix.Services.Promotions
                 throw new ArgumentNullException(nameof(user));
             if (string.IsNullOrWhiteSpace(commentBody))
                 throw new ArgumentException("Comment cannot be empty!");
-            if ((await GetCampaigns()).Any(d => d.PromotionFor.DiscordUserId == user.Id))
+            if ((await GetCampaigns()).Any(d => (ulong)d.PromotionFor.Id == user.Id))
                 throw new ArgumentException("A campaign already exists for that user.");
 
             if (user.Roles.Count > 1) throw new ArgumentException("Recommended user must be unranked.");
