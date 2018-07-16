@@ -5,7 +5,6 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AsyncEvent" Version="0.2.0" />
-    <PackageReference Include="Microsoft.NETCore.App" Version="2.1.0" />
     <PackageReference Include="Discord.Net" Version="1.0.2" />
     <PackageReference Include="Kitsu" Version="1.4.1" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.1.1" />
