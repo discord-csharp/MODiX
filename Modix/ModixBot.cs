@@ -21,7 +21,6 @@ namespace Modix
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.EntityFrameworkCore;
     using Modix.Data;
-    using Services.Animals;
     using Services.FileUpload;
     using Services.Promotions;
 
@@ -157,7 +156,6 @@ namespace Modix
             _map.AddSingleton<CodePasteHandler>();
             _map.AddSingleton<FileUploadHandler>();
             _map.AddSingleton<CodePasteService>();
-            _map.AddSingleton<IAnimalService, AnimalService>();
             _map.AddMemoryCache();
 
             _map.AddSingleton<GuildInfoService>();
