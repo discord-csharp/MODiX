@@ -76,19 +76,9 @@ namespace Modix
                 context.Database.Migrate();
             }
 
-<<<<<<< HEAD
-            _hooks.ServiceProvider = _provider;
-=======
-            using (var context = _scope.ServiceProvider.GetService<ModixContext>())
-            {
-                context.ChannelLimits.ToList();
-            }
-
-
             _hooks.ServiceProvider = _scope.ServiceProvider;
->>>>>>> 6fe88bf7cd853a856d24c22d772cf8cd57f06952
 
-            foreach (var behavior in _provider.GetServices<IBehavior>())
+            foreach (var behavior in _scope.ServiceProvider.GetServices<IBehavior>())
                 await behavior.StartAsync();
 
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
