@@ -37,7 +37,7 @@ namespace Modix
 
         private DiscordSocketClient _client;
         private readonly IServiceCollection _map = new ServiceCollection();
-        private IServiceProvider _provider;
+        private IServiceScope _scope;
         private ModixBotHooks _hooks = new ModixBotHooks();
         private readonly ModixConfig _config;
         private IWebHost _host;
@@ -64,19 +64,19 @@ namespace Modix
 
             _host = ModixWebServer.BuildWebHost(_map, _config);
 
-            _provider = _host.Services;
+            _scope = _host.Services.CreateScope();
 
-            using (var context = _provider.GetService<ModixContext>())
+            using (var context = _scope.ServiceProvider.GetService<ModixContext>())
             {
                 context.Database.Migrate();
             }
 
-            var configurationService = _provider.GetService<IBehaviourConfigurationService>();
+            var configurationService = _scope.ServiceProvider.GetService<IBehaviourConfigurationService>();
 
             // Cache the behaviour configuration
             await configurationService.LoadBehaviourConfiguration();
 
-            _hooks.ServiceProvider = _provider;
+            _hooks.ServiceProvider = _scope.ServiceProvider;
 
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
@@ -112,9 +112,9 @@ namespace Modix
 
             var context = new CommandContext(_client, message);
 
-            using (var scope = _provider.CreateScope())
+            using (var scope = _scope.ServiceProvider.CreateScope())
             {
-                var result = await _commands.ExecuteAsync(context, argPos, _provider);
+                var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
 
                 if (!result.IsSuccess)
                 {
@@ -131,7 +131,7 @@ namespace Modix
 
                     if (result.Error != CommandError.Exception)
                     {
-                        var handler = _provider.GetRequiredService<CommandErrorHandler>();
+                        var handler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
                         await handler.AssociateError(message, error);
                     }
                     else

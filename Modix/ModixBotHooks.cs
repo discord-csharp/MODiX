@@ -8,6 +8,8 @@ using Modix.Services.FileUpload;
 using Modix.Services.GuildInfo;
 using System;
 using Modix.Handlers;
+using Microsoft.Extensions.DependencyInjection;
+using Modix.Services.BehaviourConfiguration;
 using Modix.Services.CommandHelp;
 
 namespace Modix
@@ -44,20 +46,26 @@ namespace Modix
 
         public async Task HandleAddReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
-            var codePaste = ServiceProvider.GetService(typeof(CodePasteHandler)) as CodePasteHandler;
-            var errorHelper = ServiceProvider.GetService(typeof(CommandErrorHandler)) as CommandErrorHandler;
+            using (var scope = ServiceProvider.CreateScope())
+            {
+                var codePaste = scope.ServiceProvider.GetRequiredService<CodePasteHandler>();
+                var errorHelper = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
 
-            await codePaste.ReactionAdded(message, channel, reaction);
-            await errorHelper.ReactionAdded(message, channel, reaction);
+                await codePaste.ReactionAdded(message, channel, reaction);
+                await errorHelper.ReactionAdded(message, channel, reaction);
+            }
         }
 
         public async Task HandleRemoveReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
-            var codePaste = ServiceProvider.GetService(typeof(CodePasteHandler)) as CodePasteHandler;
-            var errorHelper = ServiceProvider.GetService(typeof(CommandErrorHandler)) as CommandErrorHandler;
+            using (var scope = ServiceProvider.CreateScope())
+            {
+                var codePaste = scope.ServiceProvider.GetRequiredService<CodePasteHandler>();
+                var errorHelper = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
 
-            await codePaste.ReactionRemoved(message, channel, reaction);
-            await errorHelper.ReactionRemoved(message, channel, reaction);
+                await codePaste.ReactionRemoved(message, channel, reaction);
+                await errorHelper.ReactionRemoved(message, channel, reaction);
+            }
         }
 
         public Task HandleUserJoined(SocketGuildUser user)
@@ -72,28 +80,33 @@ namespace Modix
 
         private Task InvalidateGuild(IGuild guild)
         {
-            var infoService = ServiceProvider.GetService(typeof(GuildInfoService)) as GuildInfoService;
-            infoService.ClearCacheEntry(guild);
+            using (var scope = ServiceProvider.CreateScope())
+            {
+                var infoService = scope.ServiceProvider.GetRequiredService<GuildInfoService>();
+                infoService.ClearCacheEntry(guild);
 
-            return Task.CompletedTask;
+                return Task.CompletedTask;
+            }
         }
 
         public async Task HandleMessage(SocketMessage message)
         {
-            var user = ((message as SocketUserMessage)?.Author as SocketGuildUser);
-
-            if (user == null || user.IsBot) return;
-
-            var inviteLinkHandler = (InviteLinkHandler)ServiceProvider.GetService(typeof(InviteLinkHandler));
-
-            if (await inviteLinkHandler.PurgeInviteLink(message))
+            if (!(message is SocketUserMessage userMessage) || !(userMessage.Author is SocketGuildUser || userMessage.Author.IsBot))
                 return;
 
-            var fileUploadHandler = (FileUploadHandler)ServiceProvider.GetService(typeof(FileUploadHandler));
-
-            if (message.Attachments.Any())
+            using (var scope = ServiceProvider.CreateScope())
             {
-                await fileUploadHandler.Handle(message);
+                var inviteLinkHandler = scope.ServiceProvider.GetRequiredService<InviteLinkHandler>();
+
+                if (await inviteLinkHandler.PurgeInviteLink(message))
+                    return;
+
+                if (message.Attachments.Any())
+                {
+                    var fileUploadHandler = scope.ServiceProvider.GetRequiredService<FileUploadHandler>();
+
+                    await fileUploadHandler.Handle(message);
+                }
             }
         }
     }
