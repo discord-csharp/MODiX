@@ -27,6 +27,15 @@ namespace Modix.Data
         public DbSet<ChannelLimit> ChannelLimits { get; set; }
         public DbSet<PromotionCampaign> PromotionCampaigns { get; set; }
         public DbSet<PromotionComment> PromotionComments { get; set; }
+        public DbSet<BehaviourConfiguration> BehaviourConfigurations { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<BehaviourConfiguration>()
+                .Property(x => x.Category)
+                .HasConversion(category => category.ToString(), x => (BehaviourCategory)Enum.Parse(typeof(BehaviourCategory), x));
+        }
 
         public bool IsAttached<TEntity>(TEntity entity) where TEntity : class
             => Set<TEntity>().Local.Contains(entity);

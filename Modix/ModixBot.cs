@@ -15,6 +15,9 @@ using Modix.Services.Quote;
 using Modix.WebServer;
 using Serilog;
 using System.Linq;
+using Modix.Data.Repositories;
+using Modix.Handlers;
+using Modix.Services.BehaviourConfiguration;
 
 namespace Modix
 {
@@ -53,17 +56,13 @@ namespace Modix
             });
 
             await Install(); // Setting up DependencyMap
+
             _map.AddDbContext<ModixContext>(options =>
             {
                 options.UseNpgsql(_config.PostgreConnectionString);
             }, ServiceLifetime.Transient);
 
             _host = ModixWebServer.BuildWebHost(_map, _config);
-
-            //disable until we migrate to Xero's host.
-            //#if !DEBUG
-
-            //#endif
 
             _provider = _host.Services;
 
@@ -72,11 +71,10 @@ namespace Modix
                 context.Database.Migrate();
             }
 
-            using (var context = _provider.GetService<ModixContext>())
-            {
-                context.ChannelLimits.ToList();
-            }
+            var configurationService = _provider.GetService<IBehaviourConfigurationService>();
 
+            // Cache the behaviour configuration
+            await configurationService.LoadBehaviourConfiguration();
 
             _hooks.ServiceProvider = _provider;
 
@@ -168,6 +166,10 @@ namespace Modix
             _map.AddSingleton<IPromotionRepository, DBPromotionRepository>();
 
             _map.AddSingleton<CommandErrorHandler>();
+            _map.AddSingleton<InviteLinkHandler>();
+            _map.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
+            _map.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
+            _map.AddSingleton<IBehaviourConfiguration, Services.BehaviourConfiguration.BehaviourConfiguration>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;
