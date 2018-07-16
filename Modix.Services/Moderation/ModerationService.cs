@@ -9,8 +9,6 @@ using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Repositories;
 
-using Modix.Services.Authentication;
-using Modix.Services.Authorization;
 using Modix.Services.Core;
 
 namespace Modix.Services.Moderation
@@ -21,6 +19,7 @@ namespace Modix.Services.Moderation
         /// <summary>
         /// The name to be used for the role in each guild that mutes users.
         /// </summary>
+        // TODO: Push this to a bot-wide config? Or maybe on a per-guild basis, but with a bot-wide default, that's pulled from config?
         public const string MuteRoleName
             = "MODiX_Moderation_Mute";
 
@@ -153,6 +152,8 @@ namespace Modix.Services.Moderation
             });
 
             await RaiseModerationActionCreatedAsync(actionId);
+
+            // TODO: Implement InfractionAutoExpirationBehavior (or whatever) to automatically rescind infractions, based on Duration, and notify it here that a new infraction has been created, if it has a duration.
         }
 
         /// <inheritdoc />
@@ -247,6 +248,7 @@ namespace Modix.Services.Moderation
         /// </summary>
         internal protected IInfractionRepository InfractionRepository { get; }
 
+        // TODO: Replace with logging to a channel, pulled from IModerationConfigRepository. 
         internal protected async Task RaiseModerationActionCreatedAsync(long actionId)
             => await ModerationEventManager.RaiseModerationActionCreatedAsync(async () =>
                 new ModerationActionCreatedEventArgs(
@@ -350,8 +352,8 @@ namespace Modix.Services.Moderation
         }
 
         private async Task<IRole> GetOrCreateMuteRoleAsync(IGuild guild)
-            => guild.Roles.FirstOrDefault(x => x.Name == ModerationService.MuteRoleName)
-                ?? await guild.CreateRoleAsync(ModerationService.MuteRoleName);
+            => guild.Roles.FirstOrDefault(x => x.Name == MuteRoleName)
+                ?? await guild.CreateRoleAsync(MuteRoleName);
 
         private static readonly OverwritePermissions _mutePermissions
             = new OverwritePermissions(

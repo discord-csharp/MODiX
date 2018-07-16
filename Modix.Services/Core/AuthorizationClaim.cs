@@ -1,4 +1,4 @@
-﻿namespace Modix.Services.Authorization
+﻿namespace Modix.Services.Core
 {
     /// <summary>
     /// Defines the types of claims that can be used to authorize a request.

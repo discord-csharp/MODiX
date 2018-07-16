@@ -5,8 +5,13 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Modix.Services
 {
+    /// <inheritdoc />
     public abstract class BehaviorBase : IBehavior, IDisposable
     {
+        /// <summary>
+        /// Constructs a new <see cref="BehaviorBase"/>, with the given dependencies.
+        /// </summary>
+        /// <param name="serviceProvider">The value to use for <see cref="ServiceProvider"/>.</param>
         public BehaviorBase(IServiceProvider serviceProvider)
         {
             ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
@@ -15,12 +20,14 @@ namespace Modix.Services
         ~BehaviorBase()
             => Dispose(false);
 
+        /// <inheritdoc />
         public async Task StartAsync()
         {
             await OnStartingAsync();
             IsStarted = true;
         }
 
+        /// <inheritdoc />
         public async Task StopAsync()
         {
             await OnStoppingAsync();
@@ -52,18 +59,37 @@ namespace Modix.Services
         internal protected bool IsStarted { get; private set; }
             = false;
 
+        /// <summary>
+        /// Allows subclasses to inject logic into <see cref="StartAsync"/>.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
         internal protected abstract Task OnStartingAsync();
 
+        /// <summary>
+        /// Allows subclasses to inject logic into <see cref="StopAsync"/>.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
         internal protected abstract Task OnStoppingAsync();
 
+        /// <summary>
+        /// Executes a given action, asynchronously, within its own service scope.
+        /// </summary>
+        /// <param name="action">The action to be executed.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
         internal protected async Task ExecuteScopedAsync(Func<IServiceProvider, Task> action)
         {
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
+
             using (var serviceScope = ServiceProvider.CreateScope())
             {
                 await action.Invoke(serviceScope.ServiceProvider);
             }
         }
 
+        /// <summary>
+        /// An <see cref="IServiceProvider"/> to be used for interacting with and retrieving application services.
+        /// </summary>
         internal protected IServiceProvider ServiceProvider { get; }
     }
 }

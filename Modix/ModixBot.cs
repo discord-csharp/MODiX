@@ -8,8 +8,6 @@ using Discord.WebSocket;
 using Modix.Data.Models.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Services;
-using Modix.Services.Authentication;
-using Modix.Services.Authorization;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
@@ -156,8 +154,6 @@ namespace Modix
             _map.AddSingleton(_commands);
 
             _map.AddModixCore()
-                .AddModixAuthentication()
-                .AddModixAuthorization()
                 .AddModixModeration();
 
             _map.AddScoped<IQuoteService, QuoteService>();

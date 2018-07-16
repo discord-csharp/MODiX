@@ -1,11 +1,12 @@
-﻿namespace Modix.Services.Authentication
+﻿namespace Modix.Services.Core
 {
+    /// <inheritdoc />
     public class AuthenticationService : IAuthenticationService
     {
+        /// <inheritdoc />
         public ulong? CurrentUserId { get; }
-            = 137791696325836800; // JakenVeina
 
+        /// <inheritdoc />
         public ulong? CurrentGuildId { get; }
-            = 465266535783596033;
     }       
 }

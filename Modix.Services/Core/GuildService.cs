@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Discord;
 
-using Modix.Services.Authentication;
+using Modix.Services.Core;
 
 namespace Modix.Services.Core
 {

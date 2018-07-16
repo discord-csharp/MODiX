@@ -6,7 +6,7 @@ using Discord;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 
-using Modix.Services.Authentication;
+using Modix.Services.Core;
 
 namespace Modix.Services.Core
 {
