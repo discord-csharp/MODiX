@@ -6,7 +6,7 @@ using Modix.Data.Models.Core;
 namespace Modix.Data.Models.Moderation
 {
     /// <summary>
-    /// Describes a partial view of an <see cref="InfractionEntity"/>, for contextual display within a UI.
+    /// Describes a partial view of an <see cref="InfractionEntity"/>, for use within the context of another projected model.
     /// </summary>
     public class InfractionBrief
     {

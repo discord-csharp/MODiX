@@ -17,7 +17,7 @@ namespace Modix.Data.Repositories
         /// <exception cref="ArgumentNullException">Throws for <paramref name="data"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing the auto-generated <see cref="ModerationActionEntity.Id"/> value assigned to the new infraction.
+        /// containing the auto-generated <see cref="ModerationActionEntity.Id"/> value assigned to the new moderation action.
         /// </returns>
         Task<long> CreateAsync(ModerationActionCreationData data);
 
