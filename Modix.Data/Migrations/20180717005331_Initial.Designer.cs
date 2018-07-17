@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    [Migration("20180715020007_Initial")]
+    [Migration("20180717005331_Initial")]
     partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -20,6 +20,54 @@ namespace Modix.Data.Migrations
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
                 .HasAnnotation("ProductVersion", "2.1.1-rtm-30846")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            modelBuilder.Entity("Modix.Data.Models.Core.ConfigurationActionEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<DateTimeOffset>("Created");
+
+                    b.Property<long>("CreatedById");
+
+                    b.Property<long?>("RoleClaimId");
+
+                    b.Property<int>("Type");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("RoleClaimId");
+
+                    b.ToTable("ConfigurationActions");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Core.RoleClaimEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int>("Claim");
+
+                    b.Property<long>("CreateActionId");
+
+                    b.Property<long>("GuildId");
+
+                    b.Property<long?>("RescindActionId");
+
+                    b.Property<long>("RoleId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreateActionId")
+                        .IsUnique();
+
+                    b.HasIndex("RescindActionId")
+                        .IsUnique();
+
+                    b.ToTable("RoleClaims");
+                });
 
             modelBuilder.Entity("Modix.Data.Models.Core.UserEntity", b =>
                 {
@@ -150,6 +198,30 @@ namespace Modix.Data.Migrations
                     b.HasIndex("PromotionCampaignId");
 
                     b.ToTable("PromotionComments");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Core.ConfigurationActionEntity", b =>
+                {
+                    b.HasOne("Modix.Data.Models.Core.UserEntity", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Modix.Data.Models.Core.RoleClaimEntity", "RoleClaim")
+                        .WithMany()
+                        .HasForeignKey("RoleClaimId");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Core.RoleClaimEntity", b =>
+                {
+                    b.HasOne("Modix.Data.Models.Core.ConfigurationActionEntity", "CreateAction")
+                        .WithOne("CreatedRoleClaim")
+                        .HasForeignKey("Modix.Data.Models.Core.RoleClaimEntity", "CreateActionId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Modix.Data.Models.Core.ConfigurationActionEntity", "RescindAction")
+                        .WithOne("RescindedRoleClaim")
+                        .HasForeignKey("Modix.Data.Models.Core.RoleClaimEntity", "RescindActionId");
                 });
 
             modelBuilder.Entity("Modix.Data.Models.Moderation.InfractionEntity", b =>

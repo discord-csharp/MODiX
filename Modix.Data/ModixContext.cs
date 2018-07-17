@@ -21,7 +21,11 @@ namespace Modix.Data
         {
         }
 
+        public DbSet<ConfigurationActionEntity> ConfigurationActions { get; set; }
+
         public DbSet<UserEntity> Users { get; set; }
+
+        public DbSet<RoleClaimEntity> RoleClaims { get; set; }
 
         public DbSet<ModerationConfigEntity> ModerationConfigs { get; set; }
 

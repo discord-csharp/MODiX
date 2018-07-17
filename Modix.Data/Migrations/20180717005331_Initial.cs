@@ -84,6 +84,51 @@ namespace Modix.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RoleClaims",
+                columns: table => new
+                {
+                    Id = table.Column<long>(nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
+                    GuildId = table.Column<long>(nullable: false),
+                    RoleId = table.Column<long>(nullable: false),
+                    Claim = table.Column<int>(nullable: false),
+                    CreateActionId = table.Column<long>(nullable: false),
+                    RescindActionId = table.Column<long>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RoleClaims", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ConfigurationActions",
+                columns: table => new
+                {
+                    Id = table.Column<long>(nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
+                    Type = table.Column<int>(nullable: false),
+                    Created = table.Column<DateTimeOffset>(nullable: false),
+                    CreatedById = table.Column<long>(nullable: false),
+                    RoleClaimId = table.Column<long>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ConfigurationActions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ConfigurationActions_Users_CreatedById",
+                        column: x => x.CreatedById,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ConfigurationActions_RoleClaims_RoleClaimId",
+                        column: x => x.RoleClaimId,
+                        principalTable: "RoleClaims",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ModerationActions",
                 columns: table => new
                 {
@@ -143,6 +188,16 @@ namespace Modix.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_ConfigurationActions_CreatedById",
+                table: "ConfigurationActions",
+                column: "CreatedById");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ConfigurationActions_RoleClaimId",
+                table: "ConfigurationActions",
+                column: "RoleClaimId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Infractions_CreateActionId",
                 table: "Infractions",
                 column: "CreateActionId",
@@ -179,6 +234,34 @@ namespace Modix.Data.Migrations
                 table: "PromotionComments",
                 column: "PromotionCampaignId");
 
+            migrationBuilder.CreateIndex(
+                name: "IX_RoleClaims_CreateActionId",
+                table: "RoleClaims",
+                column: "CreateActionId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RoleClaims_RescindActionId",
+                table: "RoleClaims",
+                column: "RescindActionId",
+                unique: true);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_RoleClaims_ConfigurationActions_CreateActionId",
+                table: "RoleClaims",
+                column: "CreateActionId",
+                principalTable: "ConfigurationActions",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_RoleClaims_ConfigurationActions_RescindActionId",
+                table: "RoleClaims",
+                column: "RescindActionId",
+                principalTable: "ConfigurationActions",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+
             migrationBuilder.AddForeignKey(
                 name: "FK_ModerationActions_Infractions_InfractionId",
                 table: "ModerationActions",
@@ -190,6 +273,22 @@ namespace Modix.Data.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_ConfigurationActions_Users_CreatedById",
+                table: "ConfigurationActions");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_Infractions_Users_SubjectId",
+                table: "Infractions");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_ModerationActions_Users_CreatedById",
+                table: "ModerationActions");
+
+            migrationBuilder.DropForeignKey(
+                name: "FK_ConfigurationActions_RoleClaims_RoleClaimId",
+                table: "ConfigurationActions");
+
             migrationBuilder.DropForeignKey(
                 name: "FK_Infractions_ModerationActions_CreateActionId",
                 table: "Infractions");
@@ -208,13 +307,19 @@ namespace Modix.Data.Migrations
                 name: "PromotionCampaigns");
 
             migrationBuilder.DropTable(
+                name: "Users");
+
+            migrationBuilder.DropTable(
+                name: "RoleClaims");
+
+            migrationBuilder.DropTable(
+                name: "ConfigurationActions");
+
+            migrationBuilder.DropTable(
                 name: "ModerationActions");
 
             migrationBuilder.DropTable(
                 name: "Infractions");
-
-            migrationBuilder.DropTable(
-                name: "Users");
         }
     }
 }
