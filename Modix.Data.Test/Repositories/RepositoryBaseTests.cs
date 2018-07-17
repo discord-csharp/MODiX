@@ -12,32 +12,45 @@ namespace Modix.Data.Test.Repositories
     [TestFixture]
     public class RepositoryBaseTests
     {
-        [Test]
-        public void Constructor_ModixContextIsNull_ThrowsException()
+        protected class TestContext
         {
-            var modixContext = null as ModixContext;
+            public ModixContext modixContext = Substitute.For<ModixContext>();
 
-            Should.Throw<ArgumentNullException>(() =>
+            public RepositoryBase ConstructUUT()
             {
                 try
                 {
-                    Substitute.For<RepositoryBase>(modixContext);
+                    return Substitute.For<RepositoryBase>(modixContext);
                 }
-                catch(TargetInvocationException ex)
+                catch (TargetInvocationException ex)
                 {
                     throw ex.InnerException;
                 }
+            }
+        }
+
+        [Test]
+        public void Constructor_ModixContextIsNull_ThrowsException()
+        {
+            var context = new TestContext()
+            {
+                modixContext = null
+            };
+
+            Should.Throw<ArgumentNullException>(() =>
+            {
+                context.ConstructUUT();
             });
         }
 
         [Test]
         public void Constructor_Otherwise_ModixContextIsGiven()
         {
-            var modixContext = Substitute.For<ModixContext>();
+            var context = new TestContext();
 
-            var uut = Substitute.For<RepositoryBase>(modixContext);
+            var uut = context.ConstructUUT();
 
-            uut.ModixContext.ShouldBeSameAs(modixContext);
+            uut.ModixContext.ShouldBeSameAs(context.modixContext);
         }
     }
 }
