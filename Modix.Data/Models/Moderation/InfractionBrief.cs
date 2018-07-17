@@ -29,20 +29,5 @@ namespace Modix.Data.Models.Moderation
         /// See <see cref="UserEntity.Subject"/>.
         /// </summary>
         public UserIdentity Subject { get; set; }
-
-        internal static Expression<Func<InfractionEntity, InfractionBrief>> FromEntityProjection { get; }
-            = entity => new InfractionBrief()
-            {
-                Id = entity.Id,
-                Type = entity.Type,
-                Duration = entity.Duration,
-                Subject = new UserIdentity()
-                {
-                    Id = (ulong)entity.Subject.Id,
-                    Username = entity.Subject.Username,
-                    Discriminator = entity.Subject.Discriminator,
-                    Nickname = entity.Subject.Nickname
-                },
-            };
     }
 }

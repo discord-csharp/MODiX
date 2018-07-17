@@ -17,7 +17,6 @@ namespace Modix.Services.Moderation
         public static IServiceCollection AddModixModeration(this IServiceCollection services)
             => services
                 .AddSingleton<IBehavior, ModerationAutoConfigBehavior>()
-                .AddSingleton<IModerationEventManager, ModerationEventManager>()
                 .AddScoped<IModerationService, ModerationService>()
                 .AddScoped<IModerationConfigRepository, ModerationConfigRepository>()
                 .AddScoped<IModerationActionRepository, ModerationActionRepository>()

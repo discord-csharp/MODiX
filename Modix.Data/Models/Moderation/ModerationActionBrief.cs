@@ -29,20 +29,5 @@ namespace Modix.Data.Models.Moderation
         /// See <see cref="ModerationActionEntity.CreatedBy"/>.
         /// </summary>
         public UserIdentity CreatedBy { get; set; }
-
-        internal static Expression<Func<ModerationActionEntity, ModerationActionBrief>> FromEntityProjection { get; }
-            = entity => new ModerationActionBrief()
-            {
-                Id = entity.Id,
-                Created = entity.Created,
-                CreatedBy = new UserIdentity()
-                {
-                    Id = (ulong)entity.CreatedBy.Id,
-                    Username = entity.CreatedBy.Username,
-                    Discriminator = entity.CreatedBy.Discriminator,
-                    Nickname = entity.CreatedBy.Nickname
-                },
-                Reason = entity.Reason
-            };
     }
 }

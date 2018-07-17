@@ -27,20 +27,5 @@ namespace Modix.Data.Models.Core
         /// See <see cref="ConfigurationActionEntity.CreatedBy"/>.
         /// </summary>
         public UserIdentity CreatedBy { get; set; }
-
-        internal static Expression<Func<ConfigurationActionEntity, ConfigurationActionBrief>> FromEntityProjection { get; }
-            = entity => new ConfigurationActionBrief()
-            {
-                Id = entity.Id,
-                Type = entity.Type,
-                Created = entity.Created,
-                CreatedBy = new UserIdentity()
-                {
-                    Id = (ulong)entity.CreatedBy.Id,
-                    Username = entity.CreatedBy.Username,
-                    Discriminator = entity.CreatedBy.Discriminator,
-                    Nickname = entity.CreatedBy.Nickname
-                }
-            };
     }
 }

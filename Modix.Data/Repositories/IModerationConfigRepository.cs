@@ -19,16 +19,6 @@ namespace Modix.Data.Repositories
         Task CreateAsync(ModerationConfigCreationData data);
 
         /// <summary>
-        /// Checks whether a configuration exists within the repository, based on the ID of the guild to which it applies.
-        /// </summary>
-        /// <param name="guildId">The <see cref="ModerationConfigEntity.GuildId"/> value of the configuration to check for.</param>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing a flag that indicates if the configuration exists (true) or not (false).
-        /// </returns>
-        Task<bool> ExistsAsync(ulong guildId);
-
-        /// <summary>
         /// Retrieves information about a moderation configuration, based on its ID.
         /// </summary>
         /// <param name="guildId">The <see cref="ModerationConfigEntity.GuildId"/> value of the configuration to be retried.</param>

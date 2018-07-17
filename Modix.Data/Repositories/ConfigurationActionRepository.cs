@@ -36,11 +36,6 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public Task<bool> ExistsAsync(long actionId)
-            => ModixContext.ConfigurationActions.AsNoTracking()
-                .AnyAsync(x => x.Id == actionId);
-
-        /// <inheritdoc />
         public Task<ConfigurationActionSummary> ReadAsync(long actionId)
             => ModixContext.ConfigurationActions.AsNoTracking()
                 .Select(ConfigurationActionSummary.FromEntityProjection)

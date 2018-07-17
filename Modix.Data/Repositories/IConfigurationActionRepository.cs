@@ -22,16 +22,6 @@ namespace Modix.Data.Repositories
         Task<long> CreateAsync(ConfigurationActionCreationData data);
 
         /// <summary>
-        /// Checks whether a configuration action exists, based on its ID.
-        /// </summary>
-        /// <param name="actionId">The <see cref="ModerationActionEntity.Id"/> value of the configuration action to check for.</param>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing a flag indicating whether or not the configuration action exists.
-        /// </returns>
-        Task<bool> ExistsAsync(long actionId);
-
-        /// <summary>
         /// Retrieves information about a configuration action, based on its ID.
         /// </summary>
         /// <param name="actionId">The <see cref="ModerationActionEntity.Id"/> value of the configuration action to be retrieved.</param>

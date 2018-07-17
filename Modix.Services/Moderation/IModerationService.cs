@@ -36,13 +36,6 @@ namespace Modix.Services.Moderation
         Task UnConfigureGuildAsync(IGuild guild);
 
         /// <summary>
-        /// Reverses operations performed by <see cref="AutoConfigureChannelAsync(IGuild)"/>.
-        /// </summary>
-        /// <param name="guild">The channel to be un-configured.</param>
-        /// <returns>A <see cref="Task"/> which will complete when the operation has complete.</returns>
-        Task UnConfigureChannelAsync(IChannel channel);
-
-        /// <summary>
         /// Creates an infraction upon a specified user, and logs an associated moderation action.
         /// </summary>
         /// <param name="type">The value to user for <see cref="InfractionEntity.Type"/>.<</param>

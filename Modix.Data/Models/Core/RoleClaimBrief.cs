@@ -27,14 +27,5 @@ namespace Modix.Data.Models.Core
         /// See <see cref="RoleClaimEntity.Claim"/>.
         /// </summary>
         public AuthorizationClaim Claim { get; set; }
-
-        internal static Expression<Func<RoleClaimEntity, RoleClaimBrief>> FromEntityProjection { get; }
-            = entity => new RoleClaimBrief()
-            {
-                Id = entity.Id,
-                GuildId = (ulong)entity.GuildId,
-                RoleId = (ulong)entity.RoleId,
-                Claim = entity.Claim,
-            };
     }
 }

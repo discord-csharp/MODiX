@@ -22,16 +22,6 @@ namespace Modix.Data.Repositories
         Task<long> CreateAsync(ModerationActionCreationData data);
 
         /// <summary>
-        /// Checks whether a moderation action exists, based on its ID.
-        /// </summary>
-        /// <param name="actionId">The <see cref="ModerationActionEntity.Id"/> value of the moderation action to check for.</param>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing a flag indicating whether or not the moderation action exists.
-        /// </returns>
-        Task<bool> ExistsAsync(long actionId);
-
-        /// <summary>
         /// Retrieves information about a moderation action, based on its ID.
         /// </summary>
         /// <param name="actionId">The <see cref="ModerationActionEntity.Id"/> value of the moderation action to be retrieved.</param>

@@ -36,11 +36,6 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public Task<bool> ExistsAsync(long roleClaimId)
-            => ModixContext.RoleClaims.AsNoTracking()
-                .AnyAsync(x => x.Id == roleClaimId);
-
-        /// <inheritdoc />
         public Task<bool> ExistsAsync(ulong guildId, ulong roleId, AuthorizationClaim claim)
         {
             var longGuildId = (long)guildId;
@@ -64,7 +59,7 @@ namespace Modix.Data.Repositories
         public async Task<IReadOnlyCollection<AuthorizationClaim>> ReadClaimsAsync(ulong guildId, params ulong[] roleIds)
         {
             var longGuildId = (long)guildId;
-            var longRoleIds = roleIds?.Cast<long>() ?? new long[] { };
+            var longRoleIds = roleIds?.Cast<long>() ?? Array.Empty<long>();
 
             return await ModixContext.RoleClaims.AsNoTracking()
                 .Where(x => x.GuildId == longGuildId)

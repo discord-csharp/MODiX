@@ -23,16 +23,6 @@ namespace Modix.Data.Repositories
         Task<long> CreateAsync(RoleClaimCreationData data);
 
         /// <summary>
-        /// Checks whether a role claim mapping exists within the repository, based on its ID.
-        /// </summary>
-        /// <param name="roleClaimId">The <see cref="RoleClaimEntity.Id"/> value of the mapping to check for.</param>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing a flag that indicates if the mapping exists (true) or not (false).
-        /// </returns>
-        Task<bool> ExistsAsync(long roleClaimId);
-
-        /// <summary>
         /// Checks whether an active role claim mapping with the given properties exists, within the repository.
         /// </summary>
         /// <param name="guildId">The <see cref="RoleClaimEntity.GuildId"/> value to check for.</param>

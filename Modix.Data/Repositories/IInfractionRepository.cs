@@ -24,16 +24,6 @@ namespace Modix.Data.Repositories
         Task<long> CreateAsync(InfractionCreationData data);
 
         /// <summary>
-        /// Checks whether an infraction exists within the repository, based on its ID.
-        /// </summary>
-        /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to check for.</param>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing a flag that indicates if the infraction exists (true) or not (false).
-        /// </returns>
-        Task<bool> ExistsAsync(long infractionId);
-
-        /// <summary>
         /// Retrieves information about an infraction, based on its ID.
         /// </summary>
         /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be retrieved.</param>

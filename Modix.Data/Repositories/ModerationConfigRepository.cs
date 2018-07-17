@@ -33,11 +33,6 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public Task<bool> ExistsAsync(ulong guildId)
-            => ModixContext.ModerationConfigs.AsNoTracking()
-                .AnyAsync(x => x.GuildId == (long)guildId);
-
-        /// <inheritdoc />
         public Task<ModerationConfigSummary> ReadAsync(ulong guildId)
         {
             var longId = (long)guildId;

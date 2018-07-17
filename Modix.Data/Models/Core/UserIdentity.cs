@@ -28,14 +28,5 @@ namespace Modix.Data.Models.Core
         /// See <see cref="UserEntity.Nickname"/>.
         /// </summary>
         public string Nickname { get; set; }
-
-        internal static readonly Expression<Func<UserEntity, UserIdentity>> FromEntityProjection
-            = entity => new UserIdentity()
-            {
-                Id = (ulong)entity.Id,
-                Username = entity.Username,
-                Discriminator = entity.Discriminator,
-                Nickname = entity.Nickname
-            };
     }
 }

@@ -21,6 +21,5 @@ namespace Modix.Data.Repositories
         /// The <see cref="ModixContext"/> to be used to interact with the data storage layer.
         /// </summary>
         internal protected ModixContext ModixContext { get; }
-
     }
 }

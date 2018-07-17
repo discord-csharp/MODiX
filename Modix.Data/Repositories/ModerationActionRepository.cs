@@ -36,11 +36,6 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public Task<bool> ExistsAsync(long actionId)
-            => ModixContext.ModerationActions.AsNoTracking()
-                .AnyAsync(x => x.Id == actionId);
-
-        /// <inheritdoc />
         public Task<ModerationActionSummary> ReadAsync(long actionId)
             => ModixContext.ModerationActions.AsNoTracking()
                 .Where(x => x.Id == actionId)

@@ -10,15 +10,6 @@ namespace Modix.Services.Core
     public interface IUserService
     {
         /// <summary>
-        /// Retrieves the user, if any, associated with the current request, from the Discord API.
-        /// </summary>
-        /// <returns>
-        /// The <see cref="IUser"/>, if any, retrieved from Discord.NET.
-        /// This user may also be an <see cref="IGuildUser"/>, if the current request is associated with a particular guild.
-        /// </returns>
-        Task<IUser> GetCurrentUserAsync();
-
-        /// <summary>
         /// Retrieves the user, if any, associated with the given Discord ID value.
         /// </summary>
         /// <param name="userId">The <see cref="IEntity{T}.Id" /> of the user to be retrieved.</param>

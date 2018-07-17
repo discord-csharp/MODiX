@@ -27,7 +27,6 @@ namespace Modix.Services.Moderation
         /// Creates a new <see cref="ModerationService"/>.
         /// </summary>
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
-        /// <param name="moderationEventManager">The value to use for <see cref="ModerationEventManager"/>.</param>
         /// <param name="authenticationService">The value to use for <see cref="AuthenticationService"/>.</param>
         /// <param name="authorizationService">The value to use for <see cref="AuthorizationService"/>.</param>
         /// <param name="userService">The value to use for <see cref="UserService"/>.</param>
@@ -37,7 +36,6 @@ namespace Modix.Services.Moderation
         /// <exception cref="ArgumentNullException">Throws for all parameters.</exception>
         public ModerationService(
             IDiscordClient discordClient,
-            IModerationEventManager moderationEventManager,
             IAuthenticationService authenticationService,
             IAuthorizationService authorizationService,
             IGuildService guildService,
@@ -47,7 +45,6 @@ namespace Modix.Services.Moderation
             IInfractionRepository infractionRepository)
         {
             DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
-            ModerationEventManager = moderationEventManager ?? throw new ArgumentNullException(nameof(moderationEventManager));
             AuthenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             AuthorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
             GuildService = guildService ?? throw new ArgumentNullException(nameof(guildService));
@@ -87,31 +84,11 @@ namespace Modix.Services.Moderation
             var config = await ModerationConfigRepository.ReadAsync(guild.Id);
             if(config != null)
             {
-                var muteRole = guild.Roles.FirstOrDefault(x => x.Id == config.MuteRoleId) as IDeletable;
-
+                IDeletable muteRole = guild.Roles.FirstOrDefault(x => x.Id == config.MuteRoleId);
                 if (muteRole != null)
                     await muteRole.DeleteAsync();
 
                 await ModerationConfigRepository.DeleteAsync(config.GuildId);
-            }
-        }
-
-        /// <inheritdoc />
-        public async Task UnConfigureChannelAsync(IChannel channel)
-        {
-            if (channel is IGuildChannel guildChannel)
-            {
-                var config = await ModerationConfigRepository.ReadAsync(guildChannel.GuildId);
-                if (config != null)
-                {
-                    if(guildChannel.PermissionOverwrites
-                        .Any(x => (x.TargetType == PermissionTarget.Role) && (x.TargetId == config.MuteRoleId)))
-                    {
-                        var muteRole = guildChannel.Guild.Roles.First(x => x.Id == config.MuteRoleId);
-
-                        await guildChannel.RemovePermissionOverwriteAsync(muteRole);
-                    }
-                }
             }
         }
 
@@ -151,8 +128,8 @@ namespace Modix.Services.Moderation
                 data.InfractionId = infractionId;
             });
 
-            await RaiseModerationActionCreatedAsync(actionId);
-
+            // TODO: Log action to a channel, pulled from IModerationConfigRepository. 
+            
             // TODO: Implement InfractionAutoExpirationBehavior (or whatever) to automatically rescind infractions, based on Duration, and notify it here that a new infraction has been created, if it has a duration.
         }
 
@@ -184,7 +161,7 @@ namespace Modix.Services.Moderation
                 InfractionId = infractionId
             });
 
-            await RaiseModerationActionCreatedAsync(actionId);
+            // TODO: Log action to a channel, pulled from IModerationConfigRepository. 
         }
 
         /// <inheritdoc />
@@ -207,11 +184,6 @@ namespace Modix.Services.Moderation
         /// An <see cref="IDiscordClient"/> for interacting with the Discord API.
         /// </summary>
         internal protected IDiscordClient DiscordClient { get; }
-
-        /// <summary>
-        /// An <see cref="IModerationEventManager"/> for interacting with the Discord API.
-        /// </summary>
-        internal protected IModerationEventManager ModerationEventManager { get; }
 
         /// <summary>
         /// An <see cref="IAuthenticationService"/> for interacting with the current authenticated user, within the application.
@@ -247,12 +219,6 @@ namespace Modix.Services.Moderation
         /// An <see cref="IInfractionRepository"/> for storing and retrieving infraction data.
         /// </summary>
         internal protected IInfractionRepository InfractionRepository { get; }
-
-        // TODO: Replace with logging to a channel, pulled from IModerationConfigRepository. 
-        internal protected async Task RaiseModerationActionCreatedAsync(long actionId)
-            => await ModerationEventManager.RaiseModerationActionCreatedAsync(async () =>
-                new ModerationActionCreatedEventArgs(
-                    await ModerationActionRepository.ReadAsync(actionId)));
 
         private async Task CreateOrUpdateConfig(IGuild guild, IRole muteRole)
         {
@@ -355,6 +321,7 @@ namespace Modix.Services.Moderation
             => guild.Roles.FirstOrDefault(x => x.Name == MuteRoleName)
                 ?? await guild.CreateRoleAsync(MuteRoleName);
 
+        // Unused, because ConfigureChannelMuteRolePermissions is currently disabled.
         private static readonly OverwritePermissions _mutePermissions
             = new OverwritePermissions(
                 sendMessages: PermValue.Deny,

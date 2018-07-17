@@ -30,12 +30,6 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public Task<IUser> GetCurrentUserAsync()
-            => (AuthenticationService.CurrentUserId == null)
-                ? Task.FromResult<IUser>(null)
-                : GetUserAsync(AuthenticationService.CurrentUserId.Value);
-
-        /// <inheritdoc />
         public async Task<IUser> GetUserAsync(ulong userId)
         {
             var guild = await GuildService.GetCurrentGuildAsync();
