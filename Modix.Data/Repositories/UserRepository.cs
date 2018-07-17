@@ -1,38 +1,71 @@
 ﻿using System;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
-using Modix.Data.Models;
+using Microsoft.EntityFrameworkCore;
+
+using Modix.Data.Models.Core;
+using Modix.Data.Utilities;
 
 namespace Modix.Data.Repositories
 {
-    /// <summary>
-    /// Describes a repository for managing <see cref="User"/> entities, within an underlying data storage provider.
-    /// </summary>
-    public interface IUserRepository
+    /// <inheritdoc />
+    public class UserRepository : RepositoryBase, IUserRepository
     {
         /// <summary>
-        /// Inserts a new <see cref="User"/> into the repository.
+        /// Creates a new <see cref="ModerationActionRepository"/>.
+        /// See <see cref="RepositoryBase(ModixContext)"/> for details.
         /// </summary>
-        /// <param name="user">
-        /// The <see cref="User"/> to be inserted.
-        /// The <see cref="User.FirstSeen"/> and <see cref="User.LastSeen"/> values are generated automatically.
-        /// </param>
-        /// <returns>A <see cref="Task"/> which will complete when the operation is complete.</returns>
-        Task InsertAsync(DiscordUser user);
+        public UserRepository(ModixContext modixContext)
+            : base(modixContext) { }
 
-        /// <summary>
-        /// Retrieves a <see cref="User"/> from the repositroy, by its <see cref="User.Id"/> value.
-        /// </summary>
-        /// <param name="id">The <see cref="User.Id"/> value of the <see cref="User"/> to be retrieved.</param>
-        /// <returns>A <see cref="Task"/> which will complete when the requested data is available.</returns>
-        Task<DiscordUser> GetAsync(ulong id);
+        /// <inheritdoc />
+        public async Task CreateAsync(UserCreationData user)
+        {
+            if (user == null)
+                throw new ArgumentNullException(nameof(user));
 
-        /// <summary>
-        /// Updates the <see cref="User.LastSeen"/> value of an existing <see cref="User"/> within the repository,
-        /// to <see cref="DateTimeOffset.Now"/>.
-        /// </summary>
-        /// <param name="id">The <see cref="User.Id"/> value of the <see cref="User"/> to be updated.</param>
-        /// <returns>A <see cref="Task"/> which will complete when the operation is complete.</returns>
-        Task UpdateLastSeenAsync(ulong id);
+            var entity = user.ToEntity();
+            entity.Created = DateTimeOffset.Now;
+
+            await ModixContext.Users.AddAsync(entity);
+
+            await ModixContext.SaveChangesAsync();
+        }
+
+        /// <inheritdoc />
+        public Task<bool> ExistsAsync(ulong userId)
+        {
+            var longId = (long)userId;
+            
+            return ModixContext.Users.AsNoTracking()
+                .AnyAsync(x => x.Id == longId);
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> UpdateAsync(ulong userId, Action<UserMutationData> updateAction)
+        {
+            if (updateAction == null)
+                throw new ArgumentNullException(nameof(updateAction));
+
+            var longId = (long)userId;
+            var entity = await ModixContext.Users
+                .SingleOrDefaultAsync(x => x.Id == longId);
+
+            if (entity == null)
+                return false;
+
+            var mutation = UserMutationData.FromEntity(entity);
+            updateAction.Invoke(mutation);
+            mutation.ApplyTo(entity);
+
+            ModixContext.UpdateProperty(entity, x => x.Nickname);
+            ModixContext.UpdateProperty(entity, x => x.LastSeen);
+
+            await ModixContext.SaveChangesAsync();
+
+            return true;
+        }
     }
 }

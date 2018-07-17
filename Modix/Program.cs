@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Modix.Data.Models;
+using Modix.Data.Models.Core;
 using Modix.Services.Utilities;
 using Serilog;
 using Serilog.Events;

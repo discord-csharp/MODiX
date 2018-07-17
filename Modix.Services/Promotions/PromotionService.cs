@@ -5,7 +5,8 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
-using Modix.Data.Models;
+using Modix.Data.Models.Core;
+using Modix.Data.Models.Promotion;
 using Modix.Services.Utilities;
 
 namespace Modix.Services.Promotions
@@ -33,21 +34,21 @@ namespace Modix.Services.Promotions
         private SocketGuild CurrentGuild => _client.Guilds.First();
         private IMessageChannel PromotionChannel => CurrentGuild.GetChannel(promotionChannelID) as IMessageChannel;
 
-        public Task<IEnumerable<PromotionCampaign>> GetCampaigns()
+        public Task<IEnumerable<PromotionCampaignEntity>> GetCampaigns()
         {
             return _repository.GetCampaigns();
         }
 
-        public Task<PromotionCampaign> GetCampaign(int id)
+        public Task<PromotionCampaignEntity> GetCampaign(int id)
         {
             return _repository.GetCampaign(id);
         }
 
-        public async Task ApproveCampaign(SocketGuildUser promoter, PromotionCampaign campaign)
+        public async Task ApproveCampaign(SocketGuildUser promoter, PromotionCampaignEntity campaign)
         {
             ThrowIfNotStaff(promoter);
 
-            var foundUser = CurrentGuild.GetUser(campaign.PromotionFor.DiscordUserId);
+            var foundUser = CurrentGuild.GetUser((ulong)campaign.PromotionFor.Id);
             var foundRole = CurrentGuild.Roles.FirstOrDefault(d => d.Id == allowedToCommentRoleID);
 
             if (foundRole == null)
@@ -60,11 +61,12 @@ namespace Modix.Services.Promotions
 
             if (PromotionChannel == null)
                 throw new NullReferenceException(nameof(PromotionChannel));
-            await PromotionChannel?.SendMessageAsync(
-                $"{MentionUtils.MentionUser(campaign.PromotionFor.DiscordUserId)} has been promoted to Regular! 🎉");
+            
+            await PromotionChannel.SendMessageAsync(
+                $"{MentionUtils.MentionUser((ulong)campaign.PromotionFor.Id)} has been promoted to Regular! 🎉");
         }
 
-        public async Task DenyCampaign(SocketGuildUser promoter, PromotionCampaign campaign)
+        public async Task DenyCampaign(SocketGuildUser promoter, PromotionCampaignEntity campaign)
         {
             ThrowIfNotStaff(promoter);
 
@@ -75,7 +77,7 @@ namespace Modix.Services.Promotions
             await _repository.UpdateCampaign(campaign);
         }
 
-        public async Task ActivateCampaign(SocketGuildUser promoter, PromotionCampaign campaign)
+        public async Task ActivateCampaign(SocketGuildUser promoter, PromotionCampaignEntity campaign)
         {
             ThrowIfNotStaff(promoter);
 
@@ -86,7 +88,7 @@ namespace Modix.Services.Promotions
             await _repository.UpdateCampaign(campaign);
         }
 
-        public async Task AddComment(PromotionCampaign campaign, string comment, PromotionSentiment sentiment)
+        public async Task AddComment(PromotionCampaignEntity campaign, string comment, PromotionSentiment sentiment)
         {
             comment = _badCharacterRegex.Replace(comment, "");
 
@@ -99,7 +101,7 @@ namespace Modix.Services.Promotions
             if (campaign.Status != CampaignStatus.Active)
                 throw new ArgumentException("Campaign must be active to comment.");
 
-            var promotionComment = new PromotionComment
+            var promotionComment = new PromotionCommentEntity
             {
                 PostedDate = DateTimeOffset.UtcNow,
                 Body = comment,
@@ -117,13 +119,13 @@ namespace Modix.Services.Promotions
                 throw new ArgumentException("The given promoter is not a staff member.");
         }
 
-        public async Task<PromotionCampaign> CreateCampaign(SocketGuildUser user, string commentBody)
+        public async Task<PromotionCampaignEntity> CreateCampaign(SocketGuildUser user, string commentBody)
         {
             if (user == null)
                 throw new ArgumentNullException(nameof(user));
             if (string.IsNullOrWhiteSpace(commentBody))
                 throw new ArgumentException("Comment cannot be empty!");
-            if ((await GetCampaigns()).Any(d => d.PromotionFor.DiscordUserId == user.Id))
+            if ((await GetCampaigns()).Any(d => (ulong)d.PromotionFor.Id == user.Id))
                 throw new ArgumentException("A campaign already exists for that user.");
 
             if (user.Roles.Count > 1) throw new ArgumentException("Recommended user must be unranked.");
@@ -134,7 +136,7 @@ namespace Modix.Services.Promotions
                 throw new ArgumentException(
                     $"Recommended user must have been a member of the server for more than 30 days. Currently: {timeOnServer.TotalDays}");
 
-            var ret = new PromotionCampaign
+            var ret = new PromotionCampaignEntity
             {
                 StartDate = DateTimeOffset.UtcNow,
                 Status = CampaignStatus.Active
@@ -147,7 +149,7 @@ namespace Modix.Services.Promotions
             if (PromotionChannel == null)
                 throw new NullReferenceException(nameof(promotionChannelID));
 
-            await PromotionChannel?.SendMessageAsync("", false,
+            await PromotionChannel.SendMessageAsync("", false,
                 new EmbedBuilder()
                     .WithTitle("Campaign Started")
                     .WithAuthor(user)

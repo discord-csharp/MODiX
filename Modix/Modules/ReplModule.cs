@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Modix.Data.Models;
+using Modix.Data.Models.Core;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.Utilities;
 using Newtonsoft.Json;

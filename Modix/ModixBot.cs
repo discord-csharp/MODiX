@@ -5,16 +5,18 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Modix.Data.Models.Core;
 using Microsoft.Extensions.DependencyInjection;
-using Modix.Data.Models;
+using Modix.Services;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
+using Modix.Services.Core;
 using Modix.Services.GuildInfo;
+using Modix.Services.Moderation;
 using Modix.Services.Quote;
 using Modix.WebServer;
 using Serilog;
-using System.Linq;
 
 namespace Modix
 {
@@ -72,13 +74,10 @@ namespace Modix
                 context.Database.Migrate();
             }
 
-            using (var context = _scope.ServiceProvider.GetService<ModixContext>())
-            {
-                context.ChannelLimits.ToList();
-            }
-
-
             _hooks.ServiceProvider = _scope.ServiceProvider;
+
+            foreach (var behavior in _scope.ServiceProvider.GetServices<IBehavior>())
+                await behavior.StartAsync();
 
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
@@ -150,8 +149,12 @@ namespace Modix
         public async Task Install()
         {
             _map.AddSingleton(_client);
+            _map.AddSingleton<IDiscordClient>(_client);
             _map.AddSingleton(_config);
             _map.AddSingleton(_commands);
+
+            _map.AddModixCore()
+                .AddModixModeration();
 
             _map.AddScoped<IQuoteService, QuoteService>();
             _map.AddSingleton<CodePasteHandler>();
