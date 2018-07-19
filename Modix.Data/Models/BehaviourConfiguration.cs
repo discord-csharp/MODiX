@@ -1,10 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Modix.Data.Models
 {
     public class BehaviourConfiguration
     {
-        [Key]
+        [Key, Required, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         [Required]
@@ -15,10 +16,5 @@ namespace Modix.Data.Models
 
         [Required]
         public string Value { get; set; }
-    }
-
-    public enum BehaviourCategory
-    {
-        InvitePurging = 0,
     }
 }
