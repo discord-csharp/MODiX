@@ -22,6 +22,7 @@ namespace Modix.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_BehaviourConfigurations", x => x.Id);
+                    table.UniqueConstraint("IX_Category_Key", arg => new {arg.Category, arg.Key});
                 });
 
             migrationBuilder.InsertData("BehaviourConfigurations", new[] { "Category", "Key", "Value" }, new[] { BehaviourCategory.InvitePurging.ToString(), "IsEnabled", "True" });

@@ -13,7 +13,7 @@ namespace Modix.Handlers
     {
         private readonly IBehaviourConfiguration _botConfiguration;
 
-        private const string InviteLinkPattern = @"(https?:\/\/)?(www\.)?(discord\.(gg|io|me|li)|discordapp\.com\/invite)\/.+[a-z]";
+        private static readonly Regex InviteLinkPattern = new Regex(@"(https?:\/\/)?(www\.)?(discord\.(gg|io|me|li)|discordapp\.com\/invite)\/.+[a-z]", RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
 
         public InviteLinkHandler(IBehaviourConfiguration botConfiguration)
         {
@@ -37,7 +37,7 @@ namespace Modix.Handlers
             if (!_botConfiguration.InvitePurgeBehaviour.IsEnabled)
                 return false;
 
-            var matches = GetRegexCheck(InviteLinkPattern).Matches(message.Content);
+            var matches = InviteLinkPattern.Matches(message.Content);
 
             var invites = await channel.GetInvitesAsync();
 
@@ -82,7 +82,7 @@ namespace Modix.Handlers
             }
             catch (Exception e)
             {
-                Log.Debug(e, "Failed posting to logging channel {channelId}", _botConfiguration.InvitePurgeBehaviour.LoggingChannelId);
+                Log.Error(e, "Failed posting to logging channel {channelId}", _botConfiguration.InvitePurgeBehaviour.LoggingChannelId);
             }
         }
 
@@ -106,8 +106,5 @@ namespace Modix.Handlers
 
             return loggingChannel.SendMessageAsync(header + formattedContent);
         }
-
-        private static Regex GetRegexCheck(string pattern)
-            => new Regex(pattern, RegexOptions.Compiled | RegexOptions.IgnoreCase, TimeSpan.FromSeconds(2));
     }
 }

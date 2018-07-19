@@ -2,11 +2,6 @@
 
 namespace Modix.Services.BehaviourConfiguration
 {
-    public class BehaviourConfigurationDto
-    {
-        public InvitePurgeBehaviour InvitePurgeBehaviour { get; set; }
-    }
-
     public class InvitePurgeBehaviour
     {
         public bool IsEnabled { get; set; }

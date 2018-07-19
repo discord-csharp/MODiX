@@ -71,7 +71,7 @@ namespace Modix
                 context.Database.Migrate();
             }
 
-            var configurationService = _scope.ServiceProvider.GetService<IBehaviourConfigurationService>();
+            var configurationService = _scope.ServiceProvider.GetRequiredService<IBehaviourConfigurationService>();
 
             // Cache the behaviour configuration
             await configurationService.LoadBehaviourConfiguration();
