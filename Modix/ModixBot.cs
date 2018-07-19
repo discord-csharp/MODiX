@@ -1,23 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Modix.Data.Models.Core;
 using Microsoft.Extensions.DependencyInjection;
-using Modix.Data.Models;
+using Modix.Services;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
+using Modix.Services.Core;
 using Modix.Services.GuildInfo;
+using Modix.Services.Moderation;
 using Modix.Services.Quote;
 using Modix.WebServer;
 using Serilog;
-using System.Linq;
 using System.Net.Http;
-using Modix.Modules;
 using Modix.Services.DocsMaster;
 
 namespace Modix
@@ -25,7 +25,6 @@ namespace Modix
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.EntityFrameworkCore;
     using Modix.Data;
-    using Services.Animals;
     using Services.FileUpload;
     using Services.Promotions;
 
@@ -38,7 +37,7 @@ namespace Modix
 
         private DiscordSocketClient _client;
         private readonly IServiceCollection _map = new ServiceCollection();
-        private IServiceProvider _provider;
+        private IServiceScope _scope;
         private ModixBotHooks _hooks = new ModixBotHooks();
         private readonly ModixConfig _config;
         private IWebHost _host;
@@ -69,21 +68,17 @@ namespace Modix
 
             //#endif
 
-            _provider = _host.Services;
+            _scope = _host.Services.CreateScope();
 
-
-            using (var context = _provider.GetService<ModixContext>())
+            using (var context = _scope.ServiceProvider.GetService<ModixContext>())
             {
                 context.Database.Migrate();
             }
 
-            using (var context = _provider.GetService<ModixContext>())
-            {
-                context.ChannelLimits.ToList();
-            }
+            _hooks.ServiceProvider = _scope.ServiceProvider;
 
-
-            _hooks.ServiceProvider = _provider;
+            foreach (var behavior in _scope.ServiceProvider.GetServices<IBehavior>())
+                await behavior.StartAsync();
 
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
@@ -119,9 +114,9 @@ namespace Modix
 
             var context = new CommandContext(_client, message);
 
-            using (var scope = _provider.CreateScope())
+            using (var scope = _scope.ServiceProvider.CreateScope())
             {
-                var result = await _commands.ExecuteAsync(context, argPos, _provider);
+                var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
 
                 if (!result.IsSuccess)
                 {
@@ -138,7 +133,7 @@ namespace Modix
 
                     if (result.Error != CommandError.Exception)
                     {
-                        var handler = _provider.GetRequiredService<CommandErrorHandler>();
+                        var handler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
                         await handler.AssociateError(message, error);
                     }
                     else
@@ -155,15 +150,18 @@ namespace Modix
         public async Task Install()
         {
             _map.AddSingleton(_client);
+            _map.AddSingleton<IDiscordClient>(_client);
             _map.AddSingleton(_config);
             _map.AddSingleton(_commands);
             _map.AddSingleton<HttpClient>();
+
+            _map.AddModixCore()
+                .AddModixModeration();
 
             _map.AddScoped<IQuoteService, QuoteService>();
             _map.AddSingleton<CodePasteHandler>();
             _map.AddSingleton<FileUploadHandler>();
             _map.AddSingleton<CodePasteService>();
-            _map.AddSingleton<IAnimalService, AnimalService>();
             _map.AddTransient<DocsMasterRetrievalService>();
             _map.AddMemoryCache();
 
