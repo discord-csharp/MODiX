@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Modix.Data.Models;
+using Modix.Data.Models.Promotion;
 using Modix.Services.Promotions;
 
 namespace Modix.Modules
@@ -98,7 +98,7 @@ namespace Modix.Modules
         [Command("approve"), Summary("Approve a user's campaign, promoting them")]
         public async Task Approve(SocketGuildUser user)
         {
-            var campaign = (await _service.GetCampaigns()).FirstOrDefault(d => d.PromotionFor.DiscordUserId == user.Id);
+            var campaign = (await _service.GetCampaigns()).FirstOrDefault(d => (ulong)d.PromotionFor.Id == user.Id);
 
             if (campaign == null)
             {
@@ -112,7 +112,7 @@ namespace Modix.Modules
         [Command("deny"), Summary("Deny a user's campaign")]
         public async Task Deny(SocketGuildUser user)
         {
-            var campaign = (await _service.GetCampaigns()).FirstOrDefault(d => d.PromotionFor.DiscordUserId == user.Id);
+            var campaign = (await _service.GetCampaigns()).FirstOrDefault(d => (ulong)d.PromotionFor.Id == user.Id);
 
             if (campaign == null)
             {
@@ -126,7 +126,7 @@ namespace Modix.Modules
         [Command("reactivate"), Summary("Reactivate a user's campaign")]
         public async Task Reactivate(SocketGuildUser user)
         {
-            var campaign = (await _service.GetCampaigns()).First(d => d.PromotionFor.DiscordUserId == user.Id);
+            var campaign = (await _service.GetCampaigns()).First(d => (ulong)d.PromotionFor.Id == user.Id);
 
             if (campaign == null)
             {

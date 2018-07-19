@@ -38,80 +38,65 @@ namespace Modix.Data.Migrations
                     b.ToTable("BehaviourConfigurations");
                 });
 
-            modelBuilder.Entity("Modix.Data.Models.ChannelLimit", b =>
+            modelBuilder.Entity("Modix.Data.Models.Core.ConfigurationActionEntity", b =>
                 {
-                    b.Property<long>("ChannelLimitID")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<long>("ChannelId");
+                    b.Property<DateTimeOffset>("Created");
 
-                    b.Property<long?>("GuildId");
+                    b.Property<long>("CreatedById");
 
-                    b.Property<string>("ModuleName");
+                    b.Property<long?>("RoleClaimId");
 
-                    b.HasKey("ChannelLimitID");
+                    b.Property<int>("Type");
 
-                    b.HasIndex("GuildId");
+                    b.HasKey("Id");
 
-                    b.ToTable("ChannelLimits");
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("RoleClaimId");
+
+                    b.ToTable("ConfigurationActions");
                 });
 
-            modelBuilder.Entity("Modix.Data.Models.DiscordGuild", b =>
+            modelBuilder.Entity("Modix.Data.Models.Core.RoleClaimEntity", b =>
                 {
-                    b.Property<long>("GuildId")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<DateTime>("CreatedAt");
+                    b.Property<int>("Claim");
 
-                    b.Property<string>("Name");
+                    b.Property<long>("CreateActionId");
 
-                    b.Property<long>("OwnerUserId");
+                    b.Property<long>("GuildId");
 
-                    b.HasKey("GuildId");
+                    b.Property<long?>("RescindActionId");
 
-                    b.HasIndex("OwnerUserId");
+                    b.Property<long>("RoleId");
 
-                    b.ToTable("DiscordGuilds");
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreateActionId")
+                        .IsUnique();
+
+                    b.HasIndex("RescindActionId")
+                        .IsUnique();
+
+                    b.ToTable("RoleClaims");
                 });
 
-            modelBuilder.Entity("Modix.Data.Models.DiscordMessage", b =>
+            modelBuilder.Entity("Modix.Data.Models.Core.UserEntity", b =>
                 {
-                    b.Property<long>("DiscordMessageId")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("Attachments");
+                    b.Property<DateTimeOffset>("Created");
 
-                    b.Property<long?>("AuthorUserId");
-
-                    b.Property<string>("Content");
-
-                    b.Property<long?>("DiscordGuildGuildId");
-
-                    b.Property<long>("DiscordId");
-
-                    b.HasKey("DiscordMessageId");
-
-                    b.HasIndex("AuthorUserId");
-
-                    b.HasIndex("DiscordGuildGuildId");
-
-                    b.ToTable("DiscordMessages");
-                });
-
-            modelBuilder.Entity("Modix.Data.Models.DiscordUser", b =>
-                {
-                    b.Property<long>("UserId")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<string>("AvatarUrl");
-
-                    b.Property<DateTimeOffset>("CreatedAt");
-
-                    b.Property<long>("Discriminator");
+                    b.Property<string>("Discriminator")
+                        .IsRequired();
 
                     b.Property<DateTimeOffset>("FirstSeen");
-
-                    b.Property<bool>("IsBot");
 
                     b.Property<DateTimeOffset>("LastSeen");
 
@@ -120,41 +105,23 @@ namespace Modix.Data.Migrations
                     b.Property<string>("Username")
                         .IsRequired();
 
-                    b.HasKey("UserId");
+                    b.HasKey("Id");
 
-                    b.ToTable("DiscordUsers");
+                    b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Modix.Data.Models.GuildConfig", b =>
-                {
-                    b.Property<long>("GuildConfigId")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<long>("AdminRoleId");
-
-                    b.Property<long>("GuildId");
-
-                    b.Property<long>("ModeratorRoleId");
-
-                    b.HasKey("GuildConfigId");
-
-                    b.HasIndex("GuildId")
-                        .IsUnique();
-
-                    b.ToTable("GuildConfig");
-                });
-
-            modelBuilder.Entity("Modix.Data.Models.Moderation.Infraction", b =>
+            modelBuilder.Entity("Modix.Data.Models.Moderation.InfractionEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<long>("CreateActionId");
+
+                    b.Property<DateTimeOffset>("Created");
+
                     b.Property<TimeSpan?>("Duration");
 
-                    b.Property<bool>("IsRescinded");
-
-                    b.Property<string>("Reason")
-                        .IsRequired();
+                    b.Property<long?>("RescindActionId");
 
                     b.Property<long>("SubjectId");
 
@@ -162,24 +129,29 @@ namespace Modix.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreateActionId")
+                        .IsUnique();
+
+                    b.HasIndex("RescindActionId")
+                        .IsUnique();
+
                     b.HasIndex("SubjectId");
 
                     b.ToTable("Infractions");
                 });
 
-            modelBuilder.Entity("Modix.Data.Models.Moderation.ModerationAction", b =>
+            modelBuilder.Entity("Modix.Data.Models.Moderation.ModerationActionEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
-
-                    b.Property<string>("Comment")
-                        .IsRequired();
 
                     b.Property<DateTimeOffset>("Created");
 
                     b.Property<long>("CreatedById");
 
-                    b.Property<long?>("InfractionId")
+                    b.Property<long?>("InfractionId");
+
+                    b.Property<string>("Reason")
                         .IsRequired();
 
                     b.Property<int>("Type");
@@ -193,12 +165,26 @@ namespace Modix.Data.Migrations
                     b.ToTable("ModerationActions");
                 });
 
-            modelBuilder.Entity("Modix.Data.Models.PromotionCampaign", b =>
+            modelBuilder.Entity("Modix.Data.Models.Moderation.ModerationConfigEntity", b =>
+                {
+                    b.Property<long>("GuildId")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<DateTimeOffset>("Created");
+
+                    b.Property<long>("MuteRoleId");
+
+                    b.HasKey("GuildId");
+
+                    b.ToTable("ModerationConfigs");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Promotion.PromotionCampaignEntity", b =>
                 {
                     b.Property<long>("PromotionCampaignId")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<long>("PromotionForUserId");
+                    b.Property<long>("PromotionForId");
 
                     b.Property<DateTimeOffset>("StartDate");
 
@@ -206,12 +192,12 @@ namespace Modix.Data.Migrations
 
                     b.HasKey("PromotionCampaignId");
 
-                    b.HasIndex("PromotionForUserId");
+                    b.HasIndex("PromotionForId");
 
                     b.ToTable("PromotionCampaigns");
                 });
 
-            modelBuilder.Entity("Modix.Data.Models.PromotionComment", b =>
+            modelBuilder.Entity("Modix.Data.Models.Promotion.PromotionCommentEntity", b =>
                 {
                     b.Property<long>("PromotionCommentId")
                         .ValueGeneratedOnAdd();
@@ -231,72 +217,70 @@ namespace Modix.Data.Migrations
                     b.ToTable("PromotionComments");
                 });
 
-            modelBuilder.Entity("Modix.Data.Models.ChannelLimit", b =>
+            modelBuilder.Entity("Modix.Data.Models.Core.ConfigurationActionEntity", b =>
                 {
-                    b.HasOne("Modix.Data.Models.DiscordGuild", "Guild")
+                    b.HasOne("Modix.Data.Models.Core.UserEntity", "CreatedBy")
                         .WithMany()
-                        .HasForeignKey("GuildId");
-                });
-
-            modelBuilder.Entity("Modix.Data.Models.DiscordGuild", b =>
-                {
-                    b.HasOne("Modix.Data.Models.DiscordUser", "Owner")
-                        .WithMany()
-                        .HasForeignKey("OwnerUserId")
+                        .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Modix.Data.Models.Core.RoleClaimEntity", "RoleClaim")
+                        .WithMany()
+                        .HasForeignKey("RoleClaimId");
                 });
 
-            modelBuilder.Entity("Modix.Data.Models.DiscordMessage", b =>
+            modelBuilder.Entity("Modix.Data.Models.Core.RoleClaimEntity", b =>
                 {
-                    b.HasOne("Modix.Data.Models.DiscordUser", "Author")
-                        .WithMany()
-                        .HasForeignKey("AuthorUserId");
-
-                    b.HasOne("Modix.Data.Models.DiscordGuild", "DiscordGuild")
-                        .WithMany()
-                        .HasForeignKey("DiscordGuildGuildId");
-                });
-
-            modelBuilder.Entity("Modix.Data.Models.GuildConfig", b =>
-                {
-                    b.HasOne("Modix.Data.Models.DiscordGuild")
-                        .WithOne("Config")
-                        .HasForeignKey("Modix.Data.Models.GuildConfig", "GuildId")
+                    b.HasOne("Modix.Data.Models.Core.ConfigurationActionEntity", "CreateAction")
+                        .WithOne("CreatedRoleClaim")
+                        .HasForeignKey("Modix.Data.Models.Core.RoleClaimEntity", "CreateActionId")
                         .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Modix.Data.Models.Core.ConfigurationActionEntity", "RescindAction")
+                        .WithOne("RescindedRoleClaim")
+                        .HasForeignKey("Modix.Data.Models.Core.RoleClaimEntity", "RescindActionId");
                 });
 
-            modelBuilder.Entity("Modix.Data.Models.Moderation.Infraction", b =>
+            modelBuilder.Entity("Modix.Data.Models.Moderation.InfractionEntity", b =>
                 {
-                    b.HasOne("Modix.Data.Models.DiscordUser", "Subject")
+                    b.HasOne("Modix.Data.Models.Moderation.ModerationActionEntity", "CreateAction")
+                        .WithOne("CreatedInfraction")
+                        .HasForeignKey("Modix.Data.Models.Moderation.InfractionEntity", "CreateActionId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Modix.Data.Models.Moderation.ModerationActionEntity", "RescindAction")
+                        .WithOne("RescindedInfraction")
+                        .HasForeignKey("Modix.Data.Models.Moderation.InfractionEntity", "RescindActionId");
+
+                    b.HasOne("Modix.Data.Models.Core.UserEntity", "Subject")
                         .WithMany()
                         .HasForeignKey("SubjectId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("Modix.Data.Models.Moderation.ModerationAction", b =>
+            modelBuilder.Entity("Modix.Data.Models.Moderation.ModerationActionEntity", b =>
                 {
-                    b.HasOne("Modix.Data.Models.DiscordUser", "CreatedBy")
+                    b.HasOne("Modix.Data.Models.Core.UserEntity", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("Modix.Data.Models.Moderation.Infraction", "Infraction")
-                        .WithMany("ModerationActions")
-                        .HasForeignKey("InfractionId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("Modix.Data.Models.PromotionCampaign", b =>
-                {
-                    b.HasOne("Modix.Data.Models.DiscordUser", "PromotionFor")
+                    b.HasOne("Modix.Data.Models.Moderation.InfractionEntity", "Infraction")
                         .WithMany()
-                        .HasForeignKey("PromotionForUserId")
+                        .HasForeignKey("InfractionId");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Promotion.PromotionCampaignEntity", b =>
+                {
+                    b.HasOne("Modix.Data.Models.Core.UserEntity", "PromotionFor")
+                        .WithMany()
+                        .HasForeignKey("PromotionForId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
-            modelBuilder.Entity("Modix.Data.Models.PromotionComment", b =>
+            modelBuilder.Entity("Modix.Data.Models.Promotion.PromotionCommentEntity", b =>
                 {
-                    b.HasOne("Modix.Data.Models.PromotionCampaign", "PromotionCampaign")
+                    b.HasOne("Modix.Data.Models.Promotion.PromotionCampaignEntity", "PromotionCampaign")
                         .WithMany("Comments")
                         .HasForeignKey("PromotionCampaignId");
                 });
