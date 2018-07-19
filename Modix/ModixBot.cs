@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -15,6 +16,9 @@ using Modix.Services.Quote;
 using Modix.WebServer;
 using Serilog;
 using System.Linq;
+using System.Net.Http;
+using Modix.Modules;
+using Modix.Services.DocsMaster;
 
 namespace Modix
 {
@@ -67,16 +71,16 @@ namespace Modix
 
             _provider = _host.Services;
 
-            //TODO: uncomment later. Lol.
-//            using (var context = _provider.GetService<ModixContext>())
-//            {
-//                context.Database.Migrate();
-//            }
-//
-//            using (var context = _provider.GetService<ModixContext>())
-//            {
-//                context.ChannelLimits.ToList();
-//            }
+
+            using (var context = _provider.GetService<ModixContext>())
+            {
+                context.Database.Migrate();
+            }
+
+            using (var context = _provider.GetService<ModixContext>())
+            {
+                context.ChannelLimits.ToList();
+            }
 
 
             _hooks.ServiceProvider = _provider;
@@ -153,12 +157,14 @@ namespace Modix
             _map.AddSingleton(_client);
             _map.AddSingleton(_config);
             _map.AddSingleton(_commands);
+            _map.AddSingleton<HttpClient>();
 
             _map.AddScoped<IQuoteService, QuoteService>();
             _map.AddSingleton<CodePasteHandler>();
             _map.AddSingleton<FileUploadHandler>();
             _map.AddSingleton<CodePasteService>();
             _map.AddSingleton<IAnimalService, AnimalService>();
+            _map.AddTransient<DocsMasterRetrievalService>();
             _map.AddMemoryCache();
 
             _map.AddSingleton<GuildInfoService>();
