@@ -3,9 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "ci-deploy": "npm install && vue-cli-service build && xcopy /E dist ..\\Modix\\obj\\Docker\\publish\\wwwroot\\"
+    "serve": "./node_modules/\\@vue/cli-service/bin/vue-cli-service.js serve",
+    "build": "./node_modules/\\@vue/cli-service/bin/vue-cli-service.js build"
   },
   "dependencies": {
     "@types/lodash": "^4.14.105",

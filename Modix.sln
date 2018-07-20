@@ -7,14 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix", "Modix\Modix.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Data", "Modix.Data\Modix.Data.csproj", "{7DE6DD27-4450-4FA5-8C93-40709FBD8870}"
 EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{330066AF-9FDC-447E-A8FC-3556E011EC5B}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CI", "CI", "{0CE9D7E4-9B35-4900-B844-0D06FEEC5957}"
-	ProjectSection(SolutionItems) = preProject
-		appveyor.yml = appveyor.yml
-		before-deploy.ps1 = before-deploy.ps1
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.WebServer", "Modix.WebServer\Modix.WebServer.csproj", "{E5800D5F-CA78-4035-AC61-50690F7A8F00}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Services", "Modix.Services\Modix.Services.csproj", "{2FC1AE5D-D71E-4DBF-839C-0A7761032064}"
@@ -64,18 +56,6 @@ Global
 		{7DE6DD27-4450-4FA5-8C93-40709FBD8870}.Release|x64.Build.0 = Release|Any CPU
 		{7DE6DD27-4450-4FA5-8C93-40709FBD8870}.Release|x86.ActiveCfg = Release|Any CPU
 		{7DE6DD27-4450-4FA5-8C93-40709FBD8870}.Release|x86.Build.0 = Release|Any CPU
-		{330066AF-9FDC-447E-A8FC-3556E011EC5B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{330066AF-9FDC-447E-A8FC-3556E011EC5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{330066AF-9FDC-447E-A8FC-3556E011EC5B}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{330066AF-9FDC-447E-A8FC-3556E011EC5B}.Debug|x64.Build.0 = Debug|Any CPU
-		{330066AF-9FDC-447E-A8FC-3556E011EC5B}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{330066AF-9FDC-447E-A8FC-3556E011EC5B}.Debug|x86.Build.0 = Debug|Any CPU
-		{330066AF-9FDC-447E-A8FC-3556E011EC5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{330066AF-9FDC-447E-A8FC-3556E011EC5B}.Release|Any CPU.Build.0 = Release|Any CPU
-		{330066AF-9FDC-447E-A8FC-3556E011EC5B}.Release|x64.ActiveCfg = Release|Any CPU
-		{330066AF-9FDC-447E-A8FC-3556E011EC5B}.Release|x64.Build.0 = Release|Any CPU
-		{330066AF-9FDC-447E-A8FC-3556E011EC5B}.Release|x86.ActiveCfg = Release|Any CPU
-		{330066AF-9FDC-447E-A8FC-3556E011EC5B}.Release|x86.Build.0 = Release|Any CPU
 		{E5800D5F-CA78-4035-AC61-50690F7A8F00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E5800D5F-CA78-4035-AC61-50690F7A8F00}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E5800D5F-CA78-4035-AC61-50690F7A8F00}.Debug|x64.ActiveCfg = Debug|Any CPU

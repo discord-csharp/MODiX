@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-
+using Modix.Data.Models;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Models.Promotion;
@@ -19,6 +19,8 @@ namespace Modix.Data
 
         public DbSet<ConfigurationActionEntity> ConfigurationActions { get; set; }
 
+        public DbSet<BehaviourConfiguration> BehaviourConfigurations { get; set; }
+
         public DbSet<UserEntity> Users { get; set; }
 
         public DbSet<ClaimMappingEntity> ClaimMappings { get; set; }
@@ -35,6 +37,11 @@ namespace Modix.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder
+                .Entity<BehaviourConfiguration>()
+                .Property(x => x.Category)
+                .HasConversion(category => category.ToString(), x => (BehaviourCategory)Enum.Parse(typeof(BehaviourCategory), x));
+
             modelBuilder
                 .Entity<ClaimMappingEntity>()
                 .Property(x => x.Type)
