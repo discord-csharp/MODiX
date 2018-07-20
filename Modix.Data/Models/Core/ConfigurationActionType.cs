@@ -6,12 +6,12 @@
     public enum ConfigurationActionType
     {
         /// <summary>
-        /// Describes an action where a role claim was created.
+        /// Describes an action where a claim mapping was created.
         /// </summary>
-        RoleClaimCreated,
+        ClaimMappingCreated,
         /// <summary>
-        /// Describes an action where a role claim was rescinded.
+        /// Describes an action where a claim mapping was rescinded.
         /// </summary>
-        RoleClaimRescinded,
+        ClaimMappingRescinded,
     }
 }

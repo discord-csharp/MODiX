@@ -29,9 +29,9 @@ namespace Modix.Data.Models.Core
         public virtual UserIdentity CreatedBy { get; set; }
 
         /// <summary>
-        /// See <see cref="ConfigurationActionEntity.RoleClaim"/>.
+        /// See <see cref="ConfigurationActionEntity.ClaimMapping"/>.
         /// </summary>
-        public RoleClaimBrief RoleClaim { get; set; }
+        public ClaimMappingBrief ClaimMapping { get; set; }
 
         internal static Expression<Func<ConfigurationActionEntity, ConfigurationActionSummary>> FromEntityProjection { get; }
             = entity => new ConfigurationActionSummary()
@@ -46,13 +46,15 @@ namespace Modix.Data.Models.Core
                     Discriminator = entity.CreatedBy.Discriminator,
                     Nickname = entity.CreatedBy.Nickname
                 },
-                RoleClaim = (entity.RoleClaim == null) ? null
-                    : new RoleClaimBrief()
+                ClaimMapping = (entity.ClaimMapping == null) ? null
+                    : new ClaimMappingBrief()
                     {
-                        Id = entity.RoleClaim.Id,
-                        GuildId = (ulong)entity.RoleClaim.GuildId,
-                        RoleId = (ulong)entity.RoleClaim.RoleId,
-                        Claim = entity.RoleClaim.Claim
+                        Id = entity.ClaimMapping.Id,
+                        Type = entity.ClaimMapping.Type,
+                        GuildId = (ulong)entity.ClaimMapping.GuildId,
+                        RoleId = (ulong?)entity.ClaimMapping.RoleId,
+                        UserId = (ulong?)entity.ClaimMapping.UserId,
+                        Claim = entity.ClaimMapping.Claim
                     }
             };
     }

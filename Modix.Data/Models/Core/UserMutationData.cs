@@ -22,18 +22,12 @@ namespace Modix.Data.Models.Core
         /// </summary>
         public string Nickname { get; set; }
 
-        /// <summary>
-        /// See <see cref="UserEntity.LastSeen"/>.
-        /// </summary>
-        public DateTimeOffset LastSeen { get; set; }
-
         internal static UserMutationData FromEntity(UserEntity entity)
             => new UserMutationData()
             {
                 Username = entity.Username,
                 Discriminator = entity.Discriminator,
                 Nickname = entity.Nickname,
-                LastSeen = entity.LastSeen,
             };
 
         internal void ApplyTo(UserEntity user)
@@ -41,7 +35,6 @@ namespace Modix.Data.Models.Core
             user.Username = Username;
             user.Discriminator = Discriminator;
             user.Nickname = Nickname;
-            user.LastSeen = LastSeen;
         }
     }
 }

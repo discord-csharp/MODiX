@@ -8,18 +8,18 @@
         /// <summary>
         /// Describes an "infraction" that is really just a note for communication between moderators.
         /// </summary>
-        Notice = 0,
+        Notice,
         /// <summary>
         /// Describes an infraction where the user was issued a warning.
         /// </summary>
-        Warning = 1,
+        Warning,
         /// <summary>
         /// Describes an infraction where the user was muted, preventing them from sending messages in text channels or speaking in voice channels.
         /// </summary>
-        Mute = 2,
+        Mute,
         /// <summary>
         /// Describes an infraction where the user was banned from a guild.
         /// </summary>
-        Ban = 3,
+        Ban,
     }
 }

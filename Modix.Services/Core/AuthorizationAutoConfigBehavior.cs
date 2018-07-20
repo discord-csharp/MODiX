@@ -4,12 +4,12 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 
-namespace Modix.Services.Moderation
+namespace Modix.Services.Core
 {
     /// <summary>
-    /// Implements a behavior that automatically performs configuration necessary for an <see cref="IModerationService"/> to work.
+    /// Implements a behavior that automatically performs configuration necessary for an <see cref="IAuthorizationService"/> to work.
     /// </summary>
-    public class ModerationAutoConfigBehavior : BehaviorBase
+    public class AuthorizationAutoConfigBehavior : BehaviorBase
     {
         // TODO: Abstract DiscordSocketClient to IDiscordSocketClient, or something, to make this testable
         /// <summary>
@@ -19,7 +19,7 @@ namespace Modix.Services.Moderation
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
         /// <param name="serviceProvider">See <see cref="BehaviorBase"/>.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="discordClient"/>.</exception>
-        public ModerationAutoConfigBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
+        public AuthorizationAutoConfigBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
             DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
@@ -28,9 +28,7 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         internal protected override Task OnStartingAsync()
         {
-            DiscordClient.GuildAvailable += OnGuildAvailableAsync;
-            DiscordClient.ChannelCreated += OnChannelCreated;
-            DiscordClient.ChannelUpdated += OnChannelUpdated;
+            DiscordClient.GuildAvailable += OnGuildAvailable;
             DiscordClient.LeftGuild += OnLeftGuild;
 
             return Task.CompletedTask;
@@ -39,9 +37,7 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         internal protected override Task OnStoppingAsync()
         {
-            DiscordClient.GuildAvailable -= OnGuildAvailableAsync;
-            DiscordClient.ChannelCreated -= OnChannelCreated;
-            DiscordClient.ChannelUpdated -= OnChannelUpdated;
+            DiscordClient.GuildAvailable -= OnGuildAvailable;
             DiscordClient.LeftGuild -= OnLeftGuild;
 
             return Task.CompletedTask;
@@ -62,16 +58,10 @@ namespace Modix.Services.Moderation
         /// </summary>
         internal protected DiscordSocketClient DiscordClient { get; }
 
-        private Task OnGuildAvailableAsync(IGuild guild)
-            => ExecuteOnScopedServiceAsync<IModerationService>(x => x.AutoConfigureGuldAsync(guild));
-
-        private Task OnChannelCreated(IChannel channel)
-            => ExecuteOnScopedServiceAsync<IModerationService>(x => x.AutoConfigureChannelAsync(channel));
-
-        private Task OnChannelUpdated(IChannel oldChannel, IChannel newChannel)
-            => ExecuteOnScopedServiceAsync<IModerationService>(x => x.AutoConfigureChannelAsync(newChannel));
+        private Task OnGuildAvailable(IGuild guild)
+            => ExecuteOnScopedServiceAsync<IAuthorizationService>(x => x.AutoConfigureGuildAsync(guild));
 
         private Task OnLeftGuild(IGuild guild)
-            => ExecuteOnScopedServiceAsync<IModerationService>(x => x.UnConfigureGuildAsync(guild));
+            => ExecuteOnScopedServiceAsync<IAuthorizationService>(x => x.UnConfigureGuildAsync(guild));
     }
 }

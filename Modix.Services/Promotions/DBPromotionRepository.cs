@@ -22,11 +22,11 @@ namespace Modix.Services.Promotions
         {
             var promoUser = await _context.Users.FirstOrDefaultAsync(u => (ulong)u.Id == user.Id);
             if (promoUser == null)
+                // TODO: This needs to be done through IUserService. There are concurrency issues if anyone else manages users in the DB directly.
                 await _context.Users.AddAsync(new UserEntity
                 {
                     Username = $"{user.Username}#{user.Discriminator}",
                     Id = (long)user.Id,
-                    Created = DateTime.UtcNow,
                     Nickname = user.Nickname,
                 });
 

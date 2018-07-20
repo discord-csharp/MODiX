@@ -26,5 +26,12 @@ namespace Modix.Services.Core
         /// <param name="userId">The <see cref="IEntity{T}.Id" /> of the user to be retrieved.</param>
         /// <returns>The <see cref="IGuildUser"/>, if any, retrieved from Discord.NET.</returns>
         Task<IGuildUser> GetGuildUserAsync(ulong guildId, ulong userId);
+
+        /// <summary>
+        /// Updates information about the given user within the user tracking system.
+        /// </summary>
+        /// <param name="user">The user whose info is to be tracked.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task TrackUserAsync(IUser user);
     }
 }
