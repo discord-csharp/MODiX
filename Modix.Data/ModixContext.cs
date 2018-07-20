@@ -40,7 +40,7 @@ namespace Modix.Data
             modelBuilder
                 .Entity<BehaviourConfiguration>()
                 .Property(x => x.Category)
-                .HasConversion(category => category.ToString(), x => (BehaviourCategory)Enum.Parse(typeof(BehaviourCategory), x));
+                .HasConversion<string>();
 
             modelBuilder
                 .Entity<ClaimMappingEntity>()

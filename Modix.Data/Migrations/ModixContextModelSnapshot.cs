@@ -38,7 +38,7 @@ namespace Modix.Data.Migrations
                     b.ToTable("BehaviourConfigurations");
                 });
 
-            modelBuilder.Entity("Modix.Data.Models.Core.ConfigurationActionEntity", b =>
+            modelBuilder.Entity("Modix.Data.Models.Core.ClaimMappingEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
