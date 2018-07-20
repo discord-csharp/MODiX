@@ -258,3 +258,5 @@ Modix/log.txt
 Modix/logs
 Modix/config
 /Modix/Properties/launchSettings.json
+
+*.DotSettings
