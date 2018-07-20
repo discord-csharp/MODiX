@@ -17,6 +17,9 @@ using Modix.Services.Moderation;
 using Modix.Services.Quote;
 using Modix.WebServer;
 using Serilog;
+using Modix.Data.Repositories;
+using Modix.Handlers;
+using Modix.Services.BehaviourConfiguration;
 
 namespace Modix
 {
@@ -54,17 +57,13 @@ namespace Modix
             });
 
             await Install(); // Setting up DependencyMap
+
             _map.AddDbContext<ModixContext>(options =>
             {
                 options.UseNpgsql(_config.PostgreConnectionString);
             }, ServiceLifetime.Transient);
 
             _host = ModixWebServer.BuildWebHost(_map, _config);
-
-            //disable until we migrate to Xero's host.
-            //#if !DEBUG
-
-            //#endif
 
             _scope = _host.Services.CreateScope();
 
@@ -74,9 +73,14 @@ namespace Modix
             }
 
             _hooks.ServiceProvider = _scope.ServiceProvider;
-
             foreach (var behavior in _scope.ServiceProvider.GetServices<IBehavior>())
                 await behavior.StartAsync();
+
+
+            var configurationService = _scope.ServiceProvider.GetRequiredService<IBehaviourConfigurationService>();
+
+            // Cache the behaviour configuration
+            await configurationService.LoadBehaviourConfiguration();
 
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
@@ -169,6 +173,10 @@ namespace Modix
             _map.AddSingleton<IPromotionRepository, DBPromotionRepository>();
 
             _map.AddSingleton<CommandErrorHandler>();
+            _map.AddSingleton<InviteLinkHandler>();
+            _map.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
+            _map.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
+            _map.AddSingleton<IBehaviourConfiguration, Services.BehaviourConfiguration.BehaviourConfiguration>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;

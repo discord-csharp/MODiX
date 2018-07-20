@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Modix.Data.Models;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Modix.Data.Migrations
@@ -8,6 +9,26 @@ namespace Modix.Data.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "BehaviourConfigurations",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
+                    Category = table.Column<string>(nullable: false),
+                    Key = table.Column<string>(nullable: false),
+                    Value = table.Column<string>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BehaviourConfigurations", x => x.Id);
+                    table.UniqueConstraint("IX_Category_Key", arg => new { arg.Category, arg.Key });
+                });
+
+            migrationBuilder.InsertData("BehaviourConfigurations", new[] { "Category", "Key", "Value" }, new[] { BehaviourCategory.InvitePurging.ToString(), "IsEnabled", "True" });
+            migrationBuilder.InsertData("BehaviourConfigurations", new[] { "Category", "Key", "Value" }, new[] { BehaviourCategory.InvitePurging.ToString(), "ExemptRoleIds", "[268470383571632128,155770800392110082,155771334779994112,410138389283602432]" });
+            migrationBuilder.InsertData("BehaviourConfigurations", new[] { "Category", "Key", "Value" }, new[] { BehaviourCategory.InvitePurging.ToString(), "LoggingChannelId", "380603776412811267" });
+
             migrationBuilder.CreateTable(
                 name: "ModerationConfigs",
                 columns: table => new
@@ -296,6 +317,9 @@ namespace Modix.Data.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_Infractions_ModerationActions_RescindActionId",
                 table: "Infractions");
+
+            migrationBuilder.DropTable(
+                name: "BehaviourConfigurations");
 
             migrationBuilder.DropTable(
                 name: "ModerationConfigs");
