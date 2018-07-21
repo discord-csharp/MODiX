@@ -72,20 +72,20 @@ namespace Modix
 
             _scope = _host.Services.CreateScope();
 
-//            using (var context = _scope.ServiceProvider.GetService<ModixContext>())
-//            {
-//                context.Database.Migrate();
-//            }
+            using (var context = _scope.ServiceProvider.GetService<ModixContext>())
+            {
+                context.Database.Migrate();
+            }
 
             _hooks.ServiceProvider = _scope.ServiceProvider;
             foreach (var behavior in _scope.ServiceProvider.GetServices<IBehavior>())
                 await behavior.StartAsync();
 
 
-            //var configurationService = _scope.ServiceProvider.GetRequiredService<IBehaviourConfigurationService>();
+            var configurationService = _scope.ServiceProvider.GetRequiredService<IBehaviourConfigurationService>();
 
             // Cache the behaviour configuration
-            //await configurationService.LoadBehaviourConfiguration();
+            await configurationService.LoadBehaviourConfiguration();
 
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
