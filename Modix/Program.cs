@@ -35,7 +35,7 @@ namespace Modix
 
             try
             {
-                await new ModixBot(config, Log.Logger).Run();
+                await new ModixBot(config).Run();
             }
             catch (Exception ex)
             {

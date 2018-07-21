@@ -9,10 +9,15 @@ using Discord.WebSocket;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Modix.Data;
 using Modix.Data.Models.Core;
+using Modix.Data.Repositories;
+using Modix.Handlers;
+using Modix.Services.BehaviourConfiguration;
 using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
+using Modix.Services.FileUpload;
 using Modix.Services.GuildInfo;
 using Modix.Data.Repositories;
 using Modix.Handlers;
@@ -23,14 +28,10 @@ using Modix.Services.Core;
 using Modix.Services.DocsMaster;
 using Modix.Services.FileUpload;
 using Modix.Services.Moderation;
+using Modix.Services.Promotions;
 using Modix.Services.Quote;
 using Modix.WebServer;
 using Serilog;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
-using Modix.Data;
-using Modix.Services.FileUpload;
-using Modix.Services.Promotions;
 
 namespace Modix
 {
@@ -51,10 +52,10 @@ namespace Modix
         private readonly ModixConfig _config;
         private IWebHost _host;
 
-        public ModixBot(ModixConfig config, ILogger logger)
+        public ModixBot(ModixConfig config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            _map.AddLogging(bldr => bldr.AddSerilog(logger ?? Log.Logger));
+            _map.AddLogging(bldr => bldr.AddSerilog());
         }
 
         public async Task Run()
@@ -68,7 +69,9 @@ namespace Modix
 
             _map.AddDbContext<ModixContext>(options =>
             {
+                var loggerFactory = _map.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
                 options.UseNpgsql(_config.PostgreConnectionString);
+                options.UseLoggerFactory(loggerFactory);
             }, ServiceLifetime.Transient);
 
             _host = ModixWebServer.BuildWebHost(_map, _config);
