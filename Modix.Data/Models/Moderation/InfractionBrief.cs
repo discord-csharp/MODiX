@@ -11,22 +11,27 @@ namespace Modix.Data.Models.Moderation
     public class InfractionBrief
     {
         /// <summary>
-        /// See <see cref="UserEntity.Id"/>.
+        /// See <see cref="InfractionEntity.Id"/>.
         /// </summary>
         public long Id { get; set; }
 
         /// <summary>
-        /// See <see cref="UserEntity.Type"/>.
+        /// See <see cref="InfractionEntity.Type"/>.
         /// </summary>
         public InfractionType Type { get; set; }
 
         /// <summary>
-        /// See <see cref="UserEntity.Duration"/>.
+        /// See <see cref="InfractionEntity.Type"/>.
+        /// </summary>
+        public string Reason { get; set; }
+
+        /// <summary>
+        /// See <see cref="InfractionEntity.Duration"/>.
         /// </summary>
         public TimeSpan? Duration { get; set; }
 
         /// <summary>
-        /// See <see cref="UserEntity.Subject"/>.
+        /// See <see cref="InfractionEntity.Subject"/>.
         /// </summary>
         public UserIdentity Subject { get; set; }
     }

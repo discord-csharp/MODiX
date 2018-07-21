@@ -30,12 +30,6 @@ namespace Modix.Data.Models.Moderation
         public ModerationActionType Type { get; set; }
 
         /// <summary>
-        /// A comment about the moderation action that was performed.
-        /// </summary>
-        [Required]
-        public string Reason { get; set; }
-
-        /// <summary>
         /// The <see cref="UserEntity.Id"/> value of <see cref="CreatedBy"/>.
         /// </summary>
         [Required, ForeignKey(nameof(CreatedBy))]

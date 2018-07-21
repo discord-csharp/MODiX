@@ -104,7 +104,9 @@ namespace Modix.Data.Repositories
                 Created = DateTimeOffset.Now,
                 CreatedById = longRescindedById
             };
+            await ModixContext.SaveChangesAsync();
 
+            entity.RescindAction.ClaimMappingId = entity.Id;
             await ModixContext.SaveChangesAsync();
 
             return true;
@@ -118,7 +120,9 @@ namespace Modix.Data.Repositories
             var entity = data.ToEntity();
 
             await ModixContext.ClaimMappings.AddAsync(entity);
+            await ModixContext.SaveChangesAsync();
 
+            entity.CreateAction.ClaimMappingId = entity.Id;
             await ModixContext.SaveChangesAsync();
 
             return entity.Id;
@@ -137,6 +141,8 @@ namespace Modix.Data.Repositories
             var longUserId = (long?)criteria?.UserId;
             var longCreatedById = (long?)criteria?.CreatedById;
 
+            var anyRoleIds = longRoleIds?.Any() ?? false;
+
             return query
                 .FilterBy(
                     x => criteria.Types.Contains(x.Type),
@@ -145,11 +151,14 @@ namespace Modix.Data.Repositories
                     x => x.GuildId == longGuildId,
                     longGuildId != null)
                 .FilterBy(
-                    x => longRoleIds.Contains(x.RoleId.Value),
-                    longRoleIds?.Any() ?? false)
+                    x => longRoleIds.Contains(x.RoleId.Value) || (x.UserId == longUserId),
+                    anyRoleIds && (longUserId != null))
                 .FilterBy(
-                    x => x.UserId == longUserId,
-                    longUserId != null)
+                    x => longRoleIds.Contains(x.RoleId.Value),
+                    anyRoleIds && (longUserId == null))
+                .FilterBy(
+                    x => (x.UserId == longUserId),
+                    !anyRoleIds && (longUserId == null))
                 .FilterBy(
                     x => criteria.Claims.Contains(x.Claim),
                     criteria?.Claims?.Any() ?? false)

@@ -13,15 +13,17 @@ namespace Modix.Data.Repositories
     public interface IInfractionRepository
     {
         /// <summary>
-        /// Creates a new infraction within the repository.
+        /// Attempts to create a new infraction within the repository.
         /// </summary>
         /// <param name="data">The data for the infraction to be created.</param>
+        /// <param name="criteria">A set of criteria that (if given) defines existing infractions that negate the need to create a new one.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="data"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing the auto-generated <see cref="InfractionEntity.Id"/> value assigned to the new infraction.
+        /// containing the auto-generated <see cref="InfractionEntity.Id"/> value assigned to the new infraction,
+        /// or null any existing infractions were found by <paramref name="criteria"/>.
         /// </returns>
-        Task<long> CreateAsync(InfractionCreationData data);
+        Task<long?> TryCreateAsync(InfractionCreationData data, InfractionSearchCriteria criteria = null);
 
         /// <summary>
         /// Retrieves information about an infraction, based on its ID.
@@ -34,12 +36,19 @@ namespace Modix.Data.Repositories
         Task<InfractionSummary> ReadAsync(long infractionId);
 
         /// <summary>
+        /// Searches the repository for infraction ID values, based on an arbitrary set of criteria.
+        /// </summary>
+        /// <param name="searchCriteria">The criteria for selecting <see cref="InfractionEntity.Id"/> values to be returned.</param>
+        /// <returns>A <see cref="Task"/> which will complete when the requested ID values have been retrieved.</returns>
+        Task<IReadOnlyCollection<long>> SearchIdsAsync(InfractionSearchCriteria searchCriteria);
+
+        /// <summary>
         /// Searches the repository for infraction information, based on an arbitrary set of criteria.
         /// </summary>
         /// <param name="searchCriteria">The criteria for selecting <see cref="InfractionSummary"/> records to be returned.</param>
         /// <param name="sortingCriteria">The criteria for sorting the matching records to be returned.</param>
         /// <returns>A <see cref="Task"/> which will complete when the matching records have been retrieved.</returns>
-        Task<IReadOnlyCollection<InfractionSummary>> SearchSummariesAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria);
+        Task<IReadOnlyCollection<InfractionSummary>> SearchSummariesAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null);
 
         /// <summary>
         /// Searches the repository for infraction information, based on an arbitrary set of criteria, and pages the results.
@@ -51,13 +60,13 @@ namespace Modix.Data.Repositories
         Task<RecordsPage<InfractionSummary>> SearchSummariesPagedAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria);
 
         /// <summary>
-        /// Updates data for an existing infraction, based on its ID.
+        /// Marks an existing infraction as rescinded, based on its ID.
         /// </summary>
-        /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be updated.</param>
-        /// <param name="updateAction">An action that will perform the desired update.</param>
+        /// <param name="claimMappingId">The <see cref="ClaimMappingEntity.Id"/> value of the infraction to be rescinded.</param>
+        /// <param name="rescindedById">The <see cref="UserEntity.Id"/> value of the user that is rescinding the infraction.</param>
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing a flag indicating whether the update was successful (I.E. whether the specified infraction could be found).
         /// </returns>
-        Task<bool> UpdateAsync(long infractionId, Action<InfractionMutationData> updateAction);
+        Task<bool> TryRescindAsync(long infractionId, ulong rescindedById);
     }
 }

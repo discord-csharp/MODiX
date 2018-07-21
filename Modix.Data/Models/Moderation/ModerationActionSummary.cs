@@ -21,11 +21,6 @@ namespace Modix.Data.Models.Moderation
         public ModerationActionType Type { get; set; }
 
         /// <summary>
-        /// See <see cref="ModerationActionEntity.Reason"/>.
-        /// </summary>
-        public string Reason { get; set; }
-
-        /// <summary>
         /// See <see cref="ModerationActionEntity.Created"/>.
         /// </summary>
         public DateTimeOffset Created { get; set; }
@@ -46,7 +41,6 @@ namespace Modix.Data.Models.Moderation
                 Id = entity.Id,
                 Type = entity.Type,
                 Created = entity.Created,
-                Reason = entity.Reason,
                 CreatedBy = new UserIdentity()
                 {
                     Id = (ulong)entity.CreatedBy.Id,
@@ -58,6 +52,7 @@ namespace Modix.Data.Models.Moderation
                 {
                     Id = entity.Infraction.Id,
                     Type = entity.Infraction.Type,
+                    Reason = entity.Infraction.Reason,
                     Duration = entity.Infraction.Duration,
                     Subject = new UserIdentity()
                     {
