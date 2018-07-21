@@ -124,6 +124,13 @@ namespace Modix
 
                 using (var scope = _scope.ServiceProvider.CreateScope())
                 {
+                    await scope.ServiceProvider
+                        .GetRequiredService<IAuthorizationService>()
+                        .OnAuthenticatedAsync(
+                            context.Guild.Id,
+                            (context.User as IGuildUser).RoleIds,
+                            context.User.Id);
+
                     var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
 
                     if (!result.IsSuccess)
