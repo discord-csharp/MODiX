@@ -20,15 +20,15 @@ using Serilog;
 using Modix.Data.Repositories;
 using Modix.Handlers;
 using Modix.Services.BehaviourConfiguration;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Modix.Data;
+using Modix.Services.FileUpload;
+using Modix.Services.Notes;
+using Modix.Services.Promotions;
 
 namespace Modix
 {
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.EntityFrameworkCore;
-    using Modix.Data;
-    using Services.FileUpload;
-    using Services.Promotions;
-
     public sealed class ModixBot
     {
         private readonly CommandService _commands = new CommandService(new CommandServiceConfig
@@ -42,7 +42,7 @@ namespace Modix
         private DiscordSocketClient _client;
         private readonly IServiceCollection _map = new ServiceCollection();
         private IServiceScope _scope;
-        private ModixBotHooks _hooks = new ModixBotHooks();
+        private readonly ModixBotHooks _hooks = new ModixBotHooks();
         private readonly ModixConfig _config;
         private IWebHost _host;
 
@@ -184,7 +184,11 @@ namespace Modix
             _map.AddSingleton<InviteLinkHandler>();
             _map.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
             _map.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
-            _map.AddSingleton<IBehaviourConfiguration, Services.BehaviourConfiguration.BehaviourConfiguration>();
+            _map.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
+
+            _map.AddSingleton<INoteCreatorService, NoteCreatorService>();
+            _map.AddSingleton<INoteRetrieverService, NoteRetrieverService>();
+            _map.AddSingleton<INoteRemoverService, NoteRemoverService>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;
