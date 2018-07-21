@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 
 using Modix.Data.Models;
+using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Repositories;
 
@@ -27,7 +28,6 @@ namespace Modix.Services.Moderation
         /// Creates a new <see cref="ModerationService"/>.
         /// </summary>
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
-        /// <param name="authenticationService">The value to use for <see cref="AuthenticationService"/>.</param>
         /// <param name="authorizationService">The value to use for <see cref="AuthorizationService"/>.</param>
         /// <param name="userService">The value to use for <see cref="UserService"/>.</param>
         /// <param name="moderationConfigRepository">The value to use for <see cref="ModerationConfigRepository"/>.</param>
@@ -36,7 +36,6 @@ namespace Modix.Services.Moderation
         /// <exception cref="ArgumentNullException">Throws for all parameters.</exception>
         public ModerationService(
             IDiscordClient discordClient,
-            IAuthenticationService authenticationService,
             IAuthorizationService authorizationService,
             IGuildService guildService,
             IUserService userService,
@@ -45,7 +44,6 @@ namespace Modix.Services.Moderation
             IInfractionRepository infractionRepository)
         {
             DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
-            AuthenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             AuthorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
             GuildService = guildService ?? throw new ArgumentNullException(nameof(guildService));
             UserService = userService ?? throw new ArgumentNullException(nameof(userService));
@@ -111,7 +109,7 @@ namespace Modix.Services.Moderation
             var actionId = await ModerationActionRepository.CreateAsync(new ModerationActionCreationData()
             {
                 Type = ModerationActionType.InfractionCreated,
-                CreatedById = AuthenticationService.CurrentUserId.Value,
+                CreatedById = AuthorizationService.CurrentUserId.Value,
                 Reason = reason
             });
 
@@ -156,7 +154,7 @@ namespace Modix.Services.Moderation
             var actionId = await ModerationActionRepository.CreateAsync(new ModerationActionCreationData()
             {
                 Type = ModerationActionType.InfractionRescinded,
-                CreatedById = AuthenticationService.CurrentUserId.Value,
+                CreatedById = AuthorizationService.CurrentUserId.Value,
                 Reason = reason,
                 InfractionId = infractionId
             });
@@ -186,12 +184,7 @@ namespace Modix.Services.Moderation
         internal protected IDiscordClient DiscordClient { get; }
 
         /// <summary>
-        /// An <see cref="IAuthenticationService"/> for interacting with the current authenticated user, within the application.
-        /// </summary>
-        internal protected IAuthenticationService AuthenticationService { get; }
-
-        /// <summary>
-        /// An <see cref="IAuthorizationService"/> for interacting with the permissions of the current user, within the application.
+        /// A <see cref="IAuthorizationService"/> to be used to interact with frontend authentication system, and perform authorization.
         /// </summary>
         internal protected IAuthorizationService AuthorizationService { get; }
 
@@ -264,7 +257,7 @@ namespace Modix.Services.Moderation
             AuthorizationService.RequireAuthenticatedGuild();
             AuthorizationService.RequireAuthenticatedUser();
 
-            var guild = await GuildService.GetCurrentGuildAsync();
+            var guild = await GuildService.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
             var muteRole = await GetOrCreateMuteRoleAsync(guild);
             var subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
 
@@ -279,7 +272,7 @@ namespace Modix.Services.Moderation
             AuthorizationService.RequireAuthenticatedGuild();
             AuthorizationService.RequireAuthenticatedUser();
 
-            var guild = await GuildService.GetCurrentGuildAsync();
+            var guild = await GuildService.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
             var muteRole = await GetOrCreateMuteRoleAsync(guild);
             var subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
 
@@ -294,7 +287,7 @@ namespace Modix.Services.Moderation
             AuthorizationService.RequireAuthenticatedGuild();
             AuthorizationService.RequireAuthenticatedUser();
 
-            var guild = await GuildService.GetCurrentGuildAsync();
+            var guild = await GuildService.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
             var subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
 
             if ((await guild.GetBansAsync()).Any(x => x.User.Id == subject.Id))
@@ -308,7 +301,7 @@ namespace Modix.Services.Moderation
             AuthorizationService.RequireAuthenticatedGuild();
             AuthorizationService.RequireAuthenticatedUser();
 
-            var guild = await GuildService.GetCurrentGuildAsync();
+            var guild = await GuildService.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
             var subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
 
             if (!(await guild.GetBansAsync()).Any(x => x.User.Id == subject.Id))

@@ -4,46 +4,58 @@ using System.Linq.Expressions;
 namespace Modix.Data.Models.Core
 {
     /// <summary>
-    /// Describes a summary view of a. <see cref="RoleClaimEntity"/>, for use in higher layers of the application.
+    /// Describes a summary view of a. <see cref="ClaimMappingEntity"/>, for use in higher layers of the application.
     /// </summary>
-    public class RoleClaimSummary
+    public class ClaimMappingSummary
     {
         /// <summary>
-        /// See <see cref="RoleClaimEntity.Id"/>.
+        /// See <see cref="ClaimMappingEntity.Id"/>.
         /// </summary>
         public long Id { get; set; }
 
         /// <summary>
-        /// See <see cref="RoleClaimEntity.GuildId"/>.
+        /// See <see cref="ClaimMappingEntity.Type"/>.
+        /// </summary>
+        public ClaimMappingType Type { get; set; }
+
+        /// <summary>
+        /// See <see cref="ClaimMappingEntity.GuildId"/>.
         /// </summary>
         public ulong GuildId { get; set; }
 
         /// <summary>
-        /// See <see cref="RoleClaimEntity.RoleId"/>.
+        /// See <see cref="ClaimMappingEntity.RoleId"/>.
         /// </summary>
-        public ulong RoleId { get; set; }
+        public ulong? RoleId { get; set; }
 
         /// <summary>
-        /// See <see cref="RoleClaimEntity.Claim"/>.
+        /// See <see cref="ClaimMappingEntity.UserId"/>.
+        /// </summary>
+        public ulong? UserId { get; set; }
+
+        /// <summary>
+        /// See <see cref="ClaimMappingEntity.Claim"/>.
         /// </summary>
         public AuthorizationClaim Claim { get; set; }
 
         /// <summary>
-        /// See <see cref="RoleClaimEntity.CreateAction"/>.
+        /// See <see cref="ClaimMappingEntity.CreateAction"/>.
         /// </summary>
         public ConfigurationActionBrief CreateAction { get; set; }
 
         /// <summary>
-        /// See <see cref="RoleClaimEntity.RescindAction"/>.
+        /// See <see cref="ClaimMappingEntity.RescindAction"/>.
         /// </summary>
         public ConfigurationActionBrief RescindAction { get; set; }
 
-        internal static Expression<Func<RoleClaimEntity, RoleClaimSummary>> FromEntityProjection { get; }
-            = entity => new RoleClaimSummary()
+        internal static Expression<Func<ClaimMappingEntity, ClaimMappingSummary>> FromEntityProjection { get; }
+            = entity => new ClaimMappingSummary()
             {
                 Id = entity.Id,
+                Type = entity.Type,
                 GuildId = (ulong)entity.GuildId,
-                RoleId = (ulong)entity.RoleId,
+                RoleId = (ulong?)entity.RoleId,
+                UserId = (ulong?)entity.UserId,
                 Claim = entity.Claim,
                 CreateAction = new ConfigurationActionBrief()
                 {
