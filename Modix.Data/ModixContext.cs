@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-
 using Microsoft.EntityFrameworkCore;
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
@@ -48,5 +45,6 @@ namespace Modix.Data
         public DbSet<PromotionCampaignEntity> PromotionCampaigns { get; set; }
 
         public DbSet<PromotionCommentEntity> PromotionComments { get; set; }
+        public DbSet<NoteEntity> Notes { get; set; }
     }
 }
