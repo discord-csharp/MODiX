@@ -30,7 +30,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data;
 using Modix.Services.FileUpload;
-using Modix.Services.Notes;
 using Modix.Services.Promotions;
 
 namespace Modix
@@ -203,10 +202,6 @@ namespace Modix
             _map.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
             _map.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
             _map.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
-
-            _map.AddSingleton<INoteCreatorService, NoteCreatorService>();
-            _map.AddSingleton<INoteRetrieverService, NoteRetrieverService>();
-            _map.AddSingleton<INoteRemoverService, NoteRemoverService>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;

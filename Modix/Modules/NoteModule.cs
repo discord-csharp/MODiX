@@ -6,29 +6,35 @@
     using System.Threading.Tasks;
     using Discord;
     using Discord.Commands;
+    using Discord.WebSocket;
+    using Modix.Data.Models;
+    using Modix.Data.Models.Moderation;
+    using Modix.Services.Moderation;
     using Serilog;
     using Services.CommandHelp;
-    using Services.Notes;
     using Tababular;
 
     [Name("Add/Remove/Search Admin notes"), RequireUserPermission(GuildPermission.Administrator), HiddenFromHelp]
     public class NoteModule : ModuleBase
     {
-        private readonly INoteCreatorService _noteCreatorService;
-        private readonly INoteRemoverService _noteRemoverService;
-        private readonly INoteRetrieverService _noteRetrieverService;
+        private readonly IModerationService _moderationService;
 
-        public NoteModule(INoteCreatorService noteCreatorService, INoteRemoverService noteRemoverService, INoteRetrieverService noteRetrieverService)
+        public NoteModule(IModerationService moderationService)
         {
-            _noteCreatorService = noteCreatorService;
-            _noteRemoverService = noteRemoverService;
-            _noteRetrieverService = noteRetrieverService;
+            _moderationService = moderationService;
         }
 
-
         [Command("note add"), Summary("Adds a note to a user")]
-        public async Task CreateNote(IGuildUser user, string message)
+        public async Task CreateNote(IGuildUser user, [Remainder] string message)
         {
+            var guildUser = Context.User as SocketGuildUser;
+
+            if (!IsStaff(guildUser) && !IsOperator(guildUser))
+            {
+                await ReplyAsync($"I'm sorry, @{guildUser.Nickname}, I'm afraid I can't do that.");
+                return;
+            }
+
             try
             {
                 if (string.IsNullOrWhiteSpace(message))
@@ -37,41 +43,31 @@
                     await ReplyAsync("Please ensure that you have included a message with your note");
                 }
 
-                var result = await _noteCreatorService.Create(user, message, Context.Message.Author.Username);
+                await _moderationService.CreateInfractionAsync(InfractionType.Notice, guildUser.Id, message, null);
 
-                if (!result)
-                {
-                    await ReplyAsync($"No note has been added for user {user.Username} due to an error. Please see the error logs");
-                }
-
-                await ReplyAsync($"Note has been created for user: {user.Username}");
+                await ReplyAsync($"Note has been created for user: {guildUser.Username}");
             }
             catch (Exception e)
             {
-                Log.Error(e, $"NoteModule CreateNote failed with the following user: {user.Username} and message: {message}");
+                Log.Error(e, $"NoteModule CreateNote failed with the following user: {guildUser.Username} and message: {message}");
                 await ReplyAsync("Uh oh. Looks like you are using the command wrong or an error has occured.");
             }
         }
 
         [Command("note remove"), Summary("Removes a note from a user")]
-        public async Task RemoveNote(int noteId)
+        public async Task RemoveNote(long noteId)
         {
+            var user = Context.User as SocketGuildUser;
+
+            if (!IsStaff(user) && !IsOperator(user))
+            {
+                await ReplyAsync($"I'm sorry, @{user.Nickname}, I'm afraid I can't do that.");
+                return;
+            }
+
             try
             {
-                var note = _noteRetrieverService.FindNoteById(noteId);
-
-                if (note == null)
-                {
-                    Log.Warning($"User: {Context.Client.CurrentUser} has tried to remove a note that does not exist");
-                    await ReplyAsync("Note does not exist for that Id");
-                }
-
-                var result = await _noteRemoverService.Remove(note);
-
-                if (!result)
-                {
-                    await ReplyAsync($"Error occurred and note could not be removed");
-                }
+                await _moderationService.RescindInfractionAsync(noteId);
 
                 await ReplyAsync($"Note {noteId} has been removed");
             }
@@ -85,22 +81,26 @@
         [Command("note search"), Summary("Search notes for a user")]
         public async Task SearchNotesByUserId(ulong userId)
         {
+            var user = Context.User as SocketGuildUser;
+
+            if (!IsStaff(user) && !IsOperator(user))
+            {
+                await ReplyAsync($"I'm sorry, @{user.Nickname}, I'm afraid I can't do that.");
+                return;
+            }
+
             try
             {
-                var notes = _noteRetrieverService.FindNotesForUser(userId);
-
-                if (notes == null)
-                {
-                    Log.Error("Notes has thrown an error");
-                    await ReplyAsync($"No notes found for user {userId}");
-                }
-
-
-                if (notes.Count == 0)
-                {
-                    await ReplyAsync($"No notes found for user {userId}");
-                    return;
-                }
+                var notes = await _moderationService.SearchInfractionsAsync(
+                    new InfractionSearchCriteria
+                    {
+                        SubjectId = userId,
+                        Types = new[] { InfractionType.Notice }
+                    },
+                    new[]
+                    {
+                        new SortingCriteria { PropertyName = "CreateAction.Created", Direction = SortDirection.Descending }
+                    });
 
                 var sb = new StringBuilder();
                 var hints = new Hints { MaxTableWidth = 100 };
@@ -109,11 +109,11 @@
 
                 var formattedNotes = notes.Select(note => new
                 {
-                    Id = $"{note.Id}",
-                    User = $"{note.UserName}",
-                    RecordedBy = $"{note.RecordedBy}",
-                    Message = $"{note.Message}",
-                    Date = $"{note.RecordedTime}"
+                    Id = note.Id,
+                    User = note.Subject.Username,
+                    RecordedBy = note.CreateAction.CreatedBy,
+                    Message = note.Reason,
+                    Date = note.CreateAction.Created.ToString("yyyy-MM-ddTHH:mm:ss")
                 }).ToList();
 
                 var text = formatter.FormatObjects(formattedNotes);
@@ -129,7 +129,7 @@
 
                 var formattedNoteIds = notes.Select(note => new
                 {
-                    NoteId = $"{note.Id}"
+                    NoteId = note.Id
                 });
 
                 var noteIds = formatter.FormatObjects(formattedNoteIds);
@@ -153,48 +153,17 @@
         public async Task SearchNotesByUserName(IGuildUser user)
             => await SearchNotesByUserId(user.Id);
 
-        [Command("note search id"), Summary("Search notes for a user")]
-        public async Task SearchNotesByNoteId(int noteId)
+        private static bool IsOperator(SocketGuildUser user)
         {
-            try
-            {
-                var note = _noteRetrieverService.FindNoteById(noteId);
+            return user != null && user.Roles.Any(x => string.Equals("Operator", x.Name, StringComparison.Ordinal));
+        }
 
-                if (note == null)
-                {
-                    await ReplyAsync($"No note found for id: {noteId}");
-                    return;
-                }
-
-                var sb = new StringBuilder();
-                var hints = new Hints { MaxTableWidth = 100 };
-                var formatter = new TableFormatter(hints);
-                sb.AppendLine("```");
-
-                var formattedNotes = new []
-                {
-                    new
-                    {
-                        Id = $"{note.Id}",
-                        User = $"{note.UserName}",
-                        RecordedBy = $"{note.RecordedBy}",
-                        Message = $"{note.Message}",
-                        Date = $"{note.RecordedTime}"
-                    }
-                };
-
-                var text = formatter.FormatObjects(formattedNotes);
-                sb.Append(text);
-
-                sb.AppendLine("```");
-
-                await ReplyAsync(sb.ToString());
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, $"NoteModule SearchNotesByNoteId failed with the following noteId: {noteId}");
-                await ReplyAsync("Error occurred and search could not be complete");
-            }
+        private static bool IsStaff(SocketGuildUser user)
+        {
+            return user != null && user.Roles.Any(
+                x => string.Equals("Staff", x.Name, StringComparison.Ordinal) ||
+                     string.Equals("Moderator", x.Name, StringComparison.Ordinal) ||
+                     string.Equals("Administrator", x.Name, StringComparison.Ordinal));
         }
     }
 }
