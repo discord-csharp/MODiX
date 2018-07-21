@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
+=======
+﻿using Microsoft.EntityFrameworkCore;
+>>>>>>> master
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
@@ -19,22 +23,12 @@ namespace Modix.Data
         }
 
         public DbSet<ConfigurationActionEntity> ConfigurationActions { get; set; }
+
         public DbSet<BehaviourConfiguration> BehaviourConfigurations { get; set; }
 
         public DbSet<UserEntity> Users { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder
-                .Entity<BehaviourConfiguration>()
-                .Property(x => x.Category)
-                .HasConversion(category => category.ToString(), x => (BehaviourCategory)Enum.Parse(typeof(BehaviourCategory), x));
-        }
-
-        public bool IsAttached<TEntity>(TEntity entity) where TEntity : class
-            => Set<TEntity>().Local.Contains(entity);
-
-        public DbSet<RoleClaimEntity> RoleClaims { get; set; }
+        public DbSet<ClaimMappingEntity> ClaimMappings { get; set; }
 
         public DbSet<ModerationConfigEntity> ModerationConfigs { get; set; }
 
@@ -45,6 +39,42 @@ namespace Modix.Data
         public DbSet<PromotionCampaignEntity> PromotionCampaigns { get; set; }
 
         public DbSet<PromotionCommentEntity> PromotionComments { get; set; }
+<<<<<<< HEAD
         public DbSet<NoteEntity> Notes { get; set; }
+=======
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<BehaviourConfiguration>()
+                .Property(x => x.Category)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<ClaimMappingEntity>()
+                .Property(x => x.Type)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<ClaimMappingEntity>()
+                .Property(x => x.Claim)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<ConfigurationActionEntity>()
+                .Property(x => x.Type)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<InfractionEntity>()
+                .Property(x => x.Type)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<ModerationActionEntity>()
+                .Property(x => x.Type)
+                .HasConversion<string>();
+        }
+>>>>>>> master
     }
 }

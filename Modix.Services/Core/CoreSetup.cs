@@ -16,11 +16,13 @@ namespace Modix.Services.Core
         /// <returns><paramref name="services"/></returns>
         public static IServiceCollection AddModixCore(this IServiceCollection services)
             => services
-                .AddScoped<IAuthenticationService, AuthenticationService>()
+                .AddSingleton<IBehavior, AuthorizationAutoConfigBehavior>()
+                .AddSingleton<IBehavior, UserTrackingBehavior>()
                 .AddScoped<IAuthorizationService, AuthorizationService>()
-                .AddSingleton<IBehavior, UserMonitorBehavior>()
                 .AddScoped<IGuildService, GuildService>()
                 .AddScoped<IUserService, UserService>()
-                .AddScoped<IUserRepository, UserRepository>();
+                .AddScoped<IUserRepository, UserRepository>()
+                .AddScoped<IClaimMappingRepository, ClaimMappingRepository>()
+                .AddScoped<IConfigurationActionRepository, ConfigurationActionRepository>();
     }
 }

@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
+
+using Nito.AsyncEx;
 
 using Modix.Data.Models.Core;
 using Modix.Data.Utilities;
@@ -21,51 +21,55 @@ namespace Modix.Data.Repositories
             : base(modixContext) { }
 
         /// <inheritdoc />
-        public async Task CreateAsync(UserCreationData user)
+        public async Task CreateOrUpdateAsync(ulong userId, Action<UserMutationData> updateAction)
         {
-            if (user == null)
-                throw new ArgumentNullException(nameof(user));
-
-            var entity = user.ToEntity();
-            entity.Created = DateTimeOffset.Now;
-
-            await ModixContext.Users.AddAsync(entity);
-
-            await ModixContext.SaveChangesAsync();
-        }
-
-        /// <inheritdoc />
-        public Task<bool> ExistsAsync(ulong userId)
-        {
-            var longId = (long)userId;
-            
-            return ModixContext.Users.AsNoTracking()
-                .AnyAsync(x => x.Id == longId);
-        }
-
-        /// <inheritdoc />
-        public async Task<bool> UpdateAsync(ulong userId, Action<UserMutationData> updateAction)
-        {
-            if (updateAction == null)
+            if(updateAction == null)
                 throw new ArgumentNullException(nameof(updateAction));
 
-            var longId = (long)userId;
-            var entity = await ModixContext.Users
-                .SingleOrDefaultAsync(x => x.Id == longId);
+            var longUserId = (long)userId;
 
-            if (entity == null)
-                return false;
+            var createLock = await _createLock.LockAsync();
+
+            var entity = await ModixContext.Users
+                .SingleOrDefaultAsync(x => x.Id == longUserId);
+
+            if (entity != null)
+            {
+                createLock.Dispose();
+                createLock = null;
+            }
+            else
+            {
+                entity = new UserEntity()
+                {
+                    Id = longUserId,
+                    FirstSeen = DateTimeOffset.Now
+                };
+
+                await ModixContext.Users.AddAsync(entity);
+            }
 
             var mutation = UserMutationData.FromEntity(entity);
             updateAction.Invoke(mutation);
             mutation.ApplyTo(entity);
 
-            ModixContext.UpdateProperty(entity, x => x.Nickname);
-            ModixContext.UpdateProperty(entity, x => x.LastSeen);
+            entity.LastSeen = DateTimeOffset.Now;
+
+            if(createLock == null)
+            {
+                ModixContext.UpdateProperty(entity, x => x.Username);
+                ModixContext.UpdateProperty(entity, x => x.Discriminator);
+                ModixContext.UpdateProperty(entity, x => x.Nickname);
+                ModixContext.UpdateProperty(entity, x => x.LastSeen);
+            }
 
             await ModixContext.SaveChangesAsync();
 
-            return true;
+            if (createLock != null)
+                createLock.Dispose();
         }
+
+        private static readonly AsyncLock _createLock
+            = new AsyncLock();
     }
 }

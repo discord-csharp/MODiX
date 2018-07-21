@@ -72,18 +72,18 @@ namespace Modix.Services
         internal protected abstract Task OnStoppingAsync();
 
         /// <summary>
-        /// Executes a given action, asynchronously, within its own service scope.
+        /// Executes a given action, asynchronously, upon a service, within a new service scope.
         /// </summary>
         /// <param name="action">The action to be executed.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        internal protected async Task ExecuteScopedAsync(Func<IServiceProvider, Task> action)
+        internal protected async Task ExecuteOnScopedServiceAsync<TService>(Func<TService, Task> action)
         {
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
 
             using (var serviceScope = ServiceProvider.CreateScope())
             {
-                await action.Invoke(serviceScope.ServiceProvider);
+                await action.Invoke(serviceScope.ServiceProvider.GetRequiredService<TService>());
             }
         }
 

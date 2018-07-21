@@ -16,14 +16,6 @@ namespace Modix.Data.Models.Core
         public long Id { get; set; }
 
         /// <summary>
-        /// A timestamp indictating when this User was created.
-        /// Note that this is NOT the timestamp for when the user's account was created within the Discord API.
-        /// It exists mainly auditing purposes within this application.
-        /// </summary>
-        [Required]
-        public DateTimeOffset Created { get; set; }
-
-        /// <summary>
         /// The "username" value of this user, within the Discord API.
         /// </summary>
         [Required]
