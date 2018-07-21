@@ -1,32 +1,34 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Modix.Data.Models.Core;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Modix.Services;
-using Modix.Services.AutoCodePaste;
+using Modix.Data;
+using Modix.Data.Models.Core;
 using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
-using Modix.Services.Core;
 using Modix.Services.GuildInfo;
+using Modix.Data.Repositories;
+using Modix.Handlers;
+using Modix.Services;
+using Modix.Services.AutoCodePaste;
+using Modix.Services.BehaviourConfiguration;
+using Modix.Services.Core;
+using Modix.Services.DocsMaster;
+using Modix.Services.FileUpload;
 using Modix.Services.Moderation;
 using Modix.Services.Quote;
 using Modix.WebServer;
 using Serilog;
-using Modix.Data.Repositories;
-using Modix.Handlers;
-using Modix.Services.BehaviourConfiguration;
 
 namespace Modix
 {
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.EntityFrameworkCore;
-    using Modix.Data;
-    using Services.FileUpload;
     using Services.Promotions;
 
     public sealed class ModixBot
@@ -163,6 +165,7 @@ namespace Modix
             _map.AddSingleton<IDiscordClient>(_client);
             _map.AddSingleton(_config);
             _map.AddSingleton(_commands);
+            _map.AddSingleton<HttpClient>();
 
             _map.AddModixCore()
                 .AddModixModeration();
@@ -171,6 +174,7 @@ namespace Modix
             _map.AddSingleton<CodePasteHandler>();
             _map.AddSingleton<FileUploadHandler>();
             _map.AddSingleton<CodePasteService>();
+            _map.AddScoped<DocsMasterRetrievalService>();
             _map.AddMemoryCache();
 
             _map.AddSingleton<GuildInfoService>();
