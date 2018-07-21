@@ -7,7 +7,9 @@ using Modix.Services.AutoCodePaste;
 using Modix.Services.FileUpload;
 using Modix.Services.GuildInfo;
 using System;
+using Modix.Handlers;
 using Microsoft.Extensions.DependencyInjection;
+using Modix.Services.BehaviourConfiguration;
 using Modix.Services.CommandHelp;
 
 namespace Modix
@@ -87,17 +89,23 @@ namespace Modix
             }
         }
 
-        public async Task HandleMessage(SocketMessage messageParam)
+        public async Task HandleMessage(SocketMessage message)
         {
-            if (messageParam is SocketUserMessage userMessage &&
-                userMessage.Author is SocketGuildUser _ &&
-                messageParam.Attachments.Any())
+            if (!(message is SocketUserMessage userMessage) || !(userMessage.Author is SocketGuildUser || userMessage.Author.IsBot))
+                return;
+
+            using (var scope = ServiceProvider.CreateScope())
             {
-                using (var scope = ServiceProvider.CreateScope())
+                var inviteLinkHandler = scope.ServiceProvider.GetRequiredService<InviteLinkHandler>();
+
+                if (await inviteLinkHandler.PurgeInviteLink(message))
+                    return;
+
+                if (message.Attachments.Any())
                 {
                     var fileUploadHandler = scope.ServiceProvider.GetRequiredService<FileUploadHandler>();
 
-                    await fileUploadHandler.Handle(messageParam);
+                    await fileUploadHandler.Handle(message);
                 }
             }
         }

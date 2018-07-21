@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Modix.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -9,9 +10,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    partial class ModixContextModelSnapshot : ModelSnapshot
+    [Migration("20180719181318_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -38,13 +40,34 @@ namespace Modix.Data.Migrations
                     b.ToTable("BehaviourConfigurations");
                 });
 
-            modelBuilder.Entity("Modix.Data.Models.Core.ClaimMappingEntity", b =>
+            modelBuilder.Entity("Modix.Data.Models.Core.ConfigurationActionEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<string>("Claim")
-                        .IsRequired();
+                    b.Property<DateTimeOffset>("Created");
+
+                    b.Property<long>("CreatedById");
+
+                    b.Property<long?>("RoleClaimId");
+
+                    b.Property<int>("Type");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("RoleClaimId");
+
+                    b.ToTable("ConfigurationActions");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Core.RoleClaimEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<int>("Claim");
 
                     b.Property<long>("CreateActionId");
 
@@ -52,12 +75,7 @@ namespace Modix.Data.Migrations
 
                     b.Property<long?>("RescindActionId");
 
-                    b.Property<long?>("RoleId");
-
-                    b.Property<string>("Type")
-                        .IsRequired();
-
-                    b.Property<long?>("UserId");
+                    b.Property<long>("RoleId");
 
                     b.HasKey("Id");
 
@@ -67,36 +85,15 @@ namespace Modix.Data.Migrations
                     b.HasIndex("RescindActionId")
                         .IsUnique();
 
-                    b.ToTable("ClaimMappings");
-                });
-
-            modelBuilder.Entity("Modix.Data.Models.Core.ConfigurationActionEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<long?>("ClaimMappingId");
-
-                    b.Property<DateTimeOffset>("Created");
-
-                    b.Property<long>("CreatedById");
-
-                    b.Property<string>("Type")
-                        .IsRequired();
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClaimMappingId");
-
-                    b.HasIndex("CreatedById");
-
-                    b.ToTable("ConfigurationActions");
+                    b.ToTable("RoleClaims");
                 });
 
             modelBuilder.Entity("Modix.Data.Models.Core.UserEntity", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
+
+                    b.Property<DateTimeOffset>("Created");
 
                     b.Property<string>("Discriminator")
                         .IsRequired();
@@ -130,8 +127,7 @@ namespace Modix.Data.Migrations
 
                     b.Property<long>("SubjectId");
 
-                    b.Property<string>("Type")
-                        .IsRequired();
+                    b.Property<int>("Type");
 
                     b.HasKey("Id");
 
@@ -160,8 +156,7 @@ namespace Modix.Data.Migrations
                     b.Property<string>("Reason")
                         .IsRequired();
 
-                    b.Property<string>("Type")
-                        .IsRequired();
+                    b.Property<int>("Type");
 
                     b.HasKey("Id");
 
@@ -224,28 +219,28 @@ namespace Modix.Data.Migrations
                     b.ToTable("PromotionComments");
                 });
 
-            modelBuilder.Entity("Modix.Data.Models.Core.ClaimMappingEntity", b =>
-                {
-                    b.HasOne("Modix.Data.Models.Core.ConfigurationActionEntity", "CreateAction")
-                        .WithOne("CreatedClaimMapping")
-                        .HasForeignKey("Modix.Data.Models.Core.ClaimMappingEntity", "CreateActionId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("Modix.Data.Models.Core.ConfigurationActionEntity", "RescindAction")
-                        .WithOne("RescindedClaimMapping")
-                        .HasForeignKey("Modix.Data.Models.Core.ClaimMappingEntity", "RescindActionId");
-                });
-
             modelBuilder.Entity("Modix.Data.Models.Core.ConfigurationActionEntity", b =>
                 {
-                    b.HasOne("Modix.Data.Models.Core.ClaimMappingEntity", "ClaimMapping")
-                        .WithMany()
-                        .HasForeignKey("ClaimMappingId");
-
                     b.HasOne("Modix.Data.Models.Core.UserEntity", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Modix.Data.Models.Core.RoleClaimEntity", "RoleClaim")
+                        .WithMany()
+                        .HasForeignKey("RoleClaimId");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Core.RoleClaimEntity", b =>
+                {
+                    b.HasOne("Modix.Data.Models.Core.ConfigurationActionEntity", "CreateAction")
+                        .WithOne("CreatedRoleClaim")
+                        .HasForeignKey("Modix.Data.Models.Core.RoleClaimEntity", "CreateActionId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Modix.Data.Models.Core.ConfigurationActionEntity", "RescindAction")
+                        .WithOne("RescindedRoleClaim")
+                        .HasForeignKey("Modix.Data.Models.Core.RoleClaimEntity", "RescindActionId");
                 });
 
             modelBuilder.Entity("Modix.Data.Models.Moderation.InfractionEntity", b =>

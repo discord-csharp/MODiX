@@ -1,0 +1,9 @@
+.git
+.vs
+.vscode
+bin
+obj
+readme.md
+LICENSE
+.gitignore
+.gitattributes

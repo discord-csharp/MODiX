@@ -25,7 +25,7 @@ namespace Modix.Services.DocsMaster
 
         public async Task<ManualEntryModel> GetManualEntryFromVersion(string manualName, string entryName, string version)
         {
-            var result = await _client.GetAsync($"http://localhost:8080/ManualEntry/{manualName}/{entryName}/{version}");
+            var result = await _client.GetAsync($"http://docsmaster.net/ManualEntry/{manualName}/{entryName}/{version}");
             return JsonConvert.DeserializeObject<ManualEntryModel>(await result.Content.ReadAsStringAsync());
         }
 

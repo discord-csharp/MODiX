@@ -1,38 +1,44 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Modix.Data.Models.Core;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Modix.Services;
-using Modix.Services.AutoCodePaste;
+using Modix.Data;
+using Modix.Data.Models.Core;
 using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
-using Modix.Services.Core;
 using Modix.Services.GuildInfo;
+using Modix.Data.Repositories;
+using Modix.Handlers;
+using Modix.Services;
+using Modix.Services.AutoCodePaste;
+using Modix.Services.BehaviourConfiguration;
+using Modix.Services.Core;
+using Modix.Services.DocsMaster;
+using Modix.Services.FileUpload;
 using Modix.Services.Moderation;
 using Modix.Services.Quote;
 using Modix.WebServer;
 using Serilog;
-using System.Net.Http;
-using Modix.Services.DocsMaster;
 
 namespace Modix
 {
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.EntityFrameworkCore;
-    using Modix.Data;
-    using Services.FileUpload;
     using Services.Promotions;
 
     public sealed class ModixBot
     {
         private readonly CommandService _commands = new CommandService(new CommandServiceConfig
         {
-            LogLevel = LogSeverity.Debug
+            LogLevel = LogSeverity.Debug,
+            DefaultRunMode = RunMode.Sync,
+            CaseSensitiveCommands = false,
+            SeparatorChar = ' '
         });
 
         private DiscordSocketClient _client;
@@ -56,6 +62,7 @@ namespace Modix
             });
 
             await Install(); // Setting up DependencyMap
+
             _map.AddDbContext<ModixContext>(options =>
             {
                 options.UseNpgsql(_config.PostgreConnectionString);
@@ -63,22 +70,22 @@ namespace Modix
 
             _host = ModixWebServer.BuildWebHost(_map, _config);
 
-            //disable until we migrate to Xero's host.
-            //#if !DEBUG
-
-            //#endif
-
             _scope = _host.Services.CreateScope();
 
-            using (var context = _scope.ServiceProvider.GetService<ModixContext>())
-            {
-                context.Database.Migrate();
-            }
+//            using (var context = _scope.ServiceProvider.GetService<ModixContext>())
+//            {
+//                context.Database.Migrate();
+//            }
 
             _hooks.ServiceProvider = _scope.ServiceProvider;
-
             foreach (var behavior in _scope.ServiceProvider.GetServices<IBehavior>())
                 await behavior.StartAsync();
+
+
+            //var configurationService = _scope.ServiceProvider.GetRequiredService<IBehaviourConfigurationService>();
+
+            // Cache the behaviour configuration
+            //await configurationService.LoadBehaviourConfiguration();
 
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
@@ -93,7 +100,7 @@ namespace Modix
             await _client.SetGameAsync("https://mod.gg/");
 
             //Start the webserver, but unbind the event in case discord.net reconnects
-            await  _host.StartAsync();
+            await _host.StartAsync();
             _client.Ready -= StartWebserver;
         }
 
@@ -112,39 +119,44 @@ namespace Modix
             if (message.Content.Length <= 1)
                 return;
 
-            var context = new CommandContext(_client, message);
-
-            using (var scope = _scope.ServiceProvider.CreateScope())
+            // because RunMode.Async will cause an object disposed exception due to an implementation bug in discord.net. All commands must be RunMode.Sync.
+            Task.Run(async () =>
             {
-                var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
+                var context = new CommandContext(_client, message);
 
-                if (!result.IsSuccess)
+                using (var scope = _scope.ServiceProvider.CreateScope())
                 {
-                    string error = $"{result.Error}: {result.ErrorReason}";
+                    var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
 
-                    if (!string.Equals(result.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
+                    if (!result.IsSuccess)
                     {
-                        Log.Warning(error);
-                    }
-                    else
-                    {
-                        Log.Error(error);
-                    }
+                        string error = $"{result.Error}: {result.ErrorReason}";
 
-                    if (result.Error != CommandError.Exception)
-                    {
-                        var handler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
-                        await handler.AssociateError(message, error);
-                    }
-                    else
-                    {
-                        await context.Channel.SendMessageAsync("Error: " + error);
+                        if (!string.Equals(result.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
+                        {
+                            Log.Warning(error);
+                        }
+                        else
+                        {
+                            Log.Error(error);
+                        }
+
+                        if (result.Error != CommandError.Exception)
+                        {
+                            var handler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
+                            await handler.AssociateError(message, error);
+                        }
+                        else
+                        {
+                            await context.Channel.SendMessageAsync("Error: " + error);
+                        }
                     }
                 }
-            }
 
-            stopwatch.Stop();
-            Log.Information($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
+                stopwatch.Stop();
+                Log.Information($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
+            });
+            await Task.CompletedTask;
         }
 
         public async Task Install()
@@ -162,7 +174,7 @@ namespace Modix
             _map.AddSingleton<CodePasteHandler>();
             _map.AddSingleton<FileUploadHandler>();
             _map.AddSingleton<CodePasteService>();
-            _map.AddTransient<DocsMasterRetrievalService>();
+            _map.AddScoped<DocsMasterRetrievalService>();
             _map.AddMemoryCache();
 
             _map.AddSingleton<GuildInfoService>();
@@ -173,6 +185,10 @@ namespace Modix
             _map.AddSingleton<IPromotionRepository, DBPromotionRepository>();
 
             _map.AddSingleton<CommandErrorHandler>();
+            _map.AddSingleton<InviteLinkHandler>();
+            _map.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
+            _map.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
+            _map.AddSingleton<IBehaviourConfiguration, Services.BehaviourConfiguration.BehaviourConfiguration>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;

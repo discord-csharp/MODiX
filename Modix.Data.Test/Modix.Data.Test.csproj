@@ -2,9 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-
     <IsPackable>false</IsPackable>
-
+    <IsPublishable>false</IsPublishable>
     <Configurations>Debug</Configurations>
   </PropertyGroup>
 
