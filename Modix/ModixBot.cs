@@ -33,7 +33,10 @@ namespace Modix
     {
         private readonly CommandService _commands = new CommandService(new CommandServiceConfig
         {
-            LogLevel = LogSeverity.Debug
+            LogLevel = LogSeverity.Debug,
+            DefaultRunMode = RunMode.Sync,
+            CaseSensitiveCommands = false,
+            SeparatorChar = ' '
         });
 
         private DiscordSocketClient _client;
@@ -95,7 +98,7 @@ namespace Modix
             await _client.SetGameAsync("https://mod.gg/");
 
             //Start the webserver, but unbind the event in case discord.net reconnects
-            await  _host.StartAsync();
+            await _host.StartAsync();
             _client.Ready -= StartWebserver;
         }
 
@@ -114,39 +117,44 @@ namespace Modix
             if (message.Content.Length <= 1)
                 return;
 
-            var context = new CommandContext(_client, message);
-
-            using (var scope = _scope.ServiceProvider.CreateScope())
+            // because RunMode.Async will cause an object disposed exception due to an implementation bug in discord.net. All commands must be RunMode.Sync.
+            Task.Run(async () =>
             {
-                var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
+                var context = new CommandContext(_client, message);
 
-                if (!result.IsSuccess)
+                using (var scope = _scope.ServiceProvider.CreateScope())
                 {
-                    string error = $"{result.Error}: {result.ErrorReason}";
+                    var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
 
-                    if (!string.Equals(result.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
+                    if (!result.IsSuccess)
                     {
-                        Log.Warning(error);
-                    }
-                    else
-                    {
-                        Log.Error(error);
-                    }
+                        string error = $"{result.Error}: {result.ErrorReason}";
 
-                    if (result.Error != CommandError.Exception)
-                    {
-                        var handler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
-                        await handler.AssociateError(message, error);
-                    }
-                    else
-                    {
-                        await context.Channel.SendMessageAsync("Error: " + error);
+                        if (!string.Equals(result.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
+                        {
+                            Log.Warning(error);
+                        }
+                        else
+                        {
+                            Log.Error(error);
+                        }
+
+                        if (result.Error != CommandError.Exception)
+                        {
+                            var handler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
+                            await handler.AssociateError(message, error);
+                        }
+                        else
+                        {
+                            await context.Channel.SendMessageAsync("Error: " + error);
+                        }
                     }
                 }
-            }
 
-            stopwatch.Stop();
-            Log.Information($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
+                stopwatch.Stop();
+                Log.Information($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
+            });
+            await Task.CompletedTask;
         }
 
         public async Task Install()

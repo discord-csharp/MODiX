@@ -42,7 +42,7 @@ namespace Modix.Modules
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", config.ReplToken);
         }
 
-        [Command("exec", RunMode = RunMode.Async), Alias("eval"), Summary("Executes the given C# code and returns the result")]
+        [Command("exec", RunMode = RunMode.Sync), Alias("eval"), Summary("Executes the given C# code and returns the result")]
         public async Task ReplInvoke([Remainder] string code)
         {
             if (!(Context.Channel is SocketGuildChannel))
