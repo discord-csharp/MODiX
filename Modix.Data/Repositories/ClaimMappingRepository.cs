@@ -23,33 +23,28 @@ namespace Modix.Data.Repositories
             : base(modixContext) { }
 
         /// <inheritdoc />
-        public async Task<long> CreateAsync(ClaimMappingCreationData data)
+        public async Task<long?> TryCreateAsync(ClaimMappingCreationData data, ClaimMappingSearchCriteria criteria = null)
         {
-            using (await _createLock.LockAsync())
-            {
-                return await DoCreateAsync(data);
-            }
-        }
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
 
-        /// <inheritdoc />
-        public async Task<long?> TryCreateAsync(ClaimMappingCreationData data)
-        {
             using (await _createLock.LockAsync())
             {
-                if (await ModixContext.ClaimMappings.AsNoTracking()
-                    .FilterClaimMappingsBy(new ClaimMappingSearchCriteria()
-                    {
-                        Types = new [] { data.Type },
-                        GuildId = data.GuildId,
-                        RoleIds = (data.RoleId == null) ? null : new [] { data.RoleId.Value },
-                        UserId = data.UserId,
-                        Claims = new [] { data.Claim },
-                        IsRescinded = false
-                    })
-                    .AnyAsync())
+                if ((criteria != null) && await ModixContext.ClaimMappings.AsNoTracking()
+                    .FilterClaimMappingsBy(criteria).AnyAsync())
+                {
                     return null;
+                }
 
-                return await DoCreateAsync(data);
+                var entity = data.ToEntity();
+
+                await ModixContext.ClaimMappings.AddAsync(entity);
+                await ModixContext.SaveChangesAsync();
+
+                entity.CreateAction.ClaimMappingId = entity.Id;
+                await ModixContext.SaveChangesAsync();
+
+                return entity.Id;
             }
         }
 
@@ -110,22 +105,6 @@ namespace Modix.Data.Repositories
             await ModixContext.SaveChangesAsync();
 
             return true;
-        }
-
-        private async Task<long> DoCreateAsync(ClaimMappingCreationData data)
-        {
-            if (data == null)
-                throw new ArgumentNullException(nameof(data));
-
-            var entity = data.ToEntity();
-
-            await ModixContext.ClaimMappings.AddAsync(entity);
-            await ModixContext.SaveChangesAsync();
-
-            entity.CreateAction.ClaimMappingId = entity.Id;
-            await ModixContext.SaveChangesAsync();
-
-            return entity.Id;
         }
 
         private static readonly AsyncLock _createLock

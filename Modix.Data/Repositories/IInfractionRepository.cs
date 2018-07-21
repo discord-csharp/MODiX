@@ -21,7 +21,7 @@ namespace Modix.Data.Repositories
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing the auto-generated <see cref="InfractionEntity.Id"/> value assigned to the new infraction,
-        /// or null any existing infractions were found by <paramref name="criteria"/>.
+        /// or null if any existing infractions were found by <paramref name="criteria"/>.
         /// </returns>
         Task<long?> TryCreateAsync(InfractionCreationData data, InfractionSearchCriteria criteria = null);
 
