@@ -100,6 +100,13 @@ namespace Modix.Services.Moderation
             var guild = await GuildService.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
             var subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
 
+            if (reason == null)
+                throw new ArgumentNullException(nameof(reason));
+
+            if (((type == InfractionType.Notice) || (type == InfractionType.Warning))
+                && string.IsNullOrWhiteSpace(reason))
+                throw new InvalidOperationException($"{type.ToString()} infractions require a reason to be given");
+
             var criteria = ((type != InfractionType.Mute) && (type != InfractionType.Ban))
                 ? null
                 : new InfractionSearchCriteria()
