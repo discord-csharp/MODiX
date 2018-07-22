@@ -33,7 +33,7 @@ namespace Modix.Modules
             // TODO: We shouldn't need to do this once claims are working
             if (!IsStaff(user) && !IsOperator(user))
             {
-                await ReplyAsync($"I'm sorry, @{user.Nickname}, I'm afraid I can't do that.");
+                await ReplyAsync($"I'm sorry, {user.Mention}, I'm afraid I can't do that.");
                 return;
             }
 
