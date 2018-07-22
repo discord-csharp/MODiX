@@ -31,43 +31,49 @@ namespace Modix.Data.Repositories
 
             var createLock = await _createLock.LockAsync();
 
-            var entity = await ModixContext.Users
-                .SingleOrDefaultAsync(x => x.Id == longUserId);
+            try
+            {
+                var entity = await ModixContext.Users
+                    .SingleOrDefaultAsync(x => x.Id == longUserId);
 
-            if (entity != null)
-            {
-                createLock.Dispose();
-                createLock = null;
-            }
-            else
-            {
-                entity = new UserEntity()
+                if (entity != null)
                 {
-                    Id = longUserId,
-                    FirstSeen = DateTimeOffset.Now
-                };
+                    createLock.Dispose();
+                    createLock = null;
+                }
+                else
+                {
+                    entity = new UserEntity()
+                    {
+                        Id = longUserId,
+                        FirstSeen = DateTimeOffset.Now
+                    };
 
-                await ModixContext.Users.AddAsync(entity);
+                    await ModixContext.Users.AddAsync(entity);
+                }
+
+                var mutation = UserMutationData.FromEntity(entity);
+                updateAction.Invoke(mutation);
+                mutation.ApplyTo(entity);
+
+                entity.LastSeen = DateTimeOffset.Now;
+
+                if (createLock == null)
+                {
+                    ModixContext.UpdateProperty(entity, x => x.Username);
+                    ModixContext.UpdateProperty(entity, x => x.Discriminator);
+                    ModixContext.UpdateProperty(entity, x => x.Nickname);
+                    ModixContext.UpdateProperty(entity, x => x.LastSeen);
+                }
+
+                await ModixContext.SaveChangesAsync();
+
             }
-
-            var mutation = UserMutationData.FromEntity(entity);
-            updateAction.Invoke(mutation);
-            mutation.ApplyTo(entity);
-
-            entity.LastSeen = DateTimeOffset.Now;
-
-            if(createLock == null)
+            finally
             {
-                ModixContext.UpdateProperty(entity, x => x.Username);
-                ModixContext.UpdateProperty(entity, x => x.Discriminator);
-                ModixContext.UpdateProperty(entity, x => x.Nickname);
-                ModixContext.UpdateProperty(entity, x => x.LastSeen);
+                if (createLock != null)
+                    createLock.Dispose();
             }
-
-            await ModixContext.SaveChangesAsync();
-
-            if (createLock != null)
-                createLock.Dispose();
         }
 
         public Task<UserSummary> ReadAsync(ulong userId)

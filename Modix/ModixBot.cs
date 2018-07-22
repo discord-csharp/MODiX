@@ -1,34 +1,36 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Modix.Data.Models.Core;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Modix.Data;
+using Modix.Data.Models.Core;
+using Modix.Data.Repositories;
+using Modix.Handlers;
 using Modix.Services;
 using Modix.Services.AutoCodePaste;
+using Modix.Services.BehaviourConfiguration;
 using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
+using Modix.Services.DocsMaster;
+using Modix.Services.FileUpload;
 using Modix.Services.GuildInfo;
 using Modix.Services.Moderation;
+using Modix.Services.Promotions;
 using Modix.Services.Quote;
 using Modix.WebServer;
 using Serilog;
-using Modix.Data.Repositories;
-using Modix.Handlers;
-using Modix.Services.BehaviourConfiguration;
 
 namespace Modix
 {
-    using Microsoft.AspNetCore.Hosting;
-    using Microsoft.EntityFrameworkCore;
-    using Modix.Data;
-    using Services.FileUpload;
-    using Services.Promotions;
-
     public sealed class ModixBot
     {
         private readonly CommandService _commands = new CommandService(new CommandServiceConfig
@@ -42,14 +44,14 @@ namespace Modix
         private DiscordSocketClient _client;
         private readonly IServiceCollection _map = new ServiceCollection();
         private IServiceScope _scope;
-        private ModixBotHooks _hooks = new ModixBotHooks();
+        private readonly ModixBotHooks _hooks = new ModixBotHooks();
         private readonly ModixConfig _config;
         private IWebHost _host;
 
-        public ModixBot(ModixConfig config, ILogger logger)
+        public ModixBot(ModixConfig config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            _map.AddLogging(bldr => bldr.AddSerilog(logger ?? Log.Logger));
+            _map.AddLogging(bldr => bldr.AddSerilog());
         }
 
         public async Task Run()
@@ -118,17 +120,17 @@ namespace Modix
                 return;
 
             // because RunMode.Async will cause an object disposed exception due to an implementation bug in discord.net. All commands must be RunMode.Sync.
+#pragma warning disable CS4014
             Task.Run(async () =>
             {
                 var context = new CommandContext(_client, message);
 
                 using (var scope = _scope.ServiceProvider.CreateScope())
                 {
-                    await scope.ServiceProvider
-                        .GetRequiredService<IAuthorizationService>()
+                    await scope.ServiceProvider.GetRequiredService<IAuthorizationService>()
                         .OnAuthenticatedAsync(
                             context.Guild.Id,
-                            (context.User as IGuildUser).RoleIds,
+                            (context.User as IGuildUser)?.RoleIds ?? Array.Empty<ulong>(),
                             context.User.Id);
 
                     var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
@@ -161,6 +163,8 @@ namespace Modix
                 stopwatch.Stop();
                 Log.Information($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
             });
+#pragma warning restore CS4014
+
             await Task.CompletedTask;
         }
 
@@ -170,6 +174,7 @@ namespace Modix
             _map.AddSingleton<IDiscordClient>(_client);
             _map.AddSingleton(_config);
             _map.AddSingleton(_commands);
+            _map.AddSingleton<HttpClient>();
 
             _map.AddModixCore()
                 .AddModixModeration();
@@ -178,6 +183,7 @@ namespace Modix
             _map.AddSingleton<CodePasteHandler>();
             _map.AddSingleton<FileUploadHandler>();
             _map.AddSingleton<CodePasteService>();
+            _map.AddScoped<DocsMasterRetrievalService>();
             _map.AddMemoryCache();
 
             _map.AddSingleton<GuildInfoService>();
@@ -191,7 +197,7 @@ namespace Modix
             _map.AddSingleton<InviteLinkHandler>();
             _map.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
             _map.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
-            _map.AddSingleton<IBehaviourConfiguration, Services.BehaviourConfiguration.BehaviourConfiguration>();
+            _map.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;
