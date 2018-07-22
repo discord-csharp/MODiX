@@ -29,7 +29,7 @@ namespace Modix.Services.Moderation
         Task AutoConfigureChannelAsync(IChannel channel);
 
         /// <summary>
-        /// Reverses operations performed by <see cref="AutoConfigureGuldAsync(IGuild)"/>.
+        /// Removes all moderation configuration settings for a guild, by rescinding all of its <see cref="ModerationConfigEntity"/> entries.
         /// </summary>
         /// <param name="guild">The guild to be un-configured.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has complete.</returns>
@@ -46,12 +46,19 @@ namespace Modix.Services.Moderation
         Task CreateInfractionAsync(InfractionType type, ulong subjectId, string reason, TimeSpan? duration);
 
         /// <summary>
-        /// Marks an existing infraction as rescinded, and logs an associated moderation action.
+        /// Marks an existing, active, infraction of a given type, upon a given user, as rescinded.
+        /// </summary>
+        /// <param name="type">The <see cref="InfractionEntity.Type"/> value of the infraction to be rescinded.</param>
+        /// <param name="subjectId">The <see cref="InfractionEntity.SubjectId"/> value of the infraction to be rescinded.</param>
+        /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
+        Task RescindInfractionAsync(InfractionType type, ulong subjectId);
+
+        /// <summary>
+        /// Marks an existing infraction as rescinded, based on its ID.
         /// </summary>
         /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be rescinded.</param>
-        /// <param name="reason">The value to use for <see cref="ModerationActionEntity.Reason"/>.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
-        Task RescindInfractionAsync(long infractionId, string reason);
+        Task RescindInfractionAsync(long infractionId);
 
         /// <summary>
         /// Retrieves a collection of infractions, based on a given set of criteria.
@@ -62,7 +69,7 @@ namespace Modix.Services.Moderation
         /// A <see cref="Task"/> which will complete when the operation has completed,
         /// containing the requested set of infractions.
         /// </returns>
-        Task<IReadOnlyCollection<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria criteria, IEnumerable<SortingCriteria> sortingCriterias);
+        Task<IReadOnlyCollection<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria criteria, IEnumerable<SortingCriteria> sortingCriterias = null);
 
         /// <summary>
         /// Retrieves a collection of infractions, based on a given set of criteria, and returns a paged subset of the results, based on a given set of paging criteria.

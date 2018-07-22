@@ -45,7 +45,7 @@ namespace Modix.Services.Core
             foreach(var claim in Enum.GetValues(typeof(AuthorizationClaim)).Cast<AuthorizationClaim>())
             {
                 foreach(var role in guild.Roles.Where(x => x.Permissions.Administrator))
-                    await ClaimMappingRepository.CreateAsync(new ClaimMappingCreationData()
+                    await ClaimMappingRepository.TryCreateAsync(new ClaimMappingCreationData()
                     {
                         Type = ClaimMappingType.Granted,
                         GuildId = guild.Id,
@@ -55,7 +55,7 @@ namespace Modix.Services.Core
                         CreatedById = DiscordClient.CurrentUser.Id
                     });
 
-                await ClaimMappingRepository.CreateAsync(new ClaimMappingCreationData()
+                await ClaimMappingRepository.TryCreateAsync(new ClaimMappingCreationData()
                 {
                     Type = ClaimMappingType.Granted,
                     GuildId = guild.Id,

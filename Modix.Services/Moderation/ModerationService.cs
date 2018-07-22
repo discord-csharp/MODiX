@@ -93,77 +93,94 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         public async Task CreateInfractionAsync(InfractionType type, ulong subjectId, string reason, TimeSpan? duration)
         {
+            AuthorizationService.RequireAuthenticatedGuild();
+            AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(_createInfractionClaimsByType[type]);
 
+            var guild = await GuildService.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
+            var subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
+
+            var criteria = ((type != InfractionType.Mute) && (type != InfractionType.Ban))
+                ? null
+                : new InfractionSearchCriteria()
+                {
+                    GuildId = guild.Id,
+                    Types = new [] { type },
+                    SubjectId = subject.Id,
+                    IsExpired = false,
+                    IsRescinded = false,
+                };
+
+            var infractionId = await InfractionRepository.TryCreateAsync(
+                new InfractionCreationData()
+                {
+                    GuildId = guild.Id,
+                    Type = type,
+                    SubjectId = subjectId,
+                    Reason = reason,
+                    Duration = duration,
+                    CreatedById = AuthorizationService.CurrentUserId.Value
+                }, criteria);
+
+            if(infractionId == null)
+                throw new ArgumentNullException($"Discord user {subjectId} already has an active {type} infraction");
+
+            // TODO: Implement ModerationSyncBehavior to listen for mutes and bans that happen directly in Discord, instead of through bot commands,
+            // and to read the Discord Audit Log to check for mutes and bans that were missed during downtime, and add all such actions to
+            // the Infractions and ModerationActions repositories.
+            // Note that we'll need to upgrade to the latest Discord.NET version to get access to the audit log.
+
+            // Assuming that our Infractions repository is always correct, regarding the state of the Discord API.
             switch (type)
             {
                 case InfractionType.Mute:
-                    await DoDiscordMuteAsync(subjectId);
+                    await subject.AddRoleAsync(
+                        await GetOrCreateMuteRoleAsync(guild));
                     break;
 
                 case InfractionType.Ban:
-                    await DoDiscordBanAsync(subjectId);
+                    await guild.AddBanAsync(subject, reason: reason);
                     break;
             }
             
-            var actionId = await ModerationActionRepository.CreateAsync(new ModerationActionCreationData()
-            {
-                Type = ModerationActionType.InfractionCreated,
-                CreatedById = AuthorizationService.CurrentUserId.Value,
-                Reason = reason
-            });
-
-            var infractionId = await InfractionRepository.CreateAsync(new InfractionCreationData()
-            {
-                Type = type,
-                SubjectId = subjectId,
-                Duration = duration,
-                CreateActionId = actionId
-            });
-
-            await ModerationActionRepository.UpdateAsync(actionId, data =>
-            {
-                data.InfractionId = infractionId;
-            });
-
             // TODO: Log action to a channel, pulled from IModerationConfigRepository. 
             
             // TODO: Implement InfractionAutoExpirationBehavior (or whatever) to automatically rescind infractions, based on Duration, and notify it here that a new infraction has been created, if it has a duration.
         }
 
         /// <inheritdoc />
-        public async Task RescindInfractionAsync(long infractionId, string reason)
+        public async Task RescindInfractionAsync(long infractionId)
         {
+            AuthorizationService.RequireAuthenticatedGuild();
+            AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
 
-            var infraction = await InfractionRepository.ReadAsync(infractionId);
-            if (infraction == null)
-                throw new ArgumentException("Infraction does not exist", nameof(infractionId));
-
-            switch (infraction.Type)
-            {
-                case InfractionType.Mute:
-                    await DoDiscordUnMuteAsync(infraction.Subject.Id);
-                    break;
-
-                case InfractionType.Ban:
-                    await DoDiscordUnBanAsync(infraction.Subject.Id);
-                    break;
-            }
-
-            var actionId = await ModerationActionRepository.CreateAsync(new ModerationActionCreationData()
-            {
-                Type = ModerationActionType.InfractionRescinded,
-                CreatedById = AuthorizationService.CurrentUserId.Value,
-                Reason = reason,
-                InfractionId = infractionId
-            });
-
-            // TODO: Log action to a channel, pulled from IModerationConfigRepository. 
+            await DoRescindInfractionAsync(
+                await InfractionRepository.ReadAsync(infractionId));
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria)
+        public async Task RescindInfractionAsync(InfractionType type, ulong subjectId)
+        {
+            AuthorizationService.RequireAuthenticatedGuild();
+            AuthorizationService.RequireAuthenticatedUser();
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
+
+            await DoRescindInfractionAsync(
+                (await InfractionRepository.SearchSummariesAsync(
+                    new InfractionSearchCriteria()
+                    {
+                        GuildId = AuthorizationService.CurrentGuildId.Value,
+                        Types = new [] { type },
+                        SubjectId = subjectId,
+                        IsExpired = false,
+                        IsRescinded = false
+                    }))
+                    .FirstOrDefault());
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null)
         {
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
 
@@ -252,62 +269,29 @@ namespace Modix.Services.Moderation
             //await channel.AddPermissionOverwriteAsync(muteRole, _mutePermissions);
         }
 
-        private async Task DoDiscordMuteAsync(ulong subjectId)
+        private async Task DoRescindInfractionAsync(InfractionSummary infraction)
         {
-            AuthorizationService.RequireAuthenticatedGuild();
-            AuthorizationService.RequireAuthenticatedUser();
+            if (infraction == null)
+                throw new InvalidOperationException("Infraction does not exist");
+
+            await InfractionRepository.TryRescindAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
 
             var guild = await GuildService.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
-            var muteRole = await GetOrCreateMuteRoleAsync(guild);
-            var subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
+            var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
 
-            if (subject.RoleIds.Contains(muteRole.Id))
-                throw new InvalidOperationException($"Discord user {subjectId} is already muted");
+            switch (infraction.Type)
+            {
+                case InfractionType.Mute:
+                    await subject.RemoveRoleAsync(
+                        await GetOrCreateMuteRoleAsync(guild));
+                    break;
 
-            await subject.AddRoleAsync(muteRole);
-        }
+                case InfractionType.Ban:
+                    await guild.RemoveBanAsync(subject);
+                    break;
+            }
 
-        private async Task DoDiscordUnMuteAsync(ulong subjectId)
-        {
-            AuthorizationService.RequireAuthenticatedGuild();
-            AuthorizationService.RequireAuthenticatedUser();
-
-            var guild = await GuildService.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
-            var muteRole = await GetOrCreateMuteRoleAsync(guild);
-            var subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
-
-            if (!subject.RoleIds.Contains(muteRole.Id))
-                throw new InvalidOperationException($"Discord user {subjectId} is not currently muted");
-
-            await subject.AddRoleAsync(muteRole);
-        }
-
-        private async Task DoDiscordBanAsync(ulong subjectId)
-        {
-            AuthorizationService.RequireAuthenticatedGuild();
-            AuthorizationService.RequireAuthenticatedUser();
-
-            var guild = await GuildService.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
-            var subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
-
-            if ((await guild.GetBansAsync()).Any(x => x.User.Id == subject.Id))
-                throw new InvalidOperationException($"Discord user {subjectId} is already banned");
-
-            await guild.AddBanAsync(subject);
-        }
-
-        private async Task DoDiscordUnBanAsync(ulong subjectId)
-        {
-            AuthorizationService.RequireAuthenticatedGuild();
-            AuthorizationService.RequireAuthenticatedUser();
-
-            var guild = await GuildService.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
-            var subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
-
-            if (!(await guild.GetBansAsync()).Any(x => x.User.Id == subject.Id))
-                throw new InvalidOperationException($"Discord user {subjectId} is not currently banned");
-
-            await guild.AddBanAsync(subject);
+            // TODO: Log action to a channel, pulled from IModerationConfigRepository. 
         }
 
         private async Task<IRole> GetOrCreateMuteRoleAsync(IGuild guild)

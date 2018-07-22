@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
@@ -67,6 +68,16 @@ namespace Modix.Data.Repositories
 
             if (createLock != null)
                 createLock.Dispose();
+        }
+
+        public Task<UserSummary> ReadAsync(ulong userId)
+        {
+            var longUserId = (long)userId;
+
+            return ModixContext.Users.AsNoTracking()
+                .Where(x => x.Id == longUserId)
+                .Select(UserSummary.FromEntityProjection)
+                .FirstOrDefaultAsync();
         }
 
         private static readonly AsyncLock _createLock

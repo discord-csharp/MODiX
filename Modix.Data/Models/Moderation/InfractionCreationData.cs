@@ -8,9 +8,19 @@ namespace Modix.Data.Models.Moderation
     public class InfractionCreationData
     {
         /// <summary>
+        /// See <see cref="InfractionEntity.GuildId"/>.
+        /// </summary>
+        public ulong GuildId { get; set; }
+
+        /// <summary>
         /// See <see cref="InfractionEntity.Type"/>.
         /// </summary>
         public InfractionType Type { get; set; }
+
+        /// <summary>
+        /// See <see cref="InfractionEntity.Reason"/>
+        /// </summary>
+        public string Reason { get; set; }
 
         /// <summary>
         /// See <see cref="InfractionEntity.Duration"/>.
@@ -23,17 +33,24 @@ namespace Modix.Data.Models.Moderation
         public ulong SubjectId { get; set; }
 
         /// <summary>
-        /// See <see cref="InfractionEntity.CreateActionId"/>.
+        /// See <see cref="ModerationActionEntity.CreatedById"/>.
         /// </summary>
-        public long CreateActionId { get; set; }
+        public ulong CreatedById { get; set; }
 
         internal InfractionEntity ToEntity()
             => new InfractionEntity()
             {
+                GuildId = (long)GuildId,
                 Type = Type,
+                Reason = Reason,
                 Duration = Duration,
                 SubjectId = (long)SubjectId,
-                CreateActionId = CreateActionId
+                CreateAction = new ModerationActionEntity()
+                {
+                    Type = ModerationActionType.InfractionCreated,
+                    Created = DateTimeOffset.Now,
+                    CreatedById = (long)CreatedById
+                }
             };
     }
 }
