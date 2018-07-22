@@ -25,7 +25,7 @@ namespace Modix.Modules
 
 
         [Command("search"), Summary("Search infractions for a user")]
-        public async Task SearchInfractionsByUserId(ulong userId)
+        public async Task SearchInfractionsByUserId(IGuildUser guildUser)
         {
             var user = Context.User as SocketGuildUser;
 
@@ -41,7 +41,7 @@ namespace Modix.Modules
                 var notes = await _moderationService.SearchInfractionsAsync(
                     new InfractionSearchCriteria
                     {
-                        SubjectId = userId
+                        SubjectId = user.Id
                     },
                     new[]
                     {
@@ -86,7 +86,7 @@ namespace Modix.Modules
             }
             catch (Exception e)
             {
-                Log.Error(e, $"NoteModule SearchNotesByUserId failed with the following userId: {userId}");
+                Log.Error(e, $"NoteModule SearchNotesByUserId failed with the following userId: {user.Id}");
                 await ReplyAsync("Error occurred and search could not be complete");
             }
         }
