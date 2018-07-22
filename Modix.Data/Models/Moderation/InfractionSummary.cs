@@ -54,10 +54,15 @@ namespace Modix.Data.Models.Moderation
         public ModerationActionBrief RescindAction { get; set; }
 
         /// <summary>
-        /// A flag indicating whether the infraction has expired, as defined by <see cref="Created"/>, <see cref="Duration"/>,
-        /// and the current system time.
+        /// The associated <see cref="ModerationActionEntity"/> from <see cref="InfractionEntity.ModerationActions"/>,
+        /// whose <see cref="ModerationActionEntity.Type"/> is <see cref="ModerationActionType.InfractionDeleted"/>.
         /// </summary>
-        public bool IsExpired { get; set; }
+        public ModerationActionBrief DeleteAction { get; set; }
+
+        /// <summary>
+        /// A timestamp indicating when (if at all) this infraction expires, and should be automatically rescinded.
+        /// </summary>
+        public DateTimeOffset? Expires { get; set; }
 
         /// <summary>
         /// Defines the sortable properties of an <see cref="InfractionSummary"/>
@@ -105,6 +110,10 @@ namespace Modix.Data.Models.Moderation
                     $"{nameof(CreateAction)}.{nameof(InfractionSummary.CreateAction.CreatedBy)}.{nameof(InfractionSummary.CreateAction.CreatedBy.Discriminator)}",
                     x => x.CreateAction.CreatedBy.Discriminator
                 },
+                {
+                    nameof(Expires),
+                    x => x.Expires
+                }
             };
 
         internal static Expression<Func<InfractionEntity, InfractionSummary>> FromEntityProjection { get; }
@@ -146,7 +155,19 @@ namespace Modix.Data.Models.Moderation
                         Nickname = entity.RescindAction.CreatedBy.Nickname
                     }
                 },
-                IsExpired = (entity.Duration.HasValue && ((entity.CreateAction.Created + entity.Duration.Value) > DateTime.Now))
+                DeleteAction = (entity.DeleteActionId == null) ? null : new ModerationActionBrief()
+                {
+                    Id = entity.DeleteAction.Id,
+                    Created = entity.DeleteAction.Created,
+                    CreatedBy = new UserIdentity()
+                    {
+                        Id = (ulong)entity.DeleteAction.CreatedBy.Id,
+                        Username = entity.DeleteAction.CreatedBy.Username,
+                        Discriminator = entity.DeleteAction.CreatedBy.Discriminator,
+                        Nickname = entity.DeleteAction.CreatedBy.Nickname
+                    }
+                },
+                Expires = (entity.Duration == null) ? null : new DateTimeOffset?(entity.CreateAction.Created + entity.Duration.Value)
             };
     }
 }

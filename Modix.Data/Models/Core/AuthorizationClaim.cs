@@ -28,6 +28,10 @@
         /// <summary>
         /// Authorizes a request to rescind an infraction upon a user.
         /// </summary>
-        ModerationRescind
+        ModerationRescind,
+        /// <summary>
+        /// Authorizes a request to delete an infraction upon a user.
+        /// </summary>
+        ModerationDelete
     }
 }

@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Modix.Data.Models;
+using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 
 namespace Modix.Data.Repositories
@@ -62,11 +62,21 @@ namespace Modix.Data.Repositories
         /// <summary>
         /// Marks an existing infraction as rescinded, based on its ID.
         /// </summary>
-        /// <param name="claimMappingId">The <see cref="ClaimMappingEntity.Id"/> value of the infraction to be rescinded.</param>
+        /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be rescinded.</param>
         /// <param name="rescindedById">The <see cref="UserEntity.Id"/> value of the user that is rescinding the infraction.</param>
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing a flag indicating whether the update was successful (I.E. whether the specified infraction could be found).
         /// </returns>
         Task<bool> TryRescindAsync(long infractionId, ulong rescindedById);
+
+        /// <summary>
+        /// Marks an existing infraction as deleted, based on its ID.
+        /// </summary>
+        /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be rescinded.</param>
+        /// <param name="deletedById">The <see cref="UserEntity.Id"/> value of the user that is rescinding the infraction.</param>
+        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing a flag indicating whether the update was successful (I.E. whether the specified infraction could be found).
+        /// </returns>
+        Task<bool> TryDeleteAsync(long infractionId, ulong deletedById);
     }
 }

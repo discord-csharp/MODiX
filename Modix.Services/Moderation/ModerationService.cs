@@ -107,8 +107,8 @@ namespace Modix.Services.Moderation
                     GuildId = guild.Id,
                     Types = new [] { type },
                     SubjectId = subject.Id,
-                    IsExpired = false,
                     IsRescinded = false,
+                    IsDeleted = false
                 };
 
             var infractionId = await InfractionRepository.TryCreateAsync(
@@ -149,17 +149,6 @@ namespace Modix.Services.Moderation
         }
 
         /// <inheritdoc />
-        public async Task RescindInfractionAsync(long infractionId)
-        {
-            AuthorizationService.RequireAuthenticatedGuild();
-            AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
-
-            await DoRescindInfractionAsync(
-                await InfractionRepository.ReadAsync(infractionId));
-        }
-
-        /// <inheritdoc />
         public async Task RescindInfractionAsync(InfractionType type, ulong subjectId)
         {
             AuthorizationService.RequireAuthenticatedGuild();
@@ -173,10 +162,52 @@ namespace Modix.Services.Moderation
                         GuildId = AuthorizationService.CurrentGuildId.Value,
                         Types = new [] { type },
                         SubjectId = subjectId,
-                        IsExpired = false,
-                        IsRescinded = false
+                        IsRescinded = false,
+                        IsDeleted = false,
                     }))
                     .FirstOrDefault());
+        }
+
+        /// <inheritdoc />
+        public async Task RescindInfractionAsync(long infractionId)
+        {
+            AuthorizationService.RequireAuthenticatedGuild();
+            AuthorizationService.RequireAuthenticatedUser();
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
+
+            await DoRescindInfractionAsync(
+                await InfractionRepository.ReadAsync(infractionId));
+        }
+
+        public async Task DeleteInfractionAsync(long infractionId)
+        {
+            AuthorizationService.RequireAuthenticatedGuild();
+            AuthorizationService.RequireAuthenticatedUser();
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationDelete);
+
+            var infraction = await InfractionRepository.ReadAsync(infractionId);
+
+            if (infraction == null)
+                throw new InvalidOperationException($"Infraction {infractionId} does not exist");
+
+            await InfractionRepository.TryDeleteAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
+
+            var guild = await GuildService.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
+            var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
+
+            switch (infraction.Type)
+            {
+                case InfractionType.Mute:
+                    await subject.RemoveRoleAsync(
+                        await GetOrCreateMuteRoleAsync(guild));
+                    break;
+
+                case InfractionType.Ban:
+                    await guild.RemoveBanAsync(subject);
+                    break;
+            }
+
+            // TODO: Log action to a channel, pulled from IModerationConfigRepository. 
         }
 
         /// <inheritdoc />

@@ -24,7 +24,6 @@ namespace Modix.Modules
             _moderationService = moderationService;
         }
 
-
         [Command("search"), Summary("Search infractions for a user")]
         public async Task SearchInfractionsByUserId(IGuildUser guildUser)
         {
@@ -91,6 +90,13 @@ namespace Modix.Modules
                 await ReplyAsync("Error occurred and search could not be complete");
             }
         }
+
+        [Command("delete")]
+        [Summary("Marks an infraction as deleted, so it no longer appears within infraction search results")]
+        public Task Delete(
+            [Summary("The ID value of the infraction to be deleted.")]
+                long infractionId)
+            => _moderationService.DeleteInfractionAsync(infractionId);
 
         private static bool IsOperator(SocketGuildUser user)
         {

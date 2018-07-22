@@ -32,7 +32,7 @@ namespace Modix.Data.Repositories
             using (await _createLock.LockAsync())
             {
                 if((criteria != null) && await ModixContext.Infractions.AsNoTracking()
-                    .SearchInfractionsBy(criteria).AnyAsync())
+                    .FilterInfractionsBy(criteria).AnyAsync())
                 {
                     return null;
                 }
@@ -59,14 +59,15 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<long>> SearchIdsAsync(InfractionSearchCriteria searchCriteria)
             => await ModixContext.Infractions.AsNoTracking()
-                .SearchInfractionsBy(searchCriteria)
+                .FilterInfractionsBy(searchCriteria)
                 .Select(x => x.Id)
                 .ToArrayAsync();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<InfractionSummary>> SearchSummariesAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null)
             => await ModixContext.Infractions.AsNoTracking()
-                .SearchInfractionsBy(searchCriteria)
+                .FilterInfractionsBy(searchCriteria)
+                .Select(InfractionSummary.FromEntityProjection)
                 .SortBy(sortingCriteria, InfractionSummary.SortablePropertyMap)
                 .ToArrayAsync();
 
@@ -76,9 +77,10 @@ namespace Modix.Data.Repositories
             var sourceQuery = ModixContext.Infractions.AsNoTracking();
 
             var filteredQuery = sourceQuery
-                .SearchInfractionsBy(searchCriteria);
+                .FilterInfractionsBy(searchCriteria);
 
             var pagedQuery = filteredQuery
+                .Select(InfractionSummary.FromEntityProjection)
                 .SortBy(sortingCriteria, InfractionSummary.SortablePropertyMap)
                 // Always sort by Id last, otherwise ordering of records with matching fields is not guaranteed by the DB
                 .OrderThenBy(x => x.Id, SortDirection.Ascending)
@@ -108,11 +110,33 @@ namespace Modix.Data.Repositories
             {
                 Type = ModerationActionType.InfractionRescinded,
                 Created = DateTimeOffset.Now,
-                CreatedById = longRescindedById
+                CreatedById = longRescindedById,
+                InfractionId = entity.Id
             };
             await ModixContext.SaveChangesAsync();
 
-            entity.RescindAction.InfractionId = entity.Id;
+            return true;
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> TryDeleteAsync(long infractionId, ulong deletedById)
+        {
+            var longDeletedById = (long)deletedById;
+
+            var entity = await ModixContext.Infractions
+                .Where(x => x.Id == infractionId)
+                .FirstOrDefaultAsync();
+
+            if ((entity == null) || (entity.DeleteActionId != null))
+                return false;
+
+            entity.DeleteAction = new ModerationActionEntity()
+            {
+                Type = ModerationActionType.InfractionDeleted,
+                Created = DateTimeOffset.Now,
+                CreatedById = longDeletedById,
+                InfractionId = entity.Id
+            };
             await ModixContext.SaveChangesAsync();
 
             return true;
@@ -124,7 +148,7 @@ namespace Modix.Data.Repositories
 
     internal static class InfractionQueryableExtensions
     {
-        public static IQueryable<InfractionSummary> SearchInfractionsBy(this IQueryable<InfractionEntity> query, InfractionSearchCriteria criteria)
+        public static IQueryable<InfractionEntity> FilterInfractionsBy(this IQueryable<InfractionEntity> query, InfractionSearchCriteria criteria)
         {
             var longGuildId = (long?)criteria?.GuildId;
             var longSubjectId = (long?)criteria?.SubjectId;
@@ -152,10 +176,15 @@ namespace Modix.Data.Repositories
                 .FilterBy(
                     x => (x.RescindActionId != null) == criteria.IsRescinded,
                     criteria?.IsRescinded != null)
-                .Select(InfractionSummary.FromEntityProjection)
                 .FilterBy(
-                    x => x.IsExpired == criteria.IsExpired,
-                    criteria?.IsExpired != null);
+                    x => (x.DeleteActionId != null) == criteria.IsDeleted,
+                    criteria?.IsDeleted != null)
+                .FilterBy(
+                    x => (x.Duration != null) && (x.CreateAction.Created + x.Duration.Value) >= criteria.CreatedRange.Value.From,
+                    criteria?.ExpiresRange?.From != null)
+                .FilterBy(
+                    x => (x.Duration != null) && (x.CreateAction.Created + x.Duration.Value) >= criteria.CreatedRange.Value.To,
+                    criteria?.ExpiresRange?.To != null);
         }
     }
 }

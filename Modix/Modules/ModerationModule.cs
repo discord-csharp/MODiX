@@ -55,7 +55,7 @@ namespace Modix.Modules
         public Task UnMute(
             [Summary("The user to be un-muted.")]
                 IGuildUser subject)
-            => throw new NotImplementedException();
+            => ModerationService.RescindInfractionAsync(InfractionType.Mute, subject.Id);
 
         [Command("ban")]
         [Summary("Ban a user from the current guild.")]
@@ -72,7 +72,7 @@ namespace Modix.Modules
         public Task UnBan(
             [Summary("The user to be un-banned.")]
                 IGuildUser subject)
-            => throw new NotImplementedException();
+            => ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.Id);
 
         internal protected IModerationService ModerationService { get; }
     }
