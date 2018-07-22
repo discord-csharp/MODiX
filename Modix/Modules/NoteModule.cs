@@ -1,19 +1,19 @@
-﻿namespace Modix.Modules
-{
-    using System;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
-    using Discord;
-    using Discord.Commands;
-    using Discord.WebSocket;
-    using Modix.Data.Models;
-    using Modix.Data.Models.Moderation;
-    using Modix.Services.Moderation;
-    using Serilog;
-    using Services.CommandHelp;
-    using Tababular;
+﻿using System;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
+using Modix.Data.Models;
+using Modix.Data.Models.Moderation;
+using Modix.Services.CommandHelp;
+using Modix.Services.Moderation;
+using Serilog;
+using Tababular;
 
+namespace Modix.Modules
+{
     [Group("note"), Name("Add/Remove/Search Admin notes"), HiddenFromHelp]
     public class NoteModule : ModuleBase
     {
