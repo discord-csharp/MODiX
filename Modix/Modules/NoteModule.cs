@@ -108,7 +108,6 @@
                 var sb = new StringBuilder();
                 var hints = new Hints { MaxTableWidth = 100 };
                 var formatter = new TableFormatter(hints);
-                sb.AppendLine("```");
 
                 var formattedNotes = notes.Select(note => new
                 {
@@ -120,9 +119,8 @@
                 }).ToList();
 
                 var text = formatter.FormatObjects(formattedNotes);
-                sb.Append(text);
 
-                sb.AppendLine("```");
+                sb.Append(Format.Code(text));
 
                 if (sb.ToString().Length <= 2000)
                 {
@@ -139,9 +137,7 @@
 
                 sb.Clear();
                 sb.AppendLine("Notes exceed the character limit. Search for an Id below to retrieve note details");
-                sb.AppendLine("```");
-                sb.Append(noteIds);
-                sb.AppendLine("```");
+                sb.Append(Format.Code(noteIds));
 
                 await ReplyAsync(sb.ToString());
             }
