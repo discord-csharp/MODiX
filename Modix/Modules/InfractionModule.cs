@@ -14,6 +14,7 @@ using Tababular;
 
 namespace Modix.Modules
 {
+    [Group("infraction")]
     public class InfractionModule : ModuleBase
     {
         private readonly IModerationService _moderationService;
@@ -25,7 +26,7 @@ namespace Modix.Modules
 
 
         [Command("search"), Summary("Search infractions for a user")]
-        public async Task SearchInfractionsByUserId(ulong userId)
+        public async Task SearchInfractionsByUserId(IGuildUser guildUser)
         {
             var user = Context.User as SocketGuildUser;
 
@@ -41,7 +42,7 @@ namespace Modix.Modules
                 var notes = await _moderationService.SearchInfractionsAsync(
                     new InfractionSearchCriteria
                     {
-                        SubjectId = userId
+                        SubjectId = user.Id
                     },
                     new[]
                     {
@@ -79,14 +80,14 @@ namespace Modix.Modules
                 var noteIds = formatter.FormatObjects(formattedNoteIds);
 
                 sb.Clear();
-                sb.AppendLine("Notes exceed the character limit. Search for an Id below to retrieve note details");
+                sb.AppendLine("Message exceeds the character limit. Search for an Id below to retrieve note details");
                 sb.Append(Format.Code(noteIds));
 
                 await ReplyAsync(sb.ToString());
             }
             catch (Exception e)
             {
-                Log.Error(e, $"NoteModule SearchNotesByUserId failed with the following userId: {userId}");
+                Log.Error(e, $"{nameof(InfractionModule)} SearchNotesByUserId failed with the following userId: {user.Id}");
                 await ReplyAsync("Error occurred and search could not be complete");
             }
         }
