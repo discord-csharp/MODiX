@@ -1,37 +1,34 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-using Microsoft.Extensions.DependencyInjection;
-
 using Discord;
 using Discord.WebSocket;
-
-using Modix.Data.Models.Core;
-using Modix.Data.Repositories;
 
 namespace Modix.Services.Core
 {
     /// <summary>
     /// Implements a behavior for keeping the data within an <see cref="IUserRepository"/> synchronized with Discord.NET.
     /// </summary>
-    public class UserMonitorBehavior : BehaviorBase
+    public class UserTrackingBehavior : BehaviorBase
     {
         // TODO: Abstract DiscordSocketClient to IDiscordSocketClient, or something, to make this testable
         /// <summary>
-        /// Constructs a new <see cref="UserMonitorBehavior"/> object, with the given injected dependencies.
+        /// Constructs a new <see cref="UserTrackingBehavior"/> object, with the given injected dependencies.
         /// See <see cref="BehaviorBase"/> for more details.
         /// </summary>
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
         /// <param name="serviceProvider">See <see cref="BehaviorBase"/>.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="discordClient"/>.</exception>
-        public UserMonitorBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
+        public UserTrackingBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
             DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
         }
 
+        /// <inheritdoc />
         internal protected override Task OnStartingAsync()
         {
+            DiscordClient.Connected += OnConnectedAsync;
             DiscordClient.UserJoined += OnUserJoinedAsync;
             DiscordClient.GuildMemberUpdated += OnGuildMemberUpdatedAsync;
             DiscordClient.MessageReceived += OnMessageReceivedAsync;
@@ -39,8 +36,10 @@ namespace Modix.Services.Core
             return Task.CompletedTask;
         }
 
+        /// <inheritdoc />
         internal protected override Task OnStoppingAsync()
         {
+            DiscordClient.Connected -= OnConnectedAsync;
             DiscordClient.UserJoined -= OnUserJoinedAsync;
             DiscordClient.GuildMemberUpdated -= OnGuildMemberUpdatedAsync;
             DiscordClient.MessageReceived -= OnMessageReceivedAsync;
@@ -48,6 +47,7 @@ namespace Modix.Services.Core
             return Task.CompletedTask;
         }
 
+        /// <inheritdoc />
         internal protected override void Dispose(bool disposeManaged)
         {
             if (disposeManaged && IsStarted)
@@ -62,44 +62,16 @@ namespace Modix.Services.Core
         // TODO: Abstract DiscordSocketClient to IDiscordSocketClient, or something, to make this testable
         internal protected DiscordSocketClient DiscordClient { get; }
 
+        private Task OnConnectedAsync()
+            => ExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(DiscordClient.CurrentUser));
+
         private Task OnUserJoinedAsync(IGuildUser guildUser)
-            => ExecuteScopedAsync(serviceProvider => CreateOrUpdateUserAsync(serviceProvider, guildUser));
+            => ExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(guildUser));
 
         private Task OnGuildMemberUpdatedAsync(IGuildUser oldUser, IGuildUser newUser)
-            => ExecuteScopedAsync(serviceProvider => CreateOrUpdateUserAsync(serviceProvider, newUser));
+            => ExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(newUser));
 
         private Task OnMessageReceivedAsync(IMessage message)
-            => ExecuteScopedAsync(serviceProvider => CreateOrUpdateUserAsync(serviceProvider, message.Author));
-
-        private async Task CreateOrUpdateUserAsync(IServiceProvider serviceProvider, IUser user)
-        {
-            var userRepository = ServiceProvider.GetService<IUserRepository>();
-
-            var guildUser = user as IGuildUser;
-
-            var success = await userRepository.UpdateAsync(user.Id, x =>
-            {
-                x.Username = user.Username;
-                x.Discriminator = user.Discriminator;
-                x.LastSeen = DateTimeOffset.Now;
-                if (guildUser != null)
-                {
-                    x.Nickname = guildUser.Nickname;
-                }
-            });
-
-            if (!success)
-            {
-                await userRepository.CreateAsync(new UserCreationData()
-                {
-                    Id = user.Id,
-                    Username = user.Username,
-                    Discriminator = user.Discriminator,
-                    Nickname = guildUser?.Nickname,
-                    FirstSeen = DateTimeOffset.Now,
-                    LastSeen = DateTimeOffset.Now
-                });
-            }
-        }
+            => ExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(message.Author));
     }
 }

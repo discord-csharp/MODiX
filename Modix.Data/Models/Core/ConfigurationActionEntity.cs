@@ -40,34 +40,34 @@ namespace Modix.Data.Models.Core
         public virtual UserEntity CreatedBy { get; set; }
 
         /// <summary>
-        /// The <see cref="RoleClaimEntity.Id"/> value (if any) of <see cref="RoleClaim"/>.
+        /// The <see cref="ClaimMappingEntity.Id"/> value (if any) of <see cref="ClaimMapping"/>.
         /// </summary>
-        [ForeignKey(nameof(RoleClaim))]
-        public long? RoleClaimId { get; set; }
+        [ForeignKey(nameof(ClaimMapping))]
+        public long? ClaimMappingId { get; set; }
 
         /// <summary>
-        /// The role claim that was affected by this action, if any.
+        /// The claim mapping that was affected by this action, if any.
         /// </summary>
-        public RoleClaimEntity RoleClaim { get; set; }
+        public ClaimMappingEntity ClaimMapping { get; set; }
 
         /// <summary>
-        /// Alias for <see cref="RoleClaim"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.RoleClaimCreated"/>.
+        /// Alias for <see cref="ClaimMapping"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.ClaimMappingCreated"/>.
         /// Otherwise, null.
         /// </summary>
         // This is needed because if we don't manually map an inverse property for this relationship,
         // EF will try and do it automatically, and will try to use the RoleClaim property above for both
         // the "Create" and "Rescind" relationships, and throw an error.
-        [InverseProperty(nameof(RoleClaimEntity.CreateAction))]
-        public virtual RoleClaimEntity CreatedRoleClaim { get; set; }
+        [InverseProperty(nameof(ClaimMappingEntity.CreateAction))]
+        public virtual ClaimMappingEntity CreatedClaimMapping { get; set; }
 
         /// <summary>
-        /// Alias for <see cref="RoleClaim"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.RoleClaimRescinded"/>.
+        /// Alias for <see cref="ClaimMapping"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.ClaimMappingRescinded"/>.
         /// Otherwise, null.
         /// </summary>
         // This is needed because if we don't manually map an inverse property for this relationship,
         // EF will try and do it automatically, and will try to use the RoleClaim property above for both
         // the "Create" and "Rescind" relationships, and throw an error.
-        [InverseProperty(nameof(RoleClaimEntity.RescindAction))]
-        public virtual RoleClaimEntity RescindedRoleClaim { get; set; }
+        [InverseProperty(nameof(ClaimMappingEntity.RescindAction))]
+        public virtual ClaimMappingEntity RescindedClaimMapping { get; set; }
     }
 }
