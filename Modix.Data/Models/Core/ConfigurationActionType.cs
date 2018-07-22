@@ -12,6 +12,6 @@
         /// <summary>
         /// Describes an action where a claim mapping was rescinded.
         /// </summary>
-        ClaimMappingRescinded,
+        ClaimMappingDeleted,
     }
 }

@@ -61,13 +61,13 @@ namespace Modix.Data.Models.Core
         public virtual ClaimMappingEntity CreatedClaimMapping { get; set; }
 
         /// <summary>
-        /// Alias for <see cref="ClaimMapping"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.ClaimMappingRescinded"/>.
+        /// Alias for <see cref="ClaimMapping"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.ClaimMappingDeleted"/>.
         /// Otherwise, null.
         /// </summary>
         // This is needed because if we don't manually map an inverse property for this relationship,
         // EF will try and do it automatically, and will try to use the RoleClaim property above for both
         // the "Create" and "Rescind" relationships, and throw an error.
-        [InverseProperty(nameof(ClaimMappingEntity.RescindAction))]
-        public virtual ClaimMappingEntity RescindedClaimMapping { get; set; }
+        [InverseProperty(nameof(ClaimMappingEntity.DeleteAction))]
+        public virtual ClaimMappingEntity DeletedClaimMapping { get; set; }
     }
 }

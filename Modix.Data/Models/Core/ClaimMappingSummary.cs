@@ -44,7 +44,7 @@ namespace Modix.Data.Models.Core
         public ConfigurationActionBrief CreateAction { get; set; }
 
         /// <summary>
-        /// See <see cref="ClaimMappingEntity.RescindAction"/>.
+        /// See <see cref="ClaimMappingEntity.DeleteAction"/>.
         /// </summary>
         public ConfigurationActionBrief RescindAction { get; set; }
 
@@ -70,18 +70,18 @@ namespace Modix.Data.Models.Core
                         Nickname = entity.CreateAction.CreatedBy.Nickname
                     }
                 },
-                RescindAction = (entity.RescindAction == null) ? null
+                RescindAction = (entity.DeleteAction == null) ? null
                     : new ConfigurationActionBrief()
                     {
-                        Id = entity.RescindAction.Id,
-                        Type = entity.RescindAction.Type,
-                        Created = entity.RescindAction.Created,
+                        Id = entity.DeleteAction.Id,
+                        Type = entity.DeleteAction.Type,
+                        Created = entity.DeleteAction.Created,
                         CreatedBy = new UserIdentity()
                         {
-                            Id = (ulong)entity.RescindAction.CreatedBy.Id,
-                            Username = entity.RescindAction.CreatedBy.Username,
-                            Discriminator = entity.RescindAction.CreatedBy.Discriminator,
-                            Nickname = entity.RescindAction.CreatedBy.Nickname
+                            Id = (ulong)entity.DeleteAction.CreatedBy.Id,
+                            Username = entity.DeleteAction.CreatedBy.Username,
+                            Discriminator = entity.DeleteAction.CreatedBy.Discriminator,
+                            Nickname = entity.DeleteAction.CreatedBy.Nickname
                         }
                     }
             };

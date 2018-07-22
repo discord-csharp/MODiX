@@ -49,9 +49,9 @@ namespace Modix.Data.Models.Core
         public ulong? CreatedById { get; set; }
 
         /// <summary>
-        /// A flag indicating whether records to be returned should have an <see cref="ClaimMappingEntity.RescindActionId"/> value of null, 
+        /// A flag indicating whether records to be returned should have an <see cref="ClaimMappingEntity.DeleteActionId"/> value of null, 
         /// or non-null, (or both).
         /// </summary>
-        public bool? IsRescinded { get; set; }
+        public bool? IsDeleted { get; set; }
     }
 }

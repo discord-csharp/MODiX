@@ -73,10 +73,10 @@ namespace Modix.Services.Core
             foreach (var claimMappingId in await ClaimMappingRepository.SearchIdsAsync(new ClaimMappingSearchCriteria()
                 {
                     GuildId = guild.Id,
-                    IsRescinded = false
+                    IsDeleted = false
                 }))
             {
-                await ClaimMappingRepository.TryRescindAsync(claimMappingId, DiscordClient.CurrentUser.Id);
+                await ClaimMappingRepository.TryDeleteAsync(claimMappingId, DiscordClient.CurrentUser.Id);
             }
         }
 
@@ -94,7 +94,7 @@ namespace Modix.Services.Core
                     GuildId = guildId,
                     RoleIds = roleIds.ToArray(),
                     UserId = userId,
-                    IsRescinded = false
+                    IsDeleted = false
                 }))
                 // Evaluate role mappings (userId is null) first, to give user mappings precedence.
                 .OrderBy(x => x.UserId)
@@ -191,7 +191,7 @@ namespace Modix.Services.Core
             var claimMappingIds = await ClaimMappingRepository.SearchIdsAsync(criteria);
 
             foreach (var claimMappingId in claimMappingIds)
-                await ClaimMappingRepository.TryRescindAsync(claimMappingId, rescindedById);
+                await ClaimMappingRepository.TryDeleteAsync(claimMappingId, rescindedById);
 
             return claimMappingIds.Count;
         }

@@ -57,13 +57,13 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// The <see cref="ConfigurationActionEntity.Id"/> value (if any) of <see cref="CreateAction"/>.
         /// </summary>
-        [ForeignKey(nameof(RescindAction))]
-        public long? RescindActionId { get; set; }
+        [ForeignKey(nameof(DeleteAction))]
+        public long? DeleteActionId { get; set; }
 
         /// <summary>
-        /// The configuration action (if any) that rescinded this mapping.
+        /// The configuration action (if any) that deleted this mapping.
         /// </summary>
-        [InverseProperty(nameof(ConfigurationActionEntity.RescindedClaimMapping))]
-        public virtual ConfigurationActionEntity RescindAction { get; set; }
+        [InverseProperty(nameof(ConfigurationActionEntity.DeletedClaimMapping))]
+        public virtual ConfigurationActionEntity DeleteAction { get; set; }
     }
 }

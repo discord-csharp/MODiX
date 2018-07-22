@@ -67,6 +67,6 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing a flag indicating whether the update was successful (I.E. whether the specified mapping could be found).
         /// </returns>
-        Task<bool> TryRescindAsync(long claimMappingId, ulong rescindedById);
+        Task<bool> TryDeleteAsync(long claimMappingId, ulong rescindedById);
     }
 }
