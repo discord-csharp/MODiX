@@ -14,7 +14,7 @@
     using Services.CommandHelp;
     using Tababular;
 
-    [Name("Add/Remove/Search Admin notes"), HiddenFromHelp]
+    [Group("note"), Name("Add/Remove/Search Admin notes"), HiddenFromHelp]
     public class NoteModule : ModuleBase
     {
         private readonly IModerationService _moderationService;
@@ -24,7 +24,7 @@
             _moderationService = moderationService;
         }
 
-        [Command("note add"), Summary("Adds a note to a user")]
+        [Command("add"), Summary("Adds a note to a user")]
         public async Task CreateNote(IGuildUser user, [Remainder] string message)
         {
             var guildUser = Context.User as SocketGuildUser;
@@ -55,7 +55,7 @@
             }
         }
 
-        [Command("note remove"), Summary("Removes a note from a user")]
+        [Command("remove"), Summary("Removes a note from a user")]
         public async Task RemoveNote(long noteId)
         {
             var user = Context.User as SocketGuildUser;
@@ -80,7 +80,7 @@
             }
         }
 
-        [Command("note search"), Summary("Search notes for a user")]
+        [Command("search"), Summary("Search notes for a user")]
         public async Task SearchNotesByUserId(ulong userId)
         {
             var user = Context.User as SocketGuildUser;
@@ -152,7 +152,7 @@
             }
         }
 
-        [Command("note search"), Summary("Search notes for a username")]
+        [Command("search"), Summary("Search notes for a username")]
         public async Task SearchNotesByUserName(IGuildUser user)
             => await SearchNotesByUserId(user.Id);
 
