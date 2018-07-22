@@ -10,11 +10,11 @@ using Modix.Services.CommandHelp;
 namespace Modix.Modules
 {
     [Name("Info"), Summary("General helper module")]
-    public sealed class InfoModule : ModuleBase
+    public sealed class HelpModule : ModuleBase
     {
         private readonly CommandHelpService _commandService;
 
-        public InfoModule(CommandHelpService cs)
+        public HelpModule(CommandHelpService cs)
         {
             _commandService = cs;
         }
