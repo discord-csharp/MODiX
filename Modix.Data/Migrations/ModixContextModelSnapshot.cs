@@ -227,27 +227,6 @@ namespace Modix.Data.Migrations
                 b.ToTable("PromotionComments");
             });
 
-            modelBuilder.Entity("Modix.Data.Models.Moderation.NoteEntity", b =>
-            {
-                b.Property<int>("Id")
-                    .ValueGeneratedOnAdd();
-
-                b.Property<string>("Username");
-
-                b.Property<string>("Message");
-
-                b.Property<string>("RecordedBy");
-
-                b.Property<DateTime>("RecordedTime");
-
-                b.Property<decimal>("UserId")
-                    .HasConversion(new ValueConverter<decimal, decimal>(v => default(decimal), v => default(decimal), new ConverterMappingHints(precision: 20, scale: 0)));
-
-                b.HasKey("Id");
-
-                b.ToTable("Notes");
-            });
-
             modelBuilder.Entity("Modix.Data.Models.Core.ClaimMappingEntity", b =>
             {
                 b.HasOne("Modix.Data.Models.Core.ConfigurationActionEntity", "CreateAction")
