@@ -14,6 +14,7 @@ using Tababular;
 
 namespace Modix.Modules
 {
+    [Group("infraction")]
     public class InfractionModule : ModuleBase
     {
         private readonly IModerationService _moderationService;
