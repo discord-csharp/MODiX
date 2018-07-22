@@ -1,3 +1,9 @@
+#csharp namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: csharp
+  
 ---
 # modix secrets
 
@@ -70,7 +76,7 @@ kind: Service
 metadata:
   annotations: {}
   name: modix-db-service
-  namespace: cshar
+  namespace: csharp
 spec:
   ports:
   - name: modix-db
