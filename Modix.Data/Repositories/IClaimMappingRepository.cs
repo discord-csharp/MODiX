@@ -13,27 +13,17 @@ namespace Modix.Data.Repositories
     public interface IClaimMappingRepository
     {
         /// <summary>
-        /// Creates a new claim mapping within the repository.
-        /// </summary>
-        /// <param name="data">The data for the mapping to be created.</param>
-        /// <exception cref="ArgumentNullException">Throws for <paramref name="data"/>.</exception>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing the auto-generated <see cref="InfractionEntity.Id"/> value assigned to the new mapping.
-        /// </returns>
-        Task<long> CreateAsync(ClaimMappingCreationData data);
-
-        /// <summary>
         /// Attempts to create a new claim mapping within the repository.
         /// </summary>
         /// <param name="data">The data for the mapping to be created.</param>
+        /// <param name="criteria">A set of criteria that (if given) defines existing claim mappings that negate the need to create a new one.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="data"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing the auto-generated <see cref="InfractionEntity.Id"/> value assigned to the new mapping,
-        /// or null if a mapping already exists with the given data.
+        /// containing the auto-generated <see cref="ClaimMappingEntity.Id"/> value assigned to the new mapping,
+        /// or null if any existing mappings were found by <paramref name="criteria"/>.
         /// </returns>
-        Task<long?> TryCreateAsync(ClaimMappingCreationData data);
+        Task<long?> TryCreateAsync(ClaimMappingCreationData data, ClaimMappingSearchCriteria criteria = null);
 
         /// <summary>
         /// Retrieves information about a claim mapping, based on its ID.

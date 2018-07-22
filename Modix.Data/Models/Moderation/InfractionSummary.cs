@@ -17,9 +17,19 @@ namespace Modix.Data.Models.Moderation
         public long Id { get; set; }
 
         /// <summary>
+        /// See <see cref="InfractionEntity.GuildId"/>.
+        /// </summary>
+        public ulong GuildId { get; set; }
+
+        /// <summary>
         /// See <see cref="InfractionEntity.Type"/>.
         /// </summary>
         public InfractionType Type { get; set; }
+
+        /// <summary>
+        /// See <see cref="InfractionEntity.Reason"/>.
+        /// </summary>
+        public string Reason { get; set; }
 
         /// <summary>
         /// See <see cref="InfractionEntity.Duration"/>.
@@ -101,7 +111,9 @@ namespace Modix.Data.Models.Moderation
             = entity => new InfractionSummary()
             {
                 Id = entity.Id,
+                GuildId = (ulong)entity.GuildId,
                 Type = entity.Type,
+                Reason = entity.Reason,
                 Duration = entity.Duration,
                 Subject = new UserIdentity()
                 {
@@ -120,10 +132,9 @@ namespace Modix.Data.Models.Moderation
                         Username = entity.CreateAction.CreatedBy.Username,
                         Discriminator = entity.CreateAction.CreatedBy.Discriminator,
                         Nickname = entity.CreateAction.CreatedBy.Nickname
-                    },
-                    Reason = entity.CreateAction.Reason
+                    }
                 },
-                RescindAction = new ModerationActionBrief()
+                RescindAction = (entity.RescindActionId == null) ? null : new ModerationActionBrief()
                 {
                     Id = entity.RescindAction.Id,
                     Created = entity.RescindAction.Created,
@@ -133,8 +144,7 @@ namespace Modix.Data.Models.Moderation
                         Username = entity.RescindAction.CreatedBy.Username,
                         Discriminator = entity.RescindAction.CreatedBy.Discriminator,
                         Nickname = entity.RescindAction.CreatedBy.Nickname
-                    },
-                    Reason = entity.RescindAction.Reason
+                    }
                 },
                 IsExpired = (entity.Duration.HasValue && ((entity.CreateAction.Created + entity.Duration.Value) > DateTime.Now))
             };

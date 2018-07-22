@@ -18,16 +18,22 @@ namespace Modix.Data.Models.Moderation
         public long Id { get; set; }
 
         /// <summary>
-        /// A timestamp indicating when this entity was created, for auditing purposes.
+        /// The snowflake ID, within the Discord API, of the guild to which this infraction applies.
         /// </summary>
         [Required]
-        public DateTimeOffset Created { get; set; }
+        public long GuildId { get; set; }
 
         /// <summary>
         /// The type of <see cref="InfractionEntity"/> recorded.
         /// </summary>
         [Required]
         public InfractionType Type { get; set; }
+
+        /// <summary>
+        /// A comment about why the infraction was recorded.
+        /// </summary>
+        [Required]
+        public string Reason { get; set; }
 
         /// <summary>
         /// The duration from <see cref="Created"/>, indicating when the infraction should be considered "expired".

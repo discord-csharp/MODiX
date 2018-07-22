@@ -18,5 +18,15 @@ namespace Modix.Data.Repositories
         /// <exception cref="ArgumentNullException">Throws for <paramref name="updateAction"/>.</exception>
         /// <returns>A <see cref="Task"/> which will complete when the operation is complete.</returns>
         Task CreateOrUpdateAsync(ulong userId, Action<UserMutationData> updateAction);
+
+        /// <summary>
+        /// Retrieves summary information about an existing user.
+        /// </summary>
+        /// <param name="userId">The <see cref="UserEntity.Id"/> value of the user to be retrieved.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation has completed,
+        /// containing the requested user summary information, or null if no such user exists.
+        /// </returns>
+        Task<UserSummary> ReadAsync(ulong userId);
     }
 }

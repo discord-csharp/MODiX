@@ -23,33 +23,28 @@ namespace Modix.Data.Repositories
             : base(modixContext) { }
 
         /// <inheritdoc />
-        public async Task<long> CreateAsync(ClaimMappingCreationData data)
+        public async Task<long?> TryCreateAsync(ClaimMappingCreationData data, ClaimMappingSearchCriteria criteria = null)
         {
-            using (await _createLock.LockAsync())
-            {
-                return await DoCreateAsync(data);
-            }
-        }
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
 
-        /// <inheritdoc />
-        public async Task<long?> TryCreateAsync(ClaimMappingCreationData data)
-        {
             using (await _createLock.LockAsync())
             {
-                if (await ModixContext.ClaimMappings.AsNoTracking()
-                    .FilterClaimMappingsBy(new ClaimMappingSearchCriteria()
-                    {
-                        Types = new [] { data.Type },
-                        GuildId = data.GuildId,
-                        RoleIds = (data.RoleId == null) ? null : new [] { data.RoleId.Value },
-                        UserId = data.UserId,
-                        Claims = new [] { data.Claim },
-                        IsRescinded = false
-                    })
-                    .AnyAsync())
+                if ((criteria != null) && await ModixContext.ClaimMappings.AsNoTracking()
+                    .FilterClaimMappingsBy(criteria).AnyAsync())
+                {
                     return null;
+                }
 
-                return await DoCreateAsync(data);
+                var entity = data.ToEntity();
+
+                await ModixContext.ClaimMappings.AddAsync(entity);
+                await ModixContext.SaveChangesAsync();
+
+                entity.CreateAction.ClaimMappingId = entity.Id;
+                await ModixContext.SaveChangesAsync();
+
+                return entity.Id;
             }
         }
 
@@ -104,24 +99,12 @@ namespace Modix.Data.Repositories
                 Created = DateTimeOffset.Now,
                 CreatedById = longRescindedById
             };
+            await ModixContext.SaveChangesAsync();
 
+            entity.RescindAction.ClaimMappingId = entity.Id;
             await ModixContext.SaveChangesAsync();
 
             return true;
-        }
-
-        private async Task<long> DoCreateAsync(ClaimMappingCreationData data)
-        {
-            if (data == null)
-                throw new ArgumentNullException(nameof(data));
-
-            var entity = data.ToEntity();
-
-            await ModixContext.ClaimMappings.AddAsync(entity);
-
-            await ModixContext.SaveChangesAsync();
-
-            return entity.Id;
         }
 
         private static readonly AsyncLock _createLock
@@ -137,6 +120,8 @@ namespace Modix.Data.Repositories
             var longUserId = (long?)criteria?.UserId;
             var longCreatedById = (long?)criteria?.CreatedById;
 
+            var anyRoleIds = longRoleIds?.Any() ?? false;
+
             return query
                 .FilterBy(
                     x => criteria.Types.Contains(x.Type),
@@ -145,11 +130,14 @@ namespace Modix.Data.Repositories
                     x => x.GuildId == longGuildId,
                     longGuildId != null)
                 .FilterBy(
-                    x => longRoleIds.Contains(x.RoleId.Value),
-                    longRoleIds?.Any() ?? false)
+                    x => longRoleIds.Contains(x.RoleId.Value) || (x.UserId == longUserId),
+                    anyRoleIds && (longUserId != null))
                 .FilterBy(
-                    x => x.UserId == longUserId,
-                    longUserId != null)
+                    x => longRoleIds.Contains(x.RoleId.Value),
+                    anyRoleIds && (longUserId == null))
+                .FilterBy(
+                    x => (x.UserId == longUserId),
+                    !anyRoleIds && (longUserId == null))
                 .FilterBy(
                     x => criteria.Claims.Contains(x.Claim),
                     criteria?.Claims?.Any() ?? false)

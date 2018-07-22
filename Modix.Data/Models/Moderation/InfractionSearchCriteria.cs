@@ -8,6 +8,11 @@ namespace Modix.Data.Models.Moderation
     public class InfractionSearchCriteria
     {
         /// <summary>
+        /// A <see cref="InfractionEntity.GuildId"/> value, defining the <see cref="InfractionEntity"/> entities to be returned.
+        /// </summary>
+        public ulong? GuildId { get; set; }
+
+        /// <summary>
         /// A set of <see cref="InfractionEntity.Type"/> values, defining the <see cref="InfractionEntity"/> entities to be returned.
         /// </summary>
         public IReadOnlyCollection<InfractionType> Types { get; set; }
@@ -15,7 +20,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// A <see cref="InfractionEntity.SubjectId"/> value, defining the <see cref="InfractionEntity"/> entities to be returned.
         /// </summary>
-        public long? SubjectId { get; set; }
+        public ulong? SubjectId { get; set; }
 
         /// <summary>
         /// A range of values defining the <see cref="InfractionEntity"/> entities to be returned,
@@ -29,7 +34,7 @@ namespace Modix.Data.Models.Moderation
         /// according to the <see cref="ModerationActionEntity.CreatedById"/> value of associated <see cref="ModerationActionEntity"/> entities,
         /// with a <see cref="ModerationActionEntity.Type"/> value of <see cref="ModerationActionType.InfractionCreated"/>.
         /// </summary>
-        public long? CreatedById { get; set; }
+        public ulong? CreatedById { get; set; }
 
         /// <summary>
         /// A <see cref="InfractionEntity.IsExpired"/> value, defining the <see cref="InfractionEntity"/> entities to be returned.
@@ -37,7 +42,8 @@ namespace Modix.Data.Models.Moderation
         public bool? IsExpired { get; set; }
 
         /// <summary>
-        /// A <see cref="InfractionEntity.IsRescinded"/> value, defining the <see cref="InfractionEntity"/> entities to be returned.
+        /// A flag indicating whether records to be returned should have an <see cref="InfractionEntity.RescindActionId"/> value of null, 
+        /// or non-null, (or both).
         /// </summary>
         public bool? IsRescinded { get; set; }
     }
