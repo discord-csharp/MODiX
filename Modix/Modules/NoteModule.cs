@@ -14,7 +14,7 @@
     using Services.CommandHelp;
     using Tababular;
 
-    [Name("Add/Remove/Search Admin notes"), RequireUserPermission(GuildPermission.Administrator), HiddenFromHelp]
+    [Name("Add/Remove/Search Admin notes"), HiddenFromHelp]
     public class NoteModule : ModuleBase
     {
         private readonly IModerationService _moderationService;
