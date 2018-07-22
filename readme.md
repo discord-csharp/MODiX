@@ -21,3 +21,5 @@ Issues are the center of MODiX´s development. You can see what features are bei
     - **DiscordToken**: the token for your Discord bot user.
 5. Open a browser and navigate to https://discordapp.com/oauth2/authorize?scope=bot&permissions=0&client_id=<Client ID>, replacing `<Client ID>` with your Discord app's client ID from the previous step.
 6. Select a Discord server from the dropdown list to add your bot to.
+
+
