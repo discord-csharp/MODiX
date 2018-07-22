@@ -18,6 +18,16 @@ namespace Modix.Modules
             ModerationService = moderationService ?? throw new ArgumentNullException(nameof(moderationService));
         }
 
+        [Command("note")]
+        [Summary("Applies a note to a user's infraction history.")]
+        public Task Note(
+            [Summary("The user to which the note is being applied.")]
+                IGuildUser subject,
+            [Summary("The reason for the note.")]
+            [Remainder]
+                string reason)
+            => ModerationService.CreateInfractionAsync(InfractionType.Notice, subject.Id, reason, null);
+
         [Command("warn")]
         [Summary("Issue a warning to a user.")]
         public Task Warn(
