@@ -118,6 +118,7 @@ namespace Modix
                 return;
 
             // because RunMode.Async will cause an object disposed exception due to an implementation bug in discord.net. All commands must be RunMode.Sync.
+#pragma warning disable CS4014
             Task.Run(async () =>
             {
                 var context = new CommandContext(_client, message);
@@ -154,6 +155,8 @@ namespace Modix
                 stopwatch.Stop();
                 Log.Information($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
             });
+#pragma warning restore CS4014
+
             await Task.CompletedTask;
         }
 
@@ -184,7 +187,7 @@ namespace Modix
             _map.AddSingleton<InviteLinkHandler>();
             _map.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
             _map.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
-            _map.AddSingleton<IBehaviourConfiguration, Services.BehaviourConfiguration.BehaviourConfiguration>();
+            _map.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;
