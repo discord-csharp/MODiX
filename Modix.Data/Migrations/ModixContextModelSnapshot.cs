@@ -122,7 +122,6 @@ namespace Modix.Data.Migrations
 
                 b.Property<long>("CreateActionId");
 
-                b.Property<DateTimeOffset>("Created");
                 b.Property<TimeSpan?>("Duration");
 
                     b.Property<long>("GuildId");
@@ -161,8 +160,6 @@ namespace Modix.Data.Migrations
 
                 b.Property<long?>("InfractionId");
 
-                b.Property<string>("Reason")
-                    .IsRequired();
                 b.Property<string>("Type")
                     .IsRequired();
 
