@@ -80,14 +80,14 @@ namespace Modix.Modules
                 var noteIds = formatter.FormatObjects(formattedNoteIds);
 
                 sb.Clear();
-                sb.AppendLine("Notes exceed the character limit. Search for an Id below to retrieve note details");
+                sb.AppendLine("Message exceeds the character limit. Search for an Id below to retrieve note details");
                 sb.Append(Format.Code(noteIds));
 
                 await ReplyAsync(sb.ToString());
             }
             catch (Exception e)
             {
-                Log.Error(e, $"NoteModule SearchNotesByUserId failed with the following userId: {user.Id}");
+                Log.Error(e, $"{nameof(InfractionModule)} SearchNotesByUserId failed with the following userId: {user.Id}");
                 await ReplyAsync("Error occurred and search could not be complete");
             }
         }
