@@ -65,9 +65,7 @@ namespace Modix
 
             _map.AddDbContext<ModixContext>(options =>
             {
-                var loggerFactory = _map.BuildServiceProvider().GetRequiredService<ILoggerFactory>();
                 options.UseNpgsql(_config.PostgreConnectionString);
-                options.UseLoggerFactory(loggerFactory);
             }, ServiceLifetime.Transient);
 
             _host = ModixWebServer.BuildWebHost(_map, _config);
