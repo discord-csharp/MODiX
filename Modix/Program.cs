@@ -15,7 +15,7 @@ namespace Modix
             var config = LoadConfig();
             var loggerConfig = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
                 .MinimumLevel.Override("Discord.WebSocket", LogEventLevel.Information)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
