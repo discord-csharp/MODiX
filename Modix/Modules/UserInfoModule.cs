@@ -94,7 +94,7 @@ namespace Modix.Modules
         }
 
         [Command("info")]
-        public async Task GetUserInfo([Remainder] ulong userId)
+        public async Task GetUserInfo(ulong userId, [Remainder] string _)
         {
             if (userId == Context.User.Id)
             {
