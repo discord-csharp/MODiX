@@ -81,34 +81,17 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task OnAuthenticatedAsync(ulong guildId, IEnumerable<ulong> roleIds, ulong userId)
+        public Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(IGuildUser guildUser)
         {
-            CurrentGuildId = guildId;
-            CurrentUserId = userId;
+            if (guildUser == null)
+                throw new ArgumentNullException(nameof(guildUser));
 
-            var claims = new HashSet<AuthorizationClaim>();
-
-            foreach(var claimMapping in (await ClaimMappingRepository
-                .SearchBriefsAsync(new ClaimMappingSearchCriteria()
-                {
-                    GuildId = guildId,
-                    RoleIds = roleIds.ToArray(),
-                    UserId = userId,
-                    IsDeleted = false
-                }))
-                // Evaluate role mappings (userId is null) first, to give user mappings precedence.
-                .OrderBy(x => x.UserId)
-                // Evaluate granted mappings first, to give denied mappings precedence.
-                .ThenBy(x => x.Type))
-            {
-                if (claimMapping.Type == ClaimMappingType.Granted)
-                    claims.Add(claimMapping.Claim);
-                else
-                    claims.Remove(claimMapping.Claim);
-            }
-
-            CurrentClaims = claims;
+            return GetGuildUserCurrentClaimsAsync(guildUser.GuildId, guildUser.RoleIds, guildUser.Id);
         }
+
+        /// <inheritdoc />
+        public async Task OnAuthenticatedAsync(ulong guildId, IEnumerable<ulong> roleIds, ulong userId)
+            => CurrentClaims = await GetGuildUserCurrentClaimsAsync(guildId, roleIds, userId);
 
         /// <inheritdoc />
         public void RequireAuthenticatedGuild()
@@ -194,6 +177,35 @@ namespace Modix.Services.Core
                 await ClaimMappingRepository.TryDeleteAsync(claimMappingId, rescindedById);
 
             return claimMappingIds.Count;
+        }
+
+        private async Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserCurrentClaimsAsync(ulong guildId, IEnumerable<ulong> roleIds, ulong userId)
+        {
+            CurrentGuildId = guildId;
+            CurrentUserId = userId;
+
+            var claims = new HashSet<AuthorizationClaim>();
+
+            foreach (var claimMapping in (await ClaimMappingRepository
+                .SearchBriefsAsync(new ClaimMappingSearchCriteria()
+                {
+                    GuildId = guildId,
+                    RoleIds = roleIds.ToArray(),
+                    UserId = userId,
+                    IsDeleted = false
+                }))
+                // Evaluate role mappings (userId is null) first, to give user mappings precedence.
+                .OrderBy(x => x.UserId)
+                // Evaluate granted mappings first, to give denied mappings precedence.
+                .ThenBy(x => x.Type))
+            {
+                if (claimMapping.Type == ClaimMappingType.Granted)
+                    claims.Add(claimMapping.Claim);
+                else
+                    claims.Remove(claimMapping.Claim);
+            }
+
+            return claims;
         }
     }
 }

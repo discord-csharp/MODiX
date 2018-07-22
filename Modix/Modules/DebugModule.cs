@@ -1,10 +1,17 @@
-﻿using Discord;
-using Discord.Commands;
-using Modix.Services.CommandHelp;
-using Serilog;
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+
+using Discord;
+using Discord.Commands;
+
+using Serilog;
+
+using Newtonsoft.Json;
+
+using Modix.Services.Core;
+using Modix.Services.Moderation;
+using Modix.Services.CommandHelp;
 
 namespace Modix.Modules
 {
@@ -14,6 +21,11 @@ namespace Modix.Modules
     [Group("debug"), RequireUserPermission(GuildPermission.BanMembers), HiddenFromHelp]
     public class DebugModule : ModuleBase
     {
+        public DebugModule(IAuthorizationService authorizationService, IModerationService moderationService)
+        {
+            AuthorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
+        }
+
         [Command("throw")]
         public Task Throw([Remainder]string text)
         {
@@ -47,5 +59,21 @@ namespace Modix.Modules
             var output = string.Join(", ", guilds.Select(a => $"{a.Id}: {a.Name}"));
             await ReplyAsync(output);
         }
+
+        [Command("claims")]
+        public Task Claims()
+            => ReplyAsync(
+                JsonConvert.SerializeObject(
+                    AuthorizationService.CurrentClaims.Select(x => x.ToString()),
+                    Formatting.Indented));
+
+        [Command("claims")]
+        public async Task Claims(IGuildUser guildUser)
+            => await ReplyAsync(
+                JsonConvert.SerializeObject(
+                    (await AuthorizationService.GetGuildUserClaimsAsync(guildUser)).Select(x => x.ToString()),
+                    Formatting.Indented));
+
+        internal protected IAuthorizationService AuthorizationService { get; }
     }
 }
