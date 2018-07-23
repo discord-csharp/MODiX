@@ -1,20 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
 using Modix.Services.Moderation;
-using Serilog;
 using Tababular;
 
 namespace Modix.Modules
 {
     [Group("infraction")]
+    [Summary("Provides commands for working with infractions.")]
     public class InfractionModule : ModuleBase
     {
         private readonly IModerationService _moderationService;
@@ -24,71 +21,59 @@ namespace Modix.Modules
             _moderationService = moderationService;
         }
 
-        [Command("search"), Summary("Search infractions for a user")]
-        public async Task SearchInfractionsByUserId(IGuildUser guildUser)
+        [Command("search")]
+        [Summary("Display all infractions for a user, that haven't been deleted.")]
+        public async Task Search(
+            [Summary("The user whose infractions are to be displayed.")]
+                IGuildUser subject)
         {
-            var user = Context.User as SocketGuildUser;
+            var infractions = await _moderationService.SearchInfractionsAsync(
+                new InfractionSearchCriteria
+                {
+                    GuildId = subject.GuildId,
+                    SubjectId = subject.Id,
+                    IsDeleted = false
+                },
+                new[]
+                {
+                    new SortingCriteria { PropertyName = "CreateAction.Created", Direction = SortDirection.Descending }
+                });
 
-            // TODO: We shouldn't need to do this once claims are working
-            if (!IsStaff(user) && !IsOperator(user))
+            if(infractions.Count == 0)
             {
-                await ReplyAsync($"I'm sorry, @{user.Nickname}, I'm afraid I can't do that.");
+                await ReplyAsync(Format.Code("No infractions"));
                 return;
             }
 
-            try
+            var hints = new Hints { MaxTableWidth = 100 };
+            var formatter = new TableFormatter(hints);
+
+            var tableText = formatter.FormatObjects(infractions.Select(infraction => new
             {
-                var notes = await _moderationService.SearchInfractionsAsync(
-                    new InfractionSearchCriteria
-                    {
-                        SubjectId = user.Id
-                    },
-                    new[]
-                    {
-                        new SortingCriteria { PropertyName = "CreateAction.Created", Direction = SortDirection.Descending }
-                    });
+                Id = infraction.Id,
+                Created = infraction.CreateAction.Created.ToUniversalTime().ToString("yyyy MMM dd HH:mm"),
+                Type = infraction.Type.ToString(),
+                Subject = infraction.Subject.Username,
+                Creator = infraction.CreateAction.CreatedBy.DisplayName,
+                State = (infraction.RescindAction != null) ? "Rescinded"
+                    : (infraction.Expires != null) ? "Will Expire"
+                    : "Active",
+                Reason = infraction.Reason
+            }));
 
-                var sb = new StringBuilder();
-                var hints = new Hints { MaxTableWidth = 100 };
-                var formatter = new TableFormatter(hints);
-
-                var formattedNotes = notes.Select(note => new
+            var replyBuilder = new StringBuilder();
+            foreach (var line in tableText.Split("\r\n"))
+            {
+                if((replyBuilder.Length + line.Length) > 1998)
                 {
-                    Id = note.Id,
-                    User = note.Subject.Username,
-                    RecordedBy = note.CreateAction.CreatedBy,
-                    Message = note.Reason,
-                    Date = note.CreateAction.Created.ToString("yyyy-MM-ddTHH:mm:ss")
-                }).ToList();
-
-                var text = formatter.FormatObjects(formattedNotes);
-
-                sb.Append(Format.Code(text));
-
-                if (sb.ToString().Length <= 2000)
-                {
-                    await ReplyAsync(sb.ToString());
-                    return;
+                    await ReplyAsync(Format.Code(replyBuilder.ToString()));
+                    replyBuilder.Clear();
                 }
-
-                var formattedNoteIds = notes.Select(note => new
-                {
-                    NoteId = note.Id
-                });
-
-                var noteIds = formatter.FormatObjects(formattedNoteIds);
-
-                sb.Clear();
-                sb.AppendLine("Message exceeds the character limit. Search for an Id below to retrieve note details");
-                sb.Append(Format.Code(noteIds));
-
-                await ReplyAsync(sb.ToString());
+                replyBuilder.AppendLine(line);
             }
-            catch (Exception e)
-            {
-                Log.Error(e, $"{nameof(InfractionModule)} SearchNotesByUserId failed with the following userId: {user.Id}");
-                await ReplyAsync("Error occurred and search could not be complete");
-            }
+
+            if(replyBuilder.Length > 0)
+                await ReplyAsync(Format.Code(replyBuilder.ToString()));
         }
 
         [Command("delete")]
@@ -97,18 +82,5 @@ namespace Modix.Modules
             [Summary("The ID value of the infraction to be deleted.")]
                 long infractionId)
             => _moderationService.DeleteInfractionAsync(infractionId);
-
-        private static bool IsOperator(SocketGuildUser user)
-        {
-            return user != null && user.Roles.Any(x => string.Equals("Operator", x.Name, StringComparison.Ordinal));
-        }
-
-        private static bool IsStaff(SocketGuildUser user)
-        {
-            return user != null && user.Roles.Any(
-                x => string.Equals("Staff", x.Name, StringComparison.Ordinal) ||
-                     string.Equals("Moderator", x.Name, StringComparison.Ordinal) ||
-                     string.Equals("Administrator", x.Name, StringComparison.Ordinal));
-        }
     }
 }

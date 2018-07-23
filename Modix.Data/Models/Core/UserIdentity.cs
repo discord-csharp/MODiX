@@ -28,5 +28,11 @@ namespace Modix.Data.Models.Core
         /// See <see cref="UserEntity.Nickname"/>.
         /// </summary>
         public string Nickname { get; set; }
+
+        /// <summary>
+        /// The name to display for this user.
+        /// </summary>
+        public string DisplayName
+            => Nickname ?? Username;
     }
 }
