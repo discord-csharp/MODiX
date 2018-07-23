@@ -61,6 +61,13 @@ namespace Modix.Services.Moderation
         Task RescindInfractionAsync(long infractionId);
 
         /// <summary>
+        /// Marks an existing infraction as deleted, based on its ID.
+        /// </summary>
+        /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be deleted.</param>
+        /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
+        Task DeleteInfractionAsync(long infractionId);
+
+        /// <summary>
         /// Retrieves a collection of infractions, based on a given set of criteria.
         /// </summary>
         /// <param name="criteria">The criteria defining which infractions are to be returned.</param>

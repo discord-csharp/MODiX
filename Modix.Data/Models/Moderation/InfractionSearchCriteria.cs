@@ -37,14 +37,22 @@ namespace Modix.Data.Models.Moderation
         public ulong? CreatedById { get; set; }
 
         /// <summary>
-        /// A <see cref="InfractionEntity.IsExpired"/> value, defining the <see cref="InfractionEntity"/> entities to be returned.
+        /// A range of values defining the <see cref="InfractionEntity"/> entities to be returned,
+        /// according to the value of <see cref="InfractionEntity.Duration"/> and the <see cref="ModerationActionEntity.Created"/> value
+        /// of <see cref="InfractionEntity.CreateAction"/>.
         /// </summary>
-        public bool? IsExpired { get; set; }
+        public DateTimeOffsetRange? ExpiresRange { get; set; }
 
         /// <summary>
         /// A flag indicating whether records to be returned should have an <see cref="InfractionEntity.RescindActionId"/> value of null, 
         /// or non-null, (or both).
         /// </summary>
         public bool? IsRescinded { get; set; }
+
+        /// <summary>
+        /// A flag indicating whether records to be returned should have an <see cref="InfractionEntity.DeleteActionId"/> value of null, 
+        /// or non-null, (or both).
+        /// </summary>
+        public bool? IsDeleted { get; set; }
     }
 }

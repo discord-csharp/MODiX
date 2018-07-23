@@ -72,5 +72,15 @@ namespace Modix.Data.Models.Moderation
         // the "Create" and "Rescind" relationships, and throw an error
         [InverseProperty(nameof(InfractionEntity.RescindAction))]
         public virtual InfractionEntity RescindedInfraction { get; set; }
+
+        /// <summary>
+        /// For <see cref="Type"/> values of <see cref="ModerationActionType.InfractionDeleted"/>,
+        /// this is the <see cref="InfractionEntity"/> that was deleted by this <see cref="ModerationActionEntity"/>,
+        /// </summary>
+        // This is needed because if we don't manually map an inverse property for this relationship,
+        // EF will try and do it automatically, and will try to use the Infraction property above for both
+        // the "Create" and "Delete" relationships, and throw an error
+        [InverseProperty(nameof(InfractionEntity.DeleteAction))]
+        public virtual InfractionEntity DeletedInfraction { get; set; }
     }
 }

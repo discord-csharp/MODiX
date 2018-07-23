@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Modix.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -9,9 +10,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    partial class ModixContextModelSnapshot : ModelSnapshot
+    [Migration("20180722222223_ModerationRescindDelete")]
+    partial class ModerationRescindDelete
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,9 +50,9 @@ namespace Modix.Data.Migrations
 
                     b.Property<long>("CreateActionId");
 
-                    b.Property<long?>("DeleteActionId");
-
                     b.Property<long>("GuildId");
+
+                    b.Property<long?>("RescindActionId");
 
                     b.Property<long?>("RoleId");
 
@@ -64,7 +66,7 @@ namespace Modix.Data.Migrations
                     b.HasIndex("CreateActionId")
                         .IsUnique();
 
-                    b.HasIndex("DeleteActionId")
+                    b.HasIndex("RescindActionId")
                         .IsUnique();
 
                     b.ToTable("ClaimMappings");
@@ -236,9 +238,9 @@ namespace Modix.Data.Migrations
                         .HasForeignKey("Modix.Data.Models.Core.ClaimMappingEntity", "CreateActionId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("Modix.Data.Models.Core.ConfigurationActionEntity", "DeleteAction")
-                        .WithOne("DeletedClaimMapping")
-                        .HasForeignKey("Modix.Data.Models.Core.ClaimMappingEntity", "DeleteActionId");
+                    b.HasOne("Modix.Data.Models.Core.ConfigurationActionEntity", "RescindAction")
+                        .WithOne("RescindedClaimMapping")
+                        .HasForeignKey("Modix.Data.Models.Core.ClaimMappingEntity", "RescindActionId");
                 });
 
             modelBuilder.Entity("Modix.Data.Models.Core.ConfigurationActionEntity", b =>

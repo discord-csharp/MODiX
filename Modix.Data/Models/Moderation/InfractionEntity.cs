@@ -77,5 +77,17 @@ namespace Modix.Data.Models.Moderation
         /// </summary>
         [InverseProperty(nameof(ModerationActionEntity.RescindedInfraction))]
         public virtual ModerationActionEntity RescindAction { get; set; }
+
+        /// <summary>
+        /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="DeleteAction"/>.
+        /// </summary>
+        [ForeignKey(nameof(DeleteAction))]
+        public long? DeleteActionId { get; set; }
+
+        /// <summary>
+        /// The <see cref="ModerationActionEntity"/> (if any) that deleted this <see cref="InfractionEntity"/>.
+        /// </summary>
+        [InverseProperty(nameof(ModerationActionEntity.DeletedInfraction))]
+        public virtual ModerationActionEntity DeleteAction { get; set; }
     }
 }

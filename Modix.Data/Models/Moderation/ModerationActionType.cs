@@ -8,10 +8,14 @@
         /// <summary>
         /// Describes a moderation action where an infraction was recorded upon a user.
         /// </summary>
-        InfractionCreated = 0,
+        InfractionCreated,
         /// <summary>
         /// Describs a moderation action where a previous infraction was rescinded from a user.
         /// </summary>
-        InfractionRescinded = 1,
+        InfractionRescinded,
+        /// <summary>
+        /// Describs a moderation action where a previous infraction was (soft) deleted.
+        /// </summary>
+        InfractionDeleted,
     }
 }

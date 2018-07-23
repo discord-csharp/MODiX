@@ -78,7 +78,7 @@ namespace Modix.Data.Repositories
                 .ToArrayAsync();
 
         /// <inheritdoc />
-        public async Task<bool> TryRescindAsync(long claimMappingId, ulong rescindedById)
+        public async Task<bool> TryDeleteAsync(long claimMappingId, ulong rescindedById)
         {
             var longRescindedById = (long)rescindedById;
 
@@ -90,18 +90,16 @@ namespace Modix.Data.Repositories
                 .Where(x => x.Id == claimMappingId)
                 .FirstOrDefaultAsync();
 
-            if ((entity == null) || (entity.RescindActionId != null))
+            if ((entity == null) || (entity.DeleteActionId != null))
                 return false;
 
-            entity.RescindAction = new ConfigurationActionEntity()
+            entity.DeleteAction = new ConfigurationActionEntity()
             {
-                Type = ConfigurationActionType.ClaimMappingRescinded,
+                Type = ConfigurationActionType.ClaimMappingDeleted,
                 Created = DateTimeOffset.Now,
-                CreatedById = longRescindedById
+                CreatedById = longRescindedById,
+                ClaimMappingId = entity.Id
             };
-            await ModixContext.SaveChangesAsync();
-
-            entity.RescindAction.ClaimMappingId = entity.Id;
             await ModixContext.SaveChangesAsync();
 
             return true;
@@ -151,8 +149,8 @@ namespace Modix.Data.Repositories
                     x => x.CreateAction.CreatedById == longCreatedById,
                     longCreatedById != null)
                 .FilterBy(
-                    x => x.RescindActionId.HasValue == criteria.IsRescinded.Value,
-                    criteria?.IsRescinded != null);
+                    x => (x.DeleteActionId != null) == criteria.IsDeleted.Value,
+                    criteria?.IsDeleted != null);
         }
     }
 }

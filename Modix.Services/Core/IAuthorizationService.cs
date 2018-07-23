@@ -44,12 +44,22 @@ namespace Modix.Services.Core
         IReadOnlyCollection<AuthorizationClaim> CurrentClaims { get; }
 
         /// <summary>
+        /// Retrieves the list of claims currently active and mapped to particular user, within a particular guild.
+        /// </summary>
+        /// <param name="guildUser">The user whose claims are to be retrieved.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation has completed,
+        /// containing the requested list of claims.
+        /// </returns>
+        Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(IGuildUser guildUser);
+
+        /// <summary>
         /// Loads authentication and authorization data into the service, based on the given guild, user, and role ID values
         /// retrieved from a frontend authentication mechanism.
         /// </summary>
-        /// <param name="guildId"></param>
-        /// <param name="roleIds"></param>
-        /// <param name="userId"></param>
+        /// <param name="guildId">The Discord snowflake ID of the guild for which the current user was authenticated.</param>
+        /// <param name="roleIds">The Discord snowflake ID values of the roles assigned to the current authenticated user.</param>
+        /// <param name="userId">The Discord snowflake ID of the user that was authenticated.</param>
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation has completed.
         /// </returns>

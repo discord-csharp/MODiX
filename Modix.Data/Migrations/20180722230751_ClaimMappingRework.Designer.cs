@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Modix.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -9,9 +10,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    partial class ModixContextModelSnapshot : ModelSnapshot
+    [Migration("20180722230751_ClaimMappingRework")]
+    partial class ClaimMappingRework
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
