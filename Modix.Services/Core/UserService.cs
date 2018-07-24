@@ -60,17 +60,34 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public Task TrackUserAsync(IUser user)
+        public async Task TrackUserAsync(IUser user)
         {
             var guildUser = user as IGuildUser;
 
-            return UserRepository.CreateOrUpdateAsync(user.Id, data =>
+            using (var transaction = await UserRepository.BeginCreateTransactionAsync())
             {
-                data.Username = user.Username;
-                data.Discriminator = user.Discriminator;
-                if (guildUser != null)
-                    data.Nickname = guildUser.Nickname;
-            });
+                if(!(await UserRepository.TryUpdateAsync(user.Id, data =>
+                {
+                    data.Username = user.Username;
+                    data.Discriminator = user.Discriminator;
+                    if (guildUser != null)
+                        data.Nickname = guildUser.Nickname;
+                    data.LastSeen = DateTimeOffset.Now;
+                })))
+                {
+                    await UserRepository.CreateAsync(new UserCreationData()
+                    {
+                        Id = user.Id,
+                        Username = user.Username,
+                        Discriminator = user.Discriminator,
+                        Nickname = guildUser?.Nickname,
+                        FirstSeen = DateTimeOffset.Now,
+                        LastSeen = DateTimeOffset.Now
+                    });
+                }
+
+                transaction.Commit();
+            }
         }
 
         /// <summary>

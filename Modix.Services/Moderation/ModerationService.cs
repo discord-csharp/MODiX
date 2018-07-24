@@ -111,30 +111,34 @@ namespace Modix.Services.Moderation
                 && string.IsNullOrWhiteSpace(reason))
                 throw new InvalidOperationException($"{type.ToString()} infractions require a reason to be given");
 
-            var criteria = ((type != InfractionType.Mute) && (type != InfractionType.Ban))
-                ? null
-                : new InfractionSearchCriteria()
+            using (var transaction = await InfractionRepository.BeginCreateTransactionAsync())
+            {
+                if ((type != InfractionType.Mute) && (type != InfractionType.Ban))
                 {
-                    GuildId = guild.Id,
-                    Types = new [] { type },
-                    SubjectId = subject.Id,
-                    IsRescinded = false,
-                    IsDeleted = false
-                };
+                    if (await InfractionRepository.AnyAsync(new InfractionSearchCriteria()
+                    {
+                        GuildId = guild.Id,
+                        Types = new[] { type },
+                        SubjectId = subject.Id,
+                        IsRescinded = false,
+                        IsDeleted = false
+                    }))
+                        throw new ArgumentNullException($"Discord user {subjectId} already has an active {type} infraction");
+                }
 
-            var infractionId = await InfractionRepository.TryCreateAsync(
-                new InfractionCreationData()
-                {
-                    GuildId = guild.Id,
-                    Type = type,
-                    SubjectId = subjectId,
-                    Reason = reason,
-                    Duration = duration,
-                    CreatedById = AuthorizationService.CurrentUserId.Value
-                }, criteria);
+                await InfractionRepository.CreateAsync(
+                    new InfractionCreationData()
+                    {
+                        GuildId = guild.Id,
+                        Type = type,
+                        SubjectId = subjectId,
+                        Reason = reason,
+                        Duration = duration,
+                        CreatedById = AuthorizationService.CurrentUserId.Value
+                    });
 
-            if(infractionId == null)
-                throw new ArgumentNullException($"Discord user {subjectId} already has an active {type} infraction");
+                transaction.Commit();
+            }
 
             // TODO: Implement ModerationSyncBehavior to listen for mutes and bans that happen directly in Discord, instead of through bot commands,
             // and to read the Discord Audit Log to check for mutes and bans that were missed during downtime, and add all such actions to

@@ -14,7 +14,10 @@ namespace Modix.Data.Repositories
         /// <summary>
         /// Begins a new transaction to create mappings within the repository.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete, with the requested transaction object,
+        /// when no other transactions are active upon the repository.
+        /// </returns>
         Task<IRepositoryTransaction> BeginCreateTransactionAsync();
 
         /// <summary>

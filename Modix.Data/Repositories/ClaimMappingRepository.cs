@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
-using Nito.AsyncEx;
-
 using Modix.Data.Models.Core;
 using Modix.Data.Utilities;
 
@@ -23,29 +21,24 @@ namespace Modix.Data.Repositories
             : base(modixContext) { }
 
         /// <inheritdoc />
-        public async Task<long?> TryCreateAsync(ClaimMappingCreationData data, ClaimMappingSearchCriteria criteria = null)
+        public Task<IRepositoryTransaction> BeginCreateTransactionAsync()
+            => _createTransactionFactory.BeginTransactionAsync(ModixContext.Database);
+
+        /// <inheritdoc />
+        public async Task<long> CreateAsync(ClaimMappingCreationData data)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
-            using (await _createLock.LockAsync())
-            {
-                if ((criteria != null) && await ModixContext.ClaimMappings.AsNoTracking()
-                    .FilterClaimMappingsBy(criteria).AnyAsync())
-                {
-                    return null;
-                }
+            var entity = data.ToEntity();
 
-                var entity = data.ToEntity();
+            await ModixContext.ClaimMappings.AddAsync(entity);
+            await ModixContext.SaveChangesAsync();
 
-                await ModixContext.ClaimMappings.AddAsync(entity);
-                await ModixContext.SaveChangesAsync();
+            entity.CreateAction.ClaimMappingId = entity.Id;
+            await ModixContext.SaveChangesAsync();
 
-                entity.CreateAction.ClaimMappingId = entity.Id;
-                await ModixContext.SaveChangesAsync();
-
-                return entity.Id;
-            }
+            return entity.Id;
         }
 
         /// <inheritdoc />
@@ -105,8 +98,8 @@ namespace Modix.Data.Repositories
             return true;
         }
 
-        private static readonly AsyncLock _createLock
-            = new AsyncLock();
+        private static readonly RepositoryTransactionFactory _createTransactionFactory
+            = new RepositoryTransactionFactory();
     }
 
     internal static class ClaimMappingQueryableExtensions

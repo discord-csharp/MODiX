@@ -23,7 +23,7 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public Task<IRepositoryTransaction> BeginCreateTransactionAsync()
-            => _createTransactionProvider.BeginTransactionAsync(ModixContext.Database);
+            => _createTransactionFactory.BeginTransactionAsync(ModixContext.Database);
 
         /// <inheritdoc />
         public async Task<long> CreateAsync(ModerationMuteRoleMappingCreationData data)
@@ -73,7 +73,7 @@ namespace Modix.Data.Repositories
             return true;
         }
 
-        private static readonly RepositoryTransactionFactory _createTransactionProvider
+        private static readonly RepositoryTransactionFactory _createTransactionFactory
             = new RepositoryTransactionFactory();
     }
 

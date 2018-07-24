@@ -24,29 +24,24 @@ namespace Modix.Data.Repositories
             : base(modixContext) { }
 
         /// <inheritdoc />
-        public async Task<long?> TryCreateAsync(InfractionCreationData data, InfractionSearchCriteria criteria = null)
+        public Task<IRepositoryTransaction> BeginCreateTransactionAsync()
+            => _createTransactionFactory.BeginTransactionAsync(ModixContext.Database);
+
+        /// <inheritdoc />
+        public async Task<long> CreateAsync(InfractionCreationData data)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
-            using (await _createLock.LockAsync())
-            {
-                if((criteria != null) && await ModixContext.Infractions.AsNoTracking()
-                    .FilterInfractionsBy(criteria).AnyAsync())
-                {
-                    return null;
-                }
+            var entity = data.ToEntity();
 
-                var entity = data.ToEntity();
+            await ModixContext.Infractions.AddAsync(entity);
+            await ModixContext.SaveChangesAsync();
 
-                await ModixContext.Infractions.AddAsync(entity);
-                await ModixContext.SaveChangesAsync();
+            entity.CreateAction.InfractionId = entity.Id;
+            await ModixContext.SaveChangesAsync();
 
-                entity.CreateAction.InfractionId = entity.Id;
-                await ModixContext.SaveChangesAsync();
-
-                return entity.Id;
-            }
+            return entity.Id;
         }
 
         /// <inheritdoc />
@@ -55,6 +50,12 @@ namespace Modix.Data.Repositories
                 .Where(x => x.Id == infractionId)
                 .Select(InfractionSummary.FromEntityProjection)
                 .FirstOrDefaultAsync();
+
+        /// <inheritdoc />
+        public Task<bool> AnyAsync(InfractionSearchCriteria criteria)
+            => ModixContext.Infractions.AsNoTracking()
+                .FilterInfractionsBy(criteria)
+                .AnyAsync();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<long>> SearchIdsAsync(InfractionSearchCriteria searchCriteria)
@@ -142,8 +143,8 @@ namespace Modix.Data.Repositories
             return true;
         }
 
-        private static readonly AsyncLock _createLock
-            = new AsyncLock();
+        private static readonly RepositoryTransactionFactory _createTransactionFactory
+            = new RepositoryTransactionFactory();
     }
 
     internal static class InfractionQueryableExtensions
