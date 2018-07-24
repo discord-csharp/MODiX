@@ -36,6 +36,24 @@ namespace Modix.Services.Moderation
         Task UnConfigureGuildAsync(IGuild guild);
 
         /// <summary>
+        /// Retrieves the currently-configured mute role (the role that is assigned to users to mute them) for a given guild.
+        /// </summary>
+        /// <param name="guild">The guild whose mute role is to be retrieved.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation has completed,
+        /// containing the mute role currently configured for use within <paramref name="guild"/>.
+        /// </returns>
+        Task<IRole> GetMuteRole(IGuild guild);
+
+        /// <summary>
+        /// Sets the currently-configured mute role (the role that is assigned to users to mute them) for a given guild.
+        /// </summary>
+        /// <param name="guild">The guild whose mute role is to be set.</param>
+        /// <param name="muteRole">The mute role to be used for <paramref name="guild"/>.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task SetMuteRole(IGuild guild, IRole muteRole);
+
+        /// <summary>
         /// Creates an infraction upon a specified user, and logs an associated moderation action.
         /// </summary>
         /// <param name="type">The value to user for <see cref="InfractionEntity.Type"/>.<</param>

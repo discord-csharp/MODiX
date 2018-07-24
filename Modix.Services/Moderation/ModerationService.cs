@@ -55,12 +55,12 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         public async Task AutoConfigureGuldAsync(IGuild guild)
         {
-            var muteRole = await GetOrCreateMuteRoleAsync(guild);
+            var muteRole = await GetOrCreateMuteRoleInGuildAsync(guild);
 
             foreach (var channel in await guild.GetChannelsAsync())
                 await ConfigureChannelMuteRolePermissions(channel, muteRole);
 
-            await CreateOrUpdateConfig(guild, muteRole);
+            await CreateOrUpdateMuteRoleMapping(guild.Id, muteRole.Id);
         }
 
         /// <inheritdoc />
@@ -68,11 +68,11 @@ namespace Modix.Services.Moderation
         {
             if (channel is IGuildChannel guildChannel)
             {
-                var muteRole = await GetOrCreateMuteRoleAsync(guildChannel.Guild);
+                var muteRole = await GetOrCreateMuteRoleInGuildAsync(guildChannel.Guild);
 
                 await ConfigureChannelMuteRolePermissions(guildChannel, muteRole);
 
-                await CreateOrUpdateConfig(guildChannel.Guild, muteRole);
+                await CreateOrUpdateMuteRoleMapping(guildChannel.Guild.Id, muteRole.Id);
             }
         }
 
@@ -92,6 +92,27 @@ namespace Modix.Services.Moderation
 
                 await ModerationMuteRoleMappingRepository.TryDeleteAsync(mapping.Id, DiscordClient.CurrentUser.Id);
             }
+        }
+
+        /// <inheritdoc />
+        public async Task<IRole> GetMuteRole(IGuild guild)
+        {
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationConfigure);
+
+            var mapping = await TryGetActiveMuteRoleMapping(guild.Id);
+
+            if (mapping == null)
+                throw new InvalidOperationException($"No mute role mapping exists for guild {guild.Id}");
+
+            return guild.GetRole(mapping.MuteRoleId);
+        }
+
+        /// <inheritdoc />
+        public Task SetMuteRole(IGuild guild, IRole muteRole)
+        {
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationConfigure);
+
+            return CreateOrUpdateMuteRoleMapping(guild.Id, muteRole.Id);
         }
 
         /// <inheritdoc />
@@ -150,7 +171,7 @@ namespace Modix.Services.Moderation
             {
                 case InfractionType.Mute:
                     await subject.AddRoleAsync(
-                        await GetOrCreateMuteRoleAsync(guild));
+                        await GetOrCreateMuteRoleInGuildAsync(guild));
                     break;
 
                 case InfractionType.Ban:
@@ -194,6 +215,7 @@ namespace Modix.Services.Moderation
                 await InfractionRepository.ReadAsync(infractionId));
         }
 
+        /// <inheritdoc />
         public async Task DeleteInfractionAsync(long infractionId)
         {
             AuthorizationService.RequireAuthenticatedGuild();
@@ -214,7 +236,7 @@ namespace Modix.Services.Moderation
             {
                 case InfractionType.Mute:
                     await subject.RemoveRoleAsync(
-                        await GetOrCreateMuteRoleAsync(guild));
+                        await GetOrCreateMuteRoleInGuildAsync(guild));
                     break;
 
                 case InfractionType.Ban:
@@ -276,21 +298,24 @@ namespace Modix.Services.Moderation
         /// </summary>
         internal protected IInfractionRepository InfractionRepository { get; }
 
-        private async Task CreateOrUpdateConfig(IGuild guild, IRole muteRole)
+        private async Task<ModerationMuteRoleMappingBrief> TryGetActiveMuteRoleMapping(ulong guildId)
+            => (await ModerationMuteRoleMappingRepository
+                .SearchBriefsAsync(new ModerationMuteRoleMappingSearchCriteria()
+                {
+                    GuildId = guildId,
+                    IsDeleted = false
+                }))
+                .FirstOrDefault();
+
+        private async Task CreateOrUpdateMuteRoleMapping(ulong guildId, ulong muteRoleId)
         {
             using (var transaction = await ModerationMuteRoleMappingRepository.BeginCreateTransactionAsync())
             {
-                var mapping = (await ModerationMuteRoleMappingRepository
-                    .SearchBriefsAsync(new ModerationMuteRoleMappingSearchCriteria()
-                    {
-                        GuildId = guild.Id,
-                        IsDeleted = false
-                    }))
-                    .FirstOrDefault();
+                var mapping = await TryGetActiveMuteRoleMapping(guildId);
 
                 if (mapping != null)
                 {
-                    if (muteRole.Id == mapping.MuteRoleId)
+                    if (muteRoleId == mapping.MuteRoleId)
                         return;
 
                     await ModerationMuteRoleMappingRepository.TryDeleteAsync(mapping.Id, DiscordClient.CurrentUser.Id);
@@ -298,8 +323,8 @@ namespace Modix.Services.Moderation
 
                 await ModerationMuteRoleMappingRepository.CreateAsync(new ModerationMuteRoleMappingCreationData()
                 {
-                    GuildId = guild.Id,
-                    MuteRoleId = muteRole.Id,
+                    GuildId = guildId,
+                    MuteRoleId = muteRoleId,
                     CreatedById = DiscordClient.CurrentUser.Id
                 });
 
@@ -340,7 +365,7 @@ namespace Modix.Services.Moderation
             {
                 case InfractionType.Mute:
                     await subject.RemoveRoleAsync(
-                        await GetOrCreateMuteRoleAsync(guild));
+                        await GetOrCreateMuteRoleInGuildAsync(guild));
                     break;
 
                 case InfractionType.Ban:
@@ -351,7 +376,7 @@ namespace Modix.Services.Moderation
             // TODO: Log action to a channel, pulled from IModerationConfigRepository. 
         }
 
-        private async Task<IRole> GetOrCreateMuteRoleAsync(IGuild guild)
+        private async Task<IRole> GetOrCreateMuteRoleInGuildAsync(IGuild guild)
             => guild.Roles.FirstOrDefault(x => x.Name == MuteRoleName)
                 ?? await guild.CreateRoleAsync(MuteRoleName);
 
