@@ -72,10 +72,10 @@ namespace Modix.Data.Repositories
         /// <summary>
         /// Marks an existing infraction as deleted, based on its ID.
         /// </summary>
-        /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be rescinded.</param>
-        /// <param name="deletedById">The <see cref="UserEntity.Id"/> value of the user that is rescinding the infraction.</param>
+        /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be deleted.</param>
+        /// <param name="deletedById">The <see cref="UserEntity.Id"/> value of the user that is deleting the infraction.</param>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing a flag indicating whether the update was successful (I.E. whether the specified infraction could be found).
+        /// containing a flag indicating whether the operation was successful (I.E. whether the specified infraction could be found).
         /// </returns>
         Task<bool> TryDeleteAsync(long infractionId, ulong deletedById);
     }

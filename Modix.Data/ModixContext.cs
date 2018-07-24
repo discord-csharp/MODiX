@@ -1,7 +1,4 @@
-﻿using System.Linq.Expressions;
-using System.Threading.Tasks;
-
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
@@ -22,13 +19,21 @@ namespace Modix.Data
         }
 
         public DbSet<ConfigurationActionEntity> ConfigurationActions { get; set; }
+
         public DbSet<BehaviourConfiguration> BehaviourConfigurations { get; set; }
+
         public DbSet<UserEntity> Users { get; set; }
+
         public DbSet<ClaimMappingEntity> ClaimMappings { get; set; }
-        public DbSet<ModerationConfigEntity> ModerationConfigs { get; set; }
+
+        public DbSet<ModerationMuteRoleMappingEntity> ModerationMuteRoleMappings { get; set; }
+
         public DbSet<ModerationActionEntity> ModerationActions { get; set; }
+
         public DbSet<InfractionEntity> Infractions { get; set; }
+
         public DbSet<PromotionCampaignEntity> PromotionCampaigns { get; set; }
+
         public DbSet<PromotionCommentEntity> PromotionComments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

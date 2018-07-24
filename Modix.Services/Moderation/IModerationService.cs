@@ -29,7 +29,7 @@ namespace Modix.Services.Moderation
         Task AutoConfigureChannelAsync(IChannel channel);
 
         /// <summary>
-        /// Removes all moderation configuration settings for a guild, by rescinding all of its <see cref="ModerationConfigEntity"/> entries.
+        /// Removes all moderation configuration settings for a guild, by deleting all of its <see cref="ModerationMuteRoleMappingEntity"/> entries.
         /// </summary>
         /// <param name="guild">The guild to be un-configured.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has complete.</returns>

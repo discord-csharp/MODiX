@@ -13,5 +13,13 @@
         /// Describes an action where a claim mapping was rescinded.
         /// </summary>
         ClaimMappingDeleted,
+        /// <summary>
+        /// Describes an action where a moderation mute role mapping was created.
+        /// </summary>
+        ModerationMuteRoleMappingCreated,
+        /// <summary>
+        /// Describes an action where a moderation mute role mapping was deleted.
+        /// </summary>
+        ModerationMuteRoleMappingDeleted,
     }
 }

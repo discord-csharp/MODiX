@@ -30,7 +30,7 @@ namespace Modix.Services.Moderation
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
         /// <param name="authorizationService">The value to use for <see cref="AuthorizationService"/>.</param>
         /// <param name="userService">The value to use for <see cref="UserService"/>.</param>
-        /// <param name="moderationConfigRepository">The value to use for <see cref="ModerationConfigRepository"/>.</param>
+        /// <param name="moderationConfigRepository">The value to use for <see cref="ModerationMuteRoleMappingRepository"/>.</param>
         /// <param name="moderationActionRepository">The value to use for <see cref="ModerationActionRepository"/>.</param>
         /// <param name="infractionRepository">The value to use for <see cref="InfractionRepository"/>.</param>
         /// <exception cref="ArgumentNullException">Throws for all parameters.</exception>
@@ -39,7 +39,7 @@ namespace Modix.Services.Moderation
             IAuthorizationService authorizationService,
             IGuildService guildService,
             IUserService userService,
-            IModerationConfigRepository moderationConfigRepository,
+            IModerationMuteRoleMappingRepository moderationConfigRepository,
             IModerationActionRepository moderationActionRepository,
             IInfractionRepository infractionRepository)
         {
@@ -47,7 +47,7 @@ namespace Modix.Services.Moderation
             AuthorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
             GuildService = guildService ?? throw new ArgumentNullException(nameof(guildService));
             UserService = userService ?? throw new ArgumentNullException(nameof(userService));
-            ModerationConfigRepository = moderationConfigRepository ?? throw new ArgumentNullException(nameof(moderationConfigRepository));
+            ModerationMuteRoleMappingRepository = moderationConfigRepository ?? throw new ArgumentNullException(nameof(moderationConfigRepository));
             ModerationActionRepository = moderationActionRepository ?? throw new ArgumentNullException(nameof(moderationActionRepository));
             InfractionRepository = infractionRepository ?? throw new ArgumentNullException(nameof(infractionRepository));
         }
@@ -79,14 +79,18 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         public async Task UnConfigureGuildAsync(IGuild guild)
         {
-            var config = await ModerationConfigRepository.ReadAsync(guild.Id);
-            if(config != null)
+            foreach(var mapping in await ModerationMuteRoleMappingRepository
+                .SearchBriefsAsync(new ModerationMuteRoleMappingSearchCriteria()
+                {
+                    GuildId = guild.Id,
+                    IsDeleted = false,
+                }))
             {
-                IDeletable muteRole = guild.Roles.FirstOrDefault(x => x.Id == config.MuteRoleId);
+                IDeletable muteRole = guild.Roles.FirstOrDefault(x => x.Id == mapping.MuteRoleId);
                 if (muteRole != null)
                     await muteRole.DeleteAsync();
 
-                await ModerationConfigRepository.DeleteAsync(config.GuildId);
+                await ModerationMuteRoleMappingRepository.TryDeleteAsync(mapping.Id, DiscordClient.CurrentUser.Id);
             }
         }
 
@@ -254,9 +258,9 @@ namespace Modix.Services.Moderation
         internal protected IUserService UserService { get; }
 
         /// <summary>
-        /// An <see cref="IModerationConfigRepository"/> for storing and retrieving moderation configuration data.
+        /// An <see cref="IModerationMuteRoleMappingRepository"/> for storing and retrieving mute role data.
         /// </summary>
-        internal protected IModerationConfigRepository ModerationConfigRepository { get; }
+        internal protected IModerationMuteRoleMappingRepository ModerationMuteRoleMappingRepository { get; }
 
         /// <summary>
         /// An <see cref="IModerationActionRepository"/> for storing and retrieving moderation action data.
@@ -270,21 +274,32 @@ namespace Modix.Services.Moderation
 
         private async Task CreateOrUpdateConfig(IGuild guild, IRole muteRole)
         {
-            var config = await ModerationConfigRepository.ReadAsync(guild.Id);
-            if (config == null)
+            using (var transaction = await ModerationMuteRoleMappingRepository.BeginCreateTransactionAsync())
             {
-                await ModerationConfigRepository.CreateAsync(new ModerationConfigCreationData()
+                var mapping = (await ModerationMuteRoleMappingRepository
+                    .SearchBriefsAsync(new ModerationMuteRoleMappingSearchCriteria()
+                    {
+                        GuildId = guild.Id,
+                        IsDeleted = false
+                    }))
+                    .FirstOrDefault();
+
+                if (mapping != null)
+                {
+                    if (muteRole.Id == mapping.MuteRoleId)
+                        return;
+
+                    await ModerationMuteRoleMappingRepository.TryDeleteAsync(mapping.Id, DiscordClient.CurrentUser.Id);
+                }
+
+                await ModerationMuteRoleMappingRepository.CreateAsync(new ModerationMuteRoleMappingCreationData()
                 {
                     GuildId = guild.Id,
-                    MuteRoleId = muteRole.Id
+                    MuteRoleId = muteRole.Id,
+                    CreatedById = DiscordClient.CurrentUser.Id
                 });
-            }
-            else if (muteRole.Id != config.MuteRoleId)
-            {
-                await ModerationConfigRepository.UpdateAsync(config.GuildId, data =>
-                {
-                    data.MuteRoleId = muteRole.Id;
-                });
+
+                transaction.Commit();
             }
         }
 
