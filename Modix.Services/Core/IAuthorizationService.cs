@@ -39,6 +39,42 @@ namespace Modix.Services.Core
         Task UnConfigureGuildAsync(IGuild guild);
 
         /// <summary>
+        /// Adds a claim mapping to a role.
+        /// </summary>
+        /// <param name="role">The role for which a claim mapping is to be added.</param>
+        /// <param name="type">The type of claim mapping to be added.</param>
+        /// <param name="claim">The claim to be mapped.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task AddClaimMapping(IRole role, ClaimMappingType type, AuthorizationClaim claim);
+
+        /// <summary>
+        /// Adds a claim mapping to a user.
+        /// </summary>
+        /// <param name="user">The user for which a claim mapping is to be added.</param>
+        /// <param name="type">The type of claim mapping to be added.</param>
+        /// <param name="claim">The claim to be mapped.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task AddClaimMapping(IGuildUser user, ClaimMappingType type, AuthorizationClaim claim);
+
+        /// <summary>
+        /// Removes a claim mapping from a role.
+        /// </summary>
+        /// <param name="role">The role for which a claim mapping is to be removed.</param>
+        /// <param name="type">The type of claim mapping to be removed.</param>
+        /// <param name="claim">The claim to be un-mapped.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task RemoveClaimMapping(IRole role, ClaimMappingType type, AuthorizationClaim claim);
+
+        /// <summary>
+        /// Removes a claim mapping from a user.
+        /// </summary>
+        /// <param name="role">The user for which a claim mapping is to be removed.</param>
+        /// <param name="type">The type of claim mapping to be removed.</param>
+        /// <param name="claim">The claim to be un=mapped.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task RemoveClaimMapping(IGuildUser user, ClaimMappingType type, AuthorizationClaim claim);
+
+        /// <summary>
         /// A list of authorization claims possessed by the source of the current request.
         /// </summary>
         IReadOnlyCollection<AuthorizationClaim> CurrentClaims { get; }

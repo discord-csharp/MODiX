@@ -48,13 +48,10 @@ namespace Modix.Data.Repositories
                 .FirstOrDefaultAsync(x => x.Id == roleClaimId);
 
         /// <inheritdoc />
-        public Task<bool> AnyAsync(ulong guildId)
-        {
-            var longGuildId = (long)guildId;
-
-            return ModixContext.ClaimMappings.AsNoTracking()
-                .AnyAsync(x => x.GuildId == longGuildId);
-        }
+        public Task<bool> AnyAsync(ClaimMappingSearchCriteria criteria)
+            => ModixContext.ClaimMappings.AsNoTracking()
+                .FilterClaimMappingsBy(criteria)
+                .AnyAsync();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<long>> SearchIdsAsync(ClaimMappingSearchCriteria criteria)
@@ -75,8 +72,8 @@ namespace Modix.Data.Repositories
         {
             var longRescindedById = (long)rescindedById;
 
-            if (await ModixContext.Users.AsNoTracking()
-                .AnyAsync(x => x.Id == longRescindedById))
+            if (!(await ModixContext.Users.AsNoTracking()
+                .AnyAsync(x => x.Id == longRescindedById)))
                 return false;
 
             var entity = await ModixContext.ClaimMappings
@@ -128,7 +125,7 @@ namespace Modix.Data.Repositories
                     anyRoleIds && (longUserId == null))
                 .FilterBy(
                     x => (x.UserId == longUserId),
-                    !anyRoleIds && (longUserId == null))
+                    !anyRoleIds && (longUserId != null))
                 .FilterBy(
                     x => criteria.Claims.Contains(x.Claim),
                     criteria?.Claims?.Any() ?? false)

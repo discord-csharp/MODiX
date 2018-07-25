@@ -6,6 +6,10 @@
     public enum AuthorizationClaim
     {
         /// <summary>
+        /// Authorizes a request to configure the authorization feature.
+        /// </summary>
+        AuthorizationConfigure,
+        /// <summary>
         /// Authorizes a request to read infraction/moderation data.
         /// </summary>
         ModerationRead,

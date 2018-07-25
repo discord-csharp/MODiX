@@ -43,14 +43,14 @@ namespace Modix.Data.Repositories
         Task<ClaimMappingSummary> ReadAsync(long roleClaimId);
 
         /// <summary>
-        /// Checks whether any claims have been mapped for a given guild.
+        /// Checks whether any claims exist, for an arbitrary set of criteria.
         /// </summary>
-        /// <param name="guildId">The <see cref="ClaimMappingEntity.GuildId"/> value of the mappings to be checked for.</param>
+        /// <param name="criteria">A set of criteria defining the mappings to be checked for.</param>
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation has completed,
-        /// containing a flag indicating whether any claim mappings exist for <paramref name="guildId"/>.
+        /// containing a flag indicating whether any matching claim mappings were found.
         /// </returns>
-        Task<bool> AnyAsync(ulong guildId);
+        Task<bool> AnyAsync(ClaimMappingSearchCriteria criteria);
 
         /// <summary>
         /// Searches the repository for claim mapping id values, based on an arbitrary set of criteria.
