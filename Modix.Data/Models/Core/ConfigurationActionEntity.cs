@@ -58,7 +58,7 @@ namespace Modix.Data.Models.Core
         /// </summary>
         // This is needed because if we don't manually map an inverse property for this relationship,
         // EF will try and do it automatically, and will try to use the ClaimMapping property above for both
-        // the "Create" and "Rescind" relationships, and throw an error.
+        // the "Create" and "Delete" relationships, and throw an error.
         [InverseProperty(nameof(ClaimMappingEntity.CreateAction))]
         public virtual ClaimMappingEntity CreatedClaimMapping { get; set; }
 
@@ -68,7 +68,7 @@ namespace Modix.Data.Models.Core
         /// </summary>
         // This is needed because if we don't manually map an inverse property for this relationship,
         // EF will try and do it automatically, and will try to use the ClaimMapping property above for both
-        // the "Create" and "Rescind" relationships, and throw an error.
+        // the "Create" and "Delete" relationships, and throw an error.
         [InverseProperty(nameof(ClaimMappingEntity.DeleteAction))]
         public virtual ClaimMappingEntity DeletedClaimMapping { get; set; }
 
@@ -89,7 +89,7 @@ namespace Modix.Data.Models.Core
         /// </summary>
         // This is needed because if we don't manually map an inverse property for this relationship,
         // EF will try and do it automatically, and will try to use the ModerationMuteRoleMapping property above for both
-        // the "Create" and "Rescind" relationships, and throw an error.
+        // the "Create" and "Delete" relationships, and throw an error.
         [InverseProperty(nameof(ModerationMuteRoleMappingEntity.CreateAction))]
         public virtual ModerationMuteRoleMappingEntity CreatedModerationMuteRoleMapping { get; set; }
 
@@ -99,8 +99,39 @@ namespace Modix.Data.Models.Core
         /// </summary>
         // This is needed because if we don't manually map an inverse property for this relationship,
         // EF will try and do it automatically, and will try to use the ModerationMuteRoleMapping property above for both
-        // the "Create" and "Rescind" relationships, and throw an error.
+        // the "Create" and "Delete" relationships, and throw an error.
         [InverseProperty(nameof(ModerationMuteRoleMappingEntity.DeleteAction))]
         public virtual ModerationMuteRoleMappingEntity DeletedModerationMuteRoleMapping { get; set; }
+
+        /// <summary>
+        /// The <see cref="ModerationLogChannelMappingEntity.Id"/> value (if any) of <see cref="ModerationLogChannelMapping"/>.
+        /// </summary>
+        [ForeignKey(nameof(ModerationLogChannelMapping))]
+        public long? ModerationLogChannelMappingId { get; set; }
+
+        /// <summary>
+        /// The moderation log channel mapping that was affected by this action, if any.
+        /// </summary>
+        public ModerationLogChannelMappingEntity ModerationLogChannelMapping { get; set; }
+
+        /// <summary>
+        /// Alias for <see cref="ModerationLogChannelMapping"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.ModerationLogChannelMappingCreated"/>.
+        /// Otherwise, null.
+        /// </summary>
+        // This is needed because if we don't manually map an inverse property for this relationship,
+        // EF will try and do it automatically, and will try to use the ModerationLogChannelMapping property above for both
+        // the "Create" and "Delete" relationships, and throw an error.
+        [InverseProperty(nameof(ModerationLogChannelMappingEntity.CreateAction))]
+        public virtual ModerationLogChannelMappingEntity CreatedModerationLogChannelMapping { get; set; }
+
+        /// <summary>
+        /// Alias for <see cref="ModerationLogChannelMapping"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.ModerationLogChannelMappingDeleted"/>.
+        /// Otherwise, null.
+        /// </summary>
+        // This is needed because if we don't manually map an inverse property for this relationship,
+        // EF will try and do it automatically, and will try to use the ModerationLogChannelMapping property above for both
+        // the "Create" and "Delete" relationships, and throw an error.
+        [InverseProperty(nameof(ModerationLogChannelMappingEntity.DeleteAction))]
+        public virtual ModerationLogChannelMappingEntity DeletedModerationLogChannelMapping { get; set; }
     }
 }

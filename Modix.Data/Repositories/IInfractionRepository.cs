@@ -40,7 +40,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing the requested infraction, or null if no such infraction exists.
         /// </returns>
-        Task<InfractionSummary> ReadAsync(long infractionId);
+        Task<InfractionSummary> ReadSummaryAsync(long infractionId);
 
         /// <summary>
         /// Checks whether the repository contains any infractions matching the given search criteria.

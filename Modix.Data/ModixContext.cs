@@ -28,6 +28,8 @@ namespace Modix.Data
 
         public DbSet<ModerationMuteRoleMappingEntity> ModerationMuteRoleMappings { get; set; }
 
+        public DbSet<ModerationLogChannelMappingEntity> ModerationLogChannelMappings { get; set; }
+
         public DbSet<ModerationActionEntity> ModerationActions { get; set; }
 
         public DbSet<InfractionEntity> Infractions { get; set; }

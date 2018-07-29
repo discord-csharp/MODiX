@@ -19,6 +19,7 @@ namespace Modix.Services.Moderation
                 .AddSingleton<IBehavior, ModerationAutoConfigBehavior>()
                 .AddScoped<IModerationService, ModerationService>()
                 .AddScoped<IModerationMuteRoleMappingRepository, ModerationMuteRoleMappingRepository>()
+                .AddScoped<IModerationLogChannelMappingRepository, ModerationLogChannelMappingRepository>()
                 .AddScoped<IModerationActionRepository, ModerationActionRepository>()
                 .AddScoped<IInfractionRepository, InfractionRepository>();
     }

@@ -20,8 +20,11 @@ namespace Modix.Data.Repositories
         /// Creates a new <see cref="InfractionRepository"/>.
         /// See <see cref="RepositoryBase(ModixContext)"/> for details.
         /// </summary>
-        public InfractionRepository(ModixContext modixContext)
-            : base(modixContext) { }
+        public InfractionRepository(ModixContext modixContext, IEnumerable<IModerationActionEventHandler> moderationActionEventHandlers)
+            : base(modixContext)
+        {
+            ModerationActionEventHandlers = moderationActionEventHandlers ?? throw new ArgumentNullException(nameof(moderationActionEventHandlers));
+        }
 
         /// <inheritdoc />
         public Task<IRepositoryTransaction> BeginCreateTransactionAsync()
@@ -41,11 +44,13 @@ namespace Modix.Data.Repositories
             entity.CreateAction.InfractionId = entity.Id;
             await ModixContext.SaveChangesAsync();
 
+            await RaiseModerationActionCreated(data.GuildId, entity.CreateActionId);
+
             return entity.Id;
         }
 
         /// <inheritdoc />
-        public Task<InfractionSummary> ReadAsync(long infractionId)
+        public Task<InfractionSummary> ReadSummaryAsync(long infractionId)
             => ModixContext.Infractions.AsNoTracking()
                 .Where(x => x.Id == infractionId)
                 .Select(InfractionSummary.FromEntityProjection)
@@ -109,12 +114,15 @@ namespace Modix.Data.Repositories
 
             entity.RescindAction = new ModerationActionEntity()
             {
+                GuildId = entity.GuildId,
                 Type = ModerationActionType.InfractionRescinded,
                 Created = DateTimeOffset.Now,
                 CreatedById = longRescindedById,
                 InfractionId = entity.Id
             };
             await ModixContext.SaveChangesAsync();
+
+            await RaiseModerationActionCreated((ulong)entity.GuildId, entity.RescindActionId.Value);
 
             return true;
         }
@@ -133,6 +141,7 @@ namespace Modix.Data.Repositories
 
             entity.DeleteAction = new ModerationActionEntity()
             {
+                GuildId = entity.GuildId,
                 Type = ModerationActionType.InfractionDeleted,
                 Created = DateTimeOffset.Now,
                 CreatedById = longDeletedById,
@@ -140,7 +149,24 @@ namespace Modix.Data.Repositories
             };
             await ModixContext.SaveChangesAsync();
 
+            await RaiseModerationActionCreated((ulong)entity.GuildId, entity.DeleteActionId.Value);
+
             return true;
+        }
+
+        /// <summary>
+        /// A set of <see cref="IModerationActionEventHandler"/> objects to receive information about moderation actions
+        /// affected by this repository.
+        /// </summary>
+        internal protected IEnumerable<IModerationActionEventHandler> ModerationActionEventHandlers { get; }
+
+        private async Task RaiseModerationActionCreated(ulong guildId, long moderationActionId)
+        {
+            if(ModerationActionEventHandlers.Any())
+            {
+                foreach(var handler in ModerationActionEventHandlers)
+                    await handler.OnModerationActionCreatedAsync(guildId, moderationActionId);
+            }
         }
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory

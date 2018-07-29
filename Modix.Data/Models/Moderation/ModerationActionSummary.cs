@@ -16,6 +16,11 @@ namespace Modix.Data.Models.Moderation
         public long Id { get; set; }
 
         /// <summary>
+        /// See <see cref="ModerationActionEntity.GuildId"/>.
+        /// </summary>
+        public ulong GuildId { get; set; }
+
+        /// <summary>
         /// See <see cref="ModerationActionEntity.Type"/>.
         /// </summary>
         public ModerationActionType Type { get; set; }
@@ -39,6 +44,7 @@ namespace Modix.Data.Models.Moderation
             = entity => new ModerationActionSummary()
             {
                 Id = entity.Id,
+                GuildId = (ulong)entity.GuildId,
                 Type = entity.Type,
                 Created = entity.Created,
                 CreatedBy = new UserIdentity()
@@ -51,7 +57,9 @@ namespace Modix.Data.Models.Moderation
                 Infraction = new InfractionBrief()
                 {
                     Id = entity.Infraction.Id,
-                    Type = entity.Infraction.Type,
+                    // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                    //Type = entity.Infraction.Type,
+                    Type = Enum.Parse<InfractionType>(entity.Infraction.Type.ToString()),
                     Reason = entity.Infraction.Reason,
                     Duration = entity.Infraction.Duration,
                     Subject = new UserIdentity()

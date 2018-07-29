@@ -30,7 +30,7 @@ namespace Modix.Services.Moderation
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
         /// <param name="authorizationService">The value to use for <see cref="AuthorizationService"/>.</param>
         /// <param name="userService">The value to use for <see cref="UserService"/>.</param>
-        /// <param name="moderationConfigRepository">The value to use for <see cref="ModerationMuteRoleMappingRepository"/>.</param>
+        /// <param name="moderationMuteRoleMappingRepository">The value to use for <see cref="ModerationMuteRoleMappingRepository"/>.</param>
         /// <param name="moderationActionRepository">The value to use for <see cref="ModerationActionRepository"/>.</param>
         /// <param name="infractionRepository">The value to use for <see cref="InfractionRepository"/>.</param>
         /// <exception cref="ArgumentNullException">Throws for all parameters.</exception>
@@ -39,7 +39,8 @@ namespace Modix.Services.Moderation
             IAuthorizationService authorizationService,
             IGuildService guildService,
             IUserService userService,
-            IModerationMuteRoleMappingRepository moderationConfigRepository,
+            IModerationMuteRoleMappingRepository moderationMuteRoleMappingRepository,
+            IModerationLogChannelMappingRepository moderationLogChannelMappingRepository,
             IModerationActionRepository moderationActionRepository,
             IInfractionRepository infractionRepository)
         {
@@ -47,7 +48,8 @@ namespace Modix.Services.Moderation
             AuthorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
             GuildService = guildService ?? throw new ArgumentNullException(nameof(guildService));
             UserService = userService ?? throw new ArgumentNullException(nameof(userService));
-            ModerationMuteRoleMappingRepository = moderationConfigRepository ?? throw new ArgumentNullException(nameof(moderationConfigRepository));
+            ModerationMuteRoleMappingRepository = moderationMuteRoleMappingRepository ?? throw new ArgumentNullException(nameof(moderationMuteRoleMappingRepository));
+            ModerationLogChannelMappingRepository = moderationLogChannelMappingRepository ?? throw new ArgumentNullException(nameof(moderationLogChannelMappingRepository));
             ModerationActionRepository = moderationActionRepository ?? throw new ArgumentNullException(nameof(moderationActionRepository));
             InfractionRepository = infractionRepository ?? throw new ArgumentNullException(nameof(infractionRepository));
         }
@@ -95,7 +97,7 @@ namespace Modix.Services.Moderation
         }
 
         /// <inheritdoc />
-        public async Task<IRole> GetMuteRole(IGuild guild)
+        public async Task<IRole> GetMuteRoleAsync(IGuild guild)
         {
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationConfigure);
 
@@ -108,11 +110,81 @@ namespace Modix.Services.Moderation
         }
 
         /// <inheritdoc />
-        public Task SetMuteRole(IGuild guild, IRole muteRole)
+        public Task SetMuteRoleAsync(IGuild guild, IRole muteRole)
         {
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationConfigure);
 
             return CreateOrUpdateMuteRoleMapping(guild.Id, muteRole.Id);
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<ulong>> GetLogChannelIdsAsync(ulong guildId)
+             => (await ModerationLogChannelMappingRepository.SearchBriefsAsync(new ModerationLogChannelMappingSearchCriteria()
+                {
+                    GuildId = guildId,
+                    IsDeleted = false
+                }))
+                .Select(x => x.LogChannelId)
+                .ToArray();
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<IMessageChannel>> GetLogChannelsAsync(IGuild guild)
+        {
+            var mappings = await ModerationLogChannelMappingRepository.SearchBriefsAsync(new ModerationLogChannelMappingSearchCriteria()
+            {
+                GuildId = guild.Id,
+                IsDeleted = false
+            });
+
+            return (await guild.GetChannelsAsync())
+                .Where(x => mappings.Any(y => y.LogChannelId == x.Id))
+                .Cast<IMessageChannel>()
+                .ToArray();
+        }
+
+        /// <inheritdoc />
+        public async Task AddLogChannelAsync(IGuild guild, IMessageChannel logChannel)
+        {
+            using (var transaction = await ModerationLogChannelMappingRepository.BeginCreateTransactionAsync())
+            {
+                if (await ModerationLogChannelMappingRepository.AnyAsync(new ModerationLogChannelMappingSearchCriteria()
+                {
+                    GuildId = guild.Id,
+                    LogChannelId = logChannel.Id,
+                    IsDeleted = false
+                }))
+                {
+                    throw new InvalidOperationException($"{logChannel.Name} already receives moderation log messages for {guild.Name}");
+                }
+
+                await ModerationLogChannelMappingRepository.CreateAsync(new ModerationLogChannelMappingCreationData()
+                {
+                    GuildId = guild.Id,
+                    LogChannelId = logChannel.Id,
+                    CreatedById = AuthorizationService.CurrentUserId.Value
+                });
+
+                transaction.Commit();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task RemoveLogChannelAsync(IGuild guild, IMessageChannel logChannel)
+        {
+            using(var transaction = await ModerationLogChannelMappingRepository.BeginDeleteTransactionAsync())
+            {
+                var deletedCount = await ModerationLogChannelMappingRepository.DeleteAsync(new ModerationLogChannelMappingSearchCriteria()
+                {
+                    GuildId = guild.Id,
+                    LogChannelId = logChannel.Id,
+                    IsDeleted = false
+                }, AuthorizationService.CurrentUserId.Value);
+
+                if(deletedCount == 0)
+                    throw new InvalidOperationException($"{logChannel.Name} is not currently receiving moderation log messages for {guild.Name}");
+
+                transaction.Commit();
+            }
         }
 
         /// <inheritdoc />
@@ -134,7 +206,7 @@ namespace Modix.Services.Moderation
 
             using (var transaction = await InfractionRepository.BeginCreateTransactionAsync())
             {
-                if ((type != InfractionType.Mute) && (type != InfractionType.Ban))
+                if ((type == InfractionType.Mute) || (type == InfractionType.Ban))
                 {
                     if (await InfractionRepository.AnyAsync(new InfractionSearchCriteria()
                     {
@@ -144,7 +216,7 @@ namespace Modix.Services.Moderation
                         IsRescinded = false,
                         IsDeleted = false
                     }))
-                        throw new ArgumentNullException($"Discord user {subjectId} already has an active {type} infraction");
+                        throw new InvalidOperationException($"Discord user {subjectId} already has an active {type} infraction");
                 }
 
                 await InfractionRepository.CreateAsync(
@@ -179,8 +251,6 @@ namespace Modix.Services.Moderation
                     break;
             }
             
-            // TODO: Log action to a channel, pulled from IModerationConfigRepository. 
-            
             // TODO: Implement InfractionAutoExpirationBehavior (or whatever) to automatically rescind infractions, based on Duration, and notify it here that a new infraction has been created, if it has a duration.
         }
 
@@ -212,7 +282,7 @@ namespace Modix.Services.Moderation
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
 
             await DoRescindInfractionAsync(
-                await InfractionRepository.ReadAsync(infractionId));
+                await InfractionRepository.ReadSummaryAsync(infractionId));
         }
 
         /// <inheritdoc />
@@ -222,7 +292,7 @@ namespace Modix.Services.Moderation
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationDelete);
 
-            var infraction = await InfractionRepository.ReadAsync(infractionId);
+            var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
 
             if (infraction == null)
                 throw new InvalidOperationException($"Infraction {infractionId} does not exist");
@@ -243,25 +313,35 @@ namespace Modix.Services.Moderation
                     await guild.RemoveBanAsync(subject);
                     break;
             }
-
-            // TODO: Log action to a channel, pulled from IModerationConfigRepository. 
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null)
+        public Task<IReadOnlyCollection<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null)
         {
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
 
-            return await InfractionRepository.SearchSummariesAsync(searchCriteria, sortingCriteria);
+            return InfractionRepository.SearchSummariesAsync(searchCriteria, sortingCriteria);
         }
 
         /// <inheritdoc />
-        public async Task<RecordsPage<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
+        public Task<RecordsPage<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
         {
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
 
-            return await InfractionRepository.SearchSummariesPagedAsync(searchCriteria, sortingCriteria, pagingCriteria);
+            return InfractionRepository.SearchSummariesPagedAsync(searchCriteria, sortingCriteria, pagingCriteria);
         }
+
+        /// <inheritdoc />
+        public Task<ModerationActionSummary> GetModerationActionSummaryAsync(long moderationActionId)
+        {
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
+
+            return ModerationActionRepository.ReadSummaryAsync(moderationActionId);
+        }
+
+        /// <inheritdoc />
+        public Task<IReadOnlyCollection<ModerationActionSummary>> SearchModerationActionsAsync(ModerationActionSearchCriteria searchCriteria)
+            => ModerationActionRepository.SearchSummariesAsync(searchCriteria);
 
         /// <summary>
         /// An <see cref="IDiscordClient"/> for interacting with the Discord API.
@@ -284,9 +364,14 @@ namespace Modix.Services.Moderation
         internal protected IUserService UserService { get; }
 
         /// <summary>
-        /// An <see cref="IModerationMuteRoleMappingRepository"/> for storing and retrieving mute role data.
+        /// An <see cref="IModerationMuteRoleMappingRepository"/> for storing and retrieving mute role configuration data.
         /// </summary>
         internal protected IModerationMuteRoleMappingRepository ModerationMuteRoleMappingRepository { get; }
+
+        /// <summary>
+        /// An <see cref="IModerationLogChannelMappingRepository"/> for storing and retrieving log channel configuration data.
+        /// </summary>
+        internal protected IModerationLogChannelMappingRepository ModerationLogChannelMappingRepository { get; }
 
         /// <summary>
         /// An <see cref="IModerationActionRepository"/> for storing and retrieving moderation action data.
@@ -371,9 +456,10 @@ namespace Modix.Services.Moderation
                 case InfractionType.Ban:
                     await guild.RemoveBanAsync(subject);
                     break;
-            }
 
-            // TODO: Log action to a channel, pulled from IModerationConfigRepository. 
+                default:
+                    throw new InvalidOperationException($"{infraction.Type} infractions cannot be rescinded.");
+            }
         }
 
         private async Task<IRole> GetOrCreateMuteRoleInGuildAsync(IGuild guild)

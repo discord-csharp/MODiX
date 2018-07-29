@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿using System.Linq;
+
+using NUnit.Framework;
 using NSubstitute;
 using Shouldly;
 
@@ -13,8 +15,9 @@ namespace Modix.Data.Test.Repositories
         public void Constructor_Always_InvokesBaseConstructor()
         {
             var modixContext = Substitute.For<ModixContext>();
+            var moderationActionEventHandlers = Enumerable.Empty<IModerationActionEventHandler>();
 
-            var uut = new InfractionRepository(modixContext);
+            var uut = new InfractionRepository(modixContext, moderationActionEventHandlers);
 
             uut.ModixContext.ShouldBeSameAs(modixContext);
         }

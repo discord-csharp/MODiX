@@ -45,7 +45,7 @@ namespace Modix.Data.Repositories
         /// <param name="mappingId">The <see cref="ModerationMuteRoleMappingEntity.Id"/> value of the mapping to be deleted.</param>
         /// <param name="deletedById">The <see cref="UserEntity.Id"/> value of the user that is deleting the mapping.</param>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing a flag indicating whether the operation was successful (I.E. whether the specified infraction could be found).
+        /// containing a flag indicating whether the operation was successful (I.E. whether the specified mapping could be found).
         /// </returns>
         Task<bool> TryDeleteAsync(long mappingId, ulong deletedById);
     }
