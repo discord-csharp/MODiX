@@ -212,7 +212,11 @@ namespace Modix.Services.Core
 
         /// <inheritdoc />
         public async Task OnAuthenticatedAsync(ulong guildId, IEnumerable<ulong> roleIds, ulong userId)
-            => CurrentClaims = await GetGuildUserCurrentClaimsAsync(guildId, roleIds, userId);
+        {
+            CurrentClaims = await GetGuildUserCurrentClaimsAsync(guildId, roleIds, userId);
+            CurrentGuildId = guildId;
+            CurrentUserId = userId;
+        }
 
         /// <inheritdoc />
         public void RequireAuthenticatedGuild()
@@ -265,9 +269,6 @@ namespace Modix.Services.Core
 
         private async Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserCurrentClaimsAsync(ulong guildId, IEnumerable<ulong> roleIds, ulong userId)
         {
-            CurrentGuildId = guildId;
-            CurrentUserId = userId;
-
             var claims = new HashSet<AuthorizationClaim>();
 
             foreach (var claimMapping in (await ClaimMappingRepository
