@@ -53,7 +53,6 @@ namespace Modix.Services.Core
             using (var transaction = await ClaimMappingRepository.BeginCreateTransactionAsync())
             {
                 foreach (var claim in Enum.GetValues(typeof(AuthorizationClaim)).Cast<AuthorizationClaim>())
-                {
                     foreach (var role in guild.Roles.Where(x => x.Permissions.Administrator))
                         await ClaimMappingRepository.CreateAsync(new ClaimMappingCreationData()
                         {
@@ -64,17 +63,6 @@ namespace Modix.Services.Core
                             Claim = claim,
                             CreatedById = DiscordClient.CurrentUser.Id
                         });
-
-                    await ClaimMappingRepository.CreateAsync(new ClaimMappingCreationData()
-                    {
-                        Type = ClaimMappingType.Granted,
-                        GuildId = guild.Id,
-                        RoleId = null,
-                        UserId = DiscordClient.CurrentUser.Id,
-                        Claim = claim,
-                        CreatedById = DiscordClient.CurrentUser.Id
-                    });
-                }
 
                 transaction.Commit();
             }
@@ -202,12 +190,18 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(IGuildUser guildUser)
+        public async Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(IGuildUser guildUser)
         {
             if (guildUser == null)
                 throw new ArgumentNullException(nameof(guildUser));
 
-            return GetGuildUserCurrentClaimsAsync(guildUser.GuildId, guildUser.RoleIds, guildUser.Id);
+            if (guildUser.Id == DiscordClient.CurrentUser.Id)
+                return Enum.GetValues(typeof(AuthorizationClaim)).Cast<AuthorizationClaim>().ToArray();
+
+            if (guildUser.Id == CurrentUserId)
+                return CurrentClaims;
+
+            return await GetGuildUserCurrentClaimsAsync(guildUser.GuildId, guildUser.RoleIds, guildUser.Id);
         }
 
         /// <inheritdoc />
@@ -216,6 +210,18 @@ namespace Modix.Services.Core
             CurrentClaims = await GetGuildUserCurrentClaimsAsync(guildId, roleIds, userId);
             CurrentGuildId = guildId;
             CurrentUserId = userId;
+        }
+
+        /// <inheritdoc />
+        public Task OnAuthenticatedAsync(ISelfUser self)
+        {
+            CurrentGuildId = null;
+            CurrentUserId = self.Id;
+            CurrentClaims = Enum.GetValues(typeof(AuthorizationClaim))
+                .Cast<AuthorizationClaim>()
+                .ToHashSet();
+
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc />

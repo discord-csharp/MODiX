@@ -24,8 +24,7 @@ namespace Modix.Services.Core
 
         /// <summary>
         /// Automatically configures default claim mappings for a guild, if none yet exist.
-        /// Default claims include granting all existing claims to any role that has the Discord "Administrate"
-        /// permission, and to the bot user itself.
+        /// Default claims include granting all existing claims to any role that has the Discord "Administrate" permission.
         /// </summary>
         /// <param name="guild">The guild to be configured.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
@@ -96,10 +95,18 @@ namespace Modix.Services.Core
         /// <param name="guildId">The Discord snowflake ID of the guild for which the current user was authenticated.</param>
         /// <param name="roleIds">The Discord snowflake ID values of the roles assigned to the current authenticated user.</param>
         /// <param name="userId">The Discord snowflake ID of the user that was authenticated.</param>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation has completed.
-        /// </returns>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
         Task OnAuthenticatedAsync(ulong guildId, IEnumerable<ulong> roleIds, ulong userId);
+
+        /// <summary>
+        /// Loads and authentication and authorization data into the service, for self-initiated operations.
+        /// Self-authentication is basically a way to have self-initiated bot actions reuse code that is exposed to consumers,
+        /// by having the bot user itself be registered as <see cref="CurrentUserId"/>, with no <see cref="CurrentGuildId"/>,
+        /// and with a <see cref="CurrentClaims"/> collection that contains every claim that exists for the application.
+        /// </summary>
+        /// <param name="self">The current Discord self-user.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task OnAuthenticatedAsync(ISelfUser self);
 
         /// <summary>
         /// Requires that there be an authenticated guild for the current request.

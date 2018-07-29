@@ -3,6 +3,10 @@ using System.Threading.Tasks;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using Discord;
+
+using Modix.Services.Core;
+
 namespace Modix.Services
 {
     /// <inheritdoc />
@@ -83,6 +87,10 @@ namespace Modix.Services
 
             using (var serviceScope = ServiceProvider.CreateScope())
             {
+                await serviceScope.ServiceProvider.GetRequiredService<IAuthorizationService>()
+                    .OnAuthenticatedAsync(serviceScope.ServiceProvider.GetRequiredService<IDiscordClient>()
+                        .CurrentUser);
+
                 await action.Invoke(serviceScope.ServiceProvider.GetRequiredService<TService>());
             }
         }
