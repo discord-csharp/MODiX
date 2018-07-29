@@ -44,7 +44,13 @@ namespace Modix.Data.Repositories
             entity.CreateAction.InfractionId = entity.Id;
             await ModixContext.SaveChangesAsync();
 
-            await RaiseModerationActionCreated(data.GuildId, entity.CreateActionId);
+            await RaiseModerationActionCreated(entity.CreateActionId, new ModerationActionCreationData()
+            {
+                GuildId = (ulong)entity.CreateAction.GuildId,
+                Type = entity.CreateAction.Type,
+                Created = entity.CreateAction.Created,
+                CreatedById = (ulong)entity.CreateAction.CreatedById
+            });
 
             return entity.Id;
         }
@@ -122,7 +128,13 @@ namespace Modix.Data.Repositories
             };
             await ModixContext.SaveChangesAsync();
 
-            await RaiseModerationActionCreated((ulong)entity.GuildId, entity.RescindActionId.Value);
+            await RaiseModerationActionCreated(entity.RescindActionId.Value, new ModerationActionCreationData()
+            {
+                GuildId = (ulong)entity.RescindAction.GuildId,
+                Type = entity.RescindAction.Type,
+                Created = entity.RescindAction.Created,
+                CreatedById = (ulong)entity.RescindAction.CreatedById
+            });
 
             return true;
         }
@@ -149,7 +161,13 @@ namespace Modix.Data.Repositories
             };
             await ModixContext.SaveChangesAsync();
 
-            await RaiseModerationActionCreated((ulong)entity.GuildId, entity.DeleteActionId.Value);
+            await RaiseModerationActionCreated(entity.DeleteActionId.Value, new ModerationActionCreationData()
+            {
+                GuildId = (ulong)entity.DeleteAction.GuildId,
+                Type = entity.DeleteAction.Type,
+                Created = entity.DeleteAction.Created,
+                CreatedById = (ulong)entity.DeleteAction.CreatedById
+            });
 
             return true;
         }
@@ -160,12 +178,12 @@ namespace Modix.Data.Repositories
         /// </summary>
         internal protected IEnumerable<IModerationActionEventHandler> ModerationActionEventHandlers { get; }
 
-        private async Task RaiseModerationActionCreated(ulong guildId, long moderationActionId)
+        private async Task RaiseModerationActionCreated(long moderationActionId, ModerationActionCreationData data)
         {
             if(ModerationActionEventHandlers.Any())
             {
                 foreach(var handler in ModerationActionEventHandlers)
-                    await handler.OnModerationActionCreatedAsync(guildId, moderationActionId);
+                    await handler.OnModerationActionCreatedAsync(moderationActionId, data);
             }
         }
 

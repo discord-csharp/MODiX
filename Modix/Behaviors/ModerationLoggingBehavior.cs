@@ -24,9 +24,9 @@ namespace Modix.Behaviors
             _lazyModerationService = new Lazy<IModerationService>(() => serviceProvider.GetRequiredService<IModerationService>());
         }
 
-        public async Task OnModerationActionCreatedAsync(ulong guildId, long moderationActionId)
+        public async Task OnModerationActionCreatedAsync(long moderationActionId, ModerationActionCreationData data)
         {
-            var logChannelIds = await ModerationService.GetLogChannelIdsAsync(guildId);
+            var logChannelIds = await ModerationService.GetLogChannelIdsAsync(data.GuildId);
             if (!logChannelIds.Any())
                 return;
 
