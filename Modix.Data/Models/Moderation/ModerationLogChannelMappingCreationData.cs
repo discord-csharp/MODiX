@@ -31,6 +31,7 @@ namespace Modix.Data.Models.Moderation
                 LogChannelId = (long)LogChannelId,
                 CreateAction = new ConfigurationActionEntity()
                 {
+                    GuildId = (long)GuildId,
                     Type = ConfigurationActionType.ModerationLogChannelMappingCreated,
                     Created = DateTimeOffset.Now,
                     CreatedById = (long)CreatedById
