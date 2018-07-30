@@ -33,6 +33,6 @@ namespace Modix.Data.Models.Core
         /// The name to display for this user.
         /// </summary>
         public string DisplayName
-            => Nickname ?? Username;
+            => Nickname ?? $"{Username}#{Discriminator}";
     }
 }
