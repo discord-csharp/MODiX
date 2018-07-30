@@ -9,7 +9,7 @@ namespace Modix.Modules
 {
     [Name("Let Me Google That For You")]
     [Summary("Sometimes we all need that little extra push")]
-    public sealed class LmgtfyModule : ModuleBase
+    public class LmgtfyModule : ModuleBase
     {
         private static readonly string[] WordChoices =
         {
@@ -27,15 +27,19 @@ namespace Modix.Modules
             "colossus of clout"
         };
 
+        private static readonly Regex SingleSpaceRegex = new Regex("[ ]{2,}");
+
         private static readonly Random Random = new Random();
 
         [Command("lmgtfy")]
+        [Alias("google")]
         [Summary("Creates a lmgtfy.com link")]
-        public async Task LmgtfyAsync([Remainder] string query)
+        public async Task LmgtfyAsync(
+            [Remainder] [Summary("The search string to perform on lmgtfy.com")]
+            string query)
         {
             // Remove extra white space
-            var singleSpaceRegex = new Regex("[ ]{2,}");
-            query = singleSpaceRegex.Replace(query, " ");
+            query = SingleSpaceRegex.Replace(query, " ");
             query = WebUtility.UrlEncode(string.Join(" ", query));
 
             var url = $"http://lmgtfy.com/?q={query}";
