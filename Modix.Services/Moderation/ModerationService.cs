@@ -267,8 +267,6 @@ namespace Modix.Services.Moderation
                     await guild.AddBanAsync(subject, reason: reason);
                     break;
             }
-            
-            // TODO: Implement InfractionAutoExpirationBehavior (or whatever) to automatically rescind infractions, based on Duration, and notify it here that a new infraction has been created, if it has a duration.
         }
 
         /// <inheritdoc />
