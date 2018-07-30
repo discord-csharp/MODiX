@@ -29,11 +29,67 @@ namespace Modix.Services.Moderation
         Task AutoConfigureChannelAsync(IChannel channel);
 
         /// <summary>
-        /// Removes all moderation configuration settings for a guild, by rescinding all of its <see cref="ModerationConfigEntity"/> entries.
+        /// Removes all moderation configuration settings for a guild, by deleting all of its <see cref="ModerationMuteRoleMappingEntity"/> entries.
         /// </summary>
         /// <param name="guild">The guild to be un-configured.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has complete.</returns>
         Task UnConfigureGuildAsync(IGuild guild);
+
+        /// <summary>
+        /// Retrieves the currently-configured mute role (the role that is assigned to users to mute them) for a given guild.
+        /// </summary>
+        /// <param name="guild">The guild whose mute role is to be retrieved.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation has completed,
+        /// containing the mute role currently configured for use within <paramref name="guild"/>.
+        /// </returns>
+        Task<IRole> GetMuteRoleAsync(IGuild guild);
+
+        /// <summary>
+        /// Sets the currently-configured mute role (the role that is assigned to users to mute them) for a given guild.
+        /// </summary>
+        /// <param name="guild">The guild whose mute role is to be set.</param>
+        /// <param name="muteRole">The mute role to be used for <paramref name="guild"/>.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task SetMuteRoleAsync(IGuild guild, IRole muteRole);
+
+        /// <summary>
+        /// Retrieves the list of the Discord snowflake ID values of all the channels currently configured
+        /// to receive logging messages from the moderation feature, for a given guild.
+        /// </summary>
+        /// <param name="guildId">The Discord snowflake ID value of the guild whose logging channel ID values are to be retrieved.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation has completed,
+        /// containing the requested list of channel ID values.
+        /// </returns>
+        Task<IReadOnlyCollection<ulong>> GetLogChannelIdsAsync(ulong guildId);
+
+        /// <summary>
+        /// Retrieves the list of all channels currently configured to receive logging messages from the moderation feature,
+        /// for a given guild.
+        /// </summary>
+        /// <param name="guild">The guild whose logging channels are to be retrieved.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation has completed,
+        /// containing the requested list of channels.
+        /// </returns>
+        Task<IReadOnlyCollection<IMessageChannel>> GetLogChannelsAsync(IGuild guild);
+
+        /// <summary>
+        /// Configures a channel to receive logging messages from the moderation feature, for a given guild.
+        /// </summary>
+        /// <param name="guild">The guild whose logging messages are to be sent to <paramref name="logChannel"/>.</param>
+        /// <param name="logChannel">The channel to received logging messages from <paramref name="guild"/>.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task AddLogChannelAsync(IGuild guild, IMessageChannel logChannel);
+
+        /// <summary>
+        /// Configures a channel to stop receiving logging messages from the moderation feature, for a given guild.
+        /// </summary>
+        /// <param name="guild">The guild whose logging messages are being sent to <paramref name="logChannel"/>.</param>
+        /// <param name="logChannel">The channel that should no longer receive logging messages from <paramref name="guild"/>.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task RemoveLogChannelAsync(IGuild guild, IMessageChannel logChannel);
 
         /// <summary>
         /// Creates an infraction upon a specified user, and logs an associated moderation action.
@@ -70,20 +126,41 @@ namespace Modix.Services.Moderation
         /// <summary>
         /// Retrieves a collection of infractions, based on a given set of criteria.
         /// </summary>
-        /// <param name="criteria">The criteria defining which infractions are to be returned.</param>
+        /// <param name="searchCriteria">The criteria defining which infractions are to be returned.</param>
         /// <param name="sortingCriterias">The criteria defining how to sort the infractions to be returned.</param>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation has completed,
         /// containing the requested set of infractions.
         /// </returns>
-        Task<IReadOnlyCollection<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria criteria, IEnumerable<SortingCriteria> sortingCriterias = null);
+        Task<IReadOnlyCollection<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriterias = null);
 
         /// <summary>
         /// Retrieves a collection of infractions, based on a given set of criteria, and returns a paged subset of the results, based on a given set of paging criteria.
         /// </summary>
-        /// <param name="criteria">The criteria defining which infractions are to be returned.</param>
+        /// <param name="searchCriteria">The criteria defining which infractions are to be returned.</param>
         /// <param name="sortingCriterias">The criteria defining how to sort the infractions to be returned.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has completed, containing the requested set of infractions.</returns>
-        Task<RecordsPage<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria criteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria);
+        Task<RecordsPage<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria);
+
+        /// <summary>
+        /// Retrieves a moderation action, based on its ID.
+        /// </summary>
+        /// <param name="moderationActionId">The <see cref="ModerationActionEntity.Id"/> value of the moderation action to be retrieved.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation has completed,
+        /// containing the requested moderation action.
+        /// </returns>
+        Task<ModerationActionSummary> GetModerationActionSummaryAsync(long moderationActionId);
+
+        /// <summary>
+        /// Retrieves a collection of moderation actions, based on a given set of criteria.
+        /// </summary>
+        /// <param name="searchCriteria">The criteria defining which moderation actions are to be returned.</param>
+        /// <param name="sortingCriterias">The criteria defining how to sort the moderation actions to be returned.</param>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation has completed,
+        /// containing the requested set of moderation actions.
+        /// </returns>
+        Task<IReadOnlyCollection<ModerationActionSummary>> SearchModerationActionsAsync(ModerationActionSearchCriteria searchCriteria);
     }
 }

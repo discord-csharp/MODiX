@@ -60,7 +60,9 @@ namespace Modix.Data.Models.Core
                 CreateAction = new ConfigurationActionBrief()
                 {
                     Id = entity.CreateAction.Id,
-                    Type = entity.CreateAction.Type,
+                    // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                    //Type = entity.CreateAction.Type,
+                    Type = Enum.Parse<ConfigurationActionType>(entity.CreateAction.Type.ToString()),
                     Created = entity.CreateAction.Created,
                     CreatedBy = new UserIdentity()
                     {

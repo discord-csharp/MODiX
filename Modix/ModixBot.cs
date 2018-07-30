@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Modix.Behaviors;
 using Modix.Data;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
@@ -66,26 +67,24 @@ namespace Modix
             _map.AddDbContext<ModixContext>(options =>
             {
                 options.UseNpgsql(_config.PostgreConnectionString);
-            }, ServiceLifetime.Transient);
+            });
 
             _host = ModixWebServer.BuildWebHost(_map, _config);
 
             _scope = _host.Services.CreateScope();
 
-            using (var context = _scope.ServiceProvider.GetService<ModixContext>())
+            using (var scope = _scope.ServiceProvider.CreateScope())
             {
-                context.Database.Migrate();
+                scope.ServiceProvider.GetRequiredService<ModixContext>()
+                    .Database.Migrate();
+
+                await scope.ServiceProvider.GetRequiredService<IBehaviourConfigurationService>()
+                    .LoadBehaviourConfiguration();
             }
 
             _hooks.ServiceProvider = _scope.ServiceProvider;
             foreach (var behavior in _scope.ServiceProvider.GetServices<IBehavior>())
                 await behavior.StartAsync();
-
-
-            var configurationService = _scope.ServiceProvider.GetRequiredService<IBehaviourConfigurationService>();
-
-            // Cache the behaviour configuration
-            await configurationService.LoadBehaviourConfiguration();
 
             await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
             await _client.StartAsync();
@@ -198,6 +197,8 @@ namespace Modix
             _map.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
             _map.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
             _map.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
+
+            _map.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;

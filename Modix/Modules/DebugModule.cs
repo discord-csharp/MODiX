@@ -7,8 +7,6 @@ using Discord.Commands;
 
 using Serilog;
 
-using Newtonsoft.Json;
-
 using Modix.Services.Core;
 using Modix.Services.Moderation;
 using Modix.Services.CommandHelp;
@@ -59,20 +57,6 @@ namespace Modix.Modules
             var output = string.Join(", ", guilds.Select(a => $"{a.Id}: {a.Name}"));
             await ReplyAsync(output);
         }
-
-        [Command("claims")]
-        public Task Claims()
-            => ReplyAsync(
-                JsonConvert.SerializeObject(
-                    AuthorizationService.CurrentClaims.Select(x => x.ToString()),
-                    Formatting.Indented));
-
-        [Command("claims")]
-        public async Task Claims(IGuildUser guildUser)
-            => await ReplyAsync(
-                JsonConvert.SerializeObject(
-                    (await AuthorizationService.GetGuildUserClaimsAsync(guildUser)).Select(x => x.ToString()),
-                    Formatting.Indented));
 
         internal protected IAuthorizationService AuthorizationService { get; }
     }

@@ -4,8 +4,6 @@ using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
-using Nito.AsyncEx;
-
 using Modix.Data.Models.Core;
 using Modix.Data.Utilities;
 
@@ -22,60 +20,22 @@ namespace Modix.Data.Repositories
             : base(modixContext) { }
 
         /// <inheritdoc />
-        public async Task CreateOrUpdateAsync(ulong userId, Action<UserMutationData> updateAction)
+        public Task<IRepositoryTransaction> BeginCreateTransactionAsync()
+            => _createTransactionFactory.BeginTransactionAsync(ModixContext.Database);
+
+        /// <inheritdoc />
+        public async Task CreateAsync(UserCreationData data)
         {
-            if(updateAction == null)
-                throw new ArgumentNullException(nameof(updateAction));
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
 
-            var longUserId = (long)userId;
+            var entity = data.ToEntity();
 
-            var createLock = await _createLock.LockAsync();
-
-            try
-            {
-                var entity = await ModixContext.Users
-                    .SingleOrDefaultAsync(x => x.Id == longUserId);
-
-                if (entity != null)
-                {
-                    createLock.Dispose();
-                    createLock = null;
-                }
-                else
-                {
-                    entity = new UserEntity()
-                    {
-                        Id = longUserId,
-                        FirstSeen = DateTimeOffset.Now
-                    };
-
-                    await ModixContext.Users.AddAsync(entity);
-                }
-
-                var mutation = UserMutationData.FromEntity(entity);
-                updateAction.Invoke(mutation);
-                mutation.ApplyTo(entity);
-
-                entity.LastSeen = DateTimeOffset.Now;
-
-                if (createLock == null)
-                {
-                    ModixContext.UpdateProperty(entity, x => x.Username);
-                    ModixContext.UpdateProperty(entity, x => x.Discriminator);
-                    ModixContext.UpdateProperty(entity, x => x.Nickname);
-                    ModixContext.UpdateProperty(entity, x => x.LastSeen);
-                }
-
-                await ModixContext.SaveChangesAsync();
-
-            }
-            finally
-            {
-                if (createLock != null)
-                    createLock.Dispose();
-            }
+            await ModixContext.Users.AddAsync(entity);
+            await ModixContext.SaveChangesAsync();
         }
 
+        /// <inheritdoc />
         public Task<UserSummary> ReadAsync(ulong userId)
         {
             var longUserId = (long)userId;
@@ -86,7 +46,35 @@ namespace Modix.Data.Repositories
                 .FirstOrDefaultAsync();
         }
 
-        private static readonly AsyncLock _createLock
-            = new AsyncLock();
+        public async Task<bool> TryUpdateAsync(ulong userId, Action<UserMutationData> updateAction)
+        {
+            if (updateAction == null)
+                throw new ArgumentNullException(nameof(updateAction));
+
+            var longUserID = (long)userId;
+
+            var entity = await ModixContext.Users
+                .Where(x => x.Id == longUserID)
+                .FirstOrDefaultAsync();
+
+            if(entity == null)
+                return false;
+
+            var data = UserMutationData.FromEntity(entity);
+            updateAction.Invoke(data);
+            data.ApplyTo(entity);
+
+            ModixContext.UpdateProperty(entity, x => x.Username);
+            ModixContext.UpdateProperty(entity, x => x.Discriminator);
+            ModixContext.UpdateProperty(entity, x => x.Nickname);
+            ModixContext.UpdateProperty(entity, x => x.LastSeen);
+
+            await ModixContext.SaveChangesAsync();
+
+            return true;
+        }
+
+        private static readonly RepositoryTransactionFactory _createTransactionFactory
+            = new RepositoryTransactionFactory();
     }
 }

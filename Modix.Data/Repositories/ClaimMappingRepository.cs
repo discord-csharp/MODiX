@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
-using Nito.AsyncEx;
-
 using Modix.Data.Models.Core;
 using Modix.Data.Utilities;
 
@@ -23,29 +21,24 @@ namespace Modix.Data.Repositories
             : base(modixContext) { }
 
         /// <inheritdoc />
-        public async Task<long?> TryCreateAsync(ClaimMappingCreationData data, ClaimMappingSearchCriteria criteria = null)
+        public Task<IRepositoryTransaction> BeginCreateTransactionAsync()
+            => _createTransactionFactory.BeginTransactionAsync(ModixContext.Database);
+
+        /// <inheritdoc />
+        public async Task<long> CreateAsync(ClaimMappingCreationData data)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
-            using (await _createLock.LockAsync())
-            {
-                if ((criteria != null) && await ModixContext.ClaimMappings.AsNoTracking()
-                    .FilterClaimMappingsBy(criteria).AnyAsync())
-                {
-                    return null;
-                }
+            var entity = data.ToEntity();
 
-                var entity = data.ToEntity();
+            await ModixContext.ClaimMappings.AddAsync(entity);
+            await ModixContext.SaveChangesAsync();
 
-                await ModixContext.ClaimMappings.AddAsync(entity);
-                await ModixContext.SaveChangesAsync();
+            entity.CreateAction.ClaimMappingId = entity.Id;
+            await ModixContext.SaveChangesAsync();
 
-                entity.CreateAction.ClaimMappingId = entity.Id;
-                await ModixContext.SaveChangesAsync();
-
-                return entity.Id;
-            }
+            return entity.Id;
         }
 
         /// <inheritdoc />
@@ -55,13 +48,10 @@ namespace Modix.Data.Repositories
                 .FirstOrDefaultAsync(x => x.Id == roleClaimId);
 
         /// <inheritdoc />
-        public Task<bool> AnyAsync(ulong guildId)
-        {
-            var longGuildId = (long)guildId;
-
-            return ModixContext.ClaimMappings.AsNoTracking()
-                .AnyAsync(x => x.GuildId == longGuildId);
-        }
+        public Task<bool> AnyAsync(ClaimMappingSearchCriteria criteria)
+            => ModixContext.ClaimMappings.AsNoTracking()
+                .FilterClaimMappingsBy(criteria)
+                .AnyAsync();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<long>> SearchIdsAsync(ClaimMappingSearchCriteria criteria)
@@ -82,8 +72,8 @@ namespace Modix.Data.Repositories
         {
             var longRescindedById = (long)rescindedById;
 
-            if (await ModixContext.Users.AsNoTracking()
-                .AnyAsync(x => x.Id == longRescindedById))
+            if (!(await ModixContext.Users.AsNoTracking()
+                .AnyAsync(x => x.Id == longRescindedById)))
                 return false;
 
             var entity = await ModixContext.ClaimMappings
@@ -105,8 +95,8 @@ namespace Modix.Data.Repositories
             return true;
         }
 
-        private static readonly AsyncLock _createLock
-            = new AsyncLock();
+        private static readonly RepositoryTransactionFactory _createTransactionFactory
+            = new RepositoryTransactionFactory();
     }
 
     internal static class ClaimMappingQueryableExtensions
@@ -135,7 +125,7 @@ namespace Modix.Data.Repositories
                     anyRoleIds && (longUserId == null))
                 .FilterBy(
                     x => (x.UserId == longUserId),
-                    !anyRoleIds && (longUserId == null))
+                    !anyRoleIds && (longUserId != null))
                 .FilterBy(
                     x => criteria.Claims.Contains(x.Claim),
                     criteria?.Claims?.Any() ?? false)

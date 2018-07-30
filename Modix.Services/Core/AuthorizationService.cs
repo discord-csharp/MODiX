@@ -9,6 +9,7 @@ using Discord;
 
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
+using Modix.Services.Utilities;
 
 namespace Modix.Services.Core
 {
@@ -37,33 +38,33 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task AutoConfigureGuildAsync(IGuild guild)
         {
-            if (await ClaimMappingRepository.AnyAsync(guild.Id))
+            if (await ClaimMappingRepository.AnyAsync(new ClaimMappingSearchCriteria()
+            {
+                GuildId = guild.Id,
+                IsDeleted = false,
+            }))
+            {
                 return;
+            }
 
+            // Need the bot user to exist, before we start adding claims, created by the bot user.
             await UserService.TrackUserAsync(DiscordClient.CurrentUser);
 
-            foreach(var claim in Enum.GetValues(typeof(AuthorizationClaim)).Cast<AuthorizationClaim>())
+            using (var transaction = await ClaimMappingRepository.BeginCreateTransactionAsync())
             {
-                foreach(var role in guild.Roles.Where(x => x.Permissions.Administrator))
-                    await ClaimMappingRepository.TryCreateAsync(new ClaimMappingCreationData()
-                    {
-                        Type = ClaimMappingType.Granted,
-                        GuildId = guild.Id,
-                        RoleId = role.Id,
-                        UserId = null,
-                        Claim = claim,
-                        CreatedById = DiscordClient.CurrentUser.Id
-                    });
+                foreach (var claim in Enum.GetValues(typeof(AuthorizationClaim)).Cast<AuthorizationClaim>())
+                    foreach (var role in guild.Roles.Where(x => x.Permissions.Administrator))
+                        await ClaimMappingRepository.CreateAsync(new ClaimMappingCreationData()
+                        {
+                            Type = ClaimMappingType.Granted,
+                            GuildId = guild.Id,
+                            RoleId = role.Id,
+                            UserId = null,
+                            Claim = claim,
+                            CreatedById = DiscordClient.CurrentUser.Id
+                        });
 
-                await ClaimMappingRepository.TryCreateAsync(new ClaimMappingCreationData()
-                {
-                    Type = ClaimMappingType.Granted,
-                    GuildId = guild.Id,
-                    RoleId = null,
-                    UserId = DiscordClient.CurrentUser.Id,
-                    Claim = claim,
-                    CreatedById = DiscordClient.CurrentUser.Id
-                });
+                transaction.Commit();
             }
         }
 
@@ -81,17 +82,147 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(IGuildUser guildUser)
+        public async Task AddClaimMapping(IRole role, ClaimMappingType type, AuthorizationClaim claim)
+        {
+            RequireAuthenticatedUser();
+            RequireClaims(AuthorizationClaim.AuthorizationConfigure);
+
+            using (var transaction = await ClaimMappingRepository.BeginCreateTransactionAsync())
+            {
+                if (await ClaimMappingRepository.AnyAsync(new ClaimMappingSearchCriteria()
+                {
+                    Types = new [] { type },
+                    GuildId = role.Guild.Id,
+                    RoleIds = new [] { role.Id },
+                    Claims = new [] { claim },
+                    IsDeleted = false,
+                }))
+                {
+                    throw new InvalidOperationException($"A claim mapping of type {type} to claim {claim} for role {role.Name} already exists");
+                }
+
+                await ClaimMappingRepository.CreateAsync(new ClaimMappingCreationData()
+                {
+                    GuildId = role.Guild.Id,
+                    Type = type,
+                    RoleId = role.Id,
+                    Claim = claim,
+                    CreatedById = CurrentUserId.Value
+                });
+
+                transaction.Commit();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task AddClaimMapping(IGuildUser user, ClaimMappingType type, AuthorizationClaim claim)
+        {
+            RequireAuthenticatedUser();
+            RequireClaims(AuthorizationClaim.AuthorizationConfigure);
+
+            using (var transaction = await ClaimMappingRepository.BeginCreateTransactionAsync())
+            {
+                if (await ClaimMappingRepository.AnyAsync(new ClaimMappingSearchCriteria()
+                {
+                    Types = new[] { type },
+                    GuildId = user.Guild.Id,
+                    UserId = user.Id,
+                    Claims = new[] { claim },
+                    IsDeleted = false,
+                }))
+                {
+                    throw new InvalidOperationException($"A claim mapping of type {type} to claim {claim} for user {user.GetDisplayName()} already exists");
+                }
+
+                await ClaimMappingRepository.CreateAsync(new ClaimMappingCreationData()
+                {
+                    GuildId = user.Guild.Id,
+                    Type = type,
+                    UserId = user.Id,
+                    Claim = claim,
+                    CreatedById = CurrentUserId.Value
+                });
+
+                transaction.Commit();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task RemoveClaimMapping(IRole role, ClaimMappingType type, AuthorizationClaim claim)
+        {
+            RequireAuthenticatedUser();
+            RequireClaims(AuthorizationClaim.AuthorizationConfigure);
+
+            var mappingIds = (await ClaimMappingRepository.SearchIdsAsync(new ClaimMappingSearchCriteria()
+            {
+                Types = new[] { type },
+                GuildId = role.Guild.Id,
+                RoleIds = new[] { role.Id },
+                Claims = new[] { claim },
+                IsDeleted = false,
+            }));
+
+            if(!mappingIds.Any())
+                throw new InvalidOperationException($"A claim mapping of type {type} to claim {claim} for role {role.Name} does not exist");
+
+            await ClaimMappingRepository.TryDeleteAsync(mappingIds.First(), CurrentUserId.Value);
+        }
+
+        /// <inheritdoc />
+        public async Task RemoveClaimMapping(IGuildUser user, ClaimMappingType type, AuthorizationClaim claim)
+        {
+            RequireAuthenticatedUser();
+            RequireClaims(AuthorizationClaim.AuthorizationConfigure);
+
+            var mappingIds = (await ClaimMappingRepository.SearchIdsAsync(new ClaimMappingSearchCriteria()
+            {
+                Types = new[] { type },
+                GuildId = user.Guild.Id,
+                UserId = user.Id,
+                Claims = new[] { claim },
+                IsDeleted = false,
+            }));
+
+            if (!mappingIds.Any())
+                throw new InvalidOperationException($"A claim mapping of type {type} to claim {claim} for user {user.GetDisplayName()} does not exist");
+
+            await ClaimMappingRepository.TryDeleteAsync(mappingIds.First(), CurrentUserId.Value);
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(IGuildUser guildUser)
         {
             if (guildUser == null)
                 throw new ArgumentNullException(nameof(guildUser));
 
-            return GetGuildUserCurrentClaimsAsync(guildUser.GuildId, guildUser.RoleIds, guildUser.Id);
+            if (guildUser.Id == DiscordClient.CurrentUser.Id)
+                return Enum.GetValues(typeof(AuthorizationClaim)).Cast<AuthorizationClaim>().ToArray();
+
+            if (guildUser.Id == CurrentUserId)
+                return CurrentClaims;
+
+            return await GetGuildUserCurrentClaimsAsync(guildUser.GuildId, guildUser.RoleIds, guildUser.Id);
         }
 
         /// <inheritdoc />
         public async Task OnAuthenticatedAsync(ulong guildId, IEnumerable<ulong> roleIds, ulong userId)
-            => CurrentClaims = await GetGuildUserCurrentClaimsAsync(guildId, roleIds, userId);
+        {
+            CurrentClaims = await GetGuildUserCurrentClaimsAsync(guildId, roleIds, userId);
+            CurrentGuildId = guildId;
+            CurrentUserId = userId;
+        }
+
+        /// <inheritdoc />
+        public Task OnAuthenticatedAsync(ISelfUser self)
+        {
+            CurrentGuildId = null;
+            CurrentUserId = self.Id;
+            CurrentClaims = Enum.GetValues(typeof(AuthorizationClaim))
+                .Cast<AuthorizationClaim>()
+                .ToHashSet();
+
+            return Task.CompletedTask;
+        }
 
         /// <inheritdoc />
         public void RequireAuthenticatedGuild()
@@ -142,48 +273,8 @@ namespace Modix.Services.Core
         /// </summary>
         internal protected IClaimMappingRepository ClaimMappingRepository { get; }
 
-        private async Task CreateClaimMappingUnauthorized(ClaimMappingType type, ulong guildId, ulong? roleId, ulong? userId, AuthorizationClaim claim, ulong createdById)
-        {
-            if ((roleId == null) && (userId == null))
-                throw new ArgumentException($"{nameof(roleId)} and {nameof(userId)} cannot both be null");
-
-            if ((roleId != null) && (userId != null))
-                throw new ArgumentException($"{nameof(roleId)} and {nameof(userId)} cannot both be given");
-
-            var claimMappingId = await ClaimMappingRepository.TryCreateAsync(new ClaimMappingCreationData()
-            {
-                Type = type,
-                GuildId = guildId,
-                RoleId = roleId,
-                UserId = userId,
-                Claim = claim,
-                CreatedById = createdById
-            });
-
-            if (claimMappingId == null)
-            {
-                var toClause = (roleId == null)
-                    ? $"user {userId}"
-                    : $"role {roleId}";
-                throw new InvalidOperationException($"A claim mapping on guild {guildId} to {toClause} for {claim} already exists");
-            }
-        }
-
-        private async Task<int> RescindClaimMappingsUnauthorized(ClaimMappingSearchCriteria criteria, ulong rescindedById)
-        {
-            var claimMappingIds = await ClaimMappingRepository.SearchIdsAsync(criteria);
-
-            foreach (var claimMappingId in claimMappingIds)
-                await ClaimMappingRepository.TryDeleteAsync(claimMappingId, rescindedById);
-
-            return claimMappingIds.Count;
-        }
-
         private async Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserCurrentClaimsAsync(ulong guildId, IEnumerable<ulong> roleIds, ulong userId)
         {
-            CurrentGuildId = guildId;
-            CurrentUserId = userId;
-
             var claims = new HashSet<AuthorizationClaim>();
 
             foreach (var claimMapping in (await ClaimMappingRepository

@@ -13,17 +13,24 @@ namespace Modix.Data.Repositories
     public interface IInfractionRepository
     {
         /// <summary>
-        /// Attempts to create a new infraction within the repository.
+        /// Begins a new transaction to create infractions within the repository.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete, with the requested transaction object,
+        /// when no other transactions are active upon the repository.
+        /// </returns>
+        Task<IRepositoryTransaction> BeginCreateTransactionAsync();
+
+        /// <summary>
+        /// Creates a new infraction within the repository.
         /// </summary>
         /// <param name="data">The data for the infraction to be created.</param>
-        /// <param name="criteria">A set of criteria that (if given) defines existing infractions that negate the need to create a new one.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="data"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing the auto-generated <see cref="InfractionEntity.Id"/> value assigned to the new infraction,
-        /// or null if any existing infractions were found by <paramref name="criteria"/>.
+        /// containing the auto-generated <see cref="InfractionEntity.Id"/> value assigned to the new infraction.
         /// </returns>
-        Task<long?> TryCreateAsync(InfractionCreationData data, InfractionSearchCriteria criteria = null);
+        Task<long> CreateAsync(InfractionCreationData data);
 
         /// <summary>
         /// Retrieves information about an infraction, based on its ID.
@@ -33,7 +40,17 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing the requested infraction, or null if no such infraction exists.
         /// </returns>
-        Task<InfractionSummary> ReadAsync(long infractionId);
+        Task<InfractionSummary> ReadSummaryAsync(long infractionId);
+
+        /// <summary>
+        /// Checks whether the repository contains any infractions matching the given search criteria.
+        /// </summary>
+        /// <param name="criteria">The criteria for selecting <see cref="InfractionEntity.Id"/> values to be checked for.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation has completed,
+        /// containing a flag indicating whether any matching infractions exist.
+        /// </returns>
+        Task<bool> AnyAsync(InfractionSearchCriteria criteria);
 
         /// <summary>
         /// Searches the repository for infraction ID values, based on an arbitrary set of criteria.
@@ -72,10 +89,10 @@ namespace Modix.Data.Repositories
         /// <summary>
         /// Marks an existing infraction as deleted, based on its ID.
         /// </summary>
-        /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be rescinded.</param>
-        /// <param name="deletedById">The <see cref="UserEntity.Id"/> value of the user that is rescinding the infraction.</param>
+        /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be deleted.</param>
+        /// <param name="deletedById">The <see cref="UserEntity.Id"/> value of the user that is deleting the infraction.</param>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing a flag indicating whether the update was successful (I.E. whether the specified infraction could be found).
+        /// containing a flag indicating whether the operation was successful (I.E. whether the specified infraction could be found).
         /// </returns>
         Task<bool> TryDeleteAsync(long infractionId, ulong deletedById);
     }

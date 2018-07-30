@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Discord;
@@ -17,6 +18,48 @@ namespace Modix.Modules
         {
             ModerationService = moderationService ?? throw new ArgumentNullException(nameof(moderationService));
         }
+
+        [Command("moderation muterole get")]
+        [Summary("Retrieves the role currently configured for use by the \"mute\" command")]
+        public async Task GetMuteRole()
+        {
+            var muteRole = await ModerationService.GetMuteRoleAsync(Context.Guild);
+
+            await ReplyAsync(Format.Code(muteRole.Name));
+        }
+
+        [Command("moderation muterole set")]
+        [Summary("Changes the role currently configured for use by the \"mute\" command")]
+        public Task SetMuteRole(
+            [Summary("The role to be used by the \"mute\" command")]
+                IRole muteRole)
+            => ModerationService.SetMuteRoleAsync(Context.Guild, muteRole);
+
+        [Command("moderation logchannels")]
+        [Summary("Lists all channels currently configured to receive moderation log messages")]
+        public async Task GetLogChannels()
+        {
+            var logChannels = await ModerationService.GetLogChannelsAsync(Context.Guild);
+
+            await ReplyAsync(logChannels.Any()
+                ? string.Join("\r\n",
+                    logChannels.Select(x => $"#{x.Name}"))
+                : "There are no moderation log channels currently configured.");
+        }
+
+        [Command("moderation logchannels add")]
+        [Summary("Configures a channel to received moderation log messages")]
+        public Task AddLogChannel(
+            [Summary("The channel to receive log messages")]
+                IMessageChannel channel)
+            => ModerationService.AddLogChannelAsync(Context.Guild, channel);
+
+        [Command("moderation logchannels remove")]
+        [Summary("Configures a channel to stop receiving moderation log messages")]
+        public Task RemoveLogChannel(
+            [Summary("The channel to stop receiving log messages")]
+                IMessageChannel channel)
+            => ModerationService.RemoveLogChannelAsync(Context.Guild, channel);
 
         [Command("note")]
         [Summary("Applies a note to a user's infraction history.")]

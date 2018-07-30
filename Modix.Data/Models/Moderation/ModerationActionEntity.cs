@@ -18,6 +18,12 @@ namespace Modix.Data.Models.Moderation
         public long Id { get; set; }
 
         /// <summary>
+        /// The snowflake ID, within the Discord API, of the guild to which this moderation action applies.
+        /// </summary>
+        [Required]
+        public long GuildId { get; set; }
+
+        /// <summary>
         /// A timestamp indicating when this entity was created, for auditing purposes.
         /// </summary>
         [Required]

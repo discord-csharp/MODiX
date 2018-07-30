@@ -13,17 +13,24 @@ namespace Modix.Data.Repositories
     public interface IClaimMappingRepository
     {
         /// <summary>
-        /// Attempts to create a new claim mapping within the repository.
+        /// Begins a new transaction to create mappings within the repository.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete, with the requested transaction object,
+        /// when no other transactions are active upon the repository.
+        /// </returns>
+        Task<IRepositoryTransaction> BeginCreateTransactionAsync();
+
+        /// <summary>
+        /// Creates a new claim mapping within the repository.
         /// </summary>
         /// <param name="data">The data for the mapping to be created.</param>
-        /// <param name="criteria">A set of criteria that (if given) defines existing claim mappings that negate the need to create a new one.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="data"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing the auto-generated <see cref="ClaimMappingEntity.Id"/> value assigned to the new mapping,
-        /// or null if any existing mappings were found by <paramref name="criteria"/>.
+        /// containing the auto-generated <see cref="ClaimMappingEntity.Id"/> value assigned to the new mapping.
         /// </returns>
-        Task<long?> TryCreateAsync(ClaimMappingCreationData data, ClaimMappingSearchCriteria criteria = null);
+        Task<long> CreateAsync(ClaimMappingCreationData data);
 
         /// <summary>
         /// Retrieves information about a claim mapping, based on its ID.
@@ -36,14 +43,14 @@ namespace Modix.Data.Repositories
         Task<ClaimMappingSummary> ReadAsync(long roleClaimId);
 
         /// <summary>
-        /// Checks whether any claims have been mapped for a given guild.
+        /// Checks whether any claims exist, for an arbitrary set of criteria.
         /// </summary>
-        /// <param name="guildId">The <see cref="ClaimMappingEntity.GuildId"/> value of the mappings to be checked for.</param>
+        /// <param name="criteria">A set of criteria defining the mappings to be checked for.</param>
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation has completed,
-        /// containing a flag indicating whether any claim mappings exist for <paramref name="guildId"/>.
+        /// containing a flag indicating whether any matching claim mappings were found.
         /// </returns>
-        Task<bool> AnyAsync(ulong guildId);
+        Task<bool> AnyAsync(ClaimMappingSearchCriteria criteria);
 
         /// <summary>
         /// Searches the repository for claim mapping id values, based on an arbitrary set of criteria.
