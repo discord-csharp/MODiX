@@ -79,6 +79,23 @@ namespace Modix.Services.Moderation
         }
 
         /// <inheritdoc />
+        public async Task AutoRescindExpiredInfractions()
+        {
+            var expiredInfractionIds = await InfractionRepository.SearchIdsAsync(new InfractionSearchCriteria()
+            {
+                ExpiresRange = new DateTimeOffsetRange()
+                {
+                    To = DateTimeOffset.Now
+                },
+                IsRescinded = false,
+                IsDeleted = false
+            });
+
+            foreach(var expiredInfractionId in expiredInfractionIds)
+                await RescindInfractionAsync(expiredInfractionId);
+        }
+
+        /// <inheritdoc />
         public async Task UnConfigureGuildAsync(IGuild guild)
         {
             foreach(var mapping in await ModerationMuteRoleMappingRepository
@@ -277,7 +294,6 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         public async Task RescindInfractionAsync(long infractionId)
         {
-            AuthorizationService.RequireAuthenticatedGuild();
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
 
@@ -288,7 +304,6 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         public async Task DeleteInfractionAsync(long infractionId)
         {
-            AuthorizationService.RequireAuthenticatedGuild();
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationDelete);
 
@@ -299,7 +314,7 @@ namespace Modix.Services.Moderation
 
             await InfractionRepository.TryDeleteAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
 
-            var guild = await GuildService.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
+            var guild = await GuildService.GetGuildAsync(infraction.GuildId);
             var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
 
             switch (infraction.Type)
@@ -342,6 +357,24 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         public Task<IReadOnlyCollection<ModerationActionSummary>> SearchModerationActionsAsync(ModerationActionSearchCriteria searchCriteria)
             => ModerationActionRepository.SearchSummariesAsync(searchCriteria);
+
+        /// <inheritdoc />
+        public Task<DateTimeOffset?> GetNextInfractionExpiration()
+            => InfractionRepository.ReadExpiresFirstOrDefaultAsync(
+                new InfractionSearchCriteria()
+                {
+                    IsRescinded = false,
+                    IsDeleted = false,
+                    ExpiresRange = new DateTimeOffsetRange()
+                    {
+                        From = DateTimeOffset.MinValue,
+                        To = DateTimeOffset.MaxValue,
+                    }
+                },
+                new []
+                {
+                    new SortingCriteria() { PropertyName = nameof(InfractionSummary.Expires), Direction = SortDirection.Ascending}
+                });
 
         /// <summary>
         /// An <see cref="IDiscordClient"/> for interacting with the Discord API.
@@ -443,7 +476,7 @@ namespace Modix.Services.Moderation
 
             await InfractionRepository.TryRescindAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
 
-            var guild = await GuildService.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
+            var guild = await GuildService.GetGuildAsync(infraction.GuildId);
             var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
 
             switch (infraction.Type)

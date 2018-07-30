@@ -29,6 +29,13 @@ namespace Modix.Services.Moderation
         Task AutoConfigureChannelAsync(IChannel channel);
 
         /// <summary>
+        /// Automatically rescinds any infractions that have expired.,
+        /// based on <see cref="InfractionEntity.Duration"/>.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task AutoRescindExpiredInfractions();
+
+        /// <summary>
         /// Removes all moderation configuration settings for a guild, by deleting all of its <see cref="ModerationMuteRoleMappingEntity"/> entries.
         /// </summary>
         /// <param name="guild">The guild to be un-configured.</param>
@@ -162,5 +169,14 @@ namespace Modix.Services.Moderation
         /// containing the requested set of moderation actions.
         /// </returns>
         Task<IReadOnlyCollection<ModerationActionSummary>> SearchModerationActionsAsync(ModerationActionSearchCriteria searchCriteria);
+
+        /// <summary>
+        /// Retrieves a timestamp indicating the next time an existing infraction will be expiring.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation is complete,
+        /// containing the requested timestamp value.
+        /// </returns>
+        Task<DateTimeOffset?> GetNextInfractionExpiration();
     }
 }
