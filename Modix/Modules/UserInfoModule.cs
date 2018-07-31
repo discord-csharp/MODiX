@@ -85,7 +85,7 @@ namespace Modix.Modules
                             {
                                 separator = ", ";
                             }
-                            builder.Append($"{separator}<@&{roles[i].Id}>");
+                            builder.Append(separator + roles[i].Mention);
                         }
                         builder.AppendLine();
                     }
