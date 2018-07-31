@@ -69,7 +69,25 @@ namespace Modix.Modules
                     if (roles.Length > 0)
                     {
                         Array.Sort(roles, StringComparer.OrdinalIgnoreCase);
-                        builder.AppendLine("Roles: " + string.Join(',', (object[])roles));
+                        builder.Append(roles.Length > 1 ? "Roles: " : "Role: ");
+                        for (int i = 0; i < roles.Length; i++)
+                        {
+                            string separator;
+                            if (i == 0)
+                            {
+                                separator = string.Empty;
+                            }
+                            else if (roles.Length > 1 && i + 1 == roles.Length)
+                            {
+                                separator = " and ";
+                            }
+                            else
+                            {
+                                separator = ", ";
+                            }
+                            builder.Append($"{separator}<@&{roles[i].Id}>");
+                        }
+                        builder.AppendLine();
                     }
                 }
             }
