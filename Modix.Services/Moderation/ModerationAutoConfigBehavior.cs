@@ -37,7 +37,7 @@ namespace Modix.Services.Moderation
         }
 
         /// <inheritdoc />
-        internal protected override Task OnStoppingAsync()
+        internal protected override Task OnStoppedAsync()
         {
             DiscordClient.GuildAvailable -= OnGuildAvailableAsync;
             DiscordClient.ChannelCreated -= OnChannelCreated;
@@ -50,8 +50,8 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         internal protected override void Dispose(bool disposeManaged)
         {
-            if (disposeManaged && IsStarted)
-                OnStoppingAsync();
+            if (disposeManaged && IsRunning)
+                OnStoppedAsync();
 
             base.Dispose(disposeManaged);
         }
@@ -63,15 +63,15 @@ namespace Modix.Services.Moderation
         internal protected DiscordSocketClient DiscordClient { get; }
 
         private Task OnGuildAvailableAsync(IGuild guild)
-            => ExecuteOnScopedServiceAsync<IModerationService>(x => x.AutoConfigureGuldAsync(guild));
+            => SelfExecuteOnScopedServiceAsync<IModerationService>(x => x.AutoConfigureGuldAsync(guild));
 
         private Task OnChannelCreated(IChannel channel)
-            => ExecuteOnScopedServiceAsync<IModerationService>(x => x.AutoConfigureChannelAsync(channel));
+            => SelfExecuteOnScopedServiceAsync<IModerationService>(x => x.AutoConfigureChannelAsync(channel));
 
         private Task OnChannelUpdated(IChannel oldChannel, IChannel newChannel)
-            => ExecuteOnScopedServiceAsync<IModerationService>(x => x.AutoConfigureChannelAsync(newChannel));
+            => SelfExecuteOnScopedServiceAsync<IModerationService>(x => x.AutoConfigureChannelAsync(newChannel));
 
         private Task OnLeftGuild(IGuild guild)
-            => ExecuteOnScopedServiceAsync<IModerationService>(x => x.UnConfigureGuildAsync(guild));
+            => SelfExecuteOnScopedServiceAsync<IModerationService>(x => x.UnConfigureGuildAsync(guild));
     }
 }

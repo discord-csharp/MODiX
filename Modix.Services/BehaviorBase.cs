@@ -28,14 +28,14 @@ namespace Modix.Services
         public async Task StartAsync()
         {
             await OnStartingAsync();
-            IsStarted = true;
+            IsRunning = true;
         }
 
         /// <inheritdoc />
         public async Task StopAsync()
         {
-            await OnStoppingAsync();
-            IsStarted = false;
+            IsRunning = false;
+            await OnStoppedAsync();
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace Modix.Services
         /// <param name="disposeManaged">A flag indicating whether managed resources should be disposed.</param>
         internal protected virtual void Dispose(bool disposeManaged) { }
 
-        internal protected bool IsStarted { get; private set; }
+        internal protected bool IsRunning { get; private set; }
             = false;
 
         /// <summary>
@@ -73,14 +73,14 @@ namespace Modix.Services
         /// Allows subclasses to inject logic into <see cref="StopAsync"/>.
         /// </summary>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        internal protected abstract Task OnStoppingAsync();
+        internal protected abstract Task OnStoppedAsync();
 
         /// <summary>
         /// Executes a given action, asynchronously, upon a service, within a new service scope.
         /// </summary>
         /// <param name="action">The action to be executed.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        internal protected async Task ExecuteOnScopedServiceAsync<TService>(Func<TService, Task> action)
+        internal protected async Task SelfExecuteOnScopedServiceAsync<TService>(Func<TService, Task> action)
         {
             if (action == null)
                 throw new ArgumentNullException(nameof(action));

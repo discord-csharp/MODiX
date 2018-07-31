@@ -47,6 +47,7 @@ namespace Modix.Data.Models.Core
                 Claim = Claim,
                 CreateAction = new ConfigurationActionEntity()
                 {
+                    GuildId = (long)GuildId,
                     Type = ConfigurationActionType.ClaimMappingCreated,
                     Created = DateTimeOffset.Now,
                     CreatedById = (long)CreatedById,

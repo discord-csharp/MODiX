@@ -17,6 +17,9 @@ namespace Modix.Services.Moderation
         public static IServiceCollection AddModixModeration(this IServiceCollection services)
             => services
                 .AddSingleton<IBehavior, ModerationAutoConfigBehavior>()
+                .AddSingleton<ModerationAutoRescindBehavior>()
+                .AddSingleton<IBehavior>(serviceProvider => serviceProvider.GetRequiredService<ModerationAutoRescindBehavior>())
+                .AddSingleton<IInfractionEventHandler>(serviceProvider => serviceProvider.GetRequiredService<ModerationAutoRescindBehavior>())
                 .AddScoped<IModerationService, ModerationService>()
                 .AddScoped<IModerationMuteRoleMappingRepository, ModerationMuteRoleMappingRepository>()
                 .AddScoped<IModerationLogChannelMappingRepository, ModerationLogChannelMappingRepository>()

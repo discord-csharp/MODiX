@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml;
 
 using Discord;
 using Discord.Commands;
@@ -91,17 +92,21 @@ namespace Modix.Modules
                 string reason)
             => ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, null);
 
-        [Command("mute")]
+        [Command("tempmute")]
         [Summary("Mute a user, for a temporary amount of time.")]
         public Task TempMute(
             [Summary("The user to be muted.")]
                 IGuildUser subject,
             [Summary("The duration of the mute.")]
-                TimeSpan duration,
+                string durationString,
             [Summary("The reason for the mute.")]
             [Remainder]
                 string reason)
-            => ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, duration);
+        {
+            var duration = XmlConvert.ToTimeSpan(durationString);
+
+            return ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, duration);
+        }
 
         [Command("unmute")]
         [Summary("Remove a mute that has been applied to a user.")]

@@ -14,6 +14,11 @@ namespace Modix.Data.Models.Core
         public long Id { get; set; }
 
         /// <summary>
+        /// See <see cref="ConfigurationActionEntity.GuildId"/>.
+        /// </summary>
+        public ulong GuildId { get; set; }
+
+        /// <summary>
         /// See <see cref="ConfigurationActionEntity.Type"/>.
         /// </summary>
         public ConfigurationActionType Type { get; set; }
@@ -37,6 +42,7 @@ namespace Modix.Data.Models.Core
             = entity => new ConfigurationActionSummary()
             {
                 Id = entity.Id,
+                GuildId = (ulong)entity.GuildId,
                 Type = entity.Type,
                 Created = entity.Created,
                 CreatedBy = new UserIdentity()

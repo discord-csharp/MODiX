@@ -18,6 +18,12 @@ namespace Modix.Data.Models.Core
         public long Id { get; set; }
 
         /// <summary>
+        /// The snowflake ID, within the Discord API, of the guild to which this configuration action applies.
+        /// </summary>
+        [Required]
+        public long GuildId { get; set; }
+
+        /// <summary>
         /// The type of configuration action that was performed.
         /// </summary>
         [Required]

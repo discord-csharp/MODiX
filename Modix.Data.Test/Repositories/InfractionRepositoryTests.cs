@@ -15,9 +15,10 @@ namespace Modix.Data.Test.Repositories
         public void Constructor_Always_InvokesBaseConstructor()
         {
             var modixContext = Substitute.For<ModixContext>();
+            var infractionEventHandlers = Enumerable.Empty<IInfractionEventHandler>();
             var moderationActionEventHandlers = Enumerable.Empty<IModerationActionEventHandler>();
 
-            var uut = new InfractionRepository(modixContext, moderationActionEventHandlers);
+            var uut = new InfractionRepository(modixContext, infractionEventHandlers, moderationActionEventHandlers);
 
             uut.ModixContext.ShouldBeSameAs(modixContext);
         }

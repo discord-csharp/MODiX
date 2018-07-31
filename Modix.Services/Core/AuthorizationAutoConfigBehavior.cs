@@ -35,7 +35,7 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        internal protected override Task OnStoppingAsync()
+        internal protected override Task OnStoppedAsync()
         {
             DiscordClient.GuildAvailable -= OnGuildAvailable;
             DiscordClient.LeftGuild -= OnLeftGuild;
@@ -46,8 +46,8 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         internal protected override void Dispose(bool disposeManaged)
         {
-            if (disposeManaged && IsStarted)
-                OnStoppingAsync();
+            if (disposeManaged && IsRunning)
+                OnStoppedAsync();
 
             base.Dispose(disposeManaged);
         }
@@ -59,9 +59,9 @@ namespace Modix.Services.Core
         internal protected DiscordSocketClient DiscordClient { get; }
 
         private Task OnGuildAvailable(IGuild guild)
-            => ExecuteOnScopedServiceAsync<IAuthorizationService>(x => x.AutoConfigureGuildAsync(guild));
+            => SelfExecuteOnScopedServiceAsync<IAuthorizationService>(x => x.AutoConfigureGuildAsync(guild));
 
         private Task OnLeftGuild(IGuild guild)
-            => ExecuteOnScopedServiceAsync<IAuthorizationService>(x => x.UnConfigureGuildAsync(guild));
+            => SelfExecuteOnScopedServiceAsync<IAuthorizationService>(x => x.UnConfigureGuildAsync(guild));
     }
 }

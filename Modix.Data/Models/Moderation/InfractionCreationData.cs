@@ -47,6 +47,7 @@ namespace Modix.Data.Models.Moderation
                 SubjectId = (long)SubjectId,
                 CreateAction = new ModerationActionEntity()
                 {
+                    GuildId = (long)GuildId,
                     Type = ModerationActionType.InfractionCreated,
                     Created = DateTimeOffset.Now,
                     CreatedById = (long)CreatedById
