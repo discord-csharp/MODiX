@@ -62,12 +62,13 @@ namespace Modix.Modules
                 if (member.RoleIds.Count > 0)
                 {
                     var roles = member.RoleIds.Select(x => member.Guild.Roles.Single(y => y.Id == x))
-                        .Where(x => x.Name != "@everyone")
-                        .OrderByDescending(x => x.Position)
+                        .Where(x => x.Id != x.Guild.Id) // @everyone role always has same ID than guild
                         .ToArray();
 
                     if (roles.Length > 0)
                     {
+                        Array.Sort(roles);
+
                         builder.Append(roles.Length > 1 ? "Roles: " : "Role: ");
                         builder.AppendLine(BuildList(roles, r => r.Mention));
                     }
@@ -126,7 +127,7 @@ namespace Modix.Modules
 
         private static string GetListSeparator(int i, int length)
         {
-            bool atLastIndex = i - 1 == length;
+            bool atLastIndex = i == length - 1;
             if (i == 0)
             {
                 return string.Empty;
