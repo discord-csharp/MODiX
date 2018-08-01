@@ -62,14 +62,12 @@ namespace Modix.Modules
                 if (member.RoleIds.Count > 0)
                 {
                     var roles = member.RoleIds.Select(x => member.Guild.Roles.Single(y => y.Id == x))
-                        .Where(x => !string.Equals("@everyone", x.Name, StringComparison.Ordinal))
-                        .OrderBy(x => x.Name, StringComparer.InvariantCultureIgnoreCase)
+                        .Where(x => x.Name != "@everyone")
+                        .OrderByDescending(x => x.Position)
                         .ToArray();
 
                     if (roles.Length > 0)
                     {
-                        Array.Sort(roles, StringComparer.OrdinalIgnoreCase);
-
                         builder.Append(roles.Length > 1 ? "Roles: " : "Role: ");
                         builder.AppendLine(BuildList(roles, r => r.Mention));
                     }
