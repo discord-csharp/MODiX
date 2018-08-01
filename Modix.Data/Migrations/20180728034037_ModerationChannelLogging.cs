@@ -19,8 +19,8 @@ namespace Modix.Data.Migrations
                       SELECT i.`GuildId`
                       FROM `Infractions` AS i
                       WHERE i.`Id` = ma.`InfractionId`)
-                  WHERE ca.`GuildId` = 0
-                      AND ca.`InfractionId` IS NOT NULL;"
+                  WHERE ma.`GuildId` = 0
+                      AND ma.`InfractionId` IS NOT NULL;"
                     .Replace('`', '"'));
 
             migrationBuilder.AddColumn<long>(
