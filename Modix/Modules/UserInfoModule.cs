@@ -69,7 +69,9 @@ namespace Modix.Modules
                     if (roles.Length > 0)
                     {
                         Array.Sort(roles, StringComparer.OrdinalIgnoreCase);
-                        builder.AppendLine("Roles: " + string.Join(',', (object[])roles));
+
+                        builder.Append(roles.Length > 1 ? "Roles: " : "Role: ");
+                        builder.AppendLine(BuildList(roles, r => r.Mention));
                     }
                 }
             }
@@ -111,6 +113,38 @@ namespace Modix.Modules
 
             // TODO: Check the database to see if we have anything about the user in our database.
             await ReplyAsync("User not found.");
+        }
+
+        private static string BuildList<T>(T[] array, Func<T, string> mapper)
+        {
+            var builder = new StringBuilder();
+            for (int i = 0; i < array.Length; i++)
+            {
+                builder.Append(GetListSeparator(i, array.Length) + mapper(array[i]));
+            }
+
+            return builder.ToString();
+        }
+
+        private static string GetListSeparator(int i, int length)
+        {
+            bool atLastIndex = i - 1 == length;
+            if (i == 0)
+            {
+                return string.Empty;
+            }
+            else if (length > 2 && atLastIndex)
+            {
+                return ", and ";
+            }
+            else if (length > 1 && atLastIndex)
+            {
+                return " and ";
+            }
+            else
+            {
+                return ", ";
+            }
         }
 
         private static Color GetDominateColor(IUser user)
