@@ -70,6 +70,7 @@ namespace Modix.Modules
                     {
                         Array.Sort(roles, StringComparer.OrdinalIgnoreCase);
 
+                        builder.Append(roles.Length > 1 ? "Roles: " : "Role: ");
                         builder.AppendLine(BuildList(roles, r => r.Mention));
                     }
                 }
