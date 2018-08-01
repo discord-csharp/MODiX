@@ -37,7 +37,7 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        internal protected override Task OnStoppingAsync()
+        internal protected override Task OnStoppedAsync()
         {
             DiscordClient.Connected -= OnConnectedAsync;
             DiscordClient.UserJoined -= OnUserJoinedAsync;
@@ -50,8 +50,8 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         internal protected override void Dispose(bool disposeManaged)
         {
-            if (disposeManaged && IsStarted)
-                OnStoppingAsync();
+            if (disposeManaged && IsRunning)
+                OnStoppedAsync();
 
             base.Dispose(disposeManaged);
         }
@@ -63,15 +63,15 @@ namespace Modix.Services.Core
         internal protected DiscordSocketClient DiscordClient { get; }
 
         private Task OnConnectedAsync()
-            => ExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(DiscordClient.CurrentUser));
+            => SelfExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(DiscordClient.CurrentUser));
 
         private Task OnUserJoinedAsync(IGuildUser guildUser)
-            => ExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(guildUser));
+            => SelfExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(guildUser));
 
         private Task OnGuildMemberUpdatedAsync(IGuildUser oldUser, IGuildUser newUser)
-            => ExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(newUser));
+            => SelfExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(newUser));
 
         private Task OnMessageReceivedAsync(IMessage message)
-            => ExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(message.Author));
+            => SelfExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(message.Author));
     }
 }

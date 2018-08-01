@@ -5,8 +5,6 @@ using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
-using Nito.AsyncEx;
-
 using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Utilities;
@@ -20,9 +18,10 @@ namespace Modix.Data.Repositories
         /// Creates a new <see cref="InfractionRepository"/>.
         /// See <see cref="RepositoryBase(ModixContext)"/> for details.
         /// </summary>
-        public InfractionRepository(ModixContext modixContext, IEnumerable<IModerationActionEventHandler> moderationActionEventHandlers)
+        public InfractionRepository(ModixContext modixContext, IEnumerable<IInfractionEventHandler> infractionEventHandlers, IEnumerable<IModerationActionEventHandler> moderationActionEventHandlers)
             : base(modixContext)
         {
+            InfractionEventHandlers = infractionEventHandlers ?? throw new ArgumentNullException(nameof(infractionEventHandlers));
             ModerationActionEventHandlers = moderationActionEventHandlers ?? throw new ArgumentNullException(nameof(moderationActionEventHandlers));
         }
 
@@ -44,7 +43,9 @@ namespace Modix.Data.Repositories
             entity.CreateAction.InfractionId = entity.Id;
             await ModixContext.SaveChangesAsync();
 
-            await RaiseModerationActionCreated(entity.CreateActionId, new ModerationActionCreationData()
+            await RaiseInfractionCreatedAsync(entity.Id, data);
+
+            await RaiseModerationActionCreatedAsync(entity.CreateActionId, new ModerationActionCreationData()
             {
                 GuildId = (ulong)entity.CreateAction.GuildId,
                 Type = entity.CreateAction.Type,
@@ -67,6 +68,15 @@ namespace Modix.Data.Repositories
             => ModixContext.Infractions.AsNoTracking()
                 .FilterInfractionsBy(criteria)
                 .AnyAsync();
+
+        /// <inheritdoc />
+        public Task<DateTimeOffset?> ReadExpiresFirstOrDefaultAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null)
+            => ModixContext.Infractions.AsNoTracking()
+                .FilterInfractionsBy(searchCriteria)
+                .Select(InfractionSummary.FromEntityProjection)
+                .SortBy(sortingCriteria, InfractionSummary.SortablePropertyMap)
+                .Select(x => x.Expires)
+                .FirstOrDefaultAsync();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<long>> SearchIdsAsync(InfractionSearchCriteria searchCriteria)
@@ -128,7 +138,7 @@ namespace Modix.Data.Repositories
             };
             await ModixContext.SaveChangesAsync();
 
-            await RaiseModerationActionCreated(entity.RescindActionId.Value, new ModerationActionCreationData()
+            await RaiseModerationActionCreatedAsync(entity.RescindActionId.Value, new ModerationActionCreationData()
             {
                 GuildId = (ulong)entity.RescindAction.GuildId,
                 Type = entity.RescindAction.Type,
@@ -161,7 +171,7 @@ namespace Modix.Data.Repositories
             };
             await ModixContext.SaveChangesAsync();
 
-            await RaiseModerationActionCreated(entity.DeleteActionId.Value, new ModerationActionCreationData()
+            await RaiseModerationActionCreatedAsync(entity.DeleteActionId.Value, new ModerationActionCreationData()
             {
                 GuildId = (ulong)entity.DeleteAction.GuildId,
                 Type = entity.DeleteAction.Type,
@@ -173,18 +183,27 @@ namespace Modix.Data.Repositories
         }
 
         /// <summary>
+        /// A set of <see cref="IInfractionEventHandler"/> objects to receive information about infractions.
+        /// affected by this repository.
+        /// </summary>
+        internal protected IEnumerable<IInfractionEventHandler> InfractionEventHandlers { get; }
+
+        /// <summary>
         /// A set of <see cref="IModerationActionEventHandler"/> objects to receive information about moderation actions
         /// affected by this repository.
         /// </summary>
         internal protected IEnumerable<IModerationActionEventHandler> ModerationActionEventHandlers { get; }
 
-        private async Task RaiseModerationActionCreated(long moderationActionId, ModerationActionCreationData data)
+        private async Task RaiseInfractionCreatedAsync(long infractionId, InfractionCreationData data)
         {
-            if(ModerationActionEventHandlers.Any())
-            {
-                foreach(var handler in ModerationActionEventHandlers)
-                    await handler.OnModerationActionCreatedAsync(moderationActionId, data);
-            }
+            foreach (var handler in InfractionEventHandlers)
+                await handler.OnInfractionCreatedAsync(infractionId, data);
+        }
+
+        private async Task RaiseModerationActionCreatedAsync(long moderationActionId, ModerationActionCreationData data)
+        {
+            foreach(var handler in ModerationActionEventHandlers)
+                await handler.OnModerationActionCreatedAsync(moderationActionId, data);
         }
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
@@ -225,10 +244,10 @@ namespace Modix.Data.Repositories
                     x => (x.DeleteActionId != null) == criteria.IsDeleted,
                     criteria?.IsDeleted != null)
                 .FilterBy(
-                    x => (x.Duration != null) && (x.CreateAction.Created + x.Duration.Value) >= criteria.CreatedRange.Value.From,
+                    x => (x.CreateAction.Created + x.Duration) >= criteria.ExpiresRange.Value.From,
                     criteria?.ExpiresRange?.From != null)
                 .FilterBy(
-                    x => (x.Duration != null) && (x.CreateAction.Created + x.Duration.Value) >= criteria.CreatedRange.Value.To,
+                    x => (x.CreateAction.Created + x.Duration) <= criteria.ExpiresRange.Value.To,
                     criteria?.ExpiresRange?.To != null);
         }
     }

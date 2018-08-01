@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Modix.Data.Models;
@@ -51,6 +52,17 @@ namespace Modix.Data.Repositories
         /// containing a flag indicating whether any matching infractions exist.
         /// </returns>
         Task<bool> AnyAsync(InfractionSearchCriteria criteria);
+
+        /// <summary>
+        /// Retrieves the <see cref="InfractionSummary.Expires"/> value of the first infraction that matches the given set of criteria (if any).
+        /// </summary>
+        /// <param name="searchCriteria">The criteria for selecting infractions to be checked.</param>
+        /// <param name="sortingCriteria">The criteria for sorting the matching records to be checked.</param>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing the requested value, or null if no such infractions exist.
+        /// </returns>
+        Task<DateTimeOffset?> ReadExpiresFirstOrDefaultAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null);
 
         /// <summary>
         /// Searches the repository for infraction ID values, based on an arbitrary set of criteria.

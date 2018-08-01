@@ -31,6 +31,7 @@ namespace Modix.Data.Models.Moderation
                 MuteRoleId = (long)MuteRoleId,
                 CreateAction = new ConfigurationActionEntity()
                 {
+                    GuildId = (long)GuildId,
                     Type = ConfigurationActionType.ModerationMuteRoleMappingCreated,
                     Created = DateTimeOffset.Now,
                     CreatedById = (long)CreatedById

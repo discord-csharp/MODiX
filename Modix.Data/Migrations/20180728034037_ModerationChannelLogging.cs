@@ -13,6 +13,16 @@ namespace Modix.Data.Migrations
                 nullable: false,
                 defaultValue: 0L);
 
+            migrationBuilder.Sql(
+                @"UPDATE `ModerationActions` AS ma
+                  SET `GuildId` = (
+                      SELECT i.`GuildId`
+                      FROM `Infractions` AS i
+                      WHERE i.`Id` = ma.`InfractionId`)
+                  WHERE ca.`GuildId` = 0
+                      AND ca.`InfractionId` IS NOT NULL;"
+                    .Replace('`', '"'));
+
             migrationBuilder.AddColumn<long>(
                 name: "ModerationLogChannelMappingId",
                 table: "ConfigurationActions",

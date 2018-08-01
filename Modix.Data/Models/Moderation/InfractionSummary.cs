@@ -167,7 +167,7 @@ namespace Modix.Data.Models.Moderation
                         Nickname = entity.DeleteAction.CreatedBy.Nickname
                     }
                 },
-                Expires = (entity.Duration == null) ? null : new DateTimeOffset?(entity.CreateAction.Created + entity.Duration.Value)
+                Expires = entity.CreateAction.Created + entity.Duration
             };
     }
 }
