@@ -98,15 +98,11 @@ namespace Modix.Modules
             [Summary("The user to be muted.")]
                 IGuildUser subject,
             [Summary("The duration of the mute.")]
-                string durationString,
+                TimeSpan duration,
             [Summary("The reason for the mute.")]
             [Remainder]
                 string reason)
-        {
-            var duration = XmlConvert.ToTimeSpan(durationString);
-
-            return ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, duration);
-        }
+            => ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, duration);
 
         [Command("unmute")]
         [Summary("Remove a mute that has been applied to a user.")]
