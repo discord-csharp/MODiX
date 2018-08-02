@@ -62,14 +62,16 @@ namespace Modix.Modules
                 if (member.RoleIds.Count > 0)
                 {
                     var roles = member.RoleIds.Select(x => member.Guild.Roles.Single(y => y.Id == x))
-                        .Where(x => !string.Equals("@everyone", x.Name, StringComparison.Ordinal))
-                        .OrderBy(x => x.Name, StringComparer.InvariantCultureIgnoreCase)
+                        .Where(x => x.Id != x.Guild.Id) // @everyone role always has same ID than guild
                         .ToArray();
 
                     if (roles.Length > 0)
                     {
-                        Array.Sort(roles, StringComparer.OrdinalIgnoreCase);
-                        builder.AppendLine("Roles: " + string.Join(',', (object[])roles));
+                        Array.Sort(roles); // Sort by position: lowest positioned role is first
+                        Array.Reverse(roles); // Reverse the sort: highest positioned role is first
+
+                        builder.Append(roles.Length > 1 ? "Roles: " : "Role: ");
+                        builder.AppendLine(BuildList(roles, r => r.Mention));
                     }
                 }
             }
@@ -111,6 +113,38 @@ namespace Modix.Modules
 
             // TODO: Check the database to see if we have anything about the user in our database.
             await ReplyAsync("User not found.");
+        }
+
+        private static string BuildList<T>(T[] array, Func<T, string> mapper)
+        {
+            var builder = new StringBuilder();
+            for (int i = 0; i < array.Length; i++)
+            {
+                builder.Append(GetListSeparator(i, array.Length) + mapper(array[i]));
+            }
+
+            return builder.ToString();
+        }
+
+        private static string GetListSeparator(int i, int length)
+        {
+            bool atLastIndex = i == length - 1;
+            if (i == 0)
+            {
+                return string.Empty;
+            }
+            else if (length > 2 && atLastIndex)
+            {
+                return ", and ";
+            }
+            else if (length > 1 && atLastIndex)
+            {
+                return " and ";
+            }
+            else
+            {
+                return ", ";
+            }
         }
 
         private static Color GetDominateColor(IUser user)
