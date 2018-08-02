@@ -3,6 +3,10 @@ using System.Threading.Tasks;
 
 using Discord;
 
+using Microsoft.EntityFrameworkCore;
+
+using Serilog;
+
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 
@@ -62,31 +66,42 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task TrackUserAsync(IUser user)
         {
-            var guildUser = user as IGuildUser;
-
-            using (var transaction = await UserRepository.BeginCreateTransactionAsync())
+            // TODO: Remove this once we figure out the bug
+            try
             {
-                if(!(await UserRepository.TryUpdateAsync(user.Id, data =>
-                {
-                    data.Username = user.Username;
-                    data.Discriminator = user.Discriminator;
-                    if (guildUser != null)
-                        data.Nickname = guildUser.Nickname;
-                    data.LastSeen = DateTimeOffset.Now;
-                })))
-                {
-                    await UserRepository.CreateAsync(new UserCreationData()
-                    {
-                        Id = user.Id,
-                        Username = user.Username,
-                        Discriminator = user.Discriminator,
-                        Nickname = guildUser?.Nickname,
-                        FirstSeen = DateTimeOffset.Now,
-                        LastSeen = DateTimeOffset.Now
-                    });
-                }
+                var guildUser = user as IGuildUser;
 
-                transaction.Commit();
+                using (var transaction = await UserRepository.BeginCreateTransactionAsync())
+                {
+                    if (!(await UserRepository.TryUpdateAsync(user.Id, data =>
+                    {
+                        // TODO: Remove this once we figure out the bug
+                        if (user.Username != null)
+                            data.Username = user.Username;
+                        data.Discriminator = user.Discriminator;
+                        if (guildUser != null)
+                            data.Nickname = guildUser.Nickname;
+                        data.LastSeen = DateTimeOffset.Now;
+                    })))
+                    {
+                        await UserRepository.CreateAsync(new UserCreationData()
+                        {
+                            Id = user.Id,
+                            // TODO: Remove this once we figure out the bug
+                            Username = user.Username ?? "UNKNOWN USERNAME",
+                            Discriminator = user.Discriminator,
+                            Nickname = guildUser?.Nickname,
+                            FirstSeen = DateTimeOffset.Now,
+                            LastSeen = DateTimeOffset.Now
+                        });
+                    }
+
+                    transaction.Commit();
+                }
+            }
+            catch (DbUpdateException ex)
+            {
+                Log.Error($"{nameof(DbUpdateException)}\r\n ~ ex.Message: {ex.Message}\r\n ~ user.Id: {user.Id}\r\n ~ user.Username: {user.Username}\r\n ~ user.Discriminator: {user.Discriminator}");
             }
         }
 
