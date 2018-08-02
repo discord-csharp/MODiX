@@ -66,6 +66,9 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task TrackUserAsync(IUser user)
         {
+            // TODO: Verify this fix works and remove the verbose logging
+            if (user.IsBot || user.IsWebhook) { return; }
+
             var guildUser = user as IGuildUser;
 
             // TODO: Remove this when #126 is resolved
