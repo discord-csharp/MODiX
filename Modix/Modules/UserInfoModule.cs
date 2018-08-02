@@ -67,7 +67,8 @@ namespace Modix.Modules
 
                     if (roles.Length > 0)
                     {
-                        Array.Sort(roles);
+                        Array.Sort(roles); // Sort by position: lowest positioned role is first
+                        Array.Reverse(roles); // Reverse the sort: highest positioned role is first
 
                         builder.Append(roles.Length > 1 ? "Roles: " : "Role: ");
                         builder.AppendLine(BuildList(roles, r => r.Mention));
