@@ -66,16 +66,18 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task TrackUserAsync(IUser user)
         {
-            // TODO: Remove this once we figure out the bug
+            var guildUser = user as IGuildUser;
+
+            // TODO: Remove this when #126 is resolved
+            if (user.Username == null)
+                Log.Error($"Null Username:\r\n ~ user.Id: {user.Id}\r\n ~ user.Discriminator: {user.Discriminator}\r\n: guildUser.GuildId: {guildUser?.GuildId.ToString() ?? "null"}");
             try
             {
-                var guildUser = user as IGuildUser;
-
                 using (var transaction = await UserRepository.BeginCreateTransactionAsync())
                 {
                     if (!(await UserRepository.TryUpdateAsync(user.Id, data =>
                     {
-                        // TODO: Remove this once we figure out the bug
+                        // TODO: Remove this when #126 is resolved
                         if (user.Username != null)
                             data.Username = user.Username;
                         data.Discriminator = user.Discriminator;
@@ -87,7 +89,7 @@ namespace Modix.Services.Core
                         await UserRepository.CreateAsync(new UserCreationData()
                         {
                             Id = user.Id,
-                            // TODO: Remove this once we figure out the bug
+                            // TODO: Remove this when #126 is resolved
                             Username = user.Username ?? "UNKNOWN USERNAME",
                             Discriminator = user.Discriminator,
                             Nickname = guildUser?.Nickname,
@@ -101,6 +103,7 @@ namespace Modix.Services.Core
             }
             catch (DbUpdateException ex)
             {
+                // TODO: Remove this when #126 is resolved
                 Log.Error($"{nameof(DbUpdateException)}\r\n ~ ex.Message: {ex.Message}\r\n ~ user.Id: {user.Id}\r\n ~ user.Username: {user.Username}\r\n ~ user.Discriminator: {user.Discriminator}");
             }
         }
