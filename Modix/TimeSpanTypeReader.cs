@@ -8,7 +8,7 @@ using Discord.Commands;
 namespace Modix
 {
     // TODO: Remove when we port to 2.0
-    internal class TimeSpanTypeReader : TypeReader
+    internal static class TimeSpanTypeReader
     {
         private static readonly string[] _formats = new[]
         {
@@ -29,11 +29,14 @@ namespace Modix
             "%s's'",                //      1s
         };
 
-        public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
+        public static TimeSpan? Read(string input)
         {
-            return (TimeSpan.TryParseExact(input.ToLowerInvariant(), _formats, CultureInfo.InvariantCulture, out var timeSpan))
-                ? Task.FromResult(TypeReaderResult.FromSuccess(timeSpan))
-                : Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, "Failed to parse TimeSpan"));
+            if (TimeSpan.TryParseExact(input.ToLowerInvariant(), _formats, CultureInfo.InvariantCulture, out var timeSpan))
+            {
+                return timeSpan;
+            }
+
+            return null;
         }
     }
 }

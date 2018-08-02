@@ -81,9 +81,6 @@ namespace Modix
                 await scope.ServiceProvider.GetRequiredService<IBehaviourConfigurationService>()
                     .LoadBehaviourConfiguration();
             }
-            
-            // TODO: Remove when we port to 2.0
-            _commands.AddTypeReader<TimeSpan>(new TimeSpanTypeReader());
 
             _hooks.ServiceProvider = _scope.ServiceProvider;
             foreach (var behavior in _scope.ServiceProvider.GetServices<IBehavior>())
