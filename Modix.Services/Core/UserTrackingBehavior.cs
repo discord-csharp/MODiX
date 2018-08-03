@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-using Serilog;
-
 using Discord;
 using Discord.WebSocket;
 
@@ -71,21 +69,9 @@ namespace Modix.Services.Core
             => SelfExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(guildUser));
 
         private Task OnGuildMemberUpdatedAsync(IGuildUser oldUser, IGuildUser newUser)
-            => SelfExecuteOnScopedServiceAsync<IUserService>(x =>
-            {
-                if(newUser.Username == null)
-                    Log.Error($"OnGuildMemberUpdatedAsync:\r\n ~ newUser.Id: {newUser.Id}\r\n ~ newUser.Discriminator: {newUser.Discriminator ?? "null"}\r\n ~ newUser.Nickname: {newUser.Nickname ?? "null"}\r\n ~ newUser.IsBot: {newUser.IsBot}\r\n ~ newUser.IsWebhook: {newUser.IsWebhook}");
-
-                return x.TrackUserAsync(newUser);
-            });
+            => SelfExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(newUser));
 
         private Task OnMessageReceivedAsync(IMessage message)
-            => SelfExecuteOnScopedServiceAsync<IUserService>(x =>
-            {
-                if (message.Author.Username == null)
-                    Log.Error($"OnMessageReceivedAsync:\r\n ~ message.Source: {message.Source}\r\n ~ message.Type: {message.Type}\r\n ~ message.Content: {message.Content}\r\n ~ message.Author.Id: {message.Author.Id}\r\n ~ newUser.Discriminator: {message.Author.Discriminator ?? "null"}\r\n ~ newUser.IsBot: {message.Author.IsBot}\r\n ~ newUser.IsWebhook: {message.Author.IsWebhook}");
-
-                return x.TrackUserAsync(message.Author);
-            });
+            => SelfExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(message.Author));
     }
 }

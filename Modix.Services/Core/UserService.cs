@@ -3,10 +3,6 @@ using System.Threading.Tasks;
 
 using Discord;
 
-using Microsoft.EntityFrameworkCore;
-
-using Serilog;
-
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 
@@ -66,48 +62,34 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task TrackUserAsync(IUser user)
         {
-            // TODO: Verify this fix works and remove the verbose logging
-            if (user.IsBot || user.IsWebhook || user.DiscriminatorValue == 0) { return; }
-
             var guildUser = user as IGuildUser;
 
-            // TODO: Remove this when #126 is resolved
-            if (user.Username == null)
-                Log.Error($"Null Username:\r\n ~ user.Id: {user.Id}\r\n ~ user.Discriminator: {user.Discriminator}\r\n: guildUser.GuildId: {guildUser?.GuildId.ToString() ?? "null"}");
-            try
+            using (var transaction = await UserRepository.BeginCreateTransactionAsync())
             {
-                using (var transaction = await UserRepository.BeginCreateTransactionAsync())
+                if (!(await UserRepository.TryUpdateAsync(user.Id, data =>
                 {
-                    if (!(await UserRepository.TryUpdateAsync(user.Id, data =>
+                    // TODO: Workaround for #126. If the user's new username is null, just leave it as is.
+                    if (user.Username != null)
+                        data.Username = user.Username;
+                    data.Discriminator = user.Discriminator;
+                    if (guildUser != null)
+                        data.Nickname = guildUser.Nickname;
+                    data.LastSeen = DateTimeOffset.Now;
+                })))
+                {
+                    await UserRepository.CreateAsync(new UserCreationData()
                     {
-                        // TODO: Remove this when #126 is resolved
-                        if (user.Username != null)
-                            data.Username = user.Username;
-                        data.Discriminator = user.Discriminator;
-                        if (guildUser != null)
-                            data.Nickname = guildUser.Nickname;
-                        data.LastSeen = DateTimeOffset.Now;
-                    })))
-                    {
-                        await UserRepository.CreateAsync(new UserCreationData()
-                        {
-                            Id = user.Id,
-                            // TODO: Remove this when #126 is resolved
-                            Username = user.Username ?? "UNKNOWN USERNAME",
-                            Discriminator = user.Discriminator,
-                            Nickname = guildUser?.Nickname,
-                            FirstSeen = DateTimeOffset.Now,
-                            LastSeen = DateTimeOffset.Now
-                        });
-                    }
-
-                    transaction.Commit();
+                        Id = user.Id,
+                        // TODO: Workaround for #126. If the new user's username is null, throw in a dummy, in the interest of allowing the user to be tracked.
+                        Username = user.Username ?? "[UNKNOWN USERNAME]",
+                        Discriminator = user.Discriminator,
+                        Nickname = guildUser?.Nickname,
+                        FirstSeen = DateTimeOffset.Now,
+                        LastSeen = DateTimeOffset.Now
+                    });
                 }
-            }
-            catch (DbUpdateException ex)
-            {
-                // TODO: Remove this when #126 is resolved
-                Log.Error($"{nameof(DbUpdateException)}\r\n ~ ex.Message: {ex.Message}\r\n ~ user.Id: {user.Id}\r\n ~ user.Username: {user.Username}\r\n ~ user.Discriminator: {user.Discriminator}");
+
+                transaction.Commit();
             }
         }
 
