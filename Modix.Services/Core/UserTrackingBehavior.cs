@@ -73,8 +73,11 @@ namespace Modix.Services.Core
         private Task OnGuildMemberUpdatedAsync(IGuildUser oldUser, IGuildUser newUser)
             => SelfExecuteOnScopedServiceAsync<IUserService>(x =>
             {
-                if(newUser.Username == null)
-                    Log.Error($"OnGuildMemberUpdatedAsync:\r\n ~ newUser.Id: {newUser.Id}\r\n ~ newUser.Discriminator: {newUser.Discriminator ?? "null"}\r\n ~ newUser.Nickname: {newUser.Nickname ?? "null"}\r\n ~ newUser.IsBot: {newUser.IsBot}\r\n ~ newUser.IsWebhook: {newUser.IsWebhook}");
+                if (newUser.Username == null)
+                {
+                    //Log.Error($"OnGuildMemberUpdatedAsync:\r\n ~ newUser.Id: {newUser.Id}\r\n ~ newUser.Discriminator: {newUser.Discriminator ?? "null"}\r\n ~ newUser.Nickname: {newUser.Nickname ?? "null"}\r\n ~ newUser.IsBot: {newUser.IsBot}\r\n ~ newUser.IsWebhook: {newUser.IsWebhook}");
+                    return Task.CompletedTask;
+                }
 
                 return x.TrackUserAsync(newUser);
             });
