@@ -28,7 +28,7 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         internal protected override Task OnStartingAsync()
         {
-            DiscordClient.Connected += OnConnectedAsync;
+            DiscordClient.GuildAvailable += OnGuildAvailableAsync;
             DiscordClient.UserJoined += OnUserJoinedAsync;
             DiscordClient.GuildMemberUpdated += OnGuildMemberUpdatedAsync;
             DiscordClient.MessageReceived += OnMessageReceivedAsync;
@@ -39,7 +39,7 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         internal protected override Task OnStoppedAsync()
         {
-            DiscordClient.Connected -= OnConnectedAsync;
+            DiscordClient.GuildAvailable -= OnGuildAvailableAsync;
             DiscordClient.UserJoined -= OnUserJoinedAsync;
             DiscordClient.GuildMemberUpdated -= OnGuildMemberUpdatedAsync;
             DiscordClient.MessageReceived -= OnMessageReceivedAsync;
@@ -62,8 +62,10 @@ namespace Modix.Services.Core
         // TODO: Abstract DiscordSocketClient to IDiscordSocketClient, or something, to make this testable
         internal protected DiscordSocketClient DiscordClient { get; }
 
-        private Task OnConnectedAsync()
-            => SelfExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(DiscordClient.CurrentUser));
+        private Task OnGuildAvailableAsync(IGuild guild)
+            => SelfExecuteOnScopedServiceAsync<IUserService>(async x =>
+                await x.TrackUserAsync(
+                    await guild.GetUserAsync(DiscordClient.CurrentUser.Id)));
 
         private Task OnUserJoinedAsync(IGuildUser guildUser)
             => SelfExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(guildUser));
@@ -72,6 +74,10 @@ namespace Modix.Services.Core
             => SelfExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(newUser));
 
         private Task OnMessageReceivedAsync(IMessage message)
-            => SelfExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(message.Author));
+            => SelfExecuteOnScopedServiceAsync<IUserService>(async x =>
+            {
+                if(message.Author is IGuildUser author)
+                    await x.TrackUserAsync(author);
+            });
     }
 }

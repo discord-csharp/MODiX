@@ -5,12 +5,17 @@ namespace Modix.Data.Models.Core
     /// <summary>
     /// Describes an operation to create a <see cref="UserEntity"/>.
     /// </summary>
-    public class UserCreationData
+    public class GuildUserCreationData
     {
         /// <summary>
-        /// See <see cref="UserEntity.Id"/>.
+        /// See <see cref="GuildUserEntity.UserId"/>.
         /// </summary>
-        public ulong Id { get; set; }
+        public ulong UserId { get; set; }
+
+        /// <summary>
+        /// See <see cref="GuildUserEntity.GuildId"/>.
+        /// </summary>
+        public ulong GuildId { get; set; }
 
         /// <summary>
         /// See <see cref="UserEntity.Username"/>.
@@ -23,29 +28,36 @@ namespace Modix.Data.Models.Core
         public string Discriminator { get; set; }
 
         /// <summary>
-        /// See <see cref="UserEntity.Nickname"/>.
+        /// See <see cref="GuildUserEntity.Nickname"/>.
         /// </summary>
         public string Nickname { get; set; }
 
         /// <summary>
-        /// See <see cref="UserEntity.FirstSeen"/>.
+        /// See <see cref="GuildUserEntity.FirstSeen"/>.
         /// </summary>
         public DateTimeOffset FirstSeen { get; set; }
 
         /// <summary>
-        /// See <see cref="UserEntity.LastSeen"/>.
+        /// See <see cref="GuildUserEntity.LastSeen"/>.
         /// </summary>
         public DateTimeOffset LastSeen { get; set; }
 
-        internal UserEntity ToEntity()
+        internal UserEntity ToUserEntity()
             => new UserEntity()
             {
-                Id = (long)Id,
+                Id = (long)UserId,
                 Username = Username,
+                Discriminator = Discriminator
+            };
+
+        internal GuildUserEntity ToGuildDataEntity()
+            => new GuildUserEntity()
+            {
+                UserId = (long)UserId,
+                GuildId = (long)GuildId,
                 Nickname = Nickname,
-                Discriminator = Discriminator,
                 FirstSeen = FirstSeen,
-                LastSeen = LastSeen,
+                LastSeen = LastSeen
             };
     }
 }

@@ -21,7 +21,7 @@ namespace Modix.Services.Core
                 .AddScoped<IAuthorizationService, AuthorizationService>()
                 .AddScoped<IGuildService, GuildService>()
                 .AddScoped<IUserService, UserService>()
-                .AddScoped<IUserRepository, UserRepository>()
+                .AddScoped<IGuildUserRepository, GuildUserRepository>()
                 .AddScoped<IClaimMappingRepository, ClaimMappingRepository>()
                 .AddScoped<IConfigurationActionRepository, ConfigurationActionRepository>();
     }

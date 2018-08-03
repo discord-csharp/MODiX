@@ -6,12 +6,17 @@ namespace Modix.Data.Models.Core
     /// <summary>
     /// Describes a summary view of a <see cref="UserEntity"/>, for use in higher layers of the application.
     /// </summary>
-    public class UserSummary
+    public class GuildUserSummary
     {
         /// <summary>
-        /// See <see cref="UserEntity.Id"/>.
+        /// See <see cref="GuildUserEntity.Id"/>.
         /// </summary>
-        public ulong Id { get; set; }
+        public ulong UserId { get; set; }
+
+        /// <summary>
+        /// See <see cref="GuildUserEntity.GuildId"/>.
+        /// </summary>
+        public ulong GuildId { get; set; }
 
         /// <summary>
         /// See <see cref="UserEntity.Username"/>.
@@ -24,26 +29,27 @@ namespace Modix.Data.Models.Core
         public string Discriminator { get; set; }
 
         /// <summary>
-        /// See <see cref="UserEntity.Nickname"/>.
+        /// See <see cref="GuildUserEntity.Nickname"/>.
         /// </summary>
         public string Nickname { get; set; }
 
         /// <summary>
-        /// See <see cref="UserEntity.FirstSeen"/>.
+        /// See <see cref="GuildUserEntity.FirstSeen"/>.
         /// </summary>
         public DateTimeOffset FirstSeen { get; set; }
 
         /// <summary>
-        /// See <see cref="UserEntity.LastSeen"/>.
+        /// See <see cref="GuildUserEntity.LastSeen"/>.
         /// </summary>
         public DateTimeOffset LastSeen { get; set; }
 
-        internal static readonly Expression<Func<UserEntity, UserSummary>> FromEntityProjection
-            = entity => new UserSummary()
+        internal static readonly Expression<Func<GuildUserEntity, GuildUserSummary>> FromEntityProjection
+            = entity => new GuildUserSummary()
             {
-                Id = (ulong)entity.Id,
-                Username = entity.Username,
-                Discriminator = entity.Discriminator,
+                UserId = (ulong)entity.UserId,
+                GuildId = (ulong)entity.GuildId,
+                Username = entity.User.Username,
+                Discriminator = entity.User.Discriminator,
                 Nickname = entity.Nickname,
                 FirstSeen = entity.FirstSeen,
                 LastSeen = entity.LastSeen

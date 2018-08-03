@@ -48,7 +48,8 @@ namespace Modix.Services.Core
             }
 
             // Need the bot user to exist, before we start adding claims, created by the bot user.
-            await UserService.TrackUserAsync(DiscordClient.CurrentUser);
+            await UserService.TrackUserAsync(
+                await guild.GetUserAsync(DiscordClient.CurrentUser.Id));
 
             using (var transaction = await ClaimMappingRepository.BeginCreateTransactionAsync())
             {

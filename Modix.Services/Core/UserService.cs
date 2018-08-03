@@ -17,14 +17,14 @@ namespace Modix.Services.Core
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
         /// <param name="authorizationService">The value to use for <see cref="AuthorizationService"/>.</param>
         /// <param name="guildService">The value to use for <see cref="GuildService"/>.</param>
-        /// <param name="userRepository">The value to use for <see cref="UserRepository"/>.</param>
+        /// <param name="guildUserRepository">The value to use for <see cref="GuildUserRepository"/>.</param>
         /// <exception cref="ArgumentNullException">Throws for all parameters.</exception>
-        public UserService(IDiscordClient discordClient, IAuthorizationService authorizationService, IGuildService guildService, IUserRepository userRepository)
+        public UserService(IDiscordClient discordClient, IAuthorizationService authorizationService, IGuildService guildService, IGuildUserRepository guildUserRepository)
         {
             DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
             AuthorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
             GuildService = guildService ?? throw new ArgumentNullException(nameof(guildService));
-            UserRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            GuildUserRepository = guildUserRepository ?? throw new ArgumentNullException(nameof(guildUserRepository));
         }
 
         /// <inheritdoc />
@@ -38,7 +38,8 @@ namespace Modix.Services.Core
             if (user == null)
                 throw new InvalidOperationException($"Discord user {userId} does not exist");
 
-            await TrackUserAsync(user);
+            if(user is IGuildUser guildUser)
+                await TrackUserAsync(guildUser);
 
             return user;
         }
@@ -60,27 +61,25 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task TrackUserAsync(IUser user)
+        public async Task TrackUserAsync(IGuildUser user)
         {
-            var guildUser = user as IGuildUser;
-
-            using (var transaction = await UserRepository.BeginCreateTransactionAsync())
+            using (var transaction = await GuildUserRepository.BeginCreateTransactionAsync())
             {
-                if(!(await UserRepository.TryUpdateAsync(user.Id, data =>
+                if(!(await GuildUserRepository.TryUpdateAsync(user.Id, user.GuildId, data =>
                 {
                     data.Username = user.Username;
                     data.Discriminator = user.Discriminator;
-                    if (guildUser != null)
-                        data.Nickname = guildUser.Nickname;
+                    data.Nickname = user.Nickname;
                     data.LastSeen = DateTimeOffset.Now;
                 })))
                 {
-                    await UserRepository.CreateAsync(new UserCreationData()
+                    await GuildUserRepository.CreateAsync(new GuildUserCreationData()
                     {
-                        Id = user.Id,
+                        UserId = user.Id,
+                        GuildId = user.GuildId,
                         Username = user.Username,
                         Discriminator = user.Discriminator,
-                        Nickname = guildUser?.Nickname,
+                        Nickname = user.Nickname,
                         FirstSeen = DateTimeOffset.Now,
                         LastSeen = DateTimeOffset.Now
                     });
@@ -106,8 +105,8 @@ namespace Modix.Services.Core
         internal protected IGuildService GuildService { get; }
 
         /// <summary>
-        /// A <see cref="IUserRepository"/> to be used to interact with user data within a datastore.
+        /// A <see cref="IGuildUserRepository"/> to be used to interact with user data within a datastore.
         /// </summary>
-        internal protected IUserRepository UserRepository { get; }
+        internal protected IGuildUserRepository GuildUserRepository { get; }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Modix.Data.Models.Core
 {
@@ -25,23 +24,5 @@ namespace Modix.Data.Models.Core
         /// </summary>
         [Required]
         public string Discriminator { get; set; }
-
-        /// <summary>
-        /// The provided Nickname value of this user, within the Discord API.
-        /// </summary>
-        // TODO: Push this into a separate table, keyed by user and guild ID.
-        public string Nickname { get; set; }
-
-        /// <summary>
-        /// A timestamp indicating the first time this user was observed by the aplication.
-        /// </summary>
-        [Required]
-        public DateTimeOffset FirstSeen { get; set; }
-
-        /// <summary>
-        /// A timestamp indicating the most recent time this user was observed by the application.
-        /// </summary>
-        [Required]
-        public DateTimeOffset LastSeen { get; set; }
     }
 }

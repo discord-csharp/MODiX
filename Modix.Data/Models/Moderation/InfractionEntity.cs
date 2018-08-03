@@ -42,16 +42,16 @@ namespace Modix.Data.Models.Moderation
         public TimeSpan? Duration { get; set; }
 
         /// <summary>
-        /// The <see cref="UserEntity.Id"/> value of <see cref="Subject"/>.
+        /// The <see cref="GuildUserEntity.UserId"/> value of <see cref="Subject"/>.
         /// </summary>
-        [Required, ForeignKey(nameof(Subject))]
+        [Required]
         public long SubjectId { get; set; }
 
         /// <summary>
         /// The user upon which the <see cref="InfractionEntity"/> was applied.
         /// </summary>
         [Required]
-        public virtual UserEntity Subject { get; set; }
+        public virtual GuildUserEntity Subject { get; set; }
 
         /// <summary>
         /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="CreateAction"/>.

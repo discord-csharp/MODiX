@@ -39,7 +39,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="InfractionEntity.Subject"/>.
         /// </summary>
-        public UserIdentity Subject { get; set; }
+        public GuildUserIdentity Subject { get; set; }
 
         /// <summary>
         /// The associated <see cref="ModerationActionEntity"/> from <see cref="InfractionEntity.ModerationActions"/>,
@@ -124,22 +124,22 @@ namespace Modix.Data.Models.Moderation
                 Type = entity.Type,
                 Reason = entity.Reason,
                 Duration = entity.Duration,
-                Subject = new UserIdentity()
+                Subject = new GuildUserIdentity()
                 {
-                    Id = (ulong)entity.Subject.Id,
-                    Username = entity.Subject.Username,
-                    Discriminator = entity.Subject.Discriminator,
+                    Id = (ulong)entity.Subject.UserId,
+                    Username = entity.Subject.User.Username,
+                    Discriminator = entity.Subject.User.Discriminator,
                     Nickname = entity.Subject.Nickname
                 },
                 CreateAction = new ModerationActionBrief()
                 {
                     Id = entity.CreateAction.Id,
                     Created = entity.CreateAction.Created,
-                    CreatedBy = new UserIdentity()
+                    CreatedBy = new GuildUserIdentity()
                     {
-                        Id = (ulong)entity.CreateAction.CreatedBy.Id,
-                        Username = entity.CreateAction.CreatedBy.Username,
-                        Discriminator = entity.CreateAction.CreatedBy.Discriminator,
+                        Id = (ulong)entity.CreateAction.CreatedBy.UserId,
+                        Username = entity.CreateAction.CreatedBy.User.Username,
+                        Discriminator = entity.CreateAction.CreatedBy.User.Discriminator,
                         Nickname = entity.CreateAction.CreatedBy.Nickname
                     }
                 },
@@ -147,11 +147,11 @@ namespace Modix.Data.Models.Moderation
                 {
                     Id = entity.RescindAction.Id,
                     Created = entity.RescindAction.Created,
-                    CreatedBy = new UserIdentity()
+                    CreatedBy = new GuildUserIdentity()
                     {
-                        Id = (ulong)entity.RescindAction.CreatedBy.Id,
-                        Username = entity.RescindAction.CreatedBy.Username,
-                        Discriminator = entity.RescindAction.CreatedBy.Discriminator,
+                        Id = (ulong)entity.RescindAction.CreatedBy.UserId,
+                        Username = entity.RescindAction.CreatedBy.User.Username,
+                        Discriminator = entity.RescindAction.CreatedBy.User.Discriminator,
                         Nickname = entity.RescindAction.CreatedBy.Nickname
                     }
                 },
@@ -159,11 +159,11 @@ namespace Modix.Data.Models.Moderation
                 {
                     Id = entity.DeleteAction.Id,
                     Created = entity.DeleteAction.Created,
-                    CreatedBy = new UserIdentity()
+                    CreatedBy = new GuildUserIdentity()
                     {
-                        Id = (ulong)entity.DeleteAction.CreatedBy.Id,
-                        Username = entity.DeleteAction.CreatedBy.Username,
-                        Discriminator = entity.DeleteAction.CreatedBy.Discriminator,
+                        Id = (ulong)entity.DeleteAction.CreatedBy.UserId,
+                        Username = entity.DeleteAction.CreatedBy.User.Username,
+                        Discriminator = entity.DeleteAction.CreatedBy.User.Discriminator,
                         Nickname = entity.DeleteAction.CreatedBy.Nickname
                     }
                 },
