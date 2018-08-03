@@ -68,10 +68,11 @@ namespace Modix.Services.Core
             {
                 if (!(await UserRepository.TryUpdateAsync(user.Id, data =>
                 {
-                    // TODO: Workaround for #126. If the user's new username is null, just leave it as is.
+                    // Only update properties that we were given. Updates can be triggered from several different sources, not all of which have all the user's info.
                     if (user.Username != null)
                         data.Username = user.Username;
-                    data.Discriminator = user.Discriminator;
+                    if(user.DiscriminatorValue != 0)
+                        data.Discriminator = user.Discriminator;
                     if (guildUser != null)
                         data.Nickname = guildUser.Nickname;
                     data.LastSeen = DateTimeOffset.Now;
@@ -80,9 +81,8 @@ namespace Modix.Services.Core
                     await UserRepository.CreateAsync(new UserCreationData()
                     {
                         Id = user.Id,
-                        // TODO: Workaround for #126. If the new user's username is null, throw in a dummy, in the interest of allowing the user to be tracked.
                         Username = user.Username ?? "[UNKNOWN USERNAME]",
-                        Discriminator = user.Discriminator,
+                        Discriminator = (user.DiscriminatorValue == 0) ? "????" : user.Discriminator,
                         Nickname = guildUser?.Nickname,
                         FirstSeen = DateTimeOffset.Now,
                         LastSeen = DateTimeOffset.Now
