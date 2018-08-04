@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq.Expressions;
 
 using Modix.Data.Models.Core;
 
@@ -33,6 +32,6 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="InfractionEntity.Subject"/>.
         /// </summary>
-        public UserIdentity Subject { get; set; }
+        public GuildUserIdentity Subject { get; set; }
     }
 }

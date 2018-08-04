@@ -31,7 +31,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// See <see cref="ConfigurationActionEntity.CreatedBy"/>.
         /// </summary>
-        public virtual UserIdentity CreatedBy { get; set; }
+        public virtual GuildUserIdentity CreatedBy { get; set; }
 
         /// <summary>
         /// See <see cref="ConfigurationActionEntity.ClaimMapping"/>.
@@ -45,11 +45,11 @@ namespace Modix.Data.Models.Core
                 GuildId = (ulong)entity.GuildId,
                 Type = entity.Type,
                 Created = entity.Created,
-                CreatedBy = new UserIdentity()
+                CreatedBy = new GuildUserIdentity()
                 {
-                    Id = (ulong)entity.CreatedBy.Id,
-                    Username = entity.CreatedBy.Username,
-                    Discriminator = entity.CreatedBy.Discriminator,
+                    Id = (ulong)entity.CreatedBy.UserId,
+                    Username = entity.CreatedBy.User.Username,
+                    Discriminator = entity.CreatedBy.User.Discriminator,
                     Nickname = entity.CreatedBy.Nickname
                 },
                 ClaimMapping = (entity.ClaimMapping == null) ? null

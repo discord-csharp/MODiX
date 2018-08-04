@@ -33,7 +33,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="ModerationActionEntity.CreatedBy"/>.
         /// </summary>
-        public UserIdentity CreatedBy { get; set; }
+        public GuildUserIdentity CreatedBy { get; set; }
 
         /// <summary>
         /// See <see cref="ModerationActionEntity.Infraction"/>.
@@ -47,11 +47,11 @@ namespace Modix.Data.Models.Moderation
                 GuildId = (ulong)entity.GuildId,
                 Type = entity.Type,
                 Created = entity.Created,
-                CreatedBy = new UserIdentity()
+                CreatedBy = new GuildUserIdentity()
                 {
-                    Id = (ulong)entity.CreatedBy.Id,
-                    Username = entity.CreatedBy.Username,
-                    Discriminator = entity.CreatedBy.Discriminator,
+                    Id = (ulong)entity.CreatedBy.UserId,
+                    Username = entity.CreatedBy.User.Username,
+                    Discriminator = entity.CreatedBy.User.Discriminator,
                     Nickname = entity.CreatedBy.Nickname
                 },
                 Infraction = new InfractionBrief()
@@ -62,11 +62,11 @@ namespace Modix.Data.Models.Moderation
                     Type = Enum.Parse<InfractionType>(entity.Infraction.Type.ToString()),
                     Reason = entity.Infraction.Reason,
                     Duration = entity.Infraction.Duration,
-                    Subject = new UserIdentity()
+                    Subject = new GuildUserIdentity()
                     {
-                        Id = (ulong)entity.Infraction.Subject.Id,
-                        Username = entity.Infraction.Subject.Username,
-                        Discriminator = entity.Infraction.Subject.Discriminator,
+                        Id = (ulong)entity.Infraction.Subject.UserId,
+                        Username = entity.Infraction.Subject.User.Username,
+                        Discriminator = entity.Infraction.Subject.User.Discriminator,
                         Nickname = entity.Infraction.Subject.Nickname
                     },
                 }

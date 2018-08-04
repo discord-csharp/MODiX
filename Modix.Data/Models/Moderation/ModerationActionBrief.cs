@@ -22,6 +22,6 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="ModerationActionEntity.CreatedBy"/>.
         /// </summary>
-        public UserIdentity CreatedBy { get; set; }
+        public GuildUserIdentity CreatedBy { get; set; }
     }
 }

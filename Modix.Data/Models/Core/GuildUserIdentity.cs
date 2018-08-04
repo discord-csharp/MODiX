@@ -1,18 +1,20 @@
-﻿using System;
-using System.Linq.Expressions;
-
-namespace Modix.Data.Models.Core
+﻿namespace Modix.Data.Models.Core
 {
     /// <summary>
     /// Describes the identifying properties of a <see cref="UserEntity"/>.
     /// This is generally for use within other models, to refer to related users.
     /// </summary>
-    public class UserIdentity
+    public class GuildUserIdentity
     {
         /// <summary>
         /// See <see cref="UserEntity.Id"/>.
         /// </summary>
         public ulong Id { get; set; }
+
+        /// <summary>
+        /// See <see cref="GuildUserEntity.GuildId"/>.
+        /// </summary>
+        public ulong GuildId { get; set; }
 
         /// <summary>
         /// See <see cref="UserEntity.Username"/>.
@@ -25,7 +27,7 @@ namespace Modix.Data.Models.Core
         public string Discriminator { get; set; }
 
         /// <summary>
-        /// See <see cref="UserEntity.Nickname"/>.
+        /// See <see cref="GuildUserEntity.Nickname"/>.
         /// </summary>
         public string Nickname { get; set; }
 

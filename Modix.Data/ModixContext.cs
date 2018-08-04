@@ -24,6 +24,8 @@ namespace Modix.Data
 
         public DbSet<UserEntity> Users { get; set; }
 
+        public DbSet<GuildUserEntity> GuildUsers { get; set; }
+
         public DbSet<ClaimMappingEntity> ClaimMappings { get; set; }
 
         public DbSet<ModerationMuteRoleMappingEntity> ModerationMuteRoleMappings { get; set; }
@@ -46,6 +48,10 @@ namespace Modix.Data
                 .HasConversion<string>();
 
             modelBuilder
+                .Entity<GuildUserEntity>()
+                .HasKey(x => new { x.GuildId, x.UserId });
+
+            modelBuilder
                 .Entity<ClaimMappingEntity>()
                 .Property(x => x.Type)
                 .HasConversion<string>();
@@ -61,14 +67,32 @@ namespace Modix.Data
                 .HasConversion<string>();
 
             modelBuilder
+                .Entity<ConfigurationActionEntity>()
+                .HasOne(x => x.CreatedBy)
+                .WithMany()
+                .HasForeignKey(x => new { x.GuildId, x.CreatedById });
+
+            modelBuilder
                 .Entity<InfractionEntity>()
                 .Property(x => x.Type)
                 .HasConversion<string>();
 
             modelBuilder
+                .Entity<InfractionEntity>()
+                .HasOne(x => x.Subject)
+                .WithMany()
+                .HasForeignKey(x => new { x.GuildId, x.SubjectId });
+
+            modelBuilder
                 .Entity<ModerationActionEntity>()
                 .Property(x => x.Type)
                 .HasConversion<string>();
+
+            modelBuilder
+                .Entity<ModerationActionEntity>()
+                .HasOne(X => X.CreatedBy)
+                .WithMany()
+                .HasForeignKey(x => new { x.GuildId, x.CreatedById });
         }
     }
 }

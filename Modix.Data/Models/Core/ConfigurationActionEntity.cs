@@ -36,16 +36,16 @@ namespace Modix.Data.Models.Core
         public DateTimeOffset Created { get; set; }
 
         /// <summary>
-        /// The <see cref="UserEntity.Id"/> value of <see cref="CreatedBy"/>.
+        /// The <see cref="GuildUserEntity.UserId"/> value of <see cref="CreatedBy"/>.
         /// </summary>
-        [Required, ForeignKey(nameof(CreatedBy))]
+        [Required]
         public long CreatedById { get; set; }
 
         /// <summary>
         /// The Discord user that performed this action.
         /// </summary>
         [Required]
-        public virtual UserEntity CreatedBy { get; set; }
+        public virtual GuildUserEntity CreatedBy { get; set; }
 
         /// <summary>
         /// The <see cref="ClaimMappingEntity.Id"/> value (if any) of <see cref="ClaimMapping"/>.

@@ -64,11 +64,11 @@ namespace Modix.Data.Models.Core
                     //Type = entity.CreateAction.Type,
                     Type = Enum.Parse<ConfigurationActionType>(entity.CreateAction.Type.ToString()),
                     Created = entity.CreateAction.Created,
-                    CreatedBy = new UserIdentity()
+                    CreatedBy = new GuildUserIdentity()
                     {
-                        Id = (ulong)entity.CreateAction.CreatedBy.Id,
-                        Username = entity.CreateAction.CreatedBy.Username,
-                        Discriminator = entity.CreateAction.CreatedBy.Discriminator,
+                        Id = (ulong)entity.CreateAction.CreatedBy.UserId,
+                        Username = entity.CreateAction.CreatedBy.User.Username,
+                        Discriminator = entity.CreateAction.CreatedBy.User.Discriminator,
                         Nickname = entity.CreateAction.CreatedBy.Nickname
                     }
                 },
@@ -78,11 +78,11 @@ namespace Modix.Data.Models.Core
                         Id = entity.DeleteAction.Id,
                         Type = entity.DeleteAction.Type,
                         Created = entity.DeleteAction.Created,
-                        CreatedBy = new UserIdentity()
+                        CreatedBy = new GuildUserIdentity()
                         {
-                            Id = (ulong)entity.DeleteAction.CreatedBy.Id,
-                            Username = entity.DeleteAction.CreatedBy.Username,
-                            Discriminator = entity.DeleteAction.CreatedBy.Discriminator,
+                            Id = (ulong)entity.DeleteAction.CreatedBy.UserId,
+                            Username = entity.DeleteAction.CreatedBy.User.Username,
+                            Discriminator = entity.DeleteAction.CreatedBy.User.Discriminator,
                             Nickname = entity.DeleteAction.CreatedBy.Nickname
                         }
                     }
