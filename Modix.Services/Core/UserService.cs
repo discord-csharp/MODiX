@@ -67,9 +67,13 @@ namespace Modix.Services.Core
             {
                 if(!(await GuildUserRepository.TryUpdateAsync(user.Id, user.GuildId, data =>
                 {
-                    data.Username = user.Username;
-                    data.Discriminator = user.Discriminator;
-                    data.Nickname = user.Nickname;
+                    // Only update properties that we were given. Updates can be triggered from several different sources, not all of which have all the user's info.
+                    if (user.Username != null)
+                        data.Username = user.Username;
+                    if (user.DiscriminatorValue != 0)
+                        data.Discriminator = user.Discriminator;
+                    if ((user.Username != null) && (user.DiscriminatorValue != 0))
+                        data.Nickname = user.Nickname;
                     data.LastSeen = DateTimeOffset.Now;
                 })))
                 {
@@ -77,8 +81,8 @@ namespace Modix.Services.Core
                     {
                         UserId = user.Id,
                         GuildId = user.GuildId,
-                        Username = user.Username,
-                        Discriminator = user.Discriminator,
+                        Username = user.Username ?? "[UNKNOWN USERNAME]",
+                        Discriminator = (user.DiscriminatorValue == 0) ? "????" : user.Discriminator,
                         Nickname = user.Nickname,
                         FirstSeen = DateTimeOffset.Now,
                         LastSeen = DateTimeOffset.Now

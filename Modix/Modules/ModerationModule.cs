@@ -103,9 +103,11 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            var duration = XmlConvert.ToTimeSpan(durationString);
+            // TODO: Remove when we port to 2.0
+            var duration = TimeSpanTypeReader.Read(durationString);
+            if (!duration.HasValue) { throw new ArgumentException("Invalid Timespan Format"); }
 
-            return ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, duration);
+            return ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, duration.Value);
         }
 
         [Command("unmute")]
