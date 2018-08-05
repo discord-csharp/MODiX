@@ -430,3 +430,137 @@ spec:
       restartPolicy: Always
       schedulerName: default-scheduler
       terminationGracePeriodSeconds: 30
+
+---
+#hastebin-persistent-volume
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations: {}
+  labels:
+    name: hastebin-pv
+  name: hastebin-pv
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 40Gi
+  nfs:
+    path: /nfsfileshare/hastebin-pv
+    server: 172.16.100.13
+  persistentVolumeReclaimPolicy: Retain
+
+--- 
+#hastebin-persistent-volume-claim
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations: {}
+  name: hastebin-pvc
+  namespace: csharp
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  selector:
+    matchLabels:
+      name: hastebin-pv
+  volumeName: hastebin-pv
+
+---
+#hastebin-service
+
+apiVersion: v1
+kind: Service
+metadata:
+  annotations: {}
+  name: hastebin-frontend-service
+  namespace: csharp
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 7777
+  selector:
+    app: hastebin-frontend
+  sessionAffinity: None
+  type: ClusterIP
+
+---
+#hastebin-frontend-ingress
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    certmanager.k8s.io/cluster-issuer: letsencrypt
+    kubernetes.io/ingress.class: nginx
+  name: hastebin-frontend-ingress
+  namespace: csharp
+spec:
+  rules:
+  - host: paste.mod.gg
+    http:
+      paths:
+      - backend:
+          serviceName: hastebin-frontend-service
+          servicePort: 80
+        path: /
+  tls:
+  - hosts:
+    - paste.mod.gg
+    secretName: hastebin-fe-tls-cert-prod
+status:
+  loadBalancer:
+    ingress:
+    - ip: 45.43.30.19
+
+---
+#hastebin
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations: {}
+  labels:
+    app: hastebin-frontend
+  name: hastebin-frontend
+  namespace: csharp
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: hastebin-frontend
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: hastebin-frontend
+    spec:
+      containers:
+        - image: rlister/hastebin:latest
+          imagePullPolicy: Always
+          name: hastebin
+          volumeMounts:
+          - mountPath: /app/data
+            name: hastebin-data
+            readOnly: false
+      dnsPolicy: ClusterFirst
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: hastebin-data
+        persistentVolumeClaim:
+          claimName: hastebin-pvc
