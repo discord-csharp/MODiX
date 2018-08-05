@@ -28,10 +28,10 @@ namespace Modix.Services.Core
         Task<IGuildUser> GetGuildUserAsync(ulong guildId, ulong userId);
 
         /// <summary>
-        /// Updates information about the given user within the user tracking system.
+        /// Updates information about the given user within the user tracking system of a guild.
         /// </summary>
         /// <param name="user">The user whose info is to be tracked.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task TrackUserAsync(IUser user);
+        Task TrackUserAsync(IGuildUser user);
     }
 }

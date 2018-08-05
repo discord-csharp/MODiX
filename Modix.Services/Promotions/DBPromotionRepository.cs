@@ -27,7 +27,7 @@ namespace Modix.Services.Promotions
                 {
                     Username = $"{user.Username}#{user.Discriminator}",
                     Id = (long)user.Id,
-                    Nickname = user.Nickname,
+                    //Nickname = user.Nickname,
                 });
 
             campaign.PromotionFor = promoUser;

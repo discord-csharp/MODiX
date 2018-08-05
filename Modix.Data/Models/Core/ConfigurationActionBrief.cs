@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq.Expressions;
 
 namespace Modix.Data.Models.Core
 {
@@ -26,6 +25,6 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// See <see cref="ConfigurationActionEntity.CreatedBy"/>.
         /// </summary>
-        public UserIdentity CreatedBy { get; set; }
+        public GuildUserIdentity CreatedBy { get; set; }
     }
 }

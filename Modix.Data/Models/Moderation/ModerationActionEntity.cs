@@ -36,16 +36,16 @@ namespace Modix.Data.Models.Moderation
         public ModerationActionType Type { get; set; }
 
         /// <summary>
-        /// The <see cref="UserEntity.Id"/> value of <see cref="CreatedBy"/>.
+        /// The <see cref="GuildUserEntity.UserId"/> value of <see cref="CreatedBy"/>.
         /// </summary>
-        [Required, ForeignKey(nameof(CreatedBy))]
+        [Required]
         public long CreatedById { get; set; }
 
         /// <summary>
         /// The staff member that applied this moderation action
         /// </summary>
         [Required]
-        public virtual UserEntity CreatedBy { get; set; }
+        public virtual GuildUserEntity CreatedBy { get; set; }
 
         /// <summary>
         /// The <see cref="InfractionEntity.Id"/> value of <see cref="Infraction"/>.
