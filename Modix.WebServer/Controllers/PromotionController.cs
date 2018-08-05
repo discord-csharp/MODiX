@@ -5,8 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
+using Modix.Services.Core;
 using Modix.Services.Promotions;
-using Modix.WebServer.Filters;
 using Modix.WebServer.Models;
 
 namespace Modix.WebServer.Controllers
@@ -16,7 +16,7 @@ namespace Modix.WebServer.Controllers
     {
         private PromotionService _promotionService;
 
-        public PromotionController(DiscordSocketClient client, PromotionService promotionService) : base(client)
+        public PromotionController(DiscordSocketClient client, PromotionService promotionService, IAuthorizationService auth) : base(client, auth)
         {
             _promotionService = promotionService;
         }
@@ -81,7 +81,7 @@ namespace Modix.WebServer.Controllers
         [HttpPut("campaigns")]
         public async Task<IActionResult> Create([FromBody] PromotionCreationData creationData)
         {
-            var foundUser = _client.Guilds.First().GetUser(creationData?.UserId ?? 0);
+            var foundUser = DiscordSocketClient.Guilds.First().GetUser(creationData?.UserId ?? 0);
 
             if (foundUser == null)
             {

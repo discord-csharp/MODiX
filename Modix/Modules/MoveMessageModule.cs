@@ -39,13 +39,13 @@ namespace Modix.Modules
 
             if (!string.IsNullOrWhiteSpace(reason))
             {
-                builder.AddInlineField("Reason", reason);
+                builder.AddField("Reason", reason, true);
             }
 
             var mover = $"@{(Context.User as SocketGuildUser)?.Nickname ?? Context.User.Username}";
             builder.WithFooter($"Message copied from #{message.Channel.Name} by {mover}");
 
-            await channel.SendMessageAsync("", embed: builder);
+            await channel.SendMessageAsync("", embed: builder.Build());
 
             // Delete the source message, and the command message that started this request
             await message.DeleteAsync();

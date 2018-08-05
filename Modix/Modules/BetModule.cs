@@ -205,7 +205,7 @@ namespace Modix.Modules
                     .WithFooter(new EmbedFooterBuilder().WithText($"Thank you {_sessionOwner.Username} for hosting this game."));
 
                 builder.Build();
-                await Context.Channel.SendMessageAsync("", embed: builder);
+                await Context.Channel.SendMessageAsync("", embed: builder.Build());
                 _state = BettingState.Idle;
                 ResetRollTimer();
                 return;

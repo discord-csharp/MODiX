@@ -14,8 +14,6 @@
         public string DiscordClientSecret { get; set; }
 
         // Promotion Campaign Service
-        public ulong RoleIdToAllowCommentingOnPromotionCampaign { get; set; }
-        public ulong RoleIdToAllowCreatingPromotionCampaign { get; set; }
         public ulong ChannelIdForPromotionCampaignAnnouncement { get; set; }
 
         // Website Authentication Error - Modify "X" for your server if desired.

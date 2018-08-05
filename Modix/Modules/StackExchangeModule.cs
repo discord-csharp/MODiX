@@ -68,7 +68,7 @@ namespace Modix.Modules
                     .WithUrl(res.Link);
 
                 builder.Build();
-                await ReplyAsync("", embed: builder);
+                await ReplyAsync("", embed: builder.Build());
             }
 
             var footer = new EmbedBuilder()
@@ -76,7 +76,7 @@ namespace Modix.Modules
                 .WithFooter(
                      new EmbedFooterBuilder().WithText($"tags: {tags} | site: {site}. !stack foobar [site=stackexchange tags=c#]"));
             footer.Build();
-            await ReplyAsync("", embed: footer);
+            await ReplyAsync("", embed: footer.Build());
         }
     }
 }

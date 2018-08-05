@@ -29,7 +29,7 @@ namespace Modix.Modules
                     .WithDescription("Visit https://mod.gg/commands to view all the commands!")
                     .WithFooter("or do \"!help dm\" to have them DM'd to you (warning: spammy)");
 
-                await ReplyAsync("", false, embed);
+                await ReplyAsync("", false, embed.Build());
 
                 return;
             }

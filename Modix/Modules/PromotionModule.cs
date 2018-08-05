@@ -75,7 +75,7 @@ namespace Modix.Modules
 
             embed.Footer = new EmbedFooterBuilder { Text = "See more & comment at https://mod.gg/promotions" };
 
-            await ReplyAsync("**Active Campaigns**", false, embed);
+            await ReplyAsync("**Active Campaigns**", false, embed.Build());
         }
 
         [Command("nominate"), Summary("Nominate the given user for promotion!")]

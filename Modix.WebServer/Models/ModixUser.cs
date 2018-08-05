@@ -7,29 +7,23 @@ using Newtonsoft.Json;
     
 namespace Modix.WebServer.Models
 {
-    public enum UserRole
-    {
-        Member,
-        Staff
-    }
-
-    public class DiscordUser
+    public class ModixUser
     {
         public string Name { get; set; }
-
         public ulong UserId { get; set; }
         public string AvatarHash { get; set; }
-        public UserRole UserRole { get; set; } = UserRole.Member;
+        public IEnumerable<string> Claims { get; set; }
 
-        public static DiscordUser FromClaimsPrincipal(ClaimsPrincipal user)
+        public static ModixUser FromClaimsPrincipal(ClaimsPrincipal user)
         {
             if (user?.Identity?.Name == null) { return null; }
 
-            return new DiscordUser
+            return new ModixUser
             {
                 Name = user.Identity.Name,
                 UserId = ulong.Parse(user.Claims.FirstOrDefault(d => d.Type == ClaimTypes.NameIdentifier).Value),
-                AvatarHash = user.Claims.FirstOrDefault(d=>d.Type == "avatarHash")?.Value ?? ""
+                AvatarHash = user.Claims.FirstOrDefault(d=>d.Type == "avatarHash")?.Value ?? "",
+                Claims = user.Claims.Where(d=>d.Type == ClaimTypes.Role).Select(d=>d.Value)
             };
         }
     }

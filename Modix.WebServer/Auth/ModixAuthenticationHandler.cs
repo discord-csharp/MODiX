@@ -20,23 +20,27 @@ namespace Modix.WebServer.Auth
     public class ModixAuthenticationHandler : DiscordAuthenticationHandler
     {
         private DiscordSocketClient _client;
+        private Services.Core.IAuthorizationService _modixAuth;
 
-        public ModixAuthenticationHandler(IOptionsMonitor<DiscordAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, DiscordSocketClient client) 
+        public ModixAuthenticationHandler(IOptionsMonitor<DiscordAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock,
+            DiscordSocketClient client, Services.Core.IAuthorizationService modixAuth) 
             : base(options, logger, encoder, clock)
         {
             _client = client;
+            _modixAuth = modixAuth;
         }
 
         protected override async Task<AuthenticationTicket> CreateTicketAsync(ClaimsIdentity identity, AuthenticationProperties properties, OAuthTokenResponse tokens)
         {
             var baseResult = await base.CreateTicketAsync(identity, properties, tokens);
-            var result = DiscordUser.FromClaimsPrincipal(baseResult.Principal);
+            var result = ModixUser.FromClaimsPrincipal(baseResult.Principal);
             var guild = _client.Guilds.FirstOrDefault();
 
             await guild?.DownloadUsersAsync();
 
-            //TODO: Un-hardcode this
-            if (guild?.GetUser(result.UserId) == null)
+            var foundUser = guild?.GetUser(result.UserId);
+
+            if (foundUser == null)
             {
                 throw new UnauthorizedAccessException("You must be a member of the Discord C# server to log in.");
             }
@@ -55,5 +59,6 @@ namespace Modix.WebServer.Auth
                 return HandleRequestResult.Fail(e);
             }
         }
+
     }
 }

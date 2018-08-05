@@ -83,7 +83,7 @@ namespace Modix.Services.AutoCodePaste
                 .WithTitle("Your message was re-uploaded")
                 .WithAuthor(user)
                 .WithDescription(cleanCode.Trim().Truncate(200, 6))
-                .AddInlineField("Auto-Paste", url)
+                .AddField("Auto-Paste", url, true)
                 .WithColor(new Color(95, 186, 125));
         }
     }

@@ -96,6 +96,7 @@ namespace Modix.Services.GuildInfo
             //Try to get their highest role
             var highestPosition = roles
                 .Where(d=>d.Name != "@everyone" && !d.IsManaged)
+                .Where(d=>!d.Color.Equals(Color.Default)) //operator not implemented for some reason
                 .OrderByDescending(role => role.IsHoisted)
                 .ThenByDescending(role => role.Position)
                 .FirstOrDefault();
