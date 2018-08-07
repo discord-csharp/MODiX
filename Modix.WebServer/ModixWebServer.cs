@@ -12,6 +12,7 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.IO;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Modix.WebServer
 {
@@ -65,6 +66,17 @@ namespace Modix.WebServer
         {
             app.UseAuthentication();
             app.UseResponseCompression();
+
+            //Static redirect for invite link
+            app.MapWhen(x => x.Request.Path.Value.StartsWith("/invite"), builder =>
+            {
+                builder.Run(handler =>
+                {
+                    //TODO: Maybe un-hardcode this?
+                    handler.Response.Redirect("https://aka.ms/csharp-discord");
+                    return Task.CompletedTask;
+                });
+            });
 
             //Map to static files when not hitting the API
             app.MapWhen(x => !x.Request.Path.Value.StartsWith("/api"), builder =>

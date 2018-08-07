@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,46 +21,78 @@ namespace Modix.Modules
         }
 
         [Command("help"), Summary("Prints a neat list of all commands.")]
-        public async Task HelpAsync(string sendDm = null)
+        public async Task HelpAsync()
         {
-            if (sendDm == null)
-            {
-                var embed = new EmbedBuilder()
-                    .WithTitle("Help")
-                    .WithDescription("Visit https://mod.gg/commands to view all the commands!")
-                    .WithFooter("or do \"!help dm\" to have them DM'd to you (warning: spammy)");
+            var embed = new EmbedBuilder()
+                .WithTitle("Help")
+                .WithDescription
+                (
+                    "Modules:\n" +
+                    String.Join(", ", _commandService.GetData().Select(d => d.Name)) + "\n\n" + 
+                    "Do \"!help dm\" to have everything DM'd to you (spammy!)\n" +
+                    "Do \"!help [module name] to have that module's commands listed\n" +
+                    "Visit https://mod.gg/commands to view all the commands!"
+                );
 
-                await ReplyAsync("", false, embed.Build());
+            await ReplyAsync("", false, embed.Build());
+        }
 
-                return;
-            }
-
+        [Command("help"), Summary("Prints a neat list of all commands.")]
+        public async Task HelpAsync([Remainder]string moduleName)
+        {
             var eb = new EmbedBuilder();
             var userDm = await Context.User.GetOrCreateDMChannelAsync();
 
-            try
+            void AddCommandFields(IEnumerable<CommandHelpData> commands)
             {
-                foreach (var module in _commandService.GetData())
+                foreach (var command in commands)
                 {
-                    eb = eb.WithTitle($"Module: {module.Name ?? "Unknown"}")
+                    eb.AddField(new EmbedFieldBuilder().WithName($"Command: !{command.Alias.ToLowerInvariant() ?? ""} {GetParams(command)}").WithValue(command.Summary ?? "Unknown"));
+                }
+            }
+
+            void BuildEmbedForModule(ModuleHelpData module)
+            {
+                eb = eb.WithTitle($"Module: {module.Name ?? "Unknown"}")
                            .WithDescription(module.Summary ?? "Unknown");
 
-                    foreach (var command in module.Commands)
+                AddCommandFields(module.Commands);
+            }
+
+            try
+            {
+                if (moduleName == "dm")
+                {
+                    foreach (var module in _commandService.GetData())
                     {
-                        eb.AddField(new EmbedFieldBuilder().WithName($"Command: !{command.Alias.ToLowerInvariant() ?? ""} {GetParams(command)}").WithValue(command.Summary ?? "Unknown"));
+                        BuildEmbedForModule(module);
+
+                        await userDm.SendMessageAsync(string.Empty, embed: eb.Build());
+                        eb = new EmbedBuilder();
                     }
 
-                    await userDm.SendMessageAsync(string.Empty, embed: eb.Build());
-                    eb = new EmbedBuilder();
+                    await ReplyAsync($"Check your private messages, {Context.User.Mention}");
+
+                    return;
                 }
+
+                var foundModule = _commandService.GetData().FirstOrDefault(d => d.Name.IndexOf(moduleName, StringComparison.OrdinalIgnoreCase) >= 0);
+
+                if (foundModule == null)
+                {
+                    await ReplyAsync($"Sorry, I couldn't find the \"{moduleName}\" module.");
+                    return;
+                }
+
+                BuildEmbedForModule(foundModule);
+                await ReplyAsync($"Results for \"{moduleName}\":", embed: eb.Build());
             }
             catch (HttpException exc) when (exc.DiscordCode == 50007)
             {
                 await ReplyAsync($"You have private messages for this server disabled, {Context.User.Mention}. Please enable them so I can send you help.");
                 return;
             }
-
-            await ReplyAsync($"Check your private messages, {Context.User.Mention}");
+            
         }
 
         private string GetParams(CommandHelpData info)

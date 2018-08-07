@@ -11,7 +11,7 @@ using Modix.Services.Core;
 namespace Modix.Modules
 {
     [Group("auth")]
-    [Summary("Commands for configuring the authorization system.")]
+    [Name("Authorization"), Summary("Commands for configuring the authorization system.")]
     public class AuthorizationModule : ModuleBase
     {
         public AuthorizationModule(IAuthorizationService authorizationService)
