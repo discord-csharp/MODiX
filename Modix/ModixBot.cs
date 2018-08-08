@@ -60,6 +60,7 @@ namespace Modix
             _client = new DiscordSocketClient(config: new DiscordSocketConfig
             {
                 LogLevel = LogSeverity.Debug,
+                MessageCacheSize = _config.MessageCacheSize //needed to log deletions
             });
 
             await Install(); // Setting up DependencyMap
@@ -98,6 +99,9 @@ namespace Modix
         {
             await _client.SetGameAsync("https://mod.gg/");
 
+            //TODO: Maybe implement this differently
+            _hooks.CurrentBotId = _client.CurrentUser.Id;
+
             //Start the webserver, but unbind the event in case discord.net reconnects
             await _host.StartAsync();
             _client.Ready -= StartWebserver;
@@ -108,8 +112,7 @@ namespace Modix
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            var message = messageParam as SocketUserMessage;
-            if (message == null) return;
+            if (!(messageParam is SocketUserMessage message)) return;
 
             int argPos = 0;
             if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos)))
@@ -124,13 +127,13 @@ namespace Modix
             {
                 var context = new CommandContext(_client, message);
 
+                if (!(context.User is IGuildUser)){ return; }
+
                 using (var scope = _scope.ServiceProvider.CreateScope())
                 {
-                    await scope.ServiceProvider.GetRequiredService<IAuthorizationService>()
-                        .OnAuthenticatedAsync(
-                            context.Guild.Id,
-                            (context.User as IGuildUser)?.RoleIds ?? Array.Empty<ulong>(),
-                            context.User.Id);
+                    await scope.ServiceProvider
+                        .GetRequiredService<IAuthorizationService>()
+                        .OnAuthenticatedAsync(context.User as IGuildUser);
 
                     var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
 
@@ -186,14 +189,15 @@ namespace Modix
             _map.AddMemoryCache();
 
             _map.AddSingleton<GuildInfoService>();
-            _map.AddSingleton<ICodePasteRepository, MemoryCodePasteRepository>();
+            _map.AddScoped<ICodePasteRepository, MemoryCodePasteRepository>();
             _map.AddSingleton<CommandHelpService>();
 
-            _map.AddSingleton<PromotionService>();
-            _map.AddSingleton<IPromotionRepository, DBPromotionRepository>();
+            _map.AddScoped<PromotionService>();
+            _map.AddScoped<IPromotionRepository, DBPromotionRepository>();
 
             _map.AddSingleton<CommandErrorHandler>();
             _map.AddSingleton<InviteLinkHandler>();
+            _map.AddSingleton<MessageLogHandler>();
             _map.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
             _map.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
             _map.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
@@ -206,6 +210,8 @@ namespace Modix
             _client.ReactionRemoved += _hooks.HandleRemoveReaction;
             _client.UserJoined += _hooks.HandleUserJoined;
             _client.UserLeft += _hooks.HandleUserLeft;
+            _client.MessageDeleted += _hooks.HandleMessageDelete;
+            _client.MessageUpdated += _hooks.HandleMessageEdit;
 
             _client.Log += _hooks.HandleLog;
             _commands.Log += _hooks.HandleLog;

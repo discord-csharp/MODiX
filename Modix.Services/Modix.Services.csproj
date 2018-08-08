@@ -5,8 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AsyncEvent" Version="0.2.0" />
-    <PackageReference Include="Discord.Net" Version="1.0.2" />
-    <PackageReference Include="Kitsu" Version="1.4.1" />
+    <PackageReference Include="Discord.Net" Version="2.0.0-beta" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="Serilog" Version="2.7.1" />

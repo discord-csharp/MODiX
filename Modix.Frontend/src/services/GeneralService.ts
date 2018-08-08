@@ -72,22 +72,22 @@ export default class GeneralService
 
     static async commentOnCampaign(campaign: PromotionCampaign, data: PromotionCommentData): Promise<void>
     {
-        await client.put(`campaigns/${campaign.id}/comments`, data);
+        await client.put(`campaigns/${campaign.promotionCampaignId}/comments`, data);
     }
 
     static async approveCampaign(campaign: PromotionCampaign): Promise<void>
     {
-        await client.post(`campaigns/${campaign.id}/approve`);
+        await client.post(`campaigns/${campaign.promotionCampaignId}/approve`);
     }
 
     static async denyCampaign(campaign: PromotionCampaign): Promise<void>
     {
-        await client.post(`campaigns/${campaign.id}/deny`);
+        await client.post(`campaigns/${campaign.promotionCampaignId}/deny`);
     }
 
     static async activateCampaign(campaign: PromotionCampaign): Promise<void>
     {
-        await client.post(`campaigns/${campaign.id}/activate`);
+        await client.post(`campaigns/${campaign.promotionCampaignId}/activate`);
     }
 
     static async getAutocomplete(query: string): Promise<User[]>

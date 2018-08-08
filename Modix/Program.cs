@@ -56,6 +56,7 @@ namespace Modix
             }
         }
 
+        //TODO: Replace this with Microsoft.Extensions.Configuration
         private static ModixConfig LoadConfig()
         {
             var config = new ModixConfig
@@ -65,8 +66,13 @@ namespace Modix
                 StackoverflowToken = Environment.GetEnvironmentVariable("StackoverflowToken"),
                 PostgreConnectionString = Environment.GetEnvironmentVariable("MODIX_DB_CONNECTION"),
                 DiscordClientId = Environment.GetEnvironmentVariable("DiscordClientId"),
-                DiscordClientSecret = Environment.GetEnvironmentVariable("DiscordClientSecret"),
+                DiscordClientSecret = Environment.GetEnvironmentVariable("DiscordClientSecret")
             };
+
+            if (Int32.TryParse(Environment.GetEnvironmentVariable("DiscordMessageCacheSize"), out int cacheSize))
+            {
+                config.MessageCacheSize = cacheSize;
+            }
 
             var id = Environment.GetEnvironmentVariable("log_webhook_id");
 

@@ -86,16 +86,14 @@ namespace Modix.Services.FileUpload
                 if (!(message.Channel is SocketTextChannel channel))
                     return;
 
-                var moderationChannel = channel.Guild.Channels.SingleOrDefault(x => x.Id == ChannelIdToPostModerationLog) as SocketTextChannel;
-
-                if (moderationChannel == null)
+                if (!(channel.Guild.Channels.SingleOrDefault(x => x.Id == ChannelIdToPostModerationLog) is SocketTextChannel moderationChannel))
                 {
                     Log.Debug("Moderation channel with ID: {id} not found", ChannelIdToPostModerationLog);
                     return;
                 }
 
                 var moderationEmbed = BuildModerationEmbed(message);
-                await moderationChannel.SendMessageAsync(string.Empty, false, moderationEmbed);
+                await moderationChannel.SendMessageAsync(string.Empty, false, moderationEmbed.Build());
             }
             catch (Exception e)
             {

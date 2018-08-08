@@ -50,7 +50,7 @@ namespace Modix.Services.CommandHelp
                     },
                     Description = value,
                     Footer = new EmbedFooterBuilder { Text = "Remove your reaction to delete this message" }
-                });
+                }.Build());
                 _errorReplies.Add(cachedMessage.Id, msg.Id);
             }
         }

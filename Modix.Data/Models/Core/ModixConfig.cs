@@ -13,9 +13,10 @@
         public string DiscordClientId { get; set; }
         public string DiscordClientSecret { get; set; }
 
+        // Allows us to log message deletions properly
+        public int MessageCacheSize { get; set; } = 10;
+
         // Promotion Campaign Service
-        public ulong RoleIdToAllowCommentingOnPromotionCampaign { get; set; }
-        public ulong RoleIdToAllowCreatingPromotionCampaign { get; set; }
         public ulong ChannelIdForPromotionCampaignAnnouncement { get; set; }
 
         // Website Authentication Error - Modify "X" for your server if desired.

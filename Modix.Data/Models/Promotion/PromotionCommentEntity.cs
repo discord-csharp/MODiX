@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Newtonsoft.Json;
 
 namespace Modix.Data.Models.Promotion
 {
@@ -19,6 +20,8 @@ namespace Modix.Data.Models.Promotion
         public DateTimeOffset PostedDate { get; set; }
         public PromotionSentiment Sentiment { get; set; } = PromotionSentiment.Neutral;
         public string Body { get; set; }
+
+        [JsonIgnore]
         public PromotionCampaignEntity PromotionCampaign { get; set; }
 
         [NotMapped]

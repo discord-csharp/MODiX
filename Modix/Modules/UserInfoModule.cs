@@ -9,20 +9,26 @@ using Humanizer;
 using Humanizer.Localisation;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Modix.Data.Models.Moderation;
+using Modix.Services.Moderation;
 
 namespace Modix.Modules
 {
+    [Name("User Info"), Summary("Various ways to get info about a user")]
     public class UserInfoModule : ModuleBase
     {
-        public UserInfoModule(ILogger<UserInfoModule> logger)
+        private IModerationService _moderationService;
+
+        public UserInfoModule(ILogger<UserInfoModule> logger, IModerationService moderationService)
         {
             Log = logger ?? new NullLogger<UserInfoModule>();
+            _moderationService = moderationService;
         }
 
         private ILogger<UserInfoModule> Log { get; }
 
-        [Command("info")]
-        public async Task GetUserInfo([Remainder] IUser user = null)
+        [Command("info"), Summary("Retrieve a user's basic information.")]
+        public async Task GetUserInfo(IUser user = null)
         {
             user = user ?? Context.User;
 
@@ -76,8 +82,17 @@ namespace Modix.Modules
                 }
             }
 
-            // TODO: Add infraction summary
+            //Filter out notes
+            var infractions = await _moderationService.SearchInfractionsAsync(new InfractionSearchCriteria
+            {
+                SubjectId = user.Id,
+                IsRescinded = false,
+                IsDeleted = false,
+                Types = new InfractionType[] { InfractionType.Ban, InfractionType.Mute, InfractionType.Warning }
+            });
 
+            builder.AppendLine($"Active Infractions: {infractions.Count}");
+            
             // TODO: Add voice session data
 
             var embedBuilder = new EmbedBuilder
@@ -96,7 +111,7 @@ namespace Modix.Modules
         }
 
         [Command("info")]
-        public async Task GetUserInfo(ulong userId, [Remainder] string _)
+        public async Task GetUserInfo(ulong userId)
         {
             if (userId == Context.User.Id)
             {

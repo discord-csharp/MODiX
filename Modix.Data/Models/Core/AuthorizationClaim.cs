@@ -40,6 +40,14 @@
         /// <summary>
         /// Authorizes a request to delete an infraction upon a user.
         /// </summary>
-        ModerationDelete
+        ModerationDelete,
+        /// <summary>
+        /// Authorizes a request to create a promotion campaign for a user, or comment on one.
+        /// </summary>
+        PromotionCreateOrComment,
+        /// <summary>
+        /// Authorizes a request to approve/deny/reactivate a promotion campaign for a user.
+        /// </summary>
+        PromotionExecuteOrModify
     }
 }

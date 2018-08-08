@@ -82,7 +82,7 @@ namespace Modix.Services.AutoCodePaste
                 var url = await _service.UploadCode(arg);
                 var embed = _service.BuildEmbed(arg.Author, arg.Content, url);
 
-                await arg.Channel.SendMessageAsync(arg.Author.Mention, false, embed);
+                await arg.Channel.SendMessageAsync(arg.Author.Mention, false, embed.Build());
                 await arg.DeleteAsync();
             }
             catch (WebException ex)

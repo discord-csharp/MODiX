@@ -34,7 +34,7 @@ namespace Modix.Modules
             {
                 var embed = _service.BuildEmbed(Context.User, code, url);
 
-                await ReplyAsync(Context.User.Mention, false, embed);
+                await ReplyAsync(Context.User.Mention, false, embed.Build());
                 await Context.Message.DeleteAsync();
             }
             else

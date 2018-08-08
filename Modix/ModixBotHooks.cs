@@ -17,6 +17,7 @@ namespace Modix
     public class ModixBotHooks
     {
         public IServiceProvider ServiceProvider { get; set; }
+        public ulong CurrentBotId { get; set; }
 
         public Task HandleLog(LogMessage message)
         {
@@ -86,6 +87,30 @@ namespace Modix
                 infoService.ClearCacheEntry(guild);
 
                 return Task.CompletedTask;
+            }
+        }
+
+        public async Task HandleMessageDelete(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
+        {
+            if (message.Value?.Author.Id == CurrentBotId) { return; }
+
+            using (var scope = ServiceProvider.CreateScope())
+            {
+                await scope.ServiceProvider
+                    .GetRequiredService<MessageLogHandler>()
+                    .LogMessageDelete(message, channel);
+            }
+        }
+
+        public async Task HandleMessageEdit(Cacheable<IMessage, ulong> originalMessage, SocketMessage updatedMessage, ISocketMessageChannel channel)
+        {
+            if (updatedMessage.Author.Id == CurrentBotId) { return; }
+
+            using (var scope = ServiceProvider.CreateScope())
+            {
+                await scope.ServiceProvider
+                    .GetRequiredService<MessageLogHandler>()
+                    .LogMessageEdit(await originalMessage.GetOrDownloadAsync(), updatedMessage, channel);
             }
         }
 
