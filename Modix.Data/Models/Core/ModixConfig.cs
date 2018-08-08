@@ -13,6 +13,9 @@
         public string DiscordClientId { get; set; }
         public string DiscordClientSecret { get; set; }
 
+        // Allows us to log message deletions properly
+        public int MessageCacheSize { get; set; } = 10;
+
         // Promotion Campaign Service
         public ulong ChannelIdForPromotionCampaignAnnouncement { get; set; }
 

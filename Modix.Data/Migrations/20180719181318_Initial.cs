@@ -29,6 +29,9 @@ namespace Modix.Data.Migrations
             migrationBuilder.InsertData("BehaviourConfigurations", new[] { "Category", "Key", "Value" }, new[] { BehaviourCategory.InvitePurging.ToString(), "ExemptRoleIds", "[268470383571632128,155770800392110082,155771334779994112,410138389283602432]" });
             migrationBuilder.InsertData("BehaviourConfigurations", new[] { "Category", "Key", "Value" }, new[] { BehaviourCategory.InvitePurging.ToString(), "LoggingChannelId", "380603776412811267" });
 
+            migrationBuilder.InsertData("BehaviourConfigurations", new[] { "Category", "Key", "Value" }, new[] { BehaviourCategory.MessageLogging.ToString(), "LoggingChannelId", "380603419410432002" });
+            migrationBuilder.InsertData("BehaviourConfigurations", new[] { "Category", "Key", "Value" }, new[] { BehaviourCategory.MessageLogging.ToString(), "OldMessageAgeLimit", "7" });
+
             migrationBuilder.CreateTable(
                 name: "ModerationConfigs",
                 columns: table => new

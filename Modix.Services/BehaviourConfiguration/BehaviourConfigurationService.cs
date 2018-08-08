@@ -30,7 +30,23 @@ namespace Modix.Services.BehaviourConfiguration
             var invitePurgeBehaviour =
                 BuildInvitePurgeBehaviour(behaviours.Where(x => x.Category == BehaviourCategory.InvitePurging).ToList());
 
+            var messageLogBehaviour =
+                BuildMessageLogBehaviour(behaviours.Where(x => x.Category == BehaviourCategory.MessageLogging).ToList());
+
             _behaviourConfiguration.InvitePurgeBehaviour = invitePurgeBehaviour;
+            _behaviourConfiguration.MessageLogBehaviour = messageLogBehaviour;
+        }
+
+        private static MessageLogBehaviour BuildMessageLogBehaviour(List<Data.Models.BehaviourConfiguration> behaviours)
+        {
+            const string LoggingChannelId = "LoggingChannelId";
+            const string OldMessageAgeLimit = "OldMessageAgeLimit";
+
+            return new MessageLogBehaviour
+            {
+                LoggingChannelId = ulong.Parse(behaviours.Single(x => x.Key == LoggingChannelId).Value),
+                OldMessageAgeLimit = uint.Parse(behaviours.Single(x => x.Key == OldMessageAgeLimit).Value)
+            };
         }
 
         private static InvitePurgeBehaviour BuildInvitePurgeBehaviour(List<Data.Models.BehaviourConfiguration> behaviours)

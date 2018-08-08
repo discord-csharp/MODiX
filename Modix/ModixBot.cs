@@ -60,6 +60,7 @@ namespace Modix
             _client = new DiscordSocketClient(config: new DiscordSocketConfig
             {
                 LogLevel = LogSeverity.Debug,
+                MessageCacheSize = _config.MessageCacheSize //needed to log deletions
             });
 
             await Install(); // Setting up DependencyMap
@@ -97,6 +98,9 @@ namespace Modix
         public async Task StartWebserver()
         {
             await _client.SetGameAsync("https://mod.gg/");
+
+            //TODO: Maybe implement this differently
+            _hooks.CurrentBotId = _client.CurrentUser.Id;
 
             //Start the webserver, but unbind the event in case discord.net reconnects
             await _host.StartAsync();
@@ -193,6 +197,7 @@ namespace Modix
 
             _map.AddSingleton<CommandErrorHandler>();
             _map.AddSingleton<InviteLinkHandler>();
+            _map.AddSingleton<MessageLogHandler>();
             _map.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
             _map.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
             _map.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
@@ -205,6 +210,8 @@ namespace Modix
             _client.ReactionRemoved += _hooks.HandleRemoveReaction;
             _client.UserJoined += _hooks.HandleUserJoined;
             _client.UserLeft += _hooks.HandleUserLeft;
+            _client.MessageDeleted += _hooks.HandleMessageDelete;
+            _client.MessageUpdated += _hooks.HandleMessageEdit;
 
             _client.Log += _hooks.HandleLog;
             _commands.Log += _hooks.HandleLog;
