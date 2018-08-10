@@ -17,7 +17,7 @@ namespace Modix.Modules
     [Name("Decompiler"), Summary("Compile code & view the IL")]
     public class IlModule : ModuleBase
     {
-        private const string ReplRemoteUrl = "http://CSDiscord/Il";
+        private const string ReplRemoteUrl = "http://csdiscord-repl-service:31337/Il";
         private readonly CodePasteService _pasteService;
 
         private static readonly HttpClient _client = new HttpClient();
