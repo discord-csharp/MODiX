@@ -1,9 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
-
 using Modix.Data.Models.Core;
 
 namespace Modix.Data.Models.Promotion
@@ -50,6 +49,6 @@ namespace Modix.Data.Models.Promotion
         }
 
         [InverseProperty("PromotionCampaign")]
-        public DbSet<PromotionCommentEntity> Comments { get; set; }
+        public IReadOnlyCollection<PromotionCommentEntity> Comments { get; set; }
     }
 }
