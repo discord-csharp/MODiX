@@ -46,7 +46,7 @@ namespace Modix.Services.Promotions
 
         public async Task ApproveCampaign(SocketGuildUser promoter, PromotionCampaignEntity campaign)
         {
-            _auth.RequireClaims(AuthorizationClaim.PromotionExecuteOrModify);
+            _auth.RequireClaims(AuthorizationClaim.PromotionExecute);
 
             var foundUser = CurrentGuild.GetUser((ulong)campaign.PromotionFor.Id);
 
@@ -70,7 +70,7 @@ namespace Modix.Services.Promotions
 
         public async Task DenyCampaign(SocketGuildUser promoter, PromotionCampaignEntity campaign)
         {
-            _auth.RequireClaims(AuthorizationClaim.PromotionExecuteOrModify);
+            _auth.RequireClaims(AuthorizationClaim.PromotionExecute);
 
             if (campaign.Status == CampaignStatus.Denied)
                 throw new InvalidOperationException("The campaign has already been denied.");
@@ -81,7 +81,7 @@ namespace Modix.Services.Promotions
 
         public async Task ActivateCampaign(SocketGuildUser promoter, PromotionCampaignEntity campaign)
         {
-            _auth.RequireClaims(AuthorizationClaim.PromotionExecuteOrModify);
+            _auth.RequireClaims(AuthorizationClaim.PromotionExecute);
 
             if (campaign.Status != CampaignStatus.Denied)
                 throw new InvalidOperationException("Cannot reactivate a campaign that has not been denied.");
@@ -92,7 +92,7 @@ namespace Modix.Services.Promotions
 
         public async Task AddComment(PromotionCampaignEntity campaign, string comment, PromotionSentiment sentiment)
         {
-            _auth.RequireClaims(AuthorizationClaim.PromotionCreateOrComment);
+            _auth.RequireClaims(AuthorizationClaim.PromotionComment);
 
             comment = _badCharacterRegex.Replace(comment, "");
 
@@ -117,7 +117,7 @@ namespace Modix.Services.Promotions
 
         public async Task<PromotionCampaignEntity> CreateCampaign(SocketGuildUser user, string commentBody)
         {
-            _auth.RequireClaims(AuthorizationClaim.PromotionCreateOrComment);
+            _auth.RequireClaims(AuthorizationClaim.PromotionCreate);
 
             if (user == null)
                 throw new ArgumentNullException(nameof(user));

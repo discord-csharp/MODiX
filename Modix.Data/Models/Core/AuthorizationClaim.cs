@@ -42,12 +42,16 @@
         /// </summary>
         ModerationDelete,
         /// <summary>
-        /// Authorizes a request to create a promotion campaign for a user, or comment on one.
+        /// Authorizes a request to create a promotion campaign for a user.
         /// </summary>
-        PromotionCreateOrComment,
+        PromotionCreate,
+        /// <summary>
+        /// Authorizes a request to comment on a promotion campaign for a user.
+        /// </summary>
+        PromotionComment,
         /// <summary>
         /// Authorizes a request to approve/deny/reactivate a promotion campaign for a user.
         /// </summary>
-        PromotionExecuteOrModify
+        PromotionExecute
     }
 }
