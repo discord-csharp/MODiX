@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Discord.WebSocket;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Modix.WebServer.Auth;
 using Modix.WebServer.Models;
 
 namespace Modix.WebServer.Controllers
@@ -17,36 +17,42 @@ namespace Modix.WebServer.Controllers
     [Authorize]
     public class ModixController : Controller
     {
-        //TODO: Un-hardcode this
-        private const ulong _staffRoleId = 268470383571632128;
+        protected DiscordSocketClient DiscordSocketClient { get; private set; }
+        protected ModixUser ModixUser { get; private set; }
+        protected SocketGuildUser SocketUser { get; private set; }
 
-        protected DiscordSocketClient _client;
-        private SocketGuildUser _socketUser;
+        private Services.Core.IAuthorizationService _modixAuth;
 
-        public DiscordUser DiscordUser { get; private set; }       
-        public SocketGuildUser SocketUser => _socketUser ?? (_socketUser = _client.Guilds.First().GetUser(DiscordUser.UserId));
-        public bool IsStaff => SocketUser.Roles.Any(d => d.Id == _staffRoleId) || SocketUser.Guild.Owner == SocketUser;
-
-        public ModixController(DiscordSocketClient client)
+        public ModixController(DiscordSocketClient client, Services.Core.IAuthorizationService modixAuth)
         {
-            _client = client;
+            DiscordSocketClient = client;
+            _modixAuth = modixAuth;
         }
 
         public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            if (HttpContext.User != null)
-            {
-                DiscordUser = DiscordUser.FromClaimsPrincipal(HttpContext.User);
+            if (HttpContext.User == null) { await next(); return; }
 
-                if (SocketUser == null)
-                {
-                    context.Result = new RedirectResult("/api/logout");
-                }
+            ModixUser = ModixUser.FromClaimsPrincipal(HttpContext.User);
 
-                DiscordUser.UserRole = (IsStaff ? UserRole.Staff : UserRole.Member);
-            }
+            var guild = DiscordSocketClient.Guilds.First();
+            SocketUser = guild.GetUser(ModixUser.UserId);
+
+            if (SocketUser == null) { await next(); return; }
+
+            await AssignClaims();
 
             await next();
+        }
+
+        protected async Task AssignClaims()
+        {
+            await _modixAuth.OnAuthenticatedAsync(SocketUser);
+
+            var claims = (await _modixAuth.GetGuildUserClaimsAsync(SocketUser))
+                .Select(d => new Claim(ClaimTypes.Role, d.ToString()));
+
+            (HttpContext.User.Identity as ClaimsIdentity).AddClaims(claims);
         }
     }
 }

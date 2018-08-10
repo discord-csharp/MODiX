@@ -9,7 +9,7 @@ namespace Modix.Services.Promotions
     {
         Task<IEnumerable<PromotionCampaignEntity>> GetCampaigns();
         Task<PromotionCampaignEntity> GetCampaign(long id);
-        Task AddCampaign(PromotionCampaignEntity campaign, SocketGuildUser user);
+        Task<PromotionCampaignEntity> AddCampaign(PromotionCampaignEntity campaign, SocketGuildUser user);
         Task AddCommentToCampaign(PromotionCampaignEntity campaign, PromotionCommentEntity comment);
         Task UpdateCampaign(PromotionCampaignEntity campaign);
     }

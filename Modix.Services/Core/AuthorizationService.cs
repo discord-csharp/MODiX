@@ -73,10 +73,10 @@ namespace Modix.Services.Core
         public async Task UnConfigureGuildAsync(IGuild guild)
         {
             foreach (var claimMappingId in await ClaimMappingRepository.SearchIdsAsync(new ClaimMappingSearchCriteria()
-                {
-                    GuildId = guild.Id,
-                    IsDeleted = false
-                }))
+            {
+                GuildId = guild.Id,
+                IsDeleted = false
+            }))
             {
                 await ClaimMappingRepository.TryDeleteAsync(claimMappingId, DiscordClient.CurrentUser.Id);
             }
@@ -92,10 +92,10 @@ namespace Modix.Services.Core
             {
                 if (await ClaimMappingRepository.AnyAsync(new ClaimMappingSearchCriteria()
                 {
-                    Types = new [] { type },
+                    Types = new[] { type },
                     GuildId = role.Guild.Id,
-                    RoleIds = new [] { role.Id },
-                    Claims = new [] { claim },
+                    RoleIds = new[] { role.Id },
+                    Claims = new[] { claim },
                     IsDeleted = false,
                 }))
                 {
@@ -163,7 +163,7 @@ namespace Modix.Services.Core
                 IsDeleted = false,
             }));
 
-            if(!mappingIds.Any())
+            if (!mappingIds.Any())
                 throw new InvalidOperationException($"A claim mapping of type {type} to claim {claim} for role {role.Name} does not exist");
 
             await ClaimMappingRepository.TryDeleteAsync(mappingIds.First(), CurrentUserId.Value);
@@ -196,7 +196,7 @@ namespace Modix.Services.Core
             if (guildUser == null)
                 throw new ArgumentNullException(nameof(guildUser));
 
-            if (guildUser.Id == DiscordClient.CurrentUser.Id)
+            if (guildUser.Id == DiscordClient.CurrentUser.Id || guildUser.GuildPermissions.Administrator)
                 return Enum.GetValues(typeof(AuthorizationClaim)).Cast<AuthorizationClaim>().ToArray();
 
             if (guildUser.Id == CurrentUserId)
@@ -206,11 +206,11 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task OnAuthenticatedAsync(ulong guildId, IEnumerable<ulong> roleIds, ulong userId)
+        public async Task OnAuthenticatedAsync(IGuildUser user)
         {
-            CurrentClaims = await GetGuildUserCurrentClaimsAsync(guildId, roleIds, userId);
-            CurrentGuildId = guildId;
-            CurrentUserId = userId;
+            CurrentClaims = await GetGuildUserClaimsAsync(user);
+            CurrentGuildId = user.GuildId;
+            CurrentUserId = user.Id;
         }
 
         /// <inheritdoc />
@@ -238,12 +238,14 @@ namespace Modix.Services.Core
         {
             if (CurrentUserId == null)
                 // TODO: Booooo for exception-based flow control
-                throw new InvalidOperationException("The current operation requires an authenticated guild.");
+                throw new InvalidOperationException("The current operation requires an authenticated user.");
         }
 
         /// <inheritdoc />
         public void RequireClaims(params AuthorizationClaim[] claims)
         {
+            RequireAuthenticatedUser();
+
             if (claims == null)
                 throw new ArgumentNullException(nameof(claims));
 

@@ -17,6 +17,7 @@ namespace Modix
     public class ModixBotHooks
     {
         public IServiceProvider ServiceProvider { get; set; }
+        public ulong CurrentBotId { get; set; }
 
         public Task HandleLog(LogMessage message)
         {

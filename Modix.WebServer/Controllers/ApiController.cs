@@ -1,7 +1,7 @@
 ﻿using Discord.WebSocket;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modix.Services.CommandHelp;
+using Modix.Services.Core;
 using Modix.Services.GuildInfo;
 using Modix.WebServer.Models;
 using System;
@@ -15,7 +15,7 @@ namespace Modix.WebServer.Controllers
     {
         private GuildInfoService _guildInfoService;
 
-        public ApiController(DiscordSocketClient client, GuildInfoService guildInfoService) : base(client)
+        public ApiController(DiscordSocketClient client, GuildInfoService guildInfoService, IAuthorizationService auth) : base(client, auth)
         {
             _guildInfoService = guildInfoService;
         }
@@ -24,7 +24,7 @@ namespace Modix.WebServer.Controllers
         {
             var guildInfo = new Dictionary<string, List<GuildInfoResult>>();
 
-            foreach (var guild in _client.Guilds)
+            foreach (var guild in DiscordSocketClient.Guilds)
             {
                 guildInfo.Add(guild.Name, (await _guildInfoService.GetGuildMemberDistribution(guild)));
             }
@@ -34,17 +34,19 @@ namespace Modix.WebServer.Controllers
 
         public IActionResult UserInfo()
         {
-            return Ok(DiscordUser);
+            return Ok(ModixUser);
         }
 
         public async Task<IActionResult> Autocomplete(string query)
         {
-            await _client.Guilds.First().DownloadUsersAsync();
+            var firstGuild = DiscordSocketClient.Guilds.First();
 
-            var result = _client.Guilds.First()
-                .Users.Where(d => d.Username.IndexOf(query, StringComparison.InvariantCultureIgnoreCase) > 0)
+            await firstGuild.DownloadUsersAsync();
+
+            var result = firstGuild.Users
+                .Where(d => d.Username.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
                 .Take(10)
-                .Select(d => new DiscordUser { Name = $"{d.Username}#{d.Discriminator}", UserId = d.Id, AvatarHash = d.AvatarId });
+                .Select(d => new ModixUser { Name = $"{d.Username}#{d.Discriminator}", UserId = d.Id, AvatarHash = d.AvatarId });
 
             return Ok(result);
         }
