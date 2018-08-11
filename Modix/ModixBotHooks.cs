@@ -7,9 +7,7 @@ using Modix.Services.AutoCodePaste;
 using Modix.Services.FileUpload;
 using Modix.Services.GuildInfo;
 using System;
-using Modix.Handlers;
 using Microsoft.Extensions.DependencyInjection;
-using Modix.Services.BehaviourConfiguration;
 using Modix.Services.CommandHelp;
 
 namespace Modix
@@ -96,11 +94,6 @@ namespace Modix
 
             using (var scope = ServiceProvider.CreateScope())
             {
-                var inviteLinkHandler = scope.ServiceProvider.GetRequiredService<InviteLinkHandler>();
-
-                if (await inviteLinkHandler.PurgeInviteLink(message))
-                    return;
-
                 if (message.Attachments.Any())
                 {
                     var fileUploadHandler = scope.ServiceProvider.GetRequiredService<FileUploadHandler>();

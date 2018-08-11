@@ -82,11 +82,38 @@ namespace Modix.Services.Core
         /// Retrieves the list of claims currently active and mapped to particular user, within a particular guild.
         /// </summary>
         /// <param name="guildUser">The user whose claims are to be retrieved.</param>
+        /// <param name="claimsFilter">
+        /// An optional list of claims to be used to filter the results.
+        /// I.E. the returned list of claims will only contain claims specified in this list (unless none are specified).
+        /// </param>
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation has completed,
         /// containing the requested list of claims.
         /// </returns>
-        Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(IGuildUser guildUser);
+        Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(IGuildUser guildUser, params AuthorizationClaim[] claimsFilter);
+
+        /// <summary>
+        /// Compares a given set of claims against the full set of claims posessed by a given user,
+        /// to determine which claims, if any, are missing.
+        /// </summary>
+        /// <param name="guildUser">The user whose claims are to be checked.</param>
+        /// <param name="claims">The set of claims to be compared against the claims posessed by <paramref name="guildUser"/>.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation has completed,
+        /// containing the set of claims present in <paramref name="claims"/>, but not posessed by <paramref name="guildUser"/>.
+        /// </returns>
+        Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserMissingClaimsAsync(IGuildUser guildUser, params AuthorizationClaim[] claims);
+
+        /// <summary>
+        /// Checks whether a given user currently posesses a set of claims.
+        /// </summary>
+        /// <param name="guildUser">The user whose claims are to be checked.</param>
+        /// <param name="claims">The set of claims to be checked for.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation has completed,
+        /// containing a flag indicating whether <paramref name="guildUser"/> posesses <paramref name="claims"/>.
+        /// </returns>
+        Task<bool> HasClaimsAsync(IGuildUser guildUser, params AuthorizationClaim[] claims);
 
         /// <summary>
         /// Loads authentication and authorization data into the service, based on the given guild, user, and role ID values

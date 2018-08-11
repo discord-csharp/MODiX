@@ -14,7 +14,6 @@ using Modix.Behaviors;
 using Modix.Data;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
-using Modix.Handlers;
 using Modix.Services;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.BehaviourConfiguration;
@@ -193,7 +192,6 @@ namespace Modix
             _map.AddSingleton<IPromotionRepository, DBPromotionRepository>();
 
             _map.AddSingleton<CommandErrorHandler>();
-            _map.AddSingleton<InviteLinkHandler>();
             _map.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
             _map.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
             _map.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();

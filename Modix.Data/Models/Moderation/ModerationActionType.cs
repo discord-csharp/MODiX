@@ -10,12 +10,16 @@
         /// </summary>
         InfractionCreated,
         /// <summary>
-        /// Describs a moderation action where a previous infraction was rescinded from a user.
+        /// Describes a moderation action where a previous infraction was rescinded from a user.
         /// </summary>
         InfractionRescinded,
         /// <summary>
-        /// Describs a moderation action where a previous infraction was (soft) deleted.
+        /// Describes a moderation action where a previous infraction was (soft) deleted.
         /// </summary>
         InfractionDeleted,
+        /// <summary>
+        /// Describes a moderation action where a message was automatically deleted.
+        /// </summary>
+        MessageDeleted
     }
 }

@@ -23,28 +23,10 @@ namespace Modix.Services.BehaviourConfiguration
             _behaviourConfiguration = behaviourConfiguration;
         }
 
-        public async Task LoadBehaviourConfiguration()
+        public Task LoadBehaviourConfiguration()
         {
-            var behaviours = await _behaviourConfigurationRepository.GetBehaviours();
-
-            var invitePurgeBehaviour =
-                BuildInvitePurgeBehaviour(behaviours.Where(x => x.Category == BehaviourCategory.InvitePurging).ToList());
-
-            _behaviourConfiguration.InvitePurgeBehaviour = invitePurgeBehaviour;
-        }
-
-        private static InvitePurgeBehaviour BuildInvitePurgeBehaviour(List<Data.Models.BehaviourConfiguration> behaviours)
-        {
-            const string EnabledKey = "IsEnabled";
-            const string ExemptRoleIds = "ExemptRoleIds";
-            const string LoggingChannelId = "LoggingChannelId";
-
-            return new InvitePurgeBehaviour
-            {
-                IsEnabled = bool.Parse(behaviours.Single(x => x.Key == EnabledKey).Value),
-                ExemptRoleIds = JsonConvert.DeserializeObject<List<ulong>>(behaviours.Single(x => x.Key == ExemptRoleIds).Value),
-                LoggingChannelId = ulong.Parse(behaviours.Single(x => x.Key == LoggingChannelId).Value)
-            };
+            //var behaviours = await _behaviourConfigurationRepository.GetBehaviours();
+            return Task.CompletedTask;
         }
     }
 }

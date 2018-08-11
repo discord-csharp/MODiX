@@ -30,7 +30,7 @@ namespace Modix.Data.Models.Core
         public ulong? UserId { get; set; }
 
         /// <summary>
-        /// A set of <see cref="ClaimMappingEntity.Type"/> values, defining the <see cref="ClaimMappingEntity"/> entities to be returned.
+        /// A set of <see cref="ClaimMappingEntity.Claim"/> values, defining the <see cref="ClaimMappingEntity"/> entities to be returned.
         /// </summary>
         public IReadOnlyCollection<AuthorizationClaim> Claims { get; set; }
 
