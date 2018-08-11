@@ -37,18 +37,8 @@ namespace modix
     const setCommands = (state: ModixState, commands: ModuleHelpData[]) => state.commands = commands;
     const setCampaigns = (state: ModixState, campaigns: PromotionCampaign[]) => state.campaigns = campaigns;
 
-    const getUserIsStaff = (state: ModixState) => 
-    {
-        if (!state.user)
-        {
-            return false;
-        }
-        
-        return state.user.userRole == "Staff";
-    };
-
     const getHasTriedAuth = (state: ModixState) => state.user != null;
-    const getIsLoggedIn = (state: ModixState) => state.user != null && state.user.userRole != "Invalid";
+    const getIsLoggedIn = (state: ModixState) => state.user && state.user.userId;
 
     const pushError = (state: ModixState, error: string) => state.errors.push(error);
     const removeError = (state: ModixState, error: string) => state.errors.splice(state.errors.indexOf(error), 1);
@@ -74,7 +64,6 @@ namespace modix
 
     export const hasTriedAuth = moduleBuilder.read(getHasTriedAuth);
     export const isLoggedIn = moduleBuilder.read(getIsLoggedIn);
-    export const userIsStaff = moduleBuilder.read(getUserIsStaff);   
 }
 
 export default modix;
