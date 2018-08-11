@@ -20,7 +20,7 @@ namespace Modix.Services.AutoCodePaste
 
 {4}";
 
-        private const string _ApiReferenceUrl = "https://hastebin.com/";
+        private const string _ApiReferenceUrl = "https://paste.mod.gg/";
         private const string _FallbackApiReferenceUrl = "https://haste.charlesmilette.net/";
         private static readonly HttpClient client = new HttpClient
         {

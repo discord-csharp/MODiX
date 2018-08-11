@@ -190,10 +190,6 @@ spec:
   - hosts:
     - modix-db.cisien.com
     secretName: modix-db-admin-tls-cert-prod
-status:
-  loadBalancer:
-    ingress:
-    - ip: 45.43.30.19
 
 ---
 #db admin
@@ -218,14 +214,13 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: modix-db-admin
     spec:
       containers:
       - env:
         - name: PGADMIN_DEFAULT_EMAIL
-          value: cisien@cisien.com
+          value: change@me.com
         - name: PGADMIN_DEFAULT_PASSWORD
           value: CHANGEME
         image: dpage/pgadmin4
@@ -286,10 +281,6 @@ spec:
   - hosts:
     - mod.gg
     secretName: modix-fe-tls-cert-prod
-status:
-  loadBalancer:
-    ingress:
-    - ip: 45.43.30.19
 
 ---
 #modix
@@ -345,12 +336,14 @@ spec:
             secretKeyRef:
               key: modix-db-connection
               name: modix
+        - name: log_webhook_id
+          value: "382609729802862592"
         - name: log_webhook_token
           valueFrom:
             secretKeyRef:
               key: log-webhook-token
               name: modix
-        image: cisien/modix:120
+        image: cisien/modix:latest
         imagePullPolicy: Always
         name: modix
         volumeMounts:
@@ -370,7 +363,6 @@ spec:
 
 --- 
 #repl-service service
-#TODO: turn to ClusterIP and add ingress
 
 apiVersion: v1
 kind: Service
@@ -382,18 +374,16 @@ spec:
   externalTrafficPolicy: Cluster
   ports:
   - name: http
-    nodePort: 31337
     port: 31337
     protocol: TCP
-    targetPort: 80
+    targetPort: 31337
   selector:
     app: csdiscord-repl
   sessionAffinity: None
-  type: NodePort
+  type: ClusterIP
 
 ---
 #repl service
-#TODO: setup automated build
 
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -404,32 +394,52 @@ metadata:
   name: csdiscord-repl
   namespace: csharp
 spec:
-  progressDeadlineSeconds: 600
-  replicas: 2
-  revisionHistoryLimit: 0
+  replicas: 10
   selector:
     matchLabels:
       app: csdiscord-repl
   strategy:
     rollingUpdate:
-      maxSurge: 50%
-      maxUnavailable: 50%
+      maxSurge: 5
+      maxUnavailable: 5
     type: RollingUpdate
   template:
     metadata:
       labels:
         app: csdiscord-repl
     spec:
+      automountServiceAccountToken: false
       containers:
-      - image: cisien/csdiscord:linux
+      - env:
+        - name: ASPNETCORE_URLS
+          value: http://+:31337
+        image: cisien/csdiscord:linux
         imagePullPolicy: Always
         name: repl
+        resources: {}
+        securityContext:
+          readOnlyRootFilesystem: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp
+        - mountPath: /var
+          name: var
       dnsPolicy: ClusterFirst
       nodeSelector:
         beta.kubernetes.io/os: linux
       restartPolicy: Always
       schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 33
+        runAsUser: 33
       terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: tmp
+      - emptyDir: {}
+        name: var
 
 ---
 #hastebin-persistent-volume
@@ -515,10 +525,6 @@ spec:
   - hosts:
     - paste.mod.gg
     secretName: hastebin-fe-tls-cert-prod
-status:
-  loadBalancer:
-    ingress:
-    - ip: 45.43.30.19
 
 ---
 #hastebin

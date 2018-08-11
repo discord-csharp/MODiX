@@ -123,13 +123,13 @@ namespace Modix
             {
                 var context = new CommandContext(_client, message);
 
+                if (!(context.User is IGuildUser)){ return; }
+
                 using (var scope = _scope.ServiceProvider.CreateScope())
                 {
-                    await scope.ServiceProvider.GetRequiredService<IAuthorizationService>()
-                        .OnAuthenticatedAsync(
-                            context.Guild.Id,
-                            (context.User as IGuildUser)?.RoleIds ?? Array.Empty<ulong>(),
-                            context.User.Id);
+                    await scope.ServiceProvider
+                        .GetRequiredService<IAuthorizationService>()
+                        .OnAuthenticatedAsync(context.User as IGuildUser);
 
                     var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
 
@@ -188,8 +188,8 @@ namespace Modix
             _map.AddSingleton<ICodePasteRepository, MemoryCodePasteRepository>();
             _map.AddSingleton<CommandHelpService>();
 
-            _map.AddSingleton<PromotionService>();
-            _map.AddSingleton<IPromotionRepository, DBPromotionRepository>();
+            _map.AddScoped<PromotionService>();
+            _map.AddScoped<IPromotionRepository, DBPromotionRepository>();
 
             _map.AddSingleton<CommandErrorHandler>();
             _map.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();

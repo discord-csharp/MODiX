@@ -49,5 +49,17 @@
         /// Authorizes a request to post a message to a guild, containing a Discord invite link.
         /// </summary>
         PostInviteLink
+        /// <summary>
+        /// Authorizes a request to create a promotion campaign for a user.
+        /// </summary>
+        PromotionCreate,
+        /// <summary>
+        /// Authorizes a request to comment on a promotion campaign for a user.
+        /// </summary>
+        PromotionComment,
+        /// <summary>
+        /// Authorizes a request to approve/deny/reactivate a promotion campaign for a user.
+        /// </summary>
+        PromotionExecute
     }
 }

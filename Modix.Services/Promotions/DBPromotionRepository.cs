@@ -6,40 +6,38 @@ using Microsoft.EntityFrameworkCore;
 using Modix.Data;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotion;
+using Modix.Services.Core;
 
 namespace Modix.Services.Promotions
 {
     public class DBPromotionRepository : IPromotionRepository
     {
         private readonly ModixContext _context;
+        private readonly IUserService _userService;
 
-        public DBPromotionRepository(ModixContext context)
+        public DBPromotionRepository(ModixContext context, IUserService userService)
         {
             _context = context;
+            _userService = userService;
         }
 
-        public async Task AddCampaign(PromotionCampaignEntity campaign, SocketGuildUser user)
+        public async Task<PromotionCampaignEntity> AddCampaign(PromotionCampaignEntity campaign, SocketGuildUser user)
         {
-            var promoUser = await _context.Users.FirstOrDefaultAsync(u => (ulong)u.Id == user.Id);
-            if (promoUser == null)
-                // TODO: This needs to be done through IUserService. There are concurrency issues if anyone else manages users in the DB directly.
-                await _context.Users.AddAsync(new UserEntity
-                {
-                    Username = $"{user.Username}#{user.Discriminator}",
-                    Id = (long)user.Id,
-                    //Nickname = user.Nickname,
-                });
+            await _userService.TrackUserAsync(user);
 
-            campaign.PromotionFor = promoUser;
-
-            await _context.PromotionCampaigns.AddAsync(campaign);
+            campaign.PromotionFor = _context.Users.Find((long)user.Id);
+            var result = await _context.PromotionCampaigns.AddAsync(campaign);
 
             await _context.SaveChangesAsync();
+
+            return result.Entity;
         }
 
         public async Task AddCommentToCampaign(PromotionCampaignEntity campaign, PromotionCommentEntity comment)
         {
-            await campaign.Comments.AddAsync(comment);
+            comment.PromotionCampaign = campaign;
+            await _context.PromotionComments.AddAsync(comment);
+
             await _context.SaveChangesAsync();
         }
 
@@ -51,12 +49,20 @@ namespace Modix.Services.Promotions
 
         public async Task<PromotionCampaignEntity> GetCampaign(long id)
         {
-            return await _context.PromotionCampaigns.FirstOrDefaultAsync(p => p.PromotionCampaignId == id);
+            return await _context.PromotionCampaigns
+                .Include(d=>d.PromotionFor)
+                .Include(d=>d.Comments)
+                .FirstOrDefaultAsync(p => p.PromotionCampaignId == id);
         }
 
         public async Task<IEnumerable<PromotionCampaignEntity>> GetCampaigns()
         {
-            return await _context.PromotionCampaigns.ToArrayAsync();
+            var result = await _context.PromotionCampaigns
+                .Include(d => d.PromotionFor)
+                .Include(d => d.Comments)
+                .ToArrayAsync();
+
+            return result ?? new PromotionCampaignEntity[0];
         }
     }
 }
