@@ -217,9 +217,6 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task OnAuthenticatedAsync(IGuildUser user)
         {
-            CurrentClaims = await LookupPosessedClaimsAsync(guildId, roleIds, userId);
-            CurrentGuildId = guildId;
-            CurrentUserId = userId;
             CurrentClaims = await GetGuildUserClaimsAsync(user);
             CurrentGuildId = user.GuildId;
             CurrentUserId = user.Id;

@@ -48,7 +48,7 @@
         /// <summary>
         /// Authorizes a request to post a message to a guild, containing a Discord invite link.
         /// </summary>
-        PostInviteLink
+        PostInviteLink,
         /// <summary>
         /// Authorizes a request to create a promotion campaign for a user.
         /// </summary>
