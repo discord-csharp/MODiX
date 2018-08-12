@@ -6,7 +6,7 @@
             <div class="column">
                 <h1 class="title is-size-4">
                     <span class="statusIcon">{{statusIcon}}</span>
-                    {{campaign.username}}
+                    {{campaign.promotionFor.username}}#{{campaign.promotionFor.discriminator}}
 
                     <span class="mobile-expander">
                         <template v-if="expanded">⯅</template>
@@ -45,7 +45,7 @@
             <h2 class="heading is-size-5">Comments</h2>
 
             <div class="commentList">
-                <PromotionCommentView v-for="(comment, index) in campaign.comments" :key="comment.id" :comment="comment"
+                <PromotionCommentView v-for="(comment, index) in campaign.comments" :key="comment.promotionCampaignId" :comment="comment"
                                       :style="{'transition-delay': (index * 33) + 'ms'}" />
             </div>
 
@@ -234,7 +234,7 @@ export default class PromotionListItem extends Vue
 
     get isStaff()
     {
-        return store.userIsStaff();
+        return false;//store.userIsStaff();
     }
 
     @Watch('newComment.body')

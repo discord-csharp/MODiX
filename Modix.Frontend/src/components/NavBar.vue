@@ -86,10 +86,10 @@ export default class NavBar extends Vue
     get routes(): Route[]
     {
         let allRoutes = (<any>this.$router).options.routes as Route[];
-        let showInNav = _.filter(allRoutes, route => route.meta.showNav);
-        let authFilter = _.filter(showInNav, route => (route.meta.requiresAuth ? store.isLoggedIn() : true));
+        let showInNav = _.filter(allRoutes, (route: Route) => route.meta.showNav);
+        let authFilter = _.filter(showInNav, (route: Route) => (route.meta.requiresAuth ? store.isLoggedIn() : true));
 
-        return authFilter;
+        return <any>authFilter;
     }
 
     toTitleCase(input: string) 

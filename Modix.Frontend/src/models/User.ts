@@ -1,11 +1,9 @@
-export type UserRole = "Member" | "Staff" | "Invalid";
-
 export default class User
 {
     name: string = "";
     userId: string = "";
     avatarHash: string = "";
-    userRole: UserRole = "Invalid";
+    claims: string[] = [];
 
     get avatarUrl(): string
     {

@@ -1,6 +1,6 @@
 <template>
     <div class="profile">
-        <template v-if="user && user.userRole != 'Invalid'">
+        <template v-if="user && user.userId">
             <img class="avatar-icon" :src="user.avatarUrl">
             <p class="title is-4">
                 <span class="username">{{user.name}}</span>

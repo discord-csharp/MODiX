@@ -1,5 +1,8 @@
-import _, { Dictionary } from "lodash";
+import { Dictionary } from "lodash";
+import * as _ from "lodash";
+
 import PromotionComment from "@/models/PromotionComment";
+import PromotionUserInfo from '@/models/PromotionUserInfo';
 
 export type PromotionSentiment = "For" | "Against" | "Neutral";  
 export type CampaignStatus = "Active" | "Approved" | "Denied";
@@ -20,9 +23,9 @@ export const StatusIcons =
 
 export default class PromotionCampaign
 {
-    id: number = 0;
-    userId: number = 0;
-    username: string = "Unknown";
+    promotionCampaignId: number = 0;
+    promotionFor: PromotionUserInfo = new PromotionUserInfo();
+
     startDate: Date = new Date(0);
     comments: PromotionComment[] = [];
     status: CampaignStatus = "Active";
@@ -44,7 +47,7 @@ export default class PromotionCampaign
 
     get sentimentCounts(): Dictionary<number>
     {
-        return _.countBy(this.comments, comment => comment.sentiment);
+        return _.countBy(this.comments, (comment: PromotionComment) => comment.sentiment);
     }
 
     deserializeFrom(input: any): PromotionCampaign
