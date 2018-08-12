@@ -12,6 +12,7 @@ using Newtonsoft.Json.Converters;
 using System;
 using System.IO;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Modix.WebServer
 {
@@ -19,6 +20,12 @@ namespace Modix.WebServer
     {
         private static IServiceCollection _additionalServices;
         private static ModixConfig _modixConfig;
+        private readonly bool _isProduction;
+
+        public ModixWebServer(IHostingEnvironment env)
+        {
+            _isProduction = !env.IsDevelopment();
+        }
 
         // Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -28,10 +35,8 @@ namespace Modix.WebServer
                 services.Add(service);
             }
 
-            //TODO: Un-hardcode this
-            //TODO: Uncomment this one perms are fixed
-            //services.AddDataProtection()
-            //    .PersistKeysToFileSystem(new DirectoryInfo(@"c:\app\config\dataprotection"));
+            services.AddDataProtection()
+                .PersistKeysToFileSystem(new DirectoryInfo(@"dataprotection"));
 
             services
             .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -45,6 +50,7 @@ namespace Modix.WebServer
             .AddModix(_modixConfig);
 
             services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
+            services.AddResponseCompression();
 
             services
             .AddMvc()
@@ -59,6 +65,18 @@ namespace Modix.WebServer
         public void Configure(IApplicationBuilder app, IAntiforgery antiforgery)
         {
             app.UseAuthentication();
+            app.UseResponseCompression();
+
+            //Static redirect for invite link
+            app.MapWhen(x => x.Request.Path.Value.StartsWith("/invite"), builder =>
+            {
+                builder.Run(handler =>
+                {
+                    //TODO: Maybe un-hardcode this?
+                    handler.Response.Redirect("https://aka.ms/csharp-discord");
+                    return Task.CompletedTask;
+                });
+            });
 
             //Map to static files when not hitting the API
             app.MapWhen(x => !x.Request.Path.Value.StartsWith("/api"), builder =>

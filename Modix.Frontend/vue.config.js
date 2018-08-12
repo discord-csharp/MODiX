@@ -11,18 +11,12 @@ module.exports = {
         }
     },
 
-    chainWebpack: config =>
+    configureWebpack: config =>
     {
         if (process.env.NODE_ENV === 'production')
         {
-            config
-                .plugin('uglify')
-                .tap(args =>
-                {
-                    args[0].uglifyOptions.compress.keep_fnames = true;
-                    args[0].uglifyOptions.mangle.keep_fnames = true;
-                    return args;
-                });
+            config.optimization.minimizer[0].options.uglifyOptions.compress.keep_fnames = true;
+            config.optimization.minimizer[0].options.uglifyOptions.mangle.keep_fnames = true;
         }
-    },
+    }
 }
