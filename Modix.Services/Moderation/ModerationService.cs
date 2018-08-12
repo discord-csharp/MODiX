@@ -208,7 +208,6 @@ namespace Modix.Services.Moderation
         public ModerationService(
             IDiscordClient discordClient,
             IAuthorizationService authorizationService,
-            IGuildService guildService,
             IUserService userService,
             IModerationMuteRoleMappingRepository moderationMuteRoleMappingRepository,
             IModerationLogChannelMappingRepository moderationLogChannelMappingRepository,
@@ -217,7 +216,6 @@ namespace Modix.Services.Moderation
         {
             DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
             AuthorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
-            GuildService = guildService ?? throw new ArgumentNullException(nameof(guildService));
             UserService = userService ?? throw new ArgumentNullException(nameof(userService));
             ModerationMuteRoleMappingRepository = moderationMuteRoleMappingRepository ?? throw new ArgumentNullException(nameof(moderationMuteRoleMappingRepository));
             ModerationLogChannelMappingRepository = moderationLogChannelMappingRepository ?? throw new ArgumentNullException(nameof(moderationLogChannelMappingRepository));
@@ -382,7 +380,7 @@ namespace Modix.Services.Moderation
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(_createInfractionClaimsByType[type]);
 
-            var guild = await GuildService.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
+            var guild = await DiscordClient.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
             var subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
 
             if (reason == null)
@@ -483,7 +481,7 @@ namespace Modix.Services.Moderation
 
             await InfractionRepository.TryDeleteAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
 
-            var guild = await GuildService.GetGuildAsync(infraction.GuildId);
+            var guild = await DiscordClient.GetGuildAsync(infraction.GuildId);
             var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
 
             switch (infraction.Type)
@@ -554,11 +552,6 @@ namespace Modix.Services.Moderation
         /// A <see cref="IAuthorizationService"/> to be used to interact with frontend authentication system, and perform authorization.
         /// </summary>
         internal protected IAuthorizationService AuthorizationService { get; }
-
-        /// <summary>
-        /// An <see cref="IGuildService"/> for interacting with discord guild within the application.
-        /// </summary>
-        internal protected IGuildService GuildService { get; }
 
         /// <summary>
         /// An <see cref="IUserService"/> for interacting with discord users within the application.
@@ -645,7 +638,7 @@ namespace Modix.Services.Moderation
 
             await InfractionRepository.TryRescindAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
 
-            var guild = await GuildService.GetGuildAsync(infraction.GuildId);
+            var guild = await DiscordClient.GetGuildAsync(infraction.GuildId);
             var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
 
             switch (infraction.Type)
