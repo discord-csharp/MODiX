@@ -17,10 +17,7 @@ namespace Modix.Behaviors
     {
         public ModerationLoggingBehavior(IServiceProvider serviceProvider, IDiscordClient discordClient)
         {
-            if (serviceProvider == null)
-                throw new ArgumentNullException(nameof(serviceProvider));
-
-            DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
+            DiscordClient = discordClient;
             _lazyModerationService = new Lazy<IModerationService>(() => serviceProvider.GetRequiredService<IModerationService>());
         }
 

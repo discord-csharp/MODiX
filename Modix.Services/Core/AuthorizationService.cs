@@ -136,12 +136,10 @@ namespace Modix.Services.Core
     {
         public AuthorizationService(IServiceProvider serviceProvider, IDiscordClient discordClient, IClaimMappingRepository claimMappingRepository)
         {
-            if (serviceProvider == null)
-                throw new ArgumentNullException(nameof(serviceProvider));
-            DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
+            DiscordClient = discordClient;
             // Workaround for circular dependency.
             _lazyUserService = new Lazy<IUserService>(() => serviceProvider.GetRequiredService<IUserService>());
-            ClaimMappingRepository = claimMappingRepository ?? throw new ArgumentNullException(nameof(claimMappingRepository));
+            ClaimMappingRepository = claimMappingRepository;
         }
 
         /// <inheritdoc />

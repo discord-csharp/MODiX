@@ -48,12 +48,11 @@ namespace Modix.Services.Core
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
         /// <param name="authorizationService">The value to use for <see cref="AuthorizationService"/>.</param>
         /// <param name="guildUserRepository">The value to use for <see cref="GuildUserRepository"/>.</param>
-        /// <exception cref="ArgumentNullException">Throws for all parameters.</exception>
         public UserService(IDiscordClient discordClient, IAuthorizationService authorizationService, IGuildUserRepository guildUserRepository)
         {
-            DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
-            AuthorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
-            GuildUserRepository = guildUserRepository ?? throw new ArgumentNullException(nameof(guildUserRepository));
+            DiscordClient = discordClient;
+            AuthorizationService = authorizationService;
+            GuildUserRepository = guildUserRepository;
         }
 
         /// <inheritdoc />

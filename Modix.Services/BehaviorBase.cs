@@ -18,7 +18,7 @@ namespace Modix.Services
         /// <param name="serviceProvider">The value to use for <see cref="ServiceProvider"/>.</param>
         public BehaviorBase(IServiceProvider serviceProvider)
         {
-            ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            ServiceProvider = serviceProvider;
         }
 
         ~BehaviorBase()

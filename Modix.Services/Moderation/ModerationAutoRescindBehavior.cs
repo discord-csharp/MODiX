@@ -21,11 +21,10 @@ namespace Modix.Services.Moderation
         /// </summary>
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
         /// <param name="serviceProvider">See <see cref="BehaviorBase"/>.</param>
-        /// <exception cref="ArgumentNullException">Throws for <paramref name="discordClient"/>.</exception>
         public ModerationAutoRescindBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
-            DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
+            DiscordClient = discordClient;
 
             UpdateTimer = new Timer()
             {

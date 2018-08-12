@@ -122,8 +122,8 @@ namespace Modix.Data.Repositories
         public InfractionRepository(ModixContext modixContext, IEnumerable<IInfractionEventHandler> infractionEventHandlers, IEnumerable<IModerationActionEventHandler> moderationActionEventHandlers)
             : base(modixContext)
         {
-            InfractionEventHandlers = infractionEventHandlers ?? throw new ArgumentNullException(nameof(infractionEventHandlers));
-            ModerationActionEventHandlers = moderationActionEventHandlers ?? throw new ArgumentNullException(nameof(moderationActionEventHandlers));
+            InfractionEventHandlers = infractionEventHandlers;
+            ModerationActionEventHandlers = moderationActionEventHandlers;
         }
 
         /// <inheritdoc />

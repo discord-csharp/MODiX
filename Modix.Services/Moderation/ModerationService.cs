@@ -204,7 +204,6 @@ namespace Modix.Services.Moderation
         /// <param name="moderationMuteRoleMappingRepository">The value to use for <see cref="ModerationMuteRoleMappingRepository"/>.</param>
         /// <param name="moderationActionRepository">The value to use for <see cref="ModerationActionRepository"/>.</param>
         /// <param name="infractionRepository">The value to use for <see cref="InfractionRepository"/>.</param>
-        /// <exception cref="ArgumentNullException">Throws for all parameters.</exception>
         public ModerationService(
             IDiscordClient discordClient,
             IAuthorizationService authorizationService,
@@ -214,13 +213,13 @@ namespace Modix.Services.Moderation
             IModerationActionRepository moderationActionRepository,
             IInfractionRepository infractionRepository)
         {
-            DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
-            AuthorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
-            UserService = userService ?? throw new ArgumentNullException(nameof(userService));
-            ModerationMuteRoleMappingRepository = moderationMuteRoleMappingRepository ?? throw new ArgumentNullException(nameof(moderationMuteRoleMappingRepository));
-            ModerationLogChannelMappingRepository = moderationLogChannelMappingRepository ?? throw new ArgumentNullException(nameof(moderationLogChannelMappingRepository));
-            ModerationActionRepository = moderationActionRepository ?? throw new ArgumentNullException(nameof(moderationActionRepository));
-            InfractionRepository = infractionRepository ?? throw new ArgumentNullException(nameof(infractionRepository));
+            DiscordClient = discordClient;
+            AuthorizationService = authorizationService;
+            UserService = userService;
+            ModerationMuteRoleMappingRepository = moderationMuteRoleMappingRepository;
+            ModerationLogChannelMappingRepository = moderationLogChannelMappingRepository;
+            ModerationActionRepository = moderationActionRepository;
+            InfractionRepository = infractionRepository;
         }
 
         /// <inheritdoc />
