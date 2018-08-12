@@ -98,11 +98,9 @@ namespace Modix.Services.Core
         /// Loads authentication and authorization data into the service, based on the given guild, user, and role ID values
         /// retrieved from a frontend authentication mechanism.
         /// </summary>
-        /// <param name="guildId">The Discord snowflake ID of the guild for which the current user was authenticated.</param>
-        /// <param name="roleIds">The Discord snowflake ID values of the roles assigned to the current authenticated user.</param>
-        /// <param name="userId">The Discord snowflake ID of the user that was authenticated.</param>
+        /// <param name="user">The user to be authenticated</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task OnAuthenticatedAsync(ulong guildId, IEnumerable<ulong> roleIds, ulong userId);
+        Task OnAuthenticatedAsync(IGuildUser user);
 
         /// <summary>
         /// Loads and authentication and authorization data into the service, for self-initiated operations.
