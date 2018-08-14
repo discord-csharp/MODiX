@@ -76,7 +76,7 @@ namespace Modix.Services.Core
         private Task OnMessageReceivedAsync(IMessage message)
             => SelfExecuteRequest<IUserService>(async x =>
             {
-                if(message.Author is IGuildUser author)
+                if(message.Author is IGuildUser author && !(author.Guild is null))
                     await x.TrackUserAsync(author);
             });
     }
