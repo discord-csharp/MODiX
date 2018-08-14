@@ -25,7 +25,8 @@ namespace Modix.Services.Utilities
             _jsonSerializerSettings = new JsonSerializerSettings
             {
                 Formatting = Formatting.Indented,
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                ContractResolver = new ExceptionContractResolver()
             };
         }
         public void Emit(LogEvent logEvent)
