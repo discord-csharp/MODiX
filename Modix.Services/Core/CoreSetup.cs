@@ -21,7 +21,9 @@ namespace Modix.Services.Core
                 .AddScoped<IAuthorizationService, AuthorizationService>()
                 .AddScoped<IGuildService, GuildService>()
                 .AddScoped<IUserService, UserService>()
+                .AddScoped<IChannelService, ChannelService>()
                 .AddScoped<IGuildUserRepository, GuildUserRepository>()
+                .AddScoped<IGuildChannelRepository, GuildChannelRepository>()
                 .AddScoped<IClaimMappingRepository, ClaimMappingRepository>()
                 .AddScoped<IConfigurationActionRepository, ConfigurationActionRepository>();
     }

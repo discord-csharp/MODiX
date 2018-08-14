@@ -49,7 +49,8 @@ namespace Modix.Services.AutoCodePaste
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new WebException("Something failed while posting code to Hastebin.");
+                var body = await response.Content?.ReadAsStringAsync();
+                throw new Exception($"{response.StatusCode} returned when calling {response.RequestMessage.RequestUri}. Response body: {body}");
             }
 
             var urlResponse = await response.Content.ReadAsStringAsync();

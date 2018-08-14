@@ -25,9 +25,9 @@ namespace Modix.Data.Migrations
                     table.UniqueConstraint("IX_Category_Key", arg => new { arg.Category, arg.Key });
                 });
 
-            migrationBuilder.InsertData("BehaviourConfigurations", new[] { "Category", "Key", "Value" }, new[] { BehaviourCategory.InvitePurging.ToString(), "IsEnabled", "True" });
-            migrationBuilder.InsertData("BehaviourConfigurations", new[] { "Category", "Key", "Value" }, new[] { BehaviourCategory.InvitePurging.ToString(), "ExemptRoleIds", "[268470383571632128,155770800392110082,155771334779994112,410138389283602432]" });
-            migrationBuilder.InsertData("BehaviourConfigurations", new[] { "Category", "Key", "Value" }, new[] { BehaviourCategory.InvitePurging.ToString(), "LoggingChannelId", "380603776412811267" });
+            migrationBuilder.InsertData("BehaviourConfigurations", new[] { "Category", "Key", "Value" }, new[] { "InvitePurging", "IsEnabled", "True" });
+            migrationBuilder.InsertData("BehaviourConfigurations", new[] { "Category", "Key", "Value" }, new[] { "InvitePurging", "ExemptRoleIds", "[268470383571632128,155770800392110082,155771334779994112,410138389283602432]" });
+            migrationBuilder.InsertData("BehaviourConfigurations", new[] { "Category", "Key", "Value" }, new[] { "InvitePurging", "LoggingChannelId", "380603776412811267" });
 
             migrationBuilder.CreateTable(
                 name: "ModerationConfigs",

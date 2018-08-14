@@ -54,10 +54,21 @@ namespace Modix.Data.Models.Moderation
         public long? InfractionId { get; set; }
 
         /// <summary>
-        /// The <see cref="Infraction"/> to which this <see cref="ModerationActionEntity"/> applies.
-        /// Null, if an <see cref="Infraction"/> was involved in this <see cref="ModerationActionEntity"/>.
+        /// The <see cref="InfractionEntity"/> to which this <see cref="ModerationActionEntity"/> applies.
+        /// Null, if an <see cref="InfractionEntity"/> was involved in this <see cref="ModerationActionEntity"/>.
         /// </summary>
         public virtual InfractionEntity Infraction { get; set; }
+
+        /// <summary>
+        /// The <see cref="DeletedMessageEntity.MessageId"/> value of <see cref="DeletedMessage"/>.
+        /// </summary>
+        public long? DeletedMessageId { get; set; }
+
+        /// <summary>
+        /// The <see cref="DeletedMessageEntity"/> to which this <see cref="ModerationActionEntity"/> applies.
+        /// Null, if an <see cref="DeletedMessageEntity"/> was involved in this <see cref="ModerationActionEntity"/>.
+        /// </summary>
+        public virtual DeletedMessageEntity DeletedMessage { get; set; }
 
         /// <summary>
         /// For <see cref="Type"/> values of <see cref="ModerationActionType.InfractionCreated"/>,
