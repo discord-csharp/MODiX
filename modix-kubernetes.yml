@@ -415,6 +415,32 @@ spec:
         - 192.168.0.0/24
 
 ---
+#repl ingress
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    certmanager.k8s.io/cluster-issuer: letsencrypt
+    kubernetes.io/ingress.class: nginx
+  name: repl-fe-ingress
+  namespace: csharp
+spec:
+  rules:
+  - host: eval.cisien.com
+    http:
+      paths:
+      - backend:
+          serviceName: csdiscord-repl-service
+          servicePort: 31337
+        path: /
+  tls:
+  - hosts:
+    - eval.cisien.com
+    secretName: csdiscord-repl-tls-cert-prod
+
+
+
+---
 #repl service
 
 apiVersion: extensions/v1beta1
