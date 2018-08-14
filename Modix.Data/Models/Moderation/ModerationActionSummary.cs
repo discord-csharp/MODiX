@@ -40,6 +40,11 @@ namespace Modix.Data.Models.Moderation
         /// </summary>
         public InfractionBrief Infraction { get; set; }
 
+        /// <summary>
+        /// See <see cref="ModerationActionEntity.DeletedMessage"/>.
+        /// </summary>
+        public DeletedMessageBrief DeletedMessage { get; set; }
+
         internal static Expression<Func<ModerationActionEntity, ModerationActionSummary>> FromEntityProjection { get; }
             = entity => new ModerationActionSummary()
             {
@@ -54,7 +59,7 @@ namespace Modix.Data.Models.Moderation
                     Discriminator = entity.CreatedBy.User.Discriminator,
                     Nickname = entity.CreatedBy.Nickname
                 },
-                Infraction = new InfractionBrief()
+                Infraction = (entity.InfractionId == null) ? null : new InfractionBrief()
                 {
                     Id = entity.Infraction.Id,
                     // https://github.com/aspnet/EntityFrameworkCore/issues/12834
@@ -69,6 +74,24 @@ namespace Modix.Data.Models.Moderation
                         Discriminator = entity.Infraction.Subject.User.Discriminator,
                         Nickname = entity.Infraction.Subject.Nickname
                     },
+                },
+                DeletedMessage = (entity.DeletedMessageId == null) ? null : new DeletedMessageBrief()
+                {
+                    Id = entity.DeletedMessage.MessageId,
+                    Channel = new GuildChannelBrief()
+                    {
+                        Id = (ulong)entity.DeletedMessage.Channel.ChannelId,
+                        Name = entity.DeletedMessage.Channel.Name,
+                    },
+                    Author = new GuildUserIdentity()
+                    {
+                        Id = (ulong)entity.DeletedMessage.Author.UserId,
+                        Username = entity.DeletedMessage.Author.User.Username,
+                        Discriminator = entity.DeletedMessage.Author.User.Discriminator,
+                        Nickname = entity.DeletedMessage.Author.Nickname
+                    },
+                    Content = entity.DeletedMessage.Content,
+                    Reason = entity.DeletedMessage.Reason,
                 }
             };
     }

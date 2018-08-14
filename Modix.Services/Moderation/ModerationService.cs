@@ -39,19 +39,23 @@ namespace Modix.Services.Moderation
             IAuthorizationService authorizationService,
             IGuildService guildService,
             IUserService userService,
+            IChannelService channelService,
             IModerationMuteRoleMappingRepository moderationMuteRoleMappingRepository,
             IModerationLogChannelMappingRepository moderationLogChannelMappingRepository,
             IModerationActionRepository moderationActionRepository,
-            IInfractionRepository infractionRepository)
+            IInfractionRepository infractionRepository,
+            IDeletedMessageRepository deletedMessageRepository)
         {
             DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
             AuthorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
             GuildService = guildService ?? throw new ArgumentNullException(nameof(guildService));
             UserService = userService ?? throw new ArgumentNullException(nameof(userService));
+            ChannelService = channelService ?? throw new ArgumentNullException(nameof(channelService));
             ModerationMuteRoleMappingRepository = moderationMuteRoleMappingRepository ?? throw new ArgumentNullException(nameof(moderationMuteRoleMappingRepository));
             ModerationLogChannelMappingRepository = moderationLogChannelMappingRepository ?? throw new ArgumentNullException(nameof(moderationLogChannelMappingRepository));
             ModerationActionRepository = moderationActionRepository ?? throw new ArgumentNullException(nameof(moderationActionRepository));
             InfractionRepository = infractionRepository ?? throw new ArgumentNullException(nameof(infractionRepository));
+            DeletedMessageRepository = deletedMessageRepository ?? throw new ArgumentNullException(nameof(deletedMessageRepository));
         }
 
         /// <inheritdoc />
@@ -303,7 +307,7 @@ namespace Modix.Services.Moderation
         public async Task DeleteInfractionAsync(long infractionId)
         {
             AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationDelete);
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationDeleteInfraction);
 
             var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
 
@@ -325,6 +329,37 @@ namespace Modix.Services.Moderation
                 case InfractionType.Ban:
                     await guild.RemoveBanAsync(subject);
                     break;
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteMessageAsync(IMessage message, string reason)
+        {
+            AuthorizationService.RequireAuthenticatedUser();
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationDeleteMessage);
+
+            if (!(message.Channel is IGuildChannel guildChannel))
+                throw new InvalidOperationException($"Cannot delete message {message.Id} because it is not a guild message");
+
+            await UserService.TrackUserAsync(message.Author as IGuildUser);
+            await ChannelService.TrackChannelAsync(guildChannel);
+
+            using (var transaction = await DeletedMessageRepository.BeginCreateTransactionAsync())
+            {
+                await DeletedMessageRepository.CreateAsync(new DeletedMessageCreationData()
+                {
+                    GuildId = guildChannel.GuildId,
+                    ChannelId = guildChannel.Id,
+                    MessageId = message.Id,
+                    AuthorId = message.Author.Id,
+                    Content = message.Content,
+                    Reason = reason,
+                    CreatedById = AuthorizationService.CurrentUserId.Value
+                });
+
+                await message.DeleteAsync();
+
+                transaction.Commit();
             }
         }
 
@@ -395,6 +430,11 @@ namespace Modix.Services.Moderation
         internal protected IUserService UserService { get; }
 
         /// <summary>
+        /// An <see cref="IChannelService"/> for interacting with discord channels within the application.
+        /// </summary>
+        internal protected IChannelService ChannelService { get; }
+
+        /// <summary>
         /// An <see cref="IModerationMuteRoleMappingRepository"/> for storing and retrieving mute role configuration data.
         /// </summary>
         internal protected IModerationMuteRoleMappingRepository ModerationMuteRoleMappingRepository { get; }
@@ -413,6 +453,11 @@ namespace Modix.Services.Moderation
         /// An <see cref="IInfractionRepository"/> for storing and retrieving infraction data.
         /// </summary>
         internal protected IInfractionRepository InfractionRepository { get; }
+
+        /// <summary>
+        /// An <see cref="IDeletedMessageRepository"/> for storing and retrieving records of deleted messages.
+        /// </summary>
+        internal protected IDeletedMessageRepository DeletedMessageRepository { get; }
 
         private async Task<ModerationMuteRoleMappingBrief> TryGetActiveMuteRoleMapping(ulong guildId)
             => (await ModerationMuteRoleMappingRepository
