@@ -305,7 +305,7 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(IGuildUser guildUser)
+        public async Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(IGuildUser guildUser, params AuthorizationClaim[] filterClaims)
         {
             if (guildUser == null)
                 throw new ArgumentNullException(nameof(guildUser));
@@ -316,9 +316,18 @@ namespace Modix.Services.Core
             if (guildUser.Id == CurrentUserId)
                 return CurrentClaims;
 
-            return await GetGuildUserCurrentClaimsAsync(guildUser.GuildId, guildUser.RoleIds, guildUser.Id);
+            return await LookupPosessedClaimsAsync(guildUser.GuildId, guildUser.RoleIds, guildUser.Id, filterClaims);
         }
 
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserMissingClaimsAsync(IGuildUser guildUser, params AuthorizationClaim[] claims)
+            => claims.Except(await GetGuildUserClaimsAsync(guildUser, claims))
+                .ToArray();
+
+        /// <inheritdoc />
+        public async Task<bool> HasClaimsAsync(IGuildUser guildUser, params AuthorizationClaim[] claims)
+            => !(await GetGuildUserMissingClaimsAsync(guildUser, claims)).Any();
+        
         /// <inheritdoc />
         public async Task OnAuthenticatedAsync(IGuildUser user)
         {
@@ -390,9 +399,9 @@ namespace Modix.Services.Core
         /// </summary>
         internal protected IClaimMappingRepository ClaimMappingRepository { get; }
 
-        private async Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserCurrentClaimsAsync(ulong guildId, IEnumerable<ulong> roleIds, ulong userId)
+        private async Task<IReadOnlyCollection<AuthorizationClaim>> LookupPosessedClaimsAsync(ulong guildId, IEnumerable<ulong> roleIds, ulong userId, IEnumerable<AuthorizationClaim> claimsFilter = null)
         {
-            var claims = new HashSet<AuthorizationClaim>();
+            var posessedClaims = new HashSet<AuthorizationClaim>();
 
             foreach (var claimMapping in (await ClaimMappingRepository
                 .SearchBriefsAsync(new ClaimMappingSearchCriteria()
@@ -400,6 +409,7 @@ namespace Modix.Services.Core
                     GuildId = guildId,
                     RoleIds = roleIds.ToArray(),
                     UserId = userId,
+                    Claims = claimsFilter?.ToArray(),
                     IsDeleted = false
                 }))
                 // Evaluate role mappings (userId is null) first, to give user mappings precedence.
@@ -408,12 +418,12 @@ namespace Modix.Services.Core
                 .ThenBy(x => x.Type))
             {
                 if (claimMapping.Type == ClaimMappingType.Granted)
-                    claims.Add(claimMapping.Claim);
+                    posessedClaims.Add(claimMapping.Claim);
                 else
-                    claims.Remove(claimMapping.Claim);
+                    posessedClaims.Remove(claimMapping.Claim);
             }
 
-            return claims;
+            return posessedClaims;
         }
     }
 }

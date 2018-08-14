@@ -1,0 +1,105 @@
+﻿using System;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+using Discord;
+using Discord.WebSocket;
+
+using Modix.Data.Models.Core;
+using Modix.Services.Core;
+
+namespace Modix.Services.Moderation
+{
+    /// <summary>
+    /// Implements a behavior that automatically deletes invite links posted by select users.
+    /// </summary>
+    public class ModerationInvitePurgingBehavior : BehaviorBase
+    {
+        // TODO: Abstract DiscordSocketClient to IDiscordSocketClient, or something, to make this testable
+        /// <summary>
+        /// Constructs a new <see cref="ModerationInvitePurgingBehavior"/> object, with the given injected dependencies.
+        /// See <see cref="BehaviorBase"/> for more details.
+        /// </summary>
+        /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
+        /// <param name="serviceProvider">See <see cref="BehaviorBase"/>.</param>
+        /// <exception cref="ArgumentNullException">Throws for <paramref name="discordClient"/>.</exception>
+        public ModerationInvitePurgingBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
+            : base(serviceProvider)
+        {
+            DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
+        }
+
+        /// <inheritdoc />
+        internal protected override Task OnStartingAsync()
+        {
+            DiscordClient.MessageReceived += OnDiscordClientMessageReceived;
+            DiscordClient.MessageUpdated += OnDiscordClientMessageUpdated;
+
+            return Task.CompletedTask;
+        }
+
+        /// <inheritdoc />
+        internal protected override Task OnStoppedAsync()
+        {
+            DiscordClient.MessageReceived -= OnDiscordClientMessageReceived;
+            DiscordClient.MessageUpdated -= OnDiscordClientMessageUpdated;
+
+            return Task.CompletedTask;
+        }
+
+        // TODO: Abstract DiscordSocketClient to IDiscordSocketClient, or something, to make this testable
+        /// <summary>
+        /// A <see cref="DiscordSocketClient"/> for interacting with, and receiving events from, the Discord API.
+        /// </summary>
+        internal protected DiscordSocketClient DiscordClient { get; }
+
+        private Task OnDiscordClientMessageReceived(IMessage message)
+            => TryPurgeInviteLink(message);
+
+        private Task OnDiscordClientMessageUpdated(Cacheable<IMessage, ulong> oldMessage, IMessage newMessage, ISocketMessageChannel channel)
+            => TryPurgeInviteLink(newMessage);
+
+        private async Task TryPurgeInviteLink(IMessage message)
+        {
+            if (!(message.Author is IGuildUser author))
+                return;
+
+            var matches = _inviteLinkMatcher.Matches(message.Content);
+            if (!matches.Any())
+                return;
+
+            // TODO: Booooooo for non-abstractable dependencies
+            if(author.Guild is SocketGuild socketGuild)
+            {
+                // Allow invites to the guild in which the message was posted
+                var newInvites = matches
+                    .Select(x => x.Value)
+                    .Except((await socketGuild
+                        .GetInvitesAsync())
+                        .Select(x => x.Url));
+
+                if (!newInvites.Any())
+                    return;
+            }
+
+            await SelfExecuteRequest<IAuthorizationService, IModerationService>(async (authorizationService, moderationService) =>
+            {
+                if (await authorizationService.HasClaimsAsync(author, AuthorizationClaim.PostInviteLink))
+                    return;
+
+                var channel = message.Channel;
+
+                await moderationService.DeleteMessageAsync(message, "Unauthorized Invite Link");
+
+                await channel.SendMessageAsync($"{author.Mention} your invite link has been removed, please don't post links to other guilds");
+            });
+        }
+
+        private static readonly Regex _inviteLinkMatcher
+            = new Regex(
+                pattern: @"(https?:\/\/)?(www\.)?(discord\.(gg|io|me|li)|discordapp\.com\/invite)\/.+[a-z]",
+                options: RegexOptions.Compiled | RegexOptions.IgnoreCase,
+                matchTimeout: TimeSpan.FromSeconds(2));
+    }
+}

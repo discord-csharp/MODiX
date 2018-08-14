@@ -5,6 +5,8 @@ using Serilog.Events;
 using Serilog.Configuration;
 using Discord.Webhook;
 using Discord;
+using Modix.Services.AutoCodePaste;
+using Newtonsoft.Json;
 
 namespace Modix.Services.Utilities
 {
@@ -13,12 +15,18 @@ namespace Modix.Services.Utilities
         private readonly ulong _webhookId;
         private readonly string _webhookToken;
         private readonly IFormatProvider _formatProvider;
-
+        private readonly JsonSerializerSettings _jsonSerializerSettings;
         public DiscordWebhookSink(ulong webhookId, string webhookToken, IFormatProvider formatProvider)
         {
             _webhookId = webhookId;
             _webhookToken = webhookToken;
             _formatProvider = formatProvider;
+
+            _jsonSerializerSettings = new JsonSerializerSettings
+            {
+                Formatting = Formatting.Indented,
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            };
         }
         public void Emit(LogEvent logEvent)
         {
@@ -33,8 +41,31 @@ namespace Modix.Services.Utilities
                 .AddField(new EmbedFieldBuilder()
                     .WithIsInline(false)
                     .WithName($"LogLevel: {logEvent.Level}")
-                    .WithValue(Format.Code($"{formattedMessage}\n{logEvent.Exception?.ToString()}".TruncateTo(1010))));
+                    .WithValue(Format.Code($"{formattedMessage}\n{logEvent.Exception?.Message}")));
+            var eventAsJson = JsonConvert.SerializeObject(logEvent, _jsonSerializerSettings);
+            try
+            {
+                var pasteHandler = new CodePasteService();
+                var url = pasteHandler.UploadCode(eventAsJson, "json").GetAwaiter().GetResult();
 
+                message.AddField(new EmbedFieldBuilder()
+                    .WithIsInline(false)
+                    .WithName("Full Log Event")
+                    .WithValue($"[view on paste.mod.gg]({url})"));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unable to upload log event.{ex}");
+                Console.WriteLine($"Raw event: {eventAsJson}");
+                message.AddField(new EmbedFieldBuilder()
+                    .WithIsInline(false)
+                    .WithName("Stack Trace")
+                    .WithValue(Format.Code($"{formattedMessage}\n{logEvent.Exception?.ToString().TruncateTo(1000)}")));
+                message.AddField(new EmbedFieldBuilder()
+                    .WithIsInline(false)
+                    .WithName("Upload Failure Exception")
+                    .WithValue(Format.Code($"{ex.ToString().TruncateTo(1000)}")));
+            }
             webhookClient.SendMessageAsync(string.Empty, embeds: new[] { message.Build() }, username: "Modix Logger");
         }
     }
@@ -50,7 +81,7 @@ namespace Modix.Services.Utilities
     {
         public static string TruncateTo(this string str, int length)
         {
-            if(str.Length < length)
+            if (str.Length < length)
             {
                 return str;
             }

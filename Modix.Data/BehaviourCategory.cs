@@ -2,6 +2,5 @@
 {
     public enum BehaviourCategory
     {
-        InvitePurging = 0,
     }
 }

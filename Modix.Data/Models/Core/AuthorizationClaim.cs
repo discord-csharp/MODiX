@@ -40,7 +40,15 @@
         /// <summary>
         /// Authorizes a request to delete an infraction upon a user.
         /// </summary>
-        ModerationDelete,
+        ModerationDeleteInfraction,
+        /// <summary>
+        /// Authorizes a request to delete a message from a guild.
+        /// </summary>
+        ModerationDeleteMessage,
+        /// <summary>
+        /// Authorizes a request to post a message to a guild, containing a Discord invite link.
+        /// </summary>
+        PostInviteLink,
         /// <summary>
         /// Authorizes a request to create a promotion campaign for a user.
         /// </summary>

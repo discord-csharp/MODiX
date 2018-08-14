@@ -60,7 +60,7 @@ namespace Modix.Data.Repositories
     public class GuildUserRepository : RepositoryBase, IGuildUserRepository
     {
         /// <summary>
-        /// Creates a new <see cref="ModerationActionRepository"/>.
+        /// Creates a new <see cref="GuildUserRepository"/>.
         /// See <see cref="RepositoryBase(ModixContext)"/> for details.
         /// </summary>
         public GuildUserRepository(ModixContext modixContext)

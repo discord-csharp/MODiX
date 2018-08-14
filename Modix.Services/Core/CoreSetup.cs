@@ -20,7 +20,9 @@ namespace Modix.Services.Core
                 .AddSingleton<IBehavior, UserTrackingBehavior>()
                 .AddScoped<IAuthorizationService, AuthorizationService>()
                 .AddScoped<IUserService, UserService>()
+                .AddScoped<IChannelService, ChannelService>()
                 .AddScoped<IGuildUserRepository, GuildUserRepository>()
+                .AddScoped<IGuildChannelRepository, GuildChannelRepository>()
                 .AddScoped<IClaimMappingRepository, ClaimMappingRepository>()
                 .AddScoped<IConfigurationActionRepository, ConfigurationActionRepository>();
     }
