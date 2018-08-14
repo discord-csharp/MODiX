@@ -42,22 +42,24 @@ namespace Modix.Services.Utilities
                     .WithIsInline(false)
                     .WithName($"LogLevel: {logEvent.Level}")
                     .WithValue(Format.Code($"{formattedMessage}\n{logEvent.Exception?.Message}")));
+            var eventAsJson = JsonConvert.SerializeObject(logEvent, _jsonSerializerSettings);
             try
             {
                 var pasteHandler = new CodePasteService();
-                var url = pasteHandler.UploadCode(JsonConvert.SerializeObject(logEvent, _jsonSerializerSettings), "json").GetAwaiter().GetResult();
+                var url = pasteHandler.UploadCode(eventAsJson, "json").GetAwaiter().GetResult();
 
                 message.AddField(new EmbedFieldBuilder()
                     .WithIsInline(false)
-                    .WithName("Full Exception")
+                    .WithName("Full Log Event")
                     .WithValue($"[view on paste.mod.gg]({url})"));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Unable to upload stacktrace.{ex}");
+                Console.WriteLine($"Unable to upload log event.{ex}");
+                Console.WriteLine($"Raw event: {eventAsJson}");
                 message.AddField(new EmbedFieldBuilder()
                     .WithIsInline(false)
-                    .WithName("Stack trace")
+                    .WithName("Stack Trace")
                     .WithValue(Format.Code($"{formattedMessage}\n{logEvent.Exception?.ToString().TruncateTo(1000)}")));
                 message.AddField(new EmbedFieldBuilder()
                     .WithIsInline(false)
