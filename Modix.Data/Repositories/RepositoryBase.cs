@@ -14,7 +14,7 @@ namespace Modix.Data.Repositories
         /// <param name="modixContext">The value to use for <see cref="ModixContext"/>.</param>
         public RepositoryBase(ModixContext modixContext)
         {
-            ModixContext = modixContext ?? throw new ArgumentNullException(nameof(modixContext));
+            ModixContext = modixContext;
         }
 
         /// <summary>

@@ -56,38 +56,33 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="CreateAction"/>.
         /// </summary>
-        [Required, ForeignKey(nameof(CreateAction))]
+        [Required]
         public long CreateActionId { get; set; }
 
         /// <summary>
         /// The <see cref="ModerationActionEntity"/> that created this <see cref="InfractionEntity"/>.
         /// </summary>
         [Required]
-        [InverseProperty(nameof(ModerationActionEntity.CreatedInfraction))]
         public virtual ModerationActionEntity CreateAction { get; set; }
 
         /// <summary>
         /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="RescindAction"/>.
         /// </summary>
-        [ForeignKey(nameof(RescindAction))]
         public long? RescindActionId { get; set; }
 
         /// <summary>
         /// The <see cref="ModerationActionEntity"/> (if any) that rescinded this <see cref="InfractionEntity"/>.
         /// </summary>
-        [InverseProperty(nameof(ModerationActionEntity.RescindedInfraction))]
         public virtual ModerationActionEntity RescindAction { get; set; }
 
         /// <summary>
         /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="DeleteAction"/>.
         /// </summary>
-        [ForeignKey(nameof(DeleteAction))]
         public long? DeleteActionId { get; set; }
 
         /// <summary>
         /// The <see cref="ModerationActionEntity"/> (if any) that deleted this <see cref="InfractionEntity"/>.
         /// </summary>
-        [InverseProperty(nameof(ModerationActionEntity.DeletedInfraction))]
         public virtual ModerationActionEntity DeleteAction { get; set; }
     }
 }

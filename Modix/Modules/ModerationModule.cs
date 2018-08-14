@@ -17,7 +17,7 @@ namespace Modix.Modules
     {
         public ModerationModule(IModerationService moderationService)
         {
-            ModerationService = moderationService ?? throw new ArgumentNullException(nameof(moderationService));
+            ModerationService = moderationService;
         }
 
         [Command("moderation muterole get")]

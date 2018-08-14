@@ -8,6 +8,37 @@ using Modix.Data.Repositories;
 
 namespace Modix.Services.Core
 {
+    /// <summary>
+    /// Provides methods for managing and interacting with Discord users.
+    /// </summary>
+    public interface IUserService
+    {
+        /// <summary>
+        /// Retrieves the user, if any, associated with the given Discord ID value.
+        /// </summary>
+        /// <param name="userId">The <see cref="IEntity{T}.Id" /> of the user to be retrieved.</param>
+        /// <returns>
+        /// The <see cref="IUser"/>, if any, retrieved from Discord.NET.
+        /// This user may also be an <see cref="IGuildUser"/>, if the current request is associated with a particular guild.
+        /// </returns>
+        Task<IUser> GetUserAsync(ulong userId);
+
+        /// <summary>
+        /// Retrieves the user, if any, associated with the given Discord ID value that also belongs to a specified guild.
+        /// </summary>
+        /// <param name="guildId">The <see cref="IEntity{T}.Id" /> of the guild whose user is to be retrieved.</param>
+        /// <param name="userId">The <see cref="IEntity{T}.Id" /> of the user to be retrieved.</param>
+        /// <returns>The <see cref="IGuildUser"/>, if any, retrieved from Discord.NET.</returns>
+        Task<IGuildUser> GetGuildUserAsync(ulong guildId, ulong userId);
+
+        /// <summary>
+        /// Updates information about the given user within the user tracking system of a guild.
+        /// </summary>
+        /// <param name="user">The user whose info is to be tracked.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task TrackUserAsync(IGuildUser user);
+    }
+
     /// <inheritdoc />
     public class UserService : IUserService
     {
@@ -16,15 +47,12 @@ namespace Modix.Services.Core
         /// </summary>
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
         /// <param name="authorizationService">The value to use for <see cref="AuthorizationService"/>.</param>
-        /// <param name="guildService">The value to use for <see cref="GuildService"/>.</param>
         /// <param name="guildUserRepository">The value to use for <see cref="GuildUserRepository"/>.</param>
-        /// <exception cref="ArgumentNullException">Throws for all parameters.</exception>
-        public UserService(IDiscordClient discordClient, IAuthorizationService authorizationService, IGuildService guildService, IGuildUserRepository guildUserRepository)
+        public UserService(IDiscordClient discordClient, IAuthorizationService authorizationService, IGuildUserRepository guildUserRepository)
         {
-            DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
-            AuthorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
-            GuildService = guildService ?? throw new ArgumentNullException(nameof(guildService));
-            GuildUserRepository = guildUserRepository ?? throw new ArgumentNullException(nameof(guildUserRepository));
+            DiscordClient = discordClient;
+            AuthorizationService = authorizationService;
+            GuildUserRepository = guildUserRepository;
         }
 
         /// <inheritdoc />
@@ -32,7 +60,7 @@ namespace Modix.Services.Core
         {
             var user = (AuthorizationService.CurrentGuildId == null)
                 ? await DiscordClient.GetUserAsync(userId)
-                : await (await GuildService.GetGuildAsync(AuthorizationService.CurrentGuildId.Value))
+                : await (await DiscordClient.GetGuildAsync(AuthorizationService.CurrentGuildId.Value))
                     .GetUserAsync(userId);
 
             if (user == null)
@@ -47,7 +75,7 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task<IGuildUser> GetGuildUserAsync(ulong guildId, ulong userId)
         {
-            var guild = await GuildService.GetGuildAsync(guildId);
+            var guild = await DiscordClient.GetGuildAsync(guildId);
             if (guild == null)
                 throw new InvalidOperationException($"Discord guild {guildId} does not exist");
 
@@ -102,11 +130,6 @@ namespace Modix.Services.Core
         /// A <see cref="IAuthorizationService"/> to be used to interact with frontend authentication system, and perform authorization.
         /// </summary>
         internal protected IAuthorizationService AuthorizationService { get; }
-
-        /// <summary>
-        /// A <see cref="IGuildService"/> to be used to interact with Discord guild objects.
-        /// </summary>
-        internal protected IGuildService GuildService { get; }
 
         /// <summary>
         /// A <see cref="IGuildUserRepository"/> to be used to interact with user data within a datastore.

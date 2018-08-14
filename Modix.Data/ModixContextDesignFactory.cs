@@ -8,7 +8,7 @@ namespace Modix.Data
         public ModixContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<ModixContext>();
-            optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Database=Modix;User Id=postres");
+            optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Database=ModixTest;User Id=X;Password=X;");
             return new ModixContext(optionsBuilder.Options);
         }
     }
