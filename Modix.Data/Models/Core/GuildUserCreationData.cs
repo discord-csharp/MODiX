@@ -3,7 +3,7 @@
 namespace Modix.Data.Models.Core
 {
     /// <summary>
-    /// Describes an operation to create a <see cref="UserEntity"/>.
+    /// Describes an operation to create a <see cref="GuildUserEntity"/> and (potentially) corresponding <see cref="UserEntity"/>.
     /// </summary>
     public class GuildUserCreationData
     {

@@ -131,6 +131,14 @@ namespace Modix.Services.Moderation
         Task DeleteInfractionAsync(long infractionId);
 
         /// <summary>
+        /// Deletes a message and creates a record of the deletion within the database.
+        /// </summary>
+        /// <param name="message">The message to be deleted.</param>
+        /// <param name="reason">A description of the reason the message was deleted.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task DeleteMessageAsync(IMessage message, string reason);
+
+        /// <summary>
         /// Retrieves a collection of infractions, based on a given set of criteria.
         /// </summary>
         /// <param name="searchCriteria">The criteria defining which infractions are to be returned.</param>

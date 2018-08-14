@@ -83,7 +83,7 @@ namespace Modix.Services.Moderation
         private void OnUpdateTimerElapsed(object sender, ElapsedEventArgs e)
         {
 #pragma warning disable CS4014
-            SelfExecuteOnScopedServiceAsync<IModerationService>(async moderationService =>
+            SelfExecuteRequest<IModerationService>(async moderationService =>
             {
                 await moderationService.AutoRescindExpiredInfractions();
 

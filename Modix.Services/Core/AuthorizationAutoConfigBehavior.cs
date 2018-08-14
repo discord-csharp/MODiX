@@ -59,9 +59,9 @@ namespace Modix.Services.Core
         internal protected DiscordSocketClient DiscordClient { get; }
 
         private Task OnGuildAvailable(IGuild guild)
-            => SelfExecuteOnScopedServiceAsync<IAuthorizationService>(x => x.AutoConfigureGuildAsync(guild));
+            => SelfExecuteRequest<IAuthorizationService>(x => x.AutoConfigureGuildAsync(guild));
 
         private Task OnLeftGuild(IGuild guild)
-            => SelfExecuteOnScopedServiceAsync<IAuthorizationService>(x => x.UnConfigureGuildAsync(guild));
+            => SelfExecuteRequest<IAuthorizationService>(x => x.UnConfigureGuildAsync(guild));
     }
 }
