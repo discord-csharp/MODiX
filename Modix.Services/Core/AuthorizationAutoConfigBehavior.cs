@@ -18,11 +18,10 @@ namespace Modix.Services.Core
         /// </summary>
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
         /// <param name="serviceProvider">See <see cref="BehaviorBase"/>.</param>
-        /// <exception cref="ArgumentNullException">Throws for <paramref name="discordClient"/>.</exception>
         public AuthorizationAutoConfigBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
-            DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
+            DiscordClient = discordClient;
         }
 
         /// <inheritdoc />
@@ -59,9 +58,9 @@ namespace Modix.Services.Core
         internal protected DiscordSocketClient DiscordClient { get; }
 
         private Task OnGuildAvailable(IGuild guild)
-            => SelfExecuteOnScopedServiceAsync<IAuthorizationService>(x => x.AutoConfigureGuildAsync(guild));
+            => SelfExecuteRequest<IAuthorizationService>(x => x.AutoConfigureGuildAsync(guild));
 
         private Task OnLeftGuild(IGuild guild)
-            => SelfExecuteOnScopedServiceAsync<IAuthorizationService>(x => x.UnConfigureGuildAsync(guild));
+            => SelfExecuteRequest<IAuthorizationService>(x => x.UnConfigureGuildAsync(guild));
     }
 }

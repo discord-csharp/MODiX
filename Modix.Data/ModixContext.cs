@@ -26,6 +26,8 @@ namespace Modix.Data
 
         public DbSet<GuildUserEntity> GuildUsers { get; set; }
 
+        public DbSet<GuildChannelEntity> GuildChannels { get; set; }
+
         public DbSet<ClaimMappingEntity> ClaimMappings { get; set; }
 
         public DbSet<ModerationMuteRoleMappingEntity> ModerationMuteRoleMappings { get; set; }
@@ -35,6 +37,8 @@ namespace Modix.Data
         public DbSet<ModerationActionEntity> ModerationActions { get; set; }
 
         public DbSet<InfractionEntity> Infractions { get; set; }
+
+        public DbSet<DeletedMessageEntity> DeletedMessages { get; set; }
 
         public DbSet<PromotionCampaignEntity> PromotionCampaigns { get; set; }
 
@@ -84,15 +88,45 @@ namespace Modix.Data
                 .HasForeignKey(x => new { x.GuildId, x.SubjectId });
 
             modelBuilder
+                .Entity<InfractionEntity>()
+                .HasOne(x => x.CreateAction)
+                .WithOne()
+                .HasForeignKey<InfractionEntity>(x => x.CreateActionId);
+
+            modelBuilder
+                .Entity<InfractionEntity>()
+                .HasOne(x => x.RescindAction)
+                .WithOne()
+                .HasForeignKey<InfractionEntity>(x => x.RescindActionId);
+
+            modelBuilder
+                .Entity<InfractionEntity>()
+                .HasOne(x => x.DeleteAction)
+                .WithOne()
+                .HasForeignKey<InfractionEntity>(x => x.DeleteActionId);
+
+            modelBuilder
+                .Entity<DeletedMessageEntity>()
+                .HasOne(x => x.Author)
+                .WithMany()
+                .HasForeignKey(x => new { x.GuildId, x.AuthorId });
+
+            modelBuilder
                 .Entity<ModerationActionEntity>()
                 .Property(x => x.Type)
                 .HasConversion<string>();
 
             modelBuilder
                 .Entity<ModerationActionEntity>()
-                .HasOne(X => X.CreatedBy)
+                .HasOne(x => x.CreatedBy)
                 .WithMany()
                 .HasForeignKey(x => new { x.GuildId, x.CreatedById });
+
+            modelBuilder
+                .Entity<ModerationActionEntity>()
+                .HasOne(x => x.Infraction)
+                .WithMany()
+                .HasForeignKey(x => x.InfractionId);
         }
     }
 }

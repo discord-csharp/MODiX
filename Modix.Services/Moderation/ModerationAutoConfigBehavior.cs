@@ -18,11 +18,10 @@ namespace Modix.Services.Moderation
         /// </summary>
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
         /// <param name="serviceProvider">See <see cref="BehaviorBase"/>.</param>
-        /// <exception cref="ArgumentNullException">Throws for <paramref name="discordClient"/>.</exception>
         public ModerationAutoConfigBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
-            DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
+            DiscordClient = discordClient;
         }
 
         /// <inheritdoc />
@@ -63,15 +62,15 @@ namespace Modix.Services.Moderation
         internal protected DiscordSocketClient DiscordClient { get; }
 
         private Task OnGuildAvailableAsync(IGuild guild)
-            => SelfExecuteOnScopedServiceAsync<IModerationService>(x => x.AutoConfigureGuldAsync(guild));
+            => SelfExecuteRequest<IModerationService>(x => x.AutoConfigureGuldAsync(guild));
 
         private Task OnChannelCreated(IChannel channel)
-            => SelfExecuteOnScopedServiceAsync<IModerationService>(x => x.AutoConfigureChannelAsync(channel));
+            => SelfExecuteRequest<IModerationService>(x => x.AutoConfigureChannelAsync(channel));
 
         private Task OnChannelUpdated(IChannel oldChannel, IChannel newChannel)
-            => SelfExecuteOnScopedServiceAsync<IModerationService>(x => x.AutoConfigureChannelAsync(newChannel));
+            => SelfExecuteRequest<IModerationService>(x => x.AutoConfigureChannelAsync(newChannel));
 
         private Task OnLeftGuild(IGuild guild)
-            => SelfExecuteOnScopedServiceAsync<IModerationService>(x => x.UnConfigureGuildAsync(guild));
+            => SelfExecuteRequest<IModerationService>(x => x.UnConfigureGuildAsync(guild));
     }
 }

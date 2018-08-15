@@ -18,11 +18,10 @@ namespace Modix.Services.Core
         /// </summary>
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
         /// <param name="serviceProvider">See <see cref="BehaviorBase"/>.</param>
-        /// <exception cref="ArgumentNullException">Throws for <paramref name="discordClient"/>.</exception>
         public UserTrackingBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
-            DiscordClient = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
+            DiscordClient = discordClient;
         }
 
         /// <inheritdoc />
@@ -63,20 +62,20 @@ namespace Modix.Services.Core
         internal protected DiscordSocketClient DiscordClient { get; }
 
         private Task OnGuildAvailableAsync(IGuild guild)
-            => SelfExecuteOnScopedServiceAsync<IUserService>(async x =>
+            => SelfExecuteRequest<IUserService>(async x =>
                 await x.TrackUserAsync(
                     await guild.GetUserAsync(DiscordClient.CurrentUser.Id)));
 
         private Task OnUserJoinedAsync(IGuildUser guildUser)
-            => SelfExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(guildUser));
+            => SelfExecuteRequest<IUserService>(x => x.TrackUserAsync(guildUser));
 
         private Task OnGuildMemberUpdatedAsync(IGuildUser oldUser, IGuildUser newUser)
-            => SelfExecuteOnScopedServiceAsync<IUserService>(x => x.TrackUserAsync(newUser));
+            => SelfExecuteRequest<IUserService>(x => x.TrackUserAsync(newUser));
 
         private Task OnMessageReceivedAsync(IMessage message)
-            => SelfExecuteOnScopedServiceAsync<IUserService>(async x =>
+            => SelfExecuteRequest<IUserService>(async x =>
             {
-                if(message.Author is IGuildUser author)
+                if(message.Author is IGuildUser author && !(author.Guild is null))
                     await x.TrackUserAsync(author);
             });
     }
