@@ -6,15 +6,14 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 using Modix.Data.Models.Core;
-using Modix.Data.Models.Moderation;
 using Modix.Data.Utilities;
 
 namespace Modix.Data.Repositories
 {
     /// <summary>
-    /// Describes a repository for managing <see cref="ModerationLogChannelMappingEntity"/> entities, within an underlying data storage provider.
+    /// Describes a repository for managing <see cref="DesignatedChannelMappingEntity"/> entities, within an underlying data storage provider.
     /// </summary>
-    public interface IModerationLogChannelMappingRepository
+    public interface IDesignatedChannelMappingRepository
     {
         /// <summary>
         /// Begins a new transaction to create mappings within the repository.
@@ -42,9 +41,9 @@ namespace Modix.Data.Repositories
         /// <exception cref="ArgumentNullException">Throws for <paramref name="data"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing the auto-generated <see cref="ModerationLogChannelMappingEntity.Id"/> value assigned to the new mapping.
+        /// containing the auto-generated <see cref="DesignatedChannelMappingEntity.Id"/> value assigned to the new mapping.
         /// </returns>
-        Task<long> CreateAsync(ModerationLogChannelMappingCreationData data);
+        Task<long> CreateAsync(DesignatedChannelMappingCreationData data);
 
         /// <summary>
         /// Checks whether any mappings exist within the repository, according to an arbitrary set of criteria.
@@ -54,14 +53,14 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> that will complete when the operation has completed,
         /// containing a flag indicating whether any matching log channel mappings were found.
         /// </returns>
-        Task<bool> AnyAsync(ModerationLogChannelMappingSearchCriteria criteria);
+        Task<bool> AnyAsync(DesignatedChannelMappingSearchCriteria criteria);
 
         /// <summary>
         /// Searches the repository for mappings, based on an arbitrary set of criteria.
         /// </summary>
-        /// <param name="searchCriteria">The criteria for selecting <see cref="ModerationLogChannelMappingBrief"/> records to be returned.</param>
+        /// <param name="searchCriteria">The criteria for selecting <see cref="DesignatedChannelMappingBrief"/> records to be returned.</param>
         /// <returns>A <see cref="Task"/> which will complete when the matching records have been retrieved.</returns>
-        Task<IReadOnlyCollection<ModerationLogChannelMappingBrief>> SearchBriefsAsync(ModerationLogChannelMappingSearchCriteria searchCriteria);
+        Task<IReadOnlyCollection<DesignatedChannelMappingBrief>> SearchBriefsAsync(DesignatedChannelMappingSearchCriteria searchCriteria);
 
         /// <summary>
         /// Marks mappings within the repository as deleted, based on a given set of search criteria.
@@ -73,13 +72,13 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing the total number of mappings that were deleted, based on the given criteria.
         /// </returns>
-        Task<int> DeleteAsync(ModerationLogChannelMappingSearchCriteria criteria, ulong deletedById);
+        Task<int> DeleteAsync(DesignatedChannelMappingSearchCriteria criteria, ulong deletedById);
 
         /// <summary>
         /// Marks an existing mapping as deleted, based on its ID.
         /// This method must not be called outside of the scope of an <see cref="IRepositoryTransaction"/> returned by <see cref="BeginDeleteTransactionAsync"/>.
         /// </summary>
-        /// <param name="mappingId">The <see cref="ModerationLogChannelMappingEntity.Id"/> value of the mapping to be deleted.</param>
+        /// <param name="mappingId">The <see cref="DesignatedChannelMappingEntity.Id"/> value of the mapping to be deleted.</param>
         /// <param name="deletedById">The <see cref="UserEntity.Id"/> value of the user that is deleting the mapping.</param>
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing a flag indicating whether the operation was successful (I.E. whether the specified mapping could be found).
@@ -88,13 +87,13 @@ namespace Modix.Data.Repositories
     }
 
     /// <inheritdoc />
-    public class ModerationLogChannelMappingRepository : RepositoryBase, IModerationLogChannelMappingRepository
+    public class DesignatedChannelMappingRepository : RepositoryBase, IDesignatedChannelMappingRepository
     {
         /// <summary>
-        /// Creates a new <see cref="ModerationActionRepository"/>.
+        /// Creates a new <see cref="DesignatedChannelMappingRepository"/>.
         /// See <see cref="RepositoryBase(ModixContext)"/> for details.
         /// </summary>
-        public ModerationLogChannelMappingRepository(ModixContext modixContext)
+        public DesignatedChannelMappingRepository(ModixContext modixContext)
             : base(modixContext) { }
 
         /// <inheritdoc />
@@ -106,40 +105,40 @@ namespace Modix.Data.Repositories
             => _deleteTransactionFactory.BeginTransactionAsync(ModixContext.Database);
 
         /// <inheritdoc />
-        public async Task<long> CreateAsync(ModerationLogChannelMappingCreationData data)
+        public async Task<long> CreateAsync(DesignatedChannelMappingCreationData data)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
             var entity = data.ToEntity();
 
-            await ModixContext.ModerationLogChannelMappings.AddAsync(entity);
+            await ModixContext.DesignatedChannelMappings.AddAsync(entity);
             await ModixContext.SaveChangesAsync();
 
-            entity.CreateAction.ModerationLogChannelMappingId = entity.Id;
+            entity.CreateAction.DesignatedChannelMappingId = entity.Id;
             await ModixContext.SaveChangesAsync();
 
             return entity.Id;
         }
 
         /// <inheritdoc />
-        public Task<bool> AnyAsync(ModerationLogChannelMappingSearchCriteria criteria)
-            => ModixContext.ModerationLogChannelMappings.AsNoTracking()
-                .FilterModerationLogChannelMappingsBy(criteria)
+        public Task<bool> AnyAsync(DesignatedChannelMappingSearchCriteria criteria)
+            => ModixContext.DesignatedChannelMappings.AsNoTracking()
+                .FilterDesignatedChannelMappingsBy(criteria)
                 .AnyAsync();
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<ModerationLogChannelMappingBrief>> SearchBriefsAsync(ModerationLogChannelMappingSearchCriteria criteria)
-            => await ModixContext.ModerationLogChannelMappings.AsNoTracking()
-                .FilterModerationLogChannelMappingsBy(criteria)
-                .Select(ModerationLogChannelMappingBrief.FromEntityProjection)
+        public async Task<IReadOnlyCollection<DesignatedChannelMappingBrief>> SearchBriefsAsync(DesignatedChannelMappingSearchCriteria criteria)
+            => await ModixContext.DesignatedChannelMappings.AsNoTracking()
+                .FilterDesignatedChannelMappingsBy(criteria)
+                .Select(DesignatedChannelMappingBrief.FromEntityProjection)
                 .ToArrayAsync();
 
         /// <inheritdoc />
-        public async Task<int> DeleteAsync(ModerationLogChannelMappingSearchCriteria criteria, ulong deletedById)
+        public async Task<int> DeleteAsync(DesignatedChannelMappingSearchCriteria criteria, ulong deletedById)
         {
-            var entities = await ModixContext.ModerationLogChannelMappings
-                .FilterModerationLogChannelMappingsBy(criteria)
+            var entities = await ModixContext.DesignatedChannelMappings
+                .FilterDesignatedChannelMappingsBy(criteria)
                 .ToArrayAsync();
 
             foreach (var entity in entities)
@@ -155,7 +154,7 @@ namespace Modix.Data.Repositories
         {
             var longDeletedById = (long)deletedById;
 
-            var entity = await ModixContext.ModerationLogChannelMappings
+            var entity = await ModixContext.DesignatedChannelMappings
                 .Where(x => x.Id == mappingId)
                 .FirstOrDefaultAsync();
 
@@ -175,26 +174,27 @@ namespace Modix.Data.Repositories
         private static readonly RepositoryTransactionFactory _deleteTransactionFactory
             = new RepositoryTransactionFactory();
 
-        private void DoEntityDelete(ModerationLogChannelMappingEntity entity, ulong deletedById)
+        private void DoEntityDelete(DesignatedChannelMappingEntity entity, ulong deletedById)
         {
             var longDeletedById = (long)deletedById;
 
             entity.DeleteAction = new ConfigurationActionEntity()
             {
-                Type = ConfigurationActionType.ModerationLogChannelMappingDeleted,
+                Type = ConfigurationActionType.DesignatedChannelMappingDeleted,
                 Created = DateTimeOffset.Now,
                 CreatedById = longDeletedById,
-                ModerationLogChannelMappingId = entity.Id
+                DesignatedChannelMappingId = entity.Id,
+                GuildId = entity.GuildId
             };
         }
     }
 
-    internal static class ModerationLogChannelMappingQueryableExtensions
+    internal static class DesignatedChannelMappingQueryableExtensions
     {
-        public static IQueryable<ModerationLogChannelMappingEntity> FilterModerationLogChannelMappingsBy(this IQueryable<ModerationLogChannelMappingEntity> query, ModerationLogChannelMappingSearchCriteria criteria)
+        public static IQueryable<DesignatedChannelMappingEntity> FilterDesignatedChannelMappingsBy(this IQueryable<DesignatedChannelMappingEntity> query, DesignatedChannelMappingSearchCriteria criteria)
         {
             var longGuildId = (long?)criteria?.GuildId;
-            var longLogChannelId = (long?)criteria?.LogChannelId;
+            var longChannelId = (long?)criteria?.ChannelId;
             var longCreatedById = (long?)criteria?.CreatedById;
 
             return query
@@ -202,8 +202,11 @@ namespace Modix.Data.Repositories
                     x => x.GuildId == longGuildId,
                     longGuildId != null)
                 .FilterBy(
-                    x => x.LogChannelId == longLogChannelId,
-                    longLogChannelId != null)
+                    x => x.ChannelId == longChannelId,
+                    longChannelId != null)
+                .FilterBy(
+                    x => x.ChannelDesignation == criteria.ChannelDesignation,
+                    criteria.ChannelDesignation != null)
                 .FilterBy(
                     x => x.CreateAction.Created >= criteria.CreatedRange.Value.From,
                     criteria?.CreatedRange?.From != null)

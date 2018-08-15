@@ -36,32 +36,6 @@ namespace Modix.Modules
                 IRole muteRole)
             => ModerationService.SetMuteRoleAsync(Context.Guild, muteRole);
 
-        [Command("moderation logchannels")]
-        [Summary("Lists all channels currently configured to receive moderation log messages")]
-        public async Task GetLogChannels()
-        {
-            var logChannels = await ModerationService.GetLogChannelsAsync(Context.Guild);
-
-            await ReplyAsync(logChannels.Any()
-                ? string.Join("\r\n",
-                    logChannels.Select(x => $"#{x.Name}"))
-                : "There are no moderation log channels currently configured.");
-        }
-
-        [Command("moderation logchannels add")]
-        [Summary("Configures a channel to received moderation log messages")]
-        public Task AddLogChannel(
-            [Summary("The channel to receive log messages")]
-                IMessageChannel channel)
-            => ModerationService.AddLogChannelAsync(Context.Guild, channel);
-
-        [Command("moderation logchannels remove")]
-        [Summary("Configures a channel to stop receiving moderation log messages")]
-        public Task RemoveLogChannel(
-            [Summary("The channel to stop receiving log messages")]
-                IMessageChannel channel)
-            => ModerationService.RemoveLogChannelAsync(Context.Guild, channel);
-
         [Command("note")]
         [Summary("Applies a note to a user's infraction history.")]
         public Task Note(
