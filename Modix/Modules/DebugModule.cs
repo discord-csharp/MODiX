@@ -21,7 +21,7 @@ namespace Modix.Modules
     {
         public DebugModule(IAuthorizationService authorizationService, IModerationService moderationService)
         {
-            AuthorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
+            AuthorizationService = authorizationService;
         }
 
         [Command("throw")]

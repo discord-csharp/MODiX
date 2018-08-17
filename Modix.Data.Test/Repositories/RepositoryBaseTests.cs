@@ -17,34 +17,11 @@ namespace Modix.Data.Test.Repositories
             public ModixContext modixContext = Substitute.For<ModixContext>();
 
             public RepositoryBase ConstructUUT()
-            {
-                try
-                {
-                    return Substitute.For<RepositoryBase>(modixContext);
-                }
-                catch (TargetInvocationException ex)
-                {
-                    throw ex.InnerException;
-                }
-            }
+                => Substitute.For<RepositoryBase>(modixContext);
         }
 
         [Test]
-        public void Constructor_ModixContextIsNull_ThrowsException()
-        {
-            var context = new TestContext()
-            {
-                modixContext = null
-            };
-
-            Should.Throw<ArgumentNullException>(() =>
-            {
-                context.ConstructUUT();
-            });
-        }
-
-        [Test]
-        public void Constructor_Otherwise_ModixContextIsGiven()
+        public void Constructor_Always_ModixContextIsGiven()
         {
             var context = new TestContext();
 

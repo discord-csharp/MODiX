@@ -16,7 +16,7 @@ namespace Modix.Modules
     {
         public AuthorizationModule(IAuthorizationService authorizationService)
         {
-            AuthorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
+            AuthorizationService = authorizationService;
         }
 
         [Command("claims")]

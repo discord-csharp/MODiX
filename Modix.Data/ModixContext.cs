@@ -88,6 +88,24 @@ namespace Modix.Data
                 .HasForeignKey(x => new { x.GuildId, x.SubjectId });
 
             modelBuilder
+                .Entity<InfractionEntity>()
+                .HasOne(x => x.CreateAction)
+                .WithOne()
+                .HasForeignKey<InfractionEntity>(x => x.CreateActionId);
+
+            modelBuilder
+                .Entity<InfractionEntity>()
+                .HasOne(x => x.RescindAction)
+                .WithOne()
+                .HasForeignKey<InfractionEntity>(x => x.RescindActionId);
+
+            modelBuilder
+                .Entity<InfractionEntity>()
+                .HasOne(x => x.DeleteAction)
+                .WithOne()
+                .HasForeignKey<InfractionEntity>(x => x.DeleteActionId);
+
+            modelBuilder
                 .Entity<DeletedMessageEntity>()
                 .HasOne(x => x.Author)
                 .WithMany()
@@ -103,6 +121,12 @@ namespace Modix.Data
                 .HasOne(x => x.CreatedBy)
                 .WithMany()
                 .HasForeignKey(x => new { x.GuildId, x.CreatedById });
+
+            modelBuilder
+                .Entity<ModerationActionEntity>()
+                .HasOne(x => x.Infraction)
+                .WithMany()
+                .HasForeignKey(x => x.InfractionId);
         }
     }
 }
