@@ -85,7 +85,7 @@ namespace Modix.Services.Core
             {
                 var cached = message.Value;
 
-                //Don't log deletes messages from Modix
+                //Don't log when messages from Modix are deleted
                 if (message.Value.Author.Id == _discordClient.CurrentUser.Id) { return; }
 
                 embed = embed
