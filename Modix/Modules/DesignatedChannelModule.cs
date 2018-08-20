@@ -14,10 +14,12 @@ namespace Modix.Modules
     [Group("designations")]
     public class DesignatedChannelModule : ModuleBase
     {
+        public IAuthorizationService AuthorizationService { get; }
         public IDesignatedChannelService DesignatedChannelService { get; }
 
-        public DesignatedChannelModule(IDesignatedChannelService designatedChannelService)
+        public DesignatedChannelModule(IAuthorizationService authorizationService, IDesignatedChannelService designatedChannelService)
         {
+            AuthorizationService = authorizationService;
             DesignatedChannelService = designatedChannelService;
         }
 
@@ -25,6 +27,8 @@ namespace Modix.Modules
         [Summary("Lists all possible designations, and channels currently assigned to them")]
         public async Task GetLogChannels()
         {
+            AuthorizationService.RequireClaims(AuthorizationClaim.ChannelDesignationRead);
+
             var channelData = await DesignatedChannelService.GetDesignatedChannels(Context.Guild.Id);
 
             var builder = new EmbedBuilder().WithTitle("Assigned Channel Designations");

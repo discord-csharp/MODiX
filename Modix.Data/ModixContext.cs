@@ -31,9 +31,9 @@ namespace Modix.Data
 
         public DbSet<ClaimMappingEntity> ClaimMappings { get; set; }
 
-        public DbSet<ModerationMuteRoleMappingEntity> ModerationMuteRoleMappings { get; set; }
-
         public DbSet<DesignatedChannelMappingEntity> DesignatedChannelMappings { get; set; }
+
+        public DbSet<ModerationMuteRoleMappingEntity> ModerationMuteRoleMappings { get; set; }
 
         public DbSet<ModerationActionEntity> ModerationActions { get; set; }
 

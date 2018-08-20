@@ -106,7 +106,7 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task RemoveDesignatedChannelAsync(IGuild guild, IMessageChannel logChannel, ChannelDesignation designation)
         {
-            AuthorizationService.RequireClaims(AuthorizationClaim.ChannelDesignationRemove);
+            AuthorizationService.RequireClaims(AuthorizationClaim.ChannelDesignationDelete);
 
             using (var transaction = await DesignatedChannelMappingRepository.BeginDeleteTransactionAsync())
             {
@@ -135,11 +135,6 @@ namespace Modix.Services.Core
                 ChannelDesignation = designation
             });
 
-            if (foundChannels.Count == 0)
-            {
-                Log.Warning("Warning: No channels assigned to designation {designation}", new { designation });
-            }
-
             return foundChannels.Select(d => d.ChannelId);
         }
 
@@ -159,6 +154,11 @@ namespace Modix.Services.Core
         public async Task<IEnumerable<IMessage>> SendToDesignatedChannelsAsync(IGuild guild, ChannelDesignation designation, string text, Embed embed = null)
         {
             var channels = await GetDesignatedChannels(guild, designation);
+
+            if (!channels.Any())
+            {
+                Log.Warning("Warning: Tried to send to channels assigned to designation {designation}, but none were assigned.", new { designation });
+            }
 
             var messages = await Task.WhenAll(channels.Select(channel => channel.SendMessageAsync(text, false, embed)));
             return messages.OfType<IMessage>();

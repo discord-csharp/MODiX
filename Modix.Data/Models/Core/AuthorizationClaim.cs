@@ -68,6 +68,10 @@
         /// <summary>
         /// Authorizes a request to unassign a channel designation.
         /// </summary>
-        ChannelDesignationRemove
+        ChannelDesignationDelete,
+        /// <summary>
+        /// Authorizes a request to view current channel designations.
+        /// </summary>
+        ChannelDesignationRead
     }
 }

@@ -38,6 +38,9 @@ namespace Modix.Services.Core
 
         private async Task HandleMessageEdit(Cacheable<IMessage, ulong> cachedOriginal, SocketMessage updated, ISocketMessageChannel channel)
         {
+            //Don't log when Modix edits its own messages
+            if (updated.Author.Id == _discordClient.CurrentUser.Id) { return; }
+
             var guild = (channel as SocketGuildChannel)?.Guild;
 
             if (guild == null)
@@ -82,7 +85,7 @@ namespace Modix.Services.Core
             {
                 var cached = message.Value;
 
-                //Don't log messages Modix deletes
+                //Don't log deletes messages from Modix
                 if (message.Value.Author.Id == _discordClient.CurrentUser.Id) { return; }
 
                 embed = embed
