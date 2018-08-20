@@ -27,6 +27,16 @@ namespace Modix.Data.Migrations
                 table: "DeletedMessages");
 
             migrationBuilder.RenameColumn(
+                name: "CreateActionID",
+                table: "ModerationMuteRoleMappings",
+                newName: "CreateActionId");
+
+            migrationBuilder.RenameIndex(
+                name: "IX_ModerationMuteRoleMappings_CreateActionID",
+                table: "ModerationMuteRoleMappings",
+                newName: "IX_ModerationMuteRoleMappings_CreateActionId");
+
+            migrationBuilder.RenameColumn(
                 name: "ModerationLogChannelMappingId",
                 table: "ConfigurationActions",
                 newName: "DesignatedChannelMappingId");
@@ -45,7 +55,7 @@ namespace Modix.Data.Migrations
                     GuildId = table.Column<long>(nullable: false),
                     ChannelId = table.Column<long>(nullable: false),
                     ChannelDesignation = table.Column<string>(nullable: false),
-                    CreateActionID = table.Column<long>(nullable: false),
+                    CreateActionId = table.Column<long>(nullable: false),
                     DeleteActionId = table.Column<long>(nullable: true)
                 },
                 constraints: table =>
@@ -53,7 +63,7 @@ namespace Modix.Data.Migrations
                     table.PrimaryKey("PK_DesignatedChannelMappings", x => x.Id);
                     table.ForeignKey(
                         name: "FK_DesignatedChannelMappings_ConfigurationActions_CreateAction~",
-                        column: x => x.CreateActionID,
+                        column: x => x.CreateActionId,
                         principalTable: "ConfigurationActions",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -72,9 +82,9 @@ namespace Modix.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_DesignatedChannelMappings_CreateActionID",
+                name: "IX_DesignatedChannelMappings_CreateActionId",
                 table: "DesignatedChannelMappings",
-                column: "CreateActionID",
+                column: "CreateActionId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -104,6 +114,16 @@ namespace Modix.Data.Migrations
             migrationBuilder.DropIndex(
                 name: "IX_DeletedMessages_CreateActionId",
                 table: "DeletedMessages");
+
+            migrationBuilder.RenameColumn(
+                name: "CreateActionId",
+                table: "ModerationMuteRoleMappings",
+                newName: "CreateActionID");
+
+            migrationBuilder.RenameIndex(
+                name: "IX_ModerationMuteRoleMappings_CreateActionId",
+                table: "ModerationMuteRoleMappings",
+                newName: "IX_ModerationMuteRoleMappings_CreateActionID");
 
             migrationBuilder.RenameColumn(
                 name: "DesignatedChannelMappingId",

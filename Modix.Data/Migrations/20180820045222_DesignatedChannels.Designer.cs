@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    [Migration("20180819185505_DesignatedChannels")]
+    [Migration("20180820045222_DesignatedChannels")]
     partial class DesignatedChannels
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -115,7 +115,7 @@ namespace Modix.Data.Migrations
 
                     b.Property<long>("ChannelId");
 
-                    b.Property<long>("CreateActionID");
+                    b.Property<long>("CreateActionId");
 
                     b.Property<long?>("DeleteActionId");
 
@@ -123,7 +123,7 @@ namespace Modix.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreateActionID")
+                    b.HasIndex("CreateActionId")
                         .IsUnique();
 
                     b.HasIndex("DeleteActionId")
@@ -284,7 +284,7 @@ namespace Modix.Data.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<long>("CreateActionID");
+                    b.Property<long>("CreateActionId");
 
                     b.Property<long?>("DeleteActionId");
 
@@ -294,7 +294,7 @@ namespace Modix.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreateActionID")
+                    b.HasIndex("CreateActionId")
                         .IsUnique();
 
                     b.HasIndex("DeleteActionId")
@@ -377,7 +377,7 @@ namespace Modix.Data.Migrations
                 {
                     b.HasOne("Modix.Data.Models.Core.ConfigurationActionEntity", "CreateAction")
                         .WithOne("CreatedDesignatedChannelMapping")
-                        .HasForeignKey("Modix.Data.Models.Core.DesignatedChannelMappingEntity", "CreateActionID")
+                        .HasForeignKey("Modix.Data.Models.Core.DesignatedChannelMappingEntity", "CreateActionId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Modix.Data.Models.Core.ConfigurationActionEntity", "DeleteAction")
@@ -448,7 +448,7 @@ namespace Modix.Data.Migrations
                 {
                     b.HasOne("Modix.Data.Models.Core.ConfigurationActionEntity", "CreateAction")
                         .WithOne("CreatedModerationMuteRoleMapping")
-                        .HasForeignKey("Modix.Data.Models.Moderation.ModerationMuteRoleMappingEntity", "CreateActionID")
+                        .HasForeignKey("Modix.Data.Models.Moderation.ModerationMuteRoleMappingEntity", "CreateActionId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Modix.Data.Models.Core.ConfigurationActionEntity", "DeleteAction")
