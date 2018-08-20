@@ -53,7 +53,7 @@ namespace Modix.Services.Core
             var embed = new EmbedBuilder()
                 .WithVerboseAuthor(original.Author)
                 .WithDescription($"**Original**```{original.Content}```\n**Updated**```{updated.Content}```")
-                .WithTimestamp(DateTimeOffset.UtcNow);
+                .WithVerboseTimestamp(DateTimeOffset.UtcNow);
 
             await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
             {
@@ -90,7 +90,7 @@ namespace Modix.Services.Core
                     .WithDescription($"**Content**```{cached.Content}```");
             }
 
-            embed = embed.WithTimestamp(DateTimeOffset.UtcNow);
+            embed = embed.WithVerboseTimestamp(DateTimeOffset.UtcNow);
 
             await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
             {
