@@ -11,20 +11,8 @@ namespace Modix.Data.Migrations
                 name: "FK_ConfigurationActions_ModerationLogChannelMappings_Moderatio~",
                 table: "ConfigurationActions");
 
-            migrationBuilder.DropForeignKey(
-                name: "FK_ModerationActions_DeletedMessages_DeletedMessageId",
-                table: "ModerationActions");
-
             migrationBuilder.DropTable(
                 name: "ModerationLogChannelMappings");
-
-            migrationBuilder.DropIndex(
-                name: "IX_ModerationActions_DeletedMessageId",
-                table: "ModerationActions");
-
-            migrationBuilder.DropIndex(
-                name: "IX_DeletedMessages_CreateActionId",
-                table: "DeletedMessages");
 
             migrationBuilder.RenameColumn(
                 name: "CreateActionID",
@@ -76,12 +64,6 @@ namespace Modix.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_DeletedMessages_CreateActionId",
-                table: "DeletedMessages",
-                column: "CreateActionId",
-                unique: true);
-
-            migrationBuilder.CreateIndex(
                 name: "IX_DesignatedChannelMappings_CreateActionId",
                 table: "DesignatedChannelMappings",
                 column: "CreateActionId",
@@ -110,10 +92,6 @@ namespace Modix.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "DesignatedChannelMappings");
-
-            migrationBuilder.DropIndex(
-                name: "IX_DeletedMessages_CreateActionId",
-                table: "DeletedMessages");
 
             migrationBuilder.RenameColumn(
                 name: "CreateActionId",
@@ -164,16 +142,6 @@ namespace Modix.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_ModerationActions_DeletedMessageId",
-                table: "ModerationActions",
-                column: "DeletedMessageId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DeletedMessages_CreateActionId",
-                table: "DeletedMessages",
-                column: "CreateActionId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_ModerationLogChannelMappings_CreateActionID",
                 table: "ModerationLogChannelMappings",
                 column: "CreateActionID",
@@ -191,14 +159,6 @@ namespace Modix.Data.Migrations
                 column: "ModerationLogChannelMappingId",
                 principalTable: "ModerationLogChannelMappings",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_ModerationActions_DeletedMessages_DeletedMessageId",
-                table: "ModerationActions",
-                column: "DeletedMessageId",
-                principalTable: "DeletedMessages",
-                principalColumn: "MessageId",
                 onDelete: ReferentialAction.Restrict);
         }
     }

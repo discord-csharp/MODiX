@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    [Migration("20180820045222_DesignatedChannels")]
+    [Migration("20180820051549_DesignatedChannels")]
     partial class DesignatedChannels
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -205,8 +205,7 @@ namespace Modix.Data.Migrations
 
                     b.HasIndex("ChannelId");
 
-                    b.HasIndex("CreateActionId")
-                        .IsUnique();
+                    b.HasIndex("CreateActionId");
 
                     b.HasIndex("GuildId", "AuthorId");
 
@@ -271,6 +270,8 @@ namespace Modix.Data.Migrations
                         .IsRequired();
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DeletedMessageId");
 
                     b.HasIndex("InfractionId");
 
@@ -401,8 +402,8 @@ namespace Modix.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Modix.Data.Models.Moderation.ModerationActionEntity", "CreateAction")
-                        .WithOne("DeletedMessage")
-                        .HasForeignKey("Modix.Data.Models.Moderation.DeletedMessageEntity", "CreateActionId")
+                        .WithMany()
+                        .HasForeignKey("CreateActionId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Modix.Data.Models.Core.GuildUserEntity", "Author")
@@ -434,6 +435,10 @@ namespace Modix.Data.Migrations
 
             modelBuilder.Entity("Modix.Data.Models.Moderation.ModerationActionEntity", b =>
                 {
+                    b.HasOne("Modix.Data.Models.Moderation.DeletedMessageEntity", "DeletedMessage")
+                        .WithMany()
+                        .HasForeignKey("DeletedMessageId");
+
                     b.HasOne("Modix.Data.Models.Moderation.InfractionEntity", "Infraction")
                         .WithMany()
                         .HasForeignKey("InfractionId");
