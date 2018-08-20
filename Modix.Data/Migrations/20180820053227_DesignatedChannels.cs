@@ -11,9 +11,6 @@ namespace Modix.Data.Migrations
                 name: "FK_ConfigurationActions_ModerationLogChannelMappings_Moderatio~",
                 table: "ConfigurationActions");
 
-            migrationBuilder.DropTable(
-                name: "ModerationLogChannelMappings");
-
             migrationBuilder.RenameColumn(
                 name: "CreateActionID",
                 table: "ModerationMuteRoleMappings",
@@ -74,6 +71,15 @@ namespace Modix.Data.Migrations
                 table: "DesignatedChannelMappings",
                 column: "DeleteActionId",
                 unique: true);
+
+            migrationBuilder.Sql(
+                @"INSERT INTO `DesignatedChannelMappings` (`Id`, `GuildId`, `ChannelId`, `ChannelDesignation`, `CreateActionId`)
+                  SELECT `Id`, `GuildId`, `LogChannelId`, 'ModerationLog', `CreateActionID`
+                  FROM `ModerationLogChannelMappings`;"
+                .Replace('`', '"'));
+
+            migrationBuilder.DropTable(
+                name: "ModerationLogChannelMappings");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ConfigurationActions_DesignatedChannelMappings_DesignatedCh~",
