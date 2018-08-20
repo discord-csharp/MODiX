@@ -124,12 +124,6 @@ namespace Modix.Data
                 .HasForeignKey(x => new { x.GuildId, x.CreatedById });
 
             modelBuilder
-                .Entity<ModerationActionEntity>()
-                .HasOne(x => x.Infraction)
-                .WithMany()
-                .HasForeignKey(x => x.InfractionId);
-
-            modelBuilder
                 .Entity<DesignatedChannelMappingEntity>()
                 .Property(x => x.ChannelDesignation)
                 .HasConversion(new EnumToStringConverter<ChannelDesignation>());

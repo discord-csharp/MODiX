@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    [Migration("20180820051549_DesignatedChannels")]
+    [Migration("20180820053227_DesignatedChannels")]
     partial class DesignatedChannels
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
