@@ -179,6 +179,10 @@ namespace Modix.Data.Migrations
             migrationBuilder.DropTable(
                 name: "DesignatedChannelMappings");
 
+            migrationBuilder.Sql(
+                @"select setval('`ModerationLogChannelMappings_Id_seq`', (SELECT MAX(`Id`) FROM `ModerationLogChannelMappings`))"
+                .Replace('`', '"'));
+
             migrationBuilder.AddForeignKey(
                 name: "FK_ConfigurationActions_ModerationLogChannelMappings_Moderatio~",
                 table: "ConfigurationActions",
