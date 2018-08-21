@@ -78,6 +78,10 @@ namespace Modix.Data.Migrations
                   FROM `ModerationLogChannelMappings`;"
                 .Replace('`', '"'));
 
+            migrationBuilder.Sql(
+                @"select setval('`DesignatedChannelMappings_Id_seq`', (SELECT MAX(`Id`) FROM `DesignatedChannelMappings`))"
+                .Replace('`', '"'));
+
             migrationBuilder.DropTable(
                 name: "ModerationLogChannelMappings");
 
@@ -161,6 +165,15 @@ namespace Modix.Data.Migrations
                   SELECT `Id`, `GuildId`, `ChannelId`, `CreateActionId`
                   FROM `DesignatedChannelMappings` 
                   WHERE `ChannelDesignation` = 'ModerationLog';"
+                .Replace('`', '"'));
+
+            migrationBuilder.Sql(
+                @"DELETE FROM `ConfigurationActions`
+                  WHERE `Id` IN
+                    (
+                        SELECT `CreateActionId` FROM `DesignatedChannelMappings`
+                        WHERE `ChannelDesignation` != 'ModerationLog'
+                    );"
                 .Replace('`', '"'));
 
             migrationBuilder.DropTable(
