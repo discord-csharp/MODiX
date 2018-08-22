@@ -6,6 +6,7 @@
     {
         ModerationLog,
         MessageLog,
-        PromotionLog
+        PromotionLog,
+        Unmoderated
     }
 }

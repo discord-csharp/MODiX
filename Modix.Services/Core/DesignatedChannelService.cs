@@ -45,11 +45,20 @@ namespace Modix.Services.Core
         Task<IEnumerable<ulong>> GetDesignatedChannelIds(ulong guildId, ChannelDesignation designation);
 
         /// <summary>
-        /// Retriveves a collection of <see cref="DesignatedChannelMappingBrief"/>s associated with the given guild.
+        /// Retrieves a collection of <see cref="DesignatedChannelMappingBrief"/>s associated with the given guild.
         /// </summary>
         /// <param name="guildId">The ID of the guild to retrieve designations for</param>
         /// <returns>A <see cref="Task"/> that will complete when all <see cref="DesignatedChannelMappingBrief"/>s have been retrieved.</returns>
         Task<IEnumerable<DesignatedChannelMappingBrief>> GetDesignatedChannels(ulong guildId);
+
+        /// <summary>
+        /// Checks if the given channel has the given designation
+        /// </summary>
+        /// <param name="guild">The <see cref="IGuild"/> where the channel is located</param>
+        /// <param name="channel">The <see cref="IChannel"/> to check the designation for</param>
+        /// <param name="designation">The <see cref="ChannelDesignation"/> to check for</param>
+        /// <returns></returns>
+        Task<bool> ChannelHasDesignation(IGuild guild, IChannel channel, ChannelDesignation designation);
 
         /// <summary>
         /// Sends the given message (and embed) to the <see cref="IMessageChannel"/>s assigned to the given designation, for a given guild.
@@ -174,6 +183,20 @@ namespace Modix.Services.Core
             });
 
             return foundChannels;
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> ChannelHasDesignation(IGuild guild, IChannel channel, ChannelDesignation designation)
+        {
+            var foundChannels = await DesignatedChannelMappingRepository.SearchBriefsAsync(new DesignatedChannelMappingSearchCriteria()
+            {
+                GuildId = guild.Id,
+                ChannelDesignation = designation,
+                ChannelId = channel.Id,
+                IsDeleted = false
+            });
+
+            return foundChannels.Any();
         }
     }
 }

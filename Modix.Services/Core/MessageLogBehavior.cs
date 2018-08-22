@@ -36,6 +36,24 @@ namespace Modix.Services.Core
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Determines whether or not to skip a message event, based on unmoderated channel designations
+        /// </summary>
+        /// <param name="guild">The guild designations should be looked up for</param>
+        /// <param name="channel">The channel designations should be looked up for</param>
+        /// <returns>True if the channel is designated as Unmoderated, false if not</returns>
+        private async Task<bool> ShouldSkip(IGuild guild, IMessageChannel channel)
+        {
+            bool result = false;
+
+            await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
+            {
+                result = await designatedChannelService.ChannelHasDesignation(guild, channel, ChannelDesignation.Unmoderated);
+            });
+
+            return result;
+        }
+
         private async Task HandleMessageEdit(Cacheable<IMessage, ulong> cachedOriginal, SocketMessage updated, ISocketMessageChannel channel)
         {
             //Don't log when Modix edits its own messages
@@ -48,11 +66,13 @@ namespace Modix.Services.Core
                 Log.Information("Recieved message update event for non-guild message, ignoring");
             }
 
+            if (await ShouldSkip(guild, channel)) { return; }
+
             var original = await cachedOriginal.GetOrDownloadAsync();
 
             //Skip things like embed updates
             if (original.Content == updated.Content) { return; }
-
+            
             var embed = new EmbedBuilder()
                 .WithVerboseAuthor(original.Author)
                 .WithDescription($"**Original**```{original.Content}```\n**Updated**```{updated.Content}```")
@@ -74,6 +94,8 @@ namespace Modix.Services.Core
             {
                 Log.Information("Recieved message update event for non-guild message, ignoring");
             }
+
+            if (await ShouldSkip(guild, channel)) { return; }
 
             var embed = new EmbedBuilder();
 
