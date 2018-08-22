@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -81,10 +81,17 @@ namespace Modix.Services.Moderation
 
         private async Task TryPurgeInviteLink(IMessage message)
         {
-            if (!(message.Author is IGuildUser author) || !(message.Channel is IMessageChannel channel))
+            if
+            (
+                !(message.Author is IGuildUser author) ||
+                !(message.Channel is IGuildChannel guildChannel) ||
+                !(message.Channel is IMessageChannel msgChannel)
+            )
+            {
                 return;
+            }
 
-            if (await ShouldSkip(author.Guild, channel))
+            if (await ShouldSkip(guildChannel.Guild, msgChannel))
                 return;
 
             var matches = _inviteLinkMatcher.Matches(message.Content);
@@ -112,7 +119,7 @@ namespace Modix.Services.Moderation
 
                 await moderationService.DeleteMessageAsync(message, "Unauthorized Invite Link");
 
-                await channel.SendMessageAsync($"{author.Mention} your invite link has been removed, please don't post links to other guilds");
+                await msgChannel.SendMessageAsync($"{author.Mention} your invite link has been removed, please don't post links to other guilds");
             });
         }
 
