@@ -23,10 +23,11 @@ namespace Modix.Services.Moderation
         /// </summary>
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
         /// <param name="serviceProvider">See <see cref="BehaviorBase"/>.</param>
-        public ModerationInvitePurgingBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
+        public ModerationInvitePurgingBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider, IDesignatedChannelService designatedChannelService)
             : base(serviceProvider)
         {
             DiscordClient = discordClient;
+            DesignatedChannelService = designatedChannelService;
         }
 
         /// <inheritdoc />
@@ -52,6 +53,7 @@ namespace Modix.Services.Moderation
         /// A <see cref="DiscordSocketClient"/> for interacting with, and receiving events from, the Discord API.
         /// </summary>
         internal protected DiscordSocketClient DiscordClient { get; }
+        internal protected IDesignatedChannelService DesignatedChannelService { get; }
 
         private Task OnDiscordClientMessageReceived(IMessage message)
             => TryPurgeInviteLink(message);
@@ -59,9 +61,30 @@ namespace Modix.Services.Moderation
         private Task OnDiscordClientMessageUpdated(Cacheable<IMessage, ulong> oldMessage, IMessage newMessage, ISocketMessageChannel channel)
             => TryPurgeInviteLink(newMessage);
 
+        /// <summary>
+        /// Determines whether or not to skip a message event, based on unmoderated channel designations
+        /// </summary>
+        /// <param name="guild">The guild designations should be looked up for</param>
+        /// <param name="channel">The channel designations should be looked up for</param>
+        /// <returns>True if the channel is designated as Unmoderated, false if not</returns>
+        private async Task<bool> ShouldSkip(IGuild guild, IMessageChannel channel)
+        {
+            bool result = false;
+
+            await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
+            {
+                result = await designatedChannelService.ChannelHasDesignation(guild, channel, ChannelDesignation.Unmoderated);
+            });
+
+            return result;
+        }
+
         private async Task TryPurgeInviteLink(IMessage message)
         {
-            if (!(message.Author is IGuildUser author))
+            if (!(message.Author is IGuildUser author) || !(message.Channel is IMessageChannel channel))
+                return;
+
+            if (await ShouldSkip(author.Guild, channel))
                 return;
 
             var matches = _inviteLinkMatcher.Matches(message.Content);
@@ -86,8 +109,6 @@ namespace Modix.Services.Moderation
             {
                 if (await authorizationService.HasClaimsAsync(author, AuthorizationClaim.PostInviteLink))
                     return;
-
-                var channel = message.Channel;
 
                 await moderationService.DeleteMessageAsync(message, "Unauthorized Invite Link");
 
