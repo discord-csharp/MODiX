@@ -18,12 +18,15 @@ namespace Modix.Services.Core
             => services
                 .AddSingleton<IBehavior, AuthorizationAutoConfigBehavior>()
                 .AddSingleton<IBehavior, UserTrackingBehavior>()
+                .AddSingleton<IBehavior, MessageLogBehavior>()
                 .AddScoped<IAuthorizationService, AuthorizationService>()
                 .AddScoped<IUserService, UserService>()
                 .AddScoped<IChannelService, ChannelService>()
                 .AddScoped<IGuildUserRepository, GuildUserRepository>()
                 .AddScoped<IGuildChannelRepository, GuildChannelRepository>()
                 .AddScoped<IClaimMappingRepository, ClaimMappingRepository>()
-                .AddScoped<IConfigurationActionRepository, ConfigurationActionRepository>();
+                .AddScoped<IConfigurationActionRepository, ConfigurationActionRepository>()
+                .AddScoped<IDesignatedChannelMappingRepository, DesignatedChannelMappingRepository>()
+                .AddScoped<IDesignatedChannelService, DesignatedChannelService>();
     }
 }

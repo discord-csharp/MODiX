@@ -22,12 +22,12 @@
         /// </summary>
         ModerationMuteRoleMappingDeleted,
         /// <summary>
-        /// Describes an action where a moderation log channel mapping was created.
+        /// Describes an action where a designated channel mapping was created.
         /// </summary>
-        ModerationLogChannelMappingCreated,
+        DesignatedChannelMappingCreated,
         /// <summary>
-        /// Describes an action where a moderation log channel mapping was deleted.
+        /// Describes an action where a designated channel mapping was deleted.
         /// </summary>
-        ModerationLogChannelMappingDeleted
+        DesignatedChannelMappingDeleted,
     }
 }

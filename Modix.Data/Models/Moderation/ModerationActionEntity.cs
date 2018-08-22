@@ -62,6 +62,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// The <see cref="DeletedMessageEntity.MessageId"/> value of <see cref="DeletedMessage"/>.
         /// </summary>
+        [ForeignKey(nameof(DeletedMessage))]
         public long? DeletedMessageId { get; set; }
 
         /// <summary>

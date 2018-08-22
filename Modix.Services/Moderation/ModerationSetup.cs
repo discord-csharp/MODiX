@@ -23,7 +23,6 @@ namespace Modix.Services.Moderation
                 .AddSingleton<IBehavior, ModerationInvitePurgingBehavior>()
                 .AddScoped<IModerationService, ModerationService>()
                 .AddScoped<IModerationMuteRoleMappingRepository, ModerationMuteRoleMappingRepository>()
-                .AddScoped<IModerationLogChannelMappingRepository, ModerationLogChannelMappingRepository>()
                 .AddScoped<IModerationActionRepository, ModerationActionRepository>()
                 .AddScoped<IInfractionRepository, InfractionRepository>()
                 .AddScoped<IDeletedMessageRepository, DeletedMessageRepository>();

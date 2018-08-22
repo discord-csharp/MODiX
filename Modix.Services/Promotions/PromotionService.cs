@@ -18,21 +18,18 @@ namespace Modix.Services.Promotions
 
         private readonly DiscordSocketClient _client;
         private readonly IPromotionRepository _repository;
+        private readonly IDesignatedChannelService _designatedChannelService;
         private readonly IAuthorizationService _auth;
 
-        private readonly ulong promotionChannelID;
-
-        public PromotionService(DiscordSocketClient client, IPromotionRepository repository, ModixConfig config, IAuthorizationService auth)
+        public PromotionService(DiscordSocketClient client, IPromotionRepository repository, IDesignatedChannelService designatedChannelService, IAuthorizationService auth)
         {
             _client = client;
             _repository = repository;
+            _designatedChannelService = designatedChannelService;
             _auth = auth;
-
-            promotionChannelID = config.ChannelIdForPromotionCampaignAnnouncement;
         }
 
         private SocketGuild CurrentGuild => _client.Guilds.First();
-        private IMessageChannel PromotionChannel => CurrentGuild.GetChannel(promotionChannelID) as IMessageChannel;
 
         public Task<IEnumerable<PromotionCampaignEntity>> GetCampaigns()
         {
@@ -51,20 +48,17 @@ namespace Modix.Services.Promotions
             var foundUser = CurrentGuild.GetUser((ulong)campaign.PromotionFor.Id);
 
             //TODO: Unhardcode this, set to Associate
-            var foundRole = CurrentGuild.Roles.FirstOrDefault(d => d.Id == 141345783747313664);
+            var foundRole = CurrentGuild.Roles.FirstOrDefault(d => d.Id == 410138154516086794);
 
             if (foundRole == null)
-                throw new InvalidOperationException("The server does not have a role with ID 141345783747313664 to grant.");
+                throw new InvalidOperationException("The server does not have a role with ID 410138154516086794 to grant.");
 
             await foundUser.AddRoleAsync(foundRole);
 
             campaign.Status = CampaignStatus.Approved;
             await _repository.UpdateCampaign(campaign);
 
-            if (PromotionChannel == null)
-                throw new NullReferenceException(nameof(PromotionChannel));
-            
-            await PromotionChannel.SendMessageAsync(
+            await _designatedChannelService.SendToDesignatedChannelsAsync(promoter.Guild, ChannelDesignation.PromotionLog,
                 $"{MentionUtils.MentionUser((ulong)campaign.PromotionFor.Id)} has been promoted to {foundRole.Mention}! 🎉");
         }
 
@@ -146,10 +140,7 @@ namespace Modix.Services.Promotions
 
             await AddComment(ret, commentBody, PromotionSentiment.For);
 
-            if (PromotionChannel == null)
-                throw new NullReferenceException(nameof(promotionChannelID));
-
-            await PromotionChannel.SendMessageAsync("", false,
+            await _designatedChannelService.SendToDesignatedChannelsAsync(user.Guild, ChannelDesignation.PromotionLog, "",
                 new EmbedBuilder()
                     .WithTitle("Campaign Started")
                     .WithAuthor(user)
