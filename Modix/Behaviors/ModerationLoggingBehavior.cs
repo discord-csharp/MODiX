@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -44,6 +44,9 @@ namespace Modix.Behaviors
                 if (!_renderTemplates.TryGetValue((moderationAction.Type, moderationAction.Infraction?.Type), out var renderTemplate))
                     return;
 
+                // De-linkify links in the message, otherwise Discord will make auto-embeds for them in the log channel
+                var content = moderationAction.DeletedMessage?.Content.Replace("http://", "[redacted]").Replace("https://", "[redacted]");
+
                 var message = string.Format(renderTemplate,
                     moderationAction.Created.UtcDateTime.ToString("HH:mm:ss"),
                     moderationAction.CreatedBy.DisplayName,
@@ -57,8 +60,7 @@ namespace Modix.Behaviors
                     moderationAction.DeletedMessage?.Channel.Name,
                     moderationAction.DeletedMessage?.Channel.Id,
                     moderationAction.DeletedMessage?.Reason,
-                    // De-linkify links in the message, otherwise Discord will make auto-embeds for them in the log channel
-                    moderationAction.DeletedMessage?.Content.Replace("http://", "[redacted]").Replace("https://", "[redacted]"));
+                    string.IsNullOrWhiteSpace(content) ? "Empty Message Content" : content);
 
                 await DesignatedChannelService.SendToDesignatedChannelsAsync(
                     await DiscordClient.GetGuildAsync(data.GuildId), ChannelDesignation.ModerationLog, message);
