@@ -7,6 +7,7 @@ using Modix.Services.FileUpload;
 
 namespace Modix.Modules
 {
+    [Name("Attachment Blacklist")]
     public class AttachmentBlacklistModule : ModuleBase
     {
         [Command("attachment blacklist")]
