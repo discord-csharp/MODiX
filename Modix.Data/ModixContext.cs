@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
@@ -30,9 +31,9 @@ namespace Modix.Data
 
         public DbSet<ClaimMappingEntity> ClaimMappings { get; set; }
 
-        public DbSet<ModerationMuteRoleMappingEntity> ModerationMuteRoleMappings { get; set; }
+        public DbSet<DesignatedChannelMappingEntity> DesignatedChannelMappings { get; set; }
 
-        public DbSet<ModerationLogChannelMappingEntity> ModerationLogChannelMappings { get; set; }
+        public DbSet<ModerationMuteRoleMappingEntity> ModerationMuteRoleMappings { get; set; }
 
         public DbSet<ModerationActionEntity> ModerationActions { get; set; }
 
@@ -123,10 +124,9 @@ namespace Modix.Data
                 .HasForeignKey(x => new { x.GuildId, x.CreatedById });
 
             modelBuilder
-                .Entity<ModerationActionEntity>()
-                .HasOne(x => x.Infraction)
-                .WithMany()
-                .HasForeignKey(x => x.InfractionId);
+                .Entity<DesignatedChannelMappingEntity>()
+                .Property(x => x.ChannelDesignation)
+                .HasConversion(new EnumToStringConverter<ChannelDesignation>());
         }
     }
 }

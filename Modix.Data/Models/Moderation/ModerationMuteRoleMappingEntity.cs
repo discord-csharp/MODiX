@@ -32,7 +32,7 @@ namespace Modix.Data.Models.Moderation
         /// The <see cref="ConfigurationActionEntity.Id"/> value of <see cref="CreateAction"/>.
         /// </summary>
         [Required, ForeignKey(nameof(CreateAction))]
-        public long CreateActionID { get; set; }
+        public long CreateActionId { get; set; }
 
         /// <summary>
         /// The <see cref="ConfigurationActionEntity"/> that created this <see cref="ModerationMuteRoleMappingEntity"/>.

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Modix.Data.Models.Core;
@@ -65,8 +65,13 @@ namespace Modix
                 StackoverflowToken = Environment.GetEnvironmentVariable("StackoverflowToken"),
                 PostgreConnectionString = Environment.GetEnvironmentVariable("MODIX_DB_CONNECTION"),
                 DiscordClientId = Environment.GetEnvironmentVariable("DiscordClientId"),
-                DiscordClientSecret = Environment.GetEnvironmentVariable("DiscordClientSecret"),
+                DiscordClientSecret = Environment.GetEnvironmentVariable("DiscordClientSecret")
             };
+
+            if (int.TryParse(Environment.GetEnvironmentVariable("DiscordMessageCacheSize"), out int cacheSize))
+            {
+                config.MessageCacheSize = cacheSize;
+            }
 
             var id = Environment.GetEnvironmentVariable("log_webhook_id");
 

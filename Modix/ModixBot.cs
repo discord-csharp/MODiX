@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Net.Http;
 using System.Reflection;
@@ -59,6 +59,7 @@ namespace Modix
             _client = new DiscordSocketClient(config: new DiscordSocketConfig
             {
                 LogLevel = LogSeverity.Debug,
+                MessageCacheSize = _config.MessageCacheSize //needed to log deletions
             });
 
             await Install(); // Setting up DependencyMap

@@ -66,44 +66,6 @@ namespace Modix.Services.Moderation
         Task SetMuteRoleAsync(IGuild guild, IRole muteRole);
 
         /// <summary>
-        /// Retrieves the list of the Discord snowflake ID values of all the channels currently configured
-        /// to receive logging messages from the moderation feature, for a given guild.
-        /// </summary>
-        /// <param name="guildId">The Discord snowflake ID value of the guild whose logging channel ID values are to be retrieved.</param>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation has completed,
-        /// containing the requested list of channel ID values.
-        /// </returns>
-        Task<IReadOnlyCollection<ulong>> GetLogChannelIdsAsync(ulong guildId);
-
-        /// <summary>
-        /// Retrieves the list of all channels currently configured to receive logging messages from the moderation feature,
-        /// for a given guild.
-        /// </summary>
-        /// <param name="guild">The guild whose logging channels are to be retrieved.</param>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation has completed,
-        /// containing the requested list of channels.
-        /// </returns>
-        Task<IReadOnlyCollection<IMessageChannel>> GetLogChannelsAsync(IGuild guild);
-
-        /// <summary>
-        /// Configures a channel to receive logging messages from the moderation feature, for a given guild.
-        /// </summary>
-        /// <param name="guild">The guild whose logging messages are to be sent to <paramref name="logChannel"/>.</param>
-        /// <param name="logChannel">The channel to received logging messages from <paramref name="guild"/>.</param>
-        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task AddLogChannelAsync(IGuild guild, IMessageChannel logChannel);
-
-        /// <summary>
-        /// Configures a channel to stop receiving logging messages from the moderation feature, for a given guild.
-        /// </summary>
-        /// <param name="guild">The guild whose logging messages are being sent to <paramref name="logChannel"/>.</param>
-        /// <param name="logChannel">The channel that should no longer receive logging messages from <paramref name="guild"/>.</param>
-        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task RemoveLogChannelAsync(IGuild guild, IMessageChannel logChannel);
-
-        /// <summary>
         /// Creates an infraction upon a specified user, and logs an associated moderation action.
         /// </summary>
         /// <param name="type">The value to user for <see cref="InfractionEntity.Type"/>.<</param>
@@ -218,7 +180,6 @@ namespace Modix.Services.Moderation
             IUserService userService,
             IChannelService channelService,
             IModerationMuteRoleMappingRepository moderationMuteRoleMappingRepository,
-            IModerationLogChannelMappingRepository moderationLogChannelMappingRepository,
             IModerationActionRepository moderationActionRepository,
             IInfractionRepository infractionRepository,
             IDeletedMessageRepository deletedMessageRepository)
@@ -228,7 +189,6 @@ namespace Modix.Services.Moderation
             UserService = userService;
             ChannelService = channelService;
             ModerationMuteRoleMappingRepository = moderationMuteRoleMappingRepository;
-            ModerationLogChannelMappingRepository = moderationLogChannelMappingRepository;
             ModerationActionRepository = moderationActionRepository;
             InfractionRepository = infractionRepository;
             DeletedMessageRepository = deletedMessageRepository;
@@ -312,76 +272,6 @@ namespace Modix.Services.Moderation
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationConfigure);
 
             return CreateOrUpdateMuteRoleMapping(guild.Id, muteRole.Id);
-        }
-
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<ulong>> GetLogChannelIdsAsync(ulong guildId)
-             => (await ModerationLogChannelMappingRepository.SearchBriefsAsync(new ModerationLogChannelMappingSearchCriteria()
-                {
-                    GuildId = guildId,
-                    IsDeleted = false
-                }))
-                .Select(x => x.LogChannelId)
-                .ToArray();
-
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<IMessageChannel>> GetLogChannelsAsync(IGuild guild)
-        {
-            var mappings = await ModerationLogChannelMappingRepository.SearchBriefsAsync(new ModerationLogChannelMappingSearchCriteria()
-            {
-                GuildId = guild.Id,
-                IsDeleted = false
-            });
-
-            return (await guild.GetChannelsAsync())
-                .Where(x => mappings.Any(y => y.LogChannelId == x.Id))
-                .Cast<IMessageChannel>()
-                .ToArray();
-        }
-
-        /// <inheritdoc />
-        public async Task AddLogChannelAsync(IGuild guild, IMessageChannel logChannel)
-        {
-            using (var transaction = await ModerationLogChannelMappingRepository.BeginCreateTransactionAsync())
-            {
-                if (await ModerationLogChannelMappingRepository.AnyAsync(new ModerationLogChannelMappingSearchCriteria()
-                {
-                    GuildId = guild.Id,
-                    LogChannelId = logChannel.Id,
-                    IsDeleted = false
-                }))
-                {
-                    throw new InvalidOperationException($"{logChannel.Name} already receives moderation log messages for {guild.Name}");
-                }
-
-                await ModerationLogChannelMappingRepository.CreateAsync(new ModerationLogChannelMappingCreationData()
-                {
-                    GuildId = guild.Id,
-                    LogChannelId = logChannel.Id,
-                    CreatedById = AuthorizationService.CurrentUserId.Value
-                });
-
-                transaction.Commit();
-            }
-        }
-
-        /// <inheritdoc />
-        public async Task RemoveLogChannelAsync(IGuild guild, IMessageChannel logChannel)
-        {
-            using(var transaction = await ModerationLogChannelMappingRepository.BeginDeleteTransactionAsync())
-            {
-                var deletedCount = await ModerationLogChannelMappingRepository.DeleteAsync(new ModerationLogChannelMappingSearchCriteria()
-                {
-                    GuildId = guild.Id,
-                    LogChannelId = logChannel.Id,
-                    IsDeleted = false
-                }, AuthorizationService.CurrentUserId.Value);
-
-                if(deletedCount == 0)
-                    throw new InvalidOperationException($"{logChannel.Name} is not currently receiving moderation log messages for {guild.Name}");
-
-                transaction.Commit();
-            }
         }
 
         /// <inheritdoc />
@@ -609,11 +499,6 @@ namespace Modix.Services.Moderation
         /// An <see cref="IModerationMuteRoleMappingRepository"/> for storing and retrieving mute role configuration data.
         /// </summary>
         internal protected IModerationMuteRoleMappingRepository ModerationMuteRoleMappingRepository { get; }
-
-        /// <summary>
-        /// An <see cref="IModerationLogChannelMappingRepository"/> for storing and retrieving log channel configuration data.
-        /// </summary>
-        internal protected IModerationLogChannelMappingRepository ModerationLogChannelMappingRepository { get; }
 
         /// <summary>
         /// An <see cref="IModerationActionRepository"/> for storing and retrieving moderation action data.

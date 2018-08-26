@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-
+using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 
 namespace Modix.Data.Models.Core
@@ -110,34 +110,34 @@ namespace Modix.Data.Models.Core
         public virtual ModerationMuteRoleMappingEntity DeletedModerationMuteRoleMapping { get; set; }
 
         /// <summary>
-        /// The <see cref="ModerationLogChannelMappingEntity.Id"/> value (if any) of <see cref="ModerationLogChannelMapping"/>.
+        /// The <see cref="DesignatedChannelMappingEntity.Id"/> value (if any) of <see cref="DesignatedChannelMappingEntity"/>.
         /// </summary>
-        [ForeignKey(nameof(ModerationLogChannelMapping))]
-        public long? ModerationLogChannelMappingId { get; set; }
+        [ForeignKey(nameof(DesignatedChannelMappingEntity))]
+        public long? DesignatedChannelMappingId { get; set; }
 
         /// <summary>
-        /// The moderation log channel mapping that was affected by this action, if any.
+        /// The designated channel mapping that was affected by this action, if any.
         /// </summary>
-        public ModerationLogChannelMappingEntity ModerationLogChannelMapping { get; set; }
+        public DesignatedChannelMappingEntity DesignatedChannelMapping { get; set; }
 
         /// <summary>
-        /// Alias for <see cref="ModerationLogChannelMapping"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.ModerationLogChannelMappingCreated"/>.
+        /// Alias for <see cref="DesignatedChannelMappingEntity"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.DesignatedChannelMappingCreated"/>.
         /// Otherwise, null.
         /// </summary>
         // This is needed because if we don't manually map an inverse property for this relationship,
-        // EF will try and do it automatically, and will try to use the ModerationLogChannelMapping property above for both
+        // EF will try and do it automatically, and will try to use the DesignatedChannelMappingEntity property above for both
         // the "Create" and "Delete" relationships, and throw an error.
-        [InverseProperty(nameof(ModerationLogChannelMappingEntity.CreateAction))]
-        public virtual ModerationLogChannelMappingEntity CreatedModerationLogChannelMapping { get; set; }
+        [InverseProperty(nameof(DesignatedChannelMappingEntity.CreateAction))]
+        public virtual DesignatedChannelMappingEntity CreatedDesignatedChannelMapping { get; set; }
 
         /// <summary>
-        /// Alias for <see cref="ModerationLogChannelMapping"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.ModerationLogChannelMappingDeleted"/>.
+        /// Alias for <see cref="DesignatedChannelMappingEntity"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.DesignatedChannelMappingDeleted"/>.
         /// Otherwise, null.
         /// </summary>
         // This is needed because if we don't manually map an inverse property for this relationship,
-        // EF will try and do it automatically, and will try to use the ModerationLogChannelMapping property above for both
+        // EF will try and do it automatically, and will try to use the DesignatedChannelMappingEntity property above for both
         // the "Create" and "Delete" relationships, and throw an error.
-        [InverseProperty(nameof(ModerationLogChannelMappingEntity.DeleteAction))]
-        public virtual ModerationLogChannelMappingEntity DeletedModerationLogChannelMapping { get; set; }
+        [InverseProperty(nameof(DesignatedChannelMappingEntity.DeleteAction))]
+        public virtual DesignatedChannelMappingEntity DeletedDesignatedChannelMapping { get; set; }
     }
 }

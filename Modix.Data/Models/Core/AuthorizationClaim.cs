@@ -60,6 +60,18 @@
         /// <summary>
         /// Authorizes a request to approve/deny/reactivate a promotion campaign for a user.
         /// </summary>
-        PromotionExecute
+        PromotionExecute,
+        /// <summary>
+        /// Authorizes a request to assign a channel designation.
+        /// </summary>
+        ChannelDesignationCreate,
+        /// <summary>
+        /// Authorizes a request to unassign a channel designation.
+        /// </summary>
+        ChannelDesignationDelete,
+        /// <summary>
+        /// Authorizes a request to view current channel designations.
+        /// </summary>
+        ChannelDesignationRead
     }
 }

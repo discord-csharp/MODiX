@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 using Discord;
 
 using Microsoft.Extensions.DependencyInjection;
-
+using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Repositories;
+using Modix.Services.Core;
 using Modix.Services.Moderation;
 
 namespace Modix.Behaviors
@@ -21,16 +22,18 @@ namespace Modix.Behaviors
         /// <summary>
         /// Constructs a new <see cref="ModerationLoggingBehavior"/> object, with injected dependencies.
         /// </summary>
-        public ModerationLoggingBehavior(IServiceProvider serviceProvider, IDiscordClient discordClient)
+        public ModerationLoggingBehavior(IServiceProvider serviceProvider, IDiscordClient discordClient, IDesignatedChannelService designatedChannelService)
         {
             DiscordClient = discordClient;
+            DesignatedChannelService = designatedChannelService;
+
             _lazyModerationService = new Lazy<IModerationService>(() => serviceProvider.GetRequiredService<IModerationService>());
         }
 
         /// <inheritdoc />
         public async Task OnModerationActionCreatedAsync(long moderationActionId, ModerationActionCreationData data)
         {
-            var logChannelIds = await ModerationService.GetLogChannelIdsAsync(data.GuildId);
+            var logChannelIds = await DesignatedChannelService.GetDesignatedChannelIds(data.GuildId, ChannelDesignation.ModerationLog);
             if (!logChannelIds.Any())
                 return;
 
@@ -57,9 +60,8 @@ namespace Modix.Behaviors
                     // De-linkify links in the message, otherwise Discord will make auto-embeds for them in the log channel
                     moderationAction.DeletedMessage?.Content.Replace("http://", "[redacted]").Replace("https://", "[redacted]"));
 
-                foreach (var logChannelId in logChannelIds)
-                    await (await DiscordClient.GetChannelAsync(logChannelId) as IMessageChannel)
-                        .SendMessageAsync(message);
+                await DesignatedChannelService.SendToDesignatedChannelsAsync(
+                    await DiscordClient.GetGuildAsync(data.GuildId), ChannelDesignation.ModerationLog, message);
             }
             catch (Exception ex)
             {
@@ -72,6 +74,11 @@ namespace Modix.Behaviors
         /// An <see cref="IDiscordClient"/> for interacting with the Discord API.
         /// </summary>
         internal protected IDiscordClient DiscordClient { get; }
+
+        /// <summary>
+        /// An <see cref="IDesignatedChannelService"/> for logging moderation actions.
+        /// </summary>
+        internal protected IDesignatedChannelService DesignatedChannelService { get; }
 
         /// <summary>
         /// An <see cref="IModerationService"/> for performing moderation actions.
