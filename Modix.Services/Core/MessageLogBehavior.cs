@@ -113,6 +113,16 @@ namespace Modix.Services.Core
                 embed = embed
                     .WithVerboseAuthor(cached.Author)
                     .WithDescription($"**Content**```{MessageIfEmpty(cached.Content)}```");
+
+                if (cached.Attachments.Any())
+                {
+                    embed = embed.AddField
+                    (
+                        field => field
+                            .WithName("Attachments")
+                            .WithValue(string.Join(", ", cached.Attachments.Select(d => $"{d.Filename} ({d.Size}b)")))
+                    );
+                }
             }
 
             embed = embed.WithVerboseTimestamp(DateTimeOffset.UtcNow);
