@@ -75,7 +75,7 @@ namespace Modix.Services.Core
             
             var embed = new EmbedBuilder()
                 .WithVerboseAuthor(original.Author)
-                .WithDescription($"**Original**```{original.Content}```\n**Updated**```{updated.Content}```")
+                .WithDescription($"**Original**```{MessageIfEmpty(original.Content)}```\n **Updated**```{MessageIfEmpty(updated.Content)}```")
                 .WithVerboseTimestamp(DateTimeOffset.UtcNow);
 
             await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
@@ -112,7 +112,7 @@ namespace Modix.Services.Core
 
                 embed = embed
                     .WithVerboseAuthor(cached.Author)
-                    .WithDescription($"**Content**```{cached.Content}```");
+                    .WithDescription($"**Content**```{MessageIfEmpty(cached.Content)}```");
             }
 
             embed = embed.WithVerboseTimestamp(DateTimeOffset.UtcNow);
@@ -123,6 +123,11 @@ namespace Modix.Services.Core
                     guild, ChannelDesignation.MessageLog,
                     $":wastebasket:Message Deleted in {MentionUtils.MentionChannel(channel.Id)} `{message.Id}`", embed.Build());
             });
+        }
+
+        private static string MessageIfEmpty(string input, string ifEmpty = "Empty Message Content")
+        {
+            return string.IsNullOrWhiteSpace(input) ? "Empty Message Content" : input;
         }
     }
 }
