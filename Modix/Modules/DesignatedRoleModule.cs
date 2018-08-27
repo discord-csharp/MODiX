@@ -28,16 +28,12 @@ namespace Modix.Modules
         [Summary("Lists all of the roles designated for use by the bot")]
         public async Task List()
         {
-            var roles = await DesignatedRoleService.SearchDesignatedRoles(new DesignatedRoleMappingSearchCriteria()
-            {
-                GuildId = Context.Guild.Id,
-                IsDeleted = false
-            });
+            var roles = await DesignatedRoleService.GetDesignatedRolesAsync(Context.Guild.Id);
 
             var builder = new EmbedBuilder()
             {
                 Title = "Assigned Role Designations",
-                Url = "https://mod.gg/designations",
+                Url = "https://mod.gg/config/roles",
                 Color = Color.Gold,
                 Timestamp = DateTimeOffset.UtcNow
             };
@@ -56,7 +52,7 @@ namespace Modix.Modules
                     Value = (designatedRoles.Length == 0)
                         ? Format.Italics("No roles assigned")
                         : designatedRoles
-                            .Select(x => $"•\t\t{x.Role.Name}")
+                            .Select(x => MentionUtils.MentionRole(x.Role.Id))
                             .Aggregate(string.Empty, (x, y) => $"{x}\n{y}"),
                     IsInline = false
                 });

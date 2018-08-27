@@ -31,6 +31,16 @@ namespace Modix.Services.Core
         Task RemoveDesignatedRoleAsync(ulong guildId, ulong roleId, DesignatedRoleType type);
 
         /// <summary>
+        /// Retrieves the current designated roles, for a given guild.
+        /// </summary>
+        /// <param name="guildId">The Discord snowflake ID of the guild whose role designations are to be retrieved.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation has completed,
+        /// containing the requested role designations.
+        /// </returns>
+        Task<IReadOnlyCollection<DesignatedRoleMappingBrief>> GetDesignatedRolesAsync(ulong guildId);
+
+        /// <summary>
         /// Retrieves designated roles, based on an arbitrary set of search criteria.
         /// </summary>
         /// <param name="searchCriteria">The search criteria, defining the role designations to be retrieved.</param>
@@ -38,7 +48,7 @@ namespace Modix.Services.Core
         /// A <see cref="Task"/> that will complete when the operation has completed,
         /// containing the requested role designations.
         /// </returns>
-        Task<IReadOnlyCollection<DesignatedRoleMappingBrief>> SearchDesignatedRoles(DesignatedRoleMappingSearchCriteria searchCriteria);
+        Task<IReadOnlyCollection<DesignatedRoleMappingBrief>> SearchDesignatedRolesAsync(DesignatedRoleMappingSearchCriteria searchCriteria);
     }
 
     public class DesignatedRoleService : IDesignatedRoleService
@@ -102,12 +112,20 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<DesignatedRoleMappingBrief>> SearchDesignatedRoles(DesignatedRoleMappingSearchCriteria searchCriteria)
+        public Task<IReadOnlyCollection<DesignatedRoleMappingBrief>> GetDesignatedRolesAsync(ulong guildId)
         {
             AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingRead);
 
-            return DesignatedRoleMappingRepository.SearchBriefsAsync(searchCriteria);
+            return DesignatedRoleMappingRepository.SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria()
+            {
+                GuildId = guildId,
+                IsDeleted = false
+            });
         }
+
+        /// <inheritdoc />
+        public Task<IReadOnlyCollection<DesignatedRoleMappingBrief>> SearchDesignatedRolesAsync(DesignatedRoleMappingSearchCriteria searchCriteria)
+            => DesignatedRoleMappingRepository.SearchBriefsAsync(searchCriteria);
 
         /// <summary>
         /// A <see cref="IAuthorizationService"/> to be used to perform authorization.
