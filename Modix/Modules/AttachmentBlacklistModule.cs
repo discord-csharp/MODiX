@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord.Commands;
-using Modix.Services.FileUpload;
+using Modix.Services.Moderation;
 
 namespace Modix.Modules
 {
@@ -14,7 +14,7 @@ namespace Modix.Modules
         [Summary("Retrieves the list of blacklisted attachment file extensions")]
         public async Task GetBlacklist()
         {
-            await ReplyAsync($"**Blacklisted Extensions**:\n```{string.Join(", ", FileUploadBehavior.BlacklistedExtensions.OrderBy(d => d))}```");
+            await ReplyAsync($"**Blacklisted Extensions**:\n```{string.Join(", ", AttachmentBlacklistBehavior.BlacklistedExtensions.OrderBy(d => d))}```");
         }
     }
 }

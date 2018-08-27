@@ -21,7 +21,6 @@ using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.DocsMaster;
-using Modix.Services.FileUpload;
 using Modix.Services.GuildInfo;
 using Modix.Services.Moderation;
 using Modix.Services.Promotions;
@@ -180,7 +179,7 @@ namespace Modix
 
             _map.AddScoped<IQuoteService, QuoteService>();
             _map.AddSingleton<CodePasteHandler>();
-            _map.AddSingleton<IBehavior, FileUploadBehavior>();
+            _map.AddSingleton<IBehavior, AttachmentBlacklistBehavior>();
             _map.AddSingleton<CodePasteService>();
             _map.AddScoped<DocsMasterRetrievalService>();
             _map.AddMemoryCache();

@@ -7,9 +7,9 @@ using Discord.WebSocket;
 using Modix.Services.Moderation;
 using Serilog;
 
-namespace Modix.Services.FileUpload
+namespace Modix.Services.Moderation
 {
-    public class FileUploadBehavior : BehaviorBase
+    public class AttachmentBlacklistBehavior : BehaviorBase
     {
         public static readonly IReadOnlyCollection<string> BlacklistedExtensions = new[]
         {
@@ -69,12 +69,12 @@ namespace Modix.Services.FileUpload
 
         private DiscordSocketClient DiscordClient { get; }
 
-        public FileUploadBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider) : base(serviceProvider)
+        public AttachmentBlacklistBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider) : base(serviceProvider)
         {
             DiscordClient = discordClient;
         }
 
-        public async Task Handle(IMessage message)
+        private async Task Handle(IMessage message)
         {
             if (!message.Attachments.Any())
                 return;
