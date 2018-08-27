@@ -29,5 +29,13 @@
         /// Describes an action where a designated channel mapping was deleted.
         /// </summary>
         DesignatedChannelMappingDeleted,
+        /// <summary>
+        /// Describes an action where a designated role mapping was created.
+        /// </summary>
+        DesignatedRoleMappingCreated,
+        /// <summary>
+        /// Describes an action where a designated role mapping was deleted.
+        /// </summary>
+        DesignatedRoleMappingDeleted
     }
 }

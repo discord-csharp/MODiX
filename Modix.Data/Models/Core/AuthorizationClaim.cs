@@ -72,6 +72,18 @@
         /// <summary>
         /// Authorizes a request to view current channel designations.
         /// </summary>
-        ChannelDesignationRead
+        ChannelDesignationRead,
+        /// <summary>
+        /// Authorizes a request to create a designated role mapping.
+        /// </summary>
+        DesignatedRoleMappingCreate,
+        /// <summary>
+        /// Authorizes a request to read designated role mappings.
+        /// </summary>
+        DesignatedRoleMappingRead,
+        /// <summary>
+        /// Authorizes a request to delete a designated role mapping.
+        /// </summary>
+        DesignatedRoleMappingDelete
     }
 }

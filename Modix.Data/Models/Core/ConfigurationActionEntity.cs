@@ -139,5 +139,16 @@ namespace Modix.Data.Models.Core
         // the "Create" and "Delete" relationships, and throw an error.
         [InverseProperty(nameof(DesignatedChannelMappingEntity.DeleteAction))]
         public virtual DesignatedChannelMappingEntity DeletedDesignatedChannelMapping { get; set; }
+
+        /// <summary>
+        /// The <see cref="DesignatedRoleMappingEntity.Id"/> value (if any) of <see cref="DesignatedRoleMappingEntity"/>.
+        /// </summary>
+        [ForeignKey(nameof(DesignatedRoleMapping))]
+        public long? DesignatedRoleMappingId { get; set; }
+
+        /// <summary>
+        /// The designated role mapping that was affected by this action, if any.
+        /// </summary>
+        public DesignatedRoleMappingEntity DesignatedRoleMapping { get; set; }
     }
 }

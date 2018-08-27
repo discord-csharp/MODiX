@@ -17,16 +17,21 @@ namespace Modix.Services.Core
         public static IServiceCollection AddModixCore(this IServiceCollection services)
             => services
                 .AddSingleton<IBehavior, AuthorizationAutoConfigBehavior>()
+                .AddSingleton<IBehavior, RoleTrackingBehavior>()
                 .AddSingleton<IBehavior, UserTrackingBehavior>()
                 .AddSingleton<IBehavior, MessageLogBehavior>()
                 .AddScoped<IAuthorizationService, AuthorizationService>()
+                .AddScoped<IRoleService, RoleService>()
                 .AddScoped<IUserService, UserService>()
                 .AddScoped<IChannelService, ChannelService>()
+                .AddScoped<IGuildRoleRepository, GuildRoleRepository>()
                 .AddScoped<IGuildUserRepository, GuildUserRepository>()
                 .AddScoped<IGuildChannelRepository, GuildChannelRepository>()
+                .AddScoped<IDesignatedRoleService, DesignatedRoleService>()
                 .AddScoped<IClaimMappingRepository, ClaimMappingRepository>()
                 .AddScoped<IConfigurationActionRepository, ConfigurationActionRepository>()
                 .AddScoped<IDesignatedChannelMappingRepository, DesignatedChannelMappingRepository>()
+                .AddScoped<IDesignatedRoleMappingRepository, DesignatedRoleMappingRepository>()
                 .AddScoped<IDesignatedChannelService, DesignatedChannelService>();
     }
 }

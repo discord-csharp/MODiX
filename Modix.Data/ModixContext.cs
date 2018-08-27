@@ -29,7 +29,11 @@ namespace Modix.Data
 
         public DbSet<GuildChannelEntity> GuildChannels { get; set; }
 
+        public DbSet<GuildRoleEntity> GuildRoles { get; set; }
+
         public DbSet<ClaimMappingEntity> ClaimMappings { get; set; }
+
+        public DbSet<DesignatedRoleMappingEntity> DesignatedRoleMappings { get; set; }
 
         public DbSet<DesignatedChannelMappingEntity> DesignatedChannelMappings { get; set; }
 
@@ -65,6 +69,23 @@ namespace Modix.Data
                 .Entity<ClaimMappingEntity>()
                 .Property(x => x.Claim)
                 .HasConversion<string>();
+
+            modelBuilder
+                .Entity<DesignatedRoleMappingEntity>()
+                .Property(x => x.Type)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<DesignatedRoleMappingEntity>()
+                .HasOne(x => x.CreateAction)
+                .WithOne()
+                .HasForeignKey<DesignatedRoleMappingEntity>(x => x.CreateActionId);
+
+            modelBuilder
+                .Entity<DesignatedRoleMappingEntity>()
+                .HasOne(x => x.DeleteAction)
+                .WithOne()
+                .HasForeignKey<DesignatedRoleMappingEntity>(x => x.DeleteActionId);
 
             modelBuilder
                 .Entity<ConfigurationActionEntity>()
