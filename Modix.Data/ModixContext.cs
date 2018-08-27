@@ -25,17 +25,17 @@ namespace Modix.Data
 
         public DbSet<UserEntity> Users { get; set; }
 
-        public DbSet<GuildUserEntity> GuildUsers { get; set; }
-
         public DbSet<GuildChannelEntity> GuildChannels { get; set; }
 
         public DbSet<GuildRoleEntity> GuildRoles { get; set; }
 
+        public DbSet<GuildUserEntity> GuildUsers { get; set; }
+
         public DbSet<ClaimMappingEntity> ClaimMappings { get; set; }
 
-        public DbSet<DesignatedRoleMappingEntity> DesignatedRoleMappings { get; set; }
-
         public DbSet<DesignatedChannelMappingEntity> DesignatedChannelMappings { get; set; }
+
+        public DbSet<DesignatedRoleMappingEntity> DesignatedRoleMappings { get; set; }
 
         public DbSet<ModerationMuteRoleMappingEntity> ModerationMuteRoleMappings { get; set; }
 
@@ -69,6 +69,23 @@ namespace Modix.Data
                 .Entity<ClaimMappingEntity>()
                 .Property(x => x.Claim)
                 .HasConversion<string>();
+
+            modelBuilder
+                .Entity<DesignatedChannelMappingEntity>()
+                .Property(x => x.Type)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<DesignatedChannelMappingEntity>()
+                .HasOne(x => x.CreateAction)
+                .WithOne()
+                .HasForeignKey<DesignatedChannelMappingEntity>(x => x.CreateActionId);
+
+            modelBuilder
+                .Entity<DesignatedChannelMappingEntity>()
+                .HasOne(x => x.DeleteAction)
+                .WithOne()
+                .HasForeignKey<DesignatedChannelMappingEntity>(x => x.DeleteActionId);
 
             modelBuilder
                 .Entity<DesignatedRoleMappingEntity>()
@@ -143,11 +160,6 @@ namespace Modix.Data
                 .HasOne(x => x.CreatedBy)
                 .WithMany()
                 .HasForeignKey(x => new { x.GuildId, x.CreatedById });
-
-            modelBuilder
-                .Entity<DesignatedChannelMappingEntity>()
-                .Property(x => x.ChannelDesignation)
-                .HasConversion(new EnumToStringConverter<ChannelDesignation>());
         }
     }
 }

@@ -51,9 +51,16 @@ namespace Modix.Data.Repositories
         /// <param name="criteria">A set of criteria defining the mappings to check for.</param>
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation has completed,
-        /// containing a flag indicating whether any matching log channel mappings were found.
+        /// containing a flag indicating whether any matching mappings were found.
         /// </returns>
         Task<bool> AnyAsync(DesignatedChannelMappingSearchCriteria criteria);
+
+        /// <summary>
+        /// Searches the repository for mapped <see cref="DesignatedChannelMappingEntity.ChannelId"/> values, based on an arbitrary set of criteria
+        /// </summary>
+        /// <param name="searchCriteria">The criteria for selecting ID values to be returned.</param>
+        /// <returns>A <see cref="Task"/> which will complete when the matching values have been retrieved.</returns>
+        Task<IReadOnlyCollection<ulong>> SearchChannelIdsAsync(DesignatedChannelMappingSearchCriteria searchCriteria);
 
         /// <summary>
         /// Searches the repository for mappings, based on an arbitrary set of criteria.
@@ -124,13 +131,20 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public Task<bool> AnyAsync(DesignatedChannelMappingSearchCriteria criteria)
             => ModixContext.DesignatedChannelMappings.AsNoTracking()
-                .FilterDesignatedChannelMappingsBy(criteria)
+                .FilterBy(criteria)
                 .AnyAsync();
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<DesignatedChannelMappingBrief>> SearchBriefsAsync(DesignatedChannelMappingSearchCriteria criteria)
+        public async Task<IReadOnlyCollection<ulong>> SearchChannelIdsAsync(DesignatedChannelMappingSearchCriteria searchCriteria)
             => await ModixContext.DesignatedChannelMappings.AsNoTracking()
-                .FilterDesignatedChannelMappingsBy(criteria)
+                .FilterBy(searchCriteria)
+                .Select(x => (ulong)x.ChannelId)
+                .ToArrayAsync();
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<DesignatedChannelMappingBrief>> SearchBriefsAsync(DesignatedChannelMappingSearchCriteria searchCriteria)
+            => await ModixContext.DesignatedChannelMappings.AsNoTracking()
+                .FilterBy(searchCriteria)
                 .Select(DesignatedChannelMappingBrief.FromEntityProjection)
                 .ToArrayAsync();
 
@@ -138,7 +152,7 @@ namespace Modix.Data.Repositories
         public async Task<int> DeleteAsync(DesignatedChannelMappingSearchCriteria criteria, ulong deletedById)
         {
             var entities = await ModixContext.DesignatedChannelMappings
-                .FilterDesignatedChannelMappingsBy(criteria)
+                .FilterBy(criteria)
                 .ToArrayAsync();
 
             foreach (var entity in entities)
@@ -186,39 +200,6 @@ namespace Modix.Data.Repositories
                 DesignatedChannelMappingId = entity.Id,
                 GuildId = entity.GuildId
             };
-        }
-    }
-
-    internal static class DesignatedChannelMappingQueryableExtensions
-    {
-        public static IQueryable<DesignatedChannelMappingEntity> FilterDesignatedChannelMappingsBy(this IQueryable<DesignatedChannelMappingEntity> query, DesignatedChannelMappingSearchCriteria criteria)
-        {
-            var longGuildId = (long?)criteria?.GuildId;
-            var longChannelId = (long?)criteria?.ChannelId;
-            var longCreatedById = (long?)criteria?.CreatedById;
-
-            return query
-                .FilterBy(
-                    x => x.GuildId == longGuildId,
-                    longGuildId != null)
-                .FilterBy(
-                    x => x.ChannelId == longChannelId,
-                    longChannelId != null)
-                .FilterBy(
-                    x => x.ChannelDesignation == criteria.ChannelDesignation,
-                    criteria.ChannelDesignation != null)
-                .FilterBy(
-                    x => x.CreateAction.Created >= criteria.CreatedRange.Value.From,
-                    criteria?.CreatedRange?.From != null)
-                .FilterBy(
-                    x => x.CreateAction.Created <= criteria.CreatedRange.Value.To,
-                    criteria?.CreatedRange?.To != null)
-                .FilterBy(
-                    x => x.CreateAction.CreatedById == longCreatedById,
-                    longCreatedById != null)
-                .FilterBy(
-                    x => (x.DeleteActionId != null) == criteria.IsDeleted,
-                    criteria?.IsDeleted != null);
         }
     }
 }

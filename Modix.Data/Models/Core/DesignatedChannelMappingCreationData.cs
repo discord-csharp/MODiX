@@ -1,7 +1,5 @@
 ﻿using System;
 
-using Modix.Data.Models.Core;
-
 namespace Modix.Data.Models.Core
 {
     /// <summary>
@@ -20,9 +18,9 @@ namespace Modix.Data.Models.Core
         public ulong ChannelId { get; set; }
 
         /// <summary>
-        /// See <see cref="DesignatedChannelMappingEntity.ChannelDesignation"/>
+        /// See <see cref="DesignatedChannelMappingEntity.Type"/>
         /// </summary>
-        public ChannelDesignation ChannelDesignation { get; set; }
+        public DesignatedChannelType Type { get; set; }
 
         /// <summary>
         /// See <see cref="ConfigurationActionEntity.CreatedById"/>.
@@ -34,7 +32,7 @@ namespace Modix.Data.Models.Core
             {
                 GuildId = (long)GuildId,
                 ChannelId = (long)ChannelId,
-                ChannelDesignation = ChannelDesignation,
+                Type = Type,
                 CreateAction = new ConfigurationActionEntity()
                 {
                     GuildId = (long)GuildId,

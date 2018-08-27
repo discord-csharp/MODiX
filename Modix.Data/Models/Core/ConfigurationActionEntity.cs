@@ -112,33 +112,13 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// The <see cref="DesignatedChannelMappingEntity.Id"/> value (if any) of <see cref="DesignatedChannelMappingEntity"/>.
         /// </summary>
-        [ForeignKey(nameof(DesignatedChannelMappingEntity))]
+        [ForeignKey(nameof(DesignatedChannelMapping))]
         public long? DesignatedChannelMappingId { get; set; }
 
         /// <summary>
         /// The designated channel mapping that was affected by this action, if any.
         /// </summary>
         public DesignatedChannelMappingEntity DesignatedChannelMapping { get; set; }
-
-        /// <summary>
-        /// Alias for <see cref="DesignatedChannelMappingEntity"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.DesignatedChannelMappingCreated"/>.
-        /// Otherwise, null.
-        /// </summary>
-        // This is needed because if we don't manually map an inverse property for this relationship,
-        // EF will try and do it automatically, and will try to use the DesignatedChannelMappingEntity property above for both
-        // the "Create" and "Delete" relationships, and throw an error.
-        [InverseProperty(nameof(DesignatedChannelMappingEntity.CreateAction))]
-        public virtual DesignatedChannelMappingEntity CreatedDesignatedChannelMapping { get; set; }
-
-        /// <summary>
-        /// Alias for <see cref="DesignatedChannelMappingEntity"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.DesignatedChannelMappingDeleted"/>.
-        /// Otherwise, null.
-        /// </summary>
-        // This is needed because if we don't manually map an inverse property for this relationship,
-        // EF will try and do it automatically, and will try to use the DesignatedChannelMappingEntity property above for both
-        // the "Create" and "Delete" relationships, and throw an error.
-        [InverseProperty(nameof(DesignatedChannelMappingEntity.DeleteAction))]
-        public virtual DesignatedChannelMappingEntity DeletedDesignatedChannelMapping { get; set; }
 
         /// <summary>
         /// The <see cref="DesignatedRoleMappingEntity.Id"/> value (if any) of <see cref="DesignatedRoleMappingEntity"/>.

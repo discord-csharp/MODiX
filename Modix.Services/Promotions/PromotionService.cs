@@ -58,7 +58,7 @@ namespace Modix.Services.Promotions
             campaign.Status = CampaignStatus.Approved;
             await _repository.UpdateCampaign(campaign);
 
-            await _designatedChannelService.SendToDesignatedChannelsAsync(promoter.Guild, ChannelDesignation.PromotionLog,
+            await _designatedChannelService.SendToDesignatedChannelsAsync(promoter.Guild, DesignatedChannelType.PromotionLog,
                 $"{MentionUtils.MentionUser((ulong)campaign.PromotionFor.Id)} has been promoted to {foundRole.Mention}! 🎉");
         }
 
@@ -140,7 +140,7 @@ namespace Modix.Services.Promotions
 
             await AddComment(ret, commentBody, PromotionSentiment.For);
 
-            await _designatedChannelService.SendToDesignatedChannelsAsync(user.Guild, ChannelDesignation.PromotionLog, "",
+            await _designatedChannelService.SendToDesignatedChannelsAsync(user.Guild, DesignatedChannelType.PromotionLog, "",
                 new EmbedBuilder()
                     .WithTitle("Campaign Started")
                     .WithAuthor(user)

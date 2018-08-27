@@ -38,7 +38,7 @@ namespace Modix.Data.Models.Core
         public bool? IsDeleted { get; set; }
     }
 
-    internal static class QueryableExtensions
+    internal static class DesignatedRoleMappingQueryableExtensions
     {
         public static IQueryable<DesignatedRoleMappingEntity> FilterBy(this IQueryable<DesignatedRoleMappingEntity> query, DesignatedRoleMappingSearchCriteria criteria)
         {

@@ -9,6 +9,9 @@ using Modix.Data.Utilities;
 
 namespace Modix.Data.Repositories
 {
+    /// <summary>
+    /// Describes a repository for managing <see cref="GuildRoleEntity"/> entities, within an underlying data storage provider.
+    /// </summary>
     public interface IGuildRoleRepository
     {
         /// <summary>
@@ -45,7 +48,7 @@ namespace Modix.Data.Repositories
     public class GuildRoleRepository : RepositoryBase, IGuildRoleRepository
     {
         /// <summary>
-        /// Creates a new <see cref="GuildChannelRepository"/>.
+        /// Creates a new <see cref="GuildRoleRepository"/>.
         /// See <see cref="RepositoryBase(ModixContext)"/> for details.
         /// </summary>
         public GuildRoleRepository(ModixContext modixContext)
@@ -55,6 +58,7 @@ namespace Modix.Data.Repositories
         public Task<IRepositoryTransaction> BeginCreateTransactionAsync()
             => _createTransactionFactory.BeginTransactionAsync(ModixContext.Database);
 
+        /// <inheritdoc />
         public async Task CreateAsync(GuildRoleCreationData data)
         {
             if (data == null)

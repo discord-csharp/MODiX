@@ -62,17 +62,17 @@
         /// </summary>
         PromotionExecute,
         /// <summary>
-        /// Authorizes a request to assign a channel designation.
+        /// Authorizes a request to create a designated channel mapping.
         /// </summary>
-        ChannelDesignationCreate,
+        DesignatedChannelMappingCreate,
         /// <summary>
-        /// Authorizes a request to unassign a channel designation.
+        /// Authorizes a request to read designated channel mappings.
         /// </summary>
-        ChannelDesignationDelete,
+        DesignatedChannelMappingRead,
         /// <summary>
-        /// Authorizes a request to view current channel designations.
+        /// Authorizes a request to delete a designated channel mapping.
         /// </summary>
-        ChannelDesignationRead,
+        DesignatedChannelMappingDelete,
         /// <summary>
         /// Authorizes a request to create a designated role mapping.
         /// </summary>

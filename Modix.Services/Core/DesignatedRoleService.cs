@@ -10,6 +10,9 @@ using Serilog;
 
 namespace Modix.Services.Core
 {
+    /// <summary>
+    /// Provides methods for managing and interacting with Discord roles, designated for use within the application.
+    /// </summary>
     public interface IDesignatedRoleService
     {
         /// <summary>
