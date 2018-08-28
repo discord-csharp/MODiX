@@ -4,7 +4,6 @@ using Discord;
 using Discord.WebSocket;
 using Serilog;
 using Modix.Services.AutoCodePaste;
-using Modix.Services.FileUpload;
 using Modix.Services.GuildInfo;
 using System;
 using Microsoft.Extensions.DependencyInjection;
