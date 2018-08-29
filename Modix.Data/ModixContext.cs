@@ -37,8 +37,6 @@ namespace Modix.Data
 
         public DbSet<DesignatedRoleMappingEntity> DesignatedRoleMappings { get; set; }
 
-        public DbSet<ModerationMuteRoleMappingEntity> ModerationMuteRoleMappings { get; set; }
-
         public DbSet<ModerationActionEntity> ModerationActions { get; set; }
 
         public DbSet<InfractionEntity> Infractions { get; set; }
@@ -69,6 +67,18 @@ namespace Modix.Data
                 .Entity<ClaimMappingEntity>()
                 .Property(x => x.Claim)
                 .HasConversion<string>();
+
+            modelBuilder
+                .Entity<ClaimMappingEntity>()
+                .HasOne(x => x.CreateAction)
+                .WithOne()
+                .HasForeignKey<ClaimMappingEntity>(x => x.CreateActionId);
+
+            modelBuilder
+                .Entity<ClaimMappingEntity>()
+                .HasOne(x => x.DeleteAction)
+                .WithOne()
+                .HasForeignKey<ClaimMappingEntity>(x => x.DeleteActionId);
 
             modelBuilder
                 .Entity<DesignatedChannelMappingEntity>()

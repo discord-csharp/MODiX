@@ -59,57 +59,6 @@ namespace Modix.Data.Models.Core
         public ClaimMappingEntity ClaimMapping { get; set; }
 
         /// <summary>
-        /// Alias for <see cref="ClaimMapping"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.ClaimMappingCreated"/>.
-        /// Otherwise, null.
-        /// </summary>
-        // This is needed because if we don't manually map an inverse property for this relationship,
-        // EF will try and do it automatically, and will try to use the ClaimMapping property above for both
-        // the "Create" and "Delete" relationships, and throw an error.
-        [InverseProperty(nameof(ClaimMappingEntity.CreateAction))]
-        public virtual ClaimMappingEntity CreatedClaimMapping { get; set; }
-
-        /// <summary>
-        /// Alias for <see cref="ClaimMapping"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.ClaimMappingDeleted"/>.
-        /// Otherwise, null.
-        /// </summary>
-        // This is needed because if we don't manually map an inverse property for this relationship,
-        // EF will try and do it automatically, and will try to use the ClaimMapping property above for both
-        // the "Create" and "Delete" relationships, and throw an error.
-        [InverseProperty(nameof(ClaimMappingEntity.DeleteAction))]
-        public virtual ClaimMappingEntity DeletedClaimMapping { get; set; }
-
-        /// <summary>
-        /// The <see cref="ModerationMuteRoleMappingEntity.Id"/> value (if any) of <see cref="ModerationMuteRoleMapping"/>.
-        /// </summary>
-        [ForeignKey(nameof(ModerationMuteRoleMapping))]
-        public long? ModerationMuteRoleMappingId { get; set; }
-
-        /// <summary>
-        /// The moderation mute role mapping that was affected by this action, if any.
-        /// </summary>
-        public ModerationMuteRoleMappingEntity ModerationMuteRoleMapping { get; set; }
-
-        /// <summary>
-        /// Alias for <see cref="ModerationMuteRoleMapping"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.ModerationMuteRoleMappingCreated"/>.
-        /// Otherwise, null.
-        /// </summary>
-        // This is needed because if we don't manually map an inverse property for this relationship,
-        // EF will try and do it automatically, and will try to use the ModerationMuteRoleMapping property above for both
-        // the "Create" and "Delete" relationships, and throw an error.
-        [InverseProperty(nameof(ModerationMuteRoleMappingEntity.CreateAction))]
-        public virtual ModerationMuteRoleMappingEntity CreatedModerationMuteRoleMapping { get; set; }
-
-        /// <summary>
-        /// Alias for <see cref="ModerationMuteRoleMapping"/> for <see cref="Type"/> values of <see cref="ConfigurationActionType.ModerationMuteRoleMappingDeleted"/>.
-        /// Otherwise, null.
-        /// </summary>
-        // This is needed because if we don't manually map an inverse property for this relationship,
-        // EF will try and do it automatically, and will try to use the ModerationMuteRoleMapping property above for both
-        // the "Create" and "Delete" relationships, and throw an error.
-        [InverseProperty(nameof(ModerationMuteRoleMappingEntity.DeleteAction))]
-        public virtual ModerationMuteRoleMappingEntity DeletedModerationMuteRoleMapping { get; set; }
-
-        /// <summary>
         /// The <see cref="DesignatedChannelMappingEntity.Id"/> value (if any) of <see cref="DesignatedChannelMappingEntity"/>.
         /// </summary>
         [ForeignKey(nameof(DesignatedChannelMapping))]

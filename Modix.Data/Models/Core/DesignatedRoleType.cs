@@ -8,6 +8,10 @@
         /// <summary>
         /// Defines a role that serves as a member of the rank hierarchy.
         /// </summary>
-        Rank
+        Rank,
+        /// <summary>
+        /// Defines a role that is used by the moderation feature to mute users.
+        /// </summary>
+        ModerationMute
     }
 }
