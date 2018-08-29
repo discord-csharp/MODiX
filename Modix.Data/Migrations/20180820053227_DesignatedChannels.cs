@@ -92,6 +92,18 @@ namespace Modix.Data.Migrations
                 principalTable: "DesignatedChannelMappings",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.Sql(
+                @"UPDATE `ConfigurationActions`
+                  SET `Type` = 'DesignatedChannelMappingCreated'
+                  WHERE `Type` = 'ModerationLogChannelMappingCreated'"
+                .Replace('`', '"'));
+
+            migrationBuilder.Sql(
+                @"UPDATE `ConfigurationActions`
+                  SET `Type` = 'DesignatedChannelMappingDeleted'
+                  WHERE `Type` = 'ModerationLogChannelMappingDeleted'"
+                .Replace('`', '"'));
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -190,6 +202,18 @@ namespace Modix.Data.Migrations
                 principalTable: "ModerationLogChannelMappings",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.Sql(
+                @"UPDATE `ConfigurationActions`
+                  SET `Type` = 'ModerationLogChannelMappingCreated'
+                  WHERE `Type` = 'DesignatedChannelMappingCreated'"
+                .Replace('`', '"'));
+
+            migrationBuilder.Sql(
+                @"UPDATE `ConfigurationActions`
+                  SET `Type` = 'ModerationLogChannelMappingDeleted'
+                  WHERE `Type` = 'DesignatedChannelMappingDeleted'"
+                .Replace('`', '"'));
         }
     }
 }
