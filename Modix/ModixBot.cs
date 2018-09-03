@@ -176,7 +176,8 @@ namespace Modix
             _map.AddSingleton<HttpClient>();
 
             _map.AddModixCore()
-                .AddModixModeration();
+                .AddModixModeration()
+                .AddModixPromotions();
 
             _map.AddScoped<IQuoteService, QuoteService>();
             _map.AddSingleton<CodePasteHandler>();
@@ -189,15 +190,13 @@ namespace Modix
             _map.AddSingleton<ICodePasteRepository, MemoryCodePasteRepository>();
             _map.AddSingleton<CommandHelpService>();
 
-            _map.AddScoped<PromotionService>();
-            _map.AddScoped<IPromotionRepository, DBPromotionRepository>();
-
             _map.AddSingleton<CommandErrorHandler>();
             _map.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
             _map.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
             _map.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
 
-            _map.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>();
+            _map.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>()
+                .AddScoped<IPromotionActionEventHandler, PromotionLoggingBehavior>();
 
             _client.MessageReceived += HandleCommand;
             _client.MessageReceived += _hooks.HandleMessage;

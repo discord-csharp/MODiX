@@ -50,18 +50,6 @@
         /// </summary>
         PostInviteLink,
         /// <summary>
-        /// Authorizes a request to create a promotion campaign for a user.
-        /// </summary>
-        PromotionCreate,
-        /// <summary>
-        /// Authorizes a request to comment on a promotion campaign for a user.
-        /// </summary>
-        PromotionComment,
-        /// <summary>
-        /// Authorizes a request to approve/deny/reactivate a promotion campaign for a user.
-        /// </summary>
-        PromotionExecute,
-        /// <summary>
         /// Authorizes a request to create a designated channel mapping.
         /// </summary>
         DesignatedChannelMappingCreate,
@@ -84,6 +72,18 @@
         /// <summary>
         /// Authorizes a request to delete a designated role mapping.
         /// </summary>
-        DesignatedRoleMappingDelete
+        DesignatedRoleMappingDelete,
+        /// <summary>
+        /// Authorizes a request to create a promotion campaign for a user.
+        /// </summary>
+        PromotionsCreateCampaign,
+        /// <summary>
+        /// Authorizes a request to close a promotion campaign for a user.
+        /// </summary>
+        PromotionsCloseCampaign,
+        /// <summary>
+        /// Authorizes a request to comment on a promotion campaign for a user.
+        /// </summary>
+        PromotionsComment
     }
 }

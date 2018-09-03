@@ -36,6 +36,17 @@ namespace Modix.Services.Core
         Task RemoveDesignatedChannelAsync(IGuild guild, IMessageChannel channel, DesignatedChannelType type);
 
         /// <summary>
+        /// Checks whether any designated channels exist, for an arbitrary set of criteria.
+        /// </summary>
+        /// <param name="guildId">The Discord snowflake ID of the guild whose designated channels are to be checked.</param>
+        /// <param name="type">The type of designated channels to check for.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation has completed,
+        /// containing a flag indicating whether any matching channel designations exist.
+        /// </returns>
+        Task<bool> AnyDesignatedChannelAsync(ulong guildId, DesignatedChannelType type);
+
+        /// <summary>
         /// Retrieves the Discord snowflake ID values of the channels assigned to a given designation, for a given guild.
         /// </summary>
         /// <param name="guildId">The Discord snowflake ID of the guild for which channel designations are to be retrieved.</param>
@@ -145,6 +156,15 @@ namespace Modix.Services.Core
                 transaction.Commit();
             }
         }
+
+        /// <inheritdoc />
+        public Task<bool> AnyDesignatedChannelAsync(ulong guildId, DesignatedChannelType type)
+            => DesignatedChannelMappingRepository.AnyAsync(new DesignatedChannelMappingSearchCriteria()
+            {
+                GuildId = guildId,
+                Type = type,
+                IsDeleted = false
+            });
 
         /// <inheritdoc />
         public Task<IReadOnlyCollection<ulong>> GetDesignatedChannelIdsAsync(ulong guildId, DesignatedChannelType type)

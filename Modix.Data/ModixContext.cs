@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
-using Modix.Data.Models.Promotion;
+using Modix.Data.Models.Promotions;
 
 namespace Modix.Data
 {
@@ -46,6 +46,8 @@ namespace Modix.Data
         public DbSet<PromotionCampaignEntity> PromotionCampaigns { get; set; }
 
         public DbSet<PromotionCommentEntity> PromotionComments { get; set; }
+
+        public DbSet<PromotionActionEntity> PromotionActions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -167,6 +169,51 @@ namespace Modix.Data
 
             modelBuilder
                 .Entity<ModerationActionEntity>()
+                .HasOne(x => x.CreatedBy)
+                .WithMany()
+                .HasForeignKey(x => new { x.GuildId, x.CreatedById });
+
+            modelBuilder
+                .Entity<PromotionCampaignEntity>()
+                .HasOne(x => x.Subject)
+                .WithMany()
+                .HasForeignKey(x => new { x.GuildId, x.SubjectId });
+
+            modelBuilder
+                .Entity<PromotionCampaignEntity>()
+                .Property(x => x.Outcome)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<PromotionCampaignEntity>()
+                .HasOne(x => x.CreateAction)
+                .WithOne()
+                .HasForeignKey<PromotionCampaignEntity>(x => x.CreateActionId);
+
+            modelBuilder
+                .Entity<PromotionCampaignEntity>()
+                .HasOne(x => x.CloseAction)
+                .WithOne()
+                .HasForeignKey<PromotionCampaignEntity>(x => x.CloseActionId);
+
+            modelBuilder
+                .Entity<PromotionCommentEntity>()
+                .Property(x => x.Sentiment)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<PromotionCommentEntity>()
+                .HasOne(x => x.CreateAction)
+                .WithOne()
+                .HasForeignKey<PromotionCommentEntity>(x => x.CreateActionId);
+
+            modelBuilder
+                .Entity<PromotionActionEntity>()
+                .Property(x => x.Type)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<PromotionActionEntity>()
                 .HasOne(x => x.CreatedBy)
                 .WithMany()
                 .HasForeignKey(x => new { x.GuildId, x.CreatedById });
