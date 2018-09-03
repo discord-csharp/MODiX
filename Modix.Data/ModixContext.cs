@@ -45,6 +45,8 @@ namespace Modix.Data
 
         public DbSet<PromotionCommentEntity> PromotionComments { get; set; }
 
+        public DbSet<MessageEntity> Messages { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder
@@ -127,6 +129,13 @@ namespace Modix.Data
                 .Entity<DesignatedChannelMappingEntity>()
                 .Property(x => x.ChannelDesignation)
                 .HasConversion(new EnumToStringConverter<ChannelDesignation>());
+
+            modelBuilder.Entity<MessageEntity>()
+                .HasIndex(x => x.MessageId)
+                .IsUnique();
+
+            modelBuilder.Entity<MessageEntity>()
+                .HasIndex(x => new { x.GuildId, x.UserId });
         }
     }
 }
