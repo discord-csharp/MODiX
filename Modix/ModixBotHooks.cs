@@ -4,7 +4,6 @@ using Discord;
 using Discord.WebSocket;
 using Serilog;
 using Modix.Services.AutoCodePaste;
-using Modix.Services.FileUpload;
 using Modix.Services.GuildInfo;
 using System;
 using Microsoft.Extensions.DependencyInjection;
@@ -85,22 +84,6 @@ namespace Modix
                 infoService.ClearCacheEntry(guild);
 
                 return Task.CompletedTask;
-            }
-        }
-
-        public async Task HandleMessage(SocketMessage message)
-        {
-            if (!(message is SocketUserMessage userMessage) || !(userMessage.Author is SocketGuildUser || userMessage.Author.IsBot))
-                return;
-
-            using (var scope = ServiceProvider.CreateScope())
-            {
-                if (message.Attachments.Any())
-                {
-                    var fileUploadHandler = scope.ServiceProvider.GetRequiredService<FileUploadHandler>();
-
-                    await fileUploadHandler.Handle(message);
-                }
             }
         }
     }
