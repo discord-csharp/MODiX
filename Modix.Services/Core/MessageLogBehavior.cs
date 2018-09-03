@@ -1,13 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Modix.Data;
 using Modix.Data.Models.Core;
 using Modix.Services.Utilities;
-using Serilog;
 
 namespace Modix.Services.Core
 {
@@ -15,15 +17,20 @@ namespace Modix.Services.Core
     {
         private readonly DiscordSocketClient _discordClient;
 
-        public MessageLogBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider) : base(serviceProvider)
+        public MessageLogBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider, ILogger<MessageLogBehavior> logger) : base(serviceProvider)
         {
             _discordClient = discordClient;
+
+            Log = logger ?? NullLogger<MessageLogBehavior>.Instance;
         }
+
+        private ILogger<MessageLogBehavior> Log { get; }
 
         protected internal override Task OnStartingAsync()
         {
             _discordClient.MessageDeleted += HandleMessageDelete;
             _discordClient.MessageUpdated += HandleMessageEdit;
+            _discordClient.MessageReceived += HandleMessageReceived;
 
             return Task.CompletedTask;
         }
@@ -32,6 +39,7 @@ namespace Modix.Services.Core
         {
             _discordClient.MessageDeleted -= HandleMessageDelete;
             _discordClient.MessageUpdated -= HandleMessageEdit;
+            _discordClient.MessageReceived -= HandleMessageReceived;
 
             return Task.CompletedTask;
         }
@@ -54,6 +62,44 @@ namespace Modix.Services.Core
             return result;
         }
 
+        private async Task HandleMessageReceived(SocketMessage message)
+        {
+            Log.LogDebug("Handling message received event for message #{MessageId}.", message.Id);
+
+            if (!message.Content.StartsWith('!') &&
+                message.Channel is IGuildChannel channel &&
+                message.Author is IGuildUser author &&
+                !author.IsBot && !author.IsWebhook)
+            {
+                await SelfExecuteRequest<ModixContext>(async db =>
+                {
+                    Log.LogInformation("Logging message #{MessageId} to the database.", message.Id);
+
+                    var entity = new MessageEntity
+                    {
+                        MessageId = message.Id,
+                        GuildId = channel.GuildId,
+                        ChannelId = channel.Id,
+                        UserId = author.Id,
+                        Timestamp = message.Timestamp,
+                        OriginalMessageHash = ComputeHash(message.Content)
+                    };
+
+                    Log.LogDebug("Entity for message #{MessageId}: {@Message}", message.Id, entity);
+
+                    try
+                    {
+                        await db.Messages.AddAsync(entity);
+                        await db.SaveChangesAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.LogError(ex, "An unexpected error occurred when attempting to log message #{MessageId}.", message.Id);
+                    }
+                });
+            }
+        }
+
         private async Task HandleMessageEdit(Cacheable<IMessage, ulong> cachedOriginal, SocketMessage updated, ISocketMessageChannel channel)
         {
             //Don't log when Modix edits its own messages
@@ -63,7 +109,7 @@ namespace Modix.Services.Core
 
             if (guild == null)
             {
-                Log.Information("Recieved message update event for non-guild message, ignoring");
+                Log.LogInformation("Recieved message update event for non-guild message, ignoring");
             }
 
             if (await ShouldSkip(guild, channel)) { return; }
@@ -92,7 +138,7 @@ namespace Modix.Services.Core
 
             if (guild == null)
             {
-                Log.Information("Recieved message update event for non-guild message, ignoring");
+                Log.LogInformation("Recieved message update event for non-guild message, ignoring");
             }
 
             if (await ShouldSkip(guild, channel)) { return; }
@@ -138,6 +184,16 @@ namespace Modix.Services.Core
         private static string MessageIfEmpty(string input, string ifEmpty = "Empty Message Content")
         {
             return string.IsNullOrWhiteSpace(input) ? "Empty Message Content" : input;
+        }
+
+        private static string ComputeHash(string str)
+        {
+            var bytes = Encoding.UTF8.GetBytes(str);
+            using (var alg = SHA1.Create())
+            {
+                var hash = alg.ComputeHash(bytes);
+                return Convert.ToBase64String(hash);
+            }
         }
     }
 }
