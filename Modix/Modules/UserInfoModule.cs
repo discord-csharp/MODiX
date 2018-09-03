@@ -7,18 +7,22 @@ using Discord;
 using Discord.Commands;
 using Humanizer;
 using Humanizer.Localisation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Modix.Data;
 
 namespace Modix.Modules
 {
     public class UserInfoModule : ModuleBase
     {
-        public UserInfoModule(ILogger<UserInfoModule> logger)
+        public UserInfoModule(ModixContext modixContext, ILogger<UserInfoModule> logger)
         {
+            Db = modixContext;
             Log = logger ?? new NullLogger<UserInfoModule>();
         }
 
+        private ModixContext Db { get; }
         private ILogger<UserInfoModule> Log { get; }
 
         [Command("info")]
@@ -75,6 +79,11 @@ namespace Modix.Modules
                     }
                 }
             }
+            
+            builder.AppendLine();
+            builder.AppendLine("**\u276F Guild Participation**");
+            builder.AppendLine("Last 7 days: " + (await GetMessageCount(Context.Guild.Id, user.Id, TimeSpan.FromDays(7))) + " messages");
+            builder.AppendLine("Last 30 days: " + (await GetMessageCount(Context.Guild.Id, user.Id, TimeSpan.FromDays(30))) + " messages");
 
             // TODO: Add infraction summary
 
@@ -151,6 +160,21 @@ namespace Modix.Modules
         {
             // TODO: Get the dominate image in the user's avatar.
             return new Color(253, 95, 0);
+        }
+
+        private Task<int> GetMessageCount(ulong guildId, ulong userId) =>
+            GetMessageCount(guildId, userId, TimeSpan.MaxValue);
+
+        private async Task<int> GetMessageCount(ulong guildId, ulong userId, TimeSpan timespan)
+        {
+            var utcNow = DateTimeOffset.UtcNow;
+            var maxTimespan = utcNow - DateTimeOffset.MinValue;
+            var timeRange = timespan > maxTimespan ? maxTimespan : timespan;
+            var earliestDateTime = utcNow - timeRange;
+
+            return await Db.Messages.AsNoTracking()
+                .Where(x => x.GuildId == guildId && x.UserId == userId && x.Timestamp >= earliestDateTime)
+                .CountAsync();
         }
     }
 }
