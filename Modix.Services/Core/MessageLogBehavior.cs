@@ -68,6 +68,7 @@ namespace Modix.Services.Core
 
             if (!message.Content.StartsWith('!') &&
                 message.Channel is IGuildChannel channel &&
+                channel.Guild is IGuild guild &&
                 message.Author is IGuildUser author &&
                 !author.IsBot && !author.IsWebhook)
             {
@@ -78,7 +79,7 @@ namespace Modix.Services.Core
                     var entity = new MessageEntity
                     {
                         MessageId = message.Id,
-                        GuildId = channel.GuildId,
+                        GuildId = guild.Id,
                         ChannelId = channel.Id,
                         UserId = author.Id,
                         Timestamp = message.Timestamp,
