@@ -113,17 +113,16 @@ namespace Modix.Data.Repositories
     }
 
     /// <inheritdoc />
-    public class InfractionRepository : RepositoryBase, IInfractionRepository
+    public class InfractionRepository : ModerationActionEventRepositoryBase, IInfractionRepository
     {
         /// <summary>
         /// Creates a new <see cref="InfractionRepository"/>.
-        /// See <see cref="RepositoryBase(ModixContext)"/> for details.
+        /// See <see cref="ModerationActionEventRepositoryBase(ModixContext)"/> for details.
         /// </summary>
-        public InfractionRepository(ModixContext modixContext, IEnumerable<IInfractionEventHandler> infractionEventHandlers, IEnumerable<IModerationActionEventHandler> moderationActionEventHandlers)
-            : base(modixContext)
+        public InfractionRepository(ModixContext modixContext, IEnumerable<IModerationActionEventHandler> moderationActionEventHandlers, IEnumerable<IInfractionEventHandler> infractionEventHandlers)
+            : base(modixContext, moderationActionEventHandlers)
         {
             InfractionEventHandlers = infractionEventHandlers;
-            ModerationActionEventHandlers = moderationActionEventHandlers;
         }
 
         /// <inheritdoc />
@@ -146,13 +145,7 @@ namespace Modix.Data.Repositories
 
             await RaiseInfractionCreatedAsync(entity.Id, data);
 
-            await RaiseModerationActionCreatedAsync(entity.CreateActionId, new ModerationActionCreationData()
-            {
-                GuildId = (ulong)entity.CreateAction.GuildId,
-                Type = entity.CreateAction.Type,
-                Created = entity.CreateAction.Created,
-                CreatedById = (ulong)entity.CreateAction.CreatedById
-            });
+            await RaiseModerationActionCreatedAsync(entity.CreateAction);
 
             return entity.Id;
         }
@@ -239,13 +232,7 @@ namespace Modix.Data.Repositories
             };
             await ModixContext.SaveChangesAsync();
 
-            await RaiseModerationActionCreatedAsync(entity.RescindActionId.Value, new ModerationActionCreationData()
-            {
-                GuildId = (ulong)entity.RescindAction.GuildId,
-                Type = entity.RescindAction.Type,
-                Created = entity.RescindAction.Created,
-                CreatedById = (ulong)entity.RescindAction.CreatedById
-            });
+            await RaiseModerationActionCreatedAsync(entity.RescindAction);
 
             return true;
         }
@@ -272,13 +259,7 @@ namespace Modix.Data.Repositories
             };
             await ModixContext.SaveChangesAsync();
 
-            await RaiseModerationActionCreatedAsync(entity.DeleteActionId.Value, new ModerationActionCreationData()
-            {
-                GuildId = (ulong)entity.DeleteAction.GuildId,
-                Type = entity.DeleteAction.Type,
-                Created = entity.DeleteAction.Created,
-                CreatedById = (ulong)entity.DeleteAction.CreatedById
-            });
+            await RaiseModerationActionCreatedAsync(entity.DeleteAction);
 
             return true;
         }
@@ -289,22 +270,10 @@ namespace Modix.Data.Repositories
         /// </summary>
         internal protected IEnumerable<IInfractionEventHandler> InfractionEventHandlers { get; }
 
-        /// <summary>
-        /// A set of <see cref="IModerationActionEventHandler"/> objects to receive information about moderation actions
-        /// affected by this repository.
-        /// </summary>
-        internal protected IEnumerable<IModerationActionEventHandler> ModerationActionEventHandlers { get; }
-
         private async Task RaiseInfractionCreatedAsync(long infractionId, InfractionCreationData data)
         {
             foreach (var handler in InfractionEventHandlers)
                 await handler.OnInfractionCreatedAsync(infractionId, data);
-        }
-
-        private async Task RaiseModerationActionCreatedAsync(long moderationActionId, ModerationActionCreationData data)
-        {
-            foreach(var handler in ModerationActionEventHandlers)
-                await handler.OnModerationActionCreatedAsync(moderationActionId, data);
         }
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
