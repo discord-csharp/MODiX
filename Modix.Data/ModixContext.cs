@@ -113,6 +113,12 @@ namespace Modix.Data
                 .HasForeignKey(x => new { x.GuildId, x.AuthorId });
 
             modelBuilder
+                .Entity<DeletedMessageEntity>()
+                .HasOne(x => x.CreateAction)
+                .WithOne()
+                .HasForeignKey<DeletedMessageEntity>(x => x.CreateActionId);
+
+            modelBuilder
                 .Entity<ModerationActionEntity>()
                 .Property(x => x.Type)
                 .HasConversion<string>();

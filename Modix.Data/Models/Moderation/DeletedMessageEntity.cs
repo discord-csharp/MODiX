@@ -64,7 +64,6 @@ namespace Modix.Data.Models.Moderation
         /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="CreateAction"/>.
         /// </summary>
         [Required]
-        [ForeignKey(nameof(CreateAction))]
         public long CreateActionId { get; set; }
 
         /// <summary>
