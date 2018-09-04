@@ -120,20 +120,20 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public Task<bool> AnyAsync(ClaimMappingSearchCriteria criteria)
             => ModixContext.ClaimMappings.AsNoTracking()
-                .FilterClaimMappingsBy(criteria)
+                .FilterBy(criteria)
                 .AnyAsync();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<long>> SearchIdsAsync(ClaimMappingSearchCriteria criteria)
             => await ModixContext.ClaimMappings.AsNoTracking()
-                .FilterClaimMappingsBy(criteria)
+                .FilterBy(criteria)
                 .Select(x => x.Id)
                 .ToArrayAsync();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<ClaimMappingBrief>> SearchBriefsAsync(ClaimMappingSearchCriteria criteria)
             => await ModixContext.ClaimMappings.AsNoTracking()
-                .FilterClaimMappingsBy(criteria)
+                .FilterBy(criteria)
                 .Select(ClaimMappingBrief.FromEntityProjection)
                 .ToArrayAsync();
 
@@ -167,50 +167,5 @@ namespace Modix.Data.Repositories
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
             = new RepositoryTransactionFactory();
-    }
-
-    internal static class ClaimMappingQueryableExtensions
-    {
-        internal static IQueryable<ClaimMappingEntity> FilterClaimMappingsBy(this IQueryable<ClaimMappingEntity> query, ClaimMappingSearchCriteria criteria)
-        {
-            var longGuildId = (long?)criteria?.GuildId;
-            var longRoleIds = criteria?.RoleIds?.Select(x => (long)x).ToArray();
-            var longUserId = (long?)criteria?.UserId;
-            var longCreatedById = (long?)criteria?.CreatedById;
-
-            var anyRoleIds = longRoleIds?.Any() ?? false;
-
-            return query
-                .FilterBy(
-                    x => criteria.Types.Contains(x.Type),
-                    criteria?.Types?.Any() ?? false)
-                .FilterBy(
-                    x => x.GuildId == longGuildId,
-                    longGuildId != null)
-                .FilterBy(
-                    x => longRoleIds.Contains(x.RoleId.Value) || (x.UserId == longUserId),
-                    anyRoleIds && (longUserId != null))
-                .FilterBy(
-                    x => longRoleIds.Contains(x.RoleId.Value),
-                    anyRoleIds && (longUserId == null))
-                .FilterBy(
-                    x => (x.UserId == longUserId),
-                    !anyRoleIds && (longUserId != null))
-                .FilterBy(
-                    x => criteria.Claims.Contains(x.Claim),
-                    criteria?.Claims?.Any() ?? false)
-                .FilterBy(
-                    x => x.CreateAction.Created >= criteria.CreatedRange.Value.From.Value,
-                    criteria?.CreatedRange?.From != null)
-                .FilterBy(
-                    x => x.CreateAction.Created <= criteria.CreatedRange.Value.To.Value,
-                    criteria?.CreatedRange?.To != null)
-                .FilterBy(
-                    x => x.CreateAction.CreatedById == longCreatedById,
-                    longCreatedById != null)
-                .FilterBy(
-                    x => (x.DeleteActionId != null) == criteria.IsDeleted.Value,
-                    criteria?.IsDeleted != null);
-        }
     }
 }

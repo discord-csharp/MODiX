@@ -89,7 +89,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<ModerationMuteRoleMappingBrief>> SearchBriefsAsync(ModerationMuteRoleMappingSearchCriteria criteria)
             => await ModixContext.ModerationMuteRoleMappings.AsNoTracking()
-                .FilterModerationMuteRoleMappingsBy(criteria)
+                .FilterBy(criteria)
                 .Select(ModerationMuteRoleMappingBrief.FromEntityProjection)
                 .ToArrayAsync();
 
@@ -119,31 +119,5 @@ namespace Modix.Data.Repositories
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
             = new RepositoryTransactionFactory();
-    }
-
-    internal static class ModerationMuteRoleMappingQueryableExtensions
-    {
-        public static IQueryable<ModerationMuteRoleMappingEntity> FilterModerationMuteRoleMappingsBy(this IQueryable<ModerationMuteRoleMappingEntity> query, ModerationMuteRoleMappingSearchCriteria criteria)
-        {
-            var longGuildId = (long?)criteria?.GuildId;
-            var longCreatedById = (long?)criteria?.CreatedById;
-
-            return query
-                .FilterBy(
-                    x => x.GuildId == longGuildId,
-                    longGuildId != null)
-                .FilterBy(
-                    x => x.CreateAction.Created >= criteria.CreatedRange.Value.From,
-                    criteria?.CreatedRange?.From != null)
-                .FilterBy(
-                    x => x.CreateAction.Created <= criteria.CreatedRange.Value.To,
-                    criteria?.CreatedRange?.To != null)
-                .FilterBy(
-                    x => x.CreateAction.CreatedById == longCreatedById,
-                    longCreatedById != null)
-                .FilterBy(
-                    x => (x.DeleteActionId != null) == criteria.IsDeleted,
-                    criteria?.IsDeleted != null);
-        }
     }
 }

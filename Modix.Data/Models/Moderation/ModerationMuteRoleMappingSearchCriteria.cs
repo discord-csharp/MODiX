@@ -1,5 +1,8 @@
-﻿using Modix.Data.Models.Core;
+﻿using System.Linq;
+
+using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
+using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Moderation
 {
@@ -29,5 +32,31 @@ namespace Modix.Data.Models.Moderation
         /// or non-null, (or both).
         /// </summary>
         public bool? IsDeleted { get; set; }
+    }
+
+    internal static class ModerationMuteRoleMappingQueryableExtensions
+    {
+        public static IQueryable<ModerationMuteRoleMappingEntity> FilterBy(this IQueryable<ModerationMuteRoleMappingEntity> query, ModerationMuteRoleMappingSearchCriteria criteria)
+        {
+            var longGuildId = (long?)criteria?.GuildId;
+            var longCreatedById = (long?)criteria?.CreatedById;
+
+            return query
+                .FilterBy(
+                    x => x.GuildId == longGuildId,
+                    longGuildId != null)
+                .FilterBy(
+                    x => x.CreateAction.Created >= criteria.CreatedRange.Value.From,
+                    criteria?.CreatedRange?.From != null)
+                .FilterBy(
+                    x => x.CreateAction.Created <= criteria.CreatedRange.Value.To,
+                    criteria?.CreatedRange?.To != null)
+                .FilterBy(
+                    x => x.CreateAction.CreatedById == longCreatedById,
+                    longCreatedById != null)
+                .FilterBy(
+                    x => (x.DeleteActionId != null) == criteria.IsDeleted,
+                    criteria?.IsDeleted != null);
+        }
     }
 }

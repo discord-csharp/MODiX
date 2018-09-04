@@ -62,30 +62,4 @@ namespace Modix.Data.Repositories
                 .ToArrayAsync();
         }
     }
-
-    internal static class ModerationActionQueryableExtensions
-    {
-        public static IQueryable<ModerationActionEntity> FilterModerationActionsBy(this IQueryable<ModerationActionEntity> query, ModerationActionSearchCriteria criteria)
-        {
-            var longGuildId = (long?)criteria?.GuildId;
-            var longCreatedById = (long?)criteria?.CreatedById;
-
-            return query
-                .FilterBy(
-                    x => x.GuildId == longGuildId,
-                    longGuildId != null)
-                .FilterBy(
-                    x => criteria.Types.Contains(x.Type),
-                    criteria?.Types?.Any() ?? false)
-                .FilterBy(
-                    x => x.Created >= criteria.CreatedRange.Value.From,
-                    criteria?.CreatedRange?.From != null)
-                .FilterBy(
-                    x => x.Created <= criteria.CreatedRange.Value.To,
-                    criteria?.CreatedRange?.To != null)
-                .FilterBy(
-                    x => x.CreatedById == longCreatedById,
-                    longCreatedById != null);
-        }
-    }
 }

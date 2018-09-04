@@ -1,4 +1,7 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+
+using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Moderation
 {
@@ -54,5 +57,47 @@ namespace Modix.Data.Models.Moderation
         /// or non-null, (or both).
         /// </summary>
         public bool? IsDeleted { get; set; }
+    }
+
+    internal static class InfractionQueryableExtensions
+    {
+        public static IQueryable<InfractionEntity> FilterBy(this IQueryable<InfractionEntity> query, InfractionSearchCriteria criteria)
+        {
+            var longGuildId = (long?)criteria?.GuildId;
+            var longSubjectId = (long?)criteria?.SubjectId;
+            var longCreatedById = (long?)criteria?.CreatedById;
+
+            return query
+                .FilterBy(
+                    x => x.GuildId == longGuildId,
+                    longGuildId != null)
+                .FilterBy(
+                    x => criteria.Types.Contains(x.Type),
+                    criteria?.Types?.Any() ?? false)
+                .FilterBy(
+                    x => x.SubjectId == longSubjectId,
+                    longSubjectId != null)
+                .FilterBy(
+                    x => x.CreateAction.Created >= criteria.CreatedRange.Value.From,
+                    criteria?.CreatedRange?.From != null)
+                .FilterBy(
+                    x => x.CreateAction.Created <= criteria.CreatedRange.Value.To,
+                    criteria?.CreatedRange?.To != null)
+                .FilterBy(
+                    x => x.CreateAction.CreatedById == longCreatedById,
+                    longCreatedById != null)
+                .FilterBy(
+                    x => (x.RescindActionId != null) == criteria.IsRescinded,
+                    criteria?.IsRescinded != null)
+                .FilterBy(
+                    x => (x.DeleteActionId != null) == criteria.IsDeleted,
+                    criteria?.IsDeleted != null)
+                .FilterBy(
+                    x => (x.CreateAction.Created + x.Duration) >= criteria.ExpiresRange.Value.From,
+                    criteria?.ExpiresRange?.From != null)
+                .FilterBy(
+                    x => (x.CreateAction.Created + x.Duration) <= criteria.ExpiresRange.Value.To,
+                    criteria?.ExpiresRange?.To != null);
+        }
     }
 }
