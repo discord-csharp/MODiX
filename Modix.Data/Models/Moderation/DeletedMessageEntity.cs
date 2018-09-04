@@ -15,6 +15,7 @@ namespace Modix.Data.Models.Moderation
         /// </summary>
         [Key]
         [Required]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public long MessageId { get; set; }
 
         /// <summary>
