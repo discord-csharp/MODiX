@@ -15,7 +15,7 @@ namespace Modix.Data.Models.Core
         public long Id { get; set; }
 
         /// <summary>
-        /// The type of this mapping.
+        /// The type of mapping being made between the user/role and claim.
         /// </summary>
         [Required]
         public ClaimMappingType Type { get; set; }
@@ -37,7 +37,7 @@ namespace Modix.Data.Models.Core
         public long? UserId { get; set; }
 
         /// <summary>
-        /// The claim that is being mapped.s
+        /// The claim that is being mapped.
         /// </summary>
         [Required]
         public AuthorizationClaim Claim { get; set; }

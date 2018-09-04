@@ -20,16 +20,12 @@ namespace Modix.Data.Models.Moderation
         public IReadOnlyCollection<ModerationActionType> Types { get; set; }
 
         /// <summary>
-        /// A range of values defining the <see cref="ModerationActionEntity"/> entities to be returned,
-        /// according to the <see cref="ModerationActionEntity.Created"/> value of associated <see cref="ModerationActionEntity"/> entities,
-        /// with a <see cref="ModerationActionEntity.Type"/> value of <see cref="ModerationActionType.ModerationActionCreated"/>.
+        /// A range of <see cref="ModerationActionEntity.Created"/> values, defining the <see cref="ModerationActionEntity"/> entities to be returned.
         /// </summary>
         public DateTimeOffsetRange? CreatedRange { get; set; }
 
         /// <summary>
-        /// A value defining the <see cref="ModerationActionEntity"/> entities to be returned.
-        /// according to the <see cref="ModerationActionEntity.CreatedById"/> value of associated <see cref="ModerationActionEntity"/> entities,
-        /// with a <see cref="ModerationActionEntity.Type"/> value of <see cref="ModerationActionType.ModerationActionCreated"/>.
+        /// A <see cref="ModerationActionEntity.CreatedById"/> value, defining the <see cref="ModerationActionEntity"/> entities to be returned.
         /// </summary>
         public ulong? CreatedById { get; set; }
     }

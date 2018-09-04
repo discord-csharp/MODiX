@@ -27,5 +27,4 @@ namespace Modix.Data.Models.Core
         [Required]
         public string Name { get; set; }
     }
-
 }

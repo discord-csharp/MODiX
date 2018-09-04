@@ -36,15 +36,13 @@ namespace Modix.Data.Models.Core
 
         /// <summary>
         /// A range of values defining the <see cref="ClaimMappingEntity"/> entities to be returned,
-        /// according to the <see cref="ConfigurationActionEntity.Created"/> value of associated <see cref="ConfigurationActionEntity"/> entities,
-        /// with a <see cref="ConfigurationActionEntity.Type"/> value of <see cref="ConfigurationActionType.ClaimMappingCreated"/>.
+        /// according to the <see cref="ConfigurationActionEntity.Created"/> value of <see cref="ClaimMappingEntity.CreateAction"/>.
         /// </summary>
         public DateTimeOffsetRange? CreatedRange { get; set; }
 
         /// <summary>
-        /// A value defining the <see cref="ClaimMappingEntity"/> entities to be returned.
-        /// according to the <see cref="ConfigurationActionEntity.CreatedById"/> value of associated <see cref="ConfigurationActionEntity"/> entities,
-        /// with a <see cref="ConfigurationActionEntity.Type"/> value of <see cref="ConfigurationActionType.ClaimMappingCreated"/>.
+        /// A value defining the <see cref="ClaimMappingEntity"/> entities to be returned,
+        /// according to the <see cref="ConfigurationActionEntity.CreatedById"/> value of <see cref="ClaimMappingEntity.CreateAction"/>.
         /// </summary>
         public ulong? CreatedById { get; set; }
 

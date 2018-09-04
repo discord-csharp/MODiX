@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 
 using Microsoft.Extensions.DependencyInjection;
+
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Repositories;
@@ -15,7 +16,7 @@ using Modix.Services.Moderation;
 namespace Modix.Behaviors
 {
     /// <summary>
-    /// Renders moderation actions, as they are created, as messages to each configured moderation log channel.
+    /// Renders moderation actions, as they are created, as messages to designated moderation log channels.
     /// </summary>
     public class ModerationLoggingBehavior : IModerationActionEventHandler
     {
@@ -69,7 +70,6 @@ namespace Modix.Behaviors
             {
                 var text = Newtonsoft.Json.JsonConvert.SerializeObject(ex);
             }
-
         }
 
         /// <summary>

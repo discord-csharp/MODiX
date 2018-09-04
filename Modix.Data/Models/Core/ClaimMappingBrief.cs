@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 
 namespace Modix.Data.Models.Core
@@ -19,11 +17,6 @@ namespace Modix.Data.Models.Core
         /// See <see cref="ClaimMappingEntity.Type"/>.
         /// </summary>
         public ClaimMappingType Type { get; set; }
-
-        /// <summary>
-        /// See <see cref="ClaimMappingEntity.GuildId"/>.
-        /// </summary>
-        public ulong GuildId { get; set; }
 
         /// <summary>
         /// See <see cref="ClaimMappingEntity.RoleId"/>.
@@ -45,7 +38,6 @@ namespace Modix.Data.Models.Core
             {
                 Id = entity.Id,
                 Type = entity.Type,
-                GuildId = (ulong)entity.GuildId,
                 RoleId = (ulong?)entity.RoleId,
                 UserId = (ulong?)entity.UserId,
                 Claim = entity.Claim
