@@ -8,6 +8,24 @@ namespace Modix.Data.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(
+                @"INSERT INTO `GuildRoles` (
+                      `RoleId`,
+                      `GuildId`,
+                      `Name`,
+                      `Position`)
+                  SELECT
+                      `MuteRoleId`,
+                      `GuildId`,
+                      '[UNKNOWN ROLE]',
+                      0
+                  FROM `ModerationMuteRoleMappings` mmrm
+                  WHERE NOT EXISTS (
+                      SELECT *
+                      FROM `GuildRoles` gr
+                      WHERE gr.`RoleId` = mmrm.`MuteRoleId`)"
+                    .Replace('`', '"'));
+
+            migrationBuilder.Sql(
                 @"INSERT INTO `DesignatedRoleMappings` (
                       `Id`,
                       `GuildId`,
