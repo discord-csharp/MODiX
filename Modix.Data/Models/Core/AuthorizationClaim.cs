@@ -50,28 +50,40 @@
         /// </summary>
         PostInviteLink,
         /// <summary>
+        /// Authorizes a request to create a designated channel mapping.
+        /// </summary>
+        DesignatedChannelMappingCreate,
+        /// <summary>
+        /// Authorizes a request to read designated channel mappings.
+        /// </summary>
+        DesignatedChannelMappingRead,
+        /// <summary>
+        /// Authorizes a request to delete a designated channel mapping.
+        /// </summary>
+        DesignatedChannelMappingDelete,
+        /// <summary>
+        /// Authorizes a request to create a designated role mapping.
+        /// </summary>
+        DesignatedRoleMappingCreate,
+        /// <summary>
+        /// Authorizes a request to read designated role mappings.
+        /// </summary>
+        DesignatedRoleMappingRead,
+        /// <summary>
+        /// Authorizes a request to delete a designated role mapping.
+        /// </summary>
+        DesignatedRoleMappingDelete,
+        /// <summary>
         /// Authorizes a request to create a promotion campaign for a user.
         /// </summary>
-        PromotionCreate,
+        PromotionsCreateCampaign,
+        /// <summary>
+        /// Authorizes a request to close a promotion campaign for a user.
+        /// </summary>
+        PromotionsCloseCampaign,
         /// <summary>
         /// Authorizes a request to comment on a promotion campaign for a user.
         /// </summary>
-        PromotionComment,
-        /// <summary>
-        /// Authorizes a request to approve/deny/reactivate a promotion campaign for a user.
-        /// </summary>
-        PromotionExecute,
-        /// <summary>
-        /// Authorizes a request to assign a channel designation.
-        /// </summary>
-        ChannelDesignationCreate,
-        /// <summary>
-        /// Authorizes a request to unassign a channel designation.
-        /// </summary>
-        ChannelDesignationDelete,
-        /// <summary>
-        /// Authorizes a request to view current channel designations.
-        /// </summary>
-        ChannelDesignationRead
+        PromotionsComment
     }
 }

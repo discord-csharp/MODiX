@@ -38,6 +38,16 @@ namespace Modix.Data.Models.Core
         /// </summary>
         public ClaimMappingBrief ClaimMapping { get; set; }
 
+        /// <summary>
+        /// See <see cref="ConfigurationActionEntity.DesignatedChannelMapping"/>.
+        /// </summary>
+        public DesignatedChannelMappingBrief DesignatedChannelMapping { get; set; }
+
+        /// <summary>
+        /// See <see cref="ConfigurationActionEntity.DesignatedRoleMapping"/>.
+        /// </summary>
+        public DesignatedRoleMappingBrief DesignatedRoleMapping { get; set; }
+
         internal static Expression<Func<ConfigurationActionEntity, ConfigurationActionSummary>> FromEntityProjection { get; }
             = entity => new ConfigurationActionSummary()
             {
@@ -63,7 +73,34 @@ namespace Modix.Data.Models.Core
                         RoleId = (ulong?)entity.ClaimMapping.RoleId,
                         UserId = (ulong?)entity.ClaimMapping.UserId,
                         Claim = entity.ClaimMapping.Claim
-                    }
+                    },
+                DesignatedChannelMapping = (entity.DesignatedChannelMapping == null) ? null
+                    : new DesignatedChannelMappingBrief()
+                    {
+                        Id = entity.DesignatedChannelMapping.Id,
+                        Channel = new GuildChannelBrief()
+                        {
+                            Id = (ulong)entity.DesignatedChannelMapping.Channel.ChannelId,
+                            Name = entity.DesignatedChannelMapping.Channel.Name
+                        },
+                        // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                        //Type = entity.ClaimMapping.Type,
+                        Type = Enum.Parse<DesignatedChannelType>(entity.DesignatedChannelMapping.Type.ToString()),
+                    },
+                DesignatedRoleMapping = (entity.DesignatedRoleMapping == null) ? null
+                    : new DesignatedRoleMappingBrief()
+                    {
+                        Id = entity.DesignatedRoleMapping.Id,
+                        Role = new GuildRoleBrief()
+                        {
+                            Id = (ulong)entity.DesignatedRoleMapping.Role.RoleId,
+                            Name = entity.DesignatedRoleMapping.Role.Name,
+                            Position = entity.DesignatedRoleMapping.Role.Position
+                        },
+                        // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                        //Type = entity.ClaimMapping.Type,
+                        Type = Enum.Parse<DesignatedRoleType>(entity.DesignatedRoleMapping.Type.ToString()),
+                    },
             };
     }
 }

@@ -33,7 +33,7 @@ namespace Modix.Behaviors
         /// <inheritdoc />
         public async Task OnModerationActionCreatedAsync(long moderationActionId, ModerationActionCreationData data)
         {
-            var logChannelIds = await DesignatedChannelService.GetDesignatedChannelIds(data.GuildId, ChannelDesignation.ModerationLog);
+            var logChannelIds = await DesignatedChannelService.GetDesignatedChannelIdsAsync(data.GuildId, DesignatedChannelType.ModerationLog);
             if (!logChannelIds.Any())
                 return;
 
@@ -63,7 +63,7 @@ namespace Modix.Behaviors
                     string.IsNullOrWhiteSpace(content) ? "Empty Message Content" : content);
 
                 await DesignatedChannelService.SendToDesignatedChannelsAsync(
-                    await DiscordClient.GetGuildAsync(data.GuildId), ChannelDesignation.ModerationLog, message);
+                    await DiscordClient.GetGuildAsync(data.GuildId), DesignatedChannelType.ModerationLog, message);
             }
             catch (Exception ex)
             {
