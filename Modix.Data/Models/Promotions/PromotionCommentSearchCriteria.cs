@@ -48,7 +48,7 @@ namespace Modix.Data.Models.Promotions
 
             return query
                 .FilterBy(
-                    x => x.CampaingId == criteria.CampaignId.Value,
+                    x => x.CampaignId == criteria.CampaignId.Value,
                     !(criteria.CampaignId is null))
                 .FilterBy(
                     x => x.Sentiment == criteria.Sentiment.Value,

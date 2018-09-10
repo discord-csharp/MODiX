@@ -22,7 +22,7 @@ namespace Modix.Data.Models.Promotions
         /// </summary>
         [Required]
         [ForeignKey(nameof(Campaign))]
-        public long CampaingId { get; set; }
+        public long CampaignId { get; set; }
 
         /// <summary>
         /// The <see cref="PromotionCampaignEntity"/> to which this comment belongs.

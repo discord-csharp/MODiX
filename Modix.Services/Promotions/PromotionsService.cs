@@ -161,7 +161,7 @@ namespace Modix.Services.Promotions
                 await PromotionCommentRepository.CreateAsync(new PromotionCommentCreationData()
                 {
                     GuildId = AuthorizationService.CurrentGuildId.Value,
-                    CampaingId = campaignId,
+                    CampaignId = campaignId,
                     Sentiment = PromotionSentiment.Approve,
                     Content = comment,
                     CreatedById = AuthorizationService.CurrentUserId.Value
@@ -200,7 +200,7 @@ namespace Modix.Services.Promotions
                 await PromotionCommentRepository.CreateAsync(new PromotionCommentCreationData()
                 {
                     GuildId = campaign.GuildId,
-                    CampaingId = campaignId,
+                    CampaignId = campaignId,
                     Sentiment = sentiment,
                     Content = content,
                     CreatedById = AuthorizationService.CurrentUserId.Value

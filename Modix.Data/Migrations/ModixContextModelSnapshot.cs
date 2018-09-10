@@ -392,7 +392,7 @@ namespace Modix.Data.Migrations
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd();
 
-                    b.Property<long>("CampaingId");
+                    b.Property<long>("CampaignId");
 
                     b.Property<string>("Content")
                         .IsRequired();
@@ -404,7 +404,7 @@ namespace Modix.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CampaingId");
+                    b.HasIndex("CampaignId");
 
                     b.HasIndex("CreateActionId")
                         .IsUnique();
@@ -583,7 +583,7 @@ namespace Modix.Data.Migrations
                 {
                     b.HasOne("Modix.Data.Models.Promotions.PromotionCampaignEntity", "Campaign")
                         .WithMany("Comments")
-                        .HasForeignKey("CampaingId")
+                        .HasForeignKey("CampaignId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Modix.Data.Models.Promotions.PromotionActionEntity", "CreateAction")

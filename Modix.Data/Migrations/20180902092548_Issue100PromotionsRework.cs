@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -95,7 +96,7 @@ namespace Modix.Data.Migrations
                 oldClrType: typeof(int));
 
             migrationBuilder.AddColumn<long>(
-                name: "CampaingId",
+                name: "CampaignId",
                 table: "PromotionComments",
                 nullable: false,
                 defaultValue: 0L);
@@ -177,9 +178,9 @@ namespace Modix.Data.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_PromotionComments_CampaingId",
+                name: "IX_PromotionComments_CampaignId",
                 table: "PromotionComments",
-                column: "CampaingId");
+                column: "CampaignId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_PromotionComments_CreateActionId",
@@ -252,9 +253,9 @@ namespace Modix.Data.Migrations
                 onDelete: ReferentialAction.Cascade);
 
             migrationBuilder.AddForeignKey(
-                name: "FK_PromotionComments_PromotionCampaigns_CampaingId",
+                name: "FK_PromotionComments_PromotionCampaigns_CampaignId",
                 table: "PromotionComments",
-                column: "CampaingId",
+                column: "CampaignId",
                 principalTable: "PromotionCampaigns",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
@@ -320,7 +321,7 @@ namespace Modix.Data.Migrations
                 table: "PromotionCampaigns");
 
             migrationBuilder.DropForeignKey(
-                name: "FK_PromotionComments_PromotionCampaigns_CampaingId",
+                name: "FK_PromotionComments_PromotionCampaigns_CampaignId",
                 table: "PromotionComments");
 
             migrationBuilder.DropForeignKey(
@@ -331,7 +332,7 @@ namespace Modix.Data.Migrations
                 name: "PromotionActions");
 
             migrationBuilder.DropIndex(
-                name: "IX_PromotionComments_CampaingId",
+                name: "IX_PromotionComments_CampaignId",
                 table: "PromotionComments");
 
             migrationBuilder.DropIndex(
@@ -351,7 +352,7 @@ namespace Modix.Data.Migrations
                 table: "PromotionCampaigns");
 
             migrationBuilder.DropColumn(
-                name: "CampaingId",
+                name: "CampaignId",
                 table: "PromotionComments");
 
             migrationBuilder.DropColumn(

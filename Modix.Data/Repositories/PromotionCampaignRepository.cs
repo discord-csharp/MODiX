@@ -162,7 +162,7 @@ namespace Modix.Data.Repositories
             };
             await ModixContext.SaveChangesAsync();
 
-            await RaisePromotionActionCreatedAsync(entity.CreateAction);
+            await RaisePromotionActionCreatedAsync(entity.CloseAction);
 
             return true;
         }

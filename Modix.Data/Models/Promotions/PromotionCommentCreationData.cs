@@ -10,7 +10,7 @@ namespace Modix.Data.Models.Promotions
         /// <summary>
         /// See <see cref="PromotionCommentEntity.CampaignId"/>.
         /// </summary>
-        public long CampaingId { get; set; }
+        public long CampaignId { get; set; }
 
         /// <summary>
         /// See <see cref="PromotionCommentEntity.GuildId"/>.
@@ -35,7 +35,7 @@ namespace Modix.Data.Models.Promotions
         public PromotionCommentEntity ToEntity()
             => new PromotionCommentEntity()
             {
-                CampaingId = CampaingId,
+                CampaignId = CampaignId,
                 Sentiment = Sentiment,
                 Content = Content,
                 CreateAction = new PromotionActionEntity()
