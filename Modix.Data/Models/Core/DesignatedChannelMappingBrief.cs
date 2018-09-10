@@ -3,6 +3,9 @@ using System.Linq.Expressions;
 
 namespace Modix.Data.Models.Core
 {
+    /// <summary>
+    /// Describes a summary view of a <see cref="DesignatedChannelMappingEntity"/>, for use within the context of another projected model.
+    /// </summary>
     public class DesignatedChannelMappingBrief
     {
         /// <summary>
@@ -11,27 +14,25 @@ namespace Modix.Data.Models.Core
         public long Id { get; set; }
 
         /// <summary>
-        /// See <see cref="DesignatedChannelMappingEntity.GuildId"/>.
+        /// See <see cref="DesignatedChannelMappingEntity.Channel"/>.
         /// </summary>
-        public ulong GuildId { get; set; }
+        public GuildChannelBrief Channel { get; set; }
 
         /// <summary>
-        /// See <see cref="DesignatedChannelMappingEntity.ChannelDesignation"/>
+        /// See <see cref="DesignatedChannelMappingEntity.Type"/>
         /// </summary>
-        public ChannelDesignation ChannelDesignation { get; set; }
-
-        /// <summary>
-        /// See <see cref="DesignatedChannelMappingEntity.LogChannelId"/>.
-        /// </summary>
-        public ulong ChannelId { get; set; }
+        public DesignatedChannelType Type { get; set; }
 
         internal static Expression<Func<DesignatedChannelMappingEntity, DesignatedChannelMappingBrief>> FromEntityProjection { get; }
             = entity => new DesignatedChannelMappingBrief()
             {
                 Id = entity.Id,
-                GuildId = (ulong)entity.GuildId,
-                ChannelId = (ulong)entity.ChannelId,
-                ChannelDesignation = entity.ChannelDesignation
+                Channel = new GuildChannelBrief()
+                {
+                    Id = (ulong)entity.Channel.ChannelId,
+                    Name = entity.Channel.Name
+                },
+                Type = entity.Type
             };
     }
 

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
+using Modix.Data.Models.Promotions;
 using Modix.Services.Core;
 using Modix.Services.Promotions;
 using Modix.WebServer.Models;
@@ -14,23 +15,21 @@ namespace Modix.WebServer.Controllers
     [Route("~/api")]
     public class PromotionController : ModixController
     {
-        private PromotionService _promotionService;
+        private IPromotionsService _promotionsService;
 
-        public PromotionController(DiscordSocketClient client, PromotionService promotionService, IAuthorizationService auth) : base(client, auth)
+        public PromotionController(DiscordSocketClient client, IPromotionsService promotionService, IAuthorizationService auth) : base(client, auth)
         {
-            _promotionService = promotionService;
+            _promotionsService = promotionService;
         }
 
         [HttpGet("campaigns")]
         public async Task<IActionResult> Campaigns()
-        {
-            return Ok(await _promotionService.GetCampaigns());
-        }
+            => Ok(await _promotionsService.SearchCampaignsAsync(null));
         
         [HttpPut("campaigns/{campaignId}/comments")]
         public async Task<IActionResult> AddComment(int campaignId, [FromBody] PromotionCommentData commentData)
         {
-            var campaign = await _promotionService.GetCampaign(campaignId);
+            var campaign = await _promotionsService.GetCampaignDetailsAsync(campaignId);
 
             if (campaign == null)
             {
@@ -39,7 +38,7 @@ namespace Modix.WebServer.Controllers
 
             try
             {
-                await _promotionService.AddComment(campaign, commentData.Body, commentData.Sentiment);
+                await _promotionsService.AddCommentAsync(campaignId, commentData.Sentiment, commentData.Body);
             }
             catch (ArgumentException ex)
             {
@@ -49,12 +48,12 @@ namespace Modix.WebServer.Controllers
             return Ok();
         }
 
-        [HttpPost("campaigns/{campaignId}/approve")]
-        public async Task<IActionResult> ApproveCampaign(int campaignId)
+        [HttpPost("campaigns/{campaignId}/accept")]
+        public async Task<IActionResult> AcceptCampaign(int campaignId)
         {
             try
             {
-                await _promotionService.ApproveCampaign(SocketUser, await _promotionService.GetCampaign(campaignId));
+                await _promotionsService.AcceptCampaignAsync(campaignId);
             }
             catch (InvalidOperationException ex)
             {
@@ -64,40 +63,37 @@ namespace Modix.WebServer.Controllers
             return Ok();
         }
 
-        [HttpPost("campaigns/{campaignId}/deny")]
-        public async Task<IActionResult> DenyCampaign(int campaignId)
+        [HttpPost("campaigns/{campaignId}/reject")]
+        public async Task<IActionResult> RejectCampaign(int campaignId)
         {
-            await _promotionService.DenyCampaign(SocketUser, await _promotionService.GetCampaign(campaignId));
-            return Ok();
-        }
+            try
+            {
+                await _promotionsService.RejectCampaignAsync(campaignId);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
 
-        [HttpPost("campaigns/{campaignId}/activate")]
-        public async Task<IActionResult> ActivateCampaign(int campaignId)
-        {
-            await _promotionService.ActivateCampaign(SocketUser, await _promotionService.GetCampaign(campaignId));
             return Ok();
         }
 
         [HttpPut("campaigns")]
         public async Task<IActionResult> Create([FromBody] PromotionCreationData creationData)
         {
-            var foundUser = DiscordSocketClient.Guilds.First().GetUser(creationData?.UserId ?? 0);
-
-            if (foundUser == null)
-            {
-                return BadRequest($"User not found.");
-            }
+            throw new NotImplementedException();
 
             try
             {
-                await _promotionService.CreateCampaign(foundUser, creationData.Comment);
-
-                return Ok();
+                // TODO: get promotion rank from creation data
+                await _promotionsService.CreateCampaignAsync(creationData.UserId, 0, creationData.Comment);
             }
             catch (ArgumentException ex)
             {
                 return BadRequest(ex.Message);
             }
+
+            return Ok();
         }
     }
 }
