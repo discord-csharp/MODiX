@@ -34,7 +34,7 @@ namespace Modix.Data.Models.Moderation
 
     internal static class ModerationActionQueryableExtensions
     {
-        public static IQueryable<ModerationActionEntity> FilterModerationActionsBy(this IQueryable<ModerationActionEntity> query, ModerationActionSearchCriteria criteria)
+        public static IQueryable<ModerationActionEntity> FilterBy(this IQueryable<ModerationActionEntity> query, ModerationActionSearchCriteria criteria)
         {
             var longGuildId = (long?)criteria?.GuildId;
             var longCreatedById = (long?)criteria?.CreatedById;

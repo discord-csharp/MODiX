@@ -57,7 +57,7 @@ namespace Modix.Data.Repositories
         public async Task<IReadOnlyCollection<ModerationActionSummary>> SearchSummariesAsync(ModerationActionSearchCriteria searchCriteria)
         {
             return await ModixContext.ModerationActions.AsNoTracking()
-                .FilterModerationActionsBy(searchCriteria)
+                .FilterBy(searchCriteria)
                 .AsProjectable()
                 .Select(ModerationActionSummary.FromEntityProjection)
                 .ToArrayAsync();
