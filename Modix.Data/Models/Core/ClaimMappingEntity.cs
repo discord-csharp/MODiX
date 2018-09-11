@@ -45,25 +45,23 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// The <see cref="ConfigurationActionEntity.Id"/> value of <see cref="CreateAction"/>.
         /// </summary>
-        [Required, ForeignKey(nameof(CreateAction))]
+        [Required]
         public long CreateActionId { get; set; }
 
         /// <summary>
         /// The configuration action that created this mapping.
         /// </summary>
-        [Required, InverseProperty(nameof(ConfigurationActionEntity.CreatedClaimMapping))]
+        [Required]
         public virtual ConfigurationActionEntity CreateAction { get; set; }
 
         /// <summary>
         /// The <see cref="ConfigurationActionEntity.Id"/> value (if any) of <see cref="CreateAction"/>.
         /// </summary>
-        [ForeignKey(nameof(DeleteAction))]
         public long? DeleteActionId { get; set; }
 
         /// <summary>
         /// The configuration action (if any) that deleted this mapping.
         /// </summary>
-        [InverseProperty(nameof(ConfigurationActionEntity.DeletedClaimMapping))]
         public virtual ConfigurationActionEntity DeleteAction { get; set; }
     }
 }

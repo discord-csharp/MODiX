@@ -18,22 +18,6 @@ namespace Modix.Modules
             ModerationService = moderationService;
         }
 
-        [Command("moderation muterole get")]
-        [Summary("Retrieves the role currently configured for use by the \"mute\" command")]
-        public async Task GetMuteRole()
-        {
-            var muteRole = await ModerationService.GetMuteRoleAsync(Context.Guild);
-
-            await ReplyAsync(Format.Code(muteRole.Name));
-        }
-
-        [Command("moderation muterole set")]
-        [Summary("Changes the role currently configured for use by the \"mute\" command")]
-        public Task SetMuteRole(
-            [Summary("The role to be used by the \"mute\" command")]
-                IRole muteRole)
-            => ModerationService.SetMuteRoleAsync(Context.Guild, muteRole);
-
         [Command("note")]
         [Summary("Applies a note to a user's infraction history.")]
         public Task Note(

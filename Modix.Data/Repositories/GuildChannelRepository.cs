@@ -9,6 +9,9 @@ using Modix.Data.Utilities;
 
 namespace Modix.Data.Repositories
 {
+    /// <summary>
+    /// Describes a repository for managing <see cref="GuildChannelEntity"/> entities, within an underlying data storage provider.
+    /// </summary>
     public interface IGuildChannelRepository
     {
         /// <summary>
@@ -29,7 +32,7 @@ namespace Modix.Data.Repositories
         Task CreateAsync(GuildChannelCreationData data);
 
         /// <summary>
-        /// Attempts to update information about a channel, based on a pair of its ID value.
+        /// Attempts to update information about a channel, based on its ID value.
         /// </summary>
         /// <param name="channelId">The <see cref="GuildChannelEntity.ChannelId"/> value of the user guild data to be updated.</param>
         /// <param name="updateAction">An action to be invoked to perform the requested update.</param>
@@ -55,6 +58,7 @@ namespace Modix.Data.Repositories
         public Task<IRepositoryTransaction> BeginCreateTransactionAsync()
             => _createTransactionFactory.BeginTransactionAsync(ModixContext.Database);
 
+        /// <inheritdoc />
         public async Task CreateAsync(GuildChannelCreationData data)
         {
             if (data == null)

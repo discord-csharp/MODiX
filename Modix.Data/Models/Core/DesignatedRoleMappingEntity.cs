@@ -1,19 +1,19 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-using Modix.Data.Models.Core;
-
-namespace Modix.Data.Models.Moderation
+namespace Modix.Data.Models.Core
 {
     /// <summary>
-    /// Describes a configuration setting for a guild, that defines the Discord Role to be used to mute users, within the Moderation system.
+    /// Describes a mapping that assigns an arbitrary designation to a particular role within a guild.
     /// </summary>
-    public class ModerationMuteRoleMappingEntity
+    public class DesignatedRoleMappingEntity
     {
         /// <summary>
         /// A unique identifier for this mapping.
         /// </summary>
-        [Required, Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Key]
+        [Required]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
 
         /// <summary>
@@ -23,30 +23,42 @@ namespace Modix.Data.Models.Moderation
         public long GuildId { get; set; }
 
         /// <summary>
-        /// The Discord snowflake ID of the role to be used to mute users.
+        /// The <see cref="GuildRoleEntity.RoleId"/> value of <see cref="Role"/>.
         /// </summary>
         [Required]
-        public long MuteRoleId { get; set; }
+        [ForeignKey(nameof(Role))]
+        public long RoleId { get; set; }
+
+        /// <summary>
+        /// The role being designated by this mapping.
+        /// </summary>
+        [Required]
+        public virtual GuildRoleEntity Role { get; set; }
+
+        /// <summary>
+        /// The type of designation being defined for this role.
+        /// </summary>
+        [Required]
+        public DesignatedRoleType Type { get; set; }
 
         /// <summary>
         /// The <see cref="ConfigurationActionEntity.Id"/> value of <see cref="CreateAction"/>.
         /// </summary>
-        [Required, ForeignKey(nameof(CreateAction))]
+        [Required]
         public long CreateActionId { get; set; }
 
         /// <summary>
-        /// The <see cref="ConfigurationActionEntity"/> that created this <see cref="ModerationMuteRoleMappingEntity"/>.
+        /// The <see cref="ConfigurationActionEntity"/> that created this <see cref="DesignatedRoleMappingEntity"/>.
         /// </summary>
         public virtual ConfigurationActionEntity CreateAction { get; set; }
 
         /// <summary>
         /// The <see cref="ConfigurationActionEntity.Id"/> value of <see cref="DeleteAction"/>.
         /// </summary>
-        [ForeignKey(nameof(DeleteAction))]
         public long? DeleteActionId { get; set; }
 
         /// <summary>
-        /// The <see cref="ConfigurationActionEntity"/> (if any) that deleted this <see cref="ModerationMuteRoleMappingEntity"/>.
+        /// The <see cref="ConfigurationActionEntity"/> (if any) that deleted this <see cref="DesignatedRoleMappingEntity"/>.
         /// </summary>
         public virtual ConfigurationActionEntity DeleteAction { get; set; }
     }

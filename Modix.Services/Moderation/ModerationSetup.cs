@@ -22,7 +22,6 @@ namespace Modix.Services.Moderation
                 .AddSingleton<IInfractionEventHandler>(serviceProvider => serviceProvider.GetRequiredService<ModerationAutoRescindBehavior>())
                 .AddSingleton<IBehavior, ModerationInvitePurgingBehavior>()
                 .AddScoped<IModerationService, ModerationService>()
-                .AddScoped<IModerationMuteRoleMappingRepository, ModerationMuteRoleMappingRepository>()
                 .AddScoped<IModerationActionRepository, ModerationActionRepository>()
                 .AddScoped<IInfractionRepository, InfractionRepository>()
                 .AddScoped<IDeletedMessageRepository, DeletedMessageRepository>();
