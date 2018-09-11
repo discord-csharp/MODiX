@@ -17,6 +17,7 @@ namespace Modix.Services.Core
         public static IServiceCollection AddModixCore(this IServiceCollection services)
             => services
                 .AddSingleton<IBehavior, AuthorizationAutoConfigBehavior>()
+                .AddSingleton<IBehavior, ChannelTrackingBehavior>()
                 .AddSingleton<IBehavior, RoleTrackingBehavior>()
                 .AddSingleton<IBehavior, UserTrackingBehavior>()
                 .AddSingleton<IBehavior, MessageLogBehavior>()
