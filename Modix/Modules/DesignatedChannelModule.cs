@@ -10,8 +10,9 @@ using Modix.Services.Core;
 
 namespace Modix.Modules
 {
-    [Name("Channel Designation"), Summary("Configures channel designation for various bot services")]
-    [Group("designations")]
+    [Name("Channel Designations")]
+    [Summary("Configures channel designation for various bot services")]
+    [Group("channel designations")]
     public class DesignatedChannelModule : ModuleBase
     {
         public IAuthorizationService AuthorizationService { get; }
@@ -24,69 +25,79 @@ namespace Modix.Modules
         }
 
         [Command]
-        [Summary("Lists all possible designations, and channels currently assigned to them")]
-        public async Task GetLogChannels()
+        [Summary("Lists all of the channels designated for use by the bot")]
+        public async Task List()
         {
-            AuthorizationService.RequireClaims(AuthorizationClaim.ChannelDesignationRead);
+            var channels = await DesignatedChannelService.GetDesignatedChannelsAsync(Context.Guild.Id);
 
-            var channelData = await DesignatedChannelService.GetDesignatedChannels(Context.Guild.Id);
-
-            var builder = new EmbedBuilder().WithTitle("Assigned Channel Designations");
-
-            foreach (ChannelDesignation designation in Enum.GetValues(typeof(ChannelDesignation)))
+            var builder = new EmbedBuilder()
             {
-                var channelsWithDesignation = channelData
-                    .Where(d => d.ChannelDesignation == designation)
-                    .Select(d => MentionUtils.MentionChannel(d.ChannelId))
-                    .ToList();
+                Title = "Assigned Channel Designations",
+                Url = "https://mod.gg/config/channels",
+                Color = Color.Gold,
+                Timestamp = DateTimeOffset.UtcNow
+            };
 
-                var newField = new EmbedFieldBuilder().WithName($"**{designation}**");
+            foreach (var type in Enum.GetValues(typeof(DesignatedChannelType)).Cast<DesignatedChannelType>())
+            {
+                var designatedChannels = channels
+                    .Where(x => x.Type == type)
+                    .ToArray();
 
-                if (channelsWithDesignation.Any())
+                builder.AddField(new EmbedFieldBuilder()
                 {
-                    newField = newField.WithValue(string.Join(", ", channelsWithDesignation));
-                }
-                else
-                {
-                    newField = newField.WithValue("None Assigned");
-                }
-
-                builder.AddField(newField);
+                    Name = Format.Bold(_designatedChannelTypeRenderings[type]),
+                    Value = (designatedChannels.Length == 0)
+                        ? Format.Italics("No channels assigned")
+                        : designatedChannels
+                            .Select(x => MentionUtils.MentionChannel(x.Channel.Id))
+                            .Aggregate(string.Empty, (x, y) => $"{x}\n{y}"),
+                    IsInline = false
+                });
             }
 
-            await ReplyAsync("", false, builder.Build());
+            await ReplyAsync(string.Empty, false, builder.Build());
         }
 
         [Command("add")]
         [Summary("Assigns a designation to the given channel")]
-        public Task AddLogChannel(
-            [Summary("The channel to assign")]
+        public Task Add(
+            [Summary("The channel to be assigned a designation")]
                 IMessageChannel channel,
             [Summary("The designation to assign")]
-                ChannelDesignation designation)
+                DesignatedChannelType designation)
             => DesignatedChannelService.AddDesignatedChannelAsync(Context.Guild, channel, designation);
 
         [Command("add")]
         [Summary("Assigns a designation to the current channel")]
-        public Task AddLogChannel(
+        public Task Add(
             [Summary("The designation to assign")]
-                ChannelDesignation designation)
+                DesignatedChannelType designation)
             => DesignatedChannelService.AddDesignatedChannelAsync(Context.Guild, Context.Channel, designation);
 
         [Command("remove")]
         [Summary("Removes a designation from the given channel")]
-        public Task RemoveLogChannel(
-            [Summary("The channel to unassign")]
+        public Task Remove(
+            [Summary("The channel whose designation is to be unassigned")]
                 IMessageChannel channel,
-            [Summary("The designation to unassign from")]
-                ChannelDesignation designation)
+            [Summary("The designation to be unassigned")]
+                DesignatedChannelType designation)
             => DesignatedChannelService.RemoveDesignatedChannelAsync(Context.Guild, channel, designation);
 
         [Command("remove")]
         [Summary("Removes a designation from the current channel")]
-        public Task RemoveLogChannel(
-            [Summary("The designation to unassign from")]
-                ChannelDesignation designation)
+        public Task Remove(
+            [Summary("The designation to be unassigned")]
+                DesignatedChannelType designation)
             => DesignatedChannelService.RemoveDesignatedChannelAsync(Context.Guild, Context.Channel, designation);
+
+        private static readonly Dictionary<DesignatedChannelType, string> _designatedChannelTypeRenderings
+            = new Dictionary<DesignatedChannelType, string>()
+            {
+                { DesignatedChannelType.MessageLog,    "Message Log" },
+                { DesignatedChannelType.ModerationLog, "Moderation Log" },
+                { DesignatedChannelType.PromotionLog,  "Promotion Log" },
+                { DesignatedChannelType.Unmoderated,   "Unmoderated" },
+            };
     }
 }

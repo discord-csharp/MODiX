@@ -48,24 +48,6 @@ namespace Modix.Services.Moderation
         Task UnConfigureGuildAsync(IGuild guild);
 
         /// <summary>
-        /// Retrieves the currently-configured mute role (the role that is assigned to users to mute them) for a given guild.
-        /// </summary>
-        /// <param name="guild">The guild whose mute role is to be retrieved.</param>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation has completed,
-        /// containing the mute role currently configured for use within <paramref name="guild"/>.
-        /// </returns>
-        Task<IRole> GetMuteRoleAsync(IGuild guild);
-
-        /// <summary>
-        /// Sets the currently-configured mute role (the role that is assigned to users to mute them) for a given guild.
-        /// </summary>
-        /// <param name="guild">The guild whose mute role is to be set.</param>
-        /// <param name="muteRole">The mute role to be used for <paramref name="guild"/>.</param>
-        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task SetMuteRoleAsync(IGuild guild, IRole muteRole);
-
-        /// <summary>
         /// Creates an infraction upon a specified user, and logs an associated moderation action.
         /// </summary>
         /// <param name="type">The value to user for <see cref="InfractionEntity.Type"/>.<</param>
@@ -166,30 +148,24 @@ namespace Modix.Services.Moderation
             = "MODiX_Moderation_Mute";
 
         /// <summary>
-        /// Creates a new <see cref="ModerationService"/>.
+        /// Creates a new <see cref="ModerationService"/>, with the given injected dependencies.
         /// </summary>
-        /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
-        /// <param name="authorizationService">The value to use for <see cref="AuthorizationService"/>.</param>
-        /// <param name="userService">The value to use for <see cref="UserService"/>.</param>
-        /// <param name="moderationMuteRoleMappingRepository">The value to use for <see cref="ModerationMuteRoleMappingRepository"/>.</param>
-        /// <param name="moderationActionRepository">The value to use for <see cref="ModerationActionRepository"/>.</param>
-        /// <param name="infractionRepository">The value to use for <see cref="InfractionRepository"/>.</param>
         public ModerationService(
             IDiscordClient discordClient,
             IAuthorizationService authorizationService,
-            IUserService userService,
             IChannelService channelService,
-            IModerationMuteRoleMappingRepository moderationMuteRoleMappingRepository,
+            IUserService userService,
             IModerationActionRepository moderationActionRepository,
+            IDesignatedRoleMappingRepository designatedRoleMappingRepository,
             IInfractionRepository infractionRepository,
             IDeletedMessageRepository deletedMessageRepository)
         {
             DiscordClient = discordClient;
             AuthorizationService = authorizationService;
-            UserService = userService;
             ChannelService = channelService;
-            ModerationMuteRoleMappingRepository = moderationMuteRoleMappingRepository;
+            UserService = userService;
             ModerationActionRepository = moderationActionRepository;
+            DesignatedRoleMappingRepository = designatedRoleMappingRepository;
             InfractionRepository = infractionRepository;
             DeletedMessageRepository = deletedMessageRepository;
         }
@@ -197,24 +173,26 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         public async Task AutoConfigureGuldAsync(IGuild guild)
         {
-            var muteRole = await GetOrCreateMuteRoleInGuildAsync(guild);
+            AuthorizationService.RequireAuthenticatedUser();
+            AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
+
+            var muteRole = await GetOrCreateDesignatedMuteRoleAsync(guild, AuthorizationService.CurrentUserId.Value);
 
             foreach (var channel in await guild.GetChannelsAsync())
                 await ConfigureChannelMuteRolePermissions(channel, muteRole);
-
-            await CreateOrUpdateMuteRoleMapping(guild.Id, muteRole.Id);
         }
 
         /// <inheritdoc />
         public async Task AutoConfigureChannelAsync(IChannel channel)
         {
+            AuthorizationService.RequireAuthenticatedUser();
+            AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
+
             if (channel is IGuildChannel guildChannel)
             {
-                var muteRole = await GetOrCreateMuteRoleInGuildAsync(guildChannel.Guild);
+                var muteRole = await GetOrCreateDesignatedMuteRoleAsync(guildChannel.Guild, AuthorizationService.CurrentUserId.Value);
 
                 await ConfigureChannelMuteRolePermissions(guildChannel, muteRole);
-
-                await CreateOrUpdateMuteRoleMapping(guildChannel.Guild.Id, muteRole.Id);
             }
         }
 
@@ -238,40 +216,26 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         public async Task UnConfigureGuildAsync(IGuild guild)
         {
-            foreach(var mapping in await ModerationMuteRoleMappingRepository
-                .SearchBriefsAsync(new ModerationMuteRoleMappingSearchCriteria()
-                {
-                    GuildId = guild.Id,
-                    IsDeleted = false,
-                }))
+            AuthorizationService.RequireAuthenticatedUser();
+            AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingDelete);
+
+            using (var transaction = await DesignatedRoleMappingRepository.BeginDeleteTransactionAsync())
             {
-                IDeletable muteRole = guild.Roles.FirstOrDefault(x => x.Id == mapping.MuteRoleId);
-                if (muteRole != null)
-                    await muteRole.DeleteAsync();
+                foreach (var mapping in await DesignatedRoleMappingRepository
+                    .SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria()
+                    {
+                        GuildId = guild.Id,
+                        Type = DesignatedRoleType.ModerationMute,
+                        IsDeleted = false,
+                    }))
+                {
+                    await DesignatedRoleMappingRepository.TryDeleteAsync(mapping.Id, AuthorizationService.CurrentUserId.Value);
 
-                await ModerationMuteRoleMappingRepository.TryDeleteAsync(mapping.Id, DiscordClient.CurrentUser.Id);
+                    var role = guild.Roles.FirstOrDefault(x => x.Id == mapping.Role.Id);
+                    if ((role != null) && (role.Name == MuteRoleName) && (role is IDeletable deletable))
+                        await deletable.DeleteAsync();
+                }
             }
-        }
-
-        /// <inheritdoc />
-        public async Task<IRole> GetMuteRoleAsync(IGuild guild)
-        {
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationConfigure);
-
-            var mapping = await TryGetActiveMuteRoleMapping(guild.Id);
-
-            if (mapping == null)
-                throw new InvalidOperationException($"No mute role mapping exists for guild {guild.Id}");
-
-            return guild.GetRole(mapping.MuteRoleId);
-        }
-
-        /// <inheritdoc />
-        public Task SetMuteRoleAsync(IGuild guild, IRole muteRole)
-        {
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationConfigure);
-
-            return CreateOrUpdateMuteRoleMapping(guild.Id, muteRole.Id);
         }
 
         /// <inheritdoc />
@@ -330,7 +294,7 @@ namespace Modix.Services.Moderation
             {
                 case InfractionType.Mute:
                     await subject.AddRoleAsync(
-                        await GetOrCreateMuteRoleInGuildAsync(guild));
+                        await GetDesignatedMuteRoleAsync(guild));
                     break;
 
                 case InfractionType.Ban:
@@ -389,7 +353,7 @@ namespace Modix.Services.Moderation
             {
                 case InfractionType.Mute:
                     await subject.RemoveRoleAsync(
-                        await GetOrCreateMuteRoleInGuildAsync(guild));
+                        await GetDesignatedMuteRoleAsync(guild));
                     break;
 
                 case InfractionType.Ban:
@@ -486,19 +450,14 @@ namespace Modix.Services.Moderation
         internal protected IAuthorizationService AuthorizationService { get; }
 
         /// <summary>
-        /// An <see cref="IUserService"/> for interacting with discord users within the application.
-        /// </summary>
-        internal protected IUserService UserService { get; }
-
-        /// <summary>
         /// An <see cref="IChannelService"/> for interacting with discord channels within the application.
         /// </summary>
         internal protected IChannelService ChannelService { get; }
 
         /// <summary>
-        /// An <see cref="IModerationMuteRoleMappingRepository"/> for storing and retrieving mute role configuration data.
+        /// An <see cref="IUserService"/> for interacting with discord users within the application.
         /// </summary>
-        internal protected IModerationMuteRoleMappingRepository ModerationMuteRoleMappingRepository { get; }
+        internal protected IUserService UserService { get; }
 
         /// <summary>
         /// An <see cref="IModerationActionRepository"/> for storing and retrieving moderation action data.
@@ -511,41 +470,41 @@ namespace Modix.Services.Moderation
         internal protected IInfractionRepository InfractionRepository { get; }
 
         /// <summary>
+        /// An <see cref="IDesignatedRoleMappingRepository"/> storing and retrieving roles designated for use by the application.
+        /// </summary>
+        internal protected IDesignatedRoleMappingRepository DesignatedRoleMappingRepository { get; }
+
+        /// <summary>
         /// An <see cref="IDeletedMessageRepository"/> for storing and retrieving records of deleted messages.
         /// </summary>
         internal protected IDeletedMessageRepository DeletedMessageRepository { get; }
 
-        private async Task<ModerationMuteRoleMappingBrief> TryGetActiveMuteRoleMapping(ulong guildId)
-            => (await ModerationMuteRoleMappingRepository
-                .SearchBriefsAsync(new ModerationMuteRoleMappingSearchCriteria()
-                {
-                    GuildId = guildId,
-                    IsDeleted = false
-                }))
-                .FirstOrDefault();
-
-        private async Task CreateOrUpdateMuteRoleMapping(ulong guildId, ulong muteRoleId)
+        private async Task<IRole> GetOrCreateDesignatedMuteRoleAsync(IGuild guild, ulong currentUserId)
         {
-            using (var transaction = await ModerationMuteRoleMappingRepository.BeginCreateTransactionAsync())
+            using (var transaction = await DesignatedRoleMappingRepository.BeginCreateTransactionAsync())
             {
-                var mapping = await TryGetActiveMuteRoleMapping(guildId);
-
-                if (mapping != null)
+                var mapping = (await DesignatedRoleMappingRepository.SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria()
                 {
-                    if (muteRoleId == mapping.MuteRoleId)
-                        return;
+                    GuildId = guild.Id,
+                    Type = DesignatedRoleType.ModerationMute,
+                    IsDeleted = false
+                })).FirstOrDefault();
 
-                    await ModerationMuteRoleMappingRepository.TryDeleteAsync(mapping.Id, DiscordClient.CurrentUser.Id);
-                }
+                if (!(mapping is null))
+                    return guild.Roles.First(x => x.Id == mapping.Role.Id);
 
-                await ModerationMuteRoleMappingRepository.CreateAsync(new ModerationMuteRoleMappingCreationData()
+                var role = guild.Roles.FirstOrDefault(x => x.Name == MuteRoleName)
+                    ?? await guild.CreateRoleAsync(MuteRoleName);
+
+                await DesignatedRoleMappingRepository.CreateAsync(new DesignatedRoleMappingCreationData()
                 {
-                    GuildId = guildId,
-                    MuteRoleId = muteRoleId,
-                    CreatedById = DiscordClient.CurrentUser.Id
+                    GuildId = guild.Id,
+                    RoleId = role.Id,
+                    Type = DesignatedRoleType.ModerationMute,
+                    CreatedById = currentUserId
                 });
 
-                transaction.Commit();
+                return role;
             }
         }
 
@@ -582,7 +541,7 @@ namespace Modix.Services.Moderation
             {
                 case InfractionType.Mute:
                     await subject.RemoveRoleAsync(
-                        await GetOrCreateMuteRoleInGuildAsync(guild));
+                        await GetDesignatedMuteRoleAsync(guild));
                     break;
 
                 case InfractionType.Ban:
@@ -594,10 +553,21 @@ namespace Modix.Services.Moderation
             }
         }
 
-        private async Task<IRole> GetOrCreateMuteRoleInGuildAsync(IGuild guild)
-            => guild.Roles.FirstOrDefault(x => x.Name == MuteRoleName)
-                ?? await guild.CreateRoleAsync(MuteRoleName);
+        private async Task<IRole> GetDesignatedMuteRoleAsync(IGuild guild)
+        {
+            var mapping = (await DesignatedRoleMappingRepository.SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria()
+            {
+                GuildId = guild.Id,
+                Type = DesignatedRoleType.ModerationMute,
+                IsDeleted = false
+            })).FirstOrDefault();
 
+            if (mapping == null)
+                throw new InvalidOperationException($"There are currently no designated mute roles within guild {guild.Id}");
+
+            return guild.Roles.First(x => x.Id == mapping.Role.Id);
+        }
+            
         // Unused, because ConfigureChannelMuteRolePermissions is currently disabled.
         private static readonly OverwritePermissions _mutePermissions
             = new OverwritePermissions(

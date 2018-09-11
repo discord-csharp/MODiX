@@ -22,21 +22,27 @@ namespace Modix.Data.Models.Core
         public long GuildId { get; set; }
 
         /// <summary>
-        /// The Discord snowflake ID of the channel to receive logging messages.
+        /// The <see cref="GuildChannelEntity.ChannelId"/> value of <see cref="Channel"/>.
         /// </summary>
         [Required]
+        [ForeignKey(nameof(Channel))]
         public long ChannelId { get; set; }
 
         /// <summary>
-        /// The <see cref="ChannelDesignation"/> of the channel
+        /// The channel to which this mapping applies.
+        /// </summary>
+        public virtual GuildChannelEntity Channel { get; set; }
+
+        /// <summary>
+        /// The type of designation being mapped to <see cref="Channel"/>.
         /// </summary>
         [Required]
-        public ChannelDesignation ChannelDesignation { get; set; }
+        public DesignatedChannelType Type { get; set; }
 
         /// <summary>
         /// The <see cref="ConfigurationActionEntity.Id"/> value of <see cref="CreateAction"/>.
         /// </summary>
-        [Required, ForeignKey(nameof(CreateAction))]
+        [Required]
         public long CreateActionId { get; set; }
 
         /// <summary>
@@ -47,7 +53,6 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// The <see cref="ConfigurationActionEntity.Id"/> value of <see cref="DeleteAction"/>.
         /// </summary>
-        [ForeignKey(nameof(DeleteAction))]
         public long? DeleteActionId { get; set; }
 
         /// <summary>

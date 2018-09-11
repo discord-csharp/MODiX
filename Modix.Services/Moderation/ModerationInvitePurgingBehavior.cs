@@ -73,7 +73,7 @@ namespace Modix.Services.Moderation
 
             await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
             {
-                result = await designatedChannelService.ChannelHasDesignation(guild, channel, ChannelDesignation.Unmoderated);
+                result = await designatedChannelService.ChannelHasDesignationAsync(guild, channel, DesignatedChannelType.Unmoderated);
             });
 
             return result;

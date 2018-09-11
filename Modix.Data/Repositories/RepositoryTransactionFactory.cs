@@ -33,9 +33,11 @@ namespace Modix.Data.Repositories
                 throw new ArgumentNullException(nameof(database));
 
             return new RepositoryTransaction(
-                await ((cancellationToken == null)
-                    ? database.BeginTransactionAsync()
-                    : database.BeginTransactionAsync(cancellationToken.Value)),
+                (database.CurrentTransaction is null)
+                    ? await ((cancellationToken == null)
+                        ? database.BeginTransactionAsync()
+                        : database.BeginTransactionAsync(cancellationToken.Value))
+                    : null,
                 await _lockProvider.LockAsync());
         }
 
@@ -52,7 +54,7 @@ namespace Modix.Data.Repositories
 
             public void Commit()
             {
-                _transaction.Commit();
+                _transaction?.Commit();
                 _hasCommitted = true;
             }
 
@@ -61,7 +63,7 @@ namespace Modix.Data.Repositories
                 if(!_hasDisposed)
                 {
                     if (!_hasCommitted)
-                        _transaction.Rollback();
+                        _transaction?.Rollback();
 
                     _lock.Dispose();
 

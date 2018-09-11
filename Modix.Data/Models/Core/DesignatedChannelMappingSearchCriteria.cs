@@ -1,9 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+
+using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Core
 {
+    /// <summary>
+    /// Describes a set of criteria for searching for <see cref="DesignatedRoleMappingEntity"/> entities within an <see cref="IDesignatedChannelMappingRepository"/>.
+    /// </summary>
     public class DesignatedChannelMappingSearchCriteria
     {
         /// <summary>
@@ -16,15 +20,10 @@ namespace Modix.Data.Models.Core
         /// </summary>
         public ulong? ChannelId { get; set; }
 
-        /// A range of values defining the <see cref="DesignatedChannelMappingEntity"/> entities to be returned,
-        /// according to the <see cref="DesignatedChannelMappingEntity.Created"/> value of <see cref="DesignatedChannelMappingEntity.CreateAction"/>.
-        /// </summary>
-        public DateTimeOffsetRange? CreatedRange { get; set; }
-
         /// <summary>
-        /// A <see cref="DesignatedChannelMappingEntity.ChannelDesignation"/> value, defining the <see cref="ChannelDesignation"/> of the channels to be returned.
+        /// A <see cref="DesignatedRoleMappingEntity.Type"/> value, defining the <see cref="Type"/> of the <see cref="DesignatedRoleMappingEntity"/> entities to be returned.
         /// </summary>
-        public ChannelDesignation? ChannelDesignation { get; set; }
+        public DesignatedChannelType? Type { get; set; }
 
         /// <summary>
         /// A value defining the <see cref="DesignatedChannelMappingEntity"/> entities to be returned.
@@ -37,5 +36,41 @@ namespace Modix.Data.Models.Core
         /// or non-null, (or both).
         /// </summary>
         public bool? IsDeleted { get; set; }
+    }
+
+    internal static class DesignatedChannelMappingQueryableExtensions
+    {
+        public static IQueryable<DesignatedChannelMappingEntity> FilterBy(this IQueryable<DesignatedChannelMappingEntity> query, DesignatedChannelMappingSearchCriteria criteria)
+        {
+            if (query is null)
+                throw new ArgumentNullException(nameof(query));
+
+            if (criteria is null)
+                return query;
+
+            var longGuildId = (long?)criteria.GuildId;
+            var longChannelId = (long?)criteria.ChannelId;
+            var longCreatedById = (long?)criteria.CreatedById;
+
+            return query
+                .FilterBy(
+                    x => x.GuildId == longGuildId,
+                    !(longGuildId is null))
+                .FilterBy(
+                    x => x.ChannelId == longChannelId,
+                    !(longChannelId is null))
+                .FilterBy(
+                    x => x.Type == criteria.Type,
+                    !(criteria.Type is null))
+                .FilterBy(
+                    x => x.CreateAction.CreatedById == longCreatedById,
+                    !(longCreatedById is null))
+                .FilterBy(
+                    x => x.DeleteActionId != null,
+                    criteria.IsDeleted == true)
+                .FilterBy(
+                    x => x.DeleteActionId == null,
+                    criteria.IsDeleted == false);
+        }
     }
 }

@@ -48,7 +48,7 @@ namespace Modix.Services.Core
 
             await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
             {
-                result = await designatedChannelService.ChannelHasDesignation(guild, channel, ChannelDesignation.Unmoderated);
+                result = await designatedChannelService.ChannelHasDesignationAsync(guild, channel, DesignatedChannelType.Unmoderated);
             });
 
             return result;
@@ -81,7 +81,7 @@ namespace Modix.Services.Core
             await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
             {
                 await designatedChannelService.SendToDesignatedChannelsAsync(
-                    guild, ChannelDesignation.MessageLog,
+                    guild, DesignatedChannelType.MessageLog,
                     $":pencil:Message Edited in {MentionUtils.MentionChannel(channel.Id)}", embed.Build());
             });
         }
@@ -130,7 +130,7 @@ namespace Modix.Services.Core
             await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
             {
                 await designatedChannelService.SendToDesignatedChannelsAsync(
-                    guild, ChannelDesignation.MessageLog,
+                    guild, DesignatedChannelType.MessageLog,
                     $":wastebasket:Message Deleted in {MentionUtils.MentionChannel(channel.Id)} `{message.Id}`", embed.Build());
             });
         }
