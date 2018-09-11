@@ -1,4 +1,8 @@
-﻿using Modix.Data.Models.Core;
+﻿using System;
+using System.Linq.Expressions;
+
+using Modix.Data.Models.Core;
+using Modix.Data.Projectables;
 
 namespace Modix.Data.Models.Moderation
 {
@@ -10,7 +14,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="DeletedMessageEntity.MessageId"/>.
         /// </summary>
-        public long Id { get; set; }
+        public ulong Id { get; set; }
 
         /// <summary>
         /// See <see cref="DeletedMessageEntity.Channel"/>.
@@ -31,5 +35,15 @@ namespace Modix.Data.Models.Moderation
         /// See <see cref="DeletedMessageEntity.Reason"/>.
         /// </summary>
         public string Reason { get; set; }
+
+        internal static Expression<Func<DeletedMessageEntity, DeletedMessageBrief>> FromEntityProjection
+            = entity => new DeletedMessageBrief()
+            {
+                Id = (ulong)entity.MessageId,
+                Channel = entity.Channel.Project(GuildChannelBrief.FromEntityProjection),
+                Author = entity.Author.Project(GuildUserIdentity.FromEntityProjection),
+                Content = entity.Content,
+                Reason = entity.Reason
+            };
     }
 }

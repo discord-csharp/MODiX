@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
 using Modix.Data.Models.Moderation;
-using Modix.Data.Utilities;
+using Modix.Data.Projectables;
 
 namespace Modix.Data.Repositories
 {
@@ -50,6 +49,7 @@ namespace Modix.Data.Repositories
         public Task<ModerationActionSummary> ReadSummaryAsync(long moderationActionId)
             => ModixContext.ModerationActions.AsNoTracking()
                 .Where(x => x.Id == moderationActionId)
+                .AsProjectable()
                 .Select(ModerationActionSummary.FromEntityProjection)
                 .FirstOrDefaultAsync();
 
@@ -58,6 +58,7 @@ namespace Modix.Data.Repositories
         {
             return await ModixContext.ModerationActions.AsNoTracking()
                 .FilterModerationActionsBy(searchCriteria)
+                .AsProjectable()
                 .Select(ModerationActionSummary.FromEntityProjection)
                 .ToArrayAsync();
         }

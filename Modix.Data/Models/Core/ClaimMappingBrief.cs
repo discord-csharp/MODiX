@@ -37,10 +37,14 @@ namespace Modix.Data.Models.Core
             = entity => new ClaimMappingBrief()
             {
                 Id = entity.Id,
-                Type = entity.Type,
+                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                //Type = entity.Type,
+                Type = Enum.Parse<ClaimMappingType>(entity.Type.ToString()),
                 RoleId = (ulong?)entity.RoleId,
                 UserId = (ulong?)entity.UserId,
-                Claim = entity.Claim
+                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                //Claim = entity.Claim,
+                Claim = Enum.Parse<AuthorizationClaim>(entity.Claim.ToString())
             };
     }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 
 using Modix.Data.Models.Core;
+using Modix.Data.Projectables;
 
 namespace Modix.Data.Models.Moderation
 {
@@ -121,52 +122,19 @@ namespace Modix.Data.Models.Moderation
             {
                 Id = entity.Id,
                 GuildId = (ulong)entity.GuildId,
-                Type = entity.Type,
+                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                //Type = entity.Type,
+                Type = Enum.Parse<InfractionType>(entity.Type.ToString()),
                 Reason = entity.Reason,
                 Duration = entity.Duration,
-                Subject = new GuildUserIdentity()
-                {
-                    Id = (ulong)entity.Subject.UserId,
-                    Username = entity.Subject.User.Username,
-                    Discriminator = entity.Subject.User.Discriminator,
-                    Nickname = entity.Subject.Nickname
-                },
-                CreateAction = new ModerationActionBrief()
-                {
-                    Id = entity.CreateAction.Id,
-                    Created = entity.CreateAction.Created,
-                    CreatedBy = new GuildUserIdentity()
-                    {
-                        Id = (ulong)entity.CreateAction.CreatedBy.UserId,
-                        Username = entity.CreateAction.CreatedBy.User.Username,
-                        Discriminator = entity.CreateAction.CreatedBy.User.Discriminator,
-                        Nickname = entity.CreateAction.CreatedBy.Nickname
-                    }
-                },
-                RescindAction = (entity.RescindActionId == null) ? null : new ModerationActionBrief()
-                {
-                    Id = entity.RescindAction.Id,
-                    Created = entity.RescindAction.Created,
-                    CreatedBy = new GuildUserIdentity()
-                    {
-                        Id = (ulong)entity.RescindAction.CreatedBy.UserId,
-                        Username = entity.RescindAction.CreatedBy.User.Username,
-                        Discriminator = entity.RescindAction.CreatedBy.User.Discriminator,
-                        Nickname = entity.RescindAction.CreatedBy.Nickname
-                    }
-                },
-                DeleteAction = (entity.DeleteActionId == null) ? null : new ModerationActionBrief()
-                {
-                    Id = entity.DeleteAction.Id,
-                    Created = entity.DeleteAction.Created,
-                    CreatedBy = new GuildUserIdentity()
-                    {
-                        Id = (ulong)entity.DeleteAction.CreatedBy.UserId,
-                        Username = entity.DeleteAction.CreatedBy.User.Username,
-                        Discriminator = entity.DeleteAction.CreatedBy.User.Discriminator,
-                        Nickname = entity.DeleteAction.CreatedBy.Nickname
-                    }
-                },
+                Subject = entity.Subject.Project(GuildUserIdentity.FromEntityProjection),
+                CreateAction = entity.CreateAction.Project(ModerationActionBrief.FromEntityProjection),
+                RescindAction = (entity.RescindActionId == null)
+                    ? null
+                    : entity.RescindAction.Project(ModerationActionBrief.FromEntityProjection),
+                DeleteAction = (entity.DeleteActionId == null)
+                    ? null
+                    : entity.DeleteAction.Project(ModerationActionBrief.FromEntityProjection),
                 Expires = entity.CreateAction.Created + entity.Duration
             };
     }

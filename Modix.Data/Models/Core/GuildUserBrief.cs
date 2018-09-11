@@ -1,4 +1,9 @@
-﻿namespace Modix.Data.Models.Core
+﻿using System;
+using System.Linq.Expressions;
+
+using Modix.Data.Projectables;
+
+namespace Modix.Data.Models.Core
 {
     /// <summary>
     /// Describes a partial view of an <see cref="GuildUserEntity"/>, for use within the context of another projected model.
@@ -30,5 +35,14 @@
         /// </summary>
         public string DisplayName
             => Nickname ?? $"{Username}#{Discriminator}";
+
+        internal static Expression<Func<GuildUserEntity, GuildUserBrief>> FromEntityProjection
+            = entity => new GuildUserBrief()
+            {
+                Id = (ulong)entity.User.Id,
+                Username = entity.User.Username,
+                Discriminator = entity.User.Discriminator,
+                Nickname = entity.Nickname
+            };
     }
 }

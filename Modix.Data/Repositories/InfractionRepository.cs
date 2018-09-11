@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
+using Modix.Data.Projectables;
 using Modix.Data.Utilities;
 
 namespace Modix.Data.Repositories
@@ -154,6 +155,7 @@ namespace Modix.Data.Repositories
         public Task<InfractionSummary> ReadSummaryAsync(long infractionId)
             => ModixContext.Infractions.AsNoTracking()
                 .Where(x => x.Id == infractionId)
+                .AsProjectable()
                 .Select(InfractionSummary.FromEntityProjection)
                 .FirstOrDefaultAsync();
 
@@ -167,6 +169,7 @@ namespace Modix.Data.Repositories
         public Task<DateTimeOffset?> ReadExpiresFirstOrDefaultAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null)
             => ModixContext.Infractions.AsNoTracking()
                 .FilterBy(searchCriteria)
+                .AsProjectable()
                 .Select(InfractionSummary.FromEntityProjection)
                 .SortBy(sortingCriteria, InfractionSummary.SortablePropertyMap)
                 .Select(x => x.Expires)
@@ -183,6 +186,7 @@ namespace Modix.Data.Repositories
         public async Task<IReadOnlyCollection<InfractionSummary>> SearchSummariesAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null)
             => await ModixContext.Infractions.AsNoTracking()
                 .FilterBy(searchCriteria)
+                .AsProjectable()
                 .Select(InfractionSummary.FromEntityProjection)
                 .SortBy(sortingCriteria, InfractionSummary.SortablePropertyMap)
                 .ToArrayAsync();
@@ -196,6 +200,7 @@ namespace Modix.Data.Repositories
                 .FilterBy(searchCriteria);
 
             var pagedQuery = filteredQuery
+                .AsProjectable()
                 .Select(InfractionSummary.FromEntityProjection)
                 .SortBy(sortingCriteria, InfractionSummary.SortablePropertyMap)
                 // Always sort by Id last, otherwise ordering of records with matching fields is not guaranteed by the DB

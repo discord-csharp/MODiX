@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq.Expressions;
 
 using Modix.Data.Models.Core;
+using Modix.Data.Projectables;
 
 namespace Modix.Data.Models.Moderation
 {
@@ -23,5 +25,13 @@ namespace Modix.Data.Models.Moderation
         /// See <see cref="ModerationActionEntity.CreatedBy"/>.
         /// </summary>
         public GuildUserIdentity CreatedBy { get; set; }
+
+        internal static Expression<Func<ModerationActionEntity, ModerationActionBrief>> FromEntityProjection
+            = entity => new ModerationActionBrief()
+            {
+                Id = entity.Id,
+                Created = entity.Created,
+                CreatedBy = entity.CreatedBy.Project(GuildUserIdentity.FromEntityProjection)
+            };
     }
 }

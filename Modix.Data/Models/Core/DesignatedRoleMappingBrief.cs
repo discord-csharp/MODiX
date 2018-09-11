@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
 
+using Modix.Data.Projectables;
+
 namespace Modix.Data.Models.Core
 {
     /// <summary>
@@ -27,13 +29,10 @@ namespace Modix.Data.Models.Core
             = entity => new DesignatedRoleMappingBrief()
             {
                 Id = entity.Id,
-                Role = new GuildRoleBrief()
-                {
-                    Id = (ulong)entity.Role.RoleId,
-                    Name = entity.Role.Name,
-                    Position = entity.Role.Position
-                },
-                Type = entity.Type
+                Role = entity.Role.Project(GuildRoleBrief.FromEntityProjection),
+                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                //Type = entity.Type,
+                Type = Enum.Parse<DesignatedRoleType>(entity.Type.ToString()),
             };
     }
 

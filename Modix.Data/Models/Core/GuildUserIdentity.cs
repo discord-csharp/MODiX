@@ -1,4 +1,7 @@
-﻿namespace Modix.Data.Models.Core
+﻿using System;
+using System.Linq.Expressions;
+
+namespace Modix.Data.Models.Core
 {
     /// <summary>
     /// Describes the identifying properties of a <see cref="UserEntity"/>.
@@ -36,5 +39,15 @@
         /// </summary>
         public string DisplayName
             => Nickname ?? $"{Username}#{Discriminator}";
+
+        internal static Expression<Func<GuildUserEntity, GuildUserIdentity>> FromEntityProjection
+            = entity => new GuildUserIdentity()
+            {
+                Id = (ulong)entity.UserId,
+                GuildId = (ulong)entity.GuildId,
+                Username = entity.User.Username,
+                Discriminator = entity.User.Discriminator,
+                Nickname = entity.Nickname
+            };
     }
 }

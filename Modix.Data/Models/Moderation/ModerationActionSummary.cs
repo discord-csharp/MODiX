@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 
 using Modix.Data.Models.Core;
+using Modix.Data.Projectables;
 
 namespace Modix.Data.Models.Moderation
 {
@@ -50,49 +51,17 @@ namespace Modix.Data.Models.Moderation
             {
                 Id = entity.Id,
                 GuildId = (ulong)entity.GuildId,
-                Type = entity.Type,
+                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                //Type = entity.Type,
+                Type = Enum.Parse<ModerationActionType>(entity.Type.ToString()),
                 Created = entity.Created,
-                CreatedBy = new GuildUserIdentity()
-                {
-                    Id = (ulong)entity.CreatedBy.UserId,
-                    Username = entity.CreatedBy.User.Username,
-                    Discriminator = entity.CreatedBy.User.Discriminator,
-                    Nickname = entity.CreatedBy.Nickname
-                },
-                Infraction = (entity.InfractionId == null) ? null : new InfractionBrief()
-                {
-                    Id = entity.Infraction.Id,
-                    // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                    //Type = entity.Infraction.Type,
-                    Type = Enum.Parse<InfractionType>(entity.Infraction.Type.ToString()),
-                    Reason = entity.Infraction.Reason,
-                    Duration = entity.Infraction.Duration,
-                    Subject = new GuildUserIdentity()
-                    {
-                        Id = (ulong)entity.Infraction.Subject.UserId,
-                        Username = entity.Infraction.Subject.User.Username,
-                        Discriminator = entity.Infraction.Subject.User.Discriminator,
-                        Nickname = entity.Infraction.Subject.Nickname
-                    },
-                },
-                DeletedMessage = (entity.DeletedMessageId == null) ? null : new DeletedMessageBrief()
-                {
-                    Id = entity.DeletedMessage.MessageId,
-                    Channel = new GuildChannelBrief()
-                    {
-                        Id = (ulong)entity.DeletedMessage.Channel.ChannelId,
-                        Name = entity.DeletedMessage.Channel.Name,
-                    },
-                    Author = new GuildUserIdentity()
-                    {
-                        Id = (ulong)entity.DeletedMessage.Author.UserId,
-                        Username = entity.DeletedMessage.Author.User.Username,
-                        Discriminator = entity.DeletedMessage.Author.User.Discriminator,
-                        Nickname = entity.DeletedMessage.Author.Nickname
-                    },
-                    Content = entity.DeletedMessage.Content,
-                    Reason = entity.DeletedMessage.Reason,
-                }
+                CreatedBy = entity.CreatedBy.Project(GuildUserIdentity.FromEntityProjection),
+                Infraction = (entity.Infraction == null)
+                    ? null
+                    : entity.Infraction.Project(InfractionBrief.FromEntityProjection),
+                DeletedMessage = (entity.DeletedMessage == null)
+                    ? null
+                    : entity.DeletedMessage.Project(DeletedMessageBrief.FromEntityProjection)
             };
     }
 }

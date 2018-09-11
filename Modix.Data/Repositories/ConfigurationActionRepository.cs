@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 using Modix.Data.Models.Core;
+using Modix.Data.Projectables;
 
 namespace Modix.Data.Repositories
 {
@@ -36,6 +37,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public Task<ConfigurationActionSummary> ReadAsync(long actionId)
             => ModixContext.ConfigurationActions.AsNoTracking()
+                .AsProjectable()
                 .Select(ConfigurationActionSummary.FromEntityProjection)
                 .FirstOrDefaultAsync(x => x.Id == actionId);
     }

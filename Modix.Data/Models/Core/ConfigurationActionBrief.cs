@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Linq.Expressions;
+
+using Modix.Data.Projectables;
 
 namespace Modix.Data.Models.Core
 {
@@ -26,5 +29,16 @@ namespace Modix.Data.Models.Core
         /// See <see cref="ConfigurationActionEntity.CreatedBy"/>.
         /// </summary>
         public GuildUserIdentity CreatedBy { get; set; }
+
+        internal static Expression<Func<ConfigurationActionEntity, ConfigurationActionBrief>> FromEntityProjection
+            = entity => new ConfigurationActionBrief()
+            {
+                Id = entity.Id,
+                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                //Type = entity.Type,
+                Type = Enum.Parse<ConfigurationActionType>(entity.Type.ToString()),
+                Created = entity.Created,
+                CreatedBy = entity.CreatedBy.Project(GuildUserIdentity.FromEntityProjection)
+            };
     }
 }
