@@ -1,9 +1,13 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+﻿using System.Linq;
+using System.Reflection;
+
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Models.Promotions;
+using Modix.Data.Utilities;
+
+using Microsoft.EntityFrameworkCore;
 
 namespace Modix.Data
 {
@@ -51,178 +55,13 @@ namespace Modix.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder
-                .Entity<BehaviourConfiguration>()
-                .Property(x => x.Category)
-                .HasConversion<string>();
+            var onModelCreatingMethods = Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .SelectMany(x => x.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+                .Where(x => !(x.GetCustomAttribute<OnModelCreatingAttribute>() is null));
 
-            modelBuilder
-                .Entity<GuildUserEntity>()
-                .HasKey(x => new { x.GuildId, x.UserId });
-
-            modelBuilder
-                .Entity<ClaimMappingEntity>()
-                .Property(x => x.Type)
-                .HasConversion<string>();
-
-            modelBuilder
-                .Entity<ClaimMappingEntity>()
-                .Property(x => x.Claim)
-                .HasConversion<string>();
-
-            modelBuilder
-                .Entity<ClaimMappingEntity>()
-                .HasOne(x => x.CreateAction)
-                .WithOne()
-                .HasForeignKey<ClaimMappingEntity>(x => x.CreateActionId);
-
-            modelBuilder
-                .Entity<ClaimMappingEntity>()
-                .HasOne(x => x.DeleteAction)
-                .WithOne()
-                .HasForeignKey<ClaimMappingEntity>(x => x.DeleteActionId);
-
-            modelBuilder
-                .Entity<DesignatedChannelMappingEntity>()
-                .Property(x => x.Type)
-                .HasConversion<string>();
-
-            modelBuilder
-                .Entity<DesignatedChannelMappingEntity>()
-                .HasOne(x => x.CreateAction)
-                .WithOne()
-                .HasForeignKey<DesignatedChannelMappingEntity>(x => x.CreateActionId);
-
-            modelBuilder
-                .Entity<DesignatedChannelMappingEntity>()
-                .HasOne(x => x.DeleteAction)
-                .WithOne()
-                .HasForeignKey<DesignatedChannelMappingEntity>(x => x.DeleteActionId);
-
-            modelBuilder
-                .Entity<DesignatedRoleMappingEntity>()
-                .Property(x => x.Type)
-                .HasConversion<string>();
-
-            modelBuilder
-                .Entity<DesignatedRoleMappingEntity>()
-                .HasOne(x => x.CreateAction)
-                .WithOne()
-                .HasForeignKey<DesignatedRoleMappingEntity>(x => x.CreateActionId);
-
-            modelBuilder
-                .Entity<DesignatedRoleMappingEntity>()
-                .HasOne(x => x.DeleteAction)
-                .WithOne()
-                .HasForeignKey<DesignatedRoleMappingEntity>(x => x.DeleteActionId);
-
-            modelBuilder
-                .Entity<ConfigurationActionEntity>()
-                .Property(x => x.Type)
-                .HasConversion<string>();
-
-            modelBuilder
-                .Entity<ConfigurationActionEntity>()
-                .HasOne(x => x.CreatedBy)
-                .WithMany()
-                .HasForeignKey(x => new { x.GuildId, x.CreatedById });
-
-            modelBuilder
-                .Entity<InfractionEntity>()
-                .Property(x => x.Type)
-                .HasConversion<string>();
-
-            modelBuilder
-                .Entity<InfractionEntity>()
-                .HasOne(x => x.Subject)
-                .WithMany()
-                .HasForeignKey(x => new { x.GuildId, x.SubjectId });
-
-            modelBuilder
-                .Entity<InfractionEntity>()
-                .HasOne(x => x.CreateAction)
-                .WithOne()
-                .HasForeignKey<InfractionEntity>(x => x.CreateActionId);
-
-            modelBuilder
-                .Entity<InfractionEntity>()
-                .HasOne(x => x.RescindAction)
-                .WithOne()
-                .HasForeignKey<InfractionEntity>(x => x.RescindActionId);
-
-            modelBuilder
-                .Entity<InfractionEntity>()
-                .HasOne(x => x.DeleteAction)
-                .WithOne()
-                .HasForeignKey<InfractionEntity>(x => x.DeleteActionId);
-
-            modelBuilder
-                .Entity<DeletedMessageEntity>()
-                .HasOne(x => x.Author)
-                .WithMany()
-                .HasForeignKey(x => new { x.GuildId, x.AuthorId });
-
-            modelBuilder
-                .Entity<DeletedMessageEntity>()
-                .HasOne(x => x.CreateAction)
-                .WithOne()
-                .HasForeignKey<DeletedMessageEntity>(x => x.CreateActionId);
-
-            modelBuilder
-                .Entity<ModerationActionEntity>()
-                .Property(x => x.Type)
-                .HasConversion<string>();
-
-            modelBuilder
-                .Entity<ModerationActionEntity>()
-                .HasOne(x => x.CreatedBy)
-                .WithMany()
-                .HasForeignKey(x => new { x.GuildId, x.CreatedById });
-
-            modelBuilder
-                .Entity<PromotionCampaignEntity>()
-                .HasOne(x => x.Subject)
-                .WithMany()
-                .HasForeignKey(x => new { x.GuildId, x.SubjectId });
-
-            modelBuilder
-                .Entity<PromotionCampaignEntity>()
-                .Property(x => x.Outcome)
-                .HasConversion<string>();
-
-            modelBuilder
-                .Entity<PromotionCampaignEntity>()
-                .HasOne(x => x.CreateAction)
-                .WithOne()
-                .HasForeignKey<PromotionCampaignEntity>(x => x.CreateActionId);
-
-            modelBuilder
-                .Entity<PromotionCampaignEntity>()
-                .HasOne(x => x.CloseAction)
-                .WithOne()
-                .HasForeignKey<PromotionCampaignEntity>(x => x.CloseActionId);
-
-            modelBuilder
-                .Entity<PromotionCommentEntity>()
-                .Property(x => x.Sentiment)
-                .HasConversion<string>();
-
-            modelBuilder
-                .Entity<PromotionCommentEntity>()
-                .HasOne(x => x.CreateAction)
-                .WithOne()
-                .HasForeignKey<PromotionCommentEntity>(x => x.CreateActionId);
-
-            modelBuilder
-                .Entity<PromotionActionEntity>()
-                .Property(x => x.Type)
-                .HasConversion<string>();
-
-            modelBuilder
-                .Entity<PromotionActionEntity>()
-                .HasOne(x => x.CreatedBy)
-                .WithMany()
-                .HasForeignKey(x => new { x.GuildId, x.CreatedById });
+            foreach(var method in onModelCreatingMethods)
+                method.Invoke(null, new [] { modelBuilder });
         }
     }
 }

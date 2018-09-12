@@ -1,7 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using Microsoft.EntityFrameworkCore;
+
 using Modix.Data.Models.Core;
+using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Moderation
 {
@@ -72,5 +75,21 @@ namespace Modix.Data.Models.Moderation
         /// </summary>
         [Required]
         public virtual ModerationActionEntity CreateAction { get; set; }
+
+        [OnModelCreating]
+        internal static void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<DeletedMessageEntity>()
+                .HasOne(x => x.Author)
+                .WithMany()
+                .HasForeignKey(x => new { x.GuildId, x.AuthorId });
+
+            modelBuilder
+                .Entity<DeletedMessageEntity>()
+                .HasOne(x => x.CreateAction)
+                .WithOne()
+                .HasForeignKey<DeletedMessageEntity>(x => x.CreateActionId);
+        }
     }
 }

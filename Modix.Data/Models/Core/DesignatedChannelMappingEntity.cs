@@ -1,12 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
-using Modix.Data.Models.Core;
+
+using Microsoft.EntityFrameworkCore;
+
+using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Core
 {
+    /// <summary>
+    /// Describes a mapping that assigns an arbitrary designation to a particular channel within a guild.
+    /// </summary>
     public class DesignatedChannelMappingEntity
     {
         /// <summary>
@@ -59,5 +62,26 @@ namespace Modix.Data.Models.Core
         /// The <see cref="ConfigurationActionEntity"/> (if any) that deleted this <see cref="DesignatedChannelMappingEntity"/>.
         /// </summary>
         public virtual ConfigurationActionEntity DeleteAction { get; set; }
+
+        [OnModelCreating]
+        internal static void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<DesignatedChannelMappingEntity>()
+                .Property(x => x.Type)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<DesignatedChannelMappingEntity>()
+                .HasOne(x => x.CreateAction)
+                .WithOne()
+                .HasForeignKey<DesignatedChannelMappingEntity>(x => x.CreateActionId);
+
+            modelBuilder
+                .Entity<DesignatedChannelMappingEntity>()
+                .HasOne(x => x.DeleteAction)
+                .WithOne()
+                .HasForeignKey<DesignatedChannelMappingEntity>(x => x.DeleteActionId);
+        }
     }
 }

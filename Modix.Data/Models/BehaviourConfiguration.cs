@@ -1,6 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using Microsoft.EntityFrameworkCore;
+
+using Modix.Data.Utilities;
+
 namespace Modix.Data.Models
 {
     public class BehaviourConfiguration
@@ -16,5 +20,14 @@ namespace Modix.Data.Models
 
         [Required]
         public string Value { get; set; }
+
+        [OnModelCreating]
+        internal static void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<BehaviourConfiguration>()
+                .Property(x => x.Category)
+                .HasConversion<string>();
+        }
     }
 }
