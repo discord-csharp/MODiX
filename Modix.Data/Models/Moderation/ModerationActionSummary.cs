@@ -34,7 +34,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="ModerationActionEntity.CreatedBy"/>.
         /// </summary>
-        public GuildUserIdentity CreatedBy { get; set; }
+        public GuildUserBrief CreatedBy { get; set; }
 
         /// <summary>
         /// See <see cref="ModerationActionEntity.Infraction"/>.
@@ -55,7 +55,7 @@ namespace Modix.Data.Models.Moderation
                 //Type = entity.Type,
                 Type = Enum.Parse<ModerationActionType>(entity.Type.ToString()),
                 Created = entity.Created,
-                CreatedBy = entity.CreatedBy.Project(GuildUserIdentity.FromEntityProjection),
+                CreatedBy = entity.CreatedBy.Project(GuildUserBrief.FromEntityProjection),
                 Infraction = (entity.Infraction == null)
                     ? null
                     : entity.Infraction.Project(InfractionBrief.FromEntityProjection),

@@ -40,7 +40,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="InfractionEntity.Subject"/>.
         /// </summary>
-        public GuildUserIdentity Subject { get; set; }
+        public GuildUserBrief Subject { get; set; }
 
         /// <summary>
         /// The associated <see cref="ModerationActionEntity"/> from <see cref="InfractionEntity.ModerationActions"/>,
@@ -127,7 +127,7 @@ namespace Modix.Data.Models.Moderation
                 Type = Enum.Parse<InfractionType>(entity.Type.ToString()),
                 Reason = entity.Reason,
                 Duration = entity.Duration,
-                Subject = entity.Subject.Project(GuildUserIdentity.FromEntityProjection),
+                Subject = entity.Subject.Project(GuildUserBrief.FromEntityProjection),
                 CreateAction = entity.CreateAction.Project(ModerationActionBrief.FromEntityProjection),
                 RescindAction = (entity.RescindActionId == null)
                     ? null

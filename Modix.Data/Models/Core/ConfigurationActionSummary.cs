@@ -33,7 +33,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// See <see cref="ConfigurationActionEntity.CreatedBy"/>.
         /// </summary>
-        public virtual GuildUserIdentity CreatedBy { get; set; }
+        public virtual GuildUserBrief CreatedBy { get; set; }
 
         /// <summary>
         /// See <see cref="ConfigurationActionEntity.ClaimMapping"/>.
@@ -59,7 +59,7 @@ namespace Modix.Data.Models.Core
                 //Type = entity.Type,
                 Type = Enum.Parse<ConfigurationActionType>(entity.Type.ToString()),
                 Created = entity.Created,
-                CreatedBy = entity.CreatedBy.Project(GuildUserIdentity.FromEntityProjection),
+                CreatedBy = entity.CreatedBy.Project(GuildUserBrief.FromEntityProjection),
                 ClaimMapping = (entity.ClaimMapping == null)
                     ? null
                     : entity.ClaimMapping.Project(ClaimMappingBrief.FromEntityProjection),

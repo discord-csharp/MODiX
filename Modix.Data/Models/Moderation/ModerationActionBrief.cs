@@ -24,14 +24,14 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="ModerationActionEntity.CreatedBy"/>.
         /// </summary>
-        public GuildUserIdentity CreatedBy { get; set; }
+        public GuildUserBrief CreatedBy { get; set; }
 
         internal static Expression<Func<ModerationActionEntity, ModerationActionBrief>> FromEntityProjection
             = entity => new ModerationActionBrief()
             {
                 Id = entity.Id,
                 Created = entity.Created,
-                CreatedBy = entity.CreatedBy.Project(GuildUserIdentity.FromEntityProjection)
+                CreatedBy = entity.CreatedBy.Project(GuildUserBrief.FromEntityProjection)
             };
     }
 }

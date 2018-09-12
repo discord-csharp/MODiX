@@ -24,7 +24,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="DeletedMessageEntity.Author"/>.
         /// </summary>
-        public GuildUserIdentity Author { get; set; }
+        public GuildUserBrief Author { get; set; }
 
         /// <summary>
         /// See <see cref="DeletedMessageEntity.Content"/>.
@@ -41,7 +41,7 @@ namespace Modix.Data.Models.Moderation
             {
                 Id = (ulong)entity.MessageId,
                 Channel = entity.Channel.Project(GuildChannelBrief.FromEntityProjection),
-                Author = entity.Author.Project(GuildUserIdentity.FromEntityProjection),
+                Author = entity.Author.Project(GuildUserBrief.FromEntityProjection),
                 Content = entity.Content,
                 Reason = entity.Reason
             };
