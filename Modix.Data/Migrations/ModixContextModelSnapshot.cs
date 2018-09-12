@@ -177,8 +177,7 @@ namespace Modix.Data.Migrations
 
             modelBuilder.Entity("Modix.Data.Models.Core.GuildRoleEntity", b =>
                 {
-                    b.Property<long>("RoleId")
-                        .ValueGeneratedOnAdd();
+                    b.Property<long>("RoleId");
 
                     b.Property<long>("GuildId");
 
@@ -228,8 +227,7 @@ namespace Modix.Data.Migrations
 
             modelBuilder.Entity("Modix.Data.Models.Moderation.DeletedMessageEntity", b =>
                 {
-                    b.Property<long>("MessageId")
-                        .ValueGeneratedOnAdd();
+                    b.Property<long>("MessageId");
 
                     b.Property<long>("AuthorId");
 
