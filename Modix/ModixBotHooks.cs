@@ -46,10 +46,10 @@ namespace Modix
         {
             using (var scope = ServiceProvider.CreateScope())
             {
-                var codePaste = scope.ServiceProvider.GetRequiredService<CodePasteHandler>();
+                //var codePaste = scope.ServiceProvider.GetRequiredService<CodePasteHandler>();
                 var errorHelper = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
 
-                await codePaste.ReactionAdded(message, channel, reaction);
+                //await codePaste.ReactionAdded(message, channel, reaction);
                 await errorHelper.ReactionAdded(message, channel, reaction);
             }
         }
