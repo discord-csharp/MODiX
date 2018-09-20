@@ -1,4 +1,9 @@
-﻿namespace Modix.Data.Models.Promotions
+﻿using System;
+using System.Linq.Expressions;
+
+using Modix.Data.Projectables;
+
+namespace Modix.Data.Models.Promotions
 {
     /// <summary>
     /// Describes a partial view of a <see cref="PromotionActionEntity"/>, for use within the context of a projected <see cref="PromotionCampaignEntity"/>.
@@ -24,5 +29,16 @@
         /// See <see cref="PromotionCommentEntity.CreateAction"/>.
         /// </summary>
         public PromotionActionBrief CreateAction { get; set; }
+
+        internal static Expression<Func<PromotionCommentEntity, PromotionCommentCampaignBrief>> FromEntityProjection
+            = entity => new PromotionCommentCampaignBrief()
+            {
+                Id = entity.Id,
+                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                //Sentiment = entity.Sentiment,
+                Sentiment = Enum.Parse<PromotionSentiment>(entity.Sentiment.ToString()),
+                Content = entity.Content,
+                CreateAction = entity.CreateAction.Project(PromotionActionBrief.FromEntityProjection)
+            };
     }
 }

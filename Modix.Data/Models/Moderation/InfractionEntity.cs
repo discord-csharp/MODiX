@@ -2,7 +2,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using Microsoft.EntityFrameworkCore;
+
 using Modix.Data.Models.Core;
+using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Moderation
 {
@@ -84,5 +87,38 @@ namespace Modix.Data.Models.Moderation
         /// The <see cref="ModerationActionEntity"/> (if any) that deleted this <see cref="InfractionEntity"/>.
         /// </summary>
         public virtual ModerationActionEntity DeleteAction { get; set; }
+
+        [OnModelCreating]
+        internal static void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<InfractionEntity>()
+                .Property(x => x.Type)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<InfractionEntity>()
+                .HasOne(x => x.Subject)
+                .WithMany()
+                .HasForeignKey(x => new { x.GuildId, x.SubjectId });
+
+            modelBuilder
+                .Entity<InfractionEntity>()
+                .HasOne(x => x.CreateAction)
+                .WithOne()
+                .HasForeignKey<InfractionEntity>(x => x.CreateActionId);
+
+            modelBuilder
+                .Entity<InfractionEntity>()
+                .HasOne(x => x.RescindAction)
+                .WithOne()
+                .HasForeignKey<InfractionEntity>(x => x.RescindActionId);
+
+            modelBuilder
+                .Entity<InfractionEntity>()
+                .HasOne(x => x.DeleteAction)
+                .WithOne()
+                .HasForeignKey<InfractionEntity>(x => x.DeleteActionId);
+        }
     }
 }

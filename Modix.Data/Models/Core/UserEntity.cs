@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Modix.Data.Models.Core
 {
@@ -10,7 +11,9 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// The unique identifier for this user within the Discord API.
         /// </summary>
-        [Key, Required]
+        [Key]
+        [Required]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public long Id { get; set; }
 
         /// <summary>

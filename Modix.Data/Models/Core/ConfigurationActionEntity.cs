@@ -1,8 +1,10 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Modix.Data.Models.Core;
-using Modix.Data.Models.Moderation;
+
+using Microsoft.EntityFrameworkCore;
+
+using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Core
 {
@@ -79,5 +81,20 @@ namespace Modix.Data.Models.Core
         /// The designated role mapping that was affected by this action, if any.
         /// </summary>
         public DesignatedRoleMappingEntity DesignatedRoleMapping { get; set; }
+
+        [OnModelCreating]
+        internal static void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<ConfigurationActionEntity>()
+                .Property(x => x.Type)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<ConfigurationActionEntity>()
+                .HasOne(x => x.CreatedBy)
+                .WithMany()
+                .HasForeignKey(x => new { x.GuildId, x.CreatedById });
+        }
     }
 }
