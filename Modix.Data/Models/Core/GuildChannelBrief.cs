@@ -1,4 +1,7 @@
-﻿namespace Modix.Data.Models.Core
+﻿using System;
+using System.Linq.Expressions;
+
+namespace Modix.Data.Models.Core
 {
     /// <summary>
     /// Describes a partial view of an <see cref="GuildChannelEntity"/>, for use within the context of another projected model.
@@ -14,5 +17,12 @@
         /// See <see cref="GuildChannelEntity.Name"/>.
         /// </summary>
         public string Name { get; set; }
+
+        internal static Expression<Func<GuildChannelEntity, GuildChannelBrief>> FromEntityProjection
+            = entity => new GuildChannelBrief()
+            {
+                Id = (ulong)entity.ChannelId,
+                Name = entity.Name
+            };
     }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 using Modix.Data.Models.Core;
+using Modix.Data.Projectables;
 using Modix.Data.Utilities;
 
 namespace Modix.Data.Repositories
@@ -131,6 +132,7 @@ namespace Modix.Data.Repositories
         public async Task<IReadOnlyCollection<DesignatedRoleMappingBrief>> SearchBriefsAsync(DesignatedRoleMappingSearchCriteria criteria)
             => await ModixContext.DesignatedRoleMappings.AsNoTracking()
                 .FilterBy(criteria)
+                .AsProjectable()
                 .Select(DesignatedRoleMappingBrief.FromEntityProjection)
                 .ToArrayAsync();
 

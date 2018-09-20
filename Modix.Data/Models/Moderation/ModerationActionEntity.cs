@@ -2,7 +2,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using Microsoft.EntityFrameworkCore;
+
 using Modix.Data.Models.Core;
+using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Moderation
 {
@@ -70,5 +73,20 @@ namespace Modix.Data.Models.Moderation
         /// Null, if an <see cref="DeletedMessageEntity"/> was involved in this <see cref="ModerationActionEntity"/>.
         /// </summary>
         public virtual DeletedMessageEntity DeletedMessage { get; set; }
+
+        [OnModelCreating]
+        internal static void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<ModerationActionEntity>()
+                .Property(x => x.Type)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<ModerationActionEntity>()
+                .HasOne(x => x.CreatedBy)
+                .WithMany()
+                .HasForeignKey(x => new { x.GuildId, x.CreatedById });
+        }
     }
 }

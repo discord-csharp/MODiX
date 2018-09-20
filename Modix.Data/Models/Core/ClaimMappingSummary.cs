@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
 
+using Modix.Data.Projectables;
+
 namespace Modix.Data.Models.Core
 {
     /// <summary>
@@ -46,46 +48,25 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// See <see cref="ClaimMappingEntity.DeleteAction"/>.
         /// </summary>
-        public ConfigurationActionBrief RescindAction { get; set; }
+        public ConfigurationActionBrief DeleteAction { get; set; }
 
         internal static Expression<Func<ClaimMappingEntity, ClaimMappingSummary>> FromEntityProjection { get; }
             = entity => new ClaimMappingSummary()
             {
                 Id = entity.Id,
-                Type = entity.Type,
+                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                //Type = entity.Type,
+                Type = Enum.Parse<ClaimMappingType>(entity.Type.ToString()),
                 GuildId = (ulong)entity.GuildId,
                 RoleId = (ulong?)entity.RoleId,
                 UserId = (ulong?)entity.UserId,
-                Claim = entity.Claim,
-                CreateAction = new ConfigurationActionBrief()
-                {
-                    Id = entity.CreateAction.Id,
-                    // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                    //Type = entity.CreateAction.Type,
-                    Type = Enum.Parse<ConfigurationActionType>(entity.CreateAction.Type.ToString()),
-                    Created = entity.CreateAction.Created,
-                    CreatedBy = new GuildUserIdentity()
-                    {
-                        Id = (ulong)entity.CreateAction.CreatedBy.UserId,
-                        Username = entity.CreateAction.CreatedBy.User.Username,
-                        Discriminator = entity.CreateAction.CreatedBy.User.Discriminator,
-                        Nickname = entity.CreateAction.CreatedBy.Nickname
-                    }
-                },
-                RescindAction = (entity.DeleteAction == null) ? null
-                    : new ConfigurationActionBrief()
-                    {
-                        Id = entity.DeleteAction.Id,
-                        Type = entity.DeleteAction.Type,
-                        Created = entity.DeleteAction.Created,
-                        CreatedBy = new GuildUserIdentity()
-                        {
-                            Id = (ulong)entity.DeleteAction.CreatedBy.UserId,
-                            Username = entity.DeleteAction.CreatedBy.User.Username,
-                            Discriminator = entity.DeleteAction.CreatedBy.User.Discriminator,
-                            Nickname = entity.DeleteAction.CreatedBy.Nickname
-                        }
-                    }
+                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                //Claim = entity.Claim,
+                Claim = Enum.Parse<AuthorizationClaim>(entity.Claim.ToString()),
+                CreateAction = entity.CreateAction.Project(ConfigurationActionBrief.FromEntityProjection),
+                DeleteAction = (entity.DeleteAction == null)
+                    ? null
+                    : entity.DeleteAction.Project(ConfigurationActionBrief.FromEntityProjection)
             };
     }
 }

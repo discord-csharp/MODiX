@@ -2,6 +2,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using Microsoft.EntityFrameworkCore;
+
+using Modix.Data.Utilities;
+
 namespace Modix.Data.Models.Core
 {
     /// <summary>
@@ -44,5 +48,13 @@ namespace Modix.Data.Models.Core
         /// </summary>
         [Required]
         public DateTimeOffset LastSeen { get; set; }
+
+        [OnModelCreating]
+        internal static void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<GuildUserEntity>()
+                .HasKey(x => new { x.GuildId, x.UserId });
+        }
     }
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 
 using Modix.Data.Models.Core;
+using Modix.Data.Projectables;
 
 namespace Modix.Data.Models.Promotions
 {
@@ -58,62 +59,18 @@ namespace Modix.Data.Models.Promotions
             {
                 Id = entity.Id,
                 GuildId = (ulong)entity.GuildId,
-                Subject = new GuildUserBrief()
-                {
-                    Id = (ulong)entity.Subject.UserId,
-                    Username = entity.Subject.User.Username,
-                    Discriminator = entity.Subject.User.Discriminator,
-                    Nickname = entity.Subject.Nickname
-                },
-                TargetRole = new GuildRoleBrief()
-                {
-                    Id = (ulong)entity.TargetRole.RoleId,
-                    Name = entity.TargetRole.Name
-                },
-                Outcome = entity.Outcome,
-                CreateAction = new PromotionActionBrief()
-                {
-                    Id = entity.CreateAction.Id,
-                    Created = entity.CreateAction.Created,
-                    CreatedBy = new GuildUserBrief()
-                    {
-                        Id = (ulong)entity.CreateAction.CreatedBy.UserId,
-                        Username = entity.CreateAction.CreatedBy.User.Username,
-                        Discriminator = entity.CreateAction.CreatedBy.User.Discriminator,
-                        Nickname = entity.CreateAction.CreatedBy.Nickname
-                    }
-                },
-                CloseAction = (entity.CloseAction == null) ? null : new PromotionActionBrief()
-                {
-                    Id = entity.CloseAction.Id,
-                    Created = entity.CloseAction.Created,
-                    CreatedBy = new GuildUserBrief()
-                    {
-                        Id = (ulong)entity.CloseAction.CreatedBy.UserId,
-                        Username = entity.CloseAction.CreatedBy.User.Username,
-                        Discriminator = entity.CloseAction.CreatedBy.User.Discriminator,
-                        Nickname = entity.CloseAction.CreatedBy.Nickname
-                    }
-                },
-                Comments = entity.Comments
-                    .Select(comment => new PromotionCommentCampaignBrief()
-                    {
-                        Id = comment.Id,
-                        Sentiment = comment.Sentiment,
-                        Content = comment.Content,
-                        CreateAction = new PromotionActionBrief()
-                        {
-                            Id = comment.CreateAction.Id,
-                            Created = comment.CreateAction.Created,
-                            CreatedBy = new GuildUserBrief()
-                            {
-                                Id = (ulong)comment.CreateAction.CreatedBy.UserId,
-                                Username = comment.CreateAction.CreatedBy.User.Username,
-                                Discriminator = comment.CreateAction.CreatedBy.User.Discriminator,
-                                Nickname = comment.CreateAction.CreatedBy.Nickname
-                            }
-                        }
-                    })
+                Subject = entity.Subject.Project(GuildUserBrief.FromEntityProjection),
+                TargetRole = entity.TargetRole.Project(GuildRoleBrief.FromEntityProjection),
+                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                //Outcome = entity.Outcome,
+                Outcome = (entity.Outcome == null)
+                    ? null
+                    : (PromotionCampaignOutcome?)Enum.Parse<PromotionCampaignOutcome>(entity.Outcome.ToString()),
+                CreateAction = entity.CreateAction.Project(PromotionActionBrief.FromEntityProjection),
+                CloseAction = (entity.CloseAction == null)
+                    ? null
+                    : entity.CloseAction.Project(PromotionActionBrief.FromEntityProjection),
+                Comments = entity.Comments.AsQueryable().Select(PromotionCommentCampaignBrief.FromEntityProjection)
                     .ToArray()
             };
     }

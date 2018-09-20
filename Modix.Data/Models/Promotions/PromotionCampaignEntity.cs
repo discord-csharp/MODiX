@@ -2,7 +2,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using Microsoft.EntityFrameworkCore;
+
 using Modix.Data.Models.Core;
+using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Promotions
 {
@@ -81,5 +84,32 @@ namespace Modix.Data.Models.Promotions
         /// The set of comments that have been recorded for this campaign.
         /// </summary>
         public virtual ICollection<PromotionCommentEntity> Comments { get; set; }
+
+        [OnModelCreating]
+        internal static void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<PromotionCampaignEntity>()
+                .HasOne(x => x.Subject)
+                .WithMany()
+                .HasForeignKey(x => new { x.GuildId, x.SubjectId });
+
+            modelBuilder
+                .Entity<PromotionCampaignEntity>()
+                .Property(x => x.Outcome)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<PromotionCampaignEntity>()
+                .HasOne(x => x.CreateAction)
+                .WithOne()
+                .HasForeignKey<PromotionCampaignEntity>(x => x.CreateActionId);
+
+            modelBuilder
+                .Entity<PromotionCampaignEntity>()
+                .HasOne(x => x.CloseAction)
+                .WithOne()
+                .HasForeignKey<PromotionCampaignEntity>(x => x.CloseActionId);
+        }
     }
 }

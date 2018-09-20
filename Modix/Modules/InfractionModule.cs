@@ -1,12 +1,15 @@
 ﻿using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using Discord;
 using Discord.Commands;
+
+using Tababular;
+
 using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
 using Modix.Services.Moderation;
-using Tababular;
 
 namespace Modix.Modules
 {
@@ -14,11 +17,9 @@ namespace Modix.Modules
     [Summary("Provides commands for working with infractions.")]
     public class InfractionModule : ModuleBase
     {
-        private readonly IModerationService _moderationService;
-
         public InfractionModule(IModerationService moderationService)
         {
-            _moderationService = moderationService;
+            ModerationService = moderationService;
         }
 
         [Command("search")]
@@ -27,7 +28,7 @@ namespace Modix.Modules
             [Summary("The user whose infractions are to be displayed.")]
                 IGuildUser subject)
         {
-            var infractions = await _moderationService.SearchInfractionsAsync(
+            var infractions = await ModerationService.SearchInfractionsAsync(
                 new InfractionSearchCriteria
                 {
                     GuildId = subject.GuildId,
@@ -81,6 +82,8 @@ namespace Modix.Modules
         public Task Delete(
             [Summary("The ID value of the infraction to be deleted.")]
                 long infractionId)
-            => _moderationService.DeleteInfractionAsync(infractionId);
+            => ModerationService.DeleteInfractionAsync(infractionId);
+
+        internal protected IModerationService ModerationService { get; }
     }
 }

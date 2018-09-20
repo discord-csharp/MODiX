@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 using Modix.Data.Models.Promotions;
+using Modix.Data.Projectables;
 
 namespace Modix.Data.Repositories
 {
@@ -131,6 +132,7 @@ namespace Modix.Data.Repositories
         public async Task<IReadOnlyCollection<PromotionCampaignSummary>> SearchSummariesAsync(PromotionCampaignSearchCriteria searchCriteria)
             => await ModixContext.PromotionCampaigns.AsNoTracking()
                 .FilterBy(searchCriteria)
+                .AsProjectable()
                 .Select(PromotionCampaignSummary.FromEntityProjection)
                 .ToArrayAsync();
 
@@ -138,6 +140,7 @@ namespace Modix.Data.Repositories
         public Task<PromotionCampaignDetails> ReadDetailsAsync(long campaignId)
             => ModixContext.PromotionCampaigns.AsNoTracking()
                 .Where(x => x.Id == campaignId)
+                .AsProjectable()
                 .Select(PromotionCampaignDetails.FromEntityProjection)
                 .FirstOrDefaultAsync();
 

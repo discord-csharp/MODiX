@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Modix.Data.Models.Core
 {
@@ -13,6 +14,7 @@ namespace Modix.Data.Models.Core
         /// </summary>
         [Key]
         [Required]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public long ChannelId { get; set; }
 
         /// <summary>
@@ -27,5 +29,4 @@ namespace Modix.Data.Models.Core
         [Required]
         public string Name { get; set; }
     }
-
 }
