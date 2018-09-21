@@ -1,15 +1,14 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
 using Discord;
 using Discord.Commands;
-
-using Tababular;
-
 using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
 using Modix.Services.Moderation;
+using Serilog;
+using Tababular;
 
 namespace Modix.Modules
 {
@@ -65,7 +64,7 @@ namespace Modix.Modules
             var replyBuilder = new StringBuilder();
             foreach (var line in tableText.Split("\r\n"))
             {
-                if((replyBuilder.Length + line.Length) > 1998)
+                if ((replyBuilder.Length + line.Length) > 1990)
                 {
                     await ReplyAsync(Format.Code(replyBuilder.ToString()));
                     replyBuilder.Clear();
@@ -73,7 +72,7 @@ namespace Modix.Modules
                 replyBuilder.AppendLine(line);
             }
 
-            if(replyBuilder.Length > 0)
+            if (replyBuilder.Length > 0)
                 await ReplyAsync(Format.Code(replyBuilder.ToString()));
         }
 
