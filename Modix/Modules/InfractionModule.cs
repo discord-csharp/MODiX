@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -83,6 +84,8 @@ namespace Modix.Modules
             [Summary("The user whose infractions are to be displayed.")]
             IGuildUser subject)
         {
+            var requestor = Context.User.Mention;
+            
             var infractions = await ModerationService.SearchInfractionsAsync(
                 new InfractionSearchCriteria
                 {
@@ -115,11 +118,11 @@ namespace Modix.Modules
             }).OrderBy(s => s.Type);
 
             var builder = new EmbedBuilder()
-                .WithTitle($"Infractions for user {subject.Nickname}")
+                .WithTitle($"Infractions for user: {subject.Username}#{subject.Discriminator}")
                 //.WithDescription("This user has a total of 5 mutes, 7 warnings, and 3 notices.")
                 .WithUrl("https://discordapp.com")
                 .WithColor(new Color(0xA3BF0B))
-                //.WithTimestamp(DateTimeOffset.FromUnixTimeMilliseconds(1537508496766))
+                .WithTimestamp(DateTimeOffset.Now)
                 .WithFooter(footer =>
                 {
                     footer
@@ -137,7 +140,7 @@ namespace Modix.Modules
             var embed = builder.Build();
             
             await Context.Channel.SendMessageAsync(
-                    "Requested by @username",
+                    $"Requested by {requestor}",
                     embed: embed)
                 .ConfigureAwait(false);
         }
