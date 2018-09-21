@@ -34,7 +34,7 @@ namespace Modix.Behaviors
         /// <inheritdoc />
         public async Task OnModerationActionCreatedAsync(long moderationActionId, ModerationActionCreationData data)
         {
-            if (await DesignatedChannelService.AnyDesignatedChannelAsync(data.GuildId, DesignatedChannelType.ModerationLog))
+            if (!await DesignatedChannelService.AnyDesignatedChannelAsync(data.GuildId, DesignatedChannelType.ModerationLog))
                 return;
 
             try
