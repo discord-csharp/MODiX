@@ -1,6 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using Microsoft.EntityFrameworkCore;
+
+using Modix.Data.Utilities;
+
 namespace Modix.Data.Models.Core
 {
     /// <summary>
@@ -15,7 +19,7 @@ namespace Modix.Data.Models.Core
         public long Id { get; set; }
 
         /// <summary>
-        /// The type of this mapping.
+        /// The type of mapping being made between the user/role and claim.
         /// </summary>
         [Required]
         public ClaimMappingType Type { get; set; }
@@ -37,7 +41,7 @@ namespace Modix.Data.Models.Core
         public long? UserId { get; set; }
 
         /// <summary>
-        /// The claim that is being mapped.s
+        /// The claim that is being mapped.
         /// </summary>
         [Required]
         public AuthorizationClaim Claim { get; set; }
@@ -63,5 +67,31 @@ namespace Modix.Data.Models.Core
         /// The configuration action (if any) that deleted this mapping.
         /// </summary>
         public virtual ConfigurationActionEntity DeleteAction { get; set; }
+
+        [OnModelCreating]
+        internal static void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<ClaimMappingEntity>()
+                .Property(x => x.Type)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<ClaimMappingEntity>()
+                .Property(x => x.Claim)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<ClaimMappingEntity>()
+                .HasOne(x => x.CreateAction)
+                .WithOne()
+                .HasForeignKey<ClaimMappingEntity>(x => x.CreateActionId);
+
+            modelBuilder
+                .Entity<ClaimMappingEntity>()
+                .HasOne(x => x.DeleteAction)
+                .WithOne()
+                .HasForeignKey<ClaimMappingEntity>(x => x.DeleteActionId);
+        }
     }
 }

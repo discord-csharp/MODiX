@@ -1,6 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using Microsoft.EntityFrameworkCore;
+
+using Modix.Data.Utilities;
+
 namespace Modix.Data.Models.Promotions
 {
     /// <summary>
@@ -53,5 +57,20 @@ namespace Modix.Data.Models.Promotions
         /// </summary>
         [Required]
         public virtual PromotionActionEntity CreateAction { get; set; }
+
+        [OnModelCreating]
+        internal static void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<PromotionCommentEntity>()
+                .Property(x => x.Sentiment)
+                .HasConversion<string>();
+
+            modelBuilder
+                .Entity<PromotionCommentEntity>()
+                .HasOne(x => x.CreateAction)
+                .WithOne()
+                .HasForeignKey<PromotionCommentEntity>(x => x.CreateActionId);
+        }
     }
 }

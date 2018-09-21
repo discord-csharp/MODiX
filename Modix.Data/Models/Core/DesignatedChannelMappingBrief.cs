@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
 
+using Modix.Data.Projectables;
+
 namespace Modix.Data.Models.Core
 {
     /// <summary>
@@ -27,12 +29,10 @@ namespace Modix.Data.Models.Core
             = entity => new DesignatedChannelMappingBrief()
             {
                 Id = entity.Id,
-                Channel = new GuildChannelBrief()
-                {
-                    Id = (ulong)entity.Channel.ChannelId,
-                    Name = entity.Channel.Name
-                },
-                Type = entity.Type
+                Channel = entity.Channel.Project(GuildChannelBrief.FromEntityProjection),
+                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                //Type = entity.Type,
+                Type = Enum.Parse<DesignatedChannelType>(entity.Type.ToString())
             };
     }
 

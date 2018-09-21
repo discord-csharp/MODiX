@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 
 namespace Modix.Data.Models.Core
@@ -21,11 +19,6 @@ namespace Modix.Data.Models.Core
         public ClaimMappingType Type { get; set; }
 
         /// <summary>
-        /// See <see cref="ClaimMappingEntity.GuildId"/>.
-        /// </summary>
-        public ulong GuildId { get; set; }
-
-        /// <summary>
         /// See <see cref="ClaimMappingEntity.RoleId"/>.
         /// </summary>
         public ulong? RoleId { get; set; }
@@ -44,11 +37,14 @@ namespace Modix.Data.Models.Core
             = entity => new ClaimMappingBrief()
             {
                 Id = entity.Id,
-                Type = entity.Type,
-                GuildId = (ulong)entity.GuildId,
+                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                //Type = entity.Type,
+                Type = Enum.Parse<ClaimMappingType>(entity.Type.ToString()),
                 RoleId = (ulong?)entity.RoleId,
                 UserId = (ulong?)entity.UserId,
-                Claim = entity.Claim
+                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                //Claim = entity.Claim,
+                Claim = Enum.Parse<AuthorizationClaim>(entity.Claim.ToString())
             };
     }
 }

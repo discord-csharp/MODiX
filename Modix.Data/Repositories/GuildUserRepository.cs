@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 using Modix.Data.Models.Core;
+using Modix.Data.Projectables;
 using Modix.Data.Utilities;
 
 namespace Modix.Data.Repositories
@@ -102,6 +103,7 @@ namespace Modix.Data.Repositories
             return ModixContext.GuildUsers.AsNoTracking()
                 .Where(x => x.UserId == longUserId)
                 .Where(x => x.GuildId == longGuildId)
+                .AsProjectable()
                 .Select(GuildUserSummary.FromEntityProjection)
                 .FirstOrDefaultAsync();
         }

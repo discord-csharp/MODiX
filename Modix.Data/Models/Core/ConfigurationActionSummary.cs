@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
 
+using Modix.Data.Projectables;
+
 namespace Modix.Data.Models.Core
 {
     /// <summary>
@@ -31,7 +33,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// See <see cref="ConfigurationActionEntity.CreatedBy"/>.
         /// </summary>
-        public virtual GuildUserIdentity CreatedBy { get; set; }
+        public virtual GuildUserBrief CreatedBy { get; set; }
 
         /// <summary>
         /// See <see cref="ConfigurationActionEntity.ClaimMapping"/>.
@@ -53,54 +55,20 @@ namespace Modix.Data.Models.Core
             {
                 Id = entity.Id,
                 GuildId = (ulong)entity.GuildId,
-                Type = entity.Type,
+                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                //Type = entity.Type,
+                Type = Enum.Parse<ConfigurationActionType>(entity.Type.ToString()),
                 Created = entity.Created,
-                CreatedBy = new GuildUserIdentity()
-                {
-                    Id = (ulong)entity.CreatedBy.UserId,
-                    Username = entity.CreatedBy.User.Username,
-                    Discriminator = entity.CreatedBy.User.Discriminator,
-                    Nickname = entity.CreatedBy.Nickname
-                },
-                ClaimMapping = (entity.ClaimMapping == null) ? null
-                    : new ClaimMappingBrief()
-                    {
-                        Id = entity.ClaimMapping.Id,
-                        // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                        //Type = entity.ClaimMapping.Type,
-                        Type = Enum.Parse<ClaimMappingType>(entity.ClaimMapping.Type.ToString()),
-                        GuildId = (ulong)entity.ClaimMapping.GuildId,
-                        RoleId = (ulong?)entity.ClaimMapping.RoleId,
-                        UserId = (ulong?)entity.ClaimMapping.UserId,
-                        Claim = entity.ClaimMapping.Claim
-                    },
-                DesignatedChannelMapping = (entity.DesignatedChannelMapping == null) ? null
-                    : new DesignatedChannelMappingBrief()
-                    {
-                        Id = entity.DesignatedChannelMapping.Id,
-                        Channel = new GuildChannelBrief()
-                        {
-                            Id = (ulong)entity.DesignatedChannelMapping.Channel.ChannelId,
-                            Name = entity.DesignatedChannelMapping.Channel.Name
-                        },
-                        // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                        //Type = entity.ClaimMapping.Type,
-                        Type = Enum.Parse<DesignatedChannelType>(entity.DesignatedChannelMapping.Type.ToString()),
-                    },
-                DesignatedRoleMapping = (entity.DesignatedRoleMapping == null) ? null
-                    : new DesignatedRoleMappingBrief()
-                    {
-                        Id = entity.DesignatedRoleMapping.Id,
-                        Role = new GuildRoleBrief()
-                        {
-                            Id = (ulong)entity.DesignatedRoleMapping.Role.RoleId,
-                            Name = entity.DesignatedRoleMapping.Role.Name,
-                            Position = entity.DesignatedRoleMapping.Role.Position
-                        },
-                        // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                        //Type = entity.ClaimMapping.Type,
-                        Type = Enum.Parse<DesignatedRoleType>(entity.DesignatedRoleMapping.Type.ToString()),
-                    },
+                CreatedBy = entity.CreatedBy.Project(GuildUserBrief.FromEntityProjection),
+                ClaimMapping = (entity.ClaimMapping == null)
+                    ? null
+                    : entity.ClaimMapping.Project(ClaimMappingBrief.FromEntityProjection),
+                DesignatedChannelMapping = (entity.DesignatedChannelMapping == null)
+                    ? null
+                    : entity.DesignatedChannelMapping.Project(DesignatedChannelMappingBrief.FromEntityProjection),
+                DesignatedRoleMapping = (entity.DesignatedRoleMapping == null)
+                    ? null
+                    : entity.DesignatedRoleMapping.Project(DesignatedRoleMappingBrief.FromEntityProjection)
             };
     }
 }

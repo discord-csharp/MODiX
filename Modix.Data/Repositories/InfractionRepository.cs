@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
+using Modix.Data.Projectables;
 using Modix.Data.Utilities;
 
 namespace Modix.Data.Repositories
@@ -113,17 +114,16 @@ namespace Modix.Data.Repositories
     }
 
     /// <inheritdoc />
-    public class InfractionRepository : RepositoryBase, IInfractionRepository
+    public class InfractionRepository : ModerationActionEventRepositoryBase, IInfractionRepository
     {
         /// <summary>
         /// Creates a new <see cref="InfractionRepository"/>.
-        /// See <see cref="RepositoryBase(ModixContext)"/> for details.
+        /// See <see cref="ModerationActionEventRepositoryBase(ModixContext)"/> for details.
         /// </summary>
-        public InfractionRepository(ModixContext modixContext, IEnumerable<IInfractionEventHandler> infractionEventHandlers, IEnumerable<IModerationActionEventHandler> moderationActionEventHandlers)
-            : base(modixContext)
+        public InfractionRepository(ModixContext modixContext, IEnumerable<IModerationActionEventHandler> moderationActionEventHandlers, IEnumerable<IInfractionEventHandler> infractionEventHandlers)
+            : base(modixContext, moderationActionEventHandlers)
         {
             InfractionEventHandlers = infractionEventHandlers;
-            ModerationActionEventHandlers = moderationActionEventHandlers;
         }
 
         /// <inheritdoc />
@@ -146,13 +146,7 @@ namespace Modix.Data.Repositories
 
             await RaiseInfractionCreatedAsync(entity.Id, data);
 
-            await RaiseModerationActionCreatedAsync(entity.CreateActionId, new ModerationActionCreationData()
-            {
-                GuildId = (ulong)entity.CreateAction.GuildId,
-                Type = entity.CreateAction.Type,
-                Created = entity.CreateAction.Created,
-                CreatedById = (ulong)entity.CreateAction.CreatedById
-            });
+            await RaiseModerationActionCreatedAsync(entity.CreateAction);
 
             return entity.Id;
         }
@@ -161,19 +155,21 @@ namespace Modix.Data.Repositories
         public Task<InfractionSummary> ReadSummaryAsync(long infractionId)
             => ModixContext.Infractions.AsNoTracking()
                 .Where(x => x.Id == infractionId)
+                .AsProjectable()
                 .Select(InfractionSummary.FromEntityProjection)
                 .FirstOrDefaultAsync();
 
         /// <inheritdoc />
         public Task<bool> AnyAsync(InfractionSearchCriteria criteria)
             => ModixContext.Infractions.AsNoTracking()
-                .FilterInfractionsBy(criteria)
+                .FilterBy(criteria)
                 .AnyAsync();
 
         /// <inheritdoc />
         public Task<DateTimeOffset?> ReadExpiresFirstOrDefaultAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null)
             => ModixContext.Infractions.AsNoTracking()
-                .FilterInfractionsBy(searchCriteria)
+                .FilterBy(searchCriteria)
+                .AsProjectable()
                 .Select(InfractionSummary.FromEntityProjection)
                 .SortBy(sortingCriteria, InfractionSummary.SortablePropertyMap)
                 .Select(x => x.Expires)
@@ -182,14 +178,15 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<long>> SearchIdsAsync(InfractionSearchCriteria searchCriteria)
             => await ModixContext.Infractions.AsNoTracking()
-                .FilterInfractionsBy(searchCriteria)
+                .FilterBy(searchCriteria)
                 .Select(x => x.Id)
                 .ToArrayAsync();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<InfractionSummary>> SearchSummariesAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null)
             => await ModixContext.Infractions.AsNoTracking()
-                .FilterInfractionsBy(searchCriteria)
+                .FilterBy(searchCriteria)
+                .AsProjectable()
                 .Select(InfractionSummary.FromEntityProjection)
                 .SortBy(sortingCriteria, InfractionSummary.SortablePropertyMap)
                 .ToArrayAsync();
@@ -200,9 +197,10 @@ namespace Modix.Data.Repositories
             var sourceQuery = ModixContext.Infractions.AsNoTracking();
 
             var filteredQuery = sourceQuery
-                .FilterInfractionsBy(searchCriteria);
+                .FilterBy(searchCriteria);
 
             var pagedQuery = filteredQuery
+                .AsProjectable()
                 .Select(InfractionSummary.FromEntityProjection)
                 .SortBy(sortingCriteria, InfractionSummary.SortablePropertyMap)
                 // Always sort by Id last, otherwise ordering of records with matching fields is not guaranteed by the DB
@@ -239,13 +237,7 @@ namespace Modix.Data.Repositories
             };
             await ModixContext.SaveChangesAsync();
 
-            await RaiseModerationActionCreatedAsync(entity.RescindActionId.Value, new ModerationActionCreationData()
-            {
-                GuildId = (ulong)entity.RescindAction.GuildId,
-                Type = entity.RescindAction.Type,
-                Created = entity.RescindAction.Created,
-                CreatedById = (ulong)entity.RescindAction.CreatedById
-            });
+            await RaiseModerationActionCreatedAsync(entity.RescindAction);
 
             return true;
         }
@@ -272,13 +264,7 @@ namespace Modix.Data.Repositories
             };
             await ModixContext.SaveChangesAsync();
 
-            await RaiseModerationActionCreatedAsync(entity.DeleteActionId.Value, new ModerationActionCreationData()
-            {
-                GuildId = (ulong)entity.DeleteAction.GuildId,
-                Type = entity.DeleteAction.Type,
-                Created = entity.DeleteAction.Created,
-                CreatedById = (ulong)entity.DeleteAction.CreatedById
-            });
+            await RaiseModerationActionCreatedAsync(entity.DeleteAction);
 
             return true;
         }
@@ -289,67 +275,13 @@ namespace Modix.Data.Repositories
         /// </summary>
         internal protected IEnumerable<IInfractionEventHandler> InfractionEventHandlers { get; }
 
-        /// <summary>
-        /// A set of <see cref="IModerationActionEventHandler"/> objects to receive information about moderation actions
-        /// affected by this repository.
-        /// </summary>
-        internal protected IEnumerable<IModerationActionEventHandler> ModerationActionEventHandlers { get; }
-
         private async Task RaiseInfractionCreatedAsync(long infractionId, InfractionCreationData data)
         {
             foreach (var handler in InfractionEventHandlers)
                 await handler.OnInfractionCreatedAsync(infractionId, data);
         }
 
-        private async Task RaiseModerationActionCreatedAsync(long moderationActionId, ModerationActionCreationData data)
-        {
-            foreach(var handler in ModerationActionEventHandlers)
-                await handler.OnModerationActionCreatedAsync(moderationActionId, data);
-        }
-
         private static readonly RepositoryTransactionFactory _createTransactionFactory
             = new RepositoryTransactionFactory();
-    }
-
-    internal static class InfractionQueryableExtensions
-    {
-        public static IQueryable<InfractionEntity> FilterInfractionsBy(this IQueryable<InfractionEntity> query, InfractionSearchCriteria criteria)
-        {
-            var longGuildId = (long?)criteria?.GuildId;
-            var longSubjectId = (long?)criteria?.SubjectId;
-            var longCreatedById = (long?)criteria?.CreatedById;
-
-            return query
-                .FilterBy(
-                    x => x.GuildId == longGuildId,
-                    longGuildId != null)
-                .FilterBy(
-                    x => criteria.Types.Contains(x.Type),
-                    criteria?.Types?.Any() ?? false)
-                .FilterBy(
-                    x => x.SubjectId == longSubjectId,
-                    longSubjectId != null)
-                .FilterBy(
-                    x => x.CreateAction.Created >= criteria.CreatedRange.Value.From,
-                    criteria?.CreatedRange?.From != null)
-                .FilterBy(
-                    x => x.CreateAction.Created <= criteria.CreatedRange.Value.To,
-                    criteria?.CreatedRange?.To != null)
-                .FilterBy(
-                    x => x.CreateAction.CreatedById == longCreatedById,
-                    longCreatedById != null)
-                .FilterBy(
-                    x => (x.RescindActionId != null) == criteria.IsRescinded,
-                    criteria?.IsRescinded != null)
-                .FilterBy(
-                    x => (x.DeleteActionId != null) == criteria.IsDeleted,
-                    criteria?.IsDeleted != null)
-                .FilterBy(
-                    x => (x.CreateAction.Created + x.Duration) >= criteria.ExpiresRange.Value.From,
-                    criteria?.ExpiresRange?.From != null)
-                .FilterBy(
-                    x => (x.CreateAction.Created + x.Duration) <= criteria.ExpiresRange.Value.To,
-                    criteria?.ExpiresRange?.To != null);
-        }
     }
 }
