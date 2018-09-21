@@ -134,28 +134,6 @@ namespace Modix.Modules
                 builder.AddField(infraction.Type, $"ID: {infraction.Id} - Reason: {infraction.Reason}");
             }
 
-            /*var infractionQuery = from infraction in infractions
-                group infraction by infraction.Type
-                into groupedInfractions
-                orderby groupedInfractions.Key
-                select groupedInfractions;
-
-            var index = 0;*/
-            
-            // good for grouping infractions but doesn't work because discord embeds strong arm you into using one value per field.
-            // hacky workaround. Probably not worth it
-            /*foreach (var infractionGroup in infractionQuery)
-            {
-                
-                
-                foreach (var infraction in infractionGroup)
-                {
-                    builder.Fields[index].Value = $"ID: {infraction.Id} - Reason: {infraction.Reason}";
-                }
-                
-                index += 1;
-            }*/
-
             var embed = builder.Build();
             
             await Context.Channel.SendMessageAsync(
