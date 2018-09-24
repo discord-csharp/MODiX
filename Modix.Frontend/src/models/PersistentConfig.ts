@@ -3,11 +3,13 @@ import PersistentKeyValueService from "@/services/PersistentKeyValueService";
 export interface PersistentConfig
 {
     showInactiveCampaigns: boolean;
+    showInactiveInfractions: boolean;
 }
 
 const defaultConfig: PersistentConfig =
 {
-    showInactiveCampaigns: false
+    showInactiveCampaigns: false,
+    showInactiveInfractions: false
 };
 
 export const config = (): PersistentConfig => PersistentKeyValueService.get("persistentConfig") || defaultConfig;

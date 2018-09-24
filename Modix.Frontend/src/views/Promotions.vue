@@ -1,7 +1,5 @@
 <template>
-    <div>
-        <HeroHeader text="Promotions" /> 
-    
+    <div class="promotions">
         <section class="section">
             <div class="container">
 
@@ -11,7 +9,7 @@
 
                         <div class="level-item">
                             <h1 class="title">
-                                Campaigns
+                                Promotion Campaigns
                             </h1>
                         </div>
 
@@ -33,13 +31,15 @@
                         </div>
                     
                 </div>
+
+                <a v-if="loading" class="button is-loading campaignLoader"></a>
                 
-                <p v-if="campaigns.length == 0">
+                <p v-else-if="campaigns.length == 0">
                     There's no active campaigns at the moment. You could start one, though!
                 </p>
                 <div v-else>
                     <PromotionListItem v-for="campaign in campaigns" :campaign="campaign" :key="campaign.id" 
-                        @commentSubmitted="refresh()" @showPanel="showPanel(campaign)" />
+                        :dialogLoading="currentlyLoadingInfractions == campaign.id" @commentSubmitted="refresh()" @showPanel="showPanel(campaign)" />
                 </div>
             </div>
         </section>
@@ -50,33 +50,43 @@
                 <template v-if="modalCampaign">
                     <header class="modal-card-head">
                         <p class="modal-card-title">
-                            <strong>{{modalCampaign.username}}</strong>'s Campaign
+                            <strong>{{modalCampaign.subject.displayName}}</strong>'s Campaign
                         </p>
 
                         <div class="field has-addons is-hidden-mobile">
                             <div class="control is-expanded">
                                 <a class="copyButton is-small button" title="Copy to Clipboard" 
-                                    :data-clipboard-text="'%info ' + modalCampaign.userId">
+                                    :data-clipboard-text="'!info ' + modalCampaign.subject.id">
                                     📋
                                 </a>
                             </div>
                             <div class="control">
-                                <input class="input is-small" readonly :value="'%info ' + modalCampaign.userId" ></input>
+                                <input class="input is-small" readonly :value="'!info ' + modalCampaign.subject.id" />
                             </div>
                         </div>
 
                         <button class="delete" aria-label="close" @click="toggleModal()"></button>
                     </header>
                     <section class="modal-card-body">
-                        <PromotionCommentView class="expanded" v-for="comment in modalCampaign.comments" :key="comment.id" :comment="comment" />
+                        <h4 class="title is-size-4">Infractions</h4>
+
+                        <ol v-if="modalCampaignInfractions.length > 0">
+                            <li v-for="infraction in modalCampaignInfractions" :key="infraction.id" :value="infraction.id">
+                                <strong>{{infraction.createAction.createdBy.displayName}}</strong> gave a
+                                <strong>{{infraction.type}}</strong> on <strong>{{formatDate(infraction.createAction.created)}}</strong> for
+                                &quot;<strong>{{infraction.reason}}</strong>&quot;
+                            </li>
+                        </ol>
+
+                        <h6 v-else class="title is-size-6">No active infractions for this user</h6>
+
                     </section>
                     <footer class="modal-card-foot level">
                         <div class="level-left">
-                            <button v-if="modalCampaign.status == 'Denied'" class="button is-success" @click="activate()">Re-Activate</button>
-                            <button v-else class="button is-success" @click="promote()">Promote</button>
+                            <button class="button is-success" :class="{'is-loading': modifyLoading}" :disabled="modalCampaign.closeAction" @click="promote()">Accept</button>
                         </div>
                         <div class="level-right">
-                            <button class="button is-danger" v-if="modalCampaign.status != 'Denied'" @click="deny()">Deny</button>
+                            <button class="button is-danger" :class="{'is-loading': modifyLoading}" :disabled="modalCampaign.closeAction" @click="deny()">Reject</button>
                         </div>
                     </footer>
                 </template>
@@ -87,18 +97,31 @@
     </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 
 @import "../styles/variables";
-@import "~bulma/sass/utilities/_all";
 @import "~bulma/sass/elements/box";
 @import "~bulma/sass/elements/tag";
 @import "~bulma/sass/elements/form";
 @import "~bulma/sass/components/menu";
 @import "~bulma/sass/components/panel";
 @import "~bulma/sass/components/level";
-@import "~bulma/sass/elements/progress";
 @import "~bulma/sass/components/modal";
+
+.modal
+{
+    z-index: -999;
+
+    &.is-active
+    {
+        z-index: 999;
+    }
+}
+
+code
+{
+    color: gray;
+}
 
 .modal-card-head
 {
@@ -115,40 +138,38 @@
     }
 }
 
-.modal
-{
-    z-index: -999;
-
-    code
-    {
-        color: gray;
-    }
-
-    &.is-active
-    {
-        z-index: 999;
-    }
-}
-
 .modal-card
 {
-    top: 100%;
-
-    transition: top 0.66s cubic-bezier(0.23, 1, 0.32, 1);
-    transition-delay: 200ms;
-}
-
-.is-active .modal-card
-{
-    top: 0;
-}
-
-.modal-card
-{
-    @include tablet()
+    .modal-card-body ol
     {
-        width: 95%;
+        margin-left: 1em;
     }
+
+    @include tablet-only()
+    {
+        width: 95vw !important;
+    }
+
+    @include desktop()
+    {
+        width: 75vw !important;
+    }
+}
+
+.level-left + .level-right
+{
+    margin-top: 0;
+}
+
+.level
+{
+    justify-content: space-between;
+}
+
+.campaignLoader
+{
+    width: 100%;
+    height: 64px;
 }
 
 </style>
@@ -159,12 +180,16 @@ import HeroHeader from '@/components/HeroHeader.vue';
 import PromotionListItem from '@/components/Promotions/PromotionListItem.vue';
 import PromotionCommentView from '@/components/Promotions/PromotionCommentView.vue';
 
-import store from "../app/Store";
+import store from "@/app/Store";
 import * as _ from 'lodash';
-import PromotionCampaign from '@/models/PromotionCampaign';
-import GeneralService from '@/services/GeneralService';
+import PromotionCampaign from '@/models/promotions/PromotionCampaign';
+import PromotionService from '@/services/PromotionService';
 import {config, setConfig} from '@/models/PersistentConfig';
-import PersistentKeyValueService from '@/services/PersistentKeyValueService';
+import PromotionComment from '@/models/promotions/PromotionComment';
+import InfractionSummary from '@/models/infractions/InfractionSummary';
+import GeneralService from '@/services/GeneralService';
+
+import {formatDate} from '@/app/Util';
 
 var Clipboard = require('clipboard');
 
@@ -180,13 +205,25 @@ export default class Promotions extends Vue
 {
     showInactive: boolean = false;
     showModal: boolean = false;
+
     modalCampaign: PromotionCampaign | null = null;
+    modalCampaignInfractions: InfractionSummary[] = [];
+
+    currentlyLoadingInfractions: number | null = null;
+    loading: boolean = false;
+    modifyLoading: boolean = false;
 
     get campaigns(): PromotionCampaign[]
     {
         let campaigns = this.$store.state.modix.campaigns as PromotionCampaign[];
-        let ordered = _.orderBy(campaigns, campaign =>  [campaign.status == 'Active', campaign.startDate.getTime(), campaign.comments.length], ['desc', 'desc', 'desc']);
-        return _.filter(ordered, campaign => (this.showInactive ? true : campaign.status == "Active"));
+
+        let ordered = _.orderBy(campaigns, campaign =>
+        [
+            campaign.isActive, 
+            campaign.startDate
+        ], ['desc', 'desc']);
+
+        return _.filter(ordered, campaign => (this.showInactive ? true : campaign.isActive));
     }
 
     @Watch('showInactive')
@@ -203,13 +240,24 @@ export default class Promotions extends Vue
 
     async refresh()
     {
+        this.loading = true;
+
+        await store.retrieveRoles();
         await store.retrieveCampaigns();
+
+        this.loading = false;
     }
 
-    showPanel(campaign: PromotionCampaign)
+    async showPanel(campaign: PromotionCampaign)
     {
+        this.currentlyLoadingInfractions = campaign.id;
+
         this.modalCampaign = campaign;
+        this.modalCampaignInfractions = await GeneralService.getInfractionsForUser(this.modalCampaign.subject!.id);
+
         this.toggleModal();
+
+        this.currentlyLoadingInfractions = null;
     }
 
     toggleModal()
@@ -221,40 +269,56 @@ export default class Promotions extends Vue
     {
         if (this.modalCampaign == null) { return; }
 
+        this.modifyLoading = true;
+
         try
         {
-            await GeneralService.approveCampaign(this.modalCampaign);
+            await PromotionService.approveCampaign(this.modalCampaign);
         }
         catch (err)
         {
             store.pushErrorMessage(err.response.data);
         }
+        finally
+        {
+            this.modifyLoading = false;
 
-        this.toggleModal();
-        await this.refresh();
+            this.toggleModal();
+            await this.refresh();
+        }
     }
 
     async deny()
     {
         if (this.modalCampaign == null) { return; }
 
-        await GeneralService.denyCampaign(this.modalCampaign);
-        this.toggleModal();
-        await this.refresh();
-    }
+        this.modifyLoading = true;
 
-    async activate()
-    {
-        if (this.modalCampaign == null) { return; }
+        try
+        {
+            await PromotionService.denyCampaign(this.modalCampaign);
+        }
+        catch (err)
+        {
+            store.pushErrorMessage(err.response.data);
+        }
+        finally
+        {
+            this.modifyLoading = false;
 
-        await GeneralService.activateCampaign(this.modalCampaign);
-        this.toggleModal();
-        await this.refresh();
+            this.toggleModal();
+            await this.refresh();
+        }
     }
 
     mounted()
     {
         new Clipboard('.copyButton');
+    }
+
+    formatDate(date: Date)
+    {
+        return formatDate(date);
     }
 
     updated()

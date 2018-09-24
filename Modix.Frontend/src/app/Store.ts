@@ -1,14 +1,23 @@
+import _ from 'lodash';
 import GuildInfoResult from "@/models/GuildInfoResult";
 import ModixState from "@/models/ModixState";
 import { ModuleHelpData } from "@/models/ModuleHelpData";
-import PromotionCampaign from "@/models/PromotionCampaign";
+import PromotionCampaign from "@/models/promotions/PromotionCampaign";
 import RootState from "@/models/RootState";
 import User from "@/models/User";
-import UserCodePaste from "@/models/UserCodePaste";
 import GeneralService from "@/services/GeneralService";
 import Vue from "vue";
 import * as Vuex from "vuex";
 import { BareActionContext, getStoreBuilder } from "vuex-typex";
+import InfractionSummary from '@/models/infractions/InfractionSummary';
+import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
+import ConfigurationService from '@/services/ConfigurationService';
+import PromotionService from '@/services/PromotionService';
+import ClaimMapping from '@/models/ClaimMapping';
+import Role from '@/models/Role';
+import Claim from '@/models/Claim';
+import Guild from '@/models/Guild';
+import DesignatedRoleMapping from '@/models/moderation/DesignatedRoleMapping';
 
 Vue.use(Vuex);
 
@@ -22,7 +31,13 @@ const modixState: ModixState =
     pastes: [],
     currentPaste: null,
     commands: [],
-    campaigns: []
+    campaigns: [],
+    infractions: [],
+    channels: [],
+    claims: {},
+    roles: [],
+    guilds: [],
+    roleMappings: []
 };
 
 const storeBuilder = getStoreBuilder<RootState>();
@@ -32,43 +47,73 @@ namespace modix
 {
     const setUser = (state: ModixState, user: User) => state.user = user;
     const setGuildInfo = (state: ModixState, guildInfo: Map<string, GuildInfoResult>) => state.guildInfo = guildInfo;
-    const setPastes = (state: ModixState, pastes: UserCodePaste[]) => state.pastes = pastes;
-    const setCurrentPaste = (state: ModixState, paste: UserCodePaste | null) => state.currentPaste = paste;
     const setCommands = (state: ModixState, commands: ModuleHelpData[]) => state.commands = commands;
     const setCampaigns = (state: ModixState, campaigns: PromotionCampaign[]) => state.campaigns = campaigns;
-
+    const setInfractions = (state: ModixState, infractions: InfractionSummary[]) => state.infractions = infractions;
+    const setRoles = (state: ModixState, roles: Role[]) => state.roles = roles;
+    const setGuilds = (state: ModixState, guilds: Guild[]) => state.guilds = guilds;
+    
+    const setChannelDesignations = (state: ModixState, mappings: DesignatedChannelMapping[]) => state.channels = mappings;
+    const setRoleDesignations = (state: ModixState, mappings: DesignatedRoleMapping[]) => state.roleMappings = mappings;
+    const setClaims = (state: ModixState, claims: {[claim: string]: Claim[]}) => state.claims = claims;
+    
     const getHasTriedAuth = (state: ModixState) => state.user != null;
     const getIsLoggedIn = (state: ModixState) => state.user && state.user.userId;
-
+    const getCurrentClaims = (state: ModixState) => (state.user && state.user.claims) || [];
+    const getCurrentGuild = (state: ModixState) => _.find(state.guilds, (guild: Guild) => guild.id == state.user!.selectedGuild);
+ 
     const pushError = (state: ModixState, error: string) => state.errors.push(error);
     const removeError = (state: ModixState, error: string) => state.errors.splice(state.errors.indexOf(error), 1);
     const clearErrors = (state: ModixState) => state.errors = [];
+    const clearInfractions = (state: ModixState) => state.infractions = [];
 
     const updateUserInfo = async (context: ModixContext) => 
-        tryServiceCall(GeneralService.getUser, setUser, err => setUser(modixState, new User()));
+        mutatingServiceCall(GeneralService.getUser, setUser, err => setUser(modixState, new User()));
 
-    const updateGuildInfo = async (context: ModixContext) => tryServiceCall(GeneralService.getGuildInfo, setGuildInfo);
-    const updatePastes = async (context: ModixContext) => tryServiceCall(GeneralService.getPastes, setPastes);
-    const updateCommands = async (context: ModixContext) => tryServiceCall(GeneralService.getCommands, setCommands);
-    const updateCampaigns = async (context: ModixContext) => tryServiceCall(GeneralService.getCampaigns, setCampaigns);
+    const updateGuildInfo = async (context: ModixContext) => mutatingServiceCall(GeneralService.getGuildInfo, setGuildInfo);
+    const updateCommands = async (context: ModixContext) => mutatingServiceCall(GeneralService.getCommands, setCommands);
+    const updateCampaigns = async (context: ModixContext) => mutatingServiceCall(PromotionService.getCampaigns, setCampaigns);
+    const updateInfractions = async (context: ModixContext) => mutatingServiceCall(GeneralService.getInfractions, setInfractions);
+    const updateRoles = async (context: ModixContext) => mutatingServiceCall(GeneralService.getGuildRoles, setRoles);
+    const updateGuilds = async (context: ModixContext) => mutatingServiceCall(GeneralService.getGuilds, setGuilds);
 
+    const updateChannelDesignations = async (context: ModixContext) => mutatingServiceCall(ConfigurationService.getChannelDesignations, setChannelDesignations);
+    const updateRoleDesignations = async (context: ModixContext) => mutatingServiceCall(ConfigurationService.getRoleDesignations, setRoleDesignations);
+    const updateClaims = async (context: ModixContext) => mutatingServiceCall(GeneralService.getClaims, setClaims);
+    
     export const retrieveUserInfo = moduleBuilder.dispatch(updateUserInfo);
     export const retrieveGuildInfo = moduleBuilder.dispatch(updateGuildInfo);
-    export const retrievePastes = moduleBuilder.dispatch(updatePastes);
     export const retrieveCommands = moduleBuilder.dispatch(updateCommands);
     export const retrieveCampaigns = moduleBuilder.dispatch(updateCampaigns);
+    export const retrieveInfractions = moduleBuilder.dispatch(updateInfractions);
+    export const retrieveChannelDesignations = moduleBuilder.dispatch(updateChannelDesignations);
+    export const retrieveRoleDesignations = moduleBuilder.dispatch(updateRoleDesignations);
+    export const retrieveClaims = moduleBuilder.dispatch(updateClaims);
+    export const retrieveRoles = moduleBuilder.dispatch(updateRoles);
+    export const retrieveGuilds = moduleBuilder.dispatch(updateGuilds);
 
     export const pushErrorMessage = moduleBuilder.commit(pushError);
     export const removeErrorMessage = moduleBuilder.commit(removeError);
     export const clearErrorMessages = moduleBuilder.commit(clearErrors);
+    export const clearInfractionData = moduleBuilder.commit(clearInfractions);
 
     export const hasTriedAuth = moduleBuilder.read(getHasTriedAuth);
     export const isLoggedIn = moduleBuilder.read(getIsLoggedIn);
+    export const currentClaims = moduleBuilder.read(getCurrentClaims);
+    export const currentGuild = moduleBuilder.read(getCurrentGuild);
+
+    export const userHasClaims = (claims: string[]) =>
+    {
+        let diff = _.difference(claims, (modixState.user && modixState.user.claims) || []);
+
+        return diff.length === 0;
+    };
+
 }
 
 export default modix;
 
-const tryServiceCall = async function<T>
+const mutatingServiceCall = async function<T>
 (
     serviceAction: () => Promise<T>, 
     mutator: (state: ModixState, param: any) => void, 
@@ -88,10 +133,11 @@ const tryServiceCall = async function<T>
         }
         else
         {
-            let message = "Couldn't retrieve: " + err;
             mutator(modixState, null);
 
-            //console.error(message);
+            let message = `<strong>${err}</strong> while attempting service call. Call an admin!`;
+            modixState.errors.push(message);
+            console.trace(err);
         }
     }
 }

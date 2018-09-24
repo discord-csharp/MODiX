@@ -19,4 +19,5 @@ export interface ParameterHelpData
     summary: string;
     type: string;
     isOptional: boolean;
+    options: string[];
 }

@@ -1,17 +1,17 @@
 <template>
     <div>
-        <HeroHeader text="Commands" />
-    
         <section class="section">
             <div class="container">
                 <div class="columns">
 
                     <div class="column is-one-fifth is-hidden-mobile">
-                        <CommandMenu :commandModules="commandModules" :highlightedModule="highlightedModule" @moduleClicked="scrollTo($event)" />
+                        <CommandMenu :commandModules="commandModules" :highlightedModule="highlightedModule" 
+                            @moduleClicked="scrollTo($event)" />
                     </div>
                 
                     <div class="column">
-                        <ModuleView v-for="commandModule in commandModules" :key="commandModule.name" :commandModule="commandModule" />
+                        <ModuleView v-for="commandModule in commandModules" :key="commandModule.name" :commandModule="commandModule"
+                            @moduleClicked="scrollTo($event)" />
                     </div>
                     
                 </div>
@@ -25,8 +25,6 @@
 @import "../styles/variables";
 @import "~bulma/sass/utilities/_all";
 
-
-
 .hidden
 {
     opacity: 0;
@@ -35,6 +33,11 @@
 .parameter
 {
     
+}
+
+.title
+{
+    text-transform: capitalize;
 }
 
 .summary
@@ -46,7 +49,10 @@
 .menu
 {
     position: sticky;
-    top: 20px;
+    top: 1px;
+
+    overflow-y: auto;
+    max-height: 100vh;
 }
 
 .menu-label
@@ -59,22 +65,12 @@
     font-weight: bold;
 }
 
-.pointer
-{
-    cursor: pointer;
-    
-    &::after
-    {
-        content: '…';
-    }
-}
-
 </style>
 
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import HeroHeader from '@/components/HeroHeader.vue';
-import store from "../app/Store";
+import store from "@/app/Store";
 import {ModuleHelpData} from "../models/ModuleHelpData";
 import ModuleView from '@/components/Commands/ModuleView.vue';
 import CommandMenu from '@/components/Commands/CommandMenu.vue';
@@ -94,7 +90,7 @@ export default class Commands extends Vue
 
     get commandModules(): ModuleHelpData[]
     {
-        return _.orderBy(this.$store.state.modix.commands, module => module.name);
+        return _.orderBy(this.$store.state.modix.commands, (module: ModuleHelpData) => module.name.toLowerCase());
     }
 
     get hash()

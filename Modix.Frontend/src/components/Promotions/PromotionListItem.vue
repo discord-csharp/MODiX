@@ -1,38 +1,46 @@
 <template>
 
-    <div class="campaign box" :class="{'expanded': expanded, 'inactive': campaign.status != 'Active'}" v-if="campaign">
+    <div class="campaign box" :class="{'expanded': expanded, 'inactive': campaign.closeAction}" v-if="campaign">
         
-        <div class="columns" @click="expandWithSentiment('Neutral')" :title="'Status: '+campaign.status">
-            <div class="column">
-                <h1 class="title is-size-4">
-                    <span class="statusIcon">{{statusIcon}}</span>
-                    {{campaign.promotionFor.username}}#{{campaign.promotionFor.discriminator}}
+        <div class="columns is-mobile is-multiline" @click="expandWithSentiment('Abstain')">
+            <div class="column is-12-mobile columns is-gapless is-mobile">
 
+                <div class="column is-narrow leftSide">
+                    <h1 class="title is-size-4">
+                        
+                        <span class="statusIcon" v-tooltip="'Status: ' + (campaign.outcome ? campaign.outcome : 'Active')">{{statusIcon}}</span>
+                        <span class="displayName">{{campaign.subject.displayName}}</span>
+                        <span class="toRole" :style="roleStyle(campaign.targetRole.id)">➥ {{campaign.targetRole.name}}</span>
+                        
+                    </h1>
+                </div>
+
+                <div class="column">
                     <span class="mobile-expander">
                         <template v-if="expanded">⯅</template>
                         <template v-else>⯆</template>
                     </span>
+                </div>
 
-                    <small class="date">started {{formatDate(campaign.startDate)}}</small>
-                </h1>
             </div>
 
-            <div class="column is-narrow adminButtons" v-if="isStaff" >
-                <a class="button is-primary is-fullwidth" :disabled="campaign.status == 'Approved'" @click.stop="showPanel()">Admin</a>
+            <div class="column is-narrow-tablet adminButtons" v-if="canClose" >
+                <a class="button is-primary is-small is-fullwidth" :class="{'is-loading': dialogLoading}"
+                    :disabled="campaign.outcome == 'Accepted'" @click.stop="showPanel()">More…</a>
             </div>
 
-            <div class="column ratings is-narrow" v-if="campaign.comments.length > 0">
+            <div class="column is-narrow-tablet ratings">
                 <div class="columns is-mobile">
-                    <div class="column rating" @click.stop="expandWithSentiment('For')">
-                        {{sentimentIcon("For")}} {{campaign.votesFor}}
+                    <div class="column rating" @click.stop="expandWithSentiment('Approve')">
+                        {{sentimentIcon("Approve")}} {{campaign.votesFor}}
                     </div>
-                    <div class="column rating" @click.stop="expandWithSentiment('Against')">
-                        {{sentimentIcon("Against")}} {{campaign.votesAgainst}}
+                    <div class="column rating" @click.stop="expandWithSentiment('Oppose')">
+                        {{sentimentIcon("Oppose")}} {{campaign.votesAgainst}}
                     </div>
                 </div>
 
                 <progress class="progress is-small" :class="sentimentColor(campaign)" 
-                    :value="campaign.sentimentRatio" max="1" />       
+                    :value="campaign.sentimentRatio" max="1" /> 
             </div>
 
             <div class="column is-narrow expander is-hidden-mobile">
@@ -42,30 +50,30 @@
         </div>
 
         <div>
-            <h2 class="heading is-size-5">Comments</h2>
+            <small class="date">Campaign started <strong>{{formatDate(campaign.startDate)}}</strong></small>
 
             <div class="commentList">
-                <PromotionCommentView v-for="(comment, index) in campaign.comments" :key="comment.promotionCampaignId" :comment="comment"
+                <PromotionCommentView v-for="(comment, index) in comments" :key="comment.promotionCampaignId" :comment="comment"
                                       :style="{'transition-delay': (index * 33) + 'ms'}" />
             </div>
 
-            <div class="field has-addons" v-if="campaign.status == 'Active'">
+            <div class="field has-addons" v-if="!campaign.closeAction">
                 <p class="control">
                     <span class="select">
                         <select v-model="newComment.sentiment">
-                            <option value="Neutral">{{sentimentIcon("Neutral")}}</option>
-                            <option value="For">{{sentimentIcon("For")}}</option>
-                            <option value="Against">{{sentimentIcon("Against")}}</option>
+                            <option value="Abstain">{{sentimentIcon("Abstain")}}</option>
+                            <option value="Approve">{{sentimentIcon("Approve")}}</option>
+                            <option value="Oppose">{{sentimentIcon("Oppose")}}</option>
                         </select>
                     </span>
                 </p>
 
-                <p class="control is-expanded" :class="{'is-loading': commentSubmitting}">
+                <p class="control is-expanded">
                     <input class="input" :class="{'is-danger': error}" type="text" v-model="newComment.body" placeholder="Make a Comment...">
                 </p>
 
                 <p class="control">
-                    <a class="button is-primary" @click="submitComment()">Submit</a>
+                    <a class="button is-primary" :class="{'is-loading': commentSubmitting}" @click="submitComment()">Submit</a>
                 </p>
             </div>
 
@@ -77,38 +85,80 @@
 
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 
 @import "../../styles/variables";
 @import "~bulma/sass/utilities/_all";
 @import "~bulma/sass/elements/box";
 @import "~bulma/sass/components/level";
 @import '~bulma/sass/elements/form';
+@import "~bulma/sass/elements/progress";
 
 .commentBox
 {
     flex-basis: 100%;
 }
 
-.date
+.campaign .columns.is-gapless:not(:last-child)
 {
-    font-size: 12px;
+    margin-bottom: 0;
+
+    @include mobile()
+    {
+        margin-bottom: 0.5em;
+    }
+}
+
+.date, .role
+{
+    font-size: 14px;
 
     font-weight: normal;
     color: gray;
 
-    margin-left: 1em;
+    margin-bottom: -10px;
+
+    @include tablet()
+    {
+        margin-left: 1em;
+    }
+}
+
+.displayName
+{
+    position: relative;
+    left: 8px;
 
     @include mobile()
     {
-        display: block;
-        margin-left: 0;
+        left: 16px;
+        top: -12px;
+    }
+}
+
+.toRole
+{
+    font-size: 14px;
+    font-weight: 400 !important;
+    padding: 4px 8px;
+    border-radius: 3px;
+
+    position: relative;
+    top: -2px;
+    left: 20px;
+
+    @include mobile()
+    {
+        display: table;
+
+        margin-left: 2em;
+        margin-top: -0.6em;
     }
 }
 
 .ratings 
 {
-    padding: 0.75rem 0.75rem 0em 0.75em;
+    padding: 0.85rem 0.75rem 0em 0.75em;
 
     .rating
     {
@@ -184,7 +234,7 @@
 
 .adminButtons
 {
-    margin-top: -0.25em;
+    margin-top: 0.1em;
 }
 
 .mobile-expander
@@ -205,15 +255,16 @@
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import PromotionCommentView from './PromotionCommentView.vue';
-import PromotionComment from '@/models/PromotionComment';
-import PromotionCampaign, {PromotionSentiment, SentimentIcons, StatusIcons} from '@/models/PromotionCampaign';
+import PromotionComment from '@/models/promotions/PromotionComment';
+import PromotionCampaign, {PromotionSentiment, SentimentIcons, StatusIcons, CampaignOutcome} from '@/models/promotions/PromotionCampaign';
 import * as _ from 'lodash';
-import {formatPasteDate} from '@/app/Util';
+import {formatDate} from '@/app/Util';
 import { Dictionary } from 'vuex';
-
+import Role from '@/models/Role';
 import store from '@/app/Store';
-import PromotionCommentData from '@/models/PromotionCommentData';
-import GeneralService from '@/services/GeneralService';
+import PromotionCommentData from '@/models/promotions/PromotionCommentData';
+import PromotionService from '@/services/PromotionService';
+
 
 @Component({
     components: {PromotionCommentView}
@@ -221,20 +272,22 @@ import GeneralService from '@/services/GeneralService';
 export default class PromotionListItem extends Vue
 {
     @Prop() private campaign!: PromotionCampaign;
+    @Prop({default: false}) private dialogLoading!: boolean;
 
-    newComment: PromotionCommentData = {body: "", sentiment: "Neutral"};
+    newComment: PromotionCommentData = { body: "", sentiment: PromotionSentiment.Abstain };
     expanded: boolean = false;
     error: string = "";
     commentSubmitting: boolean = false;
+    comments: PromotionComment[] = [];
 
     formatDate(date: Date): string
     {
-        return formatPasteDate(date);
+        return formatDate(date);
     }
 
-    get isStaff()
+    get canClose()
     {
-        return false;//store.userIsStaff();
+        return store.userHasClaims(["PromotionsCloseCampaign"]);
     }
 
     @Watch('newComment.body')
@@ -245,14 +298,15 @@ export default class PromotionListItem extends Vue
 
     resetNewComment()
     {
-        this.newComment.sentiment = "Neutral";
+        this.newComment.sentiment = PromotionSentiment.Abstain;
         this.newComment.body = "";
 
         this.error = "";
     }
 
-    created()
+    async created()
     {
+        this.comments = await PromotionService.getComments(this.campaign.id);
         this.resetNewComment();
     }
 
@@ -278,7 +332,7 @@ export default class PromotionListItem extends Vue
 
     get statusIcon()
     {
-        return StatusIcons[this.campaign.status];
+        return (this.campaign.outcome ? StatusIcons[this.campaign.outcome] : "🗳️");
     }
 
     async submitComment()
@@ -287,18 +341,19 @@ export default class PromotionListItem extends Vue
 
         try
         {
-            if (this.campaign.status != "Active")
+            if (this.campaign.closeAction)
             {
                 this.error = "Campaign is not active.";
                 return;
             }
 
-            await GeneralService.commentOnCampaign(this.campaign, this.newComment);
+            await PromotionService.commentOnCampaign(this.campaign, this.newComment);
             this.$emit("commentSubmitted");
             this.resetNewComment();
         }
         catch (err)
         {
+            console.log(err);
             this.error = err.response.data;
         }
         finally
@@ -309,12 +364,20 @@ export default class PromotionListItem extends Vue
 
     showPanel()
     {
-        if (this.campaign.status == 'Approved')
+        if (this.campaign.outcome == CampaignOutcome.Accepted)
         {
             return;
         }
         
         this.$emit('showPanel');
+    }
+
+    roleStyle(id: string)
+    {
+        let roles = this.$store.state.modix.roles as Role[];
+        let found = _.find(roles, (role: Role) => role.id == id) as Role;
+
+        return { color: found.fgColor, background: found.bgColor };
     }
 
     expandWithSentiment(sentiment: PromotionSentiment)

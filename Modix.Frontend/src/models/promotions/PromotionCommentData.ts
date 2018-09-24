@@ -1,4 +1,4 @@
-import { PromotionSentiment } from "@/models/PromotionCampaign";
+import { PromotionSentiment } from "@/models/promotions/PromotionCampaign";
 
 export default interface PromotionCommentData
 {

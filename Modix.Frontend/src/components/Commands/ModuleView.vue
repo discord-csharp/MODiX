@@ -2,7 +2,10 @@
 
     <div>
         <h1 class="title">
-            <a :name="commandModule.name" :href="'#' + commandModule.name" v-on:click.prevent="scrollTo(commandModule)">{{commandModule.name}}</a>
+            <a :name="commandModule.name" :href="'#' + commandModule.name" 
+                v-on:click.prevent="emitClick(commandModule)">
+                {{commandModule.name}}
+            </a>
         </h1>
         <h2 class="subtitle">
             {{commandModule.summary}}
@@ -30,6 +33,11 @@ import * as _ from 'lodash';
 export default class ModuleView extends Vue
 {
     @Prop() private commandModule!: ModuleHelpData;
+
+    emitClick(module: ModuleHelpData)
+    {
+        this.$emit('moduleClicked', module);
+    }
 
     overloads(commands: CommandHelpData[])
     {

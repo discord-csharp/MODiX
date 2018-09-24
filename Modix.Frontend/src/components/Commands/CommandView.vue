@@ -45,6 +45,11 @@
         margin-right: 1em;
         font-weight: bold;
     }
+
+    .overload
+    {
+        color: gray;
+    }
 }
 
 .spacer
@@ -73,7 +78,11 @@ export default class CommandView extends Vue
 
     isAlias(overload: CommandHelpData)
     {
-        return overload != this.commandGroup[0] && overload.alias.split(' ').pop() != overload.name;
+        return (
+            overload.alias != this.commandGroup[0].alias &&
+            overload.alias != this.commandGroup[0].summary &&
+            overload.alias != overload.name
+        );
     }
 }
 </script>
