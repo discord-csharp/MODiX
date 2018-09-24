@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Discord;
@@ -26,6 +27,19 @@ namespace Modix.Modules
                     ? AuthorizationService.CurrentClaims
                     : await AuthorizationService.GetGuildUserClaimsAsync(guildUser);
 
+            await ReplyWithClaims(claims);
+        }
+
+        [Command("claims")]
+        [Summary("Lists the currently assigned claims for the given role.")]
+        public async Task Claims(IRole guildRole)
+        {
+            var claims = await AuthorizationService.GetGuildRoleClaimsAsync(guildRole);
+            await ReplyWithClaims(claims);
+        }
+
+        private async Task ReplyWithClaims(IEnumerable<AuthorizationClaim> claims)
+        {
             await ReplyAsync(claims.Any()
                  ? Format.Code(string.Join("\r\n", claims.Select(x => x.ToString())))
                  : "No claims assigned");

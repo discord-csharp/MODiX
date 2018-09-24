@@ -9,22 +9,29 @@ using Humanizer;
 using Humanizer.Localisation;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Modix.Services.Core;
 
 namespace Modix.Modules
 {
     public class UserInfoModule : ModuleBase
     {
-        public UserInfoModule(ILogger<UserInfoModule> logger)
+        private const string DateFormat = "yyyy-MM-ddTHH:mm:ssK";
+
+        public UserInfoModule(ILogger<UserInfoModule> logger, IUserService userService)
         {
             Log = logger ?? new NullLogger<UserInfoModule>();
+            UserService = userService;
         }
 
         private ILogger<UserInfoModule> Log { get; }
+        private IUserService UserService { get; }
 
         [Command("info")]
-        public async Task GetUserInfo([Remainder] IUser user = null)
+        public async Task GetUserInfo(IUser user = null)
         {
             user = user ?? Context.User;
+
+            var foundUser = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, user.Id);
 
             var utcNow = DateTime.UtcNow;
             var builder = new StringBuilder();
@@ -36,8 +43,14 @@ namespace Modix.Modules
 
             builder.AppendFormat(
                 CultureInfo.InvariantCulture,
-                "Created: {0} ago ({1:yyyy-MM-ddTHH:mm:ssK})\n",
+                "Created: {0} ago ({1:" + DateFormat + "})\n",
                 (utcNow - user.CreatedAt).Humanize(maxUnit: TimeUnit.Year, culture: CultureInfo.InvariantCulture),
+                user.CreatedAt.UtcDateTime);
+
+            builder.AppendFormat(
+                CultureInfo.InvariantCulture,
+                "Last seen: {0} ago ({1:" + DateFormat + "})\n",
+                (utcNow - foundUser.LastSeen).Humanize(maxUnit: TimeUnit.Year, culture: CultureInfo.InvariantCulture),
                 user.CreatedAt.UtcDateTime);
 
             if (user is IGuildUser member)
@@ -54,7 +67,7 @@ namespace Modix.Modules
                 {
                     builder.AppendFormat(
                         CultureInfo.InvariantCulture,
-                        "Joined: {0} ago ({1:yyyy-MM-ddTHH:mm:ssK})\n",
+                        "Joined: {0} ago ({1:" + DateFormat + "})\n",
                         (utcNow - joinedAt).Humanize(maxUnit: TimeUnit.Year, culture: CultureInfo.InvariantCulture),
                         joinedAt.UtcDateTime);
                 }
@@ -96,7 +109,7 @@ namespace Modix.Modules
         }
 
         [Command("info")]
-        public async Task GetUserInfo(ulong userId, [Remainder] string _)
+        public async Task GetUserInfoFromId(ulong userId)
         {
             if (userId == Context.User.Id)
             {
