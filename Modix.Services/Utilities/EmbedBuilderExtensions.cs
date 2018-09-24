@@ -5,7 +5,7 @@ using Discord;
 
 namespace Modix.Services.Utilities
 {
-    public static class EmbedBuilderExtensions
+    public static class ModixEmbedBuilderExtensions
     {
         public static EmbedBuilder WithVerboseAuthor(this EmbedBuilder builder, IUser user)
         {
@@ -13,10 +13,9 @@ namespace Modix.Services.Utilities
                 .WithAuthor($"{user.Username}#{user.Discriminator} ({user.Id})", user.GetAvatarUrl());
         }
 
-        public static EmbedBuilder WithVerboseTimestamp(this EmbedBuilder builder, DateTimeOffset dateTime)
+        public static string MessageLink(ulong guildId, ulong channelId, ulong messageId)
         {
-            return builder
-                .WithFooter(dateTime.ToString("dddd, MMMM d yyyy @ HH:mm:ss") + " UTC");
+            return $"https://discordapp.com/channels/{guildId}/{channelId}/{messageId}";
         }
         
     }

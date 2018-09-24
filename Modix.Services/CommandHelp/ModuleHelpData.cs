@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Discord.Commands;
+using Humanizer;
 
 namespace Modix.Services.CommandHelp
 {
@@ -14,10 +15,18 @@ namespace Modix.Services.CommandHelp
 
         public static ModuleHelpData FromModuleInfo(ModuleInfo module)
         {
+            string moduleName = module.Name;
+
+            int suffixPosition = moduleName.IndexOf("Module");
+            if (suffixPosition > -1)
+            {
+                moduleName = module.Name.Substring(0, suffixPosition).Humanize();
+            }
+
             var ret = new ModuleHelpData
             {
-                Name = module.Name,
-                Summary = module.Summary
+                Name = moduleName,
+                Summary = string.IsNullOrWhiteSpace(module.Summary) ? "No Summary" : module.Summary
             };
 
             foreach (var command in module.Commands)

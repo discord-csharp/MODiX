@@ -11,6 +11,11 @@ namespace Modix.Data.Models.Core
     public class DesignatedRoleMappingSearchCriteria
     {
         /// <summary>
+        /// A <see cref="DesignatedRoleMappingEntity.Id"/> value, defining the <see cref="DesignatedRoleMappingEntity"/> entities to be returned.
+        /// </summary>
+        public long? Id { get; set; }
+
+        /// <summary>
         /// A <see cref="DesignatedRoleMappingEntity.GuildId"/> value, defining the <see cref="DesignatedRoleMappingEntity"/> entities to be returned.
         /// </summary>
         public ulong? GuildId { get; set; }
@@ -53,6 +58,9 @@ namespace Modix.Data.Models.Core
             var longCreatedById = (long?)criteria.CreatedById;
 
             return query
+                .FilterBy(
+                    x => x.Id == criteria.Id,
+                    !(criteria.Id is null))
                 .FilterBy(
                     x => x.GuildId == longGuildId,
                     !(longGuildId is null))

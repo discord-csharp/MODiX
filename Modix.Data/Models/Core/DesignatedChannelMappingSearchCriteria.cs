@@ -11,6 +11,11 @@ namespace Modix.Data.Models.Core
     public class DesignatedChannelMappingSearchCriteria
     {
         /// <summary>
+        /// A <see cref="DesignatedChannelMappingEntity.Id"/> value, defining the <see cref="DesignatedChannelMappingEntity"/> entities to be returned.
+        /// </summary>
+        public long? Id { get; set; }
+
+        /// <summary>
         /// A <see cref="DesignatedChannelMappingEntity.GuildId"/> value, defining the <see cref="DesignatedChannelMappingEntity"/> entities to be returned.
         /// </summary>
         public ulong? GuildId { get; set; }

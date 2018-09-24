@@ -42,5 +42,10 @@ namespace Modix.Data.Utilities
                 return $"{value.Substring(0, maxLength).Trim()}{suffix}";
             }
         }
+
+        public static bool OrdinalContains(this string value, string search)
+        {
+            return value.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0;
+        }
     }
 }
