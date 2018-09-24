@@ -1,6 +1,5 @@
 ﻿using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
-using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.GuildInfo;
 using Modix.WebServer.Models;
@@ -32,23 +31,45 @@ namespace Modix.WebServer.Controllers
             return Ok(guildInfo);
         }
 
+        public IActionResult Roles()
+        {
+            return Ok(UserGuild.Roles.Select(d => new { d.Id, d.Name, Color = d.Color.ToString() }));
+        }
+
+        public IActionResult Claims()
+        {
+            return Ok(ClaimInfoData.GetClaims());
+        }
+
         public IActionResult UserInfo()
         {
             return Ok(ModixUser);
         }
 
-        public async Task<IActionResult> Autocomplete(string query)
+        [HttpGet]
+        public IActionResult GuildOptions()
         {
-            var firstGuild = DiscordSocketClient.Guilds.First();
+            var guilds = DiscordSocketClient
+                .Guilds
+                .Where(d => d.GetUser(SocketUser.Id) != null)
+                .Select(d => new { d.Name, d.Id, d.IconUrl });
 
-            await firstGuild.DownloadUsersAsync();
+            return Ok(guilds);
+        }
 
-            var result = firstGuild.Users
-                .Where(d => d.Username.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
-                .Take(10)
-                .Select(d => new ModixUser { Name = $"{d.Username}#{d.Discriminator}", UserId = d.Id, AvatarHash = d.AvatarId });
+        [HttpPost("~/api/switchGuild/{guildId}")]
+        public IActionResult SwitchGuild(ulong guildId)
+        {
+            var user = DiscordSocketClient.GetGuild(guildId)?.GetUser(SocketUser.Id);
 
-            return Ok(result);
+            if (user == null)
+            {
+                return BadRequest("Invalid guild, or user is not a member of the guild.");
+            }
+
+            Response.Cookies.Append("SelectedGuild", user.Guild.Id.ToString());
+
+            return Ok();
         }
     }
 }

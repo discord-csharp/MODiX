@@ -12,7 +12,7 @@ using Modix.WebServer.Models;
 
 namespace Modix.WebServer.Controllers
 {
-    [Route("~/api")]
+    [Route("~/api/campaigns")]
     public class PromotionController : ModixController
     {
         private IPromotionsService _promotionsService;
@@ -22,11 +22,21 @@ namespace Modix.WebServer.Controllers
             _promotionsService = promotionService;
         }
 
-        [HttpGet("campaigns")]
+        [HttpGet]
         public async Task<IActionResult> Campaigns()
-            => Ok(await _promotionsService.SearchCampaignsAsync(null));
-        
-        [HttpPut("campaigns/{campaignId}/comments")]
+            => Ok(await _promotionsService.SearchCampaignsAsync(new PromotionCampaignSearchCriteria
+            {
+                GuildId = UserGuild.Id
+            }));
+
+        [HttpGet("{campaignId}")]
+        public async Task<IActionResult> CampaignComments(long campaignId)
+        {
+            var result = await _promotionsService.GetCampaignDetailsAsync(campaignId);
+            return Ok(result.Comments);
+        }
+
+        [HttpPut("{campaignId}/comments")]
         public async Task<IActionResult> AddComment(int campaignId, [FromBody] PromotionCommentData commentData)
         {
             var campaign = await _promotionsService.GetCampaignDetailsAsync(campaignId);
@@ -40,7 +50,7 @@ namespace Modix.WebServer.Controllers
             {
                 await _promotionsService.AddCommentAsync(campaignId, commentData.Sentiment, commentData.Body);
             }
-            catch (ArgumentException ex)
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(ex.Message);
             }
@@ -48,7 +58,7 @@ namespace Modix.WebServer.Controllers
             return Ok();
         }
 
-        [HttpPost("campaigns/{campaignId}/accept")]
+        [HttpPost("{campaignId}/accept")]
         public async Task<IActionResult> AcceptCampaign(int campaignId)
         {
             try
@@ -63,7 +73,7 @@ namespace Modix.WebServer.Controllers
             return Ok();
         }
 
-        [HttpPost("campaigns/{campaignId}/reject")]
+        [HttpPost("{campaignId}/reject")]
         public async Task<IActionResult> RejectCampaign(int campaignId)
         {
             try
@@ -78,17 +88,15 @@ namespace Modix.WebServer.Controllers
             return Ok();
         }
 
-        [HttpPut("campaigns")]
+        [HttpPut]
         public async Task<IActionResult> Create([FromBody] PromotionCreationData creationData)
         {
-            throw new NotImplementedException();
-
             try
             {
                 // TODO: get promotion rank from creation data
-                await _promotionsService.CreateCampaignAsync(creationData.UserId, 0, creationData.Comment);
+                await _promotionsService.CreateCampaignAsync(creationData.UserId, creationData.RoleId, creationData.Comment);
             }
-            catch (ArgumentException ex)
+            catch (InvalidOperationException ex)
             {
                 return BadRequest(ex.Message);
             }
