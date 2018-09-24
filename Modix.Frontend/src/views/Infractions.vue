@@ -92,6 +92,7 @@
 @import "~bulma/sass/elements/notification";
 @import "~bulma/sass/elements/form";
 
+@import "~vue-good-table/dist/vue-good-table.css";
 
 .vgt-table.bordered
 {
@@ -149,7 +150,6 @@ import { Route } from 'vue-router';
 import { VueGoodTable } from 'vue-good-table';
 import { InfractionType } from '@/models/infractions/InfractionType'
 
-import 'vue-good-table/dist/vue-good-table.css'
 import GeneralService from '@/services/GeneralService';
 import InfractionSummary from '@/models/infractions/InfractionSummary';
 import {config, setConfig} from '@/models/PersistentConfig';
