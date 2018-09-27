@@ -69,13 +69,15 @@ namespace modix
 
     const updateUserInfo = async (context: ModixContext) => 
         mutatingServiceCall(GeneralService.getUser, setUser, err => setUser(modixState, new User()));
+		
+    const updateGuilds = async (context: ModixContext) => 
+        mutatingServiceCall(GeneralService.getGuilds, setGuilds, err => setGuilds(modixState, []));
 
     const updateGuildInfo = async (context: ModixContext) => mutatingServiceCall(GeneralService.getGuildInfo, setGuildInfo);
     const updateCommands = async (context: ModixContext) => mutatingServiceCall(GeneralService.getCommands, setCommands);
     const updateCampaigns = async (context: ModixContext) => mutatingServiceCall(PromotionService.getCampaigns, setCampaigns);
     const updateInfractions = async (context: ModixContext) => mutatingServiceCall(GeneralService.getInfractions, setInfractions);
     const updateRoles = async (context: ModixContext) => mutatingServiceCall(GeneralService.getGuildRoles, setRoles);
-    const updateGuilds = async (context: ModixContext) => mutatingServiceCall(GeneralService.getGuilds, setGuilds);
 
     const updateChannelDesignations = async (context: ModixContext) => mutatingServiceCall(ConfigurationService.getChannelDesignations, setChannelDesignations);
     const updateRoleDesignations = async (context: ModixContext) => mutatingServiceCall(ConfigurationService.getRoleDesignations, setRoleDesignations);
