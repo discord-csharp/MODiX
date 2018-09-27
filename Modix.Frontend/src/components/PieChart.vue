@@ -1,9 +1,9 @@
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import { Doughnut } from 'vue-chartjs';
-import GuildInfoResult from '..//models/GuildInfoResult'
+import GuildInfoResult from '@/models/GuildInfoResult'
 
-import * as store from "../app/Store";
+import * as store from "@/app/Store";
 
 @Component({
     extends: Doughnut

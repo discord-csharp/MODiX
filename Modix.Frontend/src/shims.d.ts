@@ -5,3 +5,7 @@ declare module '*.vue' {
 
 declare module 'vue-chartjs';
 declare module 'dateformat';
+declare module 'vue-good-table';
+declare module 'tinycolor';
+declare module 'vue-clipboards';
+declare module 'v-tooltip';

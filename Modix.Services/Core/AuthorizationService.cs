@@ -44,6 +44,15 @@ namespace Modix.Services.Core
         Task UnConfigureGuildAsync(IGuild guild);
 
         /// <summary>
+        /// Modifies a claim mapping for a role. 
+        /// </summary>
+        /// <param name="roleId">The role for which the claim mapping is to be modified.</param>
+        /// <param name="claim">The claim to be mapped.</param>
+        /// <param name="newType">The type to modify the claim mapping to. If null, the mapping will be removed.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task ModifyClaimMapping(ulong roleId, AuthorizationClaim claim, ClaimMappingType? newType);
+
+        /// <summary>
         /// Adds a claim mapping to a role.
         /// </summary>
         /// <param name="role">The role for which a claim mapping is to be added.</param>
@@ -97,6 +106,16 @@ namespace Modix.Services.Core
         /// containing the requested list of claims.
         /// </returns>
         Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(IGuildUser guildUser, params AuthorizationClaim[] claimsFilter);
+
+        /// <summary>
+        /// Retrieves the list of claims currently active and mapped to particular role.
+        /// </summary>
+        /// <param name="guildRole">The role whose claims are to be retrieved.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation has completed,
+        /// containing the requested list of claims.
+        /// </returns>
+        Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildRoleClaimsAsync(IRole guildRole);
 
         /// <summary>
         /// Compares a given set of claims against the full set of claims posessed by a given user,
@@ -224,6 +243,42 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
+        public async Task ModifyClaimMapping(ulong roleId, AuthorizationClaim claim, ClaimMappingType? newType)
+        {
+            RequireAuthenticatedUser();
+            RequireClaims(AuthorizationClaim.AuthorizationConfigure);
+
+            var foundClaims = await ClaimMappingRepository.SearchBriefsAsync(new ClaimMappingSearchCriteria
+            {
+                Claims = new[] { claim },
+                RoleIds = new[] { roleId },
+                GuildId = CurrentGuildId
+            });
+
+            using (var transaction = await ClaimMappingRepository.BeginCreateTransactionAsync())
+            {
+                foreach (var existing in foundClaims)
+                {
+                    await ClaimMappingRepository.TryDeleteAsync(existing.Id, CurrentUserId.Value);
+                }
+
+                if (newType.HasValue)
+                {
+                    await ClaimMappingRepository.CreateAsync(new ClaimMappingCreationData()
+                    {
+                        GuildId = CurrentGuildId.Value,
+                        Type = newType.Value,
+                        RoleId = roleId,
+                        Claim = claim,
+                        CreatedById = CurrentUserId.Value
+                    });
+                }
+
+                transaction.Commit();
+            }
+        }
+
+        /// <inheritdoc />
         public async Task AddClaimMapping(IRole role, ClaimMappingType type, AuthorizationClaim claim)
         {
             RequireAuthenticatedUser();
@@ -344,6 +399,20 @@ namespace Modix.Services.Core
                 return CurrentClaims;
 
             return await LookupPosessedClaimsAsync(guildUser.GuildId, guildUser.RoleIds, guildUser.Id, filterClaims);
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildRoleClaimsAsync(IRole guildRole)
+        {
+            return (await ClaimMappingRepository.SearchBriefsAsync(new ClaimMappingSearchCriteria
+            {
+                RoleIds = new[] { guildRole.Id },
+                IsDeleted = false,
+                Types = new[] { ClaimMappingType.Granted },
+                GuildId = guildRole.Guild.Id
+            }))
+            .Select(d=>d.Claim)
+            .ToList();
         }
 
         /// <inheritdoc />

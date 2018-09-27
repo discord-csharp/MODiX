@@ -7,6 +7,7 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using AspNet.Security.OAuth.Discord;
+using Discord;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
@@ -32,15 +33,14 @@ namespace Modix.WebServer.Auth
         {
             var baseResult = await base.CreateTicketAsync(identity, properties, tokens);
             var result = ModixUser.FromClaimsPrincipal(baseResult.Principal);
-            var guild = _client.Guilds.FirstOrDefault();
 
-            await guild?.DownloadUsersAsync();
+            await Task.WhenAll(_client.Guilds.Select(d => d.DownloadUsersAsync()));
 
-            var foundUser = guild?.GetUser(result.UserId);
+            bool userWasfound = _client.Guilds.Any(d => d.GetUser(result.UserId) != null);
 
-            if (foundUser == null)
+            if (!userWasfound)
             {
-                throw new UnauthorizedAccessException("You must be a member of the Discord C# server to log in.");
+                throw new UnauthorizedAccessException("You must be a member of one of Modix's servers to log in.");
             }
 
             return baseResult;

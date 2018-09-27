@@ -1,6 +1,6 @@
 import * as dateformat from "dateformat";
 
-export const formatPasteDate = (date: Date): string =>
+export const formatDate = (date: Date): string =>
 {
     return dateformat(date, "mm/dd/yy, h:MM:ss TT");
 }

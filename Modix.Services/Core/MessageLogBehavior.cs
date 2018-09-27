@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
@@ -36,6 +37,18 @@ namespace Modix.Services.Core
             return Task.CompletedTask;
         }
 
+        
+        private string FormatMessage(string input)
+        {
+            //Escape backticks to preserve formatting (zero-width spaces are quite useful)
+            input = input.Replace("```", '\u200B' + "`" + '\u200B' + "`" + '\u200B' + "`" + '\u200B');
+
+            //If the message content is empty, return a notice rather than nothing
+            input = string.IsNullOrWhiteSpace(input) ? "Empty Message Content" : input;
+
+            return input;
+        }
+
         /// <summary>
         /// Determines whether or not to skip a message event, based on unmoderated channel designations
         /// </summary>
@@ -64,6 +77,7 @@ namespace Modix.Services.Core
             if (guild == null)
             {
                 Log.Information("Recieved message update event for non-guild message, ignoring");
+                return;
             }
 
             if (await ShouldSkip(guild, channel)) { return; }
@@ -72,11 +86,22 @@ namespace Modix.Services.Core
 
             //Skip things like embed updates
             if (original.Content == updated.Content) { return; }
-            
+
+            string messageLink = ModixEmbedBuilderExtensions.MessageLink(guild.Id, channel.Id, original.Id);
+
+            string descriptionText = $"**Original**\n```{FormatMessage(original.Content)}```";
+
+            if (descriptionText.Length <= 2048)
+            {
+                descriptionText += $"\n**Updated**\n```{FormatMessage(updated.Content)}```"; ;
+            }
+
+            descriptionText += $"\n{messageLink}";
+
             var embed = new EmbedBuilder()
                 .WithVerboseAuthor(original.Author)
-                .WithDescription($"**Original**```{MessageIfEmpty(original.Content)}```\n **Updated**```{MessageIfEmpty(updated.Content)}```")
-                .WithVerboseTimestamp(DateTimeOffset.UtcNow);
+                .WithDescription(descriptionText)
+                .WithCurrentTimestamp();
 
             await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
             {
@@ -93,26 +118,25 @@ namespace Modix.Services.Core
             if (guild == null)
             {
                 Log.Information("Recieved message update event for non-guild message, ignoring");
+                return;
             }
 
             if (await ShouldSkip(guild, channel)) { return; }
 
             var embed = new EmbedBuilder();
+            string descriptionContent = $"**Content**\n```Unknown, message not cached```";
 
-            if (!message.HasValue)
-            {
-                embed = embed.WithDescription($"**Content**```Unknown, message not cached```");
-            }
-            else
+            if (message.HasValue)
             {
                 var cached = message.Value;
 
                 //Don't log when messages from Modix are deleted
                 if (message.Value.Author.Id == _discordClient.CurrentUser.Id) { return; }
 
+                descriptionContent = $"**Content**\n```{FormatMessage(cached.Content)}```";
+
                 embed = embed
-                    .WithVerboseAuthor(cached.Author)
-                    .WithDescription($"**Content**```{MessageIfEmpty(cached.Content)}```");
+                    .WithVerboseAuthor(cached.Author);
 
                 if (cached.Attachments.Any())
                 {
@@ -125,7 +149,9 @@ namespace Modix.Services.Core
                 }
             }
 
-            embed = embed.WithVerboseTimestamp(DateTimeOffset.UtcNow);
+            embed = embed
+                .WithDescription(descriptionContent)
+                .WithCurrentTimestamp();
 
             await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
             {
@@ -133,11 +159,6 @@ namespace Modix.Services.Core
                     guild, DesignatedChannelType.MessageLog,
                     $":wastebasket:Message Deleted in {MentionUtils.MentionChannel(channel.Id)} `{message.Id}`", embed.Build());
             });
-        }
-
-        private static string MessageIfEmpty(string input, string ifEmpty = "Empty Message Content")
-        {
-            return string.IsNullOrWhiteSpace(input) ? "Empty Message Content" : input;
         }
     }
 }

@@ -3,7 +3,7 @@
     <div class="comment">
         <span class="sentimentIcon">{{sentimentIcon(comment.sentiment)}}</span>
         <span class="commentBody">
-            {{comment.body}} <span class="date">{{formatDate(comment.postedDate)}}</span>
+            {{comment.content}} <span class="date">{{formatDate(comment.createAction.created)}}</span>
         </span>
     </div>
 
@@ -86,7 +86,9 @@
 
 .date
 {
-    line-height: 2.5;
+    font-size: 0.8em;
+    color: grey;
+    margin-left: 0.5em;
 }
 
 </style>
@@ -95,9 +97,9 @@
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
 
-import {formatPasteDate} from '@/app/Util';
-import PromotionComment from '@/models/PromotionComment';
-import {SentimentIcons, PromotionSentiment} from '@/models/PromotionCampaign';
+import {formatDate} from '@/app/Util';
+import PromotionComment from '@/models/promotions/PromotionComment';
+import {SentimentIcons, PromotionSentiment} from '@/models/promotions/PromotionCampaign';
 
 @Component({})
 export default class PromotionCommentView extends Vue
@@ -111,7 +113,7 @@ export default class PromotionCommentView extends Vue
 
     formatDate(date: Date): string
     {
-        return formatPasteDate(date);
+        return formatDate(date);
     }
 }
 </script>

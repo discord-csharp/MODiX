@@ -1,18 +1,15 @@
 <template>
     <section class="errors">
-        <div class="message is-danger" v-for="(error, index) in errors" v-bind:key="index">
-            <div class="message-header">
-                Error
-                <button class="delete" v-on:click="removeError(error)"></button>
-            </div>
-            <div class="message-body" v-html="error"></div>
+        <div class="notification is-danger" v-for="(error, index) in errors" v-bind:key="index">
+            <button class="delete" v-on:click="removeError(error)"></button>
+            <span v-html="error"></span>
         </div>
     </section>
 </template>
 
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
-import store from "../app/Store";
+import store from "@/app/Store";
 
 @Component
 export default class ErrorView extends Vue
@@ -34,7 +31,7 @@ export default class ErrorView extends Vue
 
 @import "../styles/variables";
 @import "~bulma/sass/utilities/_all";
-@import "~bulma/sass/components/message";
+@import "~bulma/sass/elements/notification";
 
 .delete
 {

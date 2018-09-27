@@ -32,6 +32,14 @@ namespace Modix.Services.Core
         Task<IGuildUser> GetGuildUserAsync(ulong guildId, ulong userId);
 
         /// <summary>
+        /// Retrieves the summary data for the user with the given user ID, within the given guild
+        /// </summary>
+        /// <param name="guildId">The <see cref="IEntity{T}.Id" /> of the guild whose user is to be retrieved.</param>
+        /// <param name="userId">The <see cref="IEntity{T}.Id" /> of the user to be retrieved.</param>
+        /// <returns>The <see cref="GuildUserSummary"/> retrieved</returns>
+        Task<GuildUserSummary> GetGuildUserSummaryAsync(ulong guildId, ulong userId);
+
+        /// <summary>
         /// Updates information about the given user within the user tracking system of a guild.
         /// </summary>
         /// <param name="user">The user whose info is to be tracked.</param>
@@ -86,6 +94,12 @@ namespace Modix.Services.Core
             await TrackUserAsync(user);
 
             return user;
+        }
+
+        public async Task<GuildUserSummary> GetGuildUserSummaryAsync(ulong guildId, ulong userId)
+        {
+            var found = await GuildUserRepository.ReadSummaryAsync(userId, guildId);
+            return found;
         }
 
         /// <inheritdoc />

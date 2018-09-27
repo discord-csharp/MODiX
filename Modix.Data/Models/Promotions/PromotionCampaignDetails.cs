@@ -70,7 +70,16 @@ namespace Modix.Data.Models.Promotions
                 CloseAction = (entity.CloseAction == null)
                     ? null
                     : entity.CloseAction.Project(PromotionActionBrief.FromEntityProjection),
-                Comments = entity.Comments.AsQueryable().Select(PromotionCommentCampaignBrief.FromEntityProjection)
+                Comments = entity.Comments.AsQueryable()
+                    .Select(comment => new PromotionCommentCampaignBrief()
+                    {
+                        Id = comment.Id,
+                        // https://github.com/aspnet/EntityFrameworkCore/issues/12834
+                        //Sentiment = entity.Sentiment,
+                        Sentiment = Enum.Parse<PromotionSentiment>(comment.Sentiment.ToString()),
+                        Content = comment.Content,
+                        CreateAction = comment.CreateAction.Project(PromotionActionBrief.FromEntityProjection)
+                    })
                     .ToArray()
             };
     }

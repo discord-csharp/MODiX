@@ -1,19 +1,31 @@
 <template>
 
-    <div>
-        <slot></slot>
-        
-        <div class="autocomplete" v-show="entries.length > 0">
-            <div class="entry" v-for="entry in entries" :key="entry.id" :class="{'hovered': hovered == entry}"
-                @click="select(entry)" @mouseover="hovered = entry" @mouseout="mouseOut(entry)">
-                <TinyUserView :user="entry" />
-            </div>
+    <div class="autocomplete-container">
+
+        <div v-if="committed">
+            <slot v-if="committed" v-bind:entry="committed" />
+            <button class="delete" aria-label="delete" @click="committed = null"></button>
         </div>
+
+        <template v-else>
+            <input class="input" type="text" :class="{'is-danger': error}" :placeholder="placeholder"
+                v-model="searchQuery" @input="debouncedAutocomplete()" @blur="blur()" ref="inputBox">
+            
+            <div class="autocomplete" v-show="entries.length > 0">
+
+                <div class="entry" v-for="entry in entries" :key="entry.id" :class="{'hovered': hovered == entry}"
+                    @click="select(entry)" @mouseover="hovered = entry" @mouseout="mouseOut(entry)">
+
+                    <slot v-bind:entry="entry" />
+                </div>
+
+            </div>
+        </template>
     </div>
 
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 
 @import "~bulma/sass/utilities/_all";
 @import "~bulma/sass/base/_all";
@@ -22,12 +34,11 @@
 
 .autocomplete
 {
-    position: absolute;
-    z-index: 99;
+    position: fixed;
+    z-index: 999;
 
     background: $white;
-    width: 100%;
-    
+
     padding: 0em 0em 0 0em;
 
     box-shadow: $box-shadow;
@@ -37,7 +48,7 @@
 
     .entry
     {
-        padding: 0.5em 0.5em 0 0.5em;
+        padding: 0.25em 0.5em 0.25em 0.5em;
 
         &.hovered
         {
@@ -56,29 +67,33 @@
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import TinyUserView from '@/components/TinyUserView.vue';
 import User from '@/models/User';
+import * as _ from 'lodash';
 
 @Component({
     components: {TinyUserView}
 })
 export default class Autocomplete extends Vue
 {
-    @Prop() private entries!: any[];
-    //@Prop() private displayProp: string | null = null;
+    @Prop({default: (query: string) => Promise}) private serviceCall!: Function;
+    @Prop({default: "We have a fancy autocomplete!"}) private placeholder!: string;
+    @Prop({default: false}) private error!: boolean;
+    @Prop({default: 2}) private minimumChars!: number;
+
+    debouncedAutocomplete: Function = () => null;
 
     hovered: any = null;
     selectedIndex: number = -1;
+    loading: boolean = false;
+    searchQuery: string = "";
+    entries: any[] = [];
 
-    /*
-    getDisplay(object: any): string
+    committed: any = null;
+
+    @Watch('committed')
+    committedChanged()
     {
-        if (this.displayProp == null)
-        {
-            return object.toString();
-        }
-
-        return object[this.displayProp];
+        this.$emit('select', this.committed);
     }
-    */
 
     @Watch('entries')
     entriesChanged()
@@ -97,7 +112,7 @@ export default class Autocomplete extends Vue
 
     get inputBox(): HTMLInputElement
     {
-        return <HTMLInputElement>this.$slots.default[0].elm;
+        return <HTMLInputElement>this.$refs.inputBox;
     }
 
     mouseOut(entry: any)
@@ -108,9 +123,16 @@ export default class Autocomplete extends Vue
         }
     }
 
+    blur()
+    {
+        
+    }
+
     select(entry: any)
     {
-        this.$emit('select', entry);
+        this.committed = entry;
+        this.searchQuery = "";
+        this.entries = [];
         this.selectedIndex = -1;
     }
 
@@ -120,10 +142,12 @@ export default class Autocomplete extends Vue
         this.selectedIndex = -1;
     }
 
-    keyDown(args: KeyboardEvent)
+    async keyDown(args: KeyboardEvent)
     {
         if (args.key == "ArrowUp")
         {
+            args.preventDefault();
+
             console.log("Arrow Up!");
 
             if (this.selectedIndex <= 0)
@@ -140,7 +164,14 @@ export default class Autocomplete extends Vue
 
         if (args.key == "ArrowDown")
         {
+            args.preventDefault();
+
             console.log("Arrow Down!");
+
+            if (this.entries.length == 0)
+            {
+                await this.makeServiceCall();
+            }
             
             if (this.selectedIndex >= this.entries.length - 1)
             {
@@ -156,6 +187,8 @@ export default class Autocomplete extends Vue
 
         if (args.key == "Enter")
         {
+            args.preventDefault();
+
             this.select(this.hovered);
         }
     }
@@ -163,6 +196,24 @@ export default class Autocomplete extends Vue
     beforeDestroy()
     {
         this.inputBox.removeEventListener('keydown', this.keyDown);
+    }
+
+    created()
+    {
+        this.debouncedAutocomplete = _.debounce(this.makeServiceCall, 350);
+    }
+
+    async makeServiceCall()
+    {
+        if (this.searchQuery.length <= this.minimumChars)
+        {
+            return;
+        }
+
+        this.loading = true;
+        this.entries = await this.serviceCall(this.searchQuery);
+        this.$emit('entries', this.entries);
+        this.loading = false;
     }
 }
 </script>

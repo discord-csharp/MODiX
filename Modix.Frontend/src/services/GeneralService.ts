@@ -1,49 +1,54 @@
 import { ModuleHelpData } from '@/models/ModuleHelpData';
-import PromotionCampaign from '@/models/PromotionCampaign';
-import PromotionCommentData from '@/models/PromotionCommentData';
-import PromotionCreationData from '@/models/PromotionCreationData';
 import User from '@/models/User';
 import UserCodePaste from '@/models/UserCodePaste';
-import Axios from 'axios';
-import * as _ from 'lodash';
+import _ from 'lodash';
+import InfractionSummary from '@/models/infractions/InfractionSummary';
+import GuildInfoResult from '@/models/GuildInfoResult';
 
-const client = Axios.create
-({
-    baseURL: '/api/',
-    timeout: 1000,
-    withCredentials: true
-});
+import client from './ApiClient';
+import Channel from '@/models/Channel';
+import Role from '@/models/Role';
+import Deserializer from '@/app/Deserializer';
+import Claim from '@/models/Claim';
+import Guild from '@/models/Guild';
 
 export default class GeneralService
 {
     static async getUser(): Promise<User>
     {
         let response = (await client.get("userInfo")).data;
-        let user = new User().deserializeFrom(response);
+        let user = Deserializer.getNew(User, response);
         
         return user;
     }
 
-    static async getGuildInfo(): Promise<Map<string, Map<string, number>>>
+    static async getGuildInfo(): Promise<Map<string, GuildInfoResult>>
     {
         let response = (await client.get("guilds")).data;
-        return (<Map<string, Map<string, number>>>response);
+        return (<Map<string, GuildInfoResult>>response);
     }
 
-    static async getPastes(): Promise<UserCodePaste[]>
+    static async getGuildRoles(): Promise<Role[]>
     {
-        let response = <UserCodePaste[]>(await client.get("pastes")).data;
-        response.forEach(paste => paste.created = new Date(paste.created));
-        
+        let response = (await client.get("roles")).data;
+        return _.map(response, response => Deserializer.getNew(Role, response));
+    }
+
+    static async getClaims(): Promise<{[claim: string]: Claim[]}>
+    {
+        let response = (await client.get("claims")).data;
         return response;
     }
 
-    static async getPaste(pasteId: number): Promise<UserCodePaste>
+    static async getGuilds(): Promise<Guild[]>
     {
-        let response = <UserCodePaste>(await client.get("pastes/" + pasteId)).data;
-        response.created = new Date(response.created);
-        
+        let response = (await client.get("guildOptions")).data;
         return response;
+    }
+
+    static async switchGuild(guildId: string): Promise<void>
+    {
+        await client.post(`switchGuild/${guildId}`);
     }
 
     static async getCommands(): Promise<ModuleHelpData[]>
@@ -52,48 +57,48 @@ export default class GeneralService
         return response;
     }
 
-    static async getCampaigns(): Promise<PromotionCampaign[]>
+    static async getUserAutocomplete(query: string): Promise<User[]>
     {
-        let response = (await client.get("campaigns")).data as PromotionCampaign[];
-        
-        _.forEach(response, campaign => 
-        {
-            campaign.startDate = new Date(campaign.startDate);
-            _.forEach(campaign.comments, comment => comment.postedDate = new Date(comment.postedDate));
-        });
-
-        return _.map(response, campaign => new PromotionCampaign().deserializeFrom(campaign));;
+        let response = (await client.get(`autocomplete/users?query=${encodeURIComponent(query)}`)).data;
+        return _.map(response, user => Deserializer.getNew(User, user));
     }
 
-    static async createCampaign(data: PromotionCreationData): Promise<void>
+    static async getChannelAutocomplete(query: string): Promise<Channel[]>
     {
-        await client.put("campaigns", data);
+        let response = (await client.get(`autocomplete/channels?query=${encodeURIComponent(query)}`)).data;
+        return response;
     }
 
-    static async commentOnCampaign(campaign: PromotionCampaign, data: PromotionCommentData): Promise<void>
+    static async getRankRolesAutocomplete(query: string): Promise<Role[]>
     {
-        await client.put(`campaigns/${campaign.promotionCampaignId}/comments`, data);
+        let response = (await client.get(`autocomplete/roles?query=${encodeURIComponent(query)}&rankOnly=true`)).data;
+        return response;
     }
 
-    static async approveCampaign(campaign: PromotionCampaign): Promise<void>
+    static async getAllRolesAutocomplete(query: string): Promise<Role[]>
     {
-        await client.post(`campaigns/${campaign.promotionCampaignId}/approve`);
+        let response = (await client.get(`autocomplete/roles?query=${encodeURIComponent(query)}&rankOnly=false`)).data;
+        return response;
+    }
+    
+    static async getInfractions(): Promise<InfractionSummary[]>
+    {
+        let response = (await client.get("infractions")).data;
+        return response;
     }
 
-    static async denyCampaign(campaign: PromotionCampaign): Promise<void>
+    static async getInfractionsForUser(id: number): Promise<InfractionSummary[]>
     {
-        await client.post(`campaigns/${campaign.promotionCampaignId}/deny`);
+        let response = (await client.get(`infractions/${id}`)).data;
+        return response;
     }
 
-    static async activateCampaign(campaign: PromotionCampaign): Promise<void>
+    static async uploadRowboatJson(data: FormData) : Promise<number>
     {
-        await client.post(`campaigns/${campaign.promotionCampaignId}/activate`);
-    }
+        console.log(data);
 
-    static async getAutocomplete(query: string): Promise<User[]>
-    {
-        let response = (await client.get(`autocomplete?query=${query}`)).data;
-        return _.map(response, user => new User().deserializeFrom(user));
+        let response = await client.put("infractions/import", data, { timeout: 30000 });
+        return response.data;
     }
 }
 

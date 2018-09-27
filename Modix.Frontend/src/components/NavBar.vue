@@ -1,42 +1,118 @@
 <template>
     <nav class="navbar" role="navigation" aria-label="main navigation">
 
-        <div class="sidebar-left">
-            <div class="navbar-brand">
-                <router-link class="navbar-item" to="/" title="Home">
-                    <img class="is-hidden-mobile" src="../assets/logo_small.png" width="112" height="28">
-                    <img class="is-hidden-tablet" src="../assets/icon.png" width="28" height="28">
+        <div class="navbar-brand">
+            <div class="brand-start">
+                <router-link class="navbar-item" to="/" title="Home" exact-active-class="is-active">
+                    <img class="logo" :src="logoPath">
                 </router-link>
+
+                <a role="button" class="navbar-burger" :class="{'is-active': expanded}" @click="expanded = !expanded">
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                    <span aria-hidden="true"></span>
+                </a>
             </div>
 
-            <div class="navbar-item link" v-for="route in routes" :key="route.name">
-                <router-link active-class="is-active" :to="route.path" >
-                    {{toTitleCase(route.meta.title || route.name)}}
+            <div class="brand-end is-hidden-desktop">
+                <router-link class="navbar-item link" to="/config" v-tooltip="'Configuration'" active-class="is-active">
+                    🛠
                 </router-link>
+                <MiniProfile class="navbar-item" />
             </div>
-
         </div>
 
-        <MiniProfile class="navbar-item" />
+        <div class="navbar-menu" :class="{'is-active': expanded}">
+            <div class="navbar-start">
+                <router-link class="navbar-item link" active-class="is-active"
+                    v-for="route in routes" :key="route.routeData.name" :to="route.routeData.path" >
+                    {{toTitleCase(route.title)}}
+                </router-link>
+            </div>
+
+            <div class="navbar-end is-hidden-touch">
+                <router-link class="navbar-item link" to="/config" v-tooltip="'Configuration'" active-class="is-active">
+                    🛠
+                </router-link>
+                <MiniProfile class="navbar-item" />
+            </div>
+        </div>
+
     </nav>
 </template>
 
 <style lang="scss" scoped>
 
-@import "~bulma/sass/utilities/_all";
+@import "../styles/variables";
 @import "~bulma/sass/base/_all";
+@import "~bulma/sass/layout/_all";
 
-nav
+@import "~bulma/sass/elements/container";
+
+.logo
 {
-    display: flex;
+    
+}
+
+.navbar-brand
+{
     justify-content: space-between;
 }
 
-.sidebar-left
+.brand-start
 {
     display: flex;
+}
+
+.brand-end
+{
+    display: flex;
+}
+
+.small-logo
+{
+    filter: invert(100%);
+}
+
+nav
+{
+    background: $primary;
+    box-shadow: 0px 2px 8px -4px $black;
+
+    user-select: none;
+}
+
+.navbar-menu
+{
+    @include touch()
+    {
+        padding: 0;
+    }
+}
+
+.navbar-burger
+{
+    color: $white;
+
+    &:hover
+    {
+        color: $white;
+    }
+}
+
+.navbar-brand
+{
+    a:not(.link)
+    {
+        margin: 0;
+        padding: 0;
+    }
     
-    justify-content: flex-start;
+    img
+    {
+        height: 52px;
+        max-height: 52px;
+    }
 }
 
 .navbar-item
@@ -44,18 +120,25 @@ nav
     display: flex;
     align-items: center;
 
-    @include mobile()
-    {
-        font-size: 0.9em;
-        padding: 0.25rem 0.7rem;
-    }
-}
+    background-color: $primary;
 
-.is-active
-{
-    font-weight: bold;
-    pointer-events: none;
-    color: black;
+    color: $white;
+
+    &.is-active
+    {
+        color: $black;
+        background-color: $white !important;
+
+        font-weight: bold;
+        pointer-events: none;
+        box-shadow: 0px 6px 0px 0px $white;
+    }
+
+    &:hover
+    {
+        color: $white;
+        background-color: darken($primary, 3);
+    }
 }
 
 </style>
@@ -65,10 +148,11 @@ import Vue from 'vue';
 import {Watch, Component, Prop} from 'vue-property-decorator';
 import { Route } from 'vue-router';
 import MiniProfile from '@/components/MiniProfile.vue';
-import {toTitleCase} from '../app/Util';
+import {toTitleCase} from '@/app/Util';
 import * as _ from 'lodash';
 import store from '@/app/Store';
 import User from '@/models/User';
+import ModixRoute from '@/app/ModixRoute';
 
 @Component({
     components:
@@ -78,18 +162,46 @@ import User from '@/models/User';
 })
 export default class NavBar extends Vue
 {
+    expanded: boolean = false;
+
+    get purpleLogo(): string
+    {
+        return require("../assets/logo_small_w.png");
+    }
+
+    get whiteLogo(): string
+    {
+        return require("../assets/logo_small.png");
+    }
+
     get user(): User
     {
         return this.$store.state.modix.user;
     }
 
-    get routes(): Route[]
+    get logoPath(): string
     {
-        let allRoutes = (<any>this.$router).options.routes as Route[];
-        let showInNav = _.filter(allRoutes, (route: Route) => route.meta.showNav);
-        let authFilter = _.filter(showInNav, (route: Route) => (route.meta.requiresAuth ? store.isLoggedIn() : true));
+        if (this.$route.name == "home")
+        {
+            return this.whiteLogo;
+        }
 
-        return <any>authFilter;
+        return this.purpleLogo;
+    }
+
+    hasClaimsForRoute(route: ModixRoute): boolean
+    {
+        return store.userHasClaims(route.routeData.requiredClaims || []);
+    }
+
+    get routes(): ModixRoute[]
+    {
+        let allRoutes = _.map((<any>this.$router).options.routes, route => route.meta as ModixRoute);
+        let showInNav = _.filter(allRoutes, (route: ModixRoute) => route.routeData.showInNavbar);
+        let authFilter = _.filter(showInNav, (route: ModixRoute) => (route.requiresAuth ? store.isLoggedIn() : true));
+        let claimFilter = _.filter(authFilter, (route: ModixRoute) => this.hasClaimsForRoute(route));
+
+        return <any>claimFilter;
     }
 
     toTitleCase(input: string) 

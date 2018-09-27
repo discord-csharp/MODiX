@@ -34,6 +34,13 @@ namespace Modix.Services.Core
         Task RemoveDesignatedRoleAsync(ulong guildId, ulong roleId, DesignatedRoleType type);
 
         /// <summary>
+        /// Unassigns a role designation by ID
+        /// </summary>
+        /// <param name="id">The ID of the assignment to remove</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task RemoveDesignatedRoleByIdAsync(long id);
+
+        /// <summary>
         /// Retrieves the current designated roles, for a given guild.
         /// </summary>
         /// <param name="guildId">The Discord snowflake ID of the guild whose role designations are to be retrieved.</param>
@@ -95,7 +102,7 @@ namespace Modix.Services.Core
         public async Task RemoveDesignatedRoleAsync(ulong guildId, ulong roleId, DesignatedRoleType type)
         {
             AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
+            AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingDelete);
 
             using (var transaction = await DesignatedRoleMappingRepository.BeginDeleteTransactionAsync())
             {
@@ -109,6 +116,27 @@ namespace Modix.Services.Core
 
                 if (deletedCount == 0)
                     throw new InvalidOperationException($"Role {roleId} does not have a {type} designation");
+
+                transaction.Commit();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task RemoveDesignatedRoleByIdAsync(long id)
+        {
+            AuthorizationService.RequireAuthenticatedUser();
+            AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingDelete);
+
+            using (var transaction = await DesignatedRoleMappingRepository.BeginDeleteTransactionAsync())
+            {
+                var deletedCount = await DesignatedRoleMappingRepository.DeleteAsync(new DesignatedRoleMappingSearchCriteria()
+                {
+                    Id = id,
+                    IsDeleted = false
+                }, AuthorizationService.CurrentUserId.Value);
+
+                if (deletedCount == 0)
+                    throw new InvalidOperationException($"No role assignment exists with id {id}");
 
                 transaction.Commit();
             }

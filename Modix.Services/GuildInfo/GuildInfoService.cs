@@ -98,6 +98,7 @@ namespace Modix.Services.GuildInfo
                 .Where(d=>d.Name != "@everyone" && !d.IsManaged)
                 .OrderByDescending(role => role.IsHoisted)
                 .ThenByDescending(role => role.Position)
+                .ThenByDescending(d => !d.Color.Equals(Color.Default))
                 .FirstOrDefault();
 
             return highestPosition;

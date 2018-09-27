@@ -1,17 +1,10 @@
 <template>
     <div id="app">
-        <div class="loader" :class="{'hidden': hasTriedAuth}">
-            <div class="spinner"></div>
-            <img class="spinnerCenter" src="./assets/icon.png" />
-        </div>
+        <LoadingSpinner :visible="!hasTriedAuth" />
 
-        <div class="root" :class="{'shown': hasTriedAuth}">
-            <div class="container">
-                <NavBar />
-            </div>
-
+        <div class="root" :class="{'visible': hasTriedAuth}">
             <ErrorView />
-
+            <NavBar />
             <router-view/>
         </div>
     </div>
@@ -26,118 +19,64 @@
 @import "~bulma/sass/grid/_all";
 @import "~bulma/sass/layout/_all";
 
+@import "~bulma/sass/components/navbar";
 @import "~bulma/sass/elements/title";
 @import "~bulma/sass/elements/container";
 @import "~bulma/sass/elements/button";
 
-@import "~bulma/sass/components/navbar";
+@import "styles/overrides";
 
-$default-transition: 0.5s cubic-bezier(0.77, 0, 0.175, 1);
-
-@keyframes fadeOut
+@keyframes fadeIn
 {
     0%
-    {
-        opacity: 1;
-    }
-    99%
     {
         opacity: 0;
     }
     100%
     {
-        opacity: 0;
-        visibility: hidden;
-        z-index: -999;
-
-        animation: none;
+        opacity: 1;
     }
 }
 
 .root
 {
-    transition: all $default-transition;
     opacity: 0;
 
-    &.shown
+    &.visible
     {
-        opacity: 1;
+        animation: fadeIn $default-transition forwards;
+        animation-delay: 500ms;
     }
 }
 
-.loader.hidden
+.root div > .section
 {
-    animation: fadeOut $default-transition forwards;
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
 }
-
-#app .spinner
-{
-    @include loader();
-
-    position: absolute;
-
-    border-width: 24px;
-    top: 10%;
-    left: calc(50% - 256px);
-    
-    width: 512px;
-    height: 512px;
-
-    border-bottom-color: $primary;
-    border-left-color: $primary;
-
-    animation-iteration-count: 3;
-}
-
-.spinnerCenter
-{
-    position: absolute;
-
-    top: 20%;
-    left: calc(50% - 150px);
-}
-
 </style>
 
 <script lang="ts">
 import Vue from 'vue';
 import {Watch, Component, Prop} from 'vue-property-decorator';
 import ErrorView from '@/components/ErrorView.vue';
+import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import NavBar from '@/components/NavBar.vue';
-import {toTitleCase} from './app/Util';
-import store from './app/Store';
+import store from '@/app/Store';
 
 @Component({
     components:
     {
         ErrorView,
-        NavBar
+        NavBar,
+        LoadingSpinner
     },
 })
 export default class App extends Vue
 {
-    mounted()
-    {
-        this.onRouteChanged();
-    }
-
     get hasTriedAuth()
     {
         return store.hasTriedAuth();
-    }
-
-    @Watch("$route")
-    onRouteChanged()
-    {
-        if (this.$route.name)
-        {
-            document.title = "Modix - " + toTitleCase(this.$route.meta.title || this.$route.name);
-        }
-        else
-        {
-            document.title = "Modix";
-        }
-        
     }
 }
 </script>

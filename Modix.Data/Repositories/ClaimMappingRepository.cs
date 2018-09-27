@@ -158,6 +158,7 @@ namespace Modix.Data.Repositories
 
             entity.DeleteAction = new ConfigurationActionEntity()
             {
+                GuildId = entity.GuildId,
                 Type = ConfigurationActionType.ClaimMappingDeleted,
                 Created = DateTimeOffset.Now,
                 CreatedById = longRescindedById,

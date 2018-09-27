@@ -1,1 +1,56 @@
 $primary: rgb(128, 55, 136);
+$default-transition: 1s cubic-bezier(0.165, 0.84, 0.44, 1);
+
+@import "~bulma/sass/utilities/_all";
+
+@mixin fullwidth-desktop()
+{
+    @include widescreen-only
+    {
+        width: 96vw;
+
+        margin-left: calc(-96vw / 2 + 1152px / 2);
+        margin-right: calc(-96vw / 2 + 1152px / 2);
+    }
+
+    @include fullhd
+    {
+        width: 96vw;
+
+        margin-left: calc(-96vw / 2 + 1344px / 2);
+        margin-right: calc(-96vw / 2 + 1344px / 2);
+    }
+}
+
+.small-title
+{
+    color: #7a7a7a;
+    font-size: 0.75em;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+
+    margin: 1em 0;
+}
+
+@import "~bulma/sass/elements/box";
+
+.tooltip
+{
+    .tooltip-inner
+    {
+        color: $black;
+
+        padding: 0.25em 0.4em;
+        overflow: hidden;
+        border-radius: 2px;
+
+        background: whitesmoke;
+        box-shadow: $box-shadow;
+    }
+
+    .tooltip-arrow
+    {
+        border-color: whitesmoke;
+        color: whitesmoke;
+    }
+}

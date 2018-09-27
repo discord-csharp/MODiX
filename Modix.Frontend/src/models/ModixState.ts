@@ -1,8 +1,14 @@
 import GuildInfoResult from "@/models/GuildInfoResult";
 import { ModuleHelpData } from "@/models/ModuleHelpData";
-import PromotionCampaign from "@/models/PromotionCampaign";
+import PromotionCampaign from "@/models/promotions/PromotionCampaign";
 import User from "@/models/User";
 import UserCodePaste from "@/models/UserCodePaste";
+import InfractionSummary from '@/models/infractions/InfractionSummary';
+import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
+import Role from '@/models/Role';
+import Claim from '@/models/Claim';
+import Guild from '@/models/Guild';
+import DesignatedRoleMapping from '@/models/moderation/DesignatedRoleMapping';
 
 export default interface ModixState
 {
@@ -13,4 +19,13 @@ export default interface ModixState
     currentPaste: UserCodePaste | null;
     commands: ModuleHelpData[];
     campaigns: PromotionCampaign[];
+    infractions: InfractionSummary[];
+    
+    channels: DesignatedChannelMapping[];
+    roleMappings: DesignatedRoleMapping[];
+    
+    claims: {[claim: string]: Claim[]};
+
+    roles: Role[];
+    guilds: Guild[];
 }
