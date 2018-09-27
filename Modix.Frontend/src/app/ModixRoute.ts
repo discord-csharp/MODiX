@@ -1,4 +1,4 @@
-import Vue, { VueConstructor } from 'Vue';
+import Vue, { VueConstructor } from 'vue';
 import { RouteConfig, Route } from 'vue-router';
 import _ from 'lodash';
 
