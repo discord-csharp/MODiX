@@ -178,6 +178,11 @@ namespace Modix.Services.Promotions
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsComment);
 
+            if (content == null || content.Length <= 3)
+            {
+                throw new InvalidOperationException("Comment content must be longer than 3 characters.");
+            }
+
             using (var transaction = await PromotionCommentRepository.BeginCreateTransactionAsync())
             {
                 if (await PromotionCommentRepository.AnyAsync(new PromotionCommentSearchCriteria()

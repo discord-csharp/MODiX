@@ -18,6 +18,13 @@
 
 </template>
 
+<style>
+.title
+{
+    text-transform: capitalize;
+}
+</style>
+
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
 import { ModuleHelpData, CommandHelpData } from '@/models/ModuleHelpData';

@@ -17,7 +17,7 @@
                     </div>
                 </div>
 
-                <VueGoodTable :columns="mappedColumns" :rows="mappedRows" 
+                <VueGoodTable :columns="mappedColumns" :rows="mappedRows" :sortOptions="sortOptions"
                     :paginationOptions="paginationOptions" styleClass="vgt-table condensed bordered striped">
 
                     <template slot="table-row" slot-scope="props">
@@ -154,6 +154,12 @@ import GeneralService from '@/services/GeneralService';
 import InfractionSummary from '@/models/infractions/InfractionSummary';
 import {config, setConfig} from '@/models/PersistentConfig';
 
+enum InfractionState
+{
+    Rescinded = "Rescinded",
+    Deleted = "Deleted",
+    Active = "Active"
+}
 
 @Component({
     components:
@@ -173,6 +179,12 @@ export default class Infractions extends Vue
     {
         enabled: true,
         perPage: 10
+    };
+
+    sortOptions: any = 
+    {
+        enabled: true,
+        initialSortBy: {field: 'date', type: 'desc'}
     };
 
     showInactive: boolean = false;
@@ -275,7 +287,8 @@ export default class Infractions extends Vue
             {
                 label: 'State',
                 field: 'state',
-                hidden: !this.showInactive
+                hidden: !this.showInactive,
+                filterOptions: { enabled: true, filterDropdownItems: this.states }
             }
         ];
     }
@@ -293,6 +306,11 @@ export default class Infractions extends Vue
             
             return true;
         });
+    }
+
+    get states(): string[]
+    {
+        return Object.keys(InfractionState).map(c => InfractionState[<any>c]);;
     }
 
     emojiFor(infractionType: InfractionType): string
@@ -321,7 +339,7 @@ export default class Infractions extends Vue
     {
         return _.map(this.filteredInfractions, infraction => 
         ({
-            id: infraction.id,
+            id: infraction.id.toString(),
             subject: infraction.subject.displayName,
             creator: infraction.createAction.createdBy.displayName,
             date: infraction.createAction.created,

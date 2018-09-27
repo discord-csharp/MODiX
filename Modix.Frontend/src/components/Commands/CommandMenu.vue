@@ -11,11 +11,25 @@
 
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import "../../styles/variables";
 @import "~bulma/sass/utilities/_all";
 
 @import "~bulma/sass/components/menu";
+
+.menu
+{
+    position: sticky;
+    top: 1px;
+
+    overflow-y: auto;
+    max-height: 100vh;
+}
+
+.menu-label
+{
+    margin: 1em 0em;
+}
 </style>
 
 

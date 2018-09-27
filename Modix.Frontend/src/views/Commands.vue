@@ -25,45 +25,6 @@
 @import "../styles/variables";
 @import "~bulma/sass/utilities/_all";
 
-.hidden
-{
-    opacity: 0;
-}
-
-.parameter
-{
-    
-}
-
-.title
-{
-    text-transform: capitalize;
-}
-
-.summary
-{
-    display: inline-block;
-    margin-right: 1em;
-}
-
-.menu
-{
-    position: sticky;
-    top: 1px;
-
-    overflow-y: auto;
-    max-height: 100vh;
-}
-
-.menu-label
-{
-    margin: 1em 0em;
-}
-
-.highlighted
-{
-    font-weight: bold;
-}
 
 </style>
 

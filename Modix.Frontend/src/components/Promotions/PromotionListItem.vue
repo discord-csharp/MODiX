@@ -17,8 +17,8 @@
 
                 <div class="column">
                     <span class="mobile-expander">
-                        <template v-if="expanded">⯅</template>
-                        <template v-else>⯆</template>
+                        <template v-if="expanded">▲</template>
+                        <template v-else>▼</template>
                     </span>
                 </div>
 
@@ -141,6 +141,8 @@
     font-size: 14px;
     font-weight: 400 !important;
     padding: 4px 8px;
+
+    border: 1px solid black;
     border-radius: 3px;
 
     position: relative;
@@ -377,7 +379,7 @@ export default class PromotionListItem extends Vue
         let roles = this.$store.state.modix.roles as Role[];
         let found = _.find(roles, (role: Role) => role.id == id) as Role;
 
-        return { color: found.fgColor, background: found.bgColor };
+        return { color: found.fgColor, borderColor: found.fgColor };
     }
 
     expandWithSentiment(sentiment: PromotionSentiment)

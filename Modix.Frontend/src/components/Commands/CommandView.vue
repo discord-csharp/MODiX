@@ -58,6 +58,12 @@
     color: gray;
 }
 
+.summary
+{
+    display: inline-block;
+    margin-right: 1em;
+}
+
 </style>
 
 

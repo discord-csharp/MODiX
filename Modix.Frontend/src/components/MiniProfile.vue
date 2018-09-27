@@ -10,11 +10,11 @@
             <v-popover>
                 <div class="guildDropdown tooltip-target" v-if="currentGuild" v-tooltip="'Selected: ' + currentGuild.name">
 
-                    <img class="avatar-icon" :src="currentGuild.iconUrl">
+                    <img class="dropdown-icon" :src="currentGuild.iconUrl">
 
                     <div class="expander">
-                        <template v-if="expanded">⯅</template>
-                        <template v-else>⯆</template>
+                        <template v-if="expanded">▲</template>
+                        <template v-else>▼</template>
                     </div>
 
                 </div>
@@ -56,7 +56,7 @@
 
     border-left: 1px solid transparentize($white, 0.75);
 
-    margin-left: 0.33em;
+    margin: 2px 0.25em 0 0.33em;
     padding-left: 0.66em;
 
     display: inline-block;
@@ -93,13 +93,18 @@
 .expander
 {
     display: inline-block;
-    vertical-align: super;
+    font-size: 0.8em;
+
+    position: relative;
+    top: -7px;
 }
 
 .profile
 {
     justify-self: flex-end;
     color: $white;
+
+    padding: 8px 6px 8px 12px;
 }
 
 .title.is-4, .title.is-4 a
@@ -108,12 +113,25 @@
     color: $white;
 }
 
-.avatar-icon
+.v-popover
+{
+    @include tiny()
+    {
+        display: none;
+    }
+}
+
+.avatar-icon, .dropdown-icon
 {
     margin-right: 0.5em;
 
     border-radius: 4px;
     box-shadow: -1px 1px 0px white;
+
+    @include tiny()
+    {
+        display: none;
+    }
 }
 
 .username
