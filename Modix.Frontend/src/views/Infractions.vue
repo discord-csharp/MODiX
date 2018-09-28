@@ -11,8 +11,12 @@
                     </div>
                     <div class="level-right">
                         <label>
-                            Show Inactive &amp; Deleted
-                            <input type="checkbox" v-model="showInactive">
+                            Show State
+                            <input type="checkbox" v-model="showState">
+                        </label> &nbsp;&nbsp;
+                        <label>
+                            Show Deleted
+                            <input type="checkbox" v-model="showDeleted">
                         </label>
                     </div>
                 </div>
@@ -22,7 +26,7 @@
 
                     <template slot="table-row" slot-scope="props">
                         <span v-if="props.column.field == 'type'">
-                            <span :title="props.formattedRow[props.column.field]">
+                            <span :title="props.formattedRow[props.column.field]" class="typeCell">
                                 {{emojiFor(props.formattedRow[props.column.field])}} {{props.formattedRow[props.column.field]}}
                             </span>
                         </span>
@@ -110,6 +114,12 @@
     }
 }
 
+.typeCell
+{
+    display: block;
+    white-space: nowrap;
+}
+
 .vgt-select
 {
     padding: 0px;
@@ -154,13 +164,6 @@ import GeneralService from '@/services/GeneralService';
 import InfractionSummary from '@/models/infractions/InfractionSummary';
 import {config, setConfig} from '@/models/PersistentConfig';
 
-enum InfractionState
-{
-    Rescinded = "Rescinded",
-    Deleted = "Deleted",
-    Active = "Active"
-}
-
 @Component({
     components:
     {
@@ -187,7 +190,9 @@ export default class Infractions extends Vue
         initialSortBy: {field: 'date', type: 'desc'}
     };
 
-    showInactive: boolean = false;
+    showState: boolean = false;
+    showDeleted: boolean = false;
+
     showModal: boolean = false;
     message: string | null = null;
     loadError: string | null = null;
@@ -287,30 +292,27 @@ export default class Infractions extends Vue
             {
                 label: 'State',
                 field: 'state',
-                hidden: !this.showInactive,
-                filterOptions: { enabled: true, filterDropdownItems: this.states }
+                hidden: !this.showState
             }
         ];
     }
 
     get filteredInfractions(): InfractionSummary[]
     {
-        var self = this;
-
         return _.filter(this.$store.state.modix.infractions, (infraction: InfractionSummary) =>
         {
-            if (infraction.rescindAction != null || infraction.deleteAction != null)
+            if (infraction.rescindAction != null)
             {
-                return self.showInactive;
+                return this.showState;
+            }
+
+            if (infraction.deleteAction != null)
+            {
+                return this.showDeleted;
             }
             
             return true;
         });
-    }
-
-    get states(): string[]
-    {
-        return Object.keys(InfractionState).map(c => InfractionState[<any>c]);;
     }
 
     emojiFor(infractionType: InfractionType): string
@@ -365,13 +367,21 @@ export default class Infractions extends Vue
     async created()
     {
         await this.refresh();
-        this.showInactive = config().showInactiveInfractions;
+
+        this.showState = config().showInfractionState;
+        this.showDeleted = config().showDeletedInfractions;
     }
 
-    @Watch('showInactive')
+    @Watch('showState')
     inactiveChanged()
     {
-        setConfig(conf => conf.showInactiveInfractions = this.showInactive);
+        setConfig(conf => conf.showInfractionState = this.showState);
+    }
+
+    @Watch('showDeleted')
+    deletedChanged()
+    {
+        setConfig(conf => conf.showDeletedInfractions = this.showDeleted);
     }
 }
 </script>
