@@ -29,7 +29,7 @@ namespace Modix.WebServer.Controllers
         {
             if (query.StartsWith('#'))
             {
-              query = query.Substring(1);
+                query = query.Substring(1);
             }
 
             var result = UserGuild.Channels
@@ -57,6 +57,11 @@ namespace Modix.WebServer.Controllers
         [HttpGet("roles")]
         public async Task<IActionResult> AutocompleteRoles(string query, [FromQuery] bool rankOnly)
         {
+            if (query.StartsWith('@'))
+            {
+                query = query.Substring(1);
+            }
+
             if (rankOnly)
             {
                 var criteria = new DesignatedRoleMappingSearchCriteria

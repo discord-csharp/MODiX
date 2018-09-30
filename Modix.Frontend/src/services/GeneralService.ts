@@ -40,6 +40,12 @@ export default class GeneralService
         return response;
     }
 
+    static async getChannels(): Promise<Channel[]>
+    {
+        let response = (await client.get("channels")).data;
+        return response;
+    }
+
     static async getGuilds(): Promise<Guild[]>
     {
         let response = (await client.get("guildOptions")).data;

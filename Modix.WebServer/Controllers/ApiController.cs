@@ -36,6 +36,11 @@ namespace Modix.WebServer.Controllers
             return Ok(UserGuild.Roles.Select(d => new { d.Id, d.Name, Color = d.Color.ToString() }));
         }
 
+        public IActionResult Channels()
+        {
+            return Ok(UserGuild.Channels.Select(d => new { d.Id, d.Name }));
+        }
+
         public IActionResult Claims()
         {
             return Ok(ClaimInfoData.GetClaims());

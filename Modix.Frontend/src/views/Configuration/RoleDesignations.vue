@@ -43,11 +43,11 @@
 
                         <div class="column">
                             <label class="label">Role Name</label>
-                            <Autocomplete :serviceCall="serviceCall" placeholder="#general"
+                            <Autocomplete :serviceCall="serviceCall" placeholder="@Administrator"
                                 @select="selectedAutocomplete = $event" minimumChars="-1" >
                                 
                                 <template slot-scope="{entry}">
-                                    #{{entry.name}}
+                                    @{{entry.name}}
                                 </template>
 
                             </Autocomplete>
@@ -198,9 +198,11 @@ export default class RoleDesignations extends Vue
     {
         if (this.designationCreationData.roleId == '') { return true; }
 
-        return _.some(this.$store.state.modix.channels, channel => 
-                channel.channelId == this.designationCreationData.roleId &&
-                channel.channelDesignation == designation);
+        console.log(this.$store.state.modix.roleMappings);
+
+        return _.some(this.$store.state.modix.roleMappings, (role: DesignatedRoleMapping) => 
+                role.roleId == this.designationCreationData.roleId &&
+                role.roleDesignation == designation);
     }
 
     async createAssignment()

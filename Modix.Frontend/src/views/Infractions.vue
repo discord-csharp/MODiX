@@ -30,6 +30,8 @@
                                 {{emojiFor(props.formattedRow[props.column.field])}} {{props.formattedRow[props.column.field]}}
                             </span>
                         </span>
+                        <span v-else-if="props.column.field == 'reason'" v-html="props.formattedRow[props.column.field]">
+                        </span>
                         <span v-else>
                             {{props.formattedRow[props.column.field]}}
                         </span>
@@ -120,11 +122,6 @@
     white-space: nowrap;
 }
 
-.vgt-select
-{
-    padding: 0px;
-}
-
 .vgt-responsive
 {
     @include fullwidth-desktop();
@@ -133,6 +130,17 @@
 .modal-card-foot.level
 {
     justify-content: space-between;
+}
+
+.vgt-input, .vgt-select
+{
+    padding: 0px 4px;
+    height: 28px;
+}
+
+.channel
+{
+    font-weight: bold;
 }
 
 @include mobile()
@@ -159,10 +167,25 @@ import store from "@/app/Store";
 import { Route } from 'vue-router';
 import { VueGoodTable } from 'vue-good-table';
 import { InfractionType } from '@/models/infractions/InfractionType'
+import GuildUserIdentity from '@/models/core/GuildUserIdentity'
 
 import GeneralService from '@/services/GeneralService';
 import InfractionSummary from '@/models/infractions/InfractionSummary';
 import {config, setConfig} from '@/models/PersistentConfig';
+import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
+import GuildInfoResult from '@/models/GuildInfoResult';
+
+const messageResolvingRegex = /<#(\d+)>/gm;
+
+const guildUserFilter = (subject: GuildUserIdentity, filter: string) =>
+{
+    filter = filter.toLowerCase();
+    
+    return subject.id.toString().toLowerCase().startsWith(filter) ||
+            subject.displayName.toLowerCase().startsWith(filter);
+};
+
+const guildUserFormat = (subject: GuildUserIdentity) => subject.displayName;
 
 @Component({
     components:
@@ -199,6 +222,8 @@ export default class Infractions extends Vue
     importGuildId: number | null = null;
     isLoading: boolean = false;
 
+    channelCache: {[channel: string]: DesignatedChannelMapping} | null = null;
+
     get fileInput(): HTMLInputElement
     {
         return <HTMLInputElement>this.$refs.fileInput;
@@ -221,6 +246,26 @@ export default class Infractions extends Vue
                 this.loadError = err;
             }
         }
+    }
+
+    resolveMentions(description: string)
+    {
+        if (this.channelCache == null)
+        {
+            return description;
+        }
+
+        return description.replace(messageResolvingRegex, (sub, args: string) =>
+        {
+            let found = this.channelCache![args].name;
+
+            if (!found)
+            {
+                found = args;
+            }
+
+            return `<span class='channel'>#${found}</span>`;
+        });
     }
 
     fileChange(input: HTMLInputElement)
@@ -256,38 +301,68 @@ export default class Infractions extends Vue
         reader.readAsText(files[0]);
     }
 
+    staticFilters: {[field: string]: string} = {subject: "", creator: "", id: ""};
+
     get mappedColumns(): Array<any>
     {
         return [
             {
                 label: 'Id',
-                field: 'id'
+                field: 'id',
+                filterOptions:
+                {
+                    enabled: true,
+                    filterValue: this.staticFilters["id"],
+                    placeholder: "Filter"
+                }
             },
             {
                 label: 'Type',
                 field: 'type',
-                filterOptions: { enabled: true, filterDropdownItems: this.infractionTypes }
+                filterOptions:
+                {
+                    enabled: true,
+                    filterDropdownItems: this.infractionTypes,
+                    placeholder: "Filter"
+                }
             },
             {
                 label: 'Created On',
                 field: 'date',
                 type: 'date',
                 dateInputFormat: 'YYYY-MM-DDTHH:mm:ss',
-                dateOutputFormat: 'MM/DD/YY, h:mm:ss a'
+                dateOutputFormat: 'MM/DD/YY, h:mm:ss a',
+                width: '160px'
             },
             {
                 label: 'Subject',
                 field: 'subject',
-                filterOptions: { enabled: true }
+                filterOptions:
+                {
+                    enabled: true,
+                    filterFn: guildUserFilter,
+                    filterValue: this.staticFilters["subject"],
+                    placeholder: "Filter"
+                },
+                formatFn: guildUserFormat
             },
             {
                 label: 'Creator',
                 field: 'creator',
-                filterOptions: { enabled: true }
+                filterOptions:
+                {
+                     enabled: true,
+                     filterFn: guildUserFilter,
+                     filterValue: this.staticFilters["creator"],
+                     placeholder: "Filter"
+                },
+                formatFn: guildUserFormat
             },
             {
                 label: 'Reason',
-                field: 'reason'
+                field: 'reason',
+                formatFn: this.resolveMentions,
+                html: true
             },
             {
                 label: 'State',
@@ -342,8 +417,8 @@ export default class Infractions extends Vue
         return _.map(this.filteredInfractions, infraction => 
         ({
             id: infraction.id.toString(),
-            subject: infraction.subject.displayName,
-            creator: infraction.createAction.createdBy.displayName,
+            subject: infraction.subject,
+            creator: infraction.createAction.createdBy,
             date: infraction.createAction.created,
             type: infraction.type,
             reason: infraction.reason,
@@ -360,8 +435,28 @@ export default class Infractions extends Vue
 
         store.clearInfractionData();
         await store.retrieveInfractions();
+        await store.retrieveChannels();
+
+        this.channelCache = _.keyBy(this.$store.state.modix.channels, channel => channel.id);
 
         this.isLoading = false;
+    }
+
+    applyFilters()
+    {
+        let urlParams = new URLSearchParams(window.location.search);
+
+        for (let i = 0; i < this.mappedColumns.length; i++)
+        {
+            let currentField: string = this.mappedColumns[i].field;
+
+            if (urlParams.has(currentField))
+            {
+                this.staticFilters[currentField] = urlParams.get(currentField) || "";
+            }
+        }
+
+        console.log(this.mappedColumns);
     }
 
     async created()
@@ -370,6 +465,8 @@ export default class Infractions extends Vue
 
         this.showState = config().showInfractionState;
         this.showDeleted = config().showDeletedInfractions;
+
+        this.applyFilters();
     }
 
     @Watch('showState')
