@@ -3,12 +3,12 @@
     <div class="tags has-addons">
         <span class="tag is-info">#{{designation.name}}</span>
 
-        <template v-if="canDelete && showConfirm">
+        <template v-if="showConfirm">
             <span class="tag is-dark">Remove Designation?</span>
             <a class="tag is-danger button" :class="{'is-loading': loading}" @click="confirm()">Yes</a>
             <a class="tag" @click="showConfirm = false">Nvm</a>
         </template>
-        <a class="tag is-danger" v-else @click="showConfirm = true">X</a>
+        <a class="tag is-danger" v-else-if="canDelete" @click="showConfirm = true">X</a>
     </div>
 
 </template>

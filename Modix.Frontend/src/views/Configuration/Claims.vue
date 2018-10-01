@@ -20,7 +20,7 @@
                     <ul class="menu-list">
 
                         <li v-for="role in allRoles" :key="role.id">
-                            <a @click="selectedRole = role" :style="roleStyle(role)">
+                            <a @click="selectedRole = role" :style="roleStyle(role)" :class="{'is-active': role == selectedRole}">
                                 {{role.name}}
                             </a>
                         </li>
@@ -48,7 +48,7 @@
     </section>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 
 @import "../../styles/variables";
 @import "~bulma/sass/base/_all";
@@ -67,6 +67,17 @@
 {
     width: 100%;
     height: 64px;
+}
+
+.menu-list li a
+{
+    border: 1px solid transparent;
+    
+    &.is-active
+    {
+        border: 1px solid black;
+        background: transparent;
+    }
 }
 
 </style>
@@ -149,7 +160,7 @@ export default class Claims extends Vue
     {
         if (role == this.selectedRole)
         {
-            return { color: role.fgColor, background: role.bgColor };
+            return { color: role.fgColor, borderColor: role.fgColor };
         }
 
         return {};

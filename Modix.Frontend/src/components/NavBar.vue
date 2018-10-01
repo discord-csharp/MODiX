@@ -15,9 +15,6 @@
             </div>
 
             <div class="brand-end is-hidden-desktop">
-                <router-link class="navbar-item link" to="/config" v-tooltip="'Configuration'" active-class="is-active">
-                    🛠
-                </router-link>
                 <MiniProfile class="navbar-item" />
             </div>
         </div>
@@ -27,6 +24,10 @@
                 <router-link class="navbar-item link" active-class="is-active"
                     v-for="route in routes" :key="route.routeData.name" :to="route.routeData.path" >
                     {{toTitleCase(route.title)}}
+                </router-link>
+
+                <router-link class="navbar-item link is-hidden-desktop" to="/config" active-class="is-active">
+                    Configuration
                 </router-link>
             </div>
 
@@ -52,6 +53,14 @@
 .logo
 {
     
+}
+
+nav
+{
+    @include mobile()
+    {
+        
+    }
 }
 
 .navbar-brand

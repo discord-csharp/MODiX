@@ -6,7 +6,7 @@ export default class Role
     name: string = "";
 
     fgColor: string = "";
-    bgColor: string = "";
+    //bgColor: string = "";
     
     private _color: string = "";
     get color(): string
@@ -19,9 +19,8 @@ export default class Role
         this._color = val;
         let parsedColor = tinycolor(this.color);
 
-        let mixColor = (parsedColor.isLight() ? "#36393f" : "#ffffff");
-        this.bgColor = tinycolor.mix(parsedColor, mixColor, 75).toString();
+        let determinedColor = parsedColor.darken((21 - tinycolor.readability(parsedColor, "#fff")) * 1.33);
 
-        this.fgColor = parsedColor.lighten(15).toString();
+        this.fgColor = determinedColor.toHexString();
     }
 }

@@ -14,7 +14,7 @@
 
                                     <li v-for="route in routes" :key="route.path">
                                         <router-link
-                                            :class="{'is-disabled': !hasClaimsForRoute(route)}" :title="claimsFor(route)" 
+                                            :class="{'is-disabled': !hasClaimsForRoute(route)}" v-tooltip.right-end="claimsFor(route)" 
                                             :key="route.routeData.name" :to="{'name': route.routeData.name}" exact-active-class="is-active"
                                             :event="!hasClaimsForRoute(route) ? '' : 'click'">
                                             
