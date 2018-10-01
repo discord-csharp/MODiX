@@ -18,6 +18,7 @@ import Role from '@/models/Role';
 import Claim from '@/models/Claim';
 import Guild from '@/models/Guild';
 import DesignatedRoleMapping from '@/models/moderation/DesignatedRoleMapping';
+import Channel from '@/models/Channel';
 
 Vue.use(Vuex);
 
@@ -33,9 +34,10 @@ const modixState: ModixState =
     commands: [],
     campaigns: [],
     infractions: [],
-    channels: [],
+    channelDesignations: [],
     claims: {},
     roles: [],
+    channels: [],
     guilds: [],
     roleMappings: []
 };
@@ -52,8 +54,9 @@ namespace modix
     const setInfractions = (state: ModixState, infractions: InfractionSummary[]) => state.infractions = infractions;
     const setRoles = (state: ModixState, roles: Role[]) => state.roles = roles;
     const setGuilds = (state: ModixState, guilds: Guild[]) => state.guilds = guilds;
+    const setChannels = (state: ModixState, channels: Channel[]) => state.channels = channels;
     
-    const setChannelDesignations = (state: ModixState, mappings: DesignatedChannelMapping[]) => state.channels = mappings;
+    const setChannelDesignations = (state: ModixState, mappings: DesignatedChannelMapping[]) => state.channelDesignations = mappings;
     const setRoleDesignations = (state: ModixState, mappings: DesignatedRoleMapping[]) => state.roleMappings = mappings;
     const setClaims = (state: ModixState, claims: {[claim: string]: Claim[]}) => state.claims = claims;
     
@@ -78,6 +81,7 @@ namespace modix
     const updateCampaigns = async (context: ModixContext) => mutatingServiceCall(PromotionService.getCampaigns, setCampaigns);
     const updateInfractions = async (context: ModixContext) => mutatingServiceCall(GeneralService.getInfractions, setInfractions);
     const updateRoles = async (context: ModixContext) => mutatingServiceCall(GeneralService.getGuildRoles, setRoles);
+    const updateChannels = async (context: ModixContext) => mutatingServiceCall(GeneralService.getChannels, setChannels);
 
     const updateChannelDesignations = async (context: ModixContext) => mutatingServiceCall(ConfigurationService.getChannelDesignations, setChannelDesignations);
     const updateRoleDesignations = async (context: ModixContext) => mutatingServiceCall(ConfigurationService.getRoleDesignations, setRoleDesignations);
@@ -92,6 +96,7 @@ namespace modix
     export const retrieveRoleDesignations = moduleBuilder.dispatch(updateRoleDesignations);
     export const retrieveClaims = moduleBuilder.dispatch(updateClaims);
     export const retrieveRoles = moduleBuilder.dispatch(updateRoles);
+    export const retrieveChannels = moduleBuilder.dispatch(updateChannels);
     export const retrieveGuilds = moduleBuilder.dispatch(updateGuilds);
 
     export const pushErrorMessage = moduleBuilder.commit(pushError);
@@ -110,7 +115,6 @@ namespace modix
 
         return diff.length === 0;
     };
-
 }
 
 export default modix;

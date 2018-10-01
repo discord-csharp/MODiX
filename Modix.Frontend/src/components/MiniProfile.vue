@@ -115,10 +115,7 @@
 
 .v-popover
 {
-    @include tiny()
-    {
-        display: none;
-    }
+    
 }
 
 .avatar-icon, .dropdown-icon
@@ -128,15 +125,17 @@
     border-radius: 4px;
     box-shadow: -1px 1px 0px white;
 
-    @include tiny()
-    {
-        display: none;
-    }
+    
 }
 
 .username
 {
     margin-right: 0.2em;
+
+    @include tiny()
+    {
+        display: none;
+    }
 }
 </style>
 

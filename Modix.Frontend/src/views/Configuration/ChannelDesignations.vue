@@ -144,7 +144,7 @@ export default class ChannelDesignations extends Vue
 
     get selectedChannels()
     {
-        let allDesignations: DesignatedChannelMapping[] = this.$store.state.modix.channels;
+        let allDesignations: DesignatedChannelMapping[] = this.$store.state.modix.channelDesignations;
         return _.filter(allDesignations, d => d.channelDesignation == this.viewedDesignation);
     }
 
@@ -198,7 +198,7 @@ export default class ChannelDesignations extends Vue
     {
         if (this.designationCreationData.channelId == '') { return true; }
 
-        return _.some(this.$store.state.modix.channels, channel => 
+        return _.some(this.$store.state.modix.channelDesignations, channel => 
                 channel.channelId == this.designationCreationData.channelId &&
                 channel.channelDesignation == designation);
     }

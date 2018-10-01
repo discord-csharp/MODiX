@@ -11,8 +11,12 @@
                     </div>
                     <div class="level-right">
                         <label>
-                            Show Inactive &amp; Deleted
-                            <input type="checkbox" v-model="showInactive">
+                            Show State
+                            <input type="checkbox" v-model="showState">
+                        </label> &nbsp;&nbsp;
+                        <label>
+                            Show Deleted
+                            <input type="checkbox" v-model="showDeleted">
                         </label>
                     </div>
                 </div>
@@ -22,9 +26,11 @@
 
                     <template slot="table-row" slot-scope="props">
                         <span v-if="props.column.field == 'type'">
-                            <span :title="props.formattedRow[props.column.field]">
+                            <span :title="props.formattedRow[props.column.field]" class="typeCell">
                                 {{emojiFor(props.formattedRow[props.column.field])}} {{props.formattedRow[props.column.field]}}
                             </span>
+                        </span>
+                        <span v-else-if="props.column.field == 'reason'" v-html="props.formattedRow[props.column.field]">
                         </span>
                         <span v-else>
                             {{props.formattedRow[props.column.field]}}
@@ -110,9 +116,10 @@
     }
 }
 
-.vgt-select
+.typeCell
 {
-    padding: 0px;
+    display: block;
+    white-space: nowrap;
 }
 
 .vgt-responsive
@@ -123,6 +130,22 @@
 .modal-card-foot.level
 {
     justify-content: space-between;
+}
+
+.vgt-input, .vgt-select
+{
+    padding: 0px 4px;
+    height: 28px;
+}
+
+.channel
+{
+    font-weight: bold;
+}
+
+.pre
+{
+    white-space: pre-line;
 }
 
 @include mobile()
@@ -149,17 +172,25 @@ import store from "@/app/Store";
 import { Route } from 'vue-router';
 import { VueGoodTable } from 'vue-good-table';
 import { InfractionType } from '@/models/infractions/InfractionType'
+import GuildUserIdentity from '@/models/core/GuildUserIdentity'
 
 import GeneralService from '@/services/GeneralService';
 import InfractionSummary from '@/models/infractions/InfractionSummary';
 import {config, setConfig} from '@/models/PersistentConfig';
+import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
+import GuildInfoResult from '@/models/GuildInfoResult';
 
-enum InfractionState
+const messageResolvingRegex = /<#(\d+)>/gm;
+
+const guildUserFilter = (subject: GuildUserIdentity, filter: string) =>
 {
-    Rescinded = "Rescinded",
-    Deleted = "Deleted",
-    Active = "Active"
-}
+    filter = filter.toLowerCase();
+    
+    return subject.id.toString().toLowerCase().indexOf(filter) >= 0 ||
+            subject.displayName.toLowerCase().indexOf(filter) >= 0;
+};
+
+const guildUserFormat = (subject: GuildUserIdentity) => subject.displayName;
 
 @Component({
     components:
@@ -187,12 +218,16 @@ export default class Infractions extends Vue
         initialSortBy: {field: 'date', type: 'desc'}
     };
 
-    showInactive: boolean = false;
+    showState: boolean = false;
+    showDeleted: boolean = false;
+
     showModal: boolean = false;
     message: string | null = null;
     loadError: string | null = null;
     importGuildId: number | null = null;
     isLoading: boolean = false;
+
+    channelCache: {[channel: string]: DesignatedChannelMapping} | null = null;
 
     get fileInput(): HTMLInputElement
     {
@@ -216,6 +251,28 @@ export default class Infractions extends Vue
                 this.loadError = err;
             }
         }
+    }
+
+    resolveMentions(description: string)
+    {
+        let replaced = description;
+
+        if (this.channelCache)
+        {
+            replaced = description.replace(messageResolvingRegex, (sub, args: string) =>
+            {
+                let found = this.channelCache![args].name;
+
+                if (!found)
+                {
+                    found = args;
+                }
+
+                return `<span class='channel'>#${found}</span>`;
+            });
+        }
+
+        return `<span class='pre'>${replaced}</span>`;
     }
 
     fileChange(input: HTMLInputElement)
@@ -251,66 +308,93 @@ export default class Infractions extends Vue
         reader.readAsText(files[0]);
     }
 
+    staticFilters: {[field: string]: string} = {subject: "", creator: "", id: ""};
+
     get mappedColumns(): Array<any>
     {
         return [
             {
                 label: 'Id',
-                field: 'id'
+                field: 'id',
+                filterOptions:
+                {
+                    enabled: true,
+                    filterValue: this.staticFilters["id"],
+                    placeholder: "Filter"
+                }
             },
             {
                 label: 'Type',
                 field: 'type',
-                filterOptions: { enabled: true, filterDropdownItems: this.infractionTypes }
+                filterOptions:
+                {
+                    enabled: true,
+                    filterDropdownItems: this.infractionTypes,
+                    placeholder: "Filter"
+                }
             },
             {
                 label: 'Created On',
                 field: 'date',
                 type: 'date',
                 dateInputFormat: 'YYYY-MM-DDTHH:mm:ss',
-                dateOutputFormat: 'MM/DD/YY, h:mm:ss a'
+                dateOutputFormat: 'MM/DD/YY, h:mm:ss a',
+                width: '160px'
             },
             {
                 label: 'Subject',
                 field: 'subject',
-                filterOptions: { enabled: true }
+                filterOptions:
+                {
+                    enabled: true,
+                    filterFn: guildUserFilter,
+                    filterValue: this.staticFilters["subject"],
+                    placeholder: "Filter"
+                },
+                formatFn: guildUserFormat
             },
             {
                 label: 'Creator',
                 field: 'creator',
-                filterOptions: { enabled: true }
+                filterOptions:
+                {
+                     enabled: true,
+                     filterFn: guildUserFilter,
+                     filterValue: this.staticFilters["creator"],
+                     placeholder: "Filter"
+                },
+                formatFn: guildUserFormat
             },
             {
                 label: 'Reason',
-                field: 'reason'
+                field: 'reason',
+                formatFn: this.resolveMentions,
+                html: true
             },
             {
                 label: 'State',
                 field: 'state',
-                hidden: !this.showInactive,
-                filterOptions: { enabled: true, filterDropdownItems: this.states }
+                hidden: !this.showState
             }
         ];
     }
 
     get filteredInfractions(): InfractionSummary[]
     {
-        var self = this;
-
         return _.filter(this.$store.state.modix.infractions, (infraction: InfractionSummary) =>
         {
-            if (infraction.rescindAction != null || infraction.deleteAction != null)
+            if (infraction.rescindAction != null)
             {
-                return self.showInactive;
+                return this.showState;
+            }
+
+            if (infraction.deleteAction != null)
+            {
+                return this.showDeleted;
             }
             
             return true;
         });
-    }
-
-    get states(): string[]
-    {
-        return Object.keys(InfractionState).map(c => InfractionState[<any>c]);;
     }
 
     emojiFor(infractionType: InfractionType): string
@@ -340,8 +424,8 @@ export default class Infractions extends Vue
         return _.map(this.filteredInfractions, infraction => 
         ({
             id: infraction.id.toString(),
-            subject: infraction.subject.displayName,
-            creator: infraction.createAction.createdBy.displayName,
+            subject: infraction.subject,
+            creator: infraction.createAction.createdBy,
             date: infraction.createAction.created,
             type: infraction.type,
             reason: infraction.reason,
@@ -358,20 +442,50 @@ export default class Infractions extends Vue
 
         store.clearInfractionData();
         await store.retrieveInfractions();
+        await store.retrieveChannels();
+
+        this.channelCache = _.keyBy(this.$store.state.modix.channels, channel => channel.id);
 
         this.isLoading = false;
+    }
+
+    applyFilters()
+    {
+        let urlParams = new URLSearchParams(window.location.search);
+
+        for (let i = 0; i < this.mappedColumns.length; i++)
+        {
+            let currentField: string = this.mappedColumns[i].field;
+
+            if (urlParams.has(currentField))
+            {
+                this.staticFilters[currentField] = urlParams.get(currentField) || "";
+            }
+        }
+
+        console.log(this.mappedColumns);
     }
 
     async created()
     {
         await this.refresh();
-        this.showInactive = config().showInactiveInfractions;
+
+        this.showState = config().showInfractionState;
+        this.showDeleted = config().showDeletedInfractions;
+
+        this.applyFilters();
     }
 
-    @Watch('showInactive')
+    @Watch('showState')
     inactiveChanged()
     {
-        setConfig(conf => conf.showInactiveInfractions = this.showInactive);
+        setConfig(conf => conf.showInfractionState = this.showState);
+    }
+
+    @Watch('showDeleted')
+    deletedChanged()
+    {
+        setConfig(conf => conf.showDeletedInfractions = this.showDeleted);
     }
 }
 </script>
