@@ -143,6 +143,11 @@
     font-weight: bold;
 }
 
+.pre
+{
+    white-space: pre-line;
+}
+
 @include mobile()
 {
     .vgt-table.bordered
@@ -181,8 +186,8 @@ const guildUserFilter = (subject: GuildUserIdentity, filter: string) =>
 {
     filter = filter.toLowerCase();
     
-    return subject.id.toString().toLowerCase().startsWith(filter) ||
-            subject.displayName.toLowerCase().startsWith(filter);
+    return subject.id.toString().toLowerCase().indexOf(filter) >= 0 ||
+            subject.displayName.toLowerCase().indexOf(filter) >= 0;
 };
 
 const guildUserFormat = (subject: GuildUserIdentity) => subject.displayName;
@@ -250,22 +255,24 @@ export default class Infractions extends Vue
 
     resolveMentions(description: string)
     {
-        if (this.channelCache == null)
+        let replaced = description;
+
+        if (this.channelCache)
         {
-            return description;
+            replaced = description.replace(messageResolvingRegex, (sub, args: string) =>
+            {
+                let found = this.channelCache![args].name;
+
+                if (!found)
+                {
+                    found = args;
+                }
+
+                return `<span class='channel'>#${found}</span>`;
+            });
         }
 
-        return description.replace(messageResolvingRegex, (sub, args: string) =>
-        {
-            let found = this.channelCache![args].name;
-
-            if (!found)
-            {
-                found = args;
-            }
-
-            return `<span class='channel'>#${found}</span>`;
-        });
+        return `<span class='pre'>${replaced}</span>`;
     }
 
     fileChange(input: HTMLInputElement)
