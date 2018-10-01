@@ -1,12 +1,12 @@
 <template>
     <div>
-        <section class="section">
+        <section class="section container">
 
             <h1 class="title">
                 Start a Campaign
             </h1>
             
-            <div class="container columns">
+            <div class="columns">
 
                 <div class="column is-one-third">
                     <div class="">

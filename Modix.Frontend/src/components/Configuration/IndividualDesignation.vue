@@ -1,7 +1,9 @@
 <template>
 
     <div class="tags has-addons">
-        <span class="tag is-info">#{{designation.name}}</span>
+        <span class="tag is-info">
+            <template v-if="isChannel">#</template><template v-else>@</template>{{designation.name}}
+        </span>
 
         <template v-if="showConfirm">
             <span class="tag is-dark">Remove Designation?</span>
@@ -48,6 +50,11 @@ export default class IndividualDesignation extends Vue
         this.$emit("confirm", this.designation);
         
         this.loading = false;
+    }
+
+    get isChannel(): boolean
+    {
+        return (this.designation as any).channelId != undefined;
     }
 }
 </script>

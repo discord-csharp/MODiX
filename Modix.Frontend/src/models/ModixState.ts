@@ -9,6 +9,7 @@ import Role from '@/models/Role';
 import Claim from '@/models/Claim';
 import Guild from '@/models/Guild';
 import DesignatedRoleMapping from '@/models/moderation/DesignatedRoleMapping';
+import Channel from '@/models/Channel';
 
 export default interface ModixState
 {
@@ -21,11 +22,12 @@ export default interface ModixState
     campaigns: PromotionCampaign[];
     infractions: InfractionSummary[];
     
-    channels: DesignatedChannelMapping[];
+    channelDesignations: DesignatedChannelMapping[];
     roleMappings: DesignatedRoleMapping[];
     
     claims: {[claim: string]: Claim[]};
 
     roles: Role[];
     guilds: Guild[];
+    channels: Channel[];
 }
