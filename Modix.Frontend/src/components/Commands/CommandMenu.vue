@@ -3,7 +3,7 @@
     <aside class="menu">
         <div v-for="commandModule in commandModules" :key="commandModule.name">
             <p class="menu-label">
-                <strong v-if="commandModule.name == highlightedModule">{{commandModule.name}}</strong>
+                <span class="has-text-weight-bold" v-if="commandModule.name == highlightedModule">{{commandModule.name}}</span>
                 <a v-else v-on:click="$emit('moduleClicked', commandModule)">{{commandModule.name}}</a>
             </p>
         </div>
@@ -13,8 +13,6 @@
 
 <style lang="scss" scoped>
 @import "../../styles/variables";
-@import "~bulma/sass/utilities/_all";
-
 @import "~bulma/sass/components/menu";
 
 .menu

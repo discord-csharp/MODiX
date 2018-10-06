@@ -30,7 +30,9 @@
 <style lang="scss" scoped>
 @import "../../styles/variables";
 @import "~bulma/sass/utilities/_all";
+@import "~bulma/sass/elements/form";
 @import "~bulma/sass/elements/box";
+@import "~bulma/sass/elements/title";
 
 .command
 {
@@ -48,14 +50,14 @@
 
     .overload
     {
-        color: gray;
+        color: $subtitle-color;
     }
 }
 
 .spacer
 {
     margin-bottom: 1em;
-    color: gray;
+    color: $subtitle-color;
 }
 
 .summary

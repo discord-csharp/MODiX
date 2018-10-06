@@ -16,3 +16,9 @@ export const getCookie = (name: string) =>
     var value = re.exec(document.cookie);
     return (value != null) ? unescape(value[1]) : null;
 }
+
+export const toBool = (input: any): boolean =>
+{
+    if (!input) { return false; }
+    return input === true || input === "true" || input === "TRUE";
+}

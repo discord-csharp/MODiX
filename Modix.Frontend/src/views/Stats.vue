@@ -16,9 +16,6 @@
 </template>
 
 <style lang="scss">
-@import "~bulma/sass/utilities/_all";
-@import "~bulma/sass/base/_all";
-@import "~bulma/sass/components/media";
 
 
 </style>

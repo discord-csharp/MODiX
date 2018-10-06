@@ -12,9 +12,9 @@
 
 <style lang="scss">
 
+@import "styles/tooltip";
 @import "styles/variables";
 
-@import "~bulma/sass/utilities/_all";
 @import "~bulma/sass/base/_all";
 @import "~bulma/sass/grid/_all";
 @import "~bulma/sass/layout/_all";
@@ -23,6 +23,7 @@
 @import "~bulma/sass/elements/title";
 @import "~bulma/sass/elements/container";
 @import "~bulma/sass/elements/button";
+@import "~bulma/sass/components/level";
 
 @import "styles/overrides";
 
@@ -53,6 +54,11 @@
 {
     padding-top: 1.5rem;
     padding-bottom: 1.5rem;
+}
+
+.delete
+{
+    @include delete();
 }
 </style>
 

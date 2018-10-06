@@ -14,8 +14,14 @@
 
 </template>
 
-<style lang="scss">
-@import "../../styles/tooltip";
+<style scoped lang="scss">
+@import "../../styles/variables";
+@import "~bulma/sass/elements/tag";
+
+.tag:not(body).is-dark
+{
+    color: white !important;
+}
 
 .tooltip-inner 
 {
@@ -76,7 +82,7 @@ export default class ParameterView extends Vue
         if (this.param.options.length > 0)
         {
             let optionsJoined = this.param.options.join(', ');
-            ret += `<strong>${optionsJoined}</strong>`;
+            ret += ` <span class='has-text-weight-bold'>${optionsJoined}</span>`;
         }
 
         return ret;

@@ -105,7 +105,6 @@
 @import "~bulma/sass/elements/form";
 @import "~bulma/sass/components/menu";
 @import "~bulma/sass/components/panel";
-@import "~bulma/sass/components/level";
 @import "~bulma/sass/components/modal";
 
 .modal

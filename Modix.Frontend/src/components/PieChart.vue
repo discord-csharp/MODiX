@@ -1,6 +1,7 @@
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import { Doughnut } from 'vue-chartjs';
+import ApplicationConfiguration from '@/app/ApplicationConfiguration'
 import GuildInfoResult from '@/models/GuildInfoResult'
 
 import * as store from "@/app/Store";
@@ -37,12 +38,25 @@ export default class PieChart extends Vue
                     data: Array.from(this.currentGuild).map(d=> d.count)
                 }
             ]
-        }, {responsive: true, maintainAspectRatio: false});
+        },
+        {
+            responsive: true,
+            maintainAspectRatio: false,
+            legend:
+            {
+                display: true,
+                labels:
+                {
+                    fontColor: (ApplicationConfiguration.isSpoopy ? 'rgb(230,230,230)' : 'black')
+                }
+            }
+        });
     }
 
     mounted()
     {
         this.updateChart();
+        console.log(process.env);
     }
 }
 </script>

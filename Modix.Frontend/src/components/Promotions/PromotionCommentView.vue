@@ -9,12 +9,11 @@
 
 </template>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
 
 @import "../../styles/variables";
 @import "~bulma/sass/utilities/_all";
 @import "~bulma/sass/elements/box";
-@import "~bulma/sass/components/level";
 @import '~bulma/sass/elements/form';
 
 .comment

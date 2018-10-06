@@ -90,10 +90,9 @@
     </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 
 @import "../styles/variables";
-@import "~bulma/sass/components/level";
 @import "~bulma/sass/components/modal";
 @import "~bulma/sass/elements/notification";
 @import "~bulma/sass/elements/form";
@@ -125,11 +124,6 @@
 .vgt-responsive
 {
     @include fullwidth-desktop();
-}
-
-.modal-card-foot.level
-{
-    justify-content: space-between;
 }
 
 .vgt-input, .vgt-select
