@@ -22,9 +22,6 @@
 
 <style lang="scss">
 
-@import "../styles/variables";
-@import "~bulma/sass/utilities/_all";
-
 
 </style>
 

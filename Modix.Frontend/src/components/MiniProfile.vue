@@ -84,7 +84,7 @@
     &:hover
     {
         background: $info;
-        color: $white;
+        color: $text;
 
         cursor: pointer;
     }
@@ -102,7 +102,7 @@
 .profile
 {
     justify-self: flex-end;
-    color: $white;
+    color: white;
 
     padding: 8px 6px 8px 12px;
 }
@@ -110,7 +110,7 @@
 .title.is-4, .title.is-4 a
 {
     word-break: normal;
-    color: $white;
+    color: white;
 }
 
 .v-popover

@@ -18,7 +18,7 @@
 
 </template>
 
-<style>
+<style scoped>
 .title
 {
     text-transform: capitalize;

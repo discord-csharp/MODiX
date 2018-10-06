@@ -15,7 +15,7 @@
 
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 @import "../../styles/variables";
 @import "~bulma/sass/utilities/_all";
 @import "~bulma/sass/elements/tag";

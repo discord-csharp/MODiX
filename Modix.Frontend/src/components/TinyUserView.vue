@@ -10,7 +10,7 @@
 
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 
 @import "~bulma/sass/utilities/_all";
 @import "~bulma/sass/base/_all";

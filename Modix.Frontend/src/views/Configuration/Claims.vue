@@ -20,7 +20,7 @@
                     <ul class="menu-list">
 
                         <li v-for="role in allRoles" :key="role.id">
-                            <a @click="selectedRole = role" :style="roleStyle(role)" :class="{'is-active': role == selectedRole}">
+                            <a @click="selectedRole = role" :style="roleStyle(role)" :class="{'toRole': role == selectedRole, 'is-active': role == selectedRole}">
                                 {{role.name}}
                             </a>
                         </li>
@@ -71,11 +71,11 @@
 
 .menu-list li a
 {
-    border: 1px solid transparent;
+    border: 2px solid transparent;
     
     &.is-active
     {
-        border: 1px solid black;
+        border: 2px solid black;
         background: transparent;
     }
 }

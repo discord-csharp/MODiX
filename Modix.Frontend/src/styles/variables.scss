@@ -1,6 +1,8 @@
 $primary: rgb(128, 55, 136);
 $default-transition: 1s cubic-bezier(0.165, 0.84, 0.44, 1);
 
+//👻🎃🍬
+@import 'spoopy';
 @import "~bulma/sass/utilities/_all";
 
 @mixin fullwidth-desktop()
@@ -38,20 +40,20 @@ $default-transition: 1s cubic-bezier(0.165, 0.84, 0.44, 1);
 {
     .tooltip-inner
     {
-        color: $black;
+        color: $text;
 
         padding: 0.25em 0.4em;
         overflow: hidden;
         border-radius: 2px;
 
-        background: whitesmoke;
+        background: $background;
         box-shadow: $box-shadow;
     }
 
     .tooltip-arrow
     {
-        border-color: whitesmoke;
-        color: whitesmoke;
+        border-color: $background;
+        color: $white;
     }
 }
 

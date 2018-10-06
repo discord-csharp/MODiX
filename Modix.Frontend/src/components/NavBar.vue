@@ -86,7 +86,7 @@ nav
 nav
 {
     background: $primary;
-    box-shadow: 0px 2px 8px -4px $black;
+    box-shadow: 0px 2px 8px -4px $background;
 
     user-select: none;
 }
@@ -101,11 +101,11 @@ nav
 
 .navbar-burger
 {
-    color: $white;
+    color: $text;
 
     &:hover
     {
-        color: $white;
+        color: $text;
     }
 }
 
@@ -131,21 +131,21 @@ nav
 
     background-color: $primary;
 
-    color: $white;
+    color: white;
 
     &.is-active
     {
-        color: $black;
-        background-color: $white !important;
+        color: $text;
+        background-color: $body-background-color !important;
 
         font-weight: bold;
         pointer-events: none;
-        box-shadow: 0px 6px 0px 0px $white;
+        box-shadow: 0px 6px 0px 0px $body-background-color;
     }
 
     &:hover
     {
-        color: $white;
+        color: white;
         background-color: darken($primary, 3);
     }
 }
@@ -162,6 +162,7 @@ import * as _ from 'lodash';
 import store from '@/app/Store';
 import User from '@/models/User';
 import ModixRoute from '@/app/ModixRoute';
+import ApplicationConfiguration from '@/app/ApplicationConfiguration';
 
 @Component({
     components:
@@ -173,13 +174,23 @@ export default class NavBar extends Vue
 {
     expanded: boolean = false;
 
-    get purpleLogo(): string
+    get primaryLogo(): string
     {
+        if (ApplicationConfiguration.isSpoopy)
+        {
+            return require("../assets/logo_colored_spoopy.png");
+        }
+
         return require("../assets/logo_small_w.png");
     }
 
-    get whiteLogo(): string
+    get backgroundLogo(): string
     {
+        if (ApplicationConfiguration.isSpoopy)
+        {
+            return require("../assets/logo_small_spoopy.png");
+        }
+        
         return require("../assets/logo_small.png");
     }
 
@@ -192,10 +203,10 @@ export default class NavBar extends Vue
     {
         if (this.$route.name == "home")
         {
-            return this.whiteLogo;
+            return this.backgroundLogo;
         }
 
-        return this.purpleLogo;
+        return this.primaryLogo;
     }
 
     hasClaimsForRoute(route: ModixRoute): boolean

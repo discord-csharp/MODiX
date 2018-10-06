@@ -37,7 +37,7 @@
     </div>
 </template>
 
-<style lang="scss">
+<style scope lang="scss">
 
 @import "../../styles/variables";
 @import "~bulma/sass/utilities/_all";

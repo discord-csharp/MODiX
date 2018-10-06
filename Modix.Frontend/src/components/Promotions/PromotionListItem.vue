@@ -50,7 +50,7 @@
         </div>
 
         <div>
-            <small class="date">Campaign started <strong>{{formatDate(campaign.startDate)}}</strong></small>
+            <small class="date">Campaign started <span class="has-text-weight-bold">{{formatDate(campaign.startDate)}}</span></small>
 
             <div class="commentList">
                 <PromotionCommentView v-for="(comment, index) in comments" :key="comment.promotionCampaignId" :comment="comment"
@@ -90,7 +90,6 @@
 @import "../../styles/variables";
 @import "~bulma/sass/utilities/_all";
 @import "~bulma/sass/elements/box";
-@import "~bulma/sass/components/level";
 @import '~bulma/sass/elements/form';
 @import "~bulma/sass/elements/progress";
 
@@ -114,14 +113,11 @@
     font-size: 14px;
 
     font-weight: normal;
-    color: gray;
+    color: grey;
 
     margin-bottom: -10px;
 
-    @include tablet()
-    {
-        margin-left: 1em;
-    }
+  
 }
 
 .displayName
@@ -142,7 +138,7 @@
     font-weight: 400 !important;
     padding: 4px 8px;
 
-    border: 1px solid black;
+    border: 2px solid black;
     border-radius: 3px;
 
     position: relative;
