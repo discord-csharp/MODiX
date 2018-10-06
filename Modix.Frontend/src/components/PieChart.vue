@@ -56,7 +56,6 @@ export default class PieChart extends Vue
     mounted()
     {
         this.updateChart();
-        console.log(process.env);
     }
 }
 </script>
