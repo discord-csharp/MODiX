@@ -57,7 +57,7 @@
                             <div class="control is-expanded">
                                 <a class="copyButton is-small button" title="Copy to Clipboard" 
                                     :data-clipboard-text="'!info ' + modalCampaign.subject.id">
-                                    📋
+                                    &#128203;
                                 </a>
                             </div>
                             <div class="control">

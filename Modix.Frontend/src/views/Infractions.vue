@@ -396,13 +396,13 @@ export default class Infractions extends Vue
         switch (infractionType)
         {
             case "Notice":
-                return "📝";
+                return "&#128221;";
             case "Warning":
-                return "⚠️";
+                return "&#9888;";
             case "Mute":
-                return "🔇";
+                return "&#128263;";
             case "Ban":
-                return "🔨";
+                return "&#128296;";
             default:
                 return infractionType;
         }

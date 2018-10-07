@@ -10,15 +10,15 @@
                         
                         <span class="statusIcon" v-tooltip="'Status: ' + (campaign.outcome ? campaign.outcome : 'Active')">{{statusIcon}}</span>
                         <span class="displayName">{{campaign.subject.displayName}}</span>
-                        <span class="toRole" :style="roleStyle(campaign.targetRole.id)">➥ {{campaign.targetRole.name}}</span>
+                        <span class="toRole" :style="roleStyle(campaign.targetRole.id)">&#10149; {{campaign.targetRole.name}}</span>
                         
                     </h1>
                 </div>
 
                 <div class="column">
                     <span class="mobile-expander">
-                        <template v-if="expanded">▲</template>
-                        <template v-else>▼</template>
+                        <template v-if="expanded">&#9650;</template>
+                        <template v-else>&#9660;</template>
                     </span>
                 </div>
 
@@ -44,8 +44,8 @@
             </div>
 
             <div class="column is-narrow expander is-hidden-mobile">
-                <template v-if="expanded">⯅</template>
-                <template v-else>⯆</template>
+                <template v-if="expanded">&#9650;</template>
+                <template v-else>&#9660;</template>
             </div>
         </div>
 
@@ -330,7 +330,7 @@ export default class PromotionListItem extends Vue
 
     get statusIcon()
     {
-        return (this.campaign.outcome ? StatusIcons[this.campaign.outcome] : "🗳️");
+        return (this.campaign.outcome ? StatusIcons[this.campaign.outcome] : "&#128499;");
     }
 
     async submitComment()

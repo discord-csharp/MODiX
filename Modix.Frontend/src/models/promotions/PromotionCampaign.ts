@@ -21,16 +21,16 @@ export enum CampaignOutcome
 
 export const SentimentIcons: {[sentiment in PromotionSentiment]: string} = 
 {
-    "Approve": "👍",
-    "Oppose": "👎",
-    "Abstain": "😐"
+    "Approve": "&#128077;",
+    "Oppose": "&#128078;",
+    "Abstain": "&#128528;"
 }
 
 export const StatusIcons: {[sentiment in CampaignOutcome]: string} = 
 {
-    "Accepted": "✔️",
-    "Rejected": "❌",
-    "Failed": "❓"
+    "Accepted": "&#10004;",
+    "Rejected": "&#10060;",
+    "Failed": "&#10067;"
 }
 
 export default class PromotionCampaign

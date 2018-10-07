@@ -4,7 +4,7 @@
             <img class="avatar-icon" :src="user.avatarUrl">
             <p class="title is-4">
                 <span class="username">{{user.name}}</span>
-                <!--<a href="/api/logout" title="Log Out">👋</a>-->
+                <!--<a href="/api/logout" title="Log Out">&#128075;</a>-->
             </p>
 
             <v-popover>
@@ -13,8 +13,8 @@
                     <img class="dropdown-icon" :src="currentGuild.iconUrl">
 
                     <div class="expander">
-                        <template v-if="expanded">▲</template>
-                        <template v-else>▼</template>
+                        <template v-if="expanded">&#9650;</template>
+                        <template v-else>&#9660;</template>
                     </div>
 
                 </div>
@@ -32,7 +32,7 @@
 
         <template v-else>
             <p class="title is-4">
-                <a href="/api/login">Log In 📥</a>
+                <a href="/api/login">Log In &#128229;</a>
             </p>
         </template>
     </div>

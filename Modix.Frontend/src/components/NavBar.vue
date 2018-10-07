@@ -33,7 +33,7 @@
 
             <div class="navbar-end is-hidden-touch">
                 <router-link class="navbar-item link" to="/config" v-tooltip="'Configuration'" active-class="is-active">
-                    🛠
+                    &#128736;
                 </router-link>
                 <MiniProfile class="navbar-item" />
             </div>
