@@ -8,7 +8,7 @@
                 <div class="column is-narrow leftSide">
                     <h1 class="title is-size-4">
                         
-                        <span class="statusIcon" v-tooltip="'Status: ' + (campaign.outcome ? campaign.outcome : 'Active')">{{statusIcon}}</span>
+                        <span class="statusIcon" v-html="statusIcon" v-tooltip="'Status: ' + (campaign.outcome ? campaign.outcome : 'Active')"></span>
                         <span class="displayName">{{campaign.subject.displayName}}</span>
                         <span class="toRole" :style="roleStyle(campaign.targetRole.id)">&#10149; {{campaign.targetRole.name}}</span>
                         
@@ -32,10 +32,10 @@
             <div class="column is-narrow-tablet ratings">
                 <div class="columns is-mobile">
                     <div class="column rating" @click.stop="expandWithSentiment('Approve')">
-                        {{sentimentIcon("Approve")}} {{campaign.votesFor}}
+                        <span v-html="sentimentIcon('Approve')"></span> {{campaign.votesFor}}
                     </div>
                     <div class="column rating" @click.stop="expandWithSentiment('Oppose')">
-                        {{sentimentIcon("Oppose")}} {{campaign.votesAgainst}}
+                        <span v-html="sentimentIcon('Oppose')"></span> {{campaign.votesAgainst}}
                     </div>
                 </div>
 
@@ -61,9 +61,9 @@
                 <p class="control">
                     <span class="select">
                         <select v-model="newComment.sentiment">
-                            <option value="Abstain">{{sentimentIcon("Abstain")}}</option>
-                            <option value="Approve">{{sentimentIcon("Approve")}}</option>
-                            <option value="Oppose">{{sentimentIcon("Oppose")}}</option>
+                            <option value="Abstain" v-html="sentimentIcon('Abstain')"></option>
+                            <option value="Approve" v-html="sentimentIcon('Approve')"></option>
+                            <option value="Oppose" v-html="sentimentIcon('Oppose')"></option>
                         </select>
                     </span>
                 </p>
