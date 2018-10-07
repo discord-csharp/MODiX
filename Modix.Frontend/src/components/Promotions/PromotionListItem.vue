@@ -330,7 +330,7 @@ export default class PromotionListItem extends Vue
 
     get statusIcon()
     {
-        return (this.campaign.outcome ? StatusIcons[this.campaign.outcome] : "🗳️");
+        return (this.campaign.outcome ? StatusIcons[this.campaign.outcome] : "&#128499;");
     }
 
     async submitComment()
