@@ -26,8 +26,8 @@
 
                     <template slot="table-row" slot-scope="props">
                         <span v-if="props.column.field == 'type'">
-                            <span :title="props.formattedRow[props.column.field]" class="typeCell">
-                                {{emojiFor(props.formattedRow[props.column.field])}} {{props.formattedRow[props.column.field]}}
+                            <span :title="props.formattedRow[props.column.field]" class="typeCell"
+                                v-html="emojiFor(props.formattedRow[props.column.field]) + ' ' + props.formattedRow[props.column.field]">
                             </span>
                         </span>
                         <span v-else-if="props.column.field == 'reason'" v-html="props.formattedRow[props.column.field]">
@@ -90,13 +90,9 @@
     </div>
 </template>
 
-<style scoped lang="scss">
+<style lang="scss">
 
 @import "../styles/variables";
-@import "~bulma/sass/components/modal";
-@import "~bulma/sass/elements/notification";
-@import "~bulma/sass/elements/form";
-
 @import "~vue-good-table/dist/vue-good-table.css";
 
 .vgt-table.bordered
@@ -115,12 +111,6 @@
     }
 }
 
-.typeCell
-{
-    display: block;
-    white-space: nowrap;
-}
-
 .vgt-responsive
 {
     @include fullwidth-desktop();
@@ -130,16 +120,6 @@
 {
     padding: 0px 4px;
     height: 28px;
-}
-
-.channel
-{
-    font-weight: bold;
-}
-
-.pre
-{
-    white-space: pre-line;
 }
 
 @include mobile()
@@ -155,6 +135,30 @@
     }
 }
 
+.channel
+{
+    font-weight: bold;
+}
+
+.pre
+{
+    white-space: pre-line;
+}
+
+</style>
+
+<style scoped lang="scss">
+
+@import "../styles/variables";
+@import "~bulma/sass/components/modal";
+@import "~bulma/sass/elements/notification";
+@import "~bulma/sass/elements/form";
+
+.typeCell
+{
+    display: block;
+    white-space: nowrap;
+}
 </style>
 
 <script lang="ts">
