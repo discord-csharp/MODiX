@@ -1,7 +1,7 @@
 <template>
 
     <div class="comment">
-        <span class="sentimentIcon">{{sentimentIcon(comment.sentiment)}}</span>
+        <span class="sentimentIcon" v-html="sentimentIcon(comment.sentiment)"></span>
         <span class="commentBody">
             {{comment.content}} <span class="date">{{formatDate(comment.createAction.created)}}</span>
         </span>
