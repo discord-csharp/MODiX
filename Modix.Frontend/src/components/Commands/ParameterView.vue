@@ -5,7 +5,7 @@
             <span class="tag is-dark">
                 {{param.name}}
             </span>
-            <span class="tag description" v-tooltip.top-center="{content: description, trigger: 'hover click'}" v-if="hasDescription">…</span>                          
+            <span class="tag description" v-tooltip.top-center="{content: description, trigger: 'hover click'}" v-if="hasDescription">&hellip;</span>                          
             <span class="tag is-info">{{param.type}}</span>
             <span v-if="param.isOptional" class="tag pointer is-warning" 
                 v-tooltip.top-center="{content: 'Optional', trigger: 'hover click'}">?</span>
