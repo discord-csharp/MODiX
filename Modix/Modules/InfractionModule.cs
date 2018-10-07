@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -107,7 +108,7 @@ namespace Modix.Modules
             var infractionQuery = infractions.Select(infraction => new
             {
                 Id = infraction.Id,
-                Created = infraction.CreateAction.Created.ToUniversalTime().ToString("yyyy MMM dd HH:mm"),
+                Created = infraction.CreateAction.Created.ToUniversalTime().ToString("MMM dd, yyyy HH:mm tt zz"),
                 Type = infraction.Type.ToString(),
                 Subject = infraction.Subject.Username,
                 Creator = infraction.CreateAction.CreatedBy.DisplayName,
@@ -117,24 +118,27 @@ namespace Modix.Modules
                 Reason = infraction.Reason
             }).OrderBy(s => s.Type);
 
+            var noticeCount = infractions.Count(x => x.Type == InfractionType.Notice);
+            var warningCount = infractions.Count(x => x.Type == InfractionType.Warning);
+            var muteCount = infractions.Count(x => x.Type == InfractionType.Mute);
+            var banCount = infractions.Count(x => x.Type == InfractionType.Ban);
+
             var builder = new EmbedBuilder()
-                .WithTitle($"Infractions for user: {subject.Username}#{subject.Discriminator}")
-                //.WithDescription("This user has a total of 5 mutes, 7 warnings, and 3 notices.")
-                .WithUrl("https://discordapp.com")
+                .WithTitle($"Infractions for user: {subject.Username}#{subject.Discriminator} - {subject.Id}")
+                .WithDescription(
+                    $"This user has {noticeCount} notice(s), {warningCount} warning(s), {muteCount} mute(s), and {banCount} ban(s)")
+                .WithUrl("https://mod.gg/infractions")
                 .WithColor(new Color(0xA3BF0B))
                 .WithTimestamp(DateTimeOffset.Now)
                 .WithFooter(footer =>
                 {
                     footer
-                        .WithText("Infractions")
-                        .WithIconUrl("https://cdn.discordapp.com/embed/avatars/0.png");
-                })
-                .WithThumbnailUrl("https://cdn.discordapp.com/embed/avatars/0.png");
-
+                        .WithText("Infractions - https://mod.gg/infractions");
+                });
 
             foreach (var infraction in infractionQuery)
             {
-                builder.AddField(infraction.Type, $"ID: {infraction.Id} - Reason: {infraction.Reason}");
+                builder.AddField($"{infraction.Type} - Created: {infraction.Created}", $"ID: {infraction.Id} - Reason: {infraction.Reason}");
             }
 
             var embed = builder.Build();
