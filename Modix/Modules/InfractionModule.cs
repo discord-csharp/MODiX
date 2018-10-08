@@ -133,7 +133,10 @@ namespace Modix.Modules
 
             foreach (var infraction in infractionQuery)
             {
-                builder.AddField($"#{infraction.Id} - {infraction.Type} - Created: {infraction.Created}", $"Reason: {infraction.Reason}");
+                builder.AddField(
+                    $"#{infraction.Id} - {infraction.Type} - Created: {infraction.Created}",
+                    $"[Reason: {infraction.Reason}](https://mod.gg/infractions/?id={infraction.Id})"
+                );
             }
 
             var embed = builder.Build();
