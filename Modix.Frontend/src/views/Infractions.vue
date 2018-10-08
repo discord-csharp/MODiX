@@ -184,8 +184,13 @@ const guildUserFilter = (subject: GuildUserIdentity, filter: string) =>
 {
     filter = filter.toLowerCase();
     
-    return subject.id.toString().toLowerCase().indexOf(filter) >= 0 ||
-            subject.displayName.toLowerCase().indexOf(filter) >= 0;
+    return subject.id.toString().startsWith(filter) ||
+           subject.displayName.toLowerCase().indexOf(filter) >= 0;
+};
+
+const guildUserSort = (x: any, y: any, col: any, rowX: GuildUserIdentity, rowY: GuildUserIdentity) =>
+{
+    return (rowX.id < rowY.id ? -1 : (rowX.id > rowY.id ? 1 : 0));
 };
 
 const guildUserFormat = (subject: GuildUserIdentity) => subject.displayName;
@@ -314,9 +319,11 @@ export default class Infractions extends Vue
             {
                 label: 'Id',
                 field: 'id',
+                sortFn: (x: number, y: number) => (x < y ? -1 : (x > y ? 1 : 0)),
                 filterOptions:
                 {
                     enabled: true,
+                    filterFn: (id: string, filter: string) => id == filter,
                     filterValue: this.staticFilters["id"],
                     placeholder: "Filter"
                 }
@@ -342,6 +349,7 @@ export default class Infractions extends Vue
             {
                 label: 'Subject',
                 field: 'subject',
+                sortFn: guildUserSort,
                 filterOptions:
                 {
                     enabled: true,
@@ -354,6 +362,7 @@ export default class Infractions extends Vue
             {
                 label: 'Creator',
                 field: 'creator',
+                sortFn: guildUserSort,
                 filterOptions:
                 {
                      enabled: true,
@@ -421,7 +430,7 @@ export default class Infractions extends Vue
     {
         return _.map(this.filteredInfractions, infraction => 
         ({
-            id: infraction.id.toString(),
+            id: infraction.id,
             subject: infraction.subject,
             creator: infraction.createAction.createdBy,
             date: infraction.createAction.created,
