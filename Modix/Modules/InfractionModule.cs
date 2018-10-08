@@ -108,7 +108,7 @@ namespace Modix.Modules
             var infractionQuery = infractions.Select(infraction => new
             {
                 Id = infraction.Id,
-                Created = infraction.CreateAction.Created.ToUniversalTime().ToString("MMM dd, yyyy HH:mm tt zz"),
+                Created = infraction.CreateAction.Created.ToUniversalTime().ToString("yyyy MMM dd"),
                 Type = infraction.Type.ToString(),
                 Subject = infraction.Subject.Username,
                 Creator = infraction.CreateAction.CreatedBy.DisplayName,
@@ -124,21 +124,16 @@ namespace Modix.Modules
             var banCount = infractions.Count(x => x.Type == InfractionType.Ban);
 
             var builder = new EmbedBuilder()
-                .WithTitle($"Infractions for user: {subject.Username}#{subject.Discriminator} - {subject.Id}")
+                .WithTitle($"Infractions for user: {subject.Username}#{subject.Discriminator}")
                 .WithDescription(
                     $"This user has {noticeCount} notice(s), {warningCount} warning(s), {muteCount} mute(s), and {banCount} ban(s)")
-                .WithUrl("https://mod.gg/infractions")
+                .WithUrl($"https://mod.gg/infractions/?subject={subject.Id}")
                 .WithColor(new Color(0xA3BF0B))
-                .WithTimestamp(DateTimeOffset.Now)
-                .WithFooter(footer =>
-                {
-                    footer
-                        .WithText("Infractions - https://mod.gg/infractions");
-                });
+                .WithTimestamp(DateTimeOffset.Now);
 
             foreach (var infraction in infractionQuery)
             {
-                builder.AddField($"{infraction.Type} - Created: {infraction.Created}", $"ID: {infraction.Id} - Reason: {infraction.Reason}");
+                builder.AddField($"#{infraction.Id} - {infraction.Type} - Created: {infraction.Created}", $"Reason: {infraction.Reason}");
             }
 
             var embed = builder.Build();

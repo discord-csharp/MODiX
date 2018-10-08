@@ -251,6 +251,9 @@ namespace Modix.Services.Moderation
             if (reason == null)
                 throw new ArgumentNullException(nameof(reason));
 
+            if (reason.Length > 1000)
+                throw new ArgumentException("Reason must be less than 1000 characters in length", nameof(reason));
+
             if (((type == InfractionType.Notice) || (type == InfractionType.Warning))
                 && string.IsNullOrWhiteSpace(reason))
                 throw new InvalidOperationException($"{type.ToString()} infractions require a reason to be given");
