@@ -188,9 +188,9 @@ const guildUserFilter = (subject: GuildUserIdentity, filter: string) =>
            subject.displayName.toLowerCase().indexOf(filter) >= 0;
 };
 
-const guildUserSort = (x: any, y: any, col: any, rowX: GuildUserIdentity, rowY: GuildUserIdentity) =>
+const guildUserSort = (x: GuildUserIdentity, y: GuildUserIdentity, col: any, rowX: any, rowY: any) =>
 {
-    return (rowX.id < rowY.id ? -1 : (rowX.id > rowY.id ? 1 : 0));
+    return (x.id < y.id ? -1 : (x.id > y.id ? 1 : 0));
 };
 
 const guildUserFormat = (subject: GuildUserIdentity) => subject.displayName;
