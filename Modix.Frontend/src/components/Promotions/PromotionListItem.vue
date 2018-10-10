@@ -161,6 +161,7 @@
     .rating
     {
         padding: 0 1em 0.5em 1em;
+        white-space: nowrap;
     }
 
     .columns
