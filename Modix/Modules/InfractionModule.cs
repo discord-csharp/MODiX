@@ -15,7 +15,7 @@ using Modix.Services.Moderation;
 
 namespace Modix.Modules
 {
-    [Group("infraction")]
+    [Group("infraction"), Alias("infractions")]
     [Summary("Provides commands for working with infractions.")]
     public class InfractionModule : ModuleBase
     {
