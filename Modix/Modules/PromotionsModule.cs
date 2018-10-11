@@ -119,7 +119,7 @@ namespace Modix.Modules
             => PromotionsService.AddCommentAsync(campaignId, PromotionSentiment.Oppose, content);
 
         [Command("abstain")]
-        [Summary("Alias to oppose on an ongoing campaign to promote a user.")]
+        [Summary("Alias to abstain on an ongoing campaign to promote a user.")]
         public Task Abstain(
             [Summary("The ID value of the campaign to be commented upon")]
                 long campaignId,
