@@ -15,12 +15,14 @@ namespace Modix.Modules
     [Group("promotions")]
     public class PromotionsModule : ModuleBase
     {
+        private const string DefaultApprovalMessage = "I approve of this nomination.";
+
         public PromotionsModule(IPromotionsService promotionsService)
         {
             PromotionsService = promotionsService;
         }
 
-        [Command("campaigns")]
+        [Command("campaigns"), Alias("")]
         [Summary("List all active promotion campaigns")]
         public async Task Campaigns()
         {
@@ -88,6 +90,43 @@ namespace Modix.Modules
             [Summary("The content of the comment")]
                 string content)
             => PromotionsService.AddCommentAsync(campaignId, sentiment, content);
+
+        [Command("approve")]
+        [Summary("Alias to approve on an ongoing campaign to promote a user.")]
+        public Task Approve(
+            [Summary("The ID value of the campaign to be commented upon")]
+                long campaignId,
+            [Remainder]
+            [Summary("The content of the comment")]
+                string content)
+            => PromotionsService.AddCommentAsync(campaignId, PromotionSentiment.Approve, content);
+
+        [Command("approve")]
+        [Summary("Alias to approve on an ongoing campaign to promote a user.")]
+        public Task Approve(
+            [Summary("The ID value of the campaign to be commented upon")]
+                long campaignId)
+            => PromotionsService.AddCommentAsync(campaignId, PromotionSentiment.Approve, DefaultApprovalMessage);
+
+        [Command("oppose")]
+        [Summary("Alias to oppose on an ongoing campaign to promote a user.")]
+        public Task Oppose(
+            [Summary("The ID value of the campaign to be commented upon")]
+                long campaignId,
+            [Remainder]
+            [Summary("The content of the comment")]
+                string content)
+            => PromotionsService.AddCommentAsync(campaignId, PromotionSentiment.Oppose, content);
+
+        [Command("abstain")]
+        [Summary("Alias to oppose on an ongoing campaign to promote a user.")]
+        public Task Abstain(
+            [Summary("The ID value of the campaign to be commented upon")]
+                long campaignId,
+            [Remainder]
+            [Summary("The content of the comment")]
+                string content)
+            => PromotionsService.AddCommentAsync(campaignId, PromotionSentiment.Abstain, content);
 
         [Command("accept")]
         [Summary("Accept an ongoing campaign to promote a user, and perform the promotion.")]
