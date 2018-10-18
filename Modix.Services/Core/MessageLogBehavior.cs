@@ -89,14 +89,12 @@ namespace Modix.Services.Core
 
             string messageLink = ModixEmbedBuilderExtensions.MessageLink(guild.Id, channel.Id, original.Id);
 
-            string descriptionText = $"**Original**\n```{FormatMessage(original.Content)}```";
+            string descriptionText = $"**[Original]({messageLink})**\n```{FormatMessage(original.Content)}```";
 
             if (descriptionText.Length <= 2048)
             {
                 descriptionText += $"\n**Updated**\n```{FormatMessage(updated.Content)}```"; ;
             }
-
-            descriptionText += $"\n{messageLink}";
 
             var embed = new EmbedBuilder()
                 .WithVerboseAuthor(original.Author)

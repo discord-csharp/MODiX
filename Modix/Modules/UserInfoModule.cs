@@ -9,158 +9,170 @@ using Humanizer;
 using Humanizer.Localisation;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Modix.Data.Models;
+using Modix.Data.Models.Core;
+using Modix.Data.Models.Moderation;
 using Modix.Services.Core;
+using Modix.Services.Moderation;
 
 namespace Modix.Modules
 {
     public class UserInfoModule : ModuleBase
     {
-        private const string DateFormat = "yyyy-MM-ddTHH:mm:ssK";
+        private const string Format = "{0}: {1} ago ({2:yyyy-MM-ddTHH:mm:ssK})\n";
 
-        public UserInfoModule(ILogger<UserInfoModule> logger, IUserService userService)
+        //optimization: UtcNow is slow and the module is created per-request
+        private readonly DateTime UtcNow = DateTime.UtcNow; 
+
+        public UserInfoModule(ILogger<UserInfoModule> logger, IUserService userService, IModerationService moderationService, IAuthorizationService authorizationService)
         {
             Log = logger ?? new NullLogger<UserInfoModule>();
             UserService = userService;
+            ModerationService = moderationService;
+            AuthorizationService = authorizationService;
         }
 
         private ILogger<UserInfoModule> Log { get; }
         private IUserService UserService { get; }
+        private IModerationService ModerationService { get; }
+        private IAuthorizationService AuthorizationService { get; }
 
         [Command("info")]
-        public async Task GetUserInfo(IUser user = null)
+        public async Task GetUserInfo(IGuildUser user = null)
         {
-            user = user ?? Context.User;
-
-            var foundUser = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, user.Id);
-
-            var utcNow = DateTime.UtcNow;
-            var builder = new StringBuilder();
-            builder.AppendLine("**\u276F User Information**");
-            builder.AppendLine("ID: " + user.Id);
-            builder.AppendLine("Profile: " + user.Mention);
-
-            // TODO: Add content about the user's presence, if any
-
-            builder.AppendFormat(
-                CultureInfo.InvariantCulture,
-                "Created: {0} ago ({1:" + DateFormat + "})\n",
-                (utcNow - user.CreatedAt).Humanize(maxUnit: TimeUnit.Year, culture: CultureInfo.InvariantCulture),
-                user.CreatedAt.UtcDateTime);
-
-            builder.AppendFormat(
-                CultureInfo.InvariantCulture,
-                "Last seen: {0} ago ({1:" + DateFormat + "})\n",
-                (utcNow - foundUser.LastSeen).Humanize(maxUnit: TimeUnit.Year, culture: CultureInfo.InvariantCulture),
-                user.CreatedAt.UtcDateTime);
-
-            if (user is IGuildUser member)
-            {
-                builder.AppendLine();
-                builder.AppendLine("**\u276F Member Information**");
-
-                if (!string.IsNullOrEmpty(member.Nickname))
-                {
-                    builder.AppendLine("Nickname: " + member.Nickname);
-                }
-
-                if (member.JoinedAt is DateTimeOffset joinedAt)
-                {
-                    builder.AppendFormat(
-                        CultureInfo.InvariantCulture,
-                        "Joined: {0} ago ({1:" + DateFormat + "})\n",
-                        (utcNow - joinedAt).Humanize(maxUnit: TimeUnit.Year, culture: CultureInfo.InvariantCulture),
-                        joinedAt.UtcDateTime);
-                }
-
-                if (member.RoleIds.Count > 0)
-                {
-                    var roles = member.RoleIds.Select(x => member.Guild.Roles.Single(y => y.Id == x))
-                        .Where(x => x.Id != x.Guild.Id) // @everyone role always has same ID than guild
-                        .ToArray();
-
-                    if (roles.Length > 0)
-                    {
-                        Array.Sort(roles); // Sort by position: lowest positioned role is first
-                        Array.Reverse(roles); // Reverse the sort: highest positioned role is first
-
-                        builder.Append(roles.Length > 1 ? "Roles: " : "Role: ");
-                        builder.AppendLine(BuildList(roles, r => r.Mention));
-                    }
-                }
-            }
-
-            // TODO: Add infraction summary
-
-            // TODO: Add voice session data
-
-            var embedBuilder = new EmbedBuilder
-            {
-                Author = new EmbedAuthorBuilder
-                {
-                    Name = user.Username + "#" + user.Discriminator,
-                    IconUrl = user.GetAvatarUrl()
-                },
-                Color = GetDominateColor(user),
-                Description = builder.ToString(),
-                ThumbnailUrl = user.GetAvatarUrl()
-            };
-
-            await ReplyAsync(string.Empty, embed: embedBuilder.Build());
+            await GetUserInfoFromId(user?.Id ?? Context.User.Id);
         }
 
         [Command("info")]
         public async Task GetUserInfoFromId(ulong userId)
         {
-            if (userId == Context.User.Id)
+            var userSummary = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, userId);
+
+            if (userSummary == null)
             {
-                await GetUserInfo(Context.User);
+                await ReplyAsync("We don't have any data for that user.");
                 return;
             }
 
-            var user = await Context.Guild.GetUserAsync(userId) ?? await Context.Client.GetUserAsync(userId);
-            if (!(user is null))
-            {
-                await GetUserInfo(user);
-                return;
-            }
-
-            // TODO: Check the database to see if we have anything about the user in our database.
-            await ReplyAsync("User not found.");
-        }
-
-        private static string BuildList<T>(T[] array, Func<T, string> mapper)
-        {
             var builder = new StringBuilder();
-            for (int i = 0; i < array.Length; i++)
+            builder.AppendLine("**\u276F User Information**");
+            builder.AppendLine("ID: " + userSummary.UserId);
+            builder.AppendLine("Profile: " + MentionUtils.MentionUser(userSummary.UserId));
+
+            // TODO: Add content about the user's presence, if any
+
+            builder.Append(FormatTimeAgo("First Seen", userSummary.FirstSeen));
+            builder.Append(FormatTimeAgo("Last Seen", userSummary.LastSeen));
+
+            var embedBuilder = new EmbedBuilder()
+                .WithAuthor(userSummary.Username + "#" + userSummary.Discriminator)
+                .WithColor(new Color(253, 95, 0))
+                .WithTimestamp(UtcNow);
+
+            try
             {
-                builder.Append(GetListSeparator(i, array.Length) + mapper(array[i]));
+                IGuildUser member = await UserService.GetGuildUserAsync(Context.Guild.Id, userId);
+                AddMemberInformationToEmbed(member, builder, embedBuilder);
+            }
+            catch (InvalidOperationException)
+            {
+                builder.AppendLine();
+                builder.AppendLine("**\u276F No Member Information**");
             }
 
-            return builder.ToString();
+            if (await AuthorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
+            {
+                await AddInfractionsToEmbed(userId, builder);
+            }
+
+            embedBuilder.Description = builder.ToString();
+
+            await ReplyAsync(string.Empty, embed: embedBuilder.Build());
         }
 
-        private static string GetListSeparator(int i, int length)
+        private void AddMemberInformationToEmbed(IGuildUser member, StringBuilder builder, EmbedBuilder embedBuilder)
         {
-            bool atLastIndex = i == length - 1;
-            if (i == 0)
+            builder.AppendLine();
+            builder.AppendLine("**\u276F Member Information**");
+
+            if (!string.IsNullOrEmpty(member.Nickname))
             {
-                return string.Empty;
+                builder.AppendLine("Nickname: " + member.Nickname);
             }
-            else if (length > 2 && atLastIndex)
+
+            builder.Append(FormatTimeAgo("Created", member.CreatedAt));
+
+            if (member.JoinedAt is DateTimeOffset joinedAt)
             {
-                return ", and ";
+                builder.Append(FormatTimeAgo("joined", joinedAt));
             }
-            else if (length > 1 && atLastIndex)
+
+            if (member.RoleIds.Count > 0)
             {
-                return " and ";
+                var roles = member.RoleIds.Select(x => member.Guild.Roles.Single(y => y.Id == x))
+                    .Where(x => x.Id != x.Guild.Id) // @everyone role always has same ID than guild
+                    .ToArray();
+
+                if (roles.Length > 0)
+                {
+                    Array.Sort(roles); // Sort by position: lowest positioned role is first
+                    Array.Reverse(roles); // Reverse the sort: highest positioned role is first
+
+                    builder.Append(roles.Length > 1 ? "Roles: " : "Role: ");
+                    builder.AppendLine(roles.Select(r => r.Mention).Humanize());
+                }
+            }
+
+            embedBuilder.Color = GetDominantColor(member);
+            embedBuilder.ThumbnailUrl = member.GetAvatarUrl();
+            embedBuilder.Author.IconUrl = member.GetAvatarUrl();
+        }
+
+        private async Task AddInfractionsToEmbed(ulong userId, StringBuilder builder)
+        {
+            var infractions = await ModerationService.SearchInfractionsAsync
+            (
+                new InfractionSearchCriteria
+                {
+                    GuildId = Context.Guild.Id,
+                    SubjectId = userId,
+                    IsDeleted = false
+                },
+                new[]
+                {
+                    new SortingCriteria
+                    {
+                        PropertyName = "CreateAction.Created",
+                        Direction = SortDirection.Descending
+                    }
+                }
+            );
+
+            var noticeCount = infractions.Count(x => x.Type == InfractionType.Notice);
+            var warningCount = infractions.Count(x => x.Type == InfractionType.Warning);
+            var muteCount = infractions.Count(x => x.Type == InfractionType.Mute);
+            var banCount = infractions.Count(x => x.Type == InfractionType.Ban);
+
+            builder.AppendLine();
+            builder.AppendLine($"**\u276F Infractions [See here](https://mod.gg/infractions?subject={userId})**");
+
+            if (noticeCount + warningCount + muteCount + banCount == 0)
+            {
+                builder.AppendLine("This user is clean - no active infractions!");
             }
             else
             {
-                return ", ";
+                builder.AppendLine($"This user has {noticeCount} notice(s), {warningCount} warning(s), {muteCount} mute(s), and {banCount} ban(s)");
             }
         }
 
-        private static Color GetDominateColor(IUser user)
+        private string FormatTimeAgo(string prefix, DateTimeOffset ago)
+        {
+            var humanizedTimeAgo = (UtcNow - ago).Humanize(maxUnit: TimeUnit.Year, culture: CultureInfo.InvariantCulture);
+            return string.Format(CultureInfo.InvariantCulture, Format, prefix, humanizedTimeAgo, ago.UtcDateTime);
+        }
+
+        private static Color GetDominantColor(IUser user)
         {
             // TODO: Get the dominate image in the user's avatar.
             return new Color(253, 95, 0);

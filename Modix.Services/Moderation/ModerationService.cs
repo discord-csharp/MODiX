@@ -246,7 +246,17 @@ namespace Modix.Services.Moderation
             AuthorizationService.RequireClaims(_createInfractionClaimsByType[type]);
 
             var guild = await DiscordClient.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
-            var subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
+
+            IGuildUser subject;
+            try
+            {
+                subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
+            }
+            catch (InvalidOperationException)
+            {
+                subject = new EphemeralUser(subjectId, "[FORCED]", guild);
+                await UserService.TrackUserAsync(subject);
+            }
 
             if (reason == null)
                 throw new ArgumentNullException(nameof(reason));
@@ -538,17 +548,32 @@ namespace Modix.Services.Moderation
             await InfractionRepository.TryRescindAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
 
             var guild = await DiscordClient.GetGuildAsync(infraction.GuildId);
-            var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
+
+            IGuildUser subject;
+            try
+            {
+                subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
+            }
+            catch (InvalidOperationException)
+            {
+                subject = null;
+            }
 
             switch (infraction.Type)
             {
                 case InfractionType.Mute:
+                    
+                    if (subject == null)
+                    {
+                        throw new InvalidOperationException("Cannot unmute a user who is not in the server.");
+                    }
+
                     await subject.RemoveRoleAsync(
                         await GetDesignatedMuteRoleAsync(guild));
                     break;
 
                 case InfractionType.Ban:
-                    await guild.RemoveBanAsync(subject);
+                    await guild.RemoveBanAsync(infraction.Subject.Id);
                     break;
 
                 default:

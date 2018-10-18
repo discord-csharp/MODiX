@@ -18,6 +18,11 @@ namespace Modix.Modules
             ModerationService = moderationService;
         }
 
+        protected override void AfterExecute(CommandInfo command)
+        {
+            Context.Message.AddReactionAsync(new Emoji("🆗"));
+        }
+
         [Command("note")]
         [Summary("Applies a note to a user's infraction history.")]
         public Task Note(
@@ -83,12 +88,33 @@ namespace Modix.Modules
                 string reason)
             => ModerationService.CreateInfractionAsync(InfractionType.Ban, subject.Id, reason, null);
 
+        [Command("forceban")]
+        [Alias("ban")]
+        [Summary("Ban a user from the guild, even if they are not a member.")]
+        [Priority(10)]
+        public Task Forceban(
+            [Summary("The id of the user to be banned.")]
+                ulong subject,
+            [Summary("The reason for the ban.")]
+            [Remainder]
+                string reason)
+            => ModerationService.CreateInfractionAsync(InfractionType.Ban, subject, reason, null);
+
         [Command("unban")]
         [Summary("Remove a ban that has been applied to a user.")]
         public Task UnBan(
             [Summary("The user to be un-banned.")]
                 IGuildUser subject)
             => ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.Id);
+
+        [Command("forceunban")]
+        [Alias("unban")]
+        [Summary("Remove a ban that has been applied to a user.")]
+        [Priority(10)]
+        public Task ForceUnban(
+            [Summary("The id of the user to be un-banned.")]
+                ulong subject)
+            => ModerationService.RescindInfractionAsync(InfractionType.Ban, subject);
 
         internal protected IModerationService ModerationService { get; }
     }

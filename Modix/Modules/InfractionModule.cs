@@ -26,15 +26,16 @@ namespace Modix.Modules
 
         [Command("search")]
         [Summary("Display all infractions for a user, that haven't been deleted.")]
+        [Priority(10)]
         public async Task Search(
-            [Summary("The user whose infractions are to be displayed.")]
-                IGuildUser subject)
+            [Summary("The id of the user whose infractions are to be displayed.")]
+                ulong subjectId)
         {
             var infractions = await ModerationService.SearchInfractionsAsync(
                 new InfractionSearchCriteria
                 {
-                    GuildId = subject.GuildId,
-                    SubjectId = subject.Id,
+                    GuildId = Context.Guild.Id,
+                    SubjectId = subjectId,
                     IsDeleted = false
                 },
                 new[]
@@ -42,7 +43,7 @@ namespace Modix.Modules
                     new SortingCriteria { PropertyName = "CreateAction.Created", Direction = SortDirection.Descending }
                 });
 
-            if(infractions.Count == 0)
+            if (infractions.Count == 0)
             {
                 await ReplyAsync(Format.Code("No infractions"));
                 return;
@@ -67,7 +68,7 @@ namespace Modix.Modules
             var replyBuilder = new StringBuilder();
             foreach (var line in tableText.Split("\r\n"))
             {
-                if((replyBuilder.Length + line.Length) > 1998)
+                if ((replyBuilder.Length + line.Length) > 1998)
                 {
                     await ReplyAsync(Format.Code(replyBuilder.ToString()));
                     replyBuilder.Clear();
@@ -75,8 +76,17 @@ namespace Modix.Modules
                 replyBuilder.AppendLine(line);
             }
 
-            if(replyBuilder.Length > 0)
+            if (replyBuilder.Length > 0)
                 await ReplyAsync(Format.Code(replyBuilder.ToString()));
+        }
+
+        [Command("search")]
+        [Summary("Display all infractions for a user, that haven't been deleted.")]
+        public async Task Search(
+            [Summary("The user whose infractions are to be displayed.")]
+                IGuildUser subject)
+        {
+            await Search(subject.Id);
         }
         
         [Command("search embed")]
