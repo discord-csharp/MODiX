@@ -18,44 +18,48 @@ namespace Modix.Modules
             ModerationService = moderationService;
         }
 
-        protected override void AfterExecute(CommandInfo command)
-        {
-            Context.Message.AddReactionAsync(new Emoji("🆗"));
-        }
-
         [Command("note")]
         [Summary("Applies a note to a user's infraction history.")]
-        public Task Note(
+        public async Task Note(
             [Summary("The user to which the note is being applied.")]
                 IGuildUser subject,
             [Summary("The reason for the note.")]
             [Remainder]
                 string reason)
-            => ModerationService.CreateInfractionAsync(InfractionType.Notice, subject.Id, reason, null);
+        {
+            await ModerationService.CreateInfractionAsync(InfractionType.Notice, subject.Id, reason, null);
+            await Context.Message.AddReactionAsync(new Emoji("🆗"));
+        }
 
         [Command("warn")]
         [Summary("Issue a warning to a user.")]
-        public Task Warn(
+        public async Task Warn(
             [Summary("The user to which the warning is being issued.")]
                 IGuildUser subject,
             [Summary("The reason for the warning.")]
             [Remainder]
                 string reason)
-            => ModerationService.CreateInfractionAsync(InfractionType.Warning, subject.Id, reason, null);
+        {
+            await ModerationService.CreateInfractionAsync(InfractionType.Warning, subject.Id, reason, null);
+            await Context.Message.AddReactionAsync(new Emoji("🆗"));
+        }
 
         [Command("mute")]
         [Summary("Mute a user.")]
-        public Task Mute(
+        public async Task Mute(
             [Summary("The user to be muted.")]
                 IGuildUser subject,
             [Summary("The reason for the mute.")]
             [Remainder]
                 string reason)
-            => ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, null);
+        {
+            await ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, null);
+            await Context.Message.AddReactionAsync(new Emoji("🆗"));
+        }
 
         [Command("tempmute")]
         [Summary("Mute a user, for a temporary amount of time.")]
-        public Task TempMute(
+        public async Task TempMute(
             [Summary("The user to be muted.")]
                 IGuildUser subject,
             [Summary("The duration of the mute.")]
@@ -68,53 +72,68 @@ namespace Modix.Modules
             var duration = TimeSpanTypeReader.Read(durationString);
             if (!duration.HasValue) { throw new ArgumentException("Invalid Timespan Format"); }
 
-            return ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, duration.Value);
+            await ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, duration.Value);
+            await Context.Message.AddReactionAsync(new Emoji("🆗"));
         }
 
         [Command("unmute")]
         [Summary("Remove a mute that has been applied to a user.")]
-        public Task UnMute(
+        public async Task UnMute(
             [Summary("The user to be un-muted.")]
                 IGuildUser subject)
-            => ModerationService.RescindInfractionAsync(InfractionType.Mute, subject.Id);
+        {
+            await ModerationService.RescindInfractionAsync(InfractionType.Mute, subject.Id);
+        }
 
         [Command("ban")]
         [Summary("Ban a user from the current guild.")]
-        public Task Ban(
+        public async Task Ban(
             [Summary("The user to be banned.")]
                 IGuildUser subject,
             [Summary("The reason for the ban.")]
             [Remainder]
                 string reason)
-            => ModerationService.CreateInfractionAsync(InfractionType.Ban, subject.Id, reason, null);
+        {
+            await ModerationService.CreateInfractionAsync(InfractionType.Ban, subject.Id, reason, null);
+            await Context.Message.AddReactionAsync(new Emoji("🆗"));
+        }
 
         [Command("forceban")]
         [Alias("ban")]
         [Summary("Ban a user from the guild, even if they are not a member.")]
         [Priority(10)]
-        public Task Forceban(
+        public async Task Forceban(
             [Summary("The id of the user to be banned.")]
                 ulong subject,
             [Summary("The reason for the ban.")]
             [Remainder]
                 string reason)
-            => ModerationService.CreateInfractionAsync(InfractionType.Ban, subject, reason, null);
+        {
+            await ModerationService.CreateInfractionAsync(InfractionType.Ban, subject, reason, null);
+            await Context.Message.AddReactionAsync(new Emoji("🆗"));
+        }
 
         [Command("unban")]
         [Summary("Remove a ban that has been applied to a user.")]
-        public Task UnBan(
+        public async Task UnBan(
             [Summary("The user to be un-banned.")]
                 IGuildUser subject)
-            => ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.Id);
+        {
+            await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.Id);
+            await Context.Message.AddReactionAsync(new Emoji("🆗"));
+        }
 
         [Command("forceunban")]
         [Alias("unban")]
         [Summary("Remove a ban that has been applied to a user.")]
         [Priority(10)]
-        public Task ForceUnban(
+        public async Task ForceUnban(
             [Summary("The id of the user to be un-banned.")]
                 ulong subject)
-            => ModerationService.RescindInfractionAsync(InfractionType.Ban, subject);
+        {
+            await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject);
+            await Context.Message.AddReactionAsync(new Emoji("🆗"));
+        }
 
         internal protected IModerationService ModerationService { get; }
     }
