@@ -18,6 +18,11 @@ namespace Modix.Modules
             ModerationService = moderationService;
         }
 
+        public async Task AddConfirmationEmoji()
+        {
+            await Context.Message.AddReactionAsync(new Emoji("🆗"));
+        }
+
         [Command("note")]
         [Summary("Applies a note to a user's infraction history.")]
         public async Task Note(
@@ -28,7 +33,7 @@ namespace Modix.Modules
                 string reason)
         {
             await ModerationService.CreateInfractionAsync(InfractionType.Notice, subject.Id, reason, null);
-            await Context.Message.AddReactionAsync(new Emoji("🆗"));
+            await AddConfirmationEmoji();
         }
 
         [Command("warn")]
@@ -41,7 +46,7 @@ namespace Modix.Modules
                 string reason)
         {
             await ModerationService.CreateInfractionAsync(InfractionType.Warning, subject.Id, reason, null);
-            await Context.Message.AddReactionAsync(new Emoji("🆗"));
+            await AddConfirmationEmoji();
         }
 
         [Command("mute")]
@@ -54,7 +59,7 @@ namespace Modix.Modules
                 string reason)
         {
             await ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, null);
-            await Context.Message.AddReactionAsync(new Emoji("🆗"));
+            await AddConfirmationEmoji();
         }
 
         [Command("tempmute")]
@@ -73,7 +78,7 @@ namespace Modix.Modules
             if (!duration.HasValue) { throw new ArgumentException("Invalid Timespan Format"); }
 
             await ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, duration.Value);
-            await Context.Message.AddReactionAsync(new Emoji("🆗"));
+            await AddConfirmationEmoji();
         }
 
         [Command("unmute")]
@@ -95,7 +100,7 @@ namespace Modix.Modules
                 string reason)
         {
             await ModerationService.CreateInfractionAsync(InfractionType.Ban, subject.Id, reason, null);
-            await Context.Message.AddReactionAsync(new Emoji("🆗"));
+            await AddConfirmationEmoji();
         }
 
         [Command("forceban")]
@@ -110,7 +115,7 @@ namespace Modix.Modules
                 string reason)
         {
             await ModerationService.CreateInfractionAsync(InfractionType.Ban, subject, reason, null);
-            await Context.Message.AddReactionAsync(new Emoji("🆗"));
+            await AddConfirmationEmoji();
         }
 
         [Command("unban")]
@@ -120,7 +125,7 @@ namespace Modix.Modules
                 IGuildUser subject)
         {
             await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.Id);
-            await Context.Message.AddReactionAsync(new Emoji("🆗"));
+            await AddConfirmationEmoji();
         }
 
         [Command("forceunban")]
@@ -132,7 +137,7 @@ namespace Modix.Modules
                 ulong subject)
         {
             await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject);
-            await Context.Message.AddReactionAsync(new Emoji("🆗"));
+            await AddConfirmationEmoji();
         }
 
         internal protected IModerationService ModerationService { get; }
