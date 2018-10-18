@@ -12,6 +12,7 @@ using Tababular;
 using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
 using Modix.Services.Moderation;
+using Modix.Services.Core;
 
 namespace Modix.Modules
 {
@@ -19,9 +20,10 @@ namespace Modix.Modules
     [Summary("Provides commands for working with infractions.")]
     public class InfractionModule : ModuleBase
     {
-        public InfractionModule(IModerationService moderationService)
+        public InfractionModule(IModerationService moderationService, IUserService userService)
         {
             ModerationService = moderationService;
+            UserService = userService;
         }
 
         [Command("search")]
@@ -88,28 +90,31 @@ namespace Modix.Modules
         {
             await Search(subject.Id);
         }
-        
+
         [Command("search embed")]
         [Summary("Display all infractions for a user, that haven't been deleted.")]
+        [Priority(10)]
         public async Task SearchEmbed(
             [Summary("The user whose infractions are to be displayed.")]
-            IGuildUser subject)
+            ulong subjectId)
         {
             var requestor = Context.User.Mention;
-            
+            var subject = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, subjectId);
+
             var infractions = await ModerationService.SearchInfractionsAsync(
                 new InfractionSearchCriteria
                 {
-                    GuildId = subject.GuildId,
-                    SubjectId = subject.Id,
-                    IsDeleted = false
+                    GuildId = Context.Guild.Id,
+                    SubjectId = subjectId,
+                    IsDeleted = false,
+                    IsRescinded = false
                 },
                 new[]
                 {
                     new SortingCriteria { PropertyName = "CreateAction.Created", Direction = SortDirection.Descending }
                 });
 
-            if(infractions.Count == 0)
+            if (infractions.Count == 0)
             {
                 await ReplyAsync(Format.Code("No infractions"));
                 return;
@@ -122,9 +127,6 @@ namespace Modix.Modules
                 Type = infraction.Type.ToString(),
                 Subject = infraction.Subject.Username,
                 Creator = infraction.CreateAction.CreatedBy.DisplayName,
-                State = (infraction.RescindAction != null) ? "Rescinded"
-                    : (infraction.Expires != null) ? "Will Expire"
-                    : "Active",
                 Reason = infraction.Reason
             }).OrderBy(s => s.Type);
 
@@ -137,7 +139,7 @@ namespace Modix.Modules
                 .WithTitle($"Infractions for user: {subject.Username}#{subject.Discriminator}")
                 .WithDescription(
                     $"This user has {noticeCount} notice(s), {warningCount} warning(s), {muteCount} mute(s), and {banCount} ban(s)")
-                .WithUrl($"https://mod.gg/infractions/?subject={subject.Id}")
+                .WithUrl($"https://mod.gg/infractions/?subject={subject.UserId}")
                 .WithColor(new Color(0xA3BF0B))
                 .WithTimestamp(DateTimeOffset.Now);
 
@@ -150,11 +152,21 @@ namespace Modix.Modules
             }
 
             var embed = builder.Build();
-            
+
             await Context.Channel.SendMessageAsync(
                     $"Requested by {requestor}",
                     embed: embed)
                 .ConfigureAwait(false);
+        }
+
+
+        [Command("search embed")]
+        [Summary("Display all infractions for a user, that haven't been deleted.")]
+        public async Task SearchEmbed(
+            [Summary("The user whose infractions are to be displayed.")]
+            IGuildUser subject)
+        {
+            await SearchEmbed(subject.Id);
         }
 
         [Command("delete")]
@@ -165,5 +177,6 @@ namespace Modix.Modules
             => ModerationService.DeleteInfractionAsync(infractionId);
 
         internal protected IModerationService ModerationService { get; }
+        public IUserService UserService { get; }
     }
 }
