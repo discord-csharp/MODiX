@@ -48,7 +48,7 @@ namespace Modix.Modules
                     .Where(x => x.Key == PromotionSentiment.Approve)
                     .Select(x => x.Value)
                     .Sum();
-                var approvalPercentage = Math.Round((float)totalApprovals / totalApprovals * 100);
+                var approvalPercentage = Math.Round((float)totalApprovals / totalVotes * 100);
 
                 var idLabel = $"#{campaign.Id}";
                 var votesLabel = (totalVotes == 1) ? "Vote" : "Votes";
