@@ -98,6 +98,7 @@ namespace Modix.Services.Moderation
         /// </returns>
         Task<IReadOnlyCollection<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriterias = null);
 
+
         /// <summary>
         /// Retrieves a collection of infractions, based on a given set of criteria, and returns a paged subset of the results, based on a given set of paging criteria.
         /// </summary>
@@ -105,6 +106,13 @@ namespace Modix.Services.Moderation
         /// <param name="sortingCriterias">The criteria defining how to sort the infractions to be returned.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has completed, containing the requested set of infractions.</returns>
         Task<RecordsPage<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria);
+
+        /// <summary>
+        /// Retrieves a count of the types of infractions the given user has recieved.
+        /// </summary>
+        /// <param name="subjectId">The ID of the user to retrieve counts for</param>
+        /// <returns>A <see cref="Task"/> which results in a Dictionary of infraction type to counts. Will return zeroes for types for which there are no infractions.</returns>
+        Task<IDictionary<InfractionType, int>> GetInfractionCountsForUserAsync(ulong subjectId);
 
         /// <summary>
         /// Retrieves a moderation action, based on its ID.
@@ -248,14 +256,15 @@ namespace Modix.Services.Moderation
             var guild = await DiscordClient.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
 
             IGuildUser subject;
-            try
-            {
-                subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
-            }
-            catch (InvalidOperationException)
+
+            if (!await UserService.GuildUserExistsAsync(guild.Id, subjectId))
             {
                 subject = new EphemeralUser(subjectId, "[FORCED]", guild);
                 await UserService.TrackUserAsync(subject);
+            }
+            else
+            {
+                subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
             }
 
             if (reason == null)
@@ -422,6 +431,18 @@ namespace Modix.Services.Moderation
             return InfractionRepository.SearchSummariesPagedAsync(searchCriteria, sortingCriteria, pagingCriteria);
         }
 
+        public async Task<IDictionary<InfractionType, int>> GetInfractionCountsForUserAsync(ulong subjectId)
+        {
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
+
+            return await InfractionRepository.GetInfractionCountsAsync(new InfractionSearchCriteria
+            {
+                GuildId = AuthorizationService.CurrentGuildId,
+                SubjectId = subjectId,
+                IsDeleted = false
+            });
+        }
+
         /// <inheritdoc />
         public Task<ModerationActionSummary> GetModerationActionSummaryAsync(long moderationActionId)
         {
@@ -549,27 +570,14 @@ namespace Modix.Services.Moderation
 
             var guild = await DiscordClient.GetGuildAsync(infraction.GuildId);
 
-            IGuildUser subject;
-            try
-            {
-                subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
-            }
-            catch (InvalidOperationException)
-            {
-                subject = null;
-            }
-
             switch (infraction.Type)
             {
                 case InfractionType.Mute:
-                    
-                    if (subject == null)
-                    {
+                    if (!await UserService.GuildUserExistsAsync(guild.Id, infraction.Subject.Id))
                         throw new InvalidOperationException("Cannot unmute a user who is not in the server.");
-                    }
 
-                    await subject.RemoveRoleAsync(
-                        await GetDesignatedMuteRoleAsync(guild));
+                    var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
+                    await subject.RemoveRoleAsync(await GetDesignatedMuteRoleAsync(guild));
                     break;
 
                 case InfractionType.Ban:

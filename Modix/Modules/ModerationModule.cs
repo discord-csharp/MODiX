@@ -18,7 +18,7 @@ namespace Modix.Modules
             ModerationService = moderationService;
         }
 
-        public async Task AddConfirmationEmoji()
+        public async Task AddConfirmation()
         {
             await Context.Message.AddReactionAsync(new Emoji("🆗"));
         }
@@ -33,7 +33,7 @@ namespace Modix.Modules
                 string reason)
         {
             await ModerationService.CreateInfractionAsync(InfractionType.Notice, subject.Id, reason, null);
-            await AddConfirmationEmoji();
+            await AddConfirmation();
         }
 
         [Command("warn")]
@@ -46,7 +46,7 @@ namespace Modix.Modules
                 string reason)
         {
             await ModerationService.CreateInfractionAsync(InfractionType.Warning, subject.Id, reason, null);
-            await AddConfirmationEmoji();
+            await AddConfirmation();
         }
 
         [Command("mute")]
@@ -59,7 +59,7 @@ namespace Modix.Modules
                 string reason)
         {
             await ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, null);
-            await AddConfirmationEmoji();
+            await AddConfirmation();
         }
 
         [Command("tempmute")]
@@ -78,7 +78,7 @@ namespace Modix.Modules
             if (!duration.HasValue) { throw new ArgumentException("Invalid Timespan Format"); }
 
             await ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, duration.Value);
-            await AddConfirmationEmoji();
+            await AddConfirmation();
         }
 
         [Command("unmute")]
@@ -100,7 +100,7 @@ namespace Modix.Modules
                 string reason)
         {
             await ModerationService.CreateInfractionAsync(InfractionType.Ban, subject.Id, reason, null);
-            await AddConfirmationEmoji();
+            await AddConfirmation();
         }
 
         [Command("forceban")]
@@ -109,13 +109,13 @@ namespace Modix.Modules
         [Priority(10)]
         public async Task Forceban(
             [Summary("The id of the user to be banned.")]
-                ulong subject,
+                ulong subjectId,
             [Summary("The reason for the ban.")]
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(InfractionType.Ban, subject, reason, null);
-            await AddConfirmationEmoji();
+            await ModerationService.CreateInfractionAsync(InfractionType.Ban, subjectId, reason, null);
+            await AddConfirmation();
         }
 
         [Command("unban")]
@@ -125,7 +125,7 @@ namespace Modix.Modules
                 IGuildUser subject)
         {
             await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.Id);
-            await AddConfirmationEmoji();
+            await AddConfirmation();
         }
 
         [Command("forceunban")]
@@ -134,10 +134,10 @@ namespace Modix.Modules
         [Priority(10)]
         public async Task ForceUnban(
             [Summary("The id of the user to be un-banned.")]
-                ulong subject)
+                ulong subjectId)
         {
-            await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject);
-            await AddConfirmationEmoji();
+            await ModerationService.RescindInfractionAsync(InfractionType.Ban, subjectId);
+            await AddConfirmation();
         }
 
         internal protected IModerationService ModerationService { get; }

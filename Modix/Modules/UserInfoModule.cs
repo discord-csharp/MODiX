@@ -14,6 +14,7 @@ using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
+using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
@@ -69,12 +70,12 @@ namespace Modix.Modules
                 .WithColor(new Color(253, 95, 0))
                 .WithTimestamp(UtcNow);
 
-            try
+            if (await UserService.GuildUserExistsAsync(Context.Guild.Id, userId))
             {
                 IGuildUser member = await UserService.GetGuildUserAsync(Context.Guild.Id, userId);
                 AddMemberInformationToEmbed(member, builder, embedBuilder);
             }
-            catch (InvalidOperationException)
+            else
             {
                 builder.AppendLine();
                 builder.AppendLine("**\u276F No Member Information**");
@@ -130,40 +131,12 @@ namespace Modix.Modules
 
         private async Task AddInfractionsToEmbed(ulong userId, StringBuilder builder)
         {
-            var infractions = await ModerationService.SearchInfractionsAsync
-            (
-                new InfractionSearchCriteria
-                {
-                    GuildId = Context.Guild.Id,
-                    SubjectId = userId,
-                    IsDeleted = false
-                },
-                new[]
-                {
-                    new SortingCriteria
-                    {
-                        PropertyName = "CreateAction.Created",
-                        Direction = SortDirection.Descending
-                    }
-                }
-            );
-
-            var noticeCount = infractions.Count(x => x.Type == InfractionType.Notice);
-            var warningCount = infractions.Count(x => x.Type == InfractionType.Warning);
-            var muteCount = infractions.Count(x => x.Type == InfractionType.Mute);
-            var banCount = infractions.Count(x => x.Type == InfractionType.Ban);
-
             builder.AppendLine();
             builder.AppendLine($"**\u276F Infractions [See here](https://mod.gg/infractions?subject={userId})**");
 
-            if (noticeCount + warningCount + muteCount + banCount == 0)
-            {
-                builder.AppendLine("This user is clean - no active infractions!");
-            }
-            else
-            {
-                builder.AppendLine($"This user has {noticeCount} notice(s), {warningCount} warning(s), {muteCount} mute(s), and {banCount} ban(s)");
-            }
+            var counts = await ModerationService.GetInfractionCountsForUserAsync(userId);
+
+            builder.AppendLine(FormatUtilities.FormatInfractionCounts(counts));
         }
 
         private string FormatTimeAgo(string prefix, DateTimeOffset ago)

@@ -7,12 +7,11 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 
-using Tababular;
-
 using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
 using Modix.Services.Moderation;
 using Modix.Services.Core;
+using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
@@ -28,10 +27,19 @@ namespace Modix.Modules
 
         [Command("search")]
         [Summary("Display all infractions for a user, that haven't been deleted.")]
+        public async Task Search(
+            [Summary("The user whose infractions are to be displayed.")]
+                IGuildUser subject)
+        {
+            await Search(subject.Id);
+        }
+
+        [Command("search")]
+        [Summary("Display all infractions for a user, that haven't been deleted.")]
         [Priority(10)]
         public async Task Search(
             [Summary("The user whose infractions are to be displayed.")]
-            IGuildUser subject)
+            ulong subjectId)
         {
             var requestor = Context.User.Mention;
             var subject = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, subjectId);
@@ -41,8 +49,7 @@ namespace Modix.Modules
                 {
                     GuildId = Context.Guild.Id,
                     SubjectId = subjectId,
-                    IsDeleted = false,
-                    IsRescinded = false
+                    IsDeleted = false
                 },
                 new[]
                 {
@@ -62,26 +69,23 @@ namespace Modix.Modules
                 Type = infraction.Type.ToString(),
                 Subject = infraction.Subject.Username,
                 Creator = infraction.CreateAction.CreatedBy.DisplayName,
-                Reason = infraction.Reason
+                Reason = infraction.Reason,
+                Rescinded = infraction.RescindAction != null
             }).OrderBy(s => s.Type);
 
-            var noticeCount = infractions.Count(x => x.Type == InfractionType.Notice);
-            var warningCount = infractions.Count(x => x.Type == InfractionType.Warning);
-            var muteCount = infractions.Count(x => x.Type == InfractionType.Mute);
-            var banCount = infractions.Count(x => x.Type == InfractionType.Ban);
+            var counts = await ModerationService.GetInfractionCountsForUserAsync(subjectId);
 
             var builder = new EmbedBuilder()
                 .WithTitle($"Infractions for user: {subject.Username}#{subject.Discriminator}")
-                .WithDescription(
-                    $"This user has {noticeCount} notice(s), {warningCount} warning(s), {muteCount} mute(s), and {banCount} ban(s)")
+                .WithDescription(FormatUtilities.FormatInfractionCounts(counts))
                 .WithUrl($"https://mod.gg/infractions/?subject={subject.UserId}")
                 .WithColor(new Color(0xA3BF0B))
-                .WithTimestamp(DateTimeOffset.Now);
+                .WithTimestamp(DateTimeOffset.UtcNow);
 
             foreach (var infraction in infractionQuery)
             {
                 builder.AddField(
-                    $"#{infraction.Id} - {infraction.Type} - Created: {infraction.Created}",
+                    $"#{infraction.Id} - {infraction.Type} - Created: {infraction.Created}{(infraction.Rescinded ? " - [RESCINDED]" : "")}",
                     $"[Reason: {infraction.Reason}](https://mod.gg/infractions/?id={infraction.Id})"
                 );
             }
@@ -92,16 +96,6 @@ namespace Modix.Modules
                     $"Requested by {requestor}",
                     embed: embed)
                 .ConfigureAwait(false);
-        }
-
-
-        [Command("search embed")]
-        [Summary("Display all infractions for a user, that haven't been deleted.")]
-        public async Task SearchEmbed(
-            [Summary("The user whose infractions are to be displayed.")]
-            IGuildUser subject)
-        {
-            await SearchEmbed(subject.Id);
         }
 
         [Command("delete")]
