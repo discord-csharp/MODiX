@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 
-using Tababular;
-
 using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
 using Modix.Services.Moderation;
+using Modix.Services.Core;
+using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
@@ -19,24 +19,36 @@ namespace Modix.Modules
     [Summary("Provides commands for working with infractions.")]
     public class InfractionModule : ModuleBase
     {
-        public InfractionModule(IModerationService moderationService)
+        public InfractionModule(IModerationService moderationService, IUserService userService)
         {
             ModerationService = moderationService;
+            UserService = userService;
         }
 
         [Command("search")]
         [Summary("Display all infractions for a user, that haven't been deleted.")]
         public async Task Search(
             [Summary("The user whose infractions are to be displayed.")]
-            IGuildUser subject)
+                IGuildUser subject)
+        {
+            await Search(subject.Id);
+        }
+
+        [Command("search")]
+        [Summary("Display all infractions for a user, that haven't been deleted.")]
+        [Priority(10)]
+        public async Task Search(
+            [Summary("The user whose infractions are to be displayed.")]
+            ulong subjectId)
         {
             var requestor = Context.User.Mention;
-            
+            var subject = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, subjectId);
+
             var infractions = await ModerationService.SearchInfractionsAsync(
                 new InfractionSearchCriteria
                 {
-                    GuildId = subject.GuildId,
-                    SubjectId = subject.Id,
+                    GuildId = Context.Guild.Id,
+                    SubjectId = subjectId,
                     IsDeleted = false
                 },
                 new[]
@@ -44,7 +56,7 @@ namespace Modix.Modules
                     new SortingCriteria { PropertyName = "CreateAction.Created", Direction = SortDirection.Descending }
                 });
 
-            if(infractions.Count == 0)
+            if (infractions.Count == 0)
             {
                 await ReplyAsync(Format.Code("No infractions"));
                 return;
@@ -57,35 +69,29 @@ namespace Modix.Modules
                 Type = infraction.Type.ToString(),
                 Subject = infraction.Subject.Username,
                 Creator = infraction.CreateAction.CreatedBy.DisplayName,
-                State = (infraction.RescindAction != null) ? "Rescinded"
-                    : (infraction.Expires != null) ? "Will Expire"
-                    : "Active",
-                Reason = infraction.Reason
+                Reason = infraction.Reason,
+                Rescinded = infraction.RescindAction != null
             }).OrderBy(s => s.Type);
 
-            var noticeCount = infractions.Count(x => x.Type == InfractionType.Notice);
-            var warningCount = infractions.Count(x => x.Type == InfractionType.Warning);
-            var muteCount = infractions.Count(x => x.Type == InfractionType.Mute);
-            var banCount = infractions.Count(x => x.Type == InfractionType.Ban);
+            var counts = await ModerationService.GetInfractionCountsForUserAsync(subjectId);
 
             var builder = new EmbedBuilder()
                 .WithTitle($"Infractions for user: {subject.Username}#{subject.Discriminator}")
-                .WithDescription(
-                    $"This user has {noticeCount} notice(s), {warningCount} warning(s), {muteCount} mute(s), and {banCount} ban(s)")
-                .WithUrl($"https://mod.gg/infractions/?subject={subject.Id}")
+                .WithDescription(FormatUtilities.FormatInfractionCounts(counts))
+                .WithUrl($"https://mod.gg/infractions/?subject={subject.UserId}")
                 .WithColor(new Color(0xA3BF0B))
-                .WithTimestamp(DateTimeOffset.Now);
+                .WithTimestamp(DateTimeOffset.UtcNow);
 
             foreach (var infraction in infractionQuery)
             {
                 builder.AddField(
-                    $"#{infraction.Id} - {infraction.Type} - Created: {infraction.Created}",
+                    $"#{infraction.Id} - {infraction.Type} - Created: {infraction.Created}{(infraction.Rescinded ? " - [RESCINDED]" : "")}",
                     $"[Reason: {infraction.Reason}](https://mod.gg/infractions/?id={infraction.Id})"
                 );
             }
 
             var embed = builder.Build();
-            
+
             await Context.Channel.SendMessageAsync(
                     $"Requested by {requestor}",
                     embed: embed)
@@ -100,5 +106,6 @@ namespace Modix.Modules
             => ModerationService.DeleteInfractionAsync(infractionId);
 
         internal protected IModerationService ModerationService { get; }
+        public IUserService UserService { get; }
     }
 }

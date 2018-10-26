@@ -39,7 +39,7 @@ namespace Modix.WebServer.Auth
                         errorMessage = "There was a problem authenticating via OAuth. Try again later.";
                     }
 
-                    context.Response.Cookies.Append("Error", errorMessage, new CookieOptions { Expires = DateTimeOffset.Now.AddHours(1) });
+                    context.Response.Cookies.Append("Error", errorMessage, new CookieOptions { Expires = DateTimeOffset.UtcNow.AddHours(1) });
                     context.HandleResponse();
 
                     return Task.CompletedTask;

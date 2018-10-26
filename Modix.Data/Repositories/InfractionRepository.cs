@@ -84,6 +84,13 @@ namespace Modix.Data.Repositories
         Task<IReadOnlyCollection<InfractionSummary>> SearchSummariesAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null);
 
         /// <summary>
+        /// Searches the repository for infraction information, based on an arbitrary set of criteria, and returns the counts of those infractions grouped by type.
+        /// </summary>
+        /// <param name="searchCriteria">The criteria for selecting <see cref="InfractionSummary"/> records to be returned.</param>
+        /// <returns>A <see cref="Task"/> which will complete when the matching records have been retrieved.</returns>
+        Task<IDictionary<InfractionType, int>> GetInfractionCountsAsync(InfractionSearchCriteria searchCriteria);
+
+        /// <summary>
         /// Searches the repository for infraction information, based on an arbitrary set of criteria, and pages the results.
         /// </summary>
         /// <param name="searchCriteria">The criteria for selecting <see cref="InfractionSummary"/> records to be returned.</param>
@@ -190,6 +197,26 @@ namespace Modix.Data.Repositories
                 .Select(InfractionSummary.FromEntityProjection)
                 .SortBy(sortingCriteria, InfractionSummary.SortablePropertyMap)
                 .ToArrayAsync();
+
+        /// <inheritdoc />
+        public async Task<IDictionary<InfractionType, int>> GetInfractionCountsAsync(InfractionSearchCriteria searchCriteria)
+        {
+            var result = await ModixContext.Infractions.AsNoTracking()
+                .FilterBy(searchCriteria)
+                .GroupBy(x => x.Type)
+                .ToArrayAsync();
+
+            //Initialize the returned dictionary so we always have all infraction types present
+            var ret = Enum.GetValues(typeof(InfractionType)).Cast<InfractionType>()
+                .ToDictionary(x => x, _ => 0);
+
+            foreach (var group in result)
+            {
+                ret[group.Key] = group.Count();
+            }
+
+            return ret;
+        }
 
         /// <inheritdoc />
         public async Task<RecordsPage<InfractionSummary>> SearchSummariesPagedAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
