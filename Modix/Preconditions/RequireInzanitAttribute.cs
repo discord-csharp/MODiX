@@ -7,16 +7,18 @@ namespace Modix.Preconditions
 {
     public sealed class RequireInzanitAttribute : ParameterPreconditionAttribute
     {
+        private const ulong Inzanit = 104975006542372864;
+
         public override Task<PreconditionResult> CheckPermissions(ICommandContext context, ParameterInfo parameter, object value, IServiceProvider services)
         {
             if (value is SocketGuildUser user)
             {
                 PreconditionResult success;
-                if (user.Id == 104975006542372864)
+                if (user.Id == Inzanit)
                     success = PreconditionResult.FromSuccess();
                 else
                     success = PreconditionResult.FromError(
-                        $"The value must be <@{104975006542372864}>");
+                        $"The value must be <@{Inzanit}>");
 
                 return Task.FromResult(success);
             }
