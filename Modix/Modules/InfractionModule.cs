@@ -30,73 +30,8 @@ namespace Modix.Modules
         [Summary("Display all infractions for a user, that haven't been deleted.")]
         [Priority(10)]
         public async Task Search(
-            [Summary("The id of the user whose infractions are to be displayed.")]
-                ulong subjectId)
-        {
-            var infractions = await ModerationService.SearchInfractionsAsync(
-                new InfractionSearchCriteria
-                {
-                    GuildId = Context.Guild.Id,
-                    SubjectId = subjectId,
-                    IsDeleted = false
-                },
-                new[]
-                {
-                    new SortingCriteria { PropertyName = "CreateAction.Created", Direction = SortDirection.Descending }
-                });
-
-            if (infractions.Count == 0)
-            {
-                await ReplyAsync(Format.Code("No infractions"));
-                return;
-            }
-
-            var hints = new Hints { MaxTableWidth = 100 };
-            var formatter = new TableFormatter(hints);
-
-            var tableText = formatter.FormatObjects(infractions.Select(infraction => new
-            {
-                Id = infraction.Id,
-                Created = infraction.CreateAction.Created.ToUniversalTime().ToString("yyyy MMM dd HH:mm"),
-                Type = infraction.Type.ToString(),
-                Subject = infraction.Subject.Username,
-                Creator = infraction.CreateAction.CreatedBy.DisplayName,
-                State = (infraction.RescindAction != null) ? "Rescinded"
-                    : (infraction.Expires != null) ? "Will Expire"
-                    : "Active",
-                Reason = infraction.Reason
-            }));
-
-            var replyBuilder = new StringBuilder();
-            foreach (var line in tableText.Split("\r\n"))
-            {
-                if ((replyBuilder.Length + line.Length) > 1998)
-                {
-                    await ReplyAsync(Format.Code(replyBuilder.ToString()));
-                    replyBuilder.Clear();
-                }
-                replyBuilder.AppendLine(line);
-            }
-
-            if (replyBuilder.Length > 0)
-                await ReplyAsync(Format.Code(replyBuilder.ToString()));
-        }
-
-        [Command("search")]
-        [Summary("Display all infractions for a user, that haven't been deleted.")]
-        public async Task Search(
             [Summary("The user whose infractions are to be displayed.")]
-                IGuildUser subject)
-        {
-            await Search(subject.Id);
-        }
-
-        [Command("search embed")]
-        [Summary("Display all infractions for a user, that haven't been deleted.")]
-        [Priority(10)]
-        public async Task SearchEmbed(
-            [Summary("The user whose infractions are to be displayed.")]
-            ulong subjectId)
+            IGuildUser subject)
         {
             var requestor = Context.User.Mention;
             var subject = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, subjectId);

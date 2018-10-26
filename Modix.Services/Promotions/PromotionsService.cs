@@ -230,6 +230,11 @@ namespace Modix.Services.Promotions
                 if (!(campaign.CloseAction is null))
                     throw new InvalidOperationException($"Campaign {campaignId} is already closed");
 
+                var timeSince = DateTime.UtcNow - campaign.CreateAction.Created;
+
+                if (timeSince < TimeSpan.FromHours(48))
+                    throw new InvalidOperationException($"Campaign {campaignId} cannot be accepted until 48 hours after its creation ({48 - timeSince.TotalHours:#.##} hrs remain)");
+
                 try
                 {
                     var subject = await UserService.GetGuildUserAsync(campaign.GuildId, campaign.Subject.Id);
