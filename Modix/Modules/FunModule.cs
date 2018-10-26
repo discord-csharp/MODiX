@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Modix.Preconditions;
 using Serilog;
 
 namespace Modix.Modules
@@ -52,6 +53,12 @@ namespace Modix.Modules
             {
                 await ReplyAsync($"Sorry {Context.User.Mention}, I don't recognize that emoji.");
             }
+        }
+
+        [Command("wam"), Summary("Wams a user")]
+        public async Task Wam([RequireInzanit]SocketGuildUser user)
+        {
+            await ReplyAsync($"WAM! {user.Mention} was WAMMED by {Context.User.Mention}");
         }
     }
 }
