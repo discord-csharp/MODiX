@@ -105,7 +105,7 @@ namespace Modix.Modules
 
             if (member.JoinedAt is DateTimeOffset joinedAt)
             {
-                builder.Append(FormatTimeAgo("joined", joinedAt));
+                builder.Append(FormatTimeAgo("Joined", joinedAt));
             }
 
             if (member.RoleIds.Count > 0)
