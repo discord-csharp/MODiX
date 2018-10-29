@@ -33,8 +33,8 @@ namespace Modix.WebServer.Controllers
             //Parse the ID to look up socket user
             ModixUser = ModixUser.FromClaimsPrincipal(HttpContext.User);
 
-            string guildCookie = Request.Cookies["SelectedGuild"];
-            SocketGuild guildToSearch = null;
+            var guildCookie = Request.Cookies["SelectedGuild"];
+            SocketGuild guildToSearch;
 
             if (!string.IsNullOrWhiteSpace(guildCookie))
             {
