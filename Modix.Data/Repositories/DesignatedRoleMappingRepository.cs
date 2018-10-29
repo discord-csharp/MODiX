@@ -153,8 +153,6 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<bool> TryDeleteAsync(long mappingId, ulong deletedById)
         {
-            var longDeletedById = (long)deletedById;
-
             var entity = await ModixContext.DesignatedRoleMappings
                 .Where(x => x.Id == mappingId)
                 .FirstOrDefaultAsync();
