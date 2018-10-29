@@ -6,7 +6,7 @@ namespace Modix.WebServer.Controllers
     [Route("~/api")]
     public class CommandsController : Controller
     {
-        private CommandHelpService _commandHelpService;
+        private readonly CommandHelpService _commandHelpService;
 
         public CommandsController(CommandHelpService commandHelpService)
         {
