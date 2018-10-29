@@ -24,7 +24,7 @@ namespace Modix.WebServer.Auth
                 options.Events.OnRemoteFailure = context =>
                 {
                     context.Response.Redirect("/error");
-                    string errorMessage = context.Failure.Message;
+                    var errorMessage = context.Failure.Message;
 
                     //Generic oauth error
                     if (errorMessage == "access_denied")

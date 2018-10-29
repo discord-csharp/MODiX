@@ -11,7 +11,7 @@ namespace Modix.WebServer.Controllers
 {
     public class ApiController : ModixController
     {
-        private GuildInfoService _guildInfoService;
+        private readonly GuildInfoService _guildInfoService;
 
         public ApiController(DiscordSocketClient client, GuildInfoService guildInfoService, IAuthorizationService auth) : base(client, auth)
         {

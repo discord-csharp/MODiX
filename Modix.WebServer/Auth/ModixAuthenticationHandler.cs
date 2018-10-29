@@ -31,7 +31,7 @@ namespace Modix.WebServer.Auth
 
             await Task.WhenAll(_client.Guilds.Select(d => d.DownloadUsersAsync()));
 
-            bool userWasfound = _client.Guilds.Any(d => d.GetUser(result.UserId) != null);
+            var userWasfound = _client.Guilds.Any(d => d.GetUser(result.UserId) != null);
 
             if (!userWasfound)
             {
