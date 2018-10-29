@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Discord;
@@ -19,7 +18,7 @@ namespace Modix.Modules
             if (Emote.TryParse(emoji, out var found))
             {
                 emojiUrl = found.Url;
-            }
+            }   
             else
             {
                 var codepoint = char.ConvertToUtf32(emoji, 0);
