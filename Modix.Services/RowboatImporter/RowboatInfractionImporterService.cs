@@ -39,7 +39,7 @@ namespace Modix.Services.RowboatImporter
                 throw new InvalidOperationException("Cannot import infractions without a guild context");
             }
 
-            int importCount = 0;
+            var importCount = 0;
 
             using (var transaction = await InfractionRepository.BeginCreateTransactionAsync())
             {
