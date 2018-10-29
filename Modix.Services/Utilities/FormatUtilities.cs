@@ -37,7 +37,7 @@ namespace Modix.Services.Utilities
             var match = _buildContentRegex.Match(message);
             if (match.Success)
             {
-                string codeLanguage = match.Groups[1].Value;
+                var codeLanguage = match.Groups[1].Value;
                 return string.IsNullOrEmpty(codeLanguage) ? null : codeLanguage;
             }
             else
@@ -98,18 +98,16 @@ namespace Modix.Services.Utilities
             {
                 return "This user is clean - no active infractions!";
             }
-            else
-            {
-                var formatted = 
-                    counts.Select(d =>
+
+            var formatted = 
+                counts.Select(d =>
                     {
                         var formattedKey = d.Key.Humanize().ToLower();
                         return $"{d.Value} {(d.Value == 1 ? formattedKey : formattedKey.Pluralize())}";
                     })
                     .Humanize();
 
-                return $"This user has {formatted}";
-            }
+            return $"This user has {formatted}";
         }
     }
 }
