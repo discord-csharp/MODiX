@@ -16,7 +16,7 @@ namespace Modix.Modules
         {
             string emojiUrl = null;
 
-            if (Emote.TryParse(emoji, out Emote found))
+            if (Emote.TryParse(emoji, out var found))
             {
                 emojiUrl = found.Url;
             }
