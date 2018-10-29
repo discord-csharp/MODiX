@@ -7,7 +7,7 @@ namespace Modix.WebServer.Controllers
     [Route("~/api")]
     public class PasteController : Controller
     {
-        private ICodePasteRepository _codePasteRepository;
+        private readonly ICodePasteRepository _codePasteRepository;
 
         public PasteController(ICodePasteRepository codePasteRepository)
         {
