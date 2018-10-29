@@ -2,20 +2,23 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-public class ExceptionContractResolver : DefaultContractResolver
+namespace Modix.Services.Utilities
 {
-    protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+    public class ExceptionContractResolver : DefaultContractResolver
     {
-        JsonProperty property = base.CreateProperty(member, memberSerialization);
-
-        if (property.DeclaringType == typeof(MethodBase) && property.PropertyName == "TargetSite")
+        protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
-            property.ShouldSerialize =
-                instance =>
-                {
-                    return false;
-                };
+            var property = base.CreateProperty(member, memberSerialization);
+
+            if (property.DeclaringType == typeof(MethodBase) && property.PropertyName == "TargetSite")
+            {
+                property.ShouldSerialize =
+                    instance =>
+                    {
+                        return false;
+                    };
+            }
+            return property;
         }
-        return property;
     }
 }
