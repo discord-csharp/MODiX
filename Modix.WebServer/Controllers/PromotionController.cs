@@ -12,7 +12,7 @@ namespace Modix.WebServer.Controllers
     [Route("~/api/campaigns")]
     public class PromotionController : ModixController
     {
-        private IPromotionsService _promotionsService;
+        private readonly IPromotionsService _promotionsService;
 
         public PromotionController(DiscordSocketClient client, IPromotionsService promotionService, IAuthorizationService auth) : base(client, auth)
         {
