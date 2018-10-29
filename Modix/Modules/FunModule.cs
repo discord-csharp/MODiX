@@ -22,15 +22,15 @@ namespace Modix.Modules
             }
             else
             {
-                int codepoint = Char.ConvertToUtf32(emoji, 0);
-                string codepointHex = codepoint.ToString("X").ToLower();
+                var codepoint = char.ConvertToUtf32(emoji, 0);
+                var codepointHex = codepoint.ToString("X").ToLower();
 
                 emojiUrl = $"https://raw.githubusercontent.com/twitter/twemoji/gh-pages/2/72x72/{codepointHex}.png";
             }
 
             try
             {
-                HttpClient client = new HttpClient();
+                var client = new HttpClient();
                 var req = await client.GetStreamAsync(emojiUrl);
 
                 await Context.Channel.SendFileAsync(req, Path.GetFileName(emojiUrl), Context.User.Mention);
