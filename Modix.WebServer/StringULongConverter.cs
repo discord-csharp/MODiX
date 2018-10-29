@@ -15,10 +15,7 @@ namespace Modix.WebServer
             writer.WriteValue(value.ToString());
         }
 
-        public override bool CanRead
-        {
-            get { return false; }
-        }
+        public override bool CanRead => false;
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
