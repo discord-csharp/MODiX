@@ -227,7 +227,7 @@ namespace Modix.Services.Moderation
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingDelete);
 
-            using (var transaction = await DesignatedRoleMappingRepository.BeginDeleteTransactionAsync())
+            using (await DesignatedRoleMappingRepository.BeginDeleteTransactionAsync())
             {
                 foreach (var mapping in await DesignatedRoleMappingRepository
                     .SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria()
@@ -515,7 +515,7 @@ namespace Modix.Services.Moderation
 
         private async Task<IRole> GetOrCreateDesignatedMuteRoleAsync(IGuild guild, ulong currentUserId)
         {
-            using (var transaction = await DesignatedRoleMappingRepository.BeginCreateTransactionAsync())
+            using (await DesignatedRoleMappingRepository.BeginCreateTransactionAsync())
             {
                 var mapping = (await DesignatedRoleMappingRepository.SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria()
                 {
@@ -528,7 +528,7 @@ namespace Modix.Services.Moderation
                     return guild.Roles.First(x => x.Id == mapping.Role.Id);
 
                 var role = guild.Roles.FirstOrDefault(x => x.Name == MuteRoleName)
-                    ?? await guild.CreateRoleAsync(MuteRoleName);
+                           ?? await guild.CreateRoleAsync(MuteRoleName);
 
                 await DesignatedRoleMappingRepository.CreateAsync(new DesignatedRoleMappingCreationData()
                 {
