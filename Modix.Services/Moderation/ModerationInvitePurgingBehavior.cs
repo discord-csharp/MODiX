@@ -23,11 +23,10 @@ namespace Modix.Services.Moderation
         /// </summary>
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
         /// <param name="serviceProvider">See <see cref="BehaviorBase"/>.</param>
-        public ModerationInvitePurgingBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider, IDesignatedChannelService designatedChannelService)
+        public ModerationInvitePurgingBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
             DiscordClient = discordClient;
-            DesignatedChannelService = designatedChannelService;
         }
 
         /// <inheritdoc />
@@ -53,7 +52,6 @@ namespace Modix.Services.Moderation
         /// A <see cref="DiscordSocketClient"/> for interacting with, and receiving events from, the Discord API.
         /// </summary>
         internal protected DiscordSocketClient DiscordClient { get; }
-        internal protected IDesignatedChannelService DesignatedChannelService { get; }
 
         private Task OnDiscordClientMessageReceived(IMessage message)
             => TryPurgeInviteLink(message);
