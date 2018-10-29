@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 
 using Modix.Data.Models.Core;
 using Modix.Data.Projectables;
-using Modix.Data.Utilities;
 
 namespace Modix.Data.Repositories
 {

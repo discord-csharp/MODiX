@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Modix.Data.Repositories
+﻿namespace Modix.Data.Repositories
 {
     /// <summary>
     /// Describes a basic repository, which acts as a gatekeeper for all data storage and data retrieval operations,

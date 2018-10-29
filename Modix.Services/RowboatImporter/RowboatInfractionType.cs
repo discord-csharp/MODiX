@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Newtonsoft.Json;
-
-namespace Modix.Services.RowboatImporter
+﻿namespace Modix.Services.RowboatImporter
 {
     public enum RowboatInfractionType
     {

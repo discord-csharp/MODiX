@@ -3,7 +3,6 @@ using Modix.Data.Utilities;
 using Modix.Services.Utilities;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 

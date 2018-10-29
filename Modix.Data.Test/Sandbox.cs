@@ -1,26 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
-using System.Threading.Tasks;
-
 using NUnit.Framework;
 using NSubstitute;
-using Shouldly;
-
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-
-using Newtonsoft.Json;
-
-using Modix.Data;
-using Modix.Data.Models;
-using Modix.Data.Models.Core;
-using Modix.Data.Models.Moderation;
-using Modix.Data.Repositories;
 
 namespace Modix.Data.Test
 {

@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 using Modix.Data.Models.Promotions;
-using Modix.Data.Projectables;
 
 namespace Modix.Data.Repositories
 {

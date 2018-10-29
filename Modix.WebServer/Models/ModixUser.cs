@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using Newtonsoft.Json;
-    
+
 namespace Modix.WebServer.Models
 {
     public class ModixUser

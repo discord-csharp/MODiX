@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Modix.Services.Core;
 using Modix.Services.GuildInfo;
 using Modix.WebServer.Models;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
