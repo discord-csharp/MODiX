@@ -9,7 +9,7 @@ namespace Modix.Services.GuildInfo
 {
     public class GuildInfoService
     {
-        private IMemoryCache _cache;
+        private readonly IMemoryCache _cache;
 
         private readonly MemoryCacheEntryOptions _cacheEntryOptions = 
             new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromDays(1));
@@ -72,7 +72,7 @@ namespace Modix.Services.GuildInfo
 
         public string GetRoleColorHex(IRole role)
         {
-            string ret = "99aab5"; //"Discord Grey"
+            var ret = "99aab5"; //"Discord Grey"
 
             if (role.Color.RawValue > 0)
             {
