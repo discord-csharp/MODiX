@@ -8,9 +8,9 @@ namespace Modix.Services.CommandHelp
     public class CommandErrorHandler
     {
         //This relates user messages with errors
-        private Dictionary<ulong, string> _associatedErrors = new Dictionary<ulong, string>();
+        private readonly Dictionary<ulong, string> _associatedErrors = new Dictionary<ulong, string>();
         //This relates user messages to modix messages containing errors
-        private Dictionary<ulong, ulong> _errorReplies = new Dictionary<ulong, ulong>();
+        private readonly Dictionary<ulong, ulong> _errorReplies = new Dictionary<ulong, ulong>();
 
         private const string _emoji = "⚠";
 
