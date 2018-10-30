@@ -87,9 +87,7 @@ namespace Modix.Services.Core
             //Skip things like embed updates
             if (original.Content == updated.Content) { return; }
 
-            string messageLink = ModixEmbedBuilderExtensions.MessageLink(guild.Id, channel.Id, original.Id);
-
-            string descriptionText = $"**[Original]({messageLink})**\n```{FormatMessage(original.Content)}```";
+            string descriptionText = $"**[Original]({original.GetMessageLink()})**\n```{FormatMessage(original.Content)}```";
 
             if (descriptionText.Length <= 2048)
             {
