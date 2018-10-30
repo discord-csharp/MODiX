@@ -243,6 +243,8 @@ namespace Modix.Services.Moderation
                     if ((role != null) && (role.Name == MuteRoleName) && (role is IDeletable deletable))
                         await deletable.DeleteAsync();
                 }
+
+                transaction.Commit();
             }
         }
 
@@ -538,6 +540,7 @@ namespace Modix.Services.Moderation
                     CreatedById = currentUserId
                 });
 
+                transaction.Commit();
                 return role;
             }
         }
