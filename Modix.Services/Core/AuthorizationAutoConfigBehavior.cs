@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.WebSocket;
-using Modix.Services.Moderation;
 
 namespace Modix.Services.Core
 {
@@ -14,7 +13,7 @@ namespace Modix.Services.Core
     {
         // TODO: Abstract DiscordSocketClient to IDiscordSocketClient, or something, to make this testable
         /// <summary>
-        /// Constructs a new <see cref="ModerationAutoConfigBehavior"/> object, with the given injected dependencies.
+        /// Constructs a new <see cref="AuthorizationAutoConfigBehavior"/> object, with the given injected dependencies.
         /// See <see cref="BehaviorBase"/> for more details.
         /// </summary>
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
