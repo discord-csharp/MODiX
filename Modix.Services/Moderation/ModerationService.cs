@@ -528,7 +528,7 @@ namespace Modix.Services.Moderation
                     return guild.Roles.First(x => x.Id == mapping.Role.Id);
 
                 var role = guild.Roles.FirstOrDefault(x => x.Name == MuteRoleName)
-                           ?? await guild.CreateRoleAsync(MuteRoleName);
+                    ?? await guild.CreateRoleAsync(MuteRoleName);
 
                 await DesignatedRoleMappingRepository.CreateAsync(new DesignatedRoleMappingCreationData()
                 {
