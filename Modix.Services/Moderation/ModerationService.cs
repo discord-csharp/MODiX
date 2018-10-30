@@ -243,6 +243,8 @@ namespace Modix.Services.Moderation
                     if ((role != null) && (role.Name == MuteRoleName) && (role is IDeletable deletable))
                         await deletable.DeleteAsync();
                 }
+
+                transaction.Commit();
             }
         }
 
@@ -527,7 +529,7 @@ namespace Modix.Services.Moderation
                 if (!(mapping is null))
                     return guild.Roles.First(x => x.Id == mapping.Role.Id);
 
-                var role = guild.Roles.FirstOrDefault(x => x.Name == MuteRoleName)
+                var role = guild.Roles.FirstOrDefault(x => x.Name == MuteRoleName)  
                     ?? await guild.CreateRoleAsync(MuteRoleName);
 
                 await DesignatedRoleMappingRepository.CreateAsync(new DesignatedRoleMappingCreationData()
@@ -538,6 +540,7 @@ namespace Modix.Services.Moderation
                     CreatedById = currentUserId
                 });
 
+                transaction.Commit();
                 return role;
             }
         }
