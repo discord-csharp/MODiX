@@ -20,7 +20,7 @@ namespace Modix.Modules
 
         public async Task AddConfirmation()
         {
-            await Context.Message.AddReactionAsync(new Emoji("🆗"));
+            await Context.Message.AddReactionAsync(new Emoji("✅"));
         }
 
         [Command("note")]
