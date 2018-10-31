@@ -16,18 +16,18 @@ namespace Modix.Modules
     [Summary("Commands for holding reaction-based popularity contests in a channel")]
     public class PopularityContestModule : ModuleBase
     {
-        private readonly PopularityContestService _contestService;
+        private readonly IPopularityContestService _contestService;
 
-        public PopularityContestModule(PopularityContestService contestService)
+        public PopularityContestModule(IPopularityContestService contestService)
         {
             _contestService = contestService;
         }
 
         [Command("count")]
         [Summary("Count the number of the given reaction on messages within the given channel")]
-        public async Task Count([Summary("The reaction to be counted")]IEmote emoteToCount,
+        public async Task Count([Summary("The reaction to be counted")] IEmote emoteToCount,
             [Summary("The channel to count")] ISocketMessageChannel collectionChannel, 
-            [Summary("A list of roles to only include, space separated")] params IRole[] roles)
+            [Summary("A list of roles that a message author must have at least one of, space separated")] params IRole[] roles)
         {
             await _contestService.CollectData(emoteToCount, collectionChannel, Context.Channel as ISocketMessageChannel, roles);
         }

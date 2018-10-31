@@ -189,7 +189,7 @@ namespace Modix
             _map.AddSingleton<GuildInfoService>();
             _map.AddSingleton<ICodePasteRepository, MemoryCodePasteRepository>();
             _map.AddSingleton<CommandHelpService>();
-            _map.AddSingleton<PopularityContestService>();
+            _map.AddSingleton<IPopularityContestService, PopularityContestService>();
 
             _map.AddSingleton<CommandErrorHandler>();
             _map.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
@@ -208,7 +208,7 @@ namespace Modix
             _client.Log += _hooks.HandleLog;
             _commands.Log += _hooks.HandleLog;
 
-            _commands.AddTypeReader<IEmote>(new IEmoteTypeReader());
+            _commands.AddTypeReader<IEmote>(new EmoteTypeReader());
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly());
         }
     }

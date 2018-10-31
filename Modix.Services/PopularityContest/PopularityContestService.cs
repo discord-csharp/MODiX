@@ -11,7 +11,20 @@ using System.Threading.Tasks;
 
 namespace Modix.Services.PopularityContest
 {
-    public class PopularityContestService
+    public interface IPopularityContestService
+    {
+        /// <summary>
+        /// Begins the data collection process for a popularity contest (with an optional role filter), and logs the results
+        /// </summary>
+        /// <param name="countedEmote">The reaction to count for the contest</param>
+        /// <param name="collectionChannel">The channel to count reactions in</param>
+        /// <param name="logChannel">The channel to log the results of the count</param>
+        /// <param name="roleFilter">An optional set of roles, that a message's author must have one of to be counted</param>
+        /// <returns>A <see cref="Task"/> which will complete when the operation has complete.</returns>
+        Task CollectData(IEmote countedEmote, ISocketMessageChannel collectionChannel, ISocketMessageChannel logChannel, IEnumerable<IRole> roleFilter);
+    }
+
+    public class PopularityContestService : IPopularityContestService
     {
         private readonly DiscordSocketClient _client;
         private readonly CodePasteService _pasteService;
@@ -62,6 +75,7 @@ namespace Modix.Services.PopularityContest
             return (ret.OfType<IUserMessage>(), logMessage);
         }
 
+        /// <inheritdoc />
         public async Task CollectData(IEmote countedEmote, ISocketMessageChannel collectionChannel, ISocketMessageChannel logChannel, IEnumerable<IRole> roleFilter)
         {
             (var messages, var logMessage) = await GetMessagesInChannel(collectionChannel, logChannel);
