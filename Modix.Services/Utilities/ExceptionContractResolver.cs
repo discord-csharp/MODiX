@@ -11,7 +11,10 @@ public class ExceptionContractResolver : DefaultContractResolver
     {
         JsonProperty property = base.CreateProperty(member, memberSerialization);
 
-        if (property.DeclaringType == typeof(MethodBase) && property.PropertyName == "TargetSite")
+        //Skip serializing complex properties
+        if ((property.DeclaringType == typeof(MethodBase) && property.PropertyName == "TargetSite") 
+            || property.PropertyName == "Context"
+            || property.PropertyName == "Command")
         {
             property.ShouldSerialize =
                 instance =>

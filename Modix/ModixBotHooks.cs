@@ -21,7 +21,7 @@ namespace Modix
             switch (message.Severity)
             {
                 case LogSeverity.Critical:
-                    Log.Error(message.ToString());
+                    Log.Error(message.Exception, message.Message ?? "An exception bubbled up: ");
                     break;
                 case LogSeverity.Debug:
                     Log.Debug(message.ToString());
@@ -30,7 +30,7 @@ namespace Modix
                     Log.Warning(message.ToString());
                     break;
                 case LogSeverity.Error:
-                    Log.Error(message.ToString());
+                    Log.Error(message.Exception, message.Message ?? "An exception bubbled up: ");
                     break;
                 case LogSeverity.Info:
                     Log.Information(message.ToString());

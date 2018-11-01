@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using Humanizer;
 using Modix.Data.Models.Core;
@@ -104,7 +104,10 @@ namespace Modix.Services.PopularityContest
                     }
 
                     if (roleFilter == null || roleFilter.Count() == 0) { return true; }
-                    return msgAuthor.RoleIds.Intersect(roleIds).Any();
+
+                    return msgAuthor.RoleIds != null 
+                        ? msgAuthor.RoleIds.Intersect(roleIds).Any()
+                        : false;
                 })
                 .OrderByDescending(d => d.CreatedAt)
                 .GroupBy(d => d.Author)
