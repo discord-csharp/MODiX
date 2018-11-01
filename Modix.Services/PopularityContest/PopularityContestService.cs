@@ -94,9 +94,9 @@ namespace Modix.Services.PopularityContest
                 .Where(d => d.Reactions.Count > 0 && d.Reactions.ContainsKey(countedEmote))
                 .Where(d =>
                 {
-                    var msgAuthor = d.Author as IGuildUser;
+                    if (!(d.Author is IGuildUser msgAuthor)) { return false; }
 
-                    if (msgAuthor?.JoinedAt != null)
+                    if (msgAuthor.JoinedAt != null)
                     {
                         bool isOldEnough = msgAuthor.JoinedAt <= DateTimeOffset.FromUnixTimeSeconds(1538858460);
                         
@@ -105,9 +105,7 @@ namespace Modix.Services.PopularityContest
 
                     if (roleFilter == null || roleFilter.Count() == 0) { return true; }
 
-                    return msgAuthor.RoleIds != null 
-                        ? msgAuthor.RoleIds.Intersect(roleIds).Any()
-                        : false;
+                    return msgAuthor.RoleIds.Intersect(roleIds).Any();
                 })
                 .OrderByDescending(d => d.CreatedAt)
                 .GroupBy(d => d.Author)
