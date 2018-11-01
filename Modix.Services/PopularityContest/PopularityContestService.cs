@@ -1,4 +1,4 @@
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
 using Humanizer;
 using Modix.Data.Models.Core;
@@ -79,6 +79,12 @@ namespace Modix.Services.PopularityContest
             return (ret.OfType<IUserMessage>(), logMessage);
         }
 
+        private bool UserIsOldEnough(IGuildUser user)
+        {
+            if (user.JoinedAt == null) { return false; }
+            return user.JoinedAt <= DateTimeOffset.FromUnixTimeSeconds(1538858460);
+        }
+
         /// <inheritdoc />
         public async Task CollectData(IEmote countedEmote, ISocketMessageChannel collectionChannel, ISocketMessageChannel logChannel, IEnumerable<IRole> roleFilter)
         {
@@ -95,14 +101,7 @@ namespace Modix.Services.PopularityContest
                 .Where(d =>
                 {
                     if (!(d.Author is IGuildUser msgAuthor)) { return false; }
-
-                    if (msgAuthor.JoinedAt != null)
-                    {
-                        bool isOldEnough = msgAuthor.JoinedAt <= DateTimeOffset.FromUnixTimeSeconds(1538858460);
-                        
-                        if (!isOldEnough) { return false; }
-                    }
-
+                    if (!UserIsOldEnough(msgAuthor)) { return false; }
                     if (roleFilter == null || roleFilter.Count() == 0) { return true; }
 
                     return msgAuthor.RoleIds.Intersect(roleIds).Any();
@@ -111,13 +110,11 @@ namespace Modix.Services.PopularityContest
                 .GroupBy(d => d.Author)
                 .Select(d => d.First());
 
-            //Take the last message from each user, ordered by reaction count, group them by the reaction count, and take the group with the highest key
-            //so we can account for ties (ex [10] = {jmazouri, xeronik}, [9] = {centi}, etc)
+            //Take the last message from each user, ordered by reaction count, and take up to the top 3 entries
             var mostReactedMessages = lastMessages
-                .Select(Message => new { Message, Message.Reactions[countedEmote].ReactionCount })
-                .GroupBy(d => d.ReactionCount)
-                .OrderByDescending(d => d.Key)
-                .FirstOrDefault();
+                .Select(Message => (Message, Message.Reactions[countedEmote].ReactionCount))
+                .OrderByDescending(d => d.ReactionCount)
+                .Take(3);
 
             if (mostReactedMessages == null || mostReactedMessages.Count() == 0)
             {
@@ -139,17 +136,47 @@ namespace Modix.Services.PopularityContest
 
             var embed = new EmbedBuilder()
                 .WithTitle($"Counting complete!")
-                .WithDescription($"Out of **{lastMessages.Count()}** entries, the message{(isMultiple ? "s" : "")} with the most {countedEmote} reactions - " +
-                    $"with a whopping **{mostReactedMessages.First().ReactionCount}** {(isMultiple ? "each " : "")}- " +
+                .WithDescription($"Out of **{lastMessages.Count()}** entries, the top {mostReactedMessages.Count()} messages with the most {countedEmote} reactions " +
                     (isMultiple ? "are..." : "is..."))
                 .WithColor(new Color(0, 200, 0))
                 .WithFooter($"See all entries here: {paste}");
 
-            foreach (var message in mostReactedMessages)
+            int position = 1;
+            foreach ((var message, var reactionCount) in mostReactedMessages)
             {
-                var author = message.Message.Author;
-                embed.AddField($"This one, from {author.Username}#{author.Discriminator}! (`{author.Id}`)", message.Message.GetMessageLink());
+                var author = message.Author;
+                string emoji = "";
+
+                switch (position)
+                {
+                    case 1:
+                        emoji = "🥇";
+                        break;
+                    case 2:
+                        emoji = "🥈";
+                        break;
+                    case 3:
+                        emoji = "🥉";
+                        break;
+                    default:
+                        emoji = "🏅";
+                        break;
+                }
+
+                embed.AddField($"{emoji} With **{reactionCount}** votes",
+                    $"[{author.Username}#{author.Discriminator}! (`{author.Id}`)]({message.GetMessageLink()})");
+
+                position++;
             }
+
+            var mostReactionsOverall = lastMessages
+                .Select(Message => new { Message, OverallCount = Message.Reactions.Values.Sum(r => r.ReactionCount) })
+                .OrderByDescending(d => d.OverallCount)
+                .First();
+
+            var mostAuthor = mostReactionsOverall.Message.Author;
+            embed.AddField($"Also, the message with the most reactions overall, with a total of **{mostReactionsOverall.OverallCount}**, is...",
+                $"[{mostAuthor.Username}#{mostAuthor.Discriminator}! (`{mostAuthor.Id}`)]({mostReactionsOverall.Message.GetMessageLink()})");
 
             await logMessage.ModifyAsync(prop => prop.Embed = embed.Build());
         }
