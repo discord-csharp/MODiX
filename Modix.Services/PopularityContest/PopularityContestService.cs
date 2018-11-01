@@ -1,7 +1,9 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Humanizer;
+using Modix.Data.Models.Core;
 using Modix.Services.AutoCodePaste;
+using Modix.Services.Core;
 using Modix.Services.Utilities;
 using System;
 using System.Collections.Generic;
@@ -28,11 +30,13 @@ namespace Modix.Services.PopularityContest
     {
         private readonly DiscordSocketClient _client;
         private readonly CodePasteService _pasteService;
+        private readonly IAuthorizationService _authorizationService;
 
-        public PopularityContestService(DiscordSocketClient client, CodePasteService pasteService)
+        public PopularityContestService(DiscordSocketClient client, CodePasteService pasteService, IAuthorizationService authorizationService)
         {
             _client = client;
             _pasteService = pasteService;
+            _authorizationService = authorizationService;
         }
 
         private async Task<(IEnumerable<IUserMessage> messages, IUserMessage logMessage)> GetMessagesInChannel(ISocketMessageChannel collectionChannel, ISocketMessageChannel logChannel)
@@ -78,6 +82,8 @@ namespace Modix.Services.PopularityContest
         /// <inheritdoc />
         public async Task CollectData(IEmote countedEmote, ISocketMessageChannel collectionChannel, ISocketMessageChannel logChannel, IEnumerable<IRole> roleFilter)
         {
+            _authorizationService.RequireClaims(AuthorizationClaim.PopularityContestCount);
+
             (var messages, var logMessage) = await GetMessagesInChannel(collectionChannel, logChannel);
             var roleIds = roleFilter.Select(d => d.Id).ToArray();
 

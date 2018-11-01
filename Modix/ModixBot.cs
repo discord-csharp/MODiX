@@ -189,7 +189,7 @@ namespace Modix
             _map.AddSingleton<GuildInfoService>();
             _map.AddSingleton<ICodePasteRepository, MemoryCodePasteRepository>();
             _map.AddSingleton<CommandHelpService>();
-            _map.AddSingleton<IPopularityContestService, PopularityContestService>();
+            _map.AddScoped<IPopularityContestService, PopularityContestService>();
 
             _map.AddSingleton<CommandErrorHandler>();
             _map.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
