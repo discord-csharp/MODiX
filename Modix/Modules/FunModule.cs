@@ -15,6 +15,7 @@ namespace Modix.Modules
     [Name("Fun"), Summary("A bunch of miscellaneous, fun commands")]
     public class FunModule : ModuleBase
     {
+        [Alias("enlarge", "big", "large", "biggen", "sizeify", "makegobig")]
         [Command("jumbo"), Summary("Jumbofy an emoji")]
         public async Task Jumbo(string emoji)
         {
