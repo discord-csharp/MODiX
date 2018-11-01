@@ -23,6 +23,7 @@ using Modix.Services.Core;
 using Modix.Services.DocsMaster;
 using Modix.Services.GuildInfo;
 using Modix.Services.Moderation;
+using Modix.Services.PopularityContest;
 using Modix.Services.Promotions;
 using Modix.Services.Quote;
 using Modix.WebServer;
@@ -188,6 +189,7 @@ namespace Modix
             _map.AddSingleton<GuildInfoService>();
             _map.AddSingleton<ICodePasteRepository, MemoryCodePasteRepository>();
             _map.AddSingleton<CommandHelpService>();
+            _map.AddScoped<IPopularityContestService, PopularityContestService>();
 
             _map.AddSingleton<CommandErrorHandler>();
             _map.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
@@ -206,6 +208,7 @@ namespace Modix
             _client.Log += _hooks.HandleLog;
             _commands.Log += _hooks.HandleLog;
 
+            _commands.AddTypeReader<IEmote>(new EmoteTypeReader());
             await _commands.AddModulesAsync(Assembly.GetEntryAssembly());
         }
     }
