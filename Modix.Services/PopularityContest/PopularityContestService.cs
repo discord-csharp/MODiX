@@ -184,7 +184,9 @@ namespace Modix.Services.PopularityContest
 
         private async Task<string> UploadLog(IMessage logMessage, IEmote countedEmote, IEnumerable<IUserMessage> messages)
         {
+            messages = messages.Where(Message => Message.Reactions.ContainsKey(countedEmote));
             string allEntries = string.Join('\n', messages.Select(d => $"{d.Reactions[countedEmote].ReactionCount} reactions: {d.GetMessageLink()}"));
+
             return await _pasteService.UploadCode($"All entries for contest held on {DateTimeOffset.UtcNow}\nResults here: {logMessage.GetMessageLink()}\n\n{allEntries}");
         }
 
