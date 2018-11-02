@@ -43,9 +43,10 @@ namespace Modix.Services.Utilities
                     .WithIsInline(false)
                     .WithName($"LogLevel: {logEvent.Level}")
                     .WithValue(Format.Code($"{formattedMessage}\n{logEvent.Exception?.Message}")));
-            var eventAsJson = JsonConvert.SerializeObject(logEvent, _jsonSerializerSettings);
             try
             {
+                var eventAsJson = JsonConvert.SerializeObject(logEvent, _jsonSerializerSettings);
+
                 var pasteHandler = new CodePasteService();
                 var url = pasteHandler.UploadCode(eventAsJson, "json").GetAwaiter().GetResult();
 
@@ -57,7 +58,6 @@ namespace Modix.Services.Utilities
             catch (Exception ex)
             {
                 Console.WriteLine($"Unable to upload log event.{ex}");
-                Console.WriteLine($"Raw event: {eventAsJson}");
                 message.AddField(new EmbedFieldBuilder()
                     .WithIsInline(false)
                     .WithName("Stack Trace")

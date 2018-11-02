@@ -8,16 +8,25 @@ namespace Modix.Services.Utilities
     {
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
-            var property = base.CreateProperty(member, memberSerialization);
+            JsonProperty property = base.CreateProperty(member, memberSerialization);
 
-            if (property.DeclaringType == typeof(MethodBase) && property.PropertyName == "TargetSite")
+            //Skip serializing complex properties
+            if ((property.DeclaringType == typeof(MethodBase) && property.PropertyName == "TargetSite") 
+                || property.PropertyName == "Context"
+                || property.PropertyName == "Command")
             {
-                property.ShouldSerialize =
-                    instance =>
-                    {
-                        return false;
-                    };
+                var property = base.CreateProperty(member, memberSerialization);
+
+                if (property.DeclaringType == typeof(MethodBase) && property.PropertyName == "TargetSite")
+                {
+                    property.ShouldSerialize =
+                        instance =>
+                        {
+                            return false;
+                        };
+                }
             }
+            
             return property;
         }
     }
