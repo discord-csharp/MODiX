@@ -3,11 +3,11 @@ using System.Threading.Tasks;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
 using Modix.Data.Models.Promotions;
+using Modix.Models;
 using Modix.Services.Core;
 using Modix.Services.Promotions;
-using Modix.WebServer.Models;
 
-namespace Modix.WebServer.Controllers
+namespace Modix.Controllers
 {
     [Route("~/api/campaigns")]
     public class PromotionController : ModixController

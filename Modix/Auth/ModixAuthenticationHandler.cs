@@ -9,16 +9,16 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Modix.WebServer.Models;
+using Modix.Models;
 
-namespace Modix.WebServer.Auth
+namespace Modix.Auth
 {
     public class ModixAuthenticationHandler : DiscordAuthenticationHandler
     {
         private DiscordSocketClient _client;
 
         public ModixAuthenticationHandler(IOptionsMonitor<DiscordAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock,
-            DiscordSocketClient client) 
+            DiscordSocketClient client)
             : base(options, logger, encoder, clock)
         {
             _client = client;

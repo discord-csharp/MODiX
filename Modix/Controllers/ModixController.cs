@@ -5,9 +5,9 @@ using Discord.WebSocket;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Modix.WebServer.Models;
+using Modix.Models;
 
-namespace Modix.WebServer.Controllers
+namespace Modix.Controllers
 {
     [ValidateAntiForgeryToken]
     [Authorize]
@@ -51,7 +51,7 @@ namespace Modix.WebServer.Controllers
             if (SocketUser == null) { await next(); return; }
 
             await AssignClaims();
-   
+
             //Do it again here to assign claims (this is very lazy of us)
             ModixUser = ModixUser.FromClaimsPrincipal(HttpContext.User);
             ModixUser.SelectedGuild = SocketUser.Guild.Id;

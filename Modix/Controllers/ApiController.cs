@@ -1,13 +1,13 @@
 ﻿using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
+using Modix.Models;
 using Modix.Services.Core;
 using Modix.Services.GuildInfo;
-using Modix.WebServer.Models;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Modix.WebServer.Controllers
+namespace Modix.Controllers
 {
     public class ApiController : ModixController
     {

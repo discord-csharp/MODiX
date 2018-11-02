@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Modix.Services.CommandHelp;
 
-namespace Modix.WebServer.Controllers
+namespace Modix.Controllers
 {
     [Route("~/api")]
     public class CommandsController : Controller

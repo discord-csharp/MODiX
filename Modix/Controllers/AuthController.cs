@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Modix.WebServer.Controllers
+namespace Modix.Controllers
 {
     [Route("~/api")]
     public class AuthController : Controller

@@ -1,6 +1,6 @@
 ﻿using Modix.Data.Models.Promotions;
 
-namespace Modix.WebServer.Models
+namespace Modix.Models
 {
     public class PromotionCommentData
     {

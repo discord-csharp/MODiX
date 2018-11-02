@@ -7,8 +7,8 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
+using Modix.Auth;
 using Modix.Data.Models.Core;
-using Modix.WebServer.Auth;
 using Newtonsoft.Json.Converters;
 
 namespace Modix

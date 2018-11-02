@@ -1,4 +1,4 @@
-﻿namespace Modix.WebServer.Models
+﻿namespace Modix.Models
 {
     public class PromotionCreationData
     {

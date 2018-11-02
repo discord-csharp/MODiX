@@ -2,10 +2,10 @@
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
+using Modix.Models;
 using Modix.Services.Core;
-using Modix.WebServer.Models;
 
-namespace Modix.WebServer.Controllers
+namespace Modix.Controllers
 {
     [Route("~/api/config/roles")]
     public class RoleController : ModixController

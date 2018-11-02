@@ -3,10 +3,10 @@ using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
+using Modix.Models;
 using Modix.Services.Core;
-using Modix.WebServer.Models;
 
-namespace Modix.WebServer.Controllers
+namespace Modix.Controllers
 {
     [Route("~/api/config/claims")]
     public class ClaimsController : ModixController

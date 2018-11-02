@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Security.Claims;
 
-namespace Modix.WebServer.Models
+namespace Modix.Models
 {
     public class ModixUser
     {

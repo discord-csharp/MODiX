@@ -1,6 +1,6 @@
 ﻿using Modix.Data.Models.Core;
 
-namespace Modix.WebServer.Models
+namespace Modix.Models
 {
     public class DesignatedRoleApiData
     {

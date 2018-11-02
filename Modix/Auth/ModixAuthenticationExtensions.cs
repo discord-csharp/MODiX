@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Data.Models.Core;
 
-namespace Modix.WebServer.Auth
+namespace Modix.Auth
 {
     public static class ModixAuthenticationExtensions
     {

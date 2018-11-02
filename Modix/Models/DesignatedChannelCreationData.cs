@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Modix.Data.Models.Core;
 
-namespace Modix.WebServer.Models
+namespace Modix.Models
 {
     public class DesignatedChannelCreationData
     {

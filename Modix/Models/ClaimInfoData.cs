@@ -4,7 +4,7 @@ using System.Reflection;
 using Modix.Data.Models.Core;
 using Modix.Data.Utilities;
 
-namespace Modix.WebServer.Models
+namespace Modix.Models
 {
     public class ClaimInfoData
     {

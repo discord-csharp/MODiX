@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Modix.Services.CodePaste;
 
-namespace Modix.WebServer.Controllers
+namespace Modix.Controllers
 {
     [Route("~/api")]
     public class PasteController : Controller

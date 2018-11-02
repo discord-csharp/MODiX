@@ -11,7 +11,7 @@ using Modix.Services.Moderation;
 using Modix.Services.RowboatImporter;
 using Newtonsoft.Json;
 
-namespace Modix.WebServer.Controllers
+namespace Modix.Controllers
 {
     [Route("~/api/infractions")]
     public class InfractionController : ModixController
