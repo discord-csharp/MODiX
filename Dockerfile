@@ -12,4 +12,4 @@ FROM microsoft/dotnet:2.1-aspnetcore-runtime
 WORKDIR /app
 COPY --from=dotnet-build /app .
 COPY --from=node-build /src/dist ./wwwroot
-ENTRYPOINT ["dotnet", "Modix.dll"]
+ENTRYPOINT ["dotnet", "Modix.Bot.dll"]
