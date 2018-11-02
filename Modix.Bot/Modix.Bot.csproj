@@ -20,7 +20,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Modix.Services\Modix.Services.csproj" />
     <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
-    <ProjectReference Include="..\Modix.WebServer\Modix.WebServer.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update=".dockerignore">
