@@ -5,10 +5,13 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Modix.Auth;
+using Modix.Configuration;
 using Modix.Data;
 using Modix.Data.Models.Core;
 using Newtonsoft.Json.Converters;
@@ -42,6 +45,8 @@ namespace Modix
 
             services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
             services.AddResponseCompression();
+
+            services.AddTransient<IConfigureOptions<StaticFileOptions>, StaticFilesConfiguration>();
 
             services.AddDbContext<ModixContext>(options =>
             {
@@ -83,44 +88,27 @@ namespace Modix
                 });
             });
 
-            app.UseStaticFiles();
+            //Map to static files when not hitting the API
+            app.MapWhen(x => !x.Request.Path.Value.StartsWith("/api"), builder =>
+            {
+                //Tiny middleware to redirect invalid requests to index.html,
+                //this ensures that our frontend routing works on fresh requests
+                builder.Use(async (context, next) =>
+                {
+                    await next();
+                    if (context.Response.StatusCode == 404 && !Path.HasExtension(context.Request.Path.Value))
+                    {
+                        context.Request.Path = "/index.html";
+                        await next();
+                    }
+                })
+                .UseDefaultFiles()
+                .UseStaticFiles();
+            });
 
-            ////Map to static files when not hitting the API
-            //app.MapWhen(x => !x.Request.Path.Value.StartsWith("/api"), builder =>
-            //{
-            //    //Tiny middleware to redirect invalid requests to index.html,
-            //    //this ensures that our frontend routing works on fresh requests
-            //    builder.Use(async (context, next) =>
-            //    {
-            //        await next();
-            //        if (context.Response.StatusCode == 404 && !Path.HasExtension(context.Request.Path.Value))
-            //        {
-            //            context.Request.Path = "/index.html";
-            //            await next();
-            //        }
-            //    })
-            //    .UseDefaultFiles()
-            //    .UseStaticFiles(new StaticFileOptions
-            //    {
-            //        //Set up our antiforgery stuff when the user hits the page
-            //        OnPrepareResponse = fileResponse =>
-            //        {
-            //            if (fileResponse.File.Name == "index.html")
-            //            {
-            //                var tokens = antiforgery.GetAndStoreTokens(fileResponse.Context);
-
-            //                fileResponse.Context.Response.Cookies.Append(
-            //                    "XSRF-TOKEN", tokens.RequestToken, new CookieOptions() { HttpOnly = false });
-            //            }
-            //        }
-            //    });
-            //});
-
-            ////Defer to MVC for anything that doesn't match (and ostensibly
-            ////starts with /api)
-            //app.UseMvcWithDefaultRoute();
-
-            app.UseMvc();
+            //Defer to MVC for anything that doesn't match (and ostensibly
+            //starts with /api)
+            app.UseMvcWithDefaultRoute();
         }
     }
 }
