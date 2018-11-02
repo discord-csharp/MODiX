@@ -97,7 +97,7 @@ namespace Modix.Services.PopularityContest
             //we're looking for, where the user joined the server before the contest message was sent (10/06/2018 8:41pm UTC),
             //and, if the role filter is specified, has one of those roles
             var lastMessages = messages
-                .Where(d => d.Reactions.Count > 0 && d.Reactions.ContainsKey(countedEmote))
+                .Where(d => d.Reactions.Count > 0)
                 .Where(d =>
                 {
                     if (!(d.Author is IGuildUser msgAuthor)) { return false; }
