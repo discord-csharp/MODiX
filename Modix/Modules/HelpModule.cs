@@ -90,7 +90,6 @@ namespace Modix.Modules
             catch (HttpException exc) when (exc.DiscordCode == 50007)
             {
                 await ReplyAsync($"You have private messages for this server disabled, {Context.User.Mention}. Please enable them so I can send you help.");
-                return;
             }
             
         }

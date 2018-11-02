@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
@@ -9,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Modix.Data.Models.Core;
 using Modix.Data.Utilities;
 using Modix.Services.Core;
-using Modix.Services.Promotions;
 using Modix.WebServer.Models;
 
 namespace Modix.WebServer.Controllers

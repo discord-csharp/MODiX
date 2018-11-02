@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Text;
+﻿using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -11,7 +10,7 @@ namespace Modix.Modules
     [Group("docsmaster"), Name("DocsMaster"), Summary("Search for information from many documentations.")]
     public class DocsMasterModule : ModuleBase
     {
-        private DocsMasterRetrievalService _docsService;
+        private readonly DocsMasterRetrievalService _docsService;
 
         public DocsMasterModule(DocsMasterRetrievalService docsService)
         {

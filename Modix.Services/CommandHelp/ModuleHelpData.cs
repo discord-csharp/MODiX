@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Discord.Commands;
 using Humanizer;
 
 namespace Modix.Services.CommandHelp
 {
+    using System;
+
     public class ModuleHelpData
     {
         public string Name { get; set; }
@@ -15,9 +15,9 @@ namespace Modix.Services.CommandHelp
 
         public static ModuleHelpData FromModuleInfo(ModuleInfo module)
         {
-            string moduleName = module.Name;
+            var moduleName = module.Name;
 
-            int suffixPosition = moduleName.IndexOf("Module");
+            var suffixPosition = moduleName.IndexOf("Module", StringComparison.Ordinal);
             if (suffixPosition > -1)
             {
                 moduleName = module.Name.Substring(0, suffixPosition).Humanize();

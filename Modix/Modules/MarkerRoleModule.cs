@@ -4,14 +4,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Microsoft.AspNetCore.Mvc.TagHelpers;
 
 namespace Modix.Modules
 {
     [Group("pingrole"), Name("Marker Role Manager"), Summary("Allows you to add and remove specific marker roles.")]
     public class MarkerRoleModule : ModuleBase
     {
-        private List<ulong> _roleIds;
+        private readonly List<ulong> _roleIds;
 
         public MarkerRoleModule(List<ulong> roleIds)
         {

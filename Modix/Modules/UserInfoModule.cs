@@ -9,9 +9,7 @@ using Humanizer;
 using Humanizer.Localisation;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Modix.Data.Models;
 using Modix.Data.Models.Core;
-using Modix.Data.Models.Moderation;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
 using Modix.Services.Utilities;
@@ -23,7 +21,7 @@ namespace Modix.Modules
         private const string Format = "{0}: {1} ago ({2:yyyy-MM-ddTHH:mm:ssK})\n";
 
         //optimization: UtcNow is slow and the module is created per-request
-        private readonly DateTime UtcNow = DateTime.UtcNow; 
+        private readonly DateTime _utcNow = DateTime.UtcNow; 
 
         public UserInfoModule(ILogger<UserInfoModule> logger, IUserService userService, IModerationService moderationService, IAuthorizationService authorizationService)
         {
@@ -68,7 +66,7 @@ namespace Modix.Modules
             var embedBuilder = new EmbedBuilder()
                 .WithAuthor(userSummary.Username + "#" + userSummary.Discriminator)
                 .WithColor(new Color(253, 95, 0))
-                .WithTimestamp(UtcNow);
+                .WithTimestamp(_utcNow);
 
             if (await UserService.GuildUserExistsAsync(Context.Guild.Id, userId))
             {
@@ -141,7 +139,7 @@ namespace Modix.Modules
 
         private string FormatTimeAgo(string prefix, DateTimeOffset ago)
         {
-            var humanizedTimeAgo = (UtcNow - ago).Humanize(maxUnit: TimeUnit.Year, culture: CultureInfo.InvariantCulture);
+            var humanizedTimeAgo = (_utcNow - ago).Humanize(maxUnit: TimeUnit.Year, culture: CultureInfo.InvariantCulture);
             return string.Format(CultureInfo.InvariantCulture, Format, prefix, humanizedTimeAgo, ago.UtcDateTime);
         }
 

@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
-using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Services.Core;
 using Modix.Services.Moderation;

@@ -9,7 +9,6 @@ using Discord.WebSocket;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Modix.Behaviors;
 using Modix.Data;
 using Modix.Data.Models.Core;

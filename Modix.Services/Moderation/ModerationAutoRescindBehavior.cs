@@ -97,16 +97,16 @@ namespace Modix.Services.Moderation
         private void SetNextUpdateTimerTrigger(TimeSpan interval)
         {
             UpdateTimer.Interval =
-                (interval.TotalMilliseconds < _minTimerInterval) ? _minTimerInterval :
-                (interval.TotalMilliseconds > _maxTimerInterval) ? _maxTimerInterval :
+                (interval.TotalMilliseconds < MinTimerInterval) ? MinTimerInterval :
+                (interval.TotalMilliseconds > MaxTimerInterval) ? MaxTimerInterval :
                 interval.TotalMilliseconds;
             UpdateTimer.Start();
         }
 
-        private const double _minTimerInterval
+        private const double MinTimerInterval
             = 1; // Timer doesn't allow for 0
 
-        private const double _maxTimerInterval
+        private const double MaxTimerInterval
             = 3600000; // 1 hour
     }
 }

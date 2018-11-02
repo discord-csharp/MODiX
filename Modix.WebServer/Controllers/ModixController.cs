@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Modix.WebServer.Auth;
 using Modix.WebServer.Models;
 
 namespace Modix.WebServer.Controllers
@@ -37,8 +33,8 @@ namespace Modix.WebServer.Controllers
             //Parse the ID to look up socket user
             ModixUser = ModixUser.FromClaimsPrincipal(HttpContext.User);
 
-            string guildCookie = Request.Cookies["SelectedGuild"];
-            SocketGuild guildToSearch = null;
+            var guildCookie = Request.Cookies["SelectedGuild"];
+            SocketGuild guildToSearch;
 
             if (!string.IsNullOrWhiteSpace(guildCookie))
             {

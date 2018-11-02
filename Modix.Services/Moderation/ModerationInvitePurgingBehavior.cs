@@ -67,7 +67,7 @@ namespace Modix.Services.Moderation
         /// <returns>True if the channel is designated as Unmoderated, false if not</returns>
         private async Task<bool> ShouldSkip(IGuild guild, IMessageChannel channel)
         {
-            bool result = false;
+            var result = false;
 
             await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
             {

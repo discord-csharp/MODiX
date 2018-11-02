@@ -1,20 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using AspNet.Security.OAuth.Discord;
-using Discord;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Modix.WebServer.Models;
-using Newtonsoft.Json;
 
 namespace Modix.WebServer.Auth
 {
@@ -36,7 +31,7 @@ namespace Modix.WebServer.Auth
 
             await Task.WhenAll(_client.Guilds.Select(d => d.DownloadUsersAsync()));
 
-            bool userWasfound = _client.Guilds.Any(d => d.GetUser(result.UserId) != null);
+            var userWasfound = _client.Guilds.Any(d => d.GetUser(result.UserId) != null);
 
             if (!userWasfound)
             {

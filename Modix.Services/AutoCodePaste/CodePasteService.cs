@@ -3,7 +3,6 @@ using Modix.Data.Utilities;
 using Modix.Services.Utilities;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -20,9 +19,9 @@ namespace Modix.Services.AutoCodePaste
 
 {4}";
 
-        private const string _ApiReferenceUrl = "https://paste.mod.gg/";
-        private const string _FallbackApiReferenceUrl = "https://haste.charlesmilette.net/";
-        private static readonly HttpClient client = new HttpClient
+        private const string ApiReferenceUrl = "https://paste.mod.gg/";
+        private const string FallbackApiReferenceUrl = "https://haste.charlesmilette.net/";
+        private static readonly HttpClient _client = new HttpClient
         {
             Timeout = TimeSpan.FromSeconds(5)
         };
@@ -39,12 +38,12 @@ namespace Modix.Services.AutoCodePaste
 
             try
             {
-                response = await client.PostAsync($"{_ApiReferenceUrl}documents", content);
+                response = await _client.PostAsync($"{ApiReferenceUrl}documents", content);
             }
             catch (TaskCanceledException)
             {
                 usingFallback = true;
-                response = await client.PostAsync($"{_FallbackApiReferenceUrl}documents", content);
+                response = await _client.PostAsync($"{FallbackApiReferenceUrl}documents", content);
             }
 
             if (!response.IsSuccessStatusCode)
@@ -56,7 +55,7 @@ namespace Modix.Services.AutoCodePaste
             var urlResponse = await response.Content.ReadAsStringAsync();
             var pasteKey = JObject.Parse(urlResponse)["key"].Value<string>();
 
-            var domain = usingFallback ? _FallbackApiReferenceUrl : _ApiReferenceUrl;
+            var domain = usingFallback ? FallbackApiReferenceUrl : ApiReferenceUrl;
             return $"{domain}{pasteKey}.{language ?? (FormatUtilities.GetCodeLanguage(code) ?? "cs")}";
         }
 

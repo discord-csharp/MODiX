@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
-using Modix.Services.Moderation;
 
 namespace Modix.Services.RowboatImporter
 {
@@ -41,7 +39,7 @@ namespace Modix.Services.RowboatImporter
                 throw new InvalidOperationException("Cannot import infractions without a guild context");
             }
 
-            int importCount = 0;
+            var importCount = 0;
 
             using (var transaction = await InfractionRepository.BeginCreateTransactionAsync())
             {

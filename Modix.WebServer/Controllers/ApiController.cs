@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Modix.Services.Core;
 using Modix.Services.GuildInfo;
 using Modix.WebServer.Models;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,7 +11,7 @@ namespace Modix.WebServer.Controllers
 {
     public class ApiController : ModixController
     {
-        private GuildInfoService _guildInfoService;
+        private readonly GuildInfoService _guildInfoService;
 
         public ApiController(DiscordSocketClient client, GuildInfoService guildInfoService, IAuthorizationService auth) : base(client, auth)
         {

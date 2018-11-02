@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using Modix.Data.Models.Core;
 
 namespace Modix.WebServer.Models

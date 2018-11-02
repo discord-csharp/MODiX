@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Modix.Services.CodePaste;
 
@@ -10,7 +7,7 @@ namespace Modix.WebServer.Controllers
     [Route("~/api")]
     public class PasteController : Controller
     {
-        private ICodePasteRepository _codePasteRepository;
+        private readonly ICodePasteRepository _codePasteRepository;
 
         public PasteController(ICodePasteRepository codePasteRepository)
         {

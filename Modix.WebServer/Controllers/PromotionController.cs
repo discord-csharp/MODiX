@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +12,7 @@ namespace Modix.WebServer.Controllers
     [Route("~/api/campaigns")]
     public class PromotionController : ModixController
     {
-        private IPromotionsService _promotionsService;
+        private readonly IPromotionsService _promotionsService;
 
         public PromotionController(DiscordSocketClient client, IPromotionsService promotionService, IAuthorizationService auth) : base(client, auth)
         {
