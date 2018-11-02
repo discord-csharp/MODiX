@@ -1,20 +1,72 @@
 ﻿using System;
+using System.Diagnostics;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Data.Models.Core;
+using Modix.Services.Utilities;
+using Serilog;
+using Serilog.Events;
 
 namespace Modix
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static int Main(string[] args)
         {
-            CreateWebHostBuilder(args).Build().Run();
+            var loggerConfig = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .MinimumLevel.Override("Discord", LogEventLevel.Information)
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .WriteTo.RollingFile(@"logs\{Date}", restrictedToMinimumLevel: LogEventLevel.Debug);
+
+            var webhookId = Environment.GetEnvironmentVariable("log_webhook_id");
+            var webhookToken = Environment.GetEnvironmentVariable("log_webhook_token");
+            var sentryToken = Environment.GetEnvironmentVariable("SentryToken");
+
+            if (!string.IsNullOrWhiteSpace(webhookToken) &&
+                ulong.TryParse(webhookId, out var id))
+            {
+                loggerConfig.WriteTo.DiscordWebhookSink(id, webhookToken, LogEventLevel.Error);
+            }
+
+            if (!string.IsNullOrWhiteSpace(sentryToken))
+            {
+                loggerConfig.WriteTo.Sentry(sentryToken, restrictedToMinimumLevel: LogEventLevel.Warning);
+            }
+
+            Log.Logger = loggerConfig.CreateLogger();
+
+            try
+            {
+                CreateWebHostBuilder(args).Build().Run();
+
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                Log.ForContext<Program>()
+                    .Fatal(ex, "Host terminated unexpectedly.");
+
+                if (Debugger.IsAttached && Environment.UserInteractive)
+                {
+                    Console.WriteLine(Environment.NewLine + "Press any key to exit...");
+                    Console.ReadKey(true);
+                }
+
+                return ex.HResult;
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .UseSerilog()
                 .ConfigureServices(services => services.AddSingleton(LoadConfig()))
                 .UseStartup<Startup>();
 
