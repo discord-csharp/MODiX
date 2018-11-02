@@ -112,6 +112,7 @@ namespace Modix.Services.PopularityContest
 
             //Take the last message from each user, ordered by reaction count, and take up to the top 3 entries
             var mostReactedMessages = lastMessages
+                .Where(Message => Message.Reactions.ContainsKey(countedEmote))
                 .Select(Message => (Message, Message.Reactions[countedEmote].ReactionCount))
                 .OrderByDescending(d => d.ReactionCount)
                 .Take(3);
