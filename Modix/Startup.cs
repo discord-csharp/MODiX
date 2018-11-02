@@ -6,8 +6,10 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Auth;
+using Modix.Data;
 using Modix.Data.Models.Core;
 using Newtonsoft.Json.Converters;
 
@@ -40,6 +42,13 @@ namespace Modix
 
             services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
             services.AddResponseCompression();
+
+            services.AddDbContext<ModixContext>(options =>
+            {
+                options.UseNpgsql(Configuration.PostgreConnectionString);
+            });
+
+            services.AddModix();
 
             services.AddMvc()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
