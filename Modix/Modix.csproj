@@ -44,19 +44,21 @@
     <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
   </Target>
 
-  <Target Name="DebugRunWebpack" BeforeTargets="Build" DependsOnTargets="NpmInstall"
-          Condition=" '$(Configuration)' == 'Debug' And !Exists('wwwroot\dist') ">
+  <Target Name="DebugRunVueCli" BeforeTargets="Build" DependsOnTargets="NpmInstall" Condition=" '$(Configuration)' == 'Debug' And !Exists('wwwroot\dist') ">
+    <PropertyGroup>
+      <NpmScript Condition=" '$(Configuration)' == 'Debug' ">build-dev</NpmScript>
+      <NpmScript Condition=" '$(NpmScript)' == '' ">build</NpmScript>
+    </PropertyGroup>
+
     <!-- In development, the dist files won't exist on the first run or when cloning to
          a different machine, so rebuild them if not already present. -->
     <Message Importance="high" Text="Performing first-run Webpack build..." />
-    <Exec WorkingDirectory="$(SpaRoot)" Command="node node_modules/webpack/bin/webpack.js --config webpack.config.vendor.js" />
-    <Exec WorkingDirectory="$(SpaRoot)" Command="node node_modules/webpack/bin/webpack.js" />
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm run $(NpmScript)" />
   </Target>
 
-  <Target Name="PublishRunWebpack" AfterTargets="ComputeFilesToPublish" DependsOnTargets="NpmInstall">
+  <Target Name="PublishRunVueCli" AfterTargets="ComputeFilesToPublish" DependsOnTargets="NpmInstall">
     <!-- As part of publishing, ensure the JS resources are freshly built in production mode -->
-    <Exec WorkingDirectory="$(SpaRoot)" Command="node node_modules/webpack/bin/webpack.js --config webpack.config.vendor.js --env.prod" />
-    <Exec WorkingDirectory="$(SpaRoot)" Command="node node_modules/webpack/bin/webpack.js --env.prod" />
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
 
     <!-- Include the newly-built files in the publish output -->
     <ItemGroup>
