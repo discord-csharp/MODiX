@@ -1,41 +1,48 @@
 ﻿using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
-using Serilog;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.GuildInfo;
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Services.CommandHelp;
+using Microsoft.Extensions.Logging;
 
 namespace Modix
 {
     public class ModixBotHooks
     {
-        public IServiceProvider ServiceProvider { get; set; }
-        public ulong CurrentBotId { get; set; }
+        private readonly ILogger<ModixBotHooks> _log;
+
+        public ModixBotHooks(IServiceProvider serviceProvider)
+        {
+            ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _log = ServiceProvider.GetRequiredService<ILogger<ModixBotHooks>>();
+        }
+
+        public IServiceProvider ServiceProvider { get; private set; }
 
         public Task HandleLog(LogMessage message)
         {
             switch (message.Severity)
             {
                 case LogSeverity.Critical:
-                    Log.Error(message.Exception, message.Message ?? "An exception bubbled up: ");
+                    _log.LogError(message.Exception, message.Message ?? "An exception bubbled up: ");
                     break;
                 case LogSeverity.Debug:
-                    Log.Debug(message.ToString());
+                    _log.LogDebug(message.ToString());
                     break;
                 case LogSeverity.Warning:
-                    Log.Warning(message.ToString());
+                    _log.LogWarning(message.ToString());
                     break;
                 case LogSeverity.Error:
-                    Log.Error(message.Exception, message.Message ?? "An exception bubbled up: ");
+                    _log.LogError(message.Exception, message.Message ?? "An exception bubbled up: ");
                     break;
                 case LogSeverity.Info:
-                    Log.Information(message.ToString());
+                    _log.LogInformation(message.ToString());
                     break;
                 case LogSeverity.Verbose:
-                    Log.Verbose(message.ToString());
+                    _log.LogTrace(message.ToString());
                     break;
             }
             return Task.CompletedTask;
