@@ -2,6 +2,7 @@
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Modix;
 using Modix.Behaviors;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
@@ -22,7 +23,6 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     internal static class ServiceCollectionExtensions
     {
-
         public static IServiceCollection AddModix(this IServiceCollection services)
         {
             services.AddSingleton(
@@ -35,13 +35,21 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IDiscordClient>(provider => provider.GetRequiredService<DiscordSocketClient>());
 
             services.AddSingleton(_ =>
-                new CommandService(new CommandServiceConfig
                 {
-                    LogLevel = LogSeverity.Debug,
-                    DefaultRunMode = RunMode.Sync,
-                    CaseSensitiveCommands = false,
-                    SeparatorChar = ' '
-                }));
+                    var service = new CommandService(
+                        new CommandServiceConfig
+                        {
+                            LogLevel = LogSeverity.Debug,
+                            DefaultRunMode = RunMode.Sync,
+                            CaseSensitiveCommands = false,
+                            SeparatorChar = ' '
+                        });
+
+                    service.AddTypeReader<IEmote>(new EmoteTypeReader());
+                    service.AddModulesAsync(typeof(ModixBot).Assembly).GetAwaiter().GetResult();
+
+                    return service;
+                });
 
             services.AddSingleton<HttpClient>();
 
@@ -68,6 +76,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>()
                 .AddScoped<IPromotionActionEventHandler, PromotionLoggingBehavior>();
+
+            services.AddHostedService<ModixBot>();
 
             return services;
         }

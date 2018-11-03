@@ -1,108 +1,187 @@
 using System;
 using System.Diagnostics;
-using System.Net.Http;
-using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Modix.Behaviors;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Modix.Data;
 using Modix.Data.Models.Core;
-using Modix.Data.Repositories;
 using Modix.Services;
-using Modix.Services.AutoCodePaste;
 using Modix.Services.BehaviourConfiguration;
-using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
-using Modix.Services.DocsMaster;
-using Modix.Services.GuildInfo;
-using Modix.Services.Moderation;
-using Modix.Services.PopularityContest;
-using Modix.Services.Promotions;
-using Modix.Services.Quote;
-using Modix.WebServer;
-using Serilog;
 
 namespace Modix
 {
-    public sealed class ModixBot
+    public sealed class ModixBot : BackgroundService
     {
-        private readonly CommandService _commands = new CommandService(new CommandServiceConfig
-        {
-            LogLevel = LogSeverity.Debug,
-            DefaultRunMode = RunMode.Sync,
-            CaseSensitiveCommands = false,
-            SeparatorChar = ' '
-        });
-
-        private DiscordSocketClient _client;
-        private readonly IServiceCollection _map = new ServiceCollection();
-        private IServiceScope _scope;
-        private readonly ModixBotHooks _hooks = new ModixBotHooks();
+        private readonly DiscordSocketClient _client;
+        private readonly CommandService _commands;
+        private readonly IServiceProvider _provider;
         private readonly ModixConfig _config;
-        private IWebHost _host;
 
-        public ModixBot(ModixConfig config)
+        private ModixBotHooks _hooks;
+        private IServiceScope _scope;
+
+        public ModixBot(
+            DiscordSocketClient discordClient,
+            ModixConfig modixConfig,
+            CommandService commandService,
+            IServiceProvider serviceProvider,
+            ILogger<ModixBot> logger)
         {
-            _config = config ?? throw new ArgumentNullException(nameof(config));
-            _map.AddLogging(bldr => bldr.AddSerilog());
+            _client = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
+            _config = modixConfig ?? throw new ArgumentNullException(nameof(modixConfig));
+            _commands = commandService ?? throw new ArgumentNullException(nameof(commandService));
+            _provider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+
+            Log = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task Run()
+        private ILogger<ModixBot> Log { get; }
+
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _client = new DiscordSocketClient(config: new DiscordSocketConfig
+            Log.LogInformation("Starting bot background service.");
+
+            IServiceScope scope = null;
+            ModixBotHooks hooks = null;
+            try
             {
-                LogLevel = LogSeverity.Debug,
-                MessageCacheSize = _config.MessageCacheSize //needed to log deletions
-            });
+                // Create a new scope for the session.
+                scope = _provider.CreateScope();
 
-            await Install(); // Setting up DependencyMap
+                Log.LogTrace("Registering listeners for Discord client events.");
+                hooks = new ModixBotHooks(scope.ServiceProvider);
 
-            _map.AddDbContext<ModixContext>(options =>
-            {
-                options.UseNpgsql(_config.PostgreConnectionString);
-            });
+                _client.MessageReceived += HandleCommand;
+                _client.ReactionAdded += hooks.HandleAddReaction;
+                _client.ReactionRemoved += hooks.HandleRemoveReaction;
+                _client.UserJoined += hooks.HandleUserJoined;
+                _client.UserLeft += hooks.HandleUserLeft;
 
-            _host = ModixWebServer.BuildWebHost(_map, _config);
+                _client.Log += hooks.HandleLog;
+                _commands.Log += hooks.HandleLog;
 
-            _scope = _host.Services.CreateScope();
+                // Register with the cancellation token so we can stop listening to client events if the service is
+                // shutting down or being disposed.
+                stoppingToken.Register(OnStopping);
 
-            using (var scope = _scope.ServiceProvider.CreateScope())
-            {
+                Log.LogInformation("Running database migrations.");
                 scope.ServiceProvider.GetRequiredService<ModixContext>()
                     .Database.Migrate();
 
+                Log.LogInformation("Starting behaviors.");
                 await scope.ServiceProvider.GetRequiredService<IBehaviourConfigurationService>()
                     .LoadBehaviourConfiguration();
+
+                foreach (var behavior in scope.ServiceProvider.GetServices<IBehavior>())
+                {
+                    await behavior.StartAsync();
+                    stoppingToken.Register(() => behavior.StopAsync().GetAwaiter().GetResult());
+                }
+
+                // The only thing that could go wrong at this point is the client failing to login and start. Promote
+                // our local service scope to a field so that it's available to the HandleCommand method once events
+                // start firing after we've connected.
+                _scope = scope;
+
+                Log.LogInformation("Logging into Discord and starting the client.");
+
+                await StartClient(stoppingToken);
+
+                Log.LogInformation("Discord client started successfully.");
+
+                await Task.Delay(-1);
+            }
+            catch (Exception ex)
+            {
+                Log.LogError(ex, "An error occurred while attempting to start the background service.");
+
+                try
+                {
+                    OnStopping();
+
+                    Log.LogInformation("Logging out of Discord.");
+                    await _client.LogoutAsync();
+                }
+                finally
+                {
+                    scope?.Dispose();
+                    _scope = null;
+                }
+
+                throw;
             }
 
-            _hooks.ServiceProvider = _scope.ServiceProvider;
-            foreach (var behavior in _scope.ServiceProvider.GetServices<IBehavior>())
-                await behavior.StartAsync();
+            void OnStopping()
+            {
+                Log.LogInformation("Stopping background service.");
 
-            await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
-            await _client.StartAsync();
+                _client.MessageReceived -= HandleCommand;
 
-            _client.Ready += StartWebserver;
+                if (hooks is null)
+                {
+                    return;
+                }
 
-            await Task.Delay(-1);
+                _client.ReactionAdded -= hooks.HandleAddReaction;
+                _client.ReactionRemoved -= hooks.HandleRemoveReaction;
+                _client.UserJoined -= hooks.HandleUserJoined;
+                _client.UserLeft -= hooks.HandleUserLeft;
+
+                _client.Log -= hooks.HandleLog;
+                _commands.Log -= hooks.HandleLog;
+            }
         }
 
-        public async Task StartWebserver()
+        public override void Dispose()
         {
-            await _client.SetGameAsync("https://mod.gg/");
-
-            //Start the webserver, but unbind the event in case discord.net reconnects
-            await _host.StartAsync();
-            _client.Ready -= StartWebserver;
+            try
+            {
+                // If the service is currently running, this will cancel the cancellation token that was passed into
+                // our ExecuteAsync method, unregistering our event handlers for us.
+                base.Dispose();
+            }
+            finally
+            {
+                _scope?.Dispose();
+                _client.Dispose();
+            }
         }
 
-        public async Task HandleCommand(SocketMessage messageParam)
+        private async Task StartClient(CancellationToken cancellationToken)
+        {
+            try
+            {
+                _client.Ready += OnClientReady;
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
+                await _client.StartAsync();
+            }
+            catch (Exception)
+            {
+                _client.Ready -= OnClientReady;
+
+                throw;
+            }
+
+            async Task OnClientReady()
+            {
+                Log.LogTrace("Discord client is ready. Setting game status.");
+                _client.Ready -= OnClientReady;
+                await _client.SetGameAsync("https://mod.gg/");
+            }
+        }
+
+        private async Task HandleCommand(SocketMessage messageParam)
         {
             var stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -139,11 +218,11 @@ namespace Modix
 
                         if (!string.Equals(result.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
                         {
-                            Log.Warning(error);
+                            Log.LogWarning(error);
                         }
                         else
                         {
-                            Log.Error(error);
+                            Log.LogError(error);
                         }
 
                         if (result.Error != CommandError.Exception)
@@ -159,56 +238,11 @@ namespace Modix
                 }
 
                 stopwatch.Stop();
-                Log.Information($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
+                Log.LogInformation($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
             });
 #pragma warning restore CS4014
 
             await Task.CompletedTask;
-        }
-
-        public async Task Install()
-        {
-            _map.AddSingleton(_client);
-            _map.AddSingleton<IDiscordClient>(_client);
-            _map.AddSingleton(_config);
-            _map.AddSingleton(_commands);
-            _map.AddSingleton<HttpClient>();
-
-            _map.AddModixCore()
-                .AddModixModeration()
-                .AddModixPromotions();
-
-            _map.AddScoped<IQuoteService, QuoteService>();
-            _map.AddSingleton<CodePasteHandler>();
-            _map.AddSingleton<IBehavior, AttachmentBlacklistBehavior>();
-            _map.AddSingleton<CodePasteService>();
-            _map.AddScoped<DocsMasterRetrievalService>();
-            _map.AddMemoryCache();
-
-            _map.AddSingleton<GuildInfoService>();
-            _map.AddSingleton<ICodePasteRepository, MemoryCodePasteRepository>();
-            _map.AddSingleton<CommandHelpService>();
-            _map.AddScoped<IPopularityContestService, PopularityContestService>();
-
-            _map.AddSingleton<CommandErrorHandler>();
-            _map.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
-            _map.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
-            _map.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
-
-            _map.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>()
-                .AddScoped<IPromotionActionEventHandler, PromotionLoggingBehavior>();
-
-            _client.MessageReceived += HandleCommand;
-            _client.ReactionAdded += _hooks.HandleAddReaction;
-            _client.ReactionRemoved += _hooks.HandleRemoveReaction;
-            _client.UserJoined += _hooks.HandleUserJoined;
-            _client.UserLeft += _hooks.HandleUserLeft;
-
-            _client.Log += _hooks.HandleLog;
-            _commands.Log += _hooks.HandleLog;
-
-            _commands.AddTypeReader<IEmote>(new EmoteTypeReader());
-            await _commands.AddModulesAsync(Assembly.GetEntryAssembly());
         }
     }
 }
