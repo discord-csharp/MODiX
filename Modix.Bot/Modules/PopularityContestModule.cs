@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.AspNetCore.Authorization;
 using Modix.Services.PopularityContest;
 using System;
 using System.Collections.Generic;
@@ -26,7 +25,7 @@ namespace Modix.Modules
         [Command("count")]
         [Summary("Count the number of the given reaction on messages within the given channel")]
         public async Task Count([Summary("The reaction to be counted")] IEmote emoteToCount,
-            [Summary("The channel to count")] ISocketMessageChannel collectionChannel, 
+            [Summary("The channel to count")] ISocketMessageChannel collectionChannel,
             [Summary("A list of roles that a message author must have at least one of, space separated")] params IRole[] roles)
         {
             await _contestService.CollectData(emoteToCount, collectionChannel, Context.Channel as ISocketMessageChannel, roles);
