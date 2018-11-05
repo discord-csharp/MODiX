@@ -15,16 +15,11 @@ namespace Modix.Services.Utilities
                 || property.PropertyName == "Context"
                 || property.PropertyName == "Command")
             {
-                var property = base.CreateProperty(member, memberSerialization);
-
-                if (property.DeclaringType == typeof(MethodBase) && property.PropertyName == "TargetSite")
-                {
-                    property.ShouldSerialize =
-                        instance =>
-                        {
-                            return false;
-                        };
-                }
+                property.ShouldSerialize =
+                    instance =>
+                    {
+                        return false;
+                    };
             }
             
             return property;
