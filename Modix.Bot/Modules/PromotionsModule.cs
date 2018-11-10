@@ -79,7 +79,7 @@ namespace Modix.Modules
             var continuationData = await PromotionsService.CreateCampaignAsync(subject.Id, comment);
 
             var confirmationMessage = await ReplyAsync($@"You are nominating user {subject.Id} for promotion to rank {continuationData.TargetRankRole.Name}.
-React with ✅ in the next 10 seconds to finalize the campaign.");
+React with ✅ in the next 10 seconds to finalize creation of the campaign.");
 
             await confirmationMessage.AddReactionAsync(new Emoji("✅"));
 
