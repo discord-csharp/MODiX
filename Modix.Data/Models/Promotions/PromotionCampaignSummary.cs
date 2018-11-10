@@ -1,10 +1,10 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
+using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
-using Modix.Data.Projectables;
 
 namespace Modix.Data.Models.Promotions
 {
@@ -54,6 +54,7 @@ namespace Modix.Data.Models.Promotions
         /// </summary>
         public IReadOnlyDictionary<PromotionSentiment, int> CommentCounts { get; set; }
 
+        [ExpansionExpression]
         internal static Expression<Func<PromotionCampaignEntity, PromotionCampaignSummary>> FromEntityProjection
             = entity => new PromotionCampaignSummary()
             {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-using Modix.Data.Projectables;
+using Modix.Data.ExpandableQueries;
 
 namespace Modix.Data.Models.Core
 {
@@ -25,7 +25,8 @@ namespace Modix.Data.Models.Core
         /// </summary>
         public DesignatedChannelType Type { get; set; }
 
-        internal static Expression<Func<DesignatedChannelMappingEntity, DesignatedChannelMappingBrief>> FromEntityProjection { get; }
+        [ExpansionExpression]
+        internal static readonly Expression<Func<DesignatedChannelMappingEntity, DesignatedChannelMappingBrief>> FromEntityProjection
             = entity => new DesignatedChannelMappingBrief()
             {
                 Id = entity.Id,

@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
+using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Promotions;
-using Modix.Data.Projectables;
 
 namespace Modix.Data.Repositories
 {
@@ -34,7 +34,7 @@ namespace Modix.Data.Repositories
         public Task<PromotionActionSummary> ReadSummaryAsync(long promotionActionId)
             => ModixContext.PromotionActions.AsNoTracking()
                 .Where(x => x.Id == promotionActionId)
-                .AsProjectable()
+                .AsExpandable()
                 .Select(PromotionActionSummary.FromEntityProjection)
                 .FirstOrDefaultAsync();
     }

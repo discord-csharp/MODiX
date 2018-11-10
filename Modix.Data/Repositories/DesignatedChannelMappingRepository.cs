@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
+using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
-using Modix.Data.Projectables;
 
 namespace Modix.Data.Repositories
 {
@@ -145,7 +145,7 @@ namespace Modix.Data.Repositories
         public async Task<IReadOnlyCollection<DesignatedChannelMappingBrief>> SearchBriefsAsync(DesignatedChannelMappingSearchCriteria searchCriteria)
             => await ModixContext.DesignatedChannelMappings.AsNoTracking()
                 .FilterBy(searchCriteria)
-                .AsProjectable()
+                .AsExpandable()
                 .Select(DesignatedChannelMappingBrief.FromEntityProjection)
                 .ToArrayAsync();
 

@@ -1,22 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 
-namespace Modix.Data.Projectables
+namespace Modix.Data.ExpandableQueries
 {
-    public class ProjectableVisitor : ExpressionVisitor
+    public class ProjectMethodVisitor : ExpressionVisitor
     {
-        static ProjectableVisitor()
+        static ProjectMethodVisitor()
         {
-            _projectMethod = typeof(ProjectableExtensions)
-                .GetMethod(nameof(ProjectableExtensions.Project));
-        }
-
-        public ProjectableVisitor(IQueryProvider provider)
-        {
-            _provider = provider ?? throw new ArgumentNullException(nameof(provider));
+            _projectMethod = typeof(ExpandableExtensions)
+                .GetMethod(nameof(ExpandableExtensions.Project));
         }
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
@@ -24,7 +18,7 @@ namespace Modix.Data.Projectables
             if ((node.Method.IsGenericMethod) && (node.Method.GetGenericMethodDefinition() == _projectMethod))
             {
                 var input = node.Arguments[0];
-                var projection = GetProjection(node.Arguments[1]);
+                var projection = (node.Arguments[1] as UnaryExpression).Operand as LambdaExpression;
 
                 var parameter = projection.Parameters.First();
 
@@ -48,18 +42,6 @@ namespace Modix.Data.Projectables
             => _parameterReplacements.TryGetValue(node, out var replacement)
                 ? Visit(replacement)
                 : base.VisitParameter(node);
-
-        private static LambdaExpression GetProjection(Expression projectionExpression)
-        {
-            if ((projectionExpression is MemberExpression memberExpression)
-                && (memberExpression.Member is FieldInfo field)
-                && field.IsStatic)
-                return field.GetValue(null) as LambdaExpression;
-
-            throw new InvalidOperationException($"Unable to evaluate expression \"{projectionExpression.ToString()}\" to retrieve a projection expression");
-        }
-
-        private readonly IQueryProvider _provider;
 
         private readonly Dictionary<ParameterExpression, Expression> _parameterReplacements
             = new Dictionary<ParameterExpression, Expression>();
