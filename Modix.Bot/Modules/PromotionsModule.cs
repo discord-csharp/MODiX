@@ -69,6 +69,37 @@ namespace Modix.Modules
 
         [Command("nominate")]
         [Summary("Nominate the given user for promotion")]
+        public async Task Nominate(
+            [Summary("The user to nominate")]
+                IGuildUser subject,
+            [Remainder]
+            [Summary("A comment to be attached to the new campaign")]
+                string comment)
+        {
+            var continuationData = await PromotionsService.CreateCampaignAsync(subject.Id, comment);
+
+            var confirmationMessage = await ReplyAsync($@"You are nominating user {subject.Id} for promotion to rank {continuationData.TargetRankRole.Name}.
+React with ✅ in the next 10 seconds to finalize the campaign.");
+
+            await confirmationMessage.AddReactionAsync(new Emoji("✅"));
+
+            await Task.Delay(10000);
+
+            var reactionUsers = await confirmationMessage.GetReactionUsersAsync("✅");
+
+            if (reactionUsers.Any(u => u.Id == continuationData.NominatingUserId))
+            {
+                await PromotionsService.ContinueCreateCampaignAsync(continuationData);
+            }
+            else
+            {
+                await confirmationMessage.RemoveAllReactionsAsync();
+                await confirmationMessage.AddReactionAsync(new Emoji("❌"));
+            }
+        }
+
+        [Command("nominate")]
+        [Summary("Nominate the given user for promotion")]
         public Task Nominate(
             [Summary("The user to nominate")]
                 IGuildUser subject,
