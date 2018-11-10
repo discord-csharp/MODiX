@@ -25,7 +25,7 @@ namespace Modix.Services.Promotions
         /// <param name="subjectId">The Discord snowflake ID of the user whose promotion is being proposed.</param>
         /// <param name="comment">The content of the comment to be added to the new campaign.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task<CreateCampaignContinuationData> CreateCampaignAsync(ulong subjectId, string comment);
+        Task<ProposedPromotionCampaign> CreateCampaignAsync(ulong subjectId, string comment);
 
         /// <summary>
         /// Creates a new promotion campaign, and attaches an initial comment to it.
@@ -44,7 +44,7 @@ namespace Modix.Services.Promotions
         /// <param name="rankRoles">A collection containing every Rank roles that is configured for the server.</param>
         /// <param name="comment">The content of the comment to be added to the new campaign.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task ContinueCreateCampaignAsync(CreateCampaignContinuationData continuationData);
+        Task ContinueCreateCampaignAsync(ProposedPromotionCampaign continuationData);
 
         /// <summary>
         /// Adds a comment to an active promotion campaign.
@@ -124,7 +124,7 @@ namespace Modix.Services.Promotions
         }
 
         /// <inheritdoc />
-        public async Task<CreateCampaignContinuationData> CreateCampaignAsync(ulong subjectId, string comment)
+        public async Task<ProposedPromotionCampaign> CreateCampaignAsync(ulong subjectId, string comment)
         {
             ValidateCreateCampaignAuthorization();
             
@@ -142,7 +142,14 @@ namespace Modix.Services.Promotions
 
             await PerformCommonCreateCampaignValidationsAsync(subject.Id, nextRankRole.Id, rankRoles);
 
-            return new CreateCampaignContinuationData(subject, nextRankRole, rankRoles, comment, AuthorizationService.CurrentUserId.Value);
+            return new ProposedPromotionCampaign
+            {
+                Subject = subject,
+                TargetRankRole = nextRankRole,
+                RankRoles = rankRoles,
+                Comment = comment,
+                NominatingUserId = AuthorizationService.CurrentUserId.Value
+            };
         }
 
         /// <inheritdoc />
@@ -176,10 +183,17 @@ namespace Modix.Services.Promotions
 
             await PerformCommonCreateCampaignValidationsAsync(subjectId, targetRoleId, rankRoles);
 
-            await ContinueCreateCampaignAsync(new CreateCampaignContinuationData(subject, targetRankRole, rankRoles, comment, AuthorizationService.CurrentUserId.Value));
+            await ContinueCreateCampaignAsync(new ProposedPromotionCampaign
+            {
+                Subject = subject,
+                TargetRankRole = targetRankRole,
+                RankRoles = rankRoles,
+                Comment = comment,
+                NominatingUserId = AuthorizationService.CurrentUserId.Value
+            });
         }
 
-        public async Task ContinueCreateCampaignAsync(CreateCampaignContinuationData continuationData)
+        public async Task ContinueCreateCampaignAsync(ProposedPromotionCampaign continuationData)
         {
             var (subject, targetRankRole, rankRoles, comment, nominatingUserId) = continuationData;
 

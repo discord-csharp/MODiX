@@ -98,18 +98,6 @@ React with ✅ in the next 10 seconds to finalize creation of the campaign.");
             }
         }
 
-        [Command("nominate")]
-        [Summary("Nominate the given user for promotion")]
-        public Task Nominate(
-            [Summary("The user to nominate")]
-                IGuildUser subject,
-            [Summary("The role for the user to be promoted to")]
-                IRole targetRole,
-            [Remainder]
-            [Summary("A comment to be attached to the new campaign")]
-                string comment)
-            => PromotionsService.CreateCampaignAsync(subject.Id, targetRole.Id, comment);
-
         [Command("comment")]
         [Summary("Comment on an ongoing campaign to promote a user.")]
         public Task Comment(
