@@ -8,6 +8,7 @@ using Discord.WebSocket;
 
 using Modix.Data.Models.Core;
 using Modix.Services.Core;
+using Serilog;
 
 namespace Modix.Services.Moderation
 {
@@ -23,11 +24,10 @@ namespace Modix.Services.Moderation
         /// </summary>
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
         /// <param name="serviceProvider">See <see cref="BehaviorBase"/>.</param>
-        public ModerationInvitePurgingBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider, IDesignatedChannelService designatedChannelService)
+        public ModerationInvitePurgingBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
             DiscordClient = discordClient;
-            DesignatedChannelService = designatedChannelService;
         }
 
         /// <inheritdoc />
@@ -53,7 +53,6 @@ namespace Modix.Services.Moderation
         /// A <see cref="DiscordSocketClient"/> for interacting with, and receiving events from, the Discord API.
         /// </summary>
         internal protected DiscordSocketClient DiscordClient { get; }
-        internal protected IDesignatedChannelService DesignatedChannelService { get; }
 
         private Task OnDiscordClientMessageReceived(IMessage message)
             => TryPurgeInviteLink(message);
@@ -67,9 +66,9 @@ namespace Modix.Services.Moderation
         /// <param name="guild">The guild designations should be looked up for</param>
         /// <param name="channel">The channel designations should be looked up for</param>
         /// <returns>True if the channel is designated as Unmoderated, false if not</returns>
-        private async Task<bool> ShouldSkip(IGuild guild, IMessageChannel channel)
+        private async Task<bool> ChannelIsUnmoderated(IGuild guild, IMessageChannel channel)
         {
-            bool result = false;
+            var result = false;
 
             await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
             {
@@ -88,18 +87,34 @@ namespace Modix.Services.Moderation
                 !(message.Channel is IMessageChannel msgChannel)
             )
             {
+                Log.Debug("Message {MessageId} was not in an IGuildChannel & IMessageChannel, or Author {Author} was not an IGuildUser", 
+                    message.Id, message.Author.Id);
                 return;
             }
 
-            if (await ShouldSkip(guildChannel.Guild, msgChannel))
+            if (author.Id == DiscordClient.CurrentUser.Id)
+            {
+                Log.Debug("Message {MessageId} was skipped because the author was Modix", message.Id);
                 return;
+            }
+
+            if (await ChannelIsUnmoderated(guildChannel.Guild, msgChannel))
+            {
+                Log.Debug("Message {MessageId} was skipped because the channel {Channel} was designated as Unmoderated", 
+                    message.Id, msgChannel.Id);
+                return;
+            }
 
             var matches = _inviteLinkMatcher.Matches(message.Content);
             if (!matches.Any())
+            {
+                Log.Debug("Message {MessageId} was skipped because the content did not contain an invite link: \"{Content}\"",
+                    message.Id, message.Content);
                 return;
+            }
 
             // TODO: Booooooo for non-abstractable dependencies
-            if(author.Guild is SocketGuild socketGuild)
+            if (author.Guild is SocketGuild socketGuild)
             {
                 // Allow invites to the guild in which the message was posted
                 var newInvites = matches
@@ -109,17 +124,24 @@ namespace Modix.Services.Moderation
                         .Select(x => x.Url));
 
                 if (!newInvites.Any())
+                {
+                    Log.Debug("Message {MessageId} was skipped because the invite was to this server", message.Id);
                     return;
+                }
             }
 
             await SelfExecuteRequest<IAuthorizationService, IModerationService>(async (authorizationService, moderationService) =>
             {
                 if (await authorizationService.HasClaimsAsync(author, AuthorizationClaim.PostInviteLink))
+                {
+                    Log.Debug("Message {MessageId} was skipped because the author {Author} has the PostInviteLink claim",
+                        message.Id, message.Author.Id);
                     return;
+                }
 
                 await moderationService.DeleteMessageAsync(message, "Unauthorized Invite Link");
 
-                await msgChannel.SendMessageAsync($"{author.Mention} your invite link has been removed, please don't post links to other guilds");
+                await msgChannel.SendMessageAsync($"Sorry {author.Mention} your invite link has been removed - please don't post links to other guilds");
             });
         }
 

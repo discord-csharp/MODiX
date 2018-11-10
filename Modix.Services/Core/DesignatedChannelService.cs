@@ -32,8 +32,15 @@ namespace Modix.Services.Core
         /// <param name="guild">The guild where the <paramref name="channel"/> exists.</param>
         /// <param name="channel">The channel to be unassigned.</param>
         /// <param name="type">The type of designation to be unassigned.</param>
-        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task RemoveDesignatedChannelAsync(IGuild guild, IMessageChannel channel, DesignatedChannelType type);
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed, with the number of records deleted.</returns>
+        Task<int> RemoveDesignatedChannelAsync(IGuild guild, IMessageChannel channel, DesignatedChannelType type);
+
+        /// <summary>
+        /// Removes a channel designation by ID.
+        /// </summary>
+        /// <param name="designationId">The ID of the designation to be removed.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed, with the number of records deleted.</returns>
+        Task<int> RemoveDesignatedChannelByIdAsync(long designationId);
 
         /// <summary>
         /// Checks whether any designated channels exist, for an arbitrary set of criteria.
@@ -135,7 +142,7 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task RemoveDesignatedChannelAsync(IGuild guild, IMessageChannel logChannel, DesignatedChannelType type)
+        public async Task<int> RemoveDesignatedChannelAsync(IGuild guild, IMessageChannel logChannel, DesignatedChannelType type)
         {
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedChannelMappingDelete);
@@ -154,6 +161,29 @@ namespace Modix.Services.Core
                     throw new InvalidOperationException($"{logChannel.Name} in {guild.Name} is not assigned to {type}");
 
                 transaction.Commit();
+                return deletedCount;
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<int> RemoveDesignatedChannelByIdAsync(long designationId)
+        {
+            AuthorizationService.RequireAuthenticatedUser();
+            AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedChannelMappingDelete);
+
+            using (var transaction = await DesignatedChannelMappingRepository.BeginDeleteTransactionAsync())
+            {
+                var deletedCount = await DesignatedChannelMappingRepository.DeleteAsync(new DesignatedChannelMappingSearchCriteria()
+                {
+                    Id = designationId,
+                    IsDeleted = false
+                }, AuthorizationService.CurrentUserId.Value);
+
+                if (deletedCount == 0)
+                    throw new InvalidOperationException($"No designations with id {designationId} found.");
+
+                transaction.Commit();
+                return deletedCount;
             }
         }
 

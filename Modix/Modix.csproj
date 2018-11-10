@@ -1,34 +1,98 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
+    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
+    <IsPackable>false</IsPackable>
+    <SpaRoot>ClientApp\</SpaRoot>
+    <DefaultItemExcludes>$(DefaultItemExcludes);$(SpaRoot)node_modules\**</DefaultItemExcludes>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+
+  <PropertyGroup>
+    <NpmBuild Condition=" '$(Configuration)' == 'Debug' ">build-dev</NpmBuild>
+    <NpmBuild Condition=" '$(NpmBuild)' == '' ">build</NpmBuild>
   </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="1.0.2" />
-    <PackageReference Include="Humanizer.Core" Version="2.4.2" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-    <PackageReference Include="Serilog" Version="2.7.1" />
-    <PackageReference Include="Serilog.Extensions.Logging" Version="2.0.2" />
-    <PackageReference Include="Serilog.Sinks.Literate" Version="3.0.0" />
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AspNet.Security.OAuth.Discord" Version="2.0.0" />
+    <PackageReference Include="Discord.Net.WebSocket" Version="1.0.2" />
+    <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="2.1.1" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.1.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="2.1.1" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
     <PackageReference Include="Serilog.Sinks.Sentry" Version="2.1.6" />
-    <PackageReference Include="Tababular" Version="2.0.0" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\Modix.Services\Modix.Services.csproj" />
+    <ClientSrc Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Don't publish the SPA source files, but do show them in the project files list -->
+    <Content Remove="$(SpaRoot)**" />
+    <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Modix.Bot\Modix.Bot.csproj" />
     <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
-    <ProjectReference Include="..\Modix.WebServer\Modix.WebServer.csproj" />
+    <ProjectReference Include="..\Modix.Services\Modix.Services.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <None Update=".dockerignore">
-      <DependentUpon>Dockerfile</DependentUpon>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
+
+  <Target Name="EnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
+    <!-- Ensure Node.js is installed -->
+    <Exec Command="node --version" ContinueOnError="true">
+      <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
+    </Exec>
+    <Error Condition="'$(ErrorCode)' != '0'" Text="Node.js is required to build and run this project. To continue, please install Node.js from https://nodejs.org/, and then restart your command prompt or IDE." />
+  </Target>
+
+  <Target Name="NpmInstall" DependsOnTargets="EnsureNodeEnv" Inputs="$(SpaRoot)package-lock.json" Outputs="$(SpaRoot)node_modules\.npm_timestamp">
+    <Message Importance="high" Text="Restoring dependencies using 'npm'. This may take several minutes..." />
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm install" />
+
+    <!-- Touch an empty file so we know the last time we ran restore. If the timestamp on this file is greater than the
+         timestamp on the package-lock.json file then this build step will be skipped. -->
+    <Touch Files="$(SpaRoot)node_modules\.npm_timestamp" AlwaysCreate="true">
+      <Output TaskParameter="TouchedFiles" ItemName="FileWrites" />
+    </Touch>
+  </Target>
+
+  <Target Name="RunVueCli" BeforeTargets="Build" DependsOnTargets="NpmInstall" Inputs="@(ClientSrc)" Outputs="$(MSBuildThisFileDirectory)obj\$(Configuration)\.vue_timestamp">
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm run $(NpmBuild)" />
+
+    <Touch Files="$(MSBuildThisFileDirectory)obj\$(Configuration)\.vue_timestamp" AlwaysCreate="true">
+      <Output TaskParameter="TouchedFiles" ItemName="FileWrites" />
+    </Touch>
+  </Target>
+
+  <Target Name="VueFirstBuild" BeforeTargets="RunVueCli" Condition=" !Exists('wwwroot\index.html') ">
+    <!-- In development, the dist files won't exist on the first run or when cloning to
+         a different machine, so rebuild them if not already present. -->
+    <Message Importance="high" Text="Performing first-run Webpack build..." />
+    <Delete Files="$(MSBuildThisFileDirectory)obj\$(Configuration)\.vue_timestamp" />
+  </Target>
+
+  <Target Name="PublishRunVueCli" AfterTargets="ComputeFilesToPublish" DependsOnTargets="NpmInstall">
+
+    <!-- As part of publishing, ensure the JS resources are freshly built in production mode -->
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm run build" />
+
+    <!-- Include the newly-built files in the publish output -->
+    <ItemGroup>
+      <DistFiles Include="wwwroot\dist\**" />
+      <ResolvedFileToPublish Include="@(DistFiles->'%(FullPath)')" Exclude="@(ResolvedFileToPublish)">
+        <RelativePath>%(DistFiles.Identity)</RelativePath>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+
 </Project>

@@ -1,9 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Modix.Data.Models;
+﻿using System.Threading.Tasks;
 using Modix.Data.Repositories;
-using Newtonsoft.Json;
 
 namespace Modix.Services.BehaviourConfiguration
 {

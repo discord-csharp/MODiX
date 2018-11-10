@@ -13,20 +13,20 @@ namespace Modix.Services.StackExchange
             AutomaticDecompression = DecompressionMethods.GZip
         });
 
-        private string _ApiReferenceUrl =
-            $"http://api.stackexchange.com/2.2/search/advanced" +
+        private string _apiReferenceUrl =
+            "http://api.stackexchange.com/2.2/search/advanced" +
             "?key={0}" +
-            $"&order=desc" +
-            $"&sort=votes" +
-            $"&filter=default";
+            "&order=desc" +
+            "&sort=votes" +
+            "&filter=default";
 
         public async Task<StackExchangeResponse> GetStackExchangeResultsAsync(string token, string phrase, string site, string tags)
         {
-            _ApiReferenceUrl = string.Format(_ApiReferenceUrl, token);
+            _apiReferenceUrl = string.Format(_apiReferenceUrl, token);
             phrase = Uri.EscapeDataString(phrase);
             site = Uri.EscapeDataString(site);
             tags = Uri.EscapeDataString(tags);
-            var query = _ApiReferenceUrl += $"&site={site}&tags={tags}&q={phrase}";
+            var query = _apiReferenceUrl += $"&site={site}&tags={tags}&q={phrase}";
 
             var response = await HttpClient.GetAsync(query);
 

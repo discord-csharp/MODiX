@@ -178,6 +178,11 @@ namespace Modix.Services.Promotions
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsComment);
 
+            if (content == null || content.Length <= 3)
+            {
+                throw new InvalidOperationException("Comment content must be longer than 3 characters.");
+            }
+
             using (var transaction = await PromotionCommentRepository.BeginCreateTransactionAsync())
             {
                 if (await PromotionCommentRepository.AnyAsync(new PromotionCommentSearchCriteria()
@@ -224,6 +229,11 @@ namespace Modix.Services.Promotions
 
                 if (!(campaign.CloseAction is null))
                     throw new InvalidOperationException($"Campaign {campaignId} is already closed");
+
+                var timeSince = DateTime.UtcNow - campaign.CreateAction.Created;
+
+                if (timeSince < TimeSpan.FromHours(48))
+                    throw new InvalidOperationException($"Campaign {campaignId} cannot be accepted until 48 hours after its creation ({48 - timeSince.TotalHours:#.##} hrs remain)");
 
                 try
                 {

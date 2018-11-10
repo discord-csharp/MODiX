@@ -24,12 +24,28 @@ namespace Modix.Services.Core
         Task<IUser> GetUserAsync(ulong userId);
 
         /// <summary>
+        /// Checks if a user exists that is associated with the given Discord ID value that also belongs to a specified guild.
+        /// </summary>
+        /// <param name="guildId">The <see cref="IEntity{T}.Id" /> of the guild to be checked for the user.</param>
+        /// <param name="userId">The <see cref="IEntity{T}.Id" /> of the user to look for.</param>
+        /// <returns>True if the user exists, false if either the guild or user don't exist</returns>
+        Task<bool> GuildUserExistsAsync(ulong guildId, ulong userId);
+
+        /// <summary>
         /// Retrieves the user, if any, associated with the given Discord ID value that also belongs to a specified guild.
         /// </summary>
         /// <param name="guildId">The <see cref="IEntity{T}.Id" /> of the guild whose user is to be retrieved.</param>
         /// <param name="userId">The <see cref="IEntity{T}.Id" /> of the user to be retrieved.</param>
         /// <returns>The <see cref="IGuildUser"/>, if any, retrieved from Discord.NET.</returns>
         Task<IGuildUser> GetGuildUserAsync(ulong guildId, ulong userId);
+
+        /// <summary>
+        /// Retrieves the summary data for the user with the given user ID, within the given guild
+        /// </summary>
+        /// <param name="guildId">The <see cref="IEntity{T}.Id" /> of the guild whose user is to be retrieved.</param>
+        /// <param name="userId">The <see cref="IEntity{T}.Id" /> of the user to be retrieved.</param>
+        /// <returns>The <see cref="GuildUserSummary"/> retrieved</returns>
+        Task<GuildUserSummary> GetGuildUserSummaryAsync(ulong guildId, ulong userId);
 
         /// <summary>
         /// Updates information about the given user within the user tracking system of a guild.
@@ -73,6 +89,20 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
+        public async Task<bool> GuildUserExistsAsync(ulong guildId, ulong userId)
+        {
+            var guild = await DiscordClient.GetGuildAsync(guildId);
+            if (guild == null) { return false; }
+
+            var user = await guild.GetUserAsync(userId);
+            if (user == null) { return false; }
+
+            await TrackUserAsync(user);
+
+            return true;
+        }
+
+        /// <inheritdoc />
         public async Task<IGuildUser> GetGuildUserAsync(ulong guildId, ulong userId)
         {
             var guild = await DiscordClient.GetGuildAsync(guildId);
@@ -86,6 +116,12 @@ namespace Modix.Services.Core
             await TrackUserAsync(user);
 
             return user;
+        }
+
+        public async Task<GuildUserSummary> GetGuildUserSummaryAsync(ulong guildId, ulong userId)
+        {
+            var found = await GuildUserRepository.ReadSummaryAsync(userId, guildId);
+            return found;
         }
 
         /// <inheritdoc />

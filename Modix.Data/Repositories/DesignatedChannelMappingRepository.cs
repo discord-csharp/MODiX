@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 
 using Modix.Data.Models.Core;
 using Modix.Data.Projectables;
-using Modix.Data.Utilities;
 
 namespace Modix.Data.Repositories
 {
@@ -168,8 +167,6 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<bool> TryDeleteAsync(long mappingId, ulong deletedById)
         {
-            var longDeletedById = (long)deletedById;
-
             var entity = await ModixContext.DesignatedChannelMappings
                 .Where(x => x.Id == mappingId)
                 .FirstOrDefaultAsync();

@@ -239,6 +239,46 @@ spec:
       terminationGracePeriodSeconds: 30
 
 ---
+#modix-bot-persistent-volume
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations: {}
+  labels:
+    name: modix-bot-pv
+  name: modix-bot-pv
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 40Gi
+  nfs:
+    path: /nfsfileshare/modix-bot-pv
+    server: 172.16.100.13
+  persistentVolumeReclaimPolicy: Retain
+
+--- 
+#modix-bot-persistent-volume-claim
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations: {}
+  name: modix-bot-pvc
+  namespace: csharp
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  selector:
+    matchLabels:
+      name: modix-bot-pv
+  volumeName: modix-bot-pv
+
+---
 #modix-frontend-service
 
 apiVersion: v1
@@ -352,6 +392,9 @@ spec:
         - mountPath: /app/secrets
           name: secrets
           readOnly: true
+        - mountPath: /app/dataprotection
+          name: modix-bot
+          readOnly: false
       dnsPolicy: ClusterFirst
       nodeSelector:
         beta.kubernetes.io/os: linux
@@ -362,6 +405,10 @@ spec:
         secret:
           defaultMode: 420
           secretName: modix
+      - name: modix-bot
+        persistentVolumeClaim:
+          claimName: modix-bot-pvc
+
 
 --- 
 #repl-service service
@@ -416,6 +463,7 @@ spec:
 
 ---
 #repl ingress
+
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
@@ -437,8 +485,6 @@ spec:
   - hosts:
     - eval.cisien.com
     secretName: csdiscord-repl-tls-cert-prod
-
-
 
 ---
 #repl service

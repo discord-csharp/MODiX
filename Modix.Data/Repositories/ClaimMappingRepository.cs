@@ -7,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 
 using Modix.Data.Models.Core;
 using Modix.Data.Projectables;
-using Modix.Data.Utilities;
 
 namespace Modix.Data.Repositories
 {
@@ -158,6 +157,7 @@ namespace Modix.Data.Repositories
 
             entity.DeleteAction = new ConfigurationActionEntity()
             {
+                GuildId = entity.GuildId,
                 Type = ConfigurationActionType.ClaimMappingDeleted,
                 Created = DateTimeOffset.Now,
                 CreatedById = longRescindedById,

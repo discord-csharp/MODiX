@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Microsoft.Extensions.Caching.Memory;
@@ -10,7 +9,7 @@ namespace Modix.Services.GuildInfo
 {
     public class GuildInfoService
     {
-        private IMemoryCache _cache;
+        private readonly IMemoryCache _cache;
 
         private readonly MemoryCacheEntryOptions _cacheEntryOptions = 
             new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromDays(1));
@@ -73,7 +72,7 @@ namespace Modix.Services.GuildInfo
 
         public string GetRoleColorHex(IRole role)
         {
-            string ret = "99aab5"; //"Discord Grey"
+            var ret = "99aab5"; //"Discord Grey"
 
             if (role.Color.RawValue > 0)
             {
@@ -98,6 +97,7 @@ namespace Modix.Services.GuildInfo
                 .Where(d=>d.Name != "@everyone" && !d.IsManaged)
                 .OrderByDescending(role => role.IsHoisted)
                 .ThenByDescending(role => role.Position)
+                .ThenByDescending(d => !d.Color.Equals(Color.Default))
                 .FirstOrDefault();
 
             return highestPosition;

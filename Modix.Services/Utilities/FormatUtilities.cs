@@ -1,5 +1,8 @@
 ﻿using Discord;
+using Humanizer;
+using Modix.Data.Models.Moderation;
 using Modix.Services.AutoCodePaste;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -34,7 +37,7 @@ namespace Modix.Services.Utilities
             var match = _buildContentRegex.Match(message);
             if (match.Success)
             {
-                string codeLanguage = match.Groups[1].Value;
+                var codeLanguage = match.Groups[1].Value;
                 return string.IsNullOrEmpty(codeLanguage) ? null : codeLanguage;
             }
             else
@@ -87,6 +90,24 @@ namespace Modix.Services.Utilities
                     embed.AddField(a => a.WithName("More...").WithValue(we.Message));
                 }
             }
+        }
+
+        public static string FormatInfractionCounts(IDictionary<InfractionType, int> counts)
+        {
+            if (counts.Values.Sum() == 0)
+            {
+                return "This user is clean - no active infractions!";
+            }
+
+            var formatted = 
+                counts.Select(d =>
+                    {
+                        var formattedKey = d.Key.Humanize().ToLower();
+                        return $"{d.Value} {(d.Value == 1 ? formattedKey : formattedKey.Pluralize())}";
+                    })
+                    .Humanize();
+
+            return $"This user has {formatted}";
         }
     }
 }

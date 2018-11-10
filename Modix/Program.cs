@@ -1,6 +1,8 @@
-using System;
+﻿using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Modix.Data.Models.Core;
 using Modix.Services.Utilities;
 using Serilog;
@@ -8,11 +10,10 @@ using Serilog.Events;
 
 namespace Modix
 {
-    class Program
+    public class Program
     {
-        static async Task Main(string[] args)
+        public static int Main(string[] args)
         {
-            var config = LoadConfig();
             var loggerConfig = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
@@ -21,21 +22,28 @@ namespace Modix
                 .WriteTo.Console()
                 .WriteTo.RollingFile(@"logs\{Date}", restrictedToMinimumLevel: LogEventLevel.Debug);
 
-            if (!string.IsNullOrWhiteSpace(config.WebhookToken))
+            var webhookId = Environment.GetEnvironmentVariable("log_webhook_id");
+            var webhookToken = Environment.GetEnvironmentVariable("log_webhook_token");
+            var sentryToken = Environment.GetEnvironmentVariable("SentryToken");
+
+            if (!string.IsNullOrWhiteSpace(webhookToken) &&
+                ulong.TryParse(webhookId, out var id))
             {
-                loggerConfig.WriteTo.DiscordWebhookSink(config.WebhookId, config.WebhookToken, LogEventLevel.Error);
+                loggerConfig.WriteTo.DiscordWebhookSink(id, webhookToken, LogEventLevel.Error);
             }
 
-            if (!string.IsNullOrWhiteSpace(config.SentryToken))
+            if (!string.IsNullOrWhiteSpace(sentryToken))
             {
-                loggerConfig.WriteTo.Sentry(config.SentryToken, restrictedToMinimumLevel: LogEventLevel.Warning);
+                loggerConfig.WriteTo.Sentry(sentryToken, restrictedToMinimumLevel: LogEventLevel.Warning);
             }
 
             Log.Logger = loggerConfig.CreateLogger();
 
             try
             {
-                await new ModixBot(config).Run();
+                CreateWebHostBuilder(args).Build().Run();
+
+                return 0;
             }
             catch (Exception ex)
             {
@@ -48,13 +56,19 @@ namespace Modix
                     Console.ReadKey(true);
                 }
 
-                Environment.Exit(ex.HResult);
+                return ex.HResult;
             }
             finally
             {
                 Log.CloseAndFlush();
             }
         }
+
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
+                .UseSerilog()
+                .ConfigureServices(services => services.AddSingleton(LoadConfig()))
+                .UseStartup<Startup>();
 
         private static ModixConfig LoadConfig()
         {
