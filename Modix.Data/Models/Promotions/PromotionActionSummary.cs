@@ -52,9 +52,7 @@ namespace Modix.Data.Models.Promotions
                 Id = entity.Id,
                 GuildId = (ulong)entity.GuildId,
                 Created = entity.Created,
-                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                //Type = entity.Type,
-                Type = Enum.Parse<PromotionActionType>(entity.Type.ToString()),
+                Type = entity.Type,
                 CreatedBy = entity.CreatedBy.Project(GuildUserBrief.FromEntityProjection),
                 Campaign = (entity.Campaign == null)
                     ? null

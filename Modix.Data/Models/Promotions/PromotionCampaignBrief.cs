@@ -37,11 +37,7 @@ namespace Modix.Data.Models.Promotions
                 Id = entity.Id,
                 Subject = entity.Subject.Project(GuildUserBrief.FromEntityProjection),
                 TargetRole = entity.TargetRole.Project(GuildRoleBrief.FromEntityProjection),
-                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                //Outcome = entity.Outcome,
-                Outcome = (entity.Outcome == null)
-                    ? null
-                    : (PromotionCampaignOutcome?)Enum.Parse<PromotionCampaignOutcome>(entity.Outcome.ToString()),
+                Outcome = entity.Outcome,
             };
     }
 }

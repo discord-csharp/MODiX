@@ -55,9 +55,7 @@ namespace Modix.Data.Models.Core
             {
                 Id = entity.Id,
                 GuildId = (ulong)entity.GuildId,
-                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                //Type = entity.Type,
-                Type = Enum.Parse<ConfigurationActionType>(entity.Type.ToString()),
+                Type = entity.Type,
                 Created = entity.Created,
                 CreatedBy = entity.CreatedBy.Project(GuildUserBrief.FromEntityProjection),
                 ClaimMapping = (entity.ClaimMapping == null)

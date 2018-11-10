@@ -40,9 +40,7 @@ namespace Modix.Data.Models.Moderation
             = entity => new InfractionBrief()
             {
                 Id = entity.Id,
-                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                //Type = entity.Type,
-                Type = Enum.Parse<InfractionType>(entity.Type.ToString()),
+                Type = entity.Type,
                 Reason = entity.Reason,
                 Duration = entity.Duration,
                 Subject = entity.Subject.Project(GuildUserBrief.FromEntityProjection)
