@@ -140,6 +140,8 @@ namespace Modix.Services.Promotions
                 : rankRoles.FirstOrDefault(r => r.Position == userCurrentRankRole.Position + 1)
                     ?? throw new InvalidOperationException($"There are no rank roles available for user {subjectId} to be promoted to.");
 
+            await PerformCommonCreateCampaignValidationsAsync(subject.Id, nextRankRole.Id, rankRoles);
+
             return new CreateCampaignContinuationData(subject, nextRankRole, rankRoles, comment, AuthorizationService.CurrentUserId.Value);
         }
 
@@ -172,6 +174,8 @@ namespace Modix.Services.Promotions
             else if (subject.RoleIds.Intersect(rankRoles.Select(x => x.Id)).Any())
                 throw new InvalidOperationException($"User {subjectId} is already ranked");
 
+            await PerformCommonCreateCampaignValidationsAsync(subjectId, targetRoleId, rankRoles);
+
             await ContinueCreateCampaignAsync(new CreateCampaignContinuationData(subject, targetRankRole, rankRoles, comment, AuthorizationService.CurrentUserId.Value));
         }
 
@@ -182,18 +186,6 @@ namespace Modix.Services.Promotions
             Debug.Assert(!(subject is null));
             Debug.Assert(!(targetRankRole is null));
             Debug.Assert(rankRoles?.Any() ?? false);
-
-            if (await PromotionCampaignRepository.AnyAsync(new PromotionCampaignSearchCriteria()
-            {
-                GuildId = AuthorizationService.CurrentGuildId.Value,
-                SubjectId = subject.Id,
-                TargetRoleId = targetRankRole.Id,
-                IsClosed = false
-            }))
-                throw new InvalidOperationException($"An active campaign already exists for user {subject.Id} to be promoted to {targetRankRole.Id}");
-
-            if (!(await CheckIfUserIsRankOrHigher(rankRoles, nominatingUserId, targetRankRole.Id)))
-                throw new InvalidOperationException($"Creating a promotion campaign requires a rank at least as high as the proposed target rank");
 
             using (var campaignTransaction = await PromotionCampaignRepository.BeginCreateTransactionAsync())
             using (var commentTransaction = await PromotionCommentRepository.BeginCreateTransactionAsync())
@@ -399,6 +391,21 @@ namespace Modix.Services.Promotions
                 .SkipWhile(x => x != targetRoleId)
                 .Intersect(currentUser.RoleIds)
                 .Any();
+        }
+
+        private async Task PerformCommonCreateCampaignValidationsAsync(ulong subjectId, ulong targetRankRoleId, IEnumerable<GuildRoleBrief> rankRoles)
+        {
+            if (await PromotionCampaignRepository.AnyAsync(new PromotionCampaignSearchCriteria()
+            {
+                GuildId = AuthorizationService.CurrentGuildId.Value,
+                SubjectId = subjectId,
+                TargetRoleId = targetRankRoleId,
+                IsClosed = false
+            }))
+                throw new InvalidOperationException($"An active campaign already exists for user {subjectId} to be promoted to {targetRankRoleId}");
+
+            if (!(await CheckIfUserIsRankOrHigher(rankRoles, AuthorizationService.CurrentUserId.Value, targetRankRoleId)))
+                throw new InvalidOperationException($"Creating a promotion campaign requires a rank at least as high as the proposed target rank");
         }
 
         private void ValidateCreateCampaignAuthorization()
