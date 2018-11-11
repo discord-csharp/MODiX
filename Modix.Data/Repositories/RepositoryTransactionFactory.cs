@@ -27,18 +27,42 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the requested transaction object can be created,
         /// containing the requested transaction object.
         /// </returns>
-        public async Task<IRepositoryTransaction> BeginTransactionAsync(DatabaseFacade database, CancellationToken? cancellationToken = null)
+        public async Task<IRepositoryTransaction> BeginTransactionAsync(DatabaseFacade database)
         {
             if (database == null)
                 throw new ArgumentNullException(nameof(database));
 
             return new RepositoryTransaction(
                 (database.CurrentTransaction is null)
-                    ? await ((cancellationToken == null)
-                        ? database.BeginTransactionAsync()
-                        : database.BeginTransactionAsync(cancellationToken.Value))
+                    ? await database.BeginTransactionAsync()
                     : null,
                 await _lockProvider.LockAsync());
+        }
+
+        /// <summary>
+        /// Returns a new <see cref="IRepositoryTransaction"/> object, which creates a new transaction upon the given database,
+        /// and manages its lifetime.
+        /// 
+        /// Only one transaction created by this provider may exist at any given time. If this method is called while a transaction
+        /// already exists, it will not (asynchronously) return until that transaction is complete.
+        /// </summary>
+        /// <param name="database">The database upon which a transaction is to be performed.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that may be used to cancel the operation early.</param>
+        /// <exception cref="ArgumentNullException">Throws for <paramref name="database"/>.</exception>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the requested transaction object can be created,
+        /// containing the requested transaction object.
+        /// </returns>
+        public async Task<IRepositoryTransaction> BeginTransactionAsync(DatabaseFacade database, CancellationToken cancellationToken)
+        {
+            if (database == null)
+                throw new ArgumentNullException(nameof(database));
+
+            return new RepositoryTransaction(
+                (database.CurrentTransaction is null)
+                    ? await database.BeginTransactionAsync(cancellationToken)
+                    : null,
+                await _lockProvider.LockAsync(cancellationToken));
         }
 
         private AsyncLock _lockProvider { get; }
@@ -54,8 +78,11 @@ namespace Modix.Data.Repositories
 
             public void Commit()
             {
-                _transaction?.Commit();
-                _hasCommitted = true;
+                if (!_hasCommitted)
+                {
+                    _transaction?.Commit();
+                    _hasCommitted = true;
+                }
             }
 
             public void Dispose()
