@@ -28,15 +28,6 @@ namespace Modix.Services.Promotions
         Task<ProposedPromotionCampaign> CreateCampaignAsync(ulong subjectId, string comment);
 
         /// <summary>
-        /// Creates a new promotion campaign, and attaches an initial comment to it.
-        /// </summary>
-        /// <param name="subjectId">The Discord snowflake ID of the user whose promotion is being proposed.</param>
-        /// <param name="targetRoleId">The Discord snowflake ID of the role to which the subject is to be promoted.</param>
-        /// <param name="comment">The content of the comment to be added to the new campaign.</param>
-        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task CreateCampaignAsync(ulong subjectId, ulong targetRoleId, string comment);
-
-        /// <summary>
         /// Continuation of new promotion campaign creation.
         /// </summary>
         /// <param name="subject">The Discord user whose promotion is being proposed.</param>
@@ -150,47 +141,6 @@ namespace Modix.Services.Promotions
                 Comment = comment,
                 NominatingUserId = AuthorizationService.CurrentUserId.Value
             };
-        }
-
-        /// <inheritdoc />
-        public async Task CreateCampaignAsync(ulong subjectId, ulong targetRoleId, string comment)
-        {
-            ValidateCreateCampaignAuthorization();
-            
-            var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
-
-            var targetRankRoleIndex = rankRoles
-                .Select((x, i) => (role: x, index: (int?)i))
-                .FirstOrDefault(x => x.role.Id == targetRoleId)
-                .index;
-            if (targetRankRoleIndex is null)
-                throw new InvalidOperationException($"Role {targetRoleId} is not a defined promotion rank");
-            var targetRankRole = rankRoles[targetRankRoleIndex.Value];
-
-            var subject = await UserService.GetGuildUserAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
-            if (subject.RoleIds.Contains(targetRoleId))
-                throw new InvalidOperationException($"User {subjectId} is already a member of role {targetRoleId}");
-
-            if(targetRankRoleIndex > 0)
-            {
-                var previousRankRole = rankRoles[targetRankRoleIndex.Value - 1];
-
-                if (!subject.RoleIds.Contains(previousRankRole.Id))
-                    throw new InvalidOperationException($"The proposed promotion would skip over rank {previousRankRole.Name}");
-            }
-            else if (subject.RoleIds.Intersect(rankRoles.Select(x => x.Id)).Any())
-                throw new InvalidOperationException($"User {subjectId} is already ranked");
-
-            await PerformCommonCreateCampaignValidationsAsync(subjectId, targetRoleId, rankRoles);
-
-            await ContinueCreateCampaignAsync(new ProposedPromotionCampaign
-            {
-                Subject = subject,
-                TargetRankRole = targetRankRole,
-                RankRoles = rankRoles,
-                Comment = comment,
-                NominatingUserId = AuthorizationService.CurrentUserId.Value
-            });
         }
 
         public async Task ContinueCreateCampaignAsync(ProposedPromotionCampaign continuationData)
