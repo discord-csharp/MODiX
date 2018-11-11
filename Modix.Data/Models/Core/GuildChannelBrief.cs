@@ -21,7 +21,7 @@ namespace Modix.Data.Models.Core
         internal static Expression<Func<GuildChannelEntity, GuildChannelBrief>> FromEntityProjection
             = entity => new GuildChannelBrief()
             {
-                Id = (ulong)entity.ChannelId,
+                Id = entity.ChannelId,
                 Name = entity.Name
             };
     }

@@ -57,9 +57,9 @@ namespace Modix.Data.Models.Core
                 // https://github.com/aspnet/EntityFrameworkCore/issues/12834
                 //Type = entity.Type,
                 Type = Enum.Parse<ClaimMappingType>(entity.Type.ToString()),
-                GuildId = (ulong)entity.GuildId,
-                RoleId = (ulong?)entity.RoleId,
-                UserId = (ulong?)entity.UserId,
+                GuildId = entity.GuildId,
+                RoleId = entity.RoleId,
+                UserId = entity.UserId,
                 // https://github.com/aspnet/EntityFrameworkCore/issues/12834
                 //Claim = entity.Claim,
                 Claim = Enum.Parse<AuthorizationClaim>(entity.Claim.ToString()),

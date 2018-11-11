@@ -54,7 +54,7 @@ namespace Modix.Data.Models.Core
             = entity => new ConfigurationActionSummary()
             {
                 Id = entity.Id,
-                GuildId = (ulong)entity.GuildId,
+                GuildId = entity.GuildId,
                 // https://github.com/aspnet/EntityFrameworkCore/issues/12834
                 //Type = entity.Type,
                 Type = Enum.Parse<ConfigurationActionType>(entity.Type.ToString()),

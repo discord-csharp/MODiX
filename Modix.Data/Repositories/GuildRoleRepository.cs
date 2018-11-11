@@ -76,10 +76,8 @@ namespace Modix.Data.Repositories
             if (updateAction == null)
                 throw new ArgumentNullException(nameof(updateAction));
 
-            var longRoleId = (long)roleId;
-
             var entity = await ModixContext.GuildRoles
-                .Where(x => x.RoleId == longRoleId)
+                .Where(x => x.RoleId == roleId)
                 .FirstOrDefaultAsync();
 
             if (entity == null)

@@ -160,7 +160,7 @@ namespace Modix.Data.Repositories
                 GuildId = entity.GuildId,
                 Type = PromotionActionType.CampaignClosed,
                 Created = DateTimeOffset.Now,
-                CreatedById = (long)closedById,
+                CreatedById = closedById,
                 CampaignId = entity.Id
             };
             await ModixContext.SaveChangesAsync();

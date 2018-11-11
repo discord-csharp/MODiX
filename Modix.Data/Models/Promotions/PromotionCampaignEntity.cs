@@ -26,13 +26,13 @@ namespace Modix.Data.Models.Promotions
         /// The snowflake ID, within the Discord API, of the guild to which this promotion action applies.
         /// </summary>
         [Required]
-        public long GuildId { get; set; }
+        public ulong GuildId { get; set; }
 
         /// <summary>
         /// The <see cref="GuildUserEntity.UserId"/> value of <see cref="Subject"/>.
         /// </summary>
         [Required]
-        public long SubjectId { get; set; }
+        public ulong SubjectId { get; set; }
 
         /// <summary>
         /// The user whose promotion is being proposed by this campaign.
@@ -45,7 +45,7 @@ namespace Modix.Data.Models.Promotions
         /// </summary>
         [Required]
         [ForeignKey(nameof(TargetRole))]
-        public long TargetRoleId { get; set; }
+        public ulong TargetRoleId { get; set; }
 
         /// <summary>
         /// The role to which <see cref="Subject"/> should be promoted.
@@ -88,6 +88,21 @@ namespace Modix.Data.Models.Promotions
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder
+                .Entity<PromotionCampaignEntity>()
+                .Property(x => x.GuildId)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<PromotionCampaignEntity>()
+                .Property(x => x.SubjectId)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<PromotionCampaignEntity>()
+                .Property(x => x.TargetRoleId)
+                .HasConversion<long>();
+
             modelBuilder
                 .Entity<PromotionCampaignEntity>()
                 .HasOne(x => x.Subject)

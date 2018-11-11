@@ -50,7 +50,7 @@ namespace Modix.Data.Models.Promotions
             = entity => new PromotionActionSummary()
             {
                 Id = entity.Id,
-                GuildId = (ulong)entity.GuildId,
+                GuildId = entity.GuildId,
                 Created = entity.Created,
                 // https://github.com/aspnet/EntityFrameworkCore/issues/12834
                 //Type = entity.Type,

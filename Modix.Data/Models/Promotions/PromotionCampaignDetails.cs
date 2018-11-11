@@ -58,7 +58,7 @@ namespace Modix.Data.Models.Promotions
             = entity => new PromotionCampaignDetails()
             {
                 Id = entity.Id,
-                GuildId = (ulong)entity.GuildId,
+                GuildId = entity.GuildId,
                 Subject = entity.Subject.Project(GuildUserBrief.FromEntityProjection),
                 TargetRole = entity.TargetRole.Project(GuildRoleBrief.FromEntityProjection),
                 // https://github.com/aspnet/EntityFrameworkCore/issues/12834

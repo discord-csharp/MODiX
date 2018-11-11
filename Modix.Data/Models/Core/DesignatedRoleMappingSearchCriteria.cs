@@ -53,26 +53,22 @@ namespace Modix.Data.Models.Core
             if (criteria is null)
                 return query;
 
-            var longGuildId = (long?)criteria.GuildId;
-            var longRoleId = (long?)criteria.RoleId;
-            var longCreatedById = (long?)criteria.CreatedById;
-
             return query
                 .FilterBy(
                     x => x.Id == criteria.Id,
                     !(criteria.Id is null))
                 .FilterBy(
-                    x => x.GuildId == longGuildId,
-                    !(longGuildId is null))
+                    x => x.GuildId == criteria.GuildId,
+                    !(criteria.GuildId is null))
                 .FilterBy(
-                    x => x.RoleId == longRoleId,
-                    !(longRoleId is null))
+                    x => x.RoleId == criteria.RoleId,
+                    !(criteria.RoleId is null))
                 .FilterBy(
                     x => x.Type == criteria.Type,
                     !(criteria.Type is null))
                 .FilterBy(
-                    x => x.CreateAction.CreatedById == longCreatedById,
-                    !(longCreatedById is null))
+                    x => x.CreateAction.CreatedById == criteria.CreatedById,
+                    !(criteria.CreatedById is null))
                 .FilterBy(
                     x => x.DeleteActionId != null,
                     criteria.IsDeleted == true)

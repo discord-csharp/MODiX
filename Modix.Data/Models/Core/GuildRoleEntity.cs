@@ -1,6 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using Microsoft.EntityFrameworkCore;
+
+using Modix.Data.Utilities;
+
 namespace Modix.Data.Models.Core
 {
     /// <summary>
@@ -16,13 +20,13 @@ namespace Modix.Data.Models.Core
         [Key]
         [Required]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public long RoleId { get; set; }
+        public ulong RoleId { get; set; }
 
         /// <summary>
         /// The Discord snowflake ID of the guild to which this role belongs.
         /// </summary>
         [Required]
-        public long GuildId { get; set; }
+        public ulong GuildId { get; set; }
 
         /// <summary>
         /// The display name of the role.
@@ -35,5 +39,19 @@ namespace Modix.Data.Models.Core
         /// </summary>
         [Required]
         public int Position { get; set; }
+
+        [OnModelCreating]
+        internal static void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<GuildRoleEntity>()
+                .Property(x => x.RoleId)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<GuildRoleEntity>()
+                .Property(x => x.GuildId)
+                .HasConversion<long>();
+        }
     }
 }

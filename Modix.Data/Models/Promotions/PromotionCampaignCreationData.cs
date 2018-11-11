@@ -30,15 +30,15 @@ namespace Modix.Data.Models.Promotions
         internal PromotionCampaignEntity ToEntity()
             => new PromotionCampaignEntity()
             {
-                GuildId = (long)GuildId,
-                SubjectId = (long)SubjectId,
-                TargetRoleId = (long)TargetRoleId,
+                GuildId = GuildId,
+                SubjectId = SubjectId,
+                TargetRoleId = TargetRoleId,
                 CreateAction = new PromotionActionEntity()
                 {
-                    GuildId = (long)GuildId,
+                    GuildId = GuildId,
                     Created = DateTimeOffset.Now,
                     Type = PromotionActionType.CampaignCreated,
-                    CreatedById = (long)CreatedById
+                    CreatedById = CreatedById
                 }
             };
     }

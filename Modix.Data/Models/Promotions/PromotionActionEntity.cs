@@ -26,7 +26,7 @@ namespace Modix.Data.Models.Promotions
         /// The snowflake ID, within the Discord API, of the guild to which this promotion action applies.
         /// </summary>
         [Required]
-        public long GuildId { get; set; }
+        public ulong GuildId { get; set; }
 
         /// <summary>
         /// A timestamp indicating when this action was performed.
@@ -44,7 +44,7 @@ namespace Modix.Data.Models.Promotions
         /// The <see cref="PromotionActionEntity.UserId"/> value of <see cref="CreatedBy"/>.
         /// </summary>
         [Required]
-        public long CreatedById { get; set; }
+        public ulong CreatedById { get; set; }
 
         /// <summary>
         /// The staff member that performed this action.
@@ -81,8 +81,18 @@ namespace Modix.Data.Models.Promotions
         {
             modelBuilder
                 .Entity<PromotionActionEntity>()
+                .Property(x => x.GuildId)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<PromotionActionEntity>()
                 .Property(x => x.Type)
                 .HasConversion<string>();
+
+            modelBuilder
+                .Entity<PromotionActionEntity>()
+                .Property(x => x.CreatedById)
+                .HasConversion<long>();
 
             modelBuilder
                 .Entity<PromotionActionEntity>()

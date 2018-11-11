@@ -45,18 +45,18 @@ namespace Modix.Data.Models.Moderation
         internal DeletedMessageEntity ToEntity()
             => new DeletedMessageEntity()
             {
-                MessageId = (long)MessageId,
-                GuildId = (long)GuildId,
-                ChannelId = (long)ChannelId,
-                AuthorId = (long)AuthorId,
+                MessageId = MessageId,
+                GuildId = GuildId,
+                ChannelId = ChannelId,
+                AuthorId = AuthorId,
                 Content = Content,
                 Reason = Reason,
                 CreateAction = new ModerationActionEntity()
                 {
-                    GuildId = (long)GuildId,
+                    GuildId = GuildId,
                     Type = ModerationActionType.MessageDeleted,
                     Created = DateTimeOffset.Now,
-                    CreatedById = (long)CreatedById
+                    CreatedById = CreatedById
                 }
             };
     }

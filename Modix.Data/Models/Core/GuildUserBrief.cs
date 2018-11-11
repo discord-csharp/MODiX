@@ -37,7 +37,7 @@ namespace Modix.Data.Models.Core
         internal static Expression<Func<GuildUserEntity, GuildUserBrief>> FromEntityProjection
             = entity => new GuildUserBrief()
             {
-                Id = (ulong)entity.User.Id,
+                Id = entity.User.Id,
                 Username = entity.User.Username,
                 Discriminator = entity.User.Discriminator,
                 Nickname = entity.Nickname

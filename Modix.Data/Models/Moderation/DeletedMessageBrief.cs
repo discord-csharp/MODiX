@@ -39,7 +39,7 @@ namespace Modix.Data.Models.Moderation
         internal static Expression<Func<DeletedMessageEntity, DeletedMessageBrief>> FromEntityProjection
             = entity => new DeletedMessageBrief()
             {
-                Id = (ulong)entity.MessageId,
+                Id = entity.MessageId,
                 Channel = entity.Channel.Project(GuildChannelBrief.FromEntityProjection),
                 Author = entity.Author.Project(GuildUserBrief.FromEntityProjection),
                 Content = entity.Content,

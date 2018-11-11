@@ -22,14 +22,14 @@ namespace Modix.Data.Models.Core
         /// The Discord snowflake ID of the guild to which this mapping applies.
         /// </summary>
         [Required]
-        public long GuildId { get; set; }
+        public ulong GuildId { get; set; }
 
         /// <summary>
         /// The <see cref="GuildChannelEntity.ChannelId"/> value of <see cref="Channel"/>.
         /// </summary>
         [Required]
         [ForeignKey(nameof(Channel))]
-        public long ChannelId { get; set; }
+        public ulong ChannelId { get; set; }
 
         /// <summary>
         /// The channel to which this mapping applies.
@@ -70,6 +70,16 @@ namespace Modix.Data.Models.Core
                 .Entity<DesignatedChannelMappingEntity>()
                 .Property(x => x.Type)
                 .HasConversion<string>();
+
+            modelBuilder
+                .Entity<DesignatedChannelMappingEntity>()
+                .Property(x => x.GuildId)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<DesignatedChannelMappingEntity>()
+                .Property(x => x.ChannelId)
+                .HasConversion<long>();
 
             modelBuilder
                 .Entity<DesignatedChannelMappingEntity>()

@@ -30,15 +30,15 @@ namespace Modix.Data.Models.Core
         internal DesignatedRoleMappingEntity ToEntity()
             => new DesignatedRoleMappingEntity()
             {
-                GuildId = (long)GuildId,
-                RoleId = (long)RoleId,
+                GuildId = GuildId,
+                RoleId = RoleId,
                 Type = Type,
                 CreateAction = new ConfigurationActionEntity()
                 {
-                    GuildId = (long)GuildId,
+                    GuildId = GuildId,
                     Type = ConfigurationActionType.DesignatedRoleMappingCreated,
                     Created = DateTimeOffset.Now,
-                    CreatedById = (long)CreatedById
+                    CreatedById = CreatedById
                 }
             };
     }
