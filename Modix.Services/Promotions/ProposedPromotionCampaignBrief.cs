@@ -4,7 +4,7 @@ using Modix.Data.Models.Core;
 
 namespace Modix.Services.Promotions
 {
-    public class ProposedPromotionCampaign
+    public class ProposedPromotionCampaignBrief
     {
         public string Comment { get; set; }
 
