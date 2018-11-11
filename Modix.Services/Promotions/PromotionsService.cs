@@ -25,17 +25,7 @@ namespace Modix.Services.Promotions
         /// <param name="subjectId">The Discord snowflake ID of the user whose promotion is being proposed.</param>
         /// <param name="comment">The content of the comment to be added to the new campaign.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task<ProposedPromotionCampaignBrief> CreateCampaignAsync(ulong subjectId, string comment);
-
-        /// <summary>
-        /// Continuation of new promotion campaign creation.
-        /// </summary>
-        /// <param name="subject">The Discord user whose promotion is being proposed.</param>
-        /// <param name="targetRankRole">The Discord role to which the subject is to be promoted.</param>
-        /// <param name="rankRoles">A collection containing every Rank roles that is configured for the server.</param>
-        /// <param name="comment">The content of the comment to be added to the new campaign.</param>
-        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task ContinueCreateCampaignAsync(ProposedPromotionCampaignBrief continuationData);
+        Task CreateCampaignAsync(ulong subjectId, string comment, Func<ProposedPromotionCampaignBrief, Task<bool>> confirmDelegate = null);
 
         /// <summary>
         /// Adds a comment to an active promotion campaign.
@@ -115,7 +105,8 @@ namespace Modix.Services.Promotions
         }
 
         /// <inheritdoc />
-        public async Task<ProposedPromotionCampaignBrief> CreateCampaignAsync(ulong subjectId, string comment)
+        public async Task CreateCampaignAsync(
+            ulong subjectId, string comment, Func<ProposedPromotionCampaignBrief, Task<bool>> confirmDelegate = null)
         {
             ValidateCreateCampaignAuthorization();
             
@@ -133,23 +124,21 @@ namespace Modix.Services.Promotions
 
             await PerformCommonCreateCampaignValidationsAsync(subject.Id, nextRankRole.Id, rankRoles);
 
-            return new ProposedPromotionCampaignBrief
+            var proposedPromotionCampaign = new ProposedPromotionCampaignBrief
             {
-                Subject = subject,
                 TargetRankRole = nextRankRole,
-                RankRoles = rankRoles,
-                Comment = comment,
                 NominatingUserId = AuthorizationService.CurrentUserId.Value
             };
-        }
 
-        public async Task ContinueCreateCampaignAsync(ProposedPromotionCampaignBrief continuationData)
-        {
-            var (subject, targetRankRole, rankRoles, comment, nominatingUserId) = continuationData;
+            if (!(confirmDelegate is null))
+            {
+                var confirmed = await confirmDelegate(proposedPromotionCampaign);
 
-            Debug.Assert(!(subject is null));
-            Debug.Assert(!(targetRankRole is null));
-            Debug.Assert(rankRoles?.Any() ?? false);
+                if (!confirmed)
+                {
+                    return;
+                }
+            }
 
             using (var campaignTransaction = await PromotionCampaignRepository.BeginCreateTransactionAsync())
             using (var commentTransaction = await PromotionCommentRepository.BeginCreateTransactionAsync())
@@ -158,8 +147,8 @@ namespace Modix.Services.Promotions
                 {
                     GuildId = AuthorizationService.CurrentGuildId.Value,
                     SubjectId = subject.Id,
-                    TargetRoleId = targetRankRole.Id,
-                    CreatedById = nominatingUserId
+                    TargetRoleId = nextRankRole.Id,
+                    CreatedById = AuthorizationService.CurrentUserId.Value
                 });
 
                 await PromotionCommentRepository.CreateAsync(new PromotionCommentCreationData()
@@ -168,7 +157,7 @@ namespace Modix.Services.Promotions
                     CampaignId = campaignId,
                     Sentiment = PromotionSentiment.Approve,
                     Content = comment,
-                    CreatedById = nominatingUserId
+                    CreatedById = AuthorizationService.CurrentUserId.Value
                 });
 
                 campaignTransaction.Commit();
