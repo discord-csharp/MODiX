@@ -28,6 +28,15 @@ namespace Modix.Services.Promotions
         Task CreateCampaignAsync(ulong subjectId, string comment, Func<ProposedPromotionCampaignBrief, Task<bool>> confirmDelegate = null);
 
         /// <summary>
+        /// Creates a new promotion campaign, and attaches an initial comment to it.
+        /// </summary>
+        /// <param name="subjectId">The Discord snowflake ID of the user whose promotion is being proposed.</param>
+        /// <param name="targetRoleId">The Discord snowflake ID of the role to which the subject is to be promoted.</param>
+        /// <param name="comment">The content of the comment to be added to the new campaign.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task CreateCampaignAsync(ulong subjectId, ulong targetRoleId, string comment);
+        
+        /// <summary>
         /// Adds a comment to an active promotion campaign.
         /// </summary>
         /// <param name="campaignId">The <see cref="PromotionCampaignEntity.Id"/> value of the campaign to which the new comment is to be added.</param>
@@ -140,30 +149,43 @@ namespace Modix.Services.Promotions
                 }
             }
 
-            using (var campaignTransaction = await PromotionCampaignRepository.BeginCreateTransactionAsync())
-            using (var commentTransaction = await PromotionCommentRepository.BeginCreateTransactionAsync())
-            {
-                var campaignId = await PromotionCampaignRepository.CreateAsync(new PromotionCampaignCreationData()
-                {
-                    GuildId = AuthorizationService.CurrentGuildId.Value,
-                    SubjectId = subject.Id,
-                    TargetRoleId = nextRankRole.Id,
-                    CreatedById = AuthorizationService.CurrentUserId.Value
-                });
-
-                await PromotionCommentRepository.CreateAsync(new PromotionCommentCreationData()
-                {
-                    GuildId = AuthorizationService.CurrentGuildId.Value,
-                    CampaignId = campaignId,
-                    Sentiment = PromotionSentiment.Approve,
-                    Content = comment,
-                    CreatedById = AuthorizationService.CurrentUserId.Value
-                });
-
-                campaignTransaction.Commit();
-                commentTransaction.Commit();
-            }
+            await FinalizeCreateCampaignAsync(subjectId, nextRankRole.Id, comment);
         }
+
+        /// <inheritdoc />
+        public async Task CreateCampaignAsync(ulong subjectId, ulong targetRoleId, string comment)
+        {
+            ValidateCreateCampaignAuthorization();
+            
+            var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
+
+            var targetRankRoleIndex = rankRoles
+                .Select((x, i) => (role: x, index: (int?)i))
+                .FirstOrDefault(x => x.role.Id == targetRoleId)
+                .index;
+            if (targetRankRoleIndex is null)
+                throw new InvalidOperationException($"Role {targetRoleId} is not a defined promotion rank");
+            var targetRankRole = rankRoles[targetRankRoleIndex.Value];
+
+            var subject = await UserService.GetGuildUserAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
+            if (subject.RoleIds.Contains(targetRoleId))
+                throw new InvalidOperationException($"User {subjectId} is already a member of role {targetRoleId}");
+
+            if(targetRankRoleIndex > 0)
+            {
+                var previousRankRole = rankRoles[targetRankRoleIndex.Value - 1];
+
+                if (!subject.RoleIds.Contains(previousRankRole.Id))
+                    throw new InvalidOperationException($"The proposed promotion would skip over rank {previousRankRole.Name}");
+            }
+            else if (subject.RoleIds.Intersect(rankRoles.Select(x => x.Id)).Any())
+                throw new InvalidOperationException($"User {subjectId} is already ranked");
+
+            await PerformCommonCreateCampaignValidationsAsync(subjectId, targetRoleId, rankRoles);
+
+            await FinalizeCreateCampaignAsync(subjectId, targetRoleId, comment);
+        }
+
 
         /// <inheritdoc />
         public async Task AddCommentAsync(long campaignId, PromotionSentiment sentiment, string content)
@@ -344,6 +366,33 @@ namespace Modix.Services.Promotions
                 .SkipWhile(x => x != targetRoleId)
                 .Intersect(currentUser.RoleIds)
                 .Any();
+        }
+
+        private async Task FinalizeCreateCampaignAsync(ulong subjectId, ulong targetRoleId, string comment)
+        {
+            using (var campaignTransaction = await PromotionCampaignRepository.BeginCreateTransactionAsync())
+            using (var commentTransaction = await PromotionCommentRepository.BeginCreateTransactionAsync())
+            {
+                var campaignId = await PromotionCampaignRepository.CreateAsync(new PromotionCampaignCreationData()
+                {
+                    GuildId = AuthorizationService.CurrentGuildId.Value,
+                    SubjectId = subjectId,
+                    TargetRoleId = targetRoleId,
+                    CreatedById = AuthorizationService.CurrentUserId.Value
+                });
+
+                await PromotionCommentRepository.CreateAsync(new PromotionCommentCreationData()
+                {
+                    GuildId = AuthorizationService.CurrentGuildId.Value,
+                    CampaignId = campaignId,
+                    Sentiment = PromotionSentiment.Approve,
+                    Content = comment,
+                    CreatedById = AuthorizationService.CurrentUserId.Value
+                });
+
+                campaignTransaction.Commit();
+                commentTransaction.Commit();
+            }
         }
 
         private async Task PerformCommonCreateCampaignValidationsAsync(ulong subjectId, ulong targetRankRoleId, IEnumerable<GuildRoleBrief> rankRoles)

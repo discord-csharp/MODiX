@@ -91,7 +91,7 @@ namespace Modix.Controllers
             try
             {
                 // TODO: get promotion rank from creation data
-                await _promotionsService.CreateCampaignAsync(creationData.UserId, creationData.Comment);
+                await _promotionsService.CreateCampaignAsync(creationData.UserId, creationData.RoleId, creationData.Comment);
             }
             catch (InvalidOperationException ex)
             {

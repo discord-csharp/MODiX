@@ -36,6 +36,20 @@
                     </div>
 
                     <div class="field">
+                        <label class="label is-large">Then, the rank to be promoted to</label>
+                        <div class="control">
+
+                            <Autocomplete @select="selectedRole = $event" :minimumChars="-1"
+                                          :serviceCall="roleServiceCall" placeholder="This one's fancy too">
+                                <template slot-scope="{entry}">
+                                    @{{entry.name}}
+                                </template>
+                            </Autocomplete>
+
+                        </div>
+                    </div>
+
+                    <div class="field">
                         <label class="label is-large">Finally, say a few words on their behalf</label>
                         <div class="control">
                             <textarea class="textarea" v-model="creationData.comment" placeholder="They should be promoted because..."></textarea>
@@ -90,10 +104,11 @@ import PromotionService from '@/services/PromotionService';
 })
 export default class CreatePromotion extends Vue
 {
-    creationData: PromotionCreationData = {userId: "", comment: ""};
+    creationData: PromotionCreationData = {userId: "", comment: "", roleId: ""};
     error: string | null = null;
 
     selectedUser: User = new User();
+    selectedRole: Role | null = null;
 
     @Watch('selectedUser')
     userChanged()
@@ -101,9 +116,16 @@ export default class CreatePromotion extends Vue
         this.creationData.userId = this.selectedUser.userId;
     }
 
+    @Watch('selectedRole')
+    roleChanged()
+    {
+        this.creationData.roleId = this.selectedRole!.id;
+    }
+
     resetAutocomplete()
     {
         this.selectedUser = new User();
+        this.selectedRole = null;
     }
 
     async createCampaign()
@@ -124,6 +146,11 @@ export default class CreatePromotion extends Vue
     get userServiceCall()
     {
         return GeneralService.getUserAutocomplete;
+    }
+
+    get roleServiceCall()
+    {
+        return GeneralService.getRankRolesAutocomplete;
     }
 
     created()
