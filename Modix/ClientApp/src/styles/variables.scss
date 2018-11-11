@@ -2,7 +2,7 @@ $primary: rgb(128, 55, 136);
 $default-transition: 1s cubic-bezier(0.165, 0.84, 0.44, 1);
 
 //👻🎃🍬
-@import 'spoopy';
+//@import 'spoopy';
 @import "~bulma/sass/utilities/_all";
 
 @mixin fullwidth-desktop()

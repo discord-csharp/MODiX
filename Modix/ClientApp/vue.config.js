@@ -26,7 +26,11 @@ module.exports = {
             .plugin('html')
             .tap(args =>
             {
-                args[0].minify.removeScriptTypeAttributes = false;
+				if (args[0] && args[0].minify)
+				{
+					args[0].minify.removeScriptTypeAttributes = false;
+				}
+				
                 return args;
             });
     }

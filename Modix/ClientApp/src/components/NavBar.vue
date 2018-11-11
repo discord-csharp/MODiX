@@ -101,11 +101,11 @@ nav
 
 .navbar-burger
 {
-    color: $text;
+    color: white;
 
     &:hover
     {
-        color: $text;
+        color: white;
     }
 }
 
