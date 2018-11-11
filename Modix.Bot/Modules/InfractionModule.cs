@@ -10,6 +10,7 @@ using Modix.Data.Models.Moderation;
 using Modix.Services.Moderation;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
+using Modix.Utilities;
 
 namespace Modix.Modules
 {
@@ -102,6 +103,95 @@ namespace Modix.Modules
             [Summary("The ID value of the infraction to be deleted.")]
                 long infractionId)
             => ModerationService.DeleteInfractionAsync(infractionId);
+
+        [Group("modify")]
+        [Name("Infraction Modification")]
+        [Summary("Provides commands for modifying infractions.")]
+        public class ModifyModule : ModuleBase
+        {
+            public ModifyModule(IModerationService moderationService)
+            {
+                ModerationService = moderationService;
+            }
+
+            [Command("note")]
+            [Summary("Updates an infraction to be a note.")]
+            public async Task ModifyNote(
+                [Summary("The ID value of the infraction to be modified.")]
+                    long infractionId,
+                [Summary("The reason for the note.")]
+                [Remainder]
+                    string reason = null)
+            {
+                await ModerationService.ModifyInfractionAsync(infractionId, InfractionType.Notice, reason: reason);
+
+                await this.AddConfirmation();
+            }
+
+            [Command("warn")]
+            [Summary("Updates an infraction to be a warning.")]
+            public async Task ModifyWarn(
+                [Summary("The ID value of the infraction to be modified.")]
+                    long infractionId,
+                [Summary("The reason for the warning.")]
+                [Remainder]
+                    string reason = null)
+            {
+                await ModerationService.ModifyInfractionAsync(infractionId, InfractionType.Warning, reason: reason);
+
+                await this.AddConfirmation();
+            }
+
+            [Command("mute")]
+            [Summary("Updates an infraction to be a mute.")]
+            public async Task ModifyMute(
+                [Summary("The ID value of the infraction to be modified.")]
+                    long infractionId,
+                [Summary("The reason for the mute.")]
+                [Remainder]
+                    string reason = null)
+            {
+                await ModerationService.ModifyInfractionAsync(infractionId, InfractionType.Mute, reason: reason);
+
+                await this.AddConfirmation();
+            }
+
+            [Command("tempmute")]
+            [Summary("Updates an infraction to be a temporary mute.")]
+            public async Task ModifyTempMute(
+                [Summary("The ID value of the infraction to be modified.")]
+                    long infractionId,
+                [Summary("The duration of the mute.")]
+                    string durationString,
+                [Summary("The reason for the mute.")]
+                [Remainder]
+                    string reason = null)
+            {
+                var duration = TimeSpanTypeReader.Read(durationString)
+                    ?? throw new ArgumentException("Invalid timespan format.");
+
+                await ModerationService.ModifyInfractionAsync(infractionId, InfractionType.Mute, duration, reason: reason);
+
+                await this.AddConfirmation();
+            }
+
+            [Command("ban")]
+            [Alias("forceban")]
+            [Summary("Updates an infraction to be a ban.")]
+            public async Task ModifyBan(
+                [Summary("The ID value of the infraction to be modified.")]
+                    long infractionId,
+                [Summary("The reason for the ban.")]
+                [Remainder]
+                    string reason = null)
+            {
+                await ModerationService.ModifyInfractionAsync(infractionId, InfractionType.Ban, reason: reason);
+
+                await this.AddConfirmation();
+            }
+
+            internal protected IModerationService ModerationService { get; }
+        }
 
         internal protected IModerationService ModerationService { get; }
         public IUserService UserService { get; }

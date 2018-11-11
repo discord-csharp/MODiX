@@ -108,6 +108,15 @@ namespace Modix.Services.Moderation
         Task<RecordsPage<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria);
 
         /// <summary>
+        /// "Modifies" an infraction by deleting the existing infraction and creating a new one.
+        /// </summary>
+        /// <param name="infractionId"><see cref="InfractionEntity.Id"/> value of the infraction to be modified.</param>
+        /// <param name="type">New <see cref="InfractionType"/> value of the infraction.</param>
+        /// <param name="reason">New comment of the infraction.</param>
+        /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
+        Task ModifyInfractionAsync(long infractionId, InfractionType type, TimeSpan? duration = null, string reason = null);
+
+        /// <summary>
         /// Retrieves a count of the types of infractions the given user has recieved.
         /// </summary>
         /// <param name="subjectId">The ID of the user to retrieve counts for</param>
@@ -368,22 +377,7 @@ namespace Modix.Services.Moderation
             if (infraction == null)
                 throw new InvalidOperationException($"Infraction {infractionId} does not exist");
 
-            await InfractionRepository.TryDeleteAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
-
-            var guild = await DiscordClient.GetGuildAsync(infraction.GuildId);
-            var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
-
-            switch (infraction.Type)
-            {
-                case InfractionType.Mute:
-                    await subject.RemoveRoleAsync(
-                        await GetDesignatedMuteRoleAsync(guild));
-                    break;
-
-                case InfractionType.Ban:
-                    await guild.RemoveBanAsync(subject);
-                    break;
-            }
+            await DoDeleteInfractionAsync(infraction);
         }
 
         /// <inheritdoc />
@@ -431,6 +425,33 @@ namespace Modix.Services.Moderation
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
 
             return InfractionRepository.SearchSummariesPagedAsync(searchCriteria, sortingCriteria, pagingCriteria);
+        }
+
+        /// <inheritdoc />
+        public async Task ModifyInfractionAsync(long infractionId, InfractionType type, TimeSpan? duration = null, string reason = null)
+        {
+            AuthorizationService.RequireAuthenticatedGuild();
+            AuthorizationService.RequireAuthenticatedUser();
+            AuthorizationService.RequireClaims(_createInfractionClaimsByType[type]);
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationDeleteInfraction);
+
+            var existingInfraction = await InfractionRepository.ReadSummaryAsync(infractionId)
+                ?? throw new ArgumentException($"Infraction {infractionId} does not exist.");
+
+            if (!(existingInfraction.DeleteAction is null) || !(existingInfraction.RescindAction is null))
+                throw new InvalidOperationException($"Infraction {infractionId} is not an active infraction.");
+
+            var newReason = reason ?? existingInfraction.Reason;
+
+            var newDuration = type == InfractionType.Mute
+                ? existingInfraction.Type == InfractionType.Mute
+                    ? duration ?? existingInfraction.Duration
+                    : duration
+                : null;
+
+            await DoDeleteInfractionAsync(existingInfraction);
+
+            await CreateInfractionAsync(type, existingInfraction.Subject.Id, newReason, newDuration);
         }
 
         public async Task<IDictionary<InfractionType, int>> GetInfractionCountsForUserAsync(ulong subjectId)
@@ -589,6 +610,26 @@ namespace Modix.Services.Moderation
 
                 default:
                     throw new InvalidOperationException($"{infraction.Type} infractions cannot be rescinded.");
+            }
+        }
+
+        private async Task DoDeleteInfractionAsync(InfractionSummary infraction)
+        {
+            await InfractionRepository.TryDeleteAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
+
+            var guild = await DiscordClient.GetGuildAsync(infraction.GuildId);
+            var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
+
+            switch (infraction.Type)
+            {
+                case InfractionType.Mute:
+                    await subject.RemoveRoleAsync(
+                        await GetDesignatedMuteRoleAsync(guild));
+                    break;
+
+                case InfractionType.Ban:
+                    await guild.RemoveBanAsync(subject);
+                    break;
             }
         }
 
