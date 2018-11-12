@@ -51,6 +51,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     return service;
                 });
 
+            services.AddSingleton<DiscordSerilogAdapter>();
             services.AddSingleton<HttpClient>();
 
             services.AddModixCore()

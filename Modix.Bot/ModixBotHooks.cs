@@ -6,47 +6,17 @@ using Modix.Services.GuildInfo;
 using System;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Services.CommandHelp;
-using Microsoft.Extensions.Logging;
 
 namespace Modix
 {
     public class ModixBotHooks
     {
-        private readonly ILogger<ModixBotHooks> _log;
-
         public ModixBotHooks(IServiceProvider serviceProvider)
         {
             ServiceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _log = ServiceProvider.GetRequiredService<ILogger<ModixBotHooks>>();
         }
 
         public IServiceProvider ServiceProvider { get; private set; }
-
-        public Task HandleLog(LogMessage message)
-        {
-            switch (message.Severity)
-            {
-                case LogSeverity.Critical:
-                    _log.LogError(message.Exception, message.Message ?? "An exception bubbled up: ");
-                    break;
-                case LogSeverity.Debug:
-                    _log.LogDebug(message.ToString());
-                    break;
-                case LogSeverity.Warning:
-                    _log.LogWarning(message.ToString());
-                    break;
-                case LogSeverity.Error:
-                    _log.LogError(message.Exception, message.Message ?? "An exception bubbled up: ");
-                    break;
-                case LogSeverity.Info:
-                    _log.LogInformation(message.ToString());
-                    break;
-                case LogSeverity.Verbose:
-                    _log.LogTrace(message.ToString());
-                    break;
-            }
-            return Task.CompletedTask;
-        }
 
         public async Task HandleAddReaction(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
