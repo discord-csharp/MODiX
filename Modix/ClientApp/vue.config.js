@@ -15,8 +15,13 @@ module.exports = {
     {
         if (process.env.NODE_ENV === 'production')
         {
-            config.optimization.minimizer[0].options.uglifyOptions.compress.keep_fnames = true;
-            config.optimization.minimizer[0].options.uglifyOptions.mangle.keep_fnames = true;
+			var uglify = config.optimization.minimizer[0].options.uglifyOptions;
+			
+			if (uglify)
+			{
+				uglify.compress.keep_fnames = true;
+				uglify.mangle.keep_fnames = true;
+			}
         }
     },
 
