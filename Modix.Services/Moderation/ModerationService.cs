@@ -255,6 +255,8 @@ namespace Modix.Services.Moderation
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(_createInfractionClaimsByType[type]);
 
+            await RequireSubjectRankLowerThanModeratorRank(subjectId);
+
             var guild = await DiscordClient.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
 
             IGuildUser subject;
@@ -367,6 +369,8 @@ namespace Modix.Services.Moderation
 
             if (infraction == null)
                 throw new InvalidOperationException($"Infraction {infractionId} does not exist");
+
+            await RequireSubjectRankLowerThanModeratorRank(infraction.Subject.Id);
 
             await InfractionRepository.TryDeleteAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
 
@@ -569,6 +573,8 @@ namespace Modix.Services.Moderation
             if (infraction == null)
                 throw new InvalidOperationException("Infraction does not exist");
 
+            await RequireSubjectRankLowerThanModeratorRank(infraction.Subject.Id);
+
             await InfractionRepository.TryRescindAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
 
             var guild = await DiscordClient.GetGuildAsync(infraction.GuildId);
@@ -605,6 +611,35 @@ namespace Modix.Services.Moderation
                 throw new InvalidOperationException($"There are currently no designated mute roles within guild {guild.Id}");
 
             return guild.Roles.First(x => x.Id == mapping.Role.Id);
+        }
+
+        private async Task<IEnumerable<GuildRoleBrief>> GetRankRolesAsync()
+            => (await DesignatedRoleMappingRepository
+                .SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria
+                {
+                    GuildId = AuthorizationService.CurrentGuildId,
+                    Type = DesignatedRoleType.Rank,
+                    IsDeleted = false,
+                }))
+                .Select(r => r.Role);
+
+        private async Task RequireSubjectRankLowerThanModeratorRank(ulong subjectId)
+        {
+            var rankRoles = await GetRankRolesAsync();
+
+            var subject = await UserService.GetGuildUserAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
+            var moderator = await UserService.GetGuildUserAsync(AuthorizationService.CurrentGuildId.Value, AuthorizationService.CurrentUserId.Value);
+
+            var subjectRankRoles = rankRoles.Where(r => subject.RoleIds.Contains(r.Id));
+            var moderatorRankRoles = rankRoles.Where(r => moderator.RoleIds.Contains(r.Id));
+
+            var greatestSubjectRankPosition = subjectRankRoles.Select(r => r.Position).Max();
+            var greatestModeratorRankPosition = moderatorRankRoles.Select(r => r.Position).Max();
+
+            if (greatestModeratorRankPosition <= greatestSubjectRankPosition)
+            {
+                throw new InvalidOperationException("Cannot moderate users that have a rank greater than or equal to your own.");
+            }
         }
             
         // Unused, because ConfigureChannelMuteRolePermissions is currently disabled.
