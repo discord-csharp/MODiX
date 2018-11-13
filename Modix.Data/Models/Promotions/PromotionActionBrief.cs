@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
 
+using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
-using Modix.Data.Projectables;
 
 namespace Modix.Data.Models.Promotions
 {
@@ -26,6 +26,7 @@ namespace Modix.Data.Models.Promotions
         /// </summary>
         public GuildUserBrief CreatedBy { get; set; }
 
+        [ExpansionExpression]
         internal static Expression<Func<PromotionActionEntity, PromotionActionBrief>> FromEntityProjection
             = entity => new PromotionActionBrief()
             {

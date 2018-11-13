@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
+using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
-using Modix.Data.Projectables;
 
 namespace Modix.Data.Models.Promotions
 {
@@ -54,6 +54,7 @@ namespace Modix.Data.Models.Promotions
         /// </summary>
         public IReadOnlyCollection<PromotionCommentCampaignBrief> Comments { get; set; }
 
+        [ExpansionExpression]
         internal static Expression<Func<PromotionCampaignEntity, PromotionCampaignDetails>> FromEntityProjection
             = entity => new PromotionCampaignDetails()
             {
@@ -67,15 +68,7 @@ namespace Modix.Data.Models.Promotions
                     ? null
                     : entity.CloseAction.Project(PromotionActionBrief.FromEntityProjection),
                 Comments = entity.Comments.AsQueryable()
-                    .Select(comment => new PromotionCommentCampaignBrief()
-                    {
-                        Id = comment.Id,
-                        // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                        //Sentiment = entity.Sentiment,
-                        Sentiment = Enum.Parse<PromotionSentiment>(comment.Sentiment.ToString()),
-                        Content = comment.Content,
-                        CreateAction = comment.CreateAction.Project(PromotionActionBrief.FromEntityProjection)
-                    })
+                    .Select(PromotionCommentCampaignBrief.FromEntityProjection)
                     .ToArray()
             };
     }

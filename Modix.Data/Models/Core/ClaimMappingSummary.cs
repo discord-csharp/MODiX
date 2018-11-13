@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-using Modix.Data.Projectables;
+using Modix.Data.ExpandableQueries;
 
 namespace Modix.Data.Models.Core
 {
@@ -50,7 +50,8 @@ namespace Modix.Data.Models.Core
         /// </summary>
         public ConfigurationActionBrief DeleteAction { get; set; }
 
-        internal static Expression<Func<ClaimMappingEntity, ClaimMappingSummary>> FromEntityProjection { get; }
+        [ExpansionExpression]
+        internal static readonly Expression<Func<ClaimMappingEntity, ClaimMappingSummary>> FromEntityProjection
             = entity => new ClaimMappingSummary()
             {
                 Id = entity.Id,

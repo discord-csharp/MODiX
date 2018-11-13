@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
 
+using Modix.Data.ExpandableQueries;
+
 namespace Modix.Data.Models.Core
 {
     /// <summary>
@@ -23,6 +25,7 @@ namespace Modix.Data.Models.Core
         /// </summary>
         public int Position { get; set; }
 
+        [ExpansionExpression]
         internal static readonly Expression<Func<GuildRoleEntity, GuildRoleBrief>> FromEntityProjection
             = entity => new GuildRoleBrief()
             {

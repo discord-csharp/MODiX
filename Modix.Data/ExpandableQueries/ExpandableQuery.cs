@@ -4,11 +4,11 @@ using System.Linq.Expressions;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Modix.Data.Projectables
+namespace Modix.Data.ExpandableQueries
 {
-    public class ProjectableQuery<T> : IOrderedQueryable<T>, IAsyncEnumerable<T>
+    public class ExpandableQuery<T> : IOrderedQueryable<T>, IAsyncEnumerable<T>
     {
-        public ProjectableQuery(ProjectableQueryProvider provider, Expression expression)
+        public ExpandableQuery(ExpandableQueryProvider provider, Expression expression)
         {
             ElementType = typeof(T);
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
@@ -28,7 +28,7 @@ namespace Modix.Data.Projectables
 
         public IQueryProvider Provider
             => _provider;
-        private readonly ProjectableQueryProvider _provider;
+        private readonly ExpandableQueryProvider _provider;
 
         public Expression Expression { get; }
     }

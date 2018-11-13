@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
 
+using Modix.Data.ExpandableQueries;
+
 namespace Modix.Data.Models.Core
 {
     /// <summary>
@@ -34,7 +36,8 @@ namespace Modix.Data.Models.Core
         public string DisplayName
             => Nickname ?? $"{Username}#{Discriminator}";
 
-        internal static Expression<Func<GuildUserEntity, GuildUserBrief>> FromEntityProjection
+        [ExpansionExpression]
+        internal static readonly Expression<Func<GuildUserEntity, GuildUserBrief>> FromEntityProjection
             = entity => new GuildUserBrief()
             {
                 Id = (ulong)entity.User.Id,

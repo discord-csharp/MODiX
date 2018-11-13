@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-using Modix.Data.Projectables;
+using Modix.Data.ExpandableQueries;
 
 namespace Modix.Data.Models.Core
 {
@@ -30,6 +30,7 @@ namespace Modix.Data.Models.Core
         /// </summary>
         public GuildUserBrief CreatedBy { get; set; }
 
+        [ExpansionExpression]
         internal static Expression<Func<ConfigurationActionEntity, ConfigurationActionBrief>> FromEntityProjection
             = entity => new ConfigurationActionBrief()
             {
