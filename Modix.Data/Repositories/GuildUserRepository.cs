@@ -95,15 +95,13 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public Task<GuildUserSummary> ReadSummaryAsync(ulong userId, ulong guildId)
         {
-            var longUserId = (long)userId;
-            var longGuildId = (long)guildId;
-
             return ModixContext.GuildUsers.AsNoTracking()
-                .Where(x => x.UserId == longUserId)
-                .Where(x => x.GuildId == longGuildId)
+                .Where(x => x.UserId == userId)
+                .Where(x => x.GuildId == guildId)
                 .AsExpandable()
                 .Select(GuildUserSummary.FromEntityProjection)
                 .FirstOrDefaultAsync();
+        }
 
         /// <inheritdoc />
         public async Task<bool> TryUpdateAsync(ulong userId, ulong guildId, Action<GuildUserMutationData> updateAction)
