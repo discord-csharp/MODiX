@@ -22,9 +22,9 @@ namespace Modix.Data.Test.Repositories
     {
         #region Test Data
 
-        private static readonly string UsersTestDataFilename = @"TestData\Users.json";
+        private static readonly string UsersTestDataFilename = @"TestData/Users.json";
 
-        private static readonly string GuildUsersTestDataFilename = @"TestData\GuildUsers.json";
+        private static readonly string GuildUsersTestDataFilename = @"TestData/GuildUsers.json";
 
         private static GuildUserCreationData BuildCreationData(ulong userId, ulong guildId)
             => new GuildUserCreationData()
