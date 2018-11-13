@@ -30,9 +30,7 @@ namespace Modix.Data.Models.Core
             {
                 Id = entity.Id,
                 Channel = entity.Channel.Project(GuildChannelBrief.FromEntityProjection),
-                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                //Type = entity.Type,
-                Type = Enum.Parse<DesignatedChannelType>(entity.Type.ToString())
+                Type = entity.Type,
             };
     }
 

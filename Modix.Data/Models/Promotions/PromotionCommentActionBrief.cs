@@ -35,9 +35,7 @@ namespace Modix.Data.Models.Promotions
             {
                 Id = entity.Id,
                 Campaign = entity.Campaign.Project(PromotionCampaignBrief.FromEntityProjection),
-                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                //Sentiment = entity.Sentiment,
-                Sentiment = Enum.Parse<PromotionSentiment>(entity.Sentiment.ToString()),
+                Sentiment = entity.Sentiment,
                 Content = entity.Content
             };
     }

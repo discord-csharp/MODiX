@@ -30,9 +30,7 @@ namespace Modix.Data.Models.Core
             {
                 Id = entity.Id,
                 Role = entity.Role.Project(GuildRoleBrief.FromEntityProjection),
-                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                //Type = entity.Type,
-                Type = Enum.Parse<DesignatedRoleType>(entity.Type.ToString()),
+                Type = entity.Type,
             };
     }
 

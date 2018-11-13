@@ -34,9 +34,7 @@ namespace Modix.Data.Models.Core
             = entity => new ConfigurationActionBrief()
             {
                 Id = entity.Id,
-                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                //Type = entity.Type,
-                Type = Enum.Parse<ConfigurationActionType>(entity.Type.ToString()),
+                Type = entity.Type,
                 Created = entity.Created,
                 CreatedBy = entity.CreatedBy.Project(GuildUserBrief.FromEntityProjection)
             };

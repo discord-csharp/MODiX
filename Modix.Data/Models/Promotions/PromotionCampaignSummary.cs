@@ -62,11 +62,7 @@ namespace Modix.Data.Models.Promotions
                 Subject = entity.Subject.Project(GuildUserBrief.FromEntityProjection),
                 TargetRole = entity.TargetRole.Project(GuildRoleBrief.FromEntityProjection),
                 CreateAction = entity.CreateAction.Project(PromotionActionBrief.FromEntityProjection),
-                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                //Outcome = entity.Outcome,
-                Outcome = (entity.Outcome == null)
-                    ? null
-                    : (PromotionCampaignOutcome?)Enum.Parse<PromotionCampaignOutcome>(entity.Outcome.ToString()),
+                Outcome = entity.Outcome,
                 CloseAction = (entity.CloseAction == null)
                     ? null
                     : entity.CloseAction.Project(PromotionActionBrief.FromEntityProjection),
