@@ -20,7 +20,7 @@ namespace Modix.Data.Test.Repositories
         #region BeginTransactionAsync(database) Tests
 
         [Test]
-        public async Task BeginTransactionAsync_RepositoryTransactionIsInProgress_WaitsForTransactionToComplete()
+        public async Task BeginTransactionAsync_RepositoryTransactionIsInProgress_WaitsForCompletion()
         {
             var uut = new RepositoryTransactionFactory();
             var database = Substitute.For<DatabaseFacade>(Substitute.For<DbContext>());

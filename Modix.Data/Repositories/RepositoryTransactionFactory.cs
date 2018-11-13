@@ -68,7 +68,7 @@ namespace Modix.Data.Repositories
         private AsyncLock _lockProvider { get; }
             = new AsyncLock();
 
-        private sealed class RepositoryTransaction : IRepositoryTransaction
+        private class RepositoryTransaction : IRepositoryTransaction
         {
             public RepositoryTransaction(IDbContextTransaction transaction, IDisposable @lock)
             {
