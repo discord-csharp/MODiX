@@ -69,15 +69,58 @@ namespace Modix.Modules
 
         [Command("nominate")]
         [Summary("Nominate the given user for promotion")]
-        public Task Nominate(
+        public async Task Nominate(
             [Summary("The user to nominate")]
                 IGuildUser subject,
-            [Summary("The role for the user to be promoted to")]
-                IRole targetRole,
             [Remainder]
             [Summary("A comment to be attached to the new campaign")]
                 string comment)
-            => PromotionsService.CreateCampaignAsync(subject.Id, targetRole.Id, comment);
+        {
+            await PromotionsService.CreateCampaignAsync(subject.Id, comment, c => Confirm(c));
+
+            async Task<bool> Confirm(ProposedPromotionCampaignBrief proposedPromotionCampaign)
+            {
+                const string confirmEmote = "✅";
+                const string cancelEmote = "❌";
+                const int secondsToWait = 10;
+
+                var nominationInfo = $"You are nominating user {subject.Id} for promotion to rank {proposedPromotionCampaign.TargetRankRole.Name}.{Environment.NewLine}";
+
+                var confirmationMessage = await ReplyAsync(nominationInfo +
+                    $"React with {confirmEmote} or {cancelEmote} in the next {secondsToWait} seconds to finalize or cancel creation of the campaign.");
+
+                await confirmationMessage.AddReactionAsync(new Emoji(confirmEmote));
+                await confirmationMessage.AddReactionAsync(new Emoji(cancelEmote));
+
+                for (var i = 0; i < secondsToWait; i++)
+                {
+                    await Task.Delay(1000);
+
+                    var cancelingUsers = await confirmationMessage.GetReactionUsersAsync(cancelEmote);
+                    if (cancelingUsers.Any(u => u.Id == proposedPromotionCampaign.NominatingUserId))
+                    {
+                        await RemoveReactionsAndUpdateMessage("Cancellation was successfully received. Cancelling promotion campaign.");
+                        return false;
+                    }
+
+                    var confirmingUsers = await confirmationMessage.GetReactionUsersAsync(confirmEmote);
+                    if (confirmingUsers.Any(u => u.Id == proposedPromotionCampaign.NominatingUserId))
+                    {
+                        await RemoveReactionsAndUpdateMessage("Confirmation was succesfully received. Creating promotion campaign.");
+                        return true;
+                    }
+                }
+
+                await RemoveReactionsAndUpdateMessage("Confirmation was not received. Cancelling promotion campaign.");
+                return false;
+
+                async Task RemoveReactionsAndUpdateMessage(string bottomMessage)
+                {
+                    await confirmationMessage.RemoveAllReactionsAsync();
+                    await confirmationMessage.ModifyAsync(m => m.Content = nominationInfo + bottomMessage);
+                }
+            }
+        }
 
         [Command("comment")]
         [Summary("Comment on an ongoing campaign to promote a user.")]
