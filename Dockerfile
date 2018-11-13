@@ -1,15 +1,14 @@
-FROM microsoft/dotnet:2.1-sdk as dotnet-build
+FROM microsoft/dotnet:2.1-sdk-stretch as dotnet-build
 WORKDIR /src
 COPY . .
-RUN dotnet publish Modix.sln -r linux-x64 -f netcoreapp2.1 -o /app
 
-FROM node:9 as node-build
-WORKDIR /src
-COPY Modix.Frontend .
-RUN npm install && npm run build
+RUN apt-get update && apt install curl -y
+RUN curl -sL https://deb.nodesource.com/setup_9.x | bash -
+RUN apt-get install nodejs -y
+
+RUN dotnet publish Modix.sln -c Release -r linux-x64 -o /app
 
 FROM microsoft/dotnet:2.1-aspnetcore-runtime
 WORKDIR /app
 COPY --from=dotnet-build /app .
-COPY --from=node-build /src/dist ./wwwroot
-ENTRYPOINT ["dotnet", "Modix.Bot.dll"]
+ENTRYPOINT ["dotnet", "Modix.dll"]

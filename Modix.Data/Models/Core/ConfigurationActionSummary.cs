@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-using Modix.Data.Projectables;
+using Modix.Data.ExpandableQueries;
 
 namespace Modix.Data.Models.Core
 {
@@ -50,14 +50,13 @@ namespace Modix.Data.Models.Core
         /// </summary>
         public DesignatedRoleMappingBrief DesignatedRoleMapping { get; set; }
 
-        internal static Expression<Func<ConfigurationActionEntity, ConfigurationActionSummary>> FromEntityProjection { get; }
+        [ExpansionExpression]
+        internal static readonly Expression<Func<ConfigurationActionEntity, ConfigurationActionSummary>> FromEntityProjection
             = entity => new ConfigurationActionSummary()
             {
                 Id = entity.Id,
                 GuildId = entity.GuildId,
-                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                //Type = entity.Type,
-                Type = Enum.Parse<ConfigurationActionType>(entity.Type.ToString()),
+                Type = entity.Type,
                 Created = entity.Created,
                 CreatedBy = entity.CreatedBy.Project(GuildUserBrief.FromEntityProjection),
                 ClaimMapping = (entity.ClaimMapping == null)

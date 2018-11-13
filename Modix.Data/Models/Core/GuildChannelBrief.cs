@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
 
+using Modix.Data.ExpandableQueries;
+
 namespace Modix.Data.Models.Core
 {
     /// <summary>
@@ -18,6 +20,7 @@ namespace Modix.Data.Models.Core
         /// </summary>
         public string Name { get; set; }
 
+        [ExpansionExpression]
         internal static Expression<Func<GuildChannelEntity, GuildChannelBrief>> FromEntityProjection
             = entity => new GuildChannelBrief()
             {

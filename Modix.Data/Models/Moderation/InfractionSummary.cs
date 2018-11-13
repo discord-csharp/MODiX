@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
+using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
-using Modix.Data.Projectables;
 
 namespace Modix.Data.Models.Moderation
 {
@@ -72,7 +72,7 @@ namespace Modix.Data.Models.Moderation
         public static ICollection<string> SortablePropertyNames
             => SortablePropertyMap.Keys;
 
-        internal static IDictionary<string, Expression<Func<InfractionSummary, object>>> SortablePropertyMap { get; }
+        internal static readonly IDictionary<string, Expression<Func<InfractionSummary, object>>> SortablePropertyMap
             = new Dictionary<string, Expression<Func<InfractionSummary, object>>>()
             {
                 {
@@ -117,14 +117,13 @@ namespace Modix.Data.Models.Moderation
                 }
             };
 
-        internal static Expression<Func<InfractionEntity, InfractionSummary>> FromEntityProjection { get; }
+        [ExpansionExpression]
+        internal static readonly Expression<Func<InfractionEntity, InfractionSummary>> FromEntityProjection
             = entity => new InfractionSummary()
             {
                 Id = entity.Id,
                 GuildId = entity.GuildId,
-                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                //Type = entity.Type,
-                Type = Enum.Parse<InfractionType>(entity.Type.ToString()),
+                Type = entity.Type,
                 Reason = entity.Reason,
                 Duration = entity.Duration,
                 Subject = entity.Subject.Project(GuildUserBrief.FromEntityProjection),

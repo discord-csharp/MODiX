@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
 
+using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
-using Modix.Data.Projectables;
 
 namespace Modix.Data.Models.Promotions
 {
@@ -31,17 +31,14 @@ namespace Modix.Data.Models.Promotions
         /// </summary>
         public PromotionCampaignOutcome? Outcome { get; set; }
 
+        [ExpansionExpression]
         internal static Expression<Func<PromotionCampaignEntity, PromotionCampaignBrief>> FromEntityProjection
             = entity => new PromotionCampaignBrief()
             {
                 Id = entity.Id,
                 Subject = entity.Subject.Project(GuildUserBrief.FromEntityProjection),
                 TargetRole = entity.TargetRole.Project(GuildRoleBrief.FromEntityProjection),
-                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                //Outcome = entity.Outcome,
-                Outcome = (entity.Outcome == null)
-                    ? null
-                    : (PromotionCampaignOutcome?)Enum.Parse<PromotionCampaignOutcome>(entity.Outcome.ToString()),
+                Outcome = entity.Outcome,
             };
     }
 }

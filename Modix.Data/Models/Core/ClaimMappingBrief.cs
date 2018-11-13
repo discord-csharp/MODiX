@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
 
+using Modix.Data.ExpandableQueries;
+
 namespace Modix.Data.Models.Core
 {
     /// <summary>
@@ -33,18 +35,15 @@ namespace Modix.Data.Models.Core
         /// </summary>
         public AuthorizationClaim Claim { get; set; }
 
-        internal static Expression<Func<ClaimMappingEntity, ClaimMappingBrief>> FromEntityProjection { get; }
+        [ExpansionExpression]
+        internal static readonly Expression<Func<ClaimMappingEntity, ClaimMappingBrief>> FromEntityProjection
             = entity => new ClaimMappingBrief()
             {
                 Id = entity.Id,
-                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                //Type = entity.Type,
-                Type = Enum.Parse<ClaimMappingType>(entity.Type.ToString()),
+                Type = entity.Type,
                 RoleId = entity.RoleId,
                 UserId = entity.UserId,
-                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                //Claim = entity.Claim,
-                Claim = Enum.Parse<AuthorizationClaim>(entity.Claim.ToString())
+                Claim = entity.Claim,
             };
     }
 }

@@ -17,7 +17,7 @@ namespace Modix
             var loggerConfig = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                .MinimumLevel.Override("Discord", LogEventLevel.Information)
+                .MinimumLevel.Override("Modix.DiscordSerilogAdapter", LogEventLevel.Information)
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
                 .WriteTo.RollingFile(@"logs\{Date}", restrictedToMinimumLevel: LogEventLevel.Debug);

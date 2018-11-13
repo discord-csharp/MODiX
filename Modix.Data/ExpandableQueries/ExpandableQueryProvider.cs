@@ -8,17 +8,17 @@ using Microsoft.EntityFrameworkCore.Query.Internal;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Modix.Data.Projectables
+namespace Modix.Data.ExpandableQueries
 {
-    public class ProjectableQueryProvider : IAsyncQueryProvider
+    public class ExpandableQueryProvider : IAsyncQueryProvider
     {
-        public ProjectableQueryProvider(IAsyncQueryProvider provider)
+        public ExpandableQueryProvider(IQueryProvider provider)
         {
             _provider = provider ?? throw new ArgumentNullException(nameof(provider));
         }
 
         public IQueryable<T> CreateQuery<T>(Expression expression)
-            => new ProjectableQuery<T>(this, expression);
+            => new ExpandableQuery<T>(this, expression);
 
         public IQueryable CreateQuery(Expression expression)
         {
@@ -29,7 +29,7 @@ namespace Modix.Data.Projectables
 
             try
             {
-                return Activator.CreateInstance(typeof(ProjectableQuery<>).MakeGenericType(elementType), new object[] { this, expression }) as IQueryable;
+                return Activator.CreateInstance(typeof(ExpandableQuery<>).MakeGenericType(elementType), new object[] { this, expression }) as IQueryable;
             }
             catch (TargetInvocationException ex)
             {
@@ -44,14 +44,19 @@ namespace Modix.Data.Projectables
             => _provider.Execute(Visit(expression));
 
         public IAsyncEnumerable<TResult> ExecuteAsync<TResult>(Expression expression)
-            => _provider.ExecuteAsync<TResult>(Visit(expression));
+            => (_provider is IAsyncQueryProvider asyncProvider)
+                ? asyncProvider.ExecuteAsync<TResult>(Visit(expression))
+                : throw new InvalidOperationException("This query cannot be executed asynchronously");
 
         public Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
-            => _provider.ExecuteAsync<TResult>(Visit(expression), cancellationToken);
+            => (_provider is IAsyncQueryProvider asyncProvider)
+                ? asyncProvider.ExecuteAsync<TResult>(Visit(expression), cancellationToken)
+                : throw new InvalidOperationException("This query cannot be executed asynchronously");
 
-        internal readonly IAsyncQueryProvider _provider;
+        internal readonly IQueryProvider _provider;
 
         private Expression Visit(Expression expression)
-            => new ProjectableVisitor(_provider).Visit(expression);
+            => new ProjectMethodVisitor().Visit(
+                new ExpansionExpressionVisitor().Visit(expression));
     }
 }

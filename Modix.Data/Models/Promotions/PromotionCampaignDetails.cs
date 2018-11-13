@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
+using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
-using Modix.Data.Projectables;
 
 namespace Modix.Data.Models.Promotions
 {
@@ -54,6 +54,7 @@ namespace Modix.Data.Models.Promotions
         /// </summary>
         public IReadOnlyCollection<PromotionCommentCampaignBrief> Comments { get; set; }
 
+        [ExpansionExpression]
         internal static Expression<Func<PromotionCampaignEntity, PromotionCampaignDetails>> FromEntityProjection
             = entity => new PromotionCampaignDetails()
             {
@@ -61,25 +62,13 @@ namespace Modix.Data.Models.Promotions
                 GuildId = entity.GuildId,
                 Subject = entity.Subject.Project(GuildUserBrief.FromEntityProjection),
                 TargetRole = entity.TargetRole.Project(GuildRoleBrief.FromEntityProjection),
-                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                //Outcome = entity.Outcome,
-                Outcome = (entity.Outcome == null)
-                    ? null
-                    : (PromotionCampaignOutcome?)Enum.Parse<PromotionCampaignOutcome>(entity.Outcome.ToString()),
+                Outcome = entity.Outcome,
                 CreateAction = entity.CreateAction.Project(PromotionActionBrief.FromEntityProjection),
                 CloseAction = (entity.CloseAction == null)
                     ? null
                     : entity.CloseAction.Project(PromotionActionBrief.FromEntityProjection),
                 Comments = entity.Comments.AsQueryable()
-                    .Select(comment => new PromotionCommentCampaignBrief()
-                    {
-                        Id = comment.Id,
-                        // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                        //Sentiment = entity.Sentiment,
-                        Sentiment = Enum.Parse<PromotionSentiment>(comment.Sentiment.ToString()),
-                        Content = comment.Content,
-                        CreateAction = comment.CreateAction.Project(PromotionActionBrief.FromEntityProjection)
-                    })
+                    .Select(PromotionCommentCampaignBrief.FromEntityProjection)
                     .ToArray()
             };
     }

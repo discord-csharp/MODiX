@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
 
+using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
-using Modix.Data.Projectables;
 
 namespace Modix.Data.Models.Moderation
 {
@@ -36,13 +36,12 @@ namespace Modix.Data.Models.Moderation
         /// </summary>
         public GuildUserBrief Subject { get; set; }
 
+        [ExpansionExpression]
         internal static Expression<Func<InfractionEntity, InfractionBrief>> FromEntityProjection
             = entity => new InfractionBrief()
             {
                 Id = entity.Id,
-                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                //Type = entity.Type,
-                Type = Enum.Parse<InfractionType>(entity.Type.ToString()),
+                Type = entity.Type,
                 Reason = entity.Reason,
                 Duration = entity.Duration,
                 Subject = entity.Subject.Project(GuildUserBrief.FromEntityProjection)

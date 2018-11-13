@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
+using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
-using Modix.Data.Projectables;
 
 namespace Modix.Data.Repositories
 {
@@ -114,7 +114,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public Task<ClaimMappingSummary> ReadAsync(long roleClaimId)
             => ModixContext.ClaimMappings.AsNoTracking()
-                .AsProjectable()
+                .AsExpandable()
                 .Select(ClaimMappingSummary.FromEntityProjection)
                 .FirstOrDefaultAsync(x => x.Id == roleClaimId);
 
@@ -135,7 +135,7 @@ namespace Modix.Data.Repositories
         public async Task<IReadOnlyCollection<ClaimMappingBrief>> SearchBriefsAsync(ClaimMappingSearchCriteria criteria)
             => await ModixContext.ClaimMappings.AsNoTracking()
                 .FilterBy(criteria)
-                .AsProjectable()
+                .AsExpandable()
                 .Select(ClaimMappingBrief.FromEntityProjection)
                 .ToArrayAsync();
 

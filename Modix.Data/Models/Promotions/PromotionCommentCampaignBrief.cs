@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-using Modix.Data.Projectables;
+using Modix.Data.ExpandableQueries;
 
 namespace Modix.Data.Models.Promotions
 {
@@ -30,13 +30,12 @@ namespace Modix.Data.Models.Promotions
         /// </summary>
         public PromotionActionBrief CreateAction { get; set; }
 
+        [ExpansionExpression]
         internal static Expression<Func<PromotionCommentEntity, PromotionCommentCampaignBrief>> FromEntityProjection
             = entity => new PromotionCommentCampaignBrief()
             {
                 Id = entity.Id,
-                // https://github.com/aspnet/EntityFrameworkCore/issues/12834
-                //Sentiment = entity.Sentiment,
-                Sentiment = Enum.Parse<PromotionSentiment>(entity.Sentiment.ToString()),
+                Sentiment = entity.Sentiment,
                 Content = entity.Content,
                 CreateAction = entity.CreateAction.Project(PromotionActionBrief.FromEntityProjection)
             };

@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
+using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
-using Modix.Data.Projectables;
 using Modix.Data.Utilities;
 
 namespace Modix.Data.Repositories
@@ -94,10 +94,14 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public Task<GuildUserSummary> ReadSummaryAsync(ulong userId, ulong guildId)
-            => ModixContext.GuildUsers.AsNoTracking()
-                .Where(x => x.UserId == userId)
-                .Where(x => x.GuildId == guildId)
-                .AsProjectable()
+        {
+            var longUserId = (long)userId;
+            var longGuildId = (long)guildId;
+
+            return ModixContext.GuildUsers.AsNoTracking()
+                .Where(x => x.UserId == longUserId)
+                .Where(x => x.GuildId == longGuildId)
+                .AsExpandable()
                 .Select(GuildUserSummary.FromEntityProjection)
                 .FirstOrDefaultAsync();
 

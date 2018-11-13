@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
 
+using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
-using Modix.Data.Projectables;
 
 namespace Modix.Data.Models.Moderation
 {
@@ -36,6 +36,7 @@ namespace Modix.Data.Models.Moderation
         /// </summary>
         public string Reason { get; set; }
 
+        [ExpansionExpression]
         internal static Expression<Func<DeletedMessageEntity, DeletedMessageBrief>> FromEntityProjection
             = entity => new DeletedMessageBrief()
             {

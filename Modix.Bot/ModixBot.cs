@@ -24,14 +24,15 @@ namespace Modix
         private readonly CommandService _commands;
         private readonly IServiceProvider _provider;
         private readonly ModixConfig _config;
+        private readonly DiscordSerilogAdapter _serilogAdapter;
 
-        private ModixBotHooks _hooks;
         private IServiceScope _scope;
 
         public ModixBot(
             DiscordSocketClient discordClient,
             ModixConfig modixConfig,
             CommandService commandService,
+            DiscordSerilogAdapter serilogAdapter,
             IServiceProvider serviceProvider,
             ILogger<ModixBot> logger)
         {
@@ -39,11 +40,13 @@ namespace Modix
             _config = modixConfig ?? throw new ArgumentNullException(nameof(modixConfig));
             _commands = commandService ?? throw new ArgumentNullException(nameof(commandService));
             _provider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            _serilogAdapter = serilogAdapter ?? throw new ArgumentNullException(nameof(serilogAdapter));
 
             Log = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         private ILogger<ModixBot> Log { get; }
+        private DiscordSerilogAdapter SerilogAdapter { get; }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -65,8 +68,8 @@ namespace Modix
                 _client.UserJoined += hooks.HandleUserJoined;
                 _client.UserLeft += hooks.HandleUserLeft;
 
-                _client.Log += hooks.HandleLog;
-                _commands.Log += hooks.HandleLog;
+                _client.Log += _serilogAdapter.HandleLog;
+                _commands.Log += _serilogAdapter.HandleLog;
 
                 // Register with the cancellation token so we can stop listening to client events if the service is
                 // shutting down or being disposed.
@@ -135,8 +138,8 @@ namespace Modix
                 _client.UserJoined -= hooks.HandleUserJoined;
                 _client.UserLeft -= hooks.HandleUserLeft;
 
-                _client.Log -= hooks.HandleLog;
-                _commands.Log -= hooks.HandleLog;
+                _client.Log -= _serilogAdapter.HandleLog;
+                _commands.Log -= _serilogAdapter.HandleLog;
             }
         }
 

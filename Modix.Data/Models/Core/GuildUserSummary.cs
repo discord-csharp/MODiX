@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq.Expressions;
 
+using Modix.Data.ExpandableQueries;
+
 namespace Modix.Data.Models.Core
 {
     /// <summary>
@@ -43,6 +45,7 @@ namespace Modix.Data.Models.Core
         /// </summary>
         public DateTimeOffset LastSeen { get; set; }
 
+        [ExpansionExpression]
         internal static readonly Expression<Func<GuildUserEntity, GuildUserSummary>> FromEntityProjection
             = entity => new GuildUserSummary()
             {
