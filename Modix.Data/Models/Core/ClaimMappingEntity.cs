@@ -28,17 +28,17 @@ namespace Modix.Data.Models.Core
         /// The Discord snowflake ID of the guild to which this mapping applies.
         /// </summary>
         [Required]
-        public long GuildId { get; set; }
+        public ulong GuildId { get; set; }
 
         /// <summary>
         /// The Discord snowflake ID (if any) of the role to which <see cref="Claim"/> is being assigned.
         /// </summary>
-        public long? RoleId { get; set; }
+        public ulong? RoleId { get; set; }
 
         /// <summary>
         /// The Discord snowflake ID (if any) of the user to which <see cref="Claim"/> is being assigned.
         /// </summary>
-        public long? UserId { get; set; }
+        public ulong? UserId { get; set; }
 
         /// <summary>
         /// The claim that is being mapped.
@@ -75,6 +75,21 @@ namespace Modix.Data.Models.Core
                 .Entity<ClaimMappingEntity>()
                 .Property(x => x.Type)
                 .HasConversion<string>();
+
+            modelBuilder
+                .Entity<ClaimMappingEntity>()
+                .Property(x => x.GuildId)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<ClaimMappingEntity>()
+                .Property(x => x.RoleId)
+                .HasConversion<long?>();
+
+            modelBuilder
+                .Entity<ClaimMappingEntity>()
+                .Property(x => x.UserId)
+                .HasConversion<long?>();
 
             modelBuilder
                 .Entity<ClaimMappingEntity>()

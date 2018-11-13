@@ -41,16 +41,16 @@ namespace Modix.Data.Models.Core
             => new ClaimMappingEntity()
             {
                 Type = Type,
-                GuildId = (long)GuildId,
-                RoleId = (long?)RoleId,
-                UserId = (long?)UserId,
+                GuildId = GuildId,
+                RoleId = RoleId,
+                UserId = UserId,
                 Claim = Claim,
                 CreateAction = new ConfigurationActionEntity()
                 {
-                    GuildId = (long)GuildId,
+                    GuildId = GuildId,
                     Type = ConfigurationActionType.ClaimMappingCreated,
                     Created = DateTimeOffset.Now,
-                    CreatedById = (long)CreatedById,
+                    CreatedById = CreatedById,
                 }
             };
     }

@@ -51,7 +51,7 @@ namespace Modix.Data.Models.Moderation
             = entity => new ModerationActionSummary()
             {
                 Id = entity.Id,
-                GuildId = (ulong)entity.GuildId,
+                GuildId = entity.GuildId,
                 Type = entity.Type,
                 Created = entity.Created,
                 CreatedBy = entity.CreatedBy.Project(GuildUserBrief.FromEntityProjection),

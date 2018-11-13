@@ -30,15 +30,15 @@ namespace Modix.Data.Models.Core
         internal DesignatedChannelMappingEntity ToEntity()
             => new DesignatedChannelMappingEntity()
             {
-                GuildId = (long)GuildId,
-                ChannelId = (long)ChannelId,
+                GuildId = GuildId,
+                ChannelId = ChannelId,
                 Type = Type,
                 CreateAction = new ConfigurationActionEntity()
                 {
-                    GuildId = (long)GuildId,
+                    GuildId = GuildId,
                     Type = ConfigurationActionType.DesignatedChannelMappingCreated,
                     Created = DateTimeOffset.Now,
-                    CreatedById = (long)CreatedById
+                    CreatedById = CreatedById
                 }
             };
     }

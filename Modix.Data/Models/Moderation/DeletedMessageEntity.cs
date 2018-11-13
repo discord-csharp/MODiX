@@ -19,20 +19,20 @@ namespace Modix.Data.Models.Moderation
         [Key]
         [Required]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public long MessageId { get; set; }
+        public ulong MessageId { get; set; }
 
         /// <summary>
         /// The snowflake ID, within the Discord API, of the guild to which this infraction applies.
         /// </summary>
         [Required]
-        public long GuildId { get; set; }
+        public ulong GuildId { get; set; }
 
         /// <summary>
         /// The <see cref="GuildChannelEntity.ChannelId"/> value of <see cref="Channel"/>.
         /// </summary>
         [Required]
         [ForeignKey(nameof(Channel))]
-        public long ChannelId { get; set; }
+        public ulong ChannelId { get; set; }
 
         /// <summary>
         /// The channel from which the message was deleted.
@@ -44,7 +44,7 @@ namespace Modix.Data.Models.Moderation
         /// The <see cref="GuildUserEntity.UserId"/> value of <see cref="Author"/>.
         /// </summary>
         [Required]
-        public long AuthorId { get; set; }
+        public ulong AuthorId { get; set; }
 
         /// <summary>
         /// The user that authored the deleted message.
@@ -79,6 +79,26 @@ namespace Modix.Data.Models.Moderation
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder
+                .Entity<DeletedMessageEntity>()
+                .Property(x => x.MessageId)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<DeletedMessageEntity>()
+                .Property(x => x.GuildId)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<DeletedMessageEntity>()
+                .Property(x => x.ChannelId)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<DeletedMessageEntity>()
+                .Property(x => x.AuthorId)
+                .HasConversion<long>();
+
             modelBuilder
                 .Entity<DeletedMessageEntity>()
                 .HasOne(x => x.Author)

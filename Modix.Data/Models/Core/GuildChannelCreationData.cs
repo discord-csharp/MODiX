@@ -23,8 +23,8 @@
         internal GuildChannelEntity ToEntity()
             => new GuildChannelEntity()
             {
-                ChannelId = (long)ChannelId,
-                GuildId = (long)GuildId,
+                ChannelId = ChannelId,
+                GuildId = GuildId,
                 Name = Name
             };
     }

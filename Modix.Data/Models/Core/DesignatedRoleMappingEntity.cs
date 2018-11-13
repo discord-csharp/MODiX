@@ -24,14 +24,14 @@ namespace Modix.Data.Models.Core
         /// The Discord snowflake ID of the guild to which this mapping applies.
         /// </summary>
         [Required]
-        public long GuildId { get; set; }
+        public ulong GuildId { get; set; }
 
         /// <summary>
         /// The <see cref="GuildRoleEntity.RoleId"/> value of <see cref="Role"/>.
         /// </summary>
         [Required]
         [ForeignKey(nameof(Role))]
-        public long RoleId { get; set; }
+        public ulong RoleId { get; set; }
 
         /// <summary>
         /// The role being designated by this mapping.
@@ -73,6 +73,16 @@ namespace Modix.Data.Models.Core
                 .Entity<DesignatedRoleMappingEntity>()
                 .Property(x => x.Type)
                 .HasConversion<string>();
+
+            modelBuilder
+                .Entity<DesignatedRoleMappingEntity>()
+                .Property(x => x.GuildId)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<DesignatedRoleMappingEntity>()
+                .Property(x => x.RoleId)
+                .HasConversion<long>();
 
             modelBuilder
                 .Entity<DesignatedRoleMappingEntity>()

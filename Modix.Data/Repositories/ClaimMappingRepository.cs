@@ -142,10 +142,8 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<bool> TryDeleteAsync(long claimMappingId, ulong rescindedById)
         {
-            var longRescindedById = (long)rescindedById;
-
             if (!(await ModixContext.Users.AsNoTracking()
-                .AnyAsync(x => x.Id == longRescindedById)))
+                .AnyAsync(x => x.Id == rescindedById)))
                 return false;
 
             var entity = await ModixContext.ClaimMappings
@@ -160,7 +158,7 @@ namespace Modix.Data.Repositories
                 GuildId = entity.GuildId,
                 Type = ConfigurationActionType.ClaimMappingDeleted,
                 Created = DateTimeOffset.Now,
-                CreatedById = longRescindedById,
+                CreatedById = rescindedById,
                 ClaimMappingId = entity.Id
             };
             await ModixContext.SaveChangesAsync();

@@ -40,10 +40,10 @@ namespace Modix.Data.Models.Promotions
                 Content = Content,
                 CreateAction = new PromotionActionEntity()
                 {
-                    GuildId = (long)GuildId,
+                    GuildId = GuildId,
                     Created = DateTimeOffset.Now,
                     Type = PromotionActionType.CommentCreated,
-                    CreatedById = (long)CreatedById,
+                    CreatedById = CreatedById,
                 }
             };
     }

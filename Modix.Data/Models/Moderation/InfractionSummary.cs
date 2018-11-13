@@ -122,7 +122,7 @@ namespace Modix.Data.Models.Moderation
             = entity => new InfractionSummary()
             {
                 Id = entity.Id,
-                GuildId = (ulong)entity.GuildId,
+                GuildId = entity.GuildId,
                 Type = entity.Type,
                 Reason = entity.Reason,
                 Duration = entity.Duration,

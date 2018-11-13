@@ -174,17 +174,13 @@ namespace Modix.Data.Repositories
             = new RepositoryTransactionFactory();
 
         private void DoEntityDelete(DesignatedRoleMappingEntity entity, ulong deletedById)
-        {
-            var longDeletedById = (long)deletedById;
-
-            entity.DeleteAction = new ConfigurationActionEntity()
+            => entity.DeleteAction = new ConfigurationActionEntity()
             {
                 Type = ConfigurationActionType.DesignatedRoleMappingDeleted,
                 Created = DateTimeOffset.Now,
-                CreatedById = longDeletedById,
+                CreatedById = deletedById,
                 DesignatedRoleMappingId = entity.Id,
                 GuildId = entity.GuildId
             };
-        }
     }
 }

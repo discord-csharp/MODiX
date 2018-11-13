@@ -24,7 +24,7 @@ namespace Modix.Data.Models.Moderation
         /// The snowflake ID, within the Discord API, of the guild to which this moderation action applies.
         /// </summary>
         [Required]
-        public long GuildId { get; set; }
+        public ulong GuildId { get; set; }
 
         /// <summary>
         /// A timestamp indicating when this entity was created, for auditing purposes.
@@ -42,7 +42,7 @@ namespace Modix.Data.Models.Moderation
         /// The <see cref="GuildUserEntity.UserId"/> value of <see cref="CreatedBy"/>.
         /// </summary>
         [Required]
-        public long CreatedById { get; set; }
+        public ulong CreatedById { get; set; }
 
         /// <summary>
         /// The staff member that applied this moderation action
@@ -66,7 +66,7 @@ namespace Modix.Data.Models.Moderation
         /// The <see cref="DeletedMessageEntity.MessageId"/> value of <see cref="DeletedMessage"/>.
         /// </summary>
         [ForeignKey(nameof(DeletedMessage))]
-        public long? DeletedMessageId { get; set; }
+        public ulong? DeletedMessageId { get; set; }
 
         /// <summary>
         /// The <see cref="DeletedMessageEntity"/> to which this <see cref="ModerationActionEntity"/> applies.
@@ -79,8 +79,23 @@ namespace Modix.Data.Models.Moderation
         {
             modelBuilder
                 .Entity<ModerationActionEntity>()
+                .Property(x => x.GuildId)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<ModerationActionEntity>()
                 .Property(x => x.Type)
                 .HasConversion<string>();
+
+            modelBuilder
+                .Entity<ModerationActionEntity>()
+                .Property(x => x.CreatedById)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<ModerationActionEntity>()
+                .Property(x => x.DeletedMessageId)
+                .HasConversion<long>();
 
             modelBuilder
                 .Entity<ModerationActionEntity>()

@@ -49,8 +49,8 @@ namespace Modix.Data.Models.Core
         internal static readonly Expression<Func<GuildUserEntity, GuildUserSummary>> FromEntityProjection
             = entity => new GuildUserSummary()
             {
-                UserId = (ulong)entity.UserId,
-                GuildId = (ulong)entity.GuildId,
+                UserId = entity.UserId,
+                GuildId = entity.GuildId,
                 Username = entity.User.Username,
                 Discriminator = entity.User.Discriminator,
                 Nickname = entity.Nickname,

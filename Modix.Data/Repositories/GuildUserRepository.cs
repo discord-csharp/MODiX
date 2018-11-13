@@ -77,10 +77,8 @@ namespace Modix.Data.Repositories
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
-            var longUserId = (long)data.UserId;
-
             if(!(await ModixContext.Users.AsNoTracking()
-                .AnyAsync(x => x.Id == longUserId)))
+                .AnyAsync(x => x.Id == data.UserId)))
             {
                 var userEntity = data.ToUserEntity();
 
@@ -97,12 +95,9 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public Task<GuildUserSummary> ReadSummaryAsync(ulong userId, ulong guildId)
         {
-            var longUserId = (long)userId;
-            var longGuildId = (long)guildId;
-
             return ModixContext.GuildUsers.AsNoTracking()
-                .Where(x => x.UserId == longUserId)
-                .Where(x => x.GuildId == longGuildId)
+                .Where(x => x.UserId == userId)
+                .Where(x => x.GuildId == guildId)
                 .AsExpandable()
                 .Select(GuildUserSummary.FromEntityProjection)
                 .FirstOrDefaultAsync();
@@ -114,12 +109,9 @@ namespace Modix.Data.Repositories
             if (updateAction == null)
                 throw new ArgumentNullException(nameof(updateAction));
 
-            var longUserId = (long)userId;
-            var longGuildId = (long)guildId;
-
             var entity = await ModixContext.GuildUsers
-                .Where(x => x.UserId == longUserId)
-                .Where(x => x.GuildId == longGuildId)
+                .Where(x => x.UserId == userId)
+                .Where(x => x.GuildId == guildId)
                 .Include(x => x.User)
                 .FirstOrDefaultAsync();
 

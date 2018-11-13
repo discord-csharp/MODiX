@@ -17,14 +17,14 @@ namespace Modix.Data.Models.Core
         /// The Discord snowflake ID of the guild for which data is tracked by this entity.
         /// </summary>
         [Required]
-        public long GuildId { get; set; }
+        public ulong GuildId { get; set; }
 
         /// <summary>
         /// The <see cref="UserEntity.Id"/> value of <see cref="User"/>.
         /// </summary>
         [Required]
         [ForeignKey(nameof(User))]
-        public long UserId { get; set; }
+        public ulong UserId { get; set; }
 
         /// <summary>
         /// The user whose data is tracked by this entity.
@@ -52,6 +52,16 @@ namespace Modix.Data.Models.Core
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder
+                .Entity<GuildUserEntity>()
+                .Property(x => x.GuildId)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<GuildUserEntity>()
+                .Property(x => x.UserId)
+                .HasConversion<long>();
+
             modelBuilder
                 .Entity<GuildUserEntity>()
                 .HasKey(x => new { x.GuildId, x.UserId });

@@ -41,8 +41,8 @@ namespace Modix.Data.Models.Core
             {
                 Id = entity.Id,
                 Type = entity.Type,
-                RoleId = (ulong?)entity.RoleId,
-                UserId = (ulong?)entity.UserId,
+                RoleId = entity.RoleId,
+                UserId = entity.UserId,
                 Claim = entity.Claim,
             };
     }

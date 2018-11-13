@@ -23,7 +23,7 @@ namespace Modix.Data.Models.Core
         /// The snowflake ID, within the Discord API, of the guild to which this configuration action applies.
         /// </summary>
         [Required]
-        public long GuildId { get; set; }
+        public ulong GuildId { get; set; }
 
         /// <summary>
         /// The type of configuration action that was performed.
@@ -41,7 +41,7 @@ namespace Modix.Data.Models.Core
         /// The <see cref="GuildUserEntity.UserId"/> value of <see cref="CreatedBy"/>.
         /// </summary>
         [Required]
-        public long CreatedById { get; set; }
+        public ulong CreatedById { get; set; }
 
         /// <summary>
         /// The Discord user that performed this action.
@@ -89,6 +89,16 @@ namespace Modix.Data.Models.Core
                 .Entity<ConfigurationActionEntity>()
                 .Property(x => x.Type)
                 .HasConversion<string>();
+
+            modelBuilder
+                .Entity<ConfigurationActionEntity>()
+                .Property(x => x.GuildId)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<ConfigurationActionEntity>()
+                .Property(x => x.CreatedById)
+                .HasConversion<long>();
 
             modelBuilder
                 .Entity<ConfigurationActionEntity>()

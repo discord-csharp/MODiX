@@ -44,8 +44,6 @@ namespace Modix.Data.Models.Promotions
             if (criteria is null)
                 return query;
 
-            var longCreatedById = (long?)criteria.CreatedById;
-
             return query
                 .FilterBy(
                     x => x.CampaignId == criteria.CampaignId.Value,
@@ -60,8 +58,8 @@ namespace Modix.Data.Models.Promotions
                     x => x.CreateAction.Created <= criteria.CreatedRange.Value.To.Value,
                     !(criteria.CreatedRange?.To is null))
                 .FilterBy(
-                    x => x.CreateAction.CreatedById == longCreatedById.Value,
-                    !(longCreatedById is null));
+                    x => x.CreateAction.CreatedById == criteria.CreatedById,
+                    !(criteria.CreatedById is null));
         }
     }
 }

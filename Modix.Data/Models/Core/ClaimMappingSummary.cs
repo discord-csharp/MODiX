@@ -56,9 +56,9 @@ namespace Modix.Data.Models.Core
             {
                 Id = entity.Id,
                 Type = entity.Type,
-                GuildId = (ulong)entity.GuildId,
-                RoleId = (ulong?)entity.RoleId,
-                UserId = (ulong?)entity.UserId,
+                GuildId = entity.GuildId,
+                RoleId = entity.RoleId,
+                UserId = entity.UserId,
                 Claim = entity.Claim,
                 CreateAction = entity.CreateAction.Project(ConfigurationActionBrief.FromEntityProjection),
                 DeleteAction = (entity.DeleteAction == null)

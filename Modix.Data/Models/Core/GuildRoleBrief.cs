@@ -29,7 +29,7 @@ namespace Modix.Data.Models.Core
         internal static readonly Expression<Func<GuildRoleEntity, GuildRoleBrief>> FromEntityProjection
             = entity => new GuildRoleBrief()
             {
-                Id = (ulong)entity.RoleId,
+                Id = entity.RoleId,
                 Name = entity.Name,
                 Position = entity.Position
             };

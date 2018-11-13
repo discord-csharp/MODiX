@@ -1,6 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using Microsoft.EntityFrameworkCore;
+
+using Modix.Data.Utilities;
+
 namespace Modix.Data.Models.Core
 {
     /// <summary>
@@ -15,18 +19,32 @@ namespace Modix.Data.Models.Core
         [Key]
         [Required]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public long ChannelId { get; set; }
+        public ulong ChannelId { get; set; }
 
         /// <summary>
         /// The snowflake ID of the guild to which this channel belongs.
         /// </summary>
         [Required]
-        public long GuildId { get; set; }
+        public ulong GuildId { get; set; }
 
         /// <summary>
         /// The last-known name of the channel.
         /// </summary>
         [Required]
         public string Name { get; set; }
+
+        [OnModelCreating]
+        internal static void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<GuildChannelEntity>()
+                .Property(x => x.ChannelId)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<GuildChannelEntity>()
+                .Property(x => x.GuildId)
+                .HasConversion<long>();
+        }
     }
 }

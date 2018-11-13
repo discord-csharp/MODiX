@@ -245,8 +245,6 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<bool> TryRescindAsync(long infractionId, ulong rescindedById)
         {
-            var longRescindedById = (long)rescindedById;
-
             var entity = await ModixContext.Infractions
                 .Where(x => x.Id == infractionId)
                 .FirstOrDefaultAsync();
@@ -259,7 +257,7 @@ namespace Modix.Data.Repositories
                 GuildId = entity.GuildId,
                 Type = ModerationActionType.InfractionRescinded,
                 Created = DateTimeOffset.Now,
-                CreatedById = longRescindedById,
+                CreatedById = rescindedById,
                 InfractionId = entity.Id
             };
             await ModixContext.SaveChangesAsync();
@@ -272,8 +270,6 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<bool> TryDeleteAsync(long infractionId, ulong deletedById)
         {
-            var longDeletedById = (long)deletedById;
-
             var entity = await ModixContext.Infractions
                 .Where(x => x.Id == infractionId)
                 .FirstOrDefaultAsync();
@@ -286,7 +282,7 @@ namespace Modix.Data.Repositories
                 GuildId = entity.GuildId,
                 Type = ModerationActionType.InfractionDeleted,
                 Created = DateTimeOffset.Now,
-                CreatedById = longDeletedById,
+                CreatedById = deletedById,
                 InfractionId = entity.Id
             };
             await ModixContext.SaveChangesAsync();

@@ -28,8 +28,8 @@
         internal GuildRoleEntity ToEntity()
             => new GuildRoleEntity()
             {
-                RoleId = (long)RoleId,
-                GuildId = (long)GuildId,
+                RoleId = RoleId,
+                GuildId = GuildId,
                 Name = Name,
                 Position = Position
             };

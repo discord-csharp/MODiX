@@ -76,10 +76,8 @@ namespace Modix.Data.Repositories
             if (updateAction == null)
                 throw new ArgumentNullException(nameof(updateAction));
 
-            var longChannelId = (long)channelId;
-
             var entity = await ModixContext.GuildChannels
-                .Where(x => x.ChannelId == longChannelId)
+                .Where(x => x.ChannelId == channelId)
                 .FirstOrDefaultAsync();
 
             if (entity == null)

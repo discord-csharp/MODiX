@@ -45,7 +45,7 @@ namespace Modix.Data.Models.Core
         internal UserEntity ToUserEntity()
             => new UserEntity()
             {
-                Id = (long)UserId,
+                Id = UserId,
                 Username = Username,
                 Discriminator = Discriminator
             };
@@ -53,8 +53,8 @@ namespace Modix.Data.Models.Core
         internal GuildUserEntity ToGuildDataEntity()
             => new GuildUserEntity()
             {
-                UserId = (long)UserId,
-                GuildId = (long)GuildId,
+                UserId = UserId,
+                GuildId = GuildId,
                 Nickname = Nickname,
                 FirstSeen = FirstSeen,
                 LastSeen = LastSeen

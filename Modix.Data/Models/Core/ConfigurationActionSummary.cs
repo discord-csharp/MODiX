@@ -55,7 +55,7 @@ namespace Modix.Data.Models.Core
             = entity => new ConfigurationActionSummary()
             {
                 Id = entity.Id,
-                GuildId = (ulong)entity.GuildId,
+                GuildId = entity.GuildId,
                 Type = entity.Type,
                 Created = entity.Created,
                 CreatedBy = entity.CreatedBy.Project(GuildUserBrief.FromEntityProjection),

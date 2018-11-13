@@ -188,17 +188,13 @@ namespace Modix.Data.Repositories
             = new RepositoryTransactionFactory();
 
         private void DoEntityDelete(DesignatedChannelMappingEntity entity, ulong deletedById)
-        {
-            var longDeletedById = (long)deletedById;
-
-            entity.DeleteAction = new ConfigurationActionEntity()
+            => entity.DeleteAction = new ConfigurationActionEntity()
             {
                 Type = ConfigurationActionType.DesignatedChannelMappingDeleted,
                 Created = DateTimeOffset.Now,
-                CreatedById = longDeletedById,
+                CreatedById = deletedById,
                 DesignatedChannelMappingId = entity.Id,
                 GuildId = entity.GuildId
             };
-        }
     }
 }

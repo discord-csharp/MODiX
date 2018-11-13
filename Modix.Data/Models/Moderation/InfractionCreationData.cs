@@ -40,17 +40,17 @@ namespace Modix.Data.Models.Moderation
         internal InfractionEntity ToEntity()
             => new InfractionEntity()
             {
-                GuildId = (long)GuildId,
+                GuildId = GuildId,
                 Type = Type,
                 Reason = Reason,
                 Duration = Duration,
-                SubjectId = (long)SubjectId,
+                SubjectId = SubjectId,
                 CreateAction = new ModerationActionEntity()
                 {
-                    GuildId = (long)GuildId,
+                    GuildId = GuildId,
                     Type = ModerationActionType.InfractionCreated,
                     Created = DateTimeOffset.Now,
-                    CreatedById = (long)CreatedById
+                    CreatedById = CreatedById
                 }
             };
     }

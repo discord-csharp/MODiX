@@ -35,14 +35,10 @@ namespace Modix.Data.Models.Moderation
     internal static class ModerationActionQueryableExtensions
     {
         public static IQueryable<ModerationActionEntity> FilterBy(this IQueryable<ModerationActionEntity> query, ModerationActionSearchCriteria criteria)
-        {
-            var longGuildId = (long?)criteria?.GuildId;
-            var longCreatedById = (long?)criteria?.CreatedById;
-
-            return query
+            => query
                 .FilterBy(
-                    x => x.GuildId == longGuildId,
-                    longGuildId != null)
+                    x => x.GuildId == criteria.GuildId,
+                    criteria.GuildId != null)
                 .FilterBy(
                     x => criteria.Types.Contains(x.Type),
                     criteria?.Types?.Any() ?? false)
@@ -53,8 +49,7 @@ namespace Modix.Data.Models.Moderation
                     x => x.Created <= criteria.CreatedRange.Value.To,
                     criteria?.CreatedRange?.To != null)
                 .FilterBy(
-                    x => x.CreatedById == longCreatedById,
-                    longCreatedById != null);
-        }
+                    x => x.CreatedById == criteria.CreatedById,
+                    criteria?.CreatedById != null);
     }
 }

@@ -1,6 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
+using Microsoft.EntityFrameworkCore;
+
+using Modix.Data.Utilities;
+
 namespace Modix.Data.Models.Core
 {
     /// <summary>
@@ -14,7 +18,7 @@ namespace Modix.Data.Models.Core
         [Key]
         [Required]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public long Id { get; set; }
+        public ulong Id { get; set; }
 
         /// <summary>
         /// The "username" value of this user, within the Discord API.
@@ -27,5 +31,14 @@ namespace Modix.Data.Models.Core
         /// </summary>
         [Required]
         public string Discriminator { get; set; }
+
+        [OnModelCreating]
+        internal static void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder
+                .Entity<UserEntity>()
+                .Property(x => x.Id)
+                .HasConversion<long>();
+        }
     }
 }

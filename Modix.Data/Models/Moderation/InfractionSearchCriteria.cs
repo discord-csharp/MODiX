@@ -62,21 +62,16 @@ namespace Modix.Data.Models.Moderation
     internal static class InfractionQueryableExtensions
     {
         public static IQueryable<InfractionEntity> FilterBy(this IQueryable<InfractionEntity> query, InfractionSearchCriteria criteria)
-        {
-            var longGuildId = (long?)criteria?.GuildId;
-            var longSubjectId = (long?)criteria?.SubjectId;
-            var longCreatedById = (long?)criteria?.CreatedById;
-
-            return query
+            => query
                 .FilterBy(
-                    x => x.GuildId == longGuildId,
-                    longGuildId != null)
+                    x => x.GuildId == criteria.GuildId,
+                    criteria?.GuildId != null)
                 .FilterBy(
                     x => criteria.Types.Contains(x.Type),
                     criteria?.Types?.Any() ?? false)
                 .FilterBy(
-                    x => x.SubjectId == longSubjectId,
-                    longSubjectId != null)
+                    x => x.SubjectId == criteria.SubjectId,
+                    criteria?.SubjectId != null)
                 .FilterBy(
                     x => x.CreateAction.Created >= criteria.CreatedRange.Value.From,
                     criteria?.CreatedRange?.From != null)
@@ -84,8 +79,8 @@ namespace Modix.Data.Models.Moderation
                     x => x.CreateAction.Created <= criteria.CreatedRange.Value.To,
                     criteria?.CreatedRange?.To != null)
                 .FilterBy(
-                    x => x.CreateAction.CreatedById == longCreatedById,
-                    longCreatedById != null)
+                    x => x.CreateAction.CreatedById == criteria.CreatedById,
+                    criteria?.CreatedById != null)
                 .FilterBy(
                     x => (x.RescindActionId != null) == criteria.IsRescinded,
                     criteria?.IsRescinded != null)
@@ -98,6 +93,5 @@ namespace Modix.Data.Models.Moderation
                 .FilterBy(
                     x => (x.CreateAction.Created + x.Duration) <= criteria.ExpiresRange.Value.To,
                     criteria?.ExpiresRange?.To != null);
-        }
     }
 }

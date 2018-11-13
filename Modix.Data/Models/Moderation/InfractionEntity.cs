@@ -24,7 +24,7 @@ namespace Modix.Data.Models.Moderation
         /// The snowflake ID, within the Discord API, of the guild to which this infraction applies.
         /// </summary>
         [Required]
-        public long GuildId { get; set; }
+        public ulong GuildId { get; set; }
 
         /// <summary>
         /// The type of <see cref="InfractionEntity"/> recorded.
@@ -48,7 +48,7 @@ namespace Modix.Data.Models.Moderation
         /// The <see cref="GuildUserEntity.UserId"/> value of <see cref="Subject"/>.
         /// </summary>
         [Required]
-        public long SubjectId { get; set; }
+        public ulong SubjectId { get; set; }
 
         /// <summary>
         /// The user upon which the <see cref="InfractionEntity"/> was applied.
@@ -93,8 +93,18 @@ namespace Modix.Data.Models.Moderation
         {
             modelBuilder
                 .Entity<InfractionEntity>()
+                .Property(x => x.GuildId)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<InfractionEntity>()
                 .Property(x => x.Type)
                 .HasConversion<string>();
+
+            modelBuilder
+                .Entity<InfractionEntity>()
+                .Property(x => x.SubjectId)
+                .HasConversion<long>();
 
             modelBuilder
                 .Entity<InfractionEntity>()

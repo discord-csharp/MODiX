@@ -51,7 +51,7 @@ namespace Modix.Data.Models.Promotions
             = entity => new PromotionActionSummary()
             {
                 Id = entity.Id,
-                GuildId = (ulong)entity.GuildId,
+                GuildId = entity.GuildId,
                 Created = entity.Created,
                 Type = entity.Type,
                 CreatedBy = entity.CreatedBy.Project(GuildUserBrief.FromEntityProjection),
