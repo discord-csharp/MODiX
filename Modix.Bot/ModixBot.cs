@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -189,8 +189,8 @@ namespace Modix
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            var message = messageParam as SocketUserMessage;
-            if (message == null) return;
+            if (!(messageParam is SocketUserMessage message))
+                return;
 
             int argPos = 0;
             if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos)))
