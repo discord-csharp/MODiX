@@ -633,10 +633,15 @@ namespace Modix.Services.Moderation
             var subjectRankRoles = rankRoles.Where(r => subject.RoleIds.Contains(r.Id));
             var moderatorRankRoles = rankRoles.Where(r => moderator.RoleIds.Contains(r.Id));
 
-            var greatestSubjectRankPosition = subjectRankRoles.Select(r => r.Position).Max();
-            var greatestModeratorRankPosition = moderatorRankRoles.Select(r => r.Position).Max();
+            var greatestSubjectRankPosition = subjectRankRoles.Any()
+                ? subjectRankRoles.Select(r => r.Position).Max()
+                : default(int?);
+            var greatestModeratorRankPosition = moderatorRankRoles.Any()
+                ? moderatorRankRoles.Select(r => r.Position).Max()
+                : default(int?);
 
-            if (greatestModeratorRankPosition <= greatestSubjectRankPosition)
+            if (greatestModeratorRankPosition is null
+                || greatestSubjectRankPosition >= greatestModeratorRankPosition)
             {
                 throw new InvalidOperationException("Cannot moderate users that have a rank greater than or equal to your own.");
             }
