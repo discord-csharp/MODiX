@@ -70,7 +70,7 @@ namespace Modix.Services.Moderation
         /// </summary>
         /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be rescinded.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
-        Task RescindInfractionAsync(long infractionId);
+        Task RescindInfractionAsync(long infractionId, bool isAutoRescind = false);
 
         /// <summary>
         /// Marks an existing infraction as deleted, based on its ID.
@@ -218,7 +218,7 @@ namespace Modix.Services.Moderation
             });
 
             foreach(var expiredInfractionId in expiredInfractionIds)
-                await RescindInfractionAsync(expiredInfractionId);
+                await RescindInfractionAsync(expiredInfractionId, isAutoRescind: true);
         }
 
         /// <inheritdoc />
@@ -255,7 +255,7 @@ namespace Modix.Services.Moderation
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(_createInfractionClaimsByType[type]);
 
-            await RequireSubjectRankLowerThanModeratorRank(subjectId);
+            await RequireSubjectRankLowerThanModeratorRank(AuthorizationService.CurrentGuildId.Value, subjectId);
 
             var guild = await DiscordClient.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
 
@@ -350,13 +350,13 @@ namespace Modix.Services.Moderation
         }
 
         /// <inheritdoc />
-        public async Task RescindInfractionAsync(long infractionId)
+        public async Task RescindInfractionAsync(long infractionId, bool isAutoRescind = false)
         {
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
 
             await DoRescindInfractionAsync(
-                await InfractionRepository.ReadSummaryAsync(infractionId));
+                await InfractionRepository.ReadSummaryAsync(infractionId), isAutoRescind);
         }
 
         /// <inheritdoc />
@@ -370,7 +370,7 @@ namespace Modix.Services.Moderation
             if (infraction == null)
                 throw new InvalidOperationException($"Infraction {infractionId} does not exist");
 
-            await RequireSubjectRankLowerThanModeratorRank(infraction.Subject.Id);
+            await RequireSubjectRankLowerThanModeratorRank(infraction.GuildId, infraction.Subject.Id);
 
             await InfractionRepository.TryDeleteAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
 
@@ -568,12 +568,13 @@ namespace Modix.Services.Moderation
             //await channel.AddPermissionOverwriteAsync(muteRole, _mutePermissions);
         }
 
-        private async Task DoRescindInfractionAsync(InfractionSummary infraction)
+        private async Task DoRescindInfractionAsync(InfractionSummary infraction, bool isAutoRescind = false)
         {
             if (infraction == null)
                 throw new InvalidOperationException("Infraction does not exist");
 
-            await RequireSubjectRankLowerThanModeratorRank(infraction.Subject.Id);
+            if (!isAutoRescind)
+                await RequireSubjectRankLowerThanModeratorRank(infraction.GuildId, infraction.Subject.Id);
 
             await InfractionRepository.TryRescindAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
 
@@ -623,12 +624,12 @@ namespace Modix.Services.Moderation
                 }))
                 .Select(r => r.Role);
 
-        private async Task RequireSubjectRankLowerThanModeratorRank(ulong subjectId)
+        private async Task RequireSubjectRankLowerThanModeratorRank(ulong guildId, ulong subjectId)
         {
             var rankRoles = await GetRankRolesAsync();
 
-            var subject = await UserService.GetGuildUserAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
-            var moderator = await UserService.GetGuildUserAsync(AuthorizationService.CurrentGuildId.Value, AuthorizationService.CurrentUserId.Value);
+            var subject = await UserService.GetGuildUserAsync(guildId, subjectId);
+            var moderator = await UserService.GetGuildUserAsync(guildId, AuthorizationService.CurrentUserId.Value);
 
             var subjectRankRoles = rankRoles.Where(r => subject.RoleIds.Contains(r.Id));
             var moderatorRankRoles = rankRoles.Where(r => moderator.RoleIds.Contains(r.Id));
