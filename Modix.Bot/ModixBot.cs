@@ -205,7 +205,10 @@ namespace Modix
             {
                 var context = new CommandContext(_client, message);
 
-                if (!(context.User is IGuildUser)){ return; }
+                if (!(context.User is IGuildUser guildUser)
+                    || guildUser.IsBot
+                    || guildUser.IsWebhook)
+                    return;
 
                 using (var scope = _scope.ServiceProvider.CreateScope())
                 {
