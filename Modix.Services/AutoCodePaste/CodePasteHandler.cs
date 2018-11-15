@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Modix.Services.AutoCodePaste
 {
-    enum ReactionState
+    internal enum ReactionState
     {
         Added,
         Removed

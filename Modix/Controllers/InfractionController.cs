@@ -51,34 +51,34 @@ namespace Modix.Controllers
         }
 
         [HttpPut("import")]
-        public async Task<IActionResult> Import()
+        public Task<IActionResult> Import()
         {
             throw new NotImplementedException();
 
-            if (Request.Form.Files.Count == 0 || Request.Form.Files.First().ContentType != "application/json")
-            {
-                return BadRequest("Must submit a JSON file");
-            }
+            //if (Request.Form.Files.Count == 0 || Request.Form.Files.First().ContentType != "application/json")
+            //{
+            //    return BadRequest("Must submit a JSON file");
+            //}
 
-            int importCount = 0;
+            //int importCount = 0;
 
-            try
-            {
-                using (var httpStream = Request.Form.Files.First().OpenReadStream())
-                using (var streamReader = new StreamReader(httpStream))
-                {
-                    var content = await streamReader.ReadToEndAsync();
-                    var loaded = JsonConvert.DeserializeObject<IEnumerable<RowboatInfraction>>(content);
+            //try
+            //{
+            //    using (var httpStream = Request.Form.Files.First().OpenReadStream())
+            //    using (var streamReader = new StreamReader(httpStream))
+            //    {
+            //        var content = await streamReader.ReadToEndAsync();
+            //        var loaded = JsonConvert.DeserializeObject<IEnumerable<RowboatInfraction>>(content);
 
-                    importCount = await ImporterService.ImportInfractionsAsync(loaded);
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            //        importCount = await ImporterService.ImportInfractionsAsync(loaded);
+            //    }
+            //}
+            //catch (Exception ex)
+            //{
+            //    return BadRequest(ex.Message);
+            //}
 
-            return Ok(importCount);
+            //return Ok(importCount);
         }
     }
 }
