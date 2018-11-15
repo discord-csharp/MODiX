@@ -70,7 +70,7 @@ namespace Modix.Modules
 
             if (await UserService.GuildUserExistsAsync(Context.Guild.Id, userId))
             {
-                IGuildUser member = await UserService.GetGuildUserAsync(Context.Guild.Id, userId);
+                var member = await UserService.GetGuildUserAsync(Context.Guild.Id, userId);
                 AddMemberInformationToEmbed(member, builder, embedBuilder);
             }
             else

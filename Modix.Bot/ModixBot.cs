@@ -192,7 +192,7 @@ namespace Modix
             if (!(messageParam is SocketUserMessage message))
                 return;
 
-            int argPos = 0;
+            var argPos = 0;
             if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos)))
                 return;
 
@@ -217,7 +217,7 @@ namespace Modix
 
                     if (!result.IsSuccess)
                     {
-                        string error = $"{result.Error}: {result.ErrorReason}";
+                        var error = $"{result.Error}: {result.ErrorReason}";
 
                         if (!string.Equals(result.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
                         {

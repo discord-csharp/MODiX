@@ -82,7 +82,7 @@ namespace Modix
                 DiscordClientSecret = Environment.GetEnvironmentVariable("DiscordClientSecret")
             };
 
-            if (int.TryParse(Environment.GetEnvironmentVariable("DiscordMessageCacheSize"), out int cacheSize))
+            if (int.TryParse(Environment.GetEnvironmentVariable("DiscordMessageCacheSize"), out var cacheSize))
             {
                 config.MessageCacheSize = cacheSize;
             }

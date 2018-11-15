@@ -48,9 +48,9 @@ namespace Modix.Modules
         [Command("versions")]
         public async Task ListVersions(string manualName)
         {
-            EmbedBuilder builder = new EmbedBuilder().WithAuthor("CURRENT SUPPORTED VERSIONS");
+            var builder = new EmbedBuilder().WithAuthor("CURRENT SUPPORTED VERSIONS");
             var sb = new StringBuilder();
-            foreach (string version in await _docsService.GetAllVersionsAsync(manualName))
+            foreach (var version in await _docsService.GetAllVersionsAsync(manualName))
             {
                 sb.AppendLine(version);
             }

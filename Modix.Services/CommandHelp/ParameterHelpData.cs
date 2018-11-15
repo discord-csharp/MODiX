@@ -13,7 +13,7 @@ namespace Modix.Services.CommandHelp
 
         public static ParameterHelpData FromParameterInfo(ParameterInfo parameter)
         {
-            ParameterHelpData ret = new ParameterHelpData
+            var ret = new ParameterHelpData
             {
                 Name = parameter.Name,
                 Summary = parameter.Summary,

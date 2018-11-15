@@ -112,8 +112,8 @@ namespace Modix.Services.PopularityContest
 
             //Take the last message from each user, ordered by reaction count, and take up to the top 3 entries
             var mostReactedMessages = lastMessages
-                .Where(Message => Message.Reactions.ContainsKey(countedEmote))
-                .Select(Message => (Message, Message.Reactions[countedEmote].ReactionCount))
+                .Where(message => message.Reactions.ContainsKey(countedEmote))
+                .Select(message => (message, message.Reactions[countedEmote].ReactionCount))
                 .OrderByDescending(d => d.ReactionCount)
                 .Take(3);
 
@@ -131,9 +131,9 @@ namespace Modix.Services.PopularityContest
                 return;
             }
 
-            string paste = await UploadLog(logMessage, countedEmote, lastMessages);
+            var paste = await UploadLog(logMessage, countedEmote, lastMessages);
             
-            bool isMultiple = mostReactedMessages.Count() > 1;
+            var isMultiple = mostReactedMessages.Count() > 1;
 
             var embed = new EmbedBuilder()
                 .WithTitle($"Counting complete!")
@@ -142,11 +142,11 @@ namespace Modix.Services.PopularityContest
                 .WithColor(new Color(0, 200, 0))
                 .WithFooter($"See all entries here: {paste}");
 
-            int position = 1;
+            var position = 1;
             foreach ((var message, var reactionCount) in mostReactedMessages)
             {
                 var author = message.Author;
-                string emoji = "";
+                var emoji = "";
 
                 switch (position)
                 {
@@ -171,7 +171,7 @@ namespace Modix.Services.PopularityContest
             }
 
             var mostReactionsOverall = lastMessages
-                .Select(Message => new { Message, OverallCount = Message.Reactions.Values.Sum(r => r.ReactionCount) })
+                .Select(message => new { Message = message, OverallCount = message.Reactions.Values.Sum(r => r.ReactionCount) })
                 .OrderByDescending(d => d.OverallCount)
                 .First();
 
@@ -184,15 +184,15 @@ namespace Modix.Services.PopularityContest
 
         private async Task<string> UploadLog(IMessage logMessage, IEmote countedEmote, IEnumerable<IUserMessage> messages)
         {
-            messages = messages.Where(Message => Message.Reactions.ContainsKey(countedEmote));
-            string allEntries = string.Join('\n', messages.Select(d => $"{d.Reactions[countedEmote].ReactionCount} reactions: {d.GetMessageLink()}"));
+            messages = messages.Where(message => message.Reactions.ContainsKey(countedEmote));
+            var allEntries = string.Join('\n', messages.Select(d => $"{d.Reactions[countedEmote].ReactionCount} reactions: {d.GetMessageLink()}"));
 
             return await _pasteService.UploadCode($"All entries for contest held on {DateTimeOffset.UtcNow}\nResults here: {logMessage.GetMessageLink()}\n\n{allEntries}");
         }
 
         private Embed GetProgressEmbed(int progress, IMessage lastMessage, IGuildChannel collectionChannel, bool done = false)
         {
-            string messageLink = "";
+            var messageLink = "";
             if (lastMessage != null)
             {
                 messageLink = lastMessage.GetMessageLink();

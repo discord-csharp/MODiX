@@ -12,7 +12,7 @@ namespace Modix.Services.CommandHelp
 
         public static IEnumerable<CommandHelpData> FromCommandInfo(CommandInfo command)
         {
-            List<CommandHelpData> ret = new List<CommandHelpData>();
+            var ret = new List<CommandHelpData>();
 
             foreach (var alias in command.Aliases)
             {

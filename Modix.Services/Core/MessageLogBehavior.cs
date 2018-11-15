@@ -54,7 +54,7 @@ namespace Modix.Services.Core
         /// <returns>True if the channel is designated as Unmoderated, false if not</returns>
         private async Task<bool> ShouldSkip(IGuild guild, IMessageChannel channel)
         {
-            bool result = false;
+            var result = false;
 
             await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
             {
@@ -84,7 +84,7 @@ namespace Modix.Services.Core
             //Skip things like embed updates
             if (original.Content == updated.Content) { return; }
 
-            string descriptionText = $"**[Original]({original.GetMessageLink()})**\n```{FormatMessage(original.Content)}```";
+            var descriptionText = $"**[Original]({original.GetMessageLink()})**\n```{FormatMessage(original.Content)}```";
 
             if (descriptionText.Length <= 2048)
             {
@@ -117,7 +117,7 @@ namespace Modix.Services.Core
             if (await ShouldSkip(guild, channel)) { return; }
 
             var embed = new EmbedBuilder();
-            string descriptionContent = $"**Content**\n```Unknown, message not cached```";
+            var descriptionContent = $"**Content**\n```Unknown, message not cached```";
 
             if (message.HasValue)
             {

@@ -43,9 +43,9 @@ namespace Modix.Services.AutoCodePaste
                 return;
             }
 
-            _repasteRatings.TryGetValue(message.Id, out int currentRating);
+            _repasteRatings.TryGetValue(message.Id, out var currentRating);
 
-            int modifier = state == ReactionState.Added ? 1 : -1;
+            var modifier = state == ReactionState.Added ? 1 : -1;
 
             if (roles.Count > 1)
             {

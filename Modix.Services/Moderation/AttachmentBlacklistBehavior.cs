@@ -92,7 +92,7 @@ namespace Modix.Services.Moderation
         {
             try
             {
-                string attachments = string.Join(", ", message.Attachments.Select(x => x.Filename));
+                var attachments = string.Join(", ", message.Attachments.Select(x => x.Filename));
 
                 await SelfExecuteRequest<IModerationService>(async moderationService =>
                 {

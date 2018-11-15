@@ -101,8 +101,8 @@ namespace Modix.Modules
 
         private async Task<EmbedBuilder> BuildEmbed(SocketGuildUser guildUser, Result parsedResult)
         {
-            string returnValue = parsedResult.ReturnValue?.ToString() ?? " ";
-            string consoleOut = parsedResult.ConsoleOut;
+            var returnValue = parsedResult.ReturnValue?.ToString() ?? " ";
+            var consoleOut = parsedResult.ConsoleOut;
 
             var embed = new EmbedBuilder()
                .WithTitle("Eval Result")

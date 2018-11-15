@@ -37,7 +37,7 @@ namespace Modix.Services.CommandHelp
 
             //If the message that was reacted to has an associated error, reply in the same channel
             //with the error message then add that to the replies collection
-            if (_associatedErrors.TryGetValue(cachedMessage.Id, out string value))
+            if (_associatedErrors.TryGetValue(cachedMessage.Id, out var value))
             {
                 var msg = await channel.SendMessageAsync("", false, new EmbedBuilder()
                 {
@@ -64,7 +64,7 @@ namespace Modix.Services.CommandHelp
             //If there's an error reply when the reaction is removed, delete that reply,
             //remove the cached error, remove it from the cached replies, and remove
             //all reactions from the original messages
-            if (_errorReplies.TryGetValue(cachedMessage.Id, out ulong botReplyId))
+            if (_errorReplies.TryGetValue(cachedMessage.Id, out var botReplyId))
             {
                 var msg = await channel.GetMessageAsync(botReplyId);
                 await msg.DeleteAsync();

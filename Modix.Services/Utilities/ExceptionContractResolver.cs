@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -8,7 +8,7 @@ namespace Modix.Services.Utilities
     {
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
-            JsonProperty property = base.CreateProperty(member, memberSerialization);
+            var property = base.CreateProperty(member, memberSerialization);
 
             //Skip serializing complex properties
             if ((property.DeclaringType == typeof(MethodBase) && property.PropertyName == "TargetSite") 

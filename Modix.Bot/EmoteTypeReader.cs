@@ -11,7 +11,7 @@ namespace Modix
     {
         public override Task<TypeReaderResult> Read(ICommandContext context, string input, IServiceProvider services)
         {
-            if (Emote.TryParse(input, out Emote target))
+            if (Emote.TryParse(input, out var target))
             {
                 return Task.FromResult(TypeReaderResult.FromSuccess(target));
             }
