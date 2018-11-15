@@ -72,7 +72,7 @@ namespace Modix.Data.Models.Core
                     x => criteria.RoleIds.Contains(x.RoleId.Value),
                     (criteria?.RoleIds?.Any() ?? false) && (criteria?.UserId == null))
                 .FilterBy(
-                    x => (x.UserId == criteria.UserId),
+                    x => x.UserId == criteria.UserId,
                     ((criteria?.RoleIds == null) || !criteria.RoleIds.Any()) && (criteria?.UserId != null))
                 .FilterBy(
                     x => criteria.Claims.Contains(x.Claim),

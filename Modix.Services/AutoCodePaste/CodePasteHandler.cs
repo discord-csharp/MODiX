@@ -45,7 +45,7 @@ namespace Modix.Services.AutoCodePaste
 
             _repasteRatings.TryGetValue(message.Id, out int currentRating);
 
-            int modifier = (state == ReactionState.Added ? 1 : -1);
+            int modifier = state == ReactionState.Added ? 1 : -1;
 
             if (roles.Count > 1)
             {

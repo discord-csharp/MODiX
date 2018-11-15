@@ -228,7 +228,7 @@ namespace Modix.Services.Core
                 Log.Warning("Warning: Tried to send to channels assigned to designation {designation}, but none were assigned.", new { designation });
             }
 
-            return (await Task.WhenAll(channels.Select(channel => channel.SendMessageAsync(text, false, embed))));
+            return await Task.WhenAll(channels.Select(channel => channel.SendMessageAsync(text, false, embed)));
         }
 
         /// <inheritdoc />

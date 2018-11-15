@@ -38,11 +38,11 @@ namespace Modix.Services.Core
         {
             using (var transaction = await GuildRoleRepository.BeginCreateTransactionAsync())
             {
-                if (!(await GuildRoleRepository.TryUpdateAsync(role.Id, data =>
+                if (!await GuildRoleRepository.TryUpdateAsync(role.Id, data =>
                 {
                     data.Name = role.Name;
                     data.Position = role.Position;
-                })))
+                }))
                 {
                     await GuildRoleRepository.CreateAsync(new GuildRoleCreationData()
                     {

@@ -77,8 +77,8 @@ namespace Modix.Data.Repositories
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
-            if(!(await ModixContext.Users.AsNoTracking()
-                .AnyAsync(x => x.Id == data.UserId)))
+            if(!await ModixContext.Users.AsNoTracking()
+                .AnyAsync(x => x.Id == data.UserId))
             {
                 var userEntity = data.ToUserEntity();
 

@@ -214,7 +214,7 @@ namespace Modix.Services.Promotions
 
                 var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
 
-                if (!(await CheckIfUserIsRankOrHigher(rankRoles, AuthorizationService.CurrentUserId.Value, campaign.TargetRole.Id)))
+                if (!await CheckIfUserIsRankOrHigher(rankRoles, AuthorizationService.CurrentUserId.Value, campaign.TargetRole.Id))
                     throw new InvalidOperationException($"Commenting on a promotion campaign requires a rank at least as high as the proposed target rank");
 
                 await PromotionCommentRepository.CreateAsync(new PromotionCommentCreationData()
@@ -291,7 +291,7 @@ namespace Modix.Services.Promotions
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsCloseCampaign);
 
-            if (!(await PromotionCampaignRepository.TryCloseAsync(campaignId, AuthorizationService.CurrentUserId.Value, PromotionCampaignOutcome.Rejected)))
+            if (!await PromotionCampaignRepository.TryCloseAsync(campaignId, AuthorizationService.CurrentUserId.Value, PromotionCampaignOutcome.Rejected))
                 throw new InvalidOperationException($"Campaign {campaignId} doesn't exist or is already closed");
         }
 
@@ -406,7 +406,7 @@ namespace Modix.Services.Promotions
             }))
                 throw new InvalidOperationException($"An active campaign already exists for user {subjectId} to be promoted to {targetRankRoleId}");
 
-            if (!(await CheckIfUserIsRankOrHigher(rankRoles, AuthorizationService.CurrentUserId.Value, targetRankRoleId)))
+            if (!await CheckIfUserIsRankOrHigher(rankRoles, AuthorizationService.CurrentUserId.Value, targetRankRoleId))
                 throw new InvalidOperationException($"Creating a promotion campaign requires a rank at least as high as the proposed target rank");
         }
 

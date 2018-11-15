@@ -129,7 +129,7 @@ namespace Modix.Services.Core
         {
             using (var transaction = await GuildUserRepository.BeginCreateTransactionAsync())
             {
-                if(!(await GuildUserRepository.TryUpdateAsync(user.Id, user.GuildId, data =>
+                if(!await GuildUserRepository.TryUpdateAsync(user.Id, user.GuildId, data =>
                 {
                     // Only update properties that we were given. Updates can be triggered from several different sources, not all of which have all the user's info.
                     if (user.Username != null)
@@ -139,7 +139,7 @@ namespace Modix.Services.Core
                     if ((user.Username != null) && (user.DiscriminatorValue != 0))
                         data.Nickname = user.Nickname;
                     data.LastSeen = DateTimeOffset.Now;
-                })))
+                }))
                 {
                     await GuildUserRepository.CreateAsync(new GuildUserCreationData()
                     {
