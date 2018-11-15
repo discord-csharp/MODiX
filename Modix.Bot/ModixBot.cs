@@ -192,7 +192,13 @@ namespace Modix
             if (!(messageParam is SocketUserMessage message))
                 return;
 
+            if (!(message.Author is IGuildUser guildUser)
+                || guildUser.IsBot
+                || guildUser.IsWebhook)
+                return;
+
             var argPos = 0;
+
             if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos)))
                 return;
 
@@ -204,8 +210,6 @@ namespace Modix
             Task.Run(async () =>
             {
                 var context = new CommandContext(_client, message);
-
-                if (!(context.User is IGuildUser)){ return; }
 
                 using (var scope = _scope.ServiceProvider.CreateScope())
                 {
