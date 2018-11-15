@@ -32,7 +32,7 @@ namespace Modix.Controllers
         [HttpPatch]
         public async Task<IActionResult> ModifyRole([FromBody]RoleClaimModifyData modifyData)
         {
-            await ModixAuth.ModifyClaimMapping(modifyData.RoleId, modifyData.Claim, modifyData.MappingType);
+            await ModixAuth.ModifyClaimMappingAsync(modifyData.RoleId, modifyData.Claim, modifyData.MappingType);
             return Ok();
         }
 

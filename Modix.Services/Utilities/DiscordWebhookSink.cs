@@ -48,7 +48,7 @@ namespace Modix.Services.Utilities
                 var eventAsJson = JsonConvert.SerializeObject(logEvent, _jsonSerializerSettings);
 
                 var pasteHandler = new CodePasteService();
-                var url = pasteHandler.UploadCode(eventAsJson, "json").GetAwaiter().GetResult();
+                var url = pasteHandler.UploadCodeAsync(eventAsJson, "json").GetAwaiter().GetResult();
 
                 message.AddField(new EmbedFieldBuilder()
                     .WithIsInline(false)

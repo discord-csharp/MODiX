@@ -15,7 +15,7 @@ namespace Modix.Services.DocsMaster
             _client = client;
         }
 
-        public async Task<ManualEntryModel> GetManualEntryFromLatest(string manualName, string entryName)
+        public async Task<ManualEntryModel> GetManualEntryFromLatestAsync(string manualName, string entryName)
         {
             var formattableString = $"http://docsmaster.net/ManualEntry/{manualName}/{entryName}";
             var result = await _client.GetAsync(formattableString);
@@ -23,7 +23,7 @@ namespace Modix.Services.DocsMaster
             return JsonConvert.DeserializeObject<ManualEntryModel>(str);
         }
 
-        public async Task<ManualEntryModel> GetManualEntryFromVersion(string manualName, string entryName, string version)
+        public async Task<ManualEntryModel> GetManualEntryFromVersionAsync(string manualName, string entryName, string version)
         {
             var result = await _client.GetAsync($"http://docsmaster.net/ManualEntry/{manualName}/{entryName}/{version}");
             return JsonConvert.DeserializeObject<ManualEntryModel>(await result.Content.ReadAsStringAsync());

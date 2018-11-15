@@ -79,7 +79,7 @@ namespace Modix.Services.AutoCodePaste
         {
             try
             {
-                var url = await _service.UploadCode(arg);
+                var url = await _service.UploadCodeAsync(arg);
                 var embed = _service.BuildEmbed(arg.Author, arg.Content, url);
 
                 await arg.Channel.SendMessageAsync(arg.Author.Mention, false, embed);

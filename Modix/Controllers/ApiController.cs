@@ -24,7 +24,7 @@ namespace Modix.Controllers
 
             foreach (var guild in DiscordSocketClient.Guilds)
             {
-                guildInfo.Add(guild.Name, await _guildInfoService.GetGuildMemberDistribution(guild));
+                guildInfo.Add(guild.Name, await _guildInfoService.GetGuildMemberDistributionAsync(guild));
             }
 
             return Ok(guildInfo);

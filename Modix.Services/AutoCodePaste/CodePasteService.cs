@@ -30,7 +30,7 @@ namespace Modix.Services.AutoCodePaste
         /// </summary>
         /// <param name="code">The code to post</param>
         /// <returns>The URL to the newly created post</returns>
-        public async Task<string> UploadCode(string code, string language = null)
+        public async Task<string> UploadCodeAsync(string code, string language = null)
         {
             var usingFallback = false;
             var content = FormatUtilities.BuildContent(code);
@@ -65,14 +65,14 @@ namespace Modix.Services.AutoCodePaste
         /// <param name="msg">The Discord message to upload</param>
         /// <param name="code">The string to upload instead of message content</param>
         /// <returns>The URL to the newly created post</returns>
-        public async Task<string> UploadCode(IMessage msg, string code = null)
+        public async Task<string> UploadCodeAsync(IMessage msg, string code = null)
         {
             var formatted = string.Format(Header,
                 $"{msg.Author.Username}#{msg.Author.DiscriminatorValue}", msg.Channel.Name,
                 DateTimeOffset.UtcNow.ToString("dddd, MMMM d yyyy @ H:mm:ss"), msg.Id, 
                 FormatUtilities.FixIndentation(code ?? msg.Content));
 
-            return await UploadCode(formatted);
+            return await UploadCodeAsync(formatted);
         }
 
         public EmbedBuilder BuildEmbed(IUser user, string content, string url)

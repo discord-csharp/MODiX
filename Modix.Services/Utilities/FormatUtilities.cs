@@ -82,7 +82,7 @@ namespace Modix.Services.Utilities
             {
                 try
                 {
-                    var resultLink = await service.UploadCode(content, contentType);
+                    var resultLink = await service.UploadCodeAsync(content, contentType);
                     embed.AddField(a => a.WithName("More...").WithValue($"[View on Hastebin]({resultLink})"));
                 }
                 catch (WebException we)

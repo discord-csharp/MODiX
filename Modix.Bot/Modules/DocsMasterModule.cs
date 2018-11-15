@@ -23,11 +23,11 @@ namespace Modix.Modules
             ManualEntryModel resultModel;
             if (string.IsNullOrWhiteSpace(version))
             {
-                resultModel = await _docsService.GetManualEntryFromLatest(manualName, entryName);
+                resultModel = await _docsService.GetManualEntryFromLatestAsync(manualName, entryName);
             }
             else
             {
-                resultModel = await _docsService.GetManualEntryFromVersion(manualName, entryName, version);
+                resultModel = await _docsService.GetManualEntryFromVersionAsync(manualName, entryName, version);
             }
 
             if (string.IsNullOrWhiteSpace(resultModel.EntryName))

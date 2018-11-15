@@ -23,7 +23,7 @@ namespace Modix.Services.PopularityContest
         /// <param name="logChannel">The channel to log the results of the count</param>
         /// <param name="roleFilter">An optional set of roles, that a message's author must have one of to be counted</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has complete.</returns>
-        Task CollectData(IEmote countedEmote, ISocketMessageChannel collectionChannel, ISocketMessageChannel logChannel, IEnumerable<IRole> roleFilter);
+        Task CollectDataAsync(IEmote countedEmote, ISocketMessageChannel collectionChannel, ISocketMessageChannel logChannel, IEnumerable<IRole> roleFilter);
     }
 
     public class PopularityContestService : IPopularityContestService
@@ -39,7 +39,7 @@ namespace Modix.Services.PopularityContest
             _authorizationService = authorizationService;
         }
 
-        private async Task<(IEnumerable<IUserMessage> messages, IUserMessage logMessage)> GetMessagesInChannel(ISocketMessageChannel collectionChannel, ISocketMessageChannel logChannel)
+        private async Task<(IEnumerable<IUserMessage> messages, IUserMessage logMessage)> GetMessagesInChannelAsync(ISocketMessageChannel collectionChannel, ISocketMessageChannel logChannel)
         {
             if (!(collectionChannel is IGuildChannel guildChannel))
             {
@@ -86,11 +86,11 @@ namespace Modix.Services.PopularityContest
         }
 
         /// <inheritdoc />
-        public async Task CollectData(IEmote countedEmote, ISocketMessageChannel collectionChannel, ISocketMessageChannel logChannel, IEnumerable<IRole> roleFilter)
+        public async Task CollectDataAsync(IEmote countedEmote, ISocketMessageChannel collectionChannel, ISocketMessageChannel logChannel, IEnumerable<IRole> roleFilter)
         {
             _authorizationService.RequireClaims(AuthorizationClaim.PopularityContestCount);
 
-            (var messages, var logMessage) = await GetMessagesInChannel(collectionChannel, logChannel);
+            (var messages, var logMessage) = await GetMessagesInChannelAsync(collectionChannel, logChannel);
             var roleIds = roleFilter.Select(d => d.Id).ToArray();
 
             //Get the last message from each user that has more than 0 reactions, at least one reaction of the kind
@@ -131,7 +131,7 @@ namespace Modix.Services.PopularityContest
                 return;
             }
 
-            var paste = await UploadLog(logMessage, countedEmote, lastMessages);
+            var paste = await UploadLogAsync(logMessage, countedEmote, lastMessages);
             
             var isMultiple = mostReactedMessages.Count() > 1;
 
@@ -182,12 +182,12 @@ namespace Modix.Services.PopularityContest
             await logMessage.ModifyAsync(prop => prop.Embed = embed.Build());
         }
 
-        private async Task<string> UploadLog(IMessage logMessage, IEmote countedEmote, IEnumerable<IUserMessage> messages)
+        private async Task<string> UploadLogAsync(IMessage logMessage, IEmote countedEmote, IEnumerable<IUserMessage> messages)
         {
             messages = messages.Where(message => message.Reactions.ContainsKey(countedEmote));
             var allEntries = string.Join('\n', messages.Select(d => $"{d.Reactions[countedEmote].ReactionCount} reactions: {d.GetMessageLink()}"));
 
-            return await _pasteService.UploadCode($"All entries for contest held on {DateTimeOffset.UtcNow}\nResults here: {logMessage.GetMessageLink()}\n\n{allEntries}");
+            return await _pasteService.UploadCodeAsync($"All entries for contest held on {DateTimeOffset.UtcNow}\nResults here: {logMessage.GetMessageLink()}\n\n{allEntries}");
         }
 
         private Embed GetProgressEmbed(int progress, IMessage lastMessage, IGuildChannel collectionChannel, bool done = false)

@@ -37,7 +37,7 @@ namespace Modix.Services.GuildInfo
         /// </summary>
         /// <param name="guild">The guild to retrieve roles/counts from</param>
         /// <returns>A list of GuildInfoResult(s), each representing a role in the guild</returns>
-        public async Task<List<GuildInfoResult>> GetGuildMemberDistribution(IGuild guild)
+        public async Task<List<GuildInfoResult>> GetGuildMemberDistributionAsync(IGuild guild)
         {
             var key = GetKeyForGuild(guild);
 

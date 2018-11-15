@@ -28,7 +28,7 @@ namespace Modix.Modules
             [Summary("The channel to count")] ISocketMessageChannel collectionChannel,
             [Summary("A list of roles that a message author must have at least one of, space separated")] params IRole[] roles)
         {
-            await _contestService.CollectData(emoteToCount, collectionChannel, Context.Channel as ISocketMessageChannel, roles);
+            await _contestService.CollectDataAsync(emoteToCount, collectionChannel, Context.Channel as ISocketMessageChannel, roles);
         }
     }
 }

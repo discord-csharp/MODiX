@@ -22,7 +22,7 @@ namespace Modix.Modules
             string error = null;
             try
             {
-                url = await _service.UploadCode(Context.Message, code);
+                url = await _service.UploadCodeAsync(Context.Message, code);
             }
             catch (WebException ex)
             {
