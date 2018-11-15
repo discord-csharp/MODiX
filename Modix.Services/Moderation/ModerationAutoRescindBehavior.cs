@@ -37,8 +37,12 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         public Task OnInfractionCreatedAsync(long infractionId, InfractionCreationData data)
         {
-            if(data.Duration != null)
-                SetNextUpdateTimerTrigger(data.Duration.Value);
+            if (data.Duration is TimeSpan dataDuration
+                && (!UpdateTimer.Enabled
+                    || (DateTimeOffset.Now + dataDuration) < _nextTick))
+            {
+                SetNextUpdateTimerTrigger(dataDuration);
+            }
 
             return Task.CompletedTask;
         }
@@ -89,17 +93,22 @@ namespace Modix.Services.Moderation
                 var nextExpiration = await moderationService.GetNextInfractionExpiration();
 
                 if (nextExpiration != null)
-                    SetNextUpdateTimerTrigger(nextExpiration.Value - DateTimeOffset.Now);                
+                    SetNextUpdateTimerTrigger(nextExpiration.Value - DateTimeOffset.Now);
             });
 #pragma warning restore CS4014
         }
 
         private void SetNextUpdateTimerTrigger(TimeSpan interval)
         {
-            UpdateTimer.Interval =
+            var newInterval =
                 (interval.TotalMilliseconds < MinTimerInterval) ? MinTimerInterval :
                 (interval.TotalMilliseconds > MaxTimerInterval) ? MaxTimerInterval :
                 interval.TotalMilliseconds;
+
+            _nextTick = DateTimeOffset.Now.AddMilliseconds(newInterval);
+
+            UpdateTimer.Interval = newInterval;
+
             UpdateTimer.Start();
         }
 
@@ -108,5 +117,7 @@ namespace Modix.Services.Moderation
 
         private const double MaxTimerInterval
             = 3600000; // 1 hour
+
+        private DateTimeOffset _nextTick;
     }
 }
