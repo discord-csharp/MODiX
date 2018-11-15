@@ -9,7 +9,7 @@ indent_style = space
 trim_trailing_whitespace = true
 
 # Code files
-[*.{cs, vb}]
+[*.{cs,vb}]
 indent_size = 4
 insert_final_newline = true
 charset = utf-8-bom
@@ -64,15 +64,26 @@ dotnet_style_prefer_conditional_expression_over_return = true:silent
 dotnet_style_coalesce_expression = true:suggestion
 dotnet_style_null_propagation = true:suggestion
 
-# Interfaces are PascalCase and prefixed with I
-dotnet_naming_rule.interfaces_should_be_pascal_case.severity = suggestion
-dotnet_naming_rule.interfaces_should_be_pascal_case.symbols = interfaces
-dotnet_naming_rule.interfaces_should_be_pascal_case.style = interfaces_style
+# Interfaces are prefixed with I
+dotnet_naming_rule.interfaces_should_be_prefixed.severity = warning
+dotnet_naming_rule.interfaces_should_be_prefixed.symbols = interfaces
+dotnet_naming_rule.interfaces_should_be_prefixed.style = interface_style
 
 dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_symbols.interfaces.applicable_accessibilities = *
 
-dotnet_naming_style.interfaces_style.capitalization = pascal_case
-dotnet_naming_style.interfaces_style.required_prefix = I
+dotnet_naming_style.interface_style.required_prefix = I
+
+# Async methods are suffixed with Async
+dotnet_naming_rule.async_methods_should_be_suffixed.severity = warning
+dotnet_naming_rule.async_methods_should_be_suffixed.symbols = async_methods
+dotnet_naming_rule.async_methods_should_be_suffixed.style = async_method_style
+
+dotnet_naming_symbols.async_methods.applicable_kinds = method
+dotnet_naming_symbols.async_methods.applicable_accessibilities = *
+dotnet_naming_symbols.async_methods.required_modifiers = async
+
+dotnet_naming_style.async_method_style.required_suffix = Async
 
 # Non-private static fields are PascalCase
 dotnet_naming_rule.non_private_static_fields_should_be_pascal_case.severity = suggestion
@@ -96,14 +107,14 @@ dotnet_naming_symbols.constants.required_modifiers = const
 dotnet_naming_style.constant_style.capitalization = pascal_case
 
 # Fields are camelCase and start with _
-dotnet_naming_rule.instance_fields_should_be_camel_case.severity = suggestion
-dotnet_naming_rule.instance_fields_should_be_camel_case.symbols = fields
-dotnet_naming_rule.instance_fields_should_be_camel_case.style = field_style
+dotnet_naming_rule.fields_should_be_camel_case.severity = suggestion
+dotnet_naming_rule.fields_should_be_camel_case.symbols = fields
+dotnet_naming_rule.fields_should_be_camel_case.style = field_style
 
-dotnet_naming_symbols.instance_fields.applicable_kinds = field
+dotnet_naming_symbols.fields.applicable_kinds = field
 
-dotnet_naming_style.instance_field_style.capitalization = camel_case
-dotnet_naming_style.instance_field_style.required_prefix = _
+dotnet_naming_style.field_style.capitalization = camel_case
+dotnet_naming_style.field_style.required_prefix = _
 
 # Locals and parameters are camelCase
 dotnet_naming_rule.locals_should_be_camel_case.severity = suggestion
@@ -113,15 +124,6 @@ dotnet_naming_rule.locals_should_be_camel_case.style = camel_case_style
 dotnet_naming_symbols.locals_and_parameters.applicable_kinds = parameter, local
 
 dotnet_naming_style.camel_case_style.capitalization = camel_case
-
-# Local functions are PascalCase
-dotnet_naming_rule.local_functions_should_be_pascal_case.severity = suggestion
-dotnet_naming_rule.local_functions_should_be_pascal_case.symbols = local_functions
-dotnet_naming_rule.local_functions_should_be_pascal_case.style = local_function_style
-
-dotnet_naming_symbols.local_functions.applicable_kinds = local_function
-
-dotnet_naming_style.local_function_style.capitalization = pascal_case
 
 # By default, name items with PascalCase
 dotnet_naming_rule.members_should_be_pascal_case.severity = suggestion

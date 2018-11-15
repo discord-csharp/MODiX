@@ -350,14 +350,14 @@ namespace Modix.Services.Core
             RequireAuthenticatedUser();
             RequireClaims(AuthorizationClaim.AuthorizationConfigure);
 
-            var mappingIds = (await ClaimMappingRepository.SearchIdsAsync(new ClaimMappingSearchCriteria()
+            var mappingIds = await ClaimMappingRepository.SearchIdsAsync(new ClaimMappingSearchCriteria()
             {
                 Types = new[] { type },
                 GuildId = role.Guild.Id,
                 RoleIds = new[] { role.Id },
                 Claims = new[] { claim },
                 IsDeleted = false,
-            }));
+            });
 
             if (!mappingIds.Any())
                 throw new InvalidOperationException($"A claim mapping of type {type} to claim {claim} for role {role.Name} does not exist");

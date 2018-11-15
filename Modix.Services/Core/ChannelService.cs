@@ -38,10 +38,10 @@ namespace Modix.Services.Core
         {
             using (var transaction = await GuildChannelRepository.BeginCreateTransactionAsync())
             {
-                if (!(await GuildChannelRepository.TryUpdateAsync(channel.Id, data =>
+                if (!await GuildChannelRepository.TryUpdateAsync(channel.Id, data =>
                 {
                     data.Name = channel.Name;
-                })))
+                }))
                 {
                     await GuildChannelRepository.CreateAsync(new GuildChannelCreationData()
                     {
