@@ -69,6 +69,10 @@ namespace Modix.Services.Moderation
         /// Marks an existing infraction as rescinded, based on its ID.
         /// </summary>
         /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be rescinded.</param>
+        /// <param name="isAutoRescind">
+        /// Indicates whether the rescind request is an AutoRescind from MODiX.
+        /// This determines whether checks such as rank validation will occur.
+        /// </param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
         Task RescindInfractionAsync(long infractionId, bool isAutoRescind = false);
 
