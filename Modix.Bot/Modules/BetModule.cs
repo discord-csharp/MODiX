@@ -187,7 +187,7 @@ namespace Modix.Modules
             {
                 // Show the results!
                 var sb = new StringBuilder();
-                int ctr = 1;
+                var ctr = 1;
                 IUser winner = null;
                 foreach (var roll in _rolls.OrderByDescending(r => r.Value))
                 {

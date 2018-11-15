@@ -142,8 +142,8 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<bool> TryDeleteAsync(long claimMappingId, ulong rescindedById)
         {
-            if (!(await ModixContext.Users.AsNoTracking()
-                .AnyAsync(x => x.Id == rescindedById)))
+            if (!await ModixContext.Users.AsNoTracking()
+                .AnyAsync(x => x.Id == rescindedById))
                 return false;
 
             var entity = await ModixContext.ClaimMappings

@@ -92,7 +92,7 @@ namespace Modix.Services.Moderation
         {
             try
             {
-                string attachments = string.Join(", ", message.Attachments.Select(x => x.Filename));
+                var attachments = string.Join(", ", message.Attachments.Select(x => x.Filename));
 
                 await SelfExecuteRequest<IModerationService>(async moderationService =>
                 {
@@ -111,13 +111,13 @@ namespace Modix.Services.Moderation
         private static string GetReplyToUser(IMessage message)
             => $"Please don't upload any potentially harmful files {message.Author.Mention}, your message has been removed";
 
-        protected internal override Task OnStartingAsync()
+        internal protected override Task OnStartingAsync()
         {
             DiscordClient.MessageReceived += Handle;
             return Task.CompletedTask;
         }
 
-        protected internal override Task OnStoppedAsync()
+        internal protected override Task OnStoppedAsync()
         {
             DiscordClient.MessageReceived -= Handle;
             return Task.CompletedTask;

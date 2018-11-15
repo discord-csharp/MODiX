@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Modix.Services.AutoCodePaste
 {
-    enum ReactionState
+    internal enum ReactionState
     {
         Added,
         Removed
@@ -43,9 +43,9 @@ namespace Modix.Services.AutoCodePaste
                 return;
             }
 
-            _repasteRatings.TryGetValue(message.Id, out int currentRating);
+            _repasteRatings.TryGetValue(message.Id, out var currentRating);
 
-            int modifier = (state == ReactionState.Added ? 1 : -1);
+            var modifier = state == ReactionState.Added ? 1 : -1;
 
             if (roles.Count > 1)
             {
@@ -79,7 +79,7 @@ namespace Modix.Services.AutoCodePaste
         {
             try
             {
-                var url = await _service.UploadCode(arg);
+                var url = await _service.UploadCodeAsync(arg);
                 var embed = _service.BuildEmbed(arg.Author, arg.Content, url);
 
                 await arg.Channel.SendMessageAsync(arg.Author.Mention, false, embed);

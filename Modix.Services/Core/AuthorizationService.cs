@@ -50,7 +50,7 @@ namespace Modix.Services.Core
         /// <param name="claim">The claim to be mapped.</param>
         /// <param name="newType">The type to modify the claim mapping to. If null, the mapping will be removed.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task ModifyClaimMapping(ulong roleId, AuthorizationClaim claim, ClaimMappingType? newType);
+        Task ModifyClaimMappingAsync(ulong roleId, AuthorizationClaim claim, ClaimMappingType? newType);
 
         /// <summary>
         /// Adds a claim mapping to a role.
@@ -59,7 +59,7 @@ namespace Modix.Services.Core
         /// <param name="type">The type of claim mapping to be added.</param>
         /// <param name="claim">The claim to be mapped.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task AddClaimMapping(IRole role, ClaimMappingType type, AuthorizationClaim claim);
+        Task AddClaimMappingAsync(IRole role, ClaimMappingType type, AuthorizationClaim claim);
 
         /// <summary>
         /// Adds a claim mapping to a user.
@@ -68,7 +68,7 @@ namespace Modix.Services.Core
         /// <param name="type">The type of claim mapping to be added.</param>
         /// <param name="claim">The claim to be mapped.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task AddClaimMapping(IGuildUser user, ClaimMappingType type, AuthorizationClaim claim);
+        Task AddClaimMappingAsync(IGuildUser user, ClaimMappingType type, AuthorizationClaim claim);
 
         /// <summary>
         /// Removes a claim mapping from a role.
@@ -77,7 +77,7 @@ namespace Modix.Services.Core
         /// <param name="type">The type of claim mapping to be removed.</param>
         /// <param name="claim">The claim to be un-mapped.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task RemoveClaimMapping(IRole role, ClaimMappingType type, AuthorizationClaim claim);
+        Task RemoveClaimMappingAsync(IRole role, ClaimMappingType type, AuthorizationClaim claim);
 
         /// <summary>
         /// Removes a claim mapping from a user.
@@ -86,7 +86,7 @@ namespace Modix.Services.Core
         /// <param name="type">The type of claim mapping to be removed.</param>
         /// <param name="claim">The claim to be un=mapped.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task RemoveClaimMapping(IGuildUser user, ClaimMappingType type, AuthorizationClaim claim);
+        Task RemoveClaimMappingAsync(IGuildUser user, ClaimMappingType type, AuthorizationClaim claim);
 
         /// <summary>
         /// A list of authorization claims possessed by the source of the current request.
@@ -243,7 +243,7 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task ModifyClaimMapping(ulong roleId, AuthorizationClaim claim, ClaimMappingType? newType)
+        public async Task ModifyClaimMappingAsync(ulong roleId, AuthorizationClaim claim, ClaimMappingType? newType)
         {
             RequireAuthenticatedUser();
             RequireClaims(AuthorizationClaim.AuthorizationConfigure);
@@ -279,7 +279,7 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task AddClaimMapping(IRole role, ClaimMappingType type, AuthorizationClaim claim)
+        public async Task AddClaimMappingAsync(IRole role, ClaimMappingType type, AuthorizationClaim claim)
         {
             RequireAuthenticatedUser();
             RequireClaims(AuthorizationClaim.AuthorizationConfigure);
@@ -312,7 +312,7 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task AddClaimMapping(IGuildUser user, ClaimMappingType type, AuthorizationClaim claim)
+        public async Task AddClaimMappingAsync(IGuildUser user, ClaimMappingType type, AuthorizationClaim claim)
         {
             RequireAuthenticatedUser();
             RequireClaims(AuthorizationClaim.AuthorizationConfigure);
@@ -345,19 +345,19 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task RemoveClaimMapping(IRole role, ClaimMappingType type, AuthorizationClaim claim)
+        public async Task RemoveClaimMappingAsync(IRole role, ClaimMappingType type, AuthorizationClaim claim)
         {
             RequireAuthenticatedUser();
             RequireClaims(AuthorizationClaim.AuthorizationConfigure);
 
-            var mappingIds = (await ClaimMappingRepository.SearchIdsAsync(new ClaimMappingSearchCriteria()
+            var mappingIds = await ClaimMappingRepository.SearchIdsAsync(new ClaimMappingSearchCriteria()
             {
                 Types = new[] { type },
                 GuildId = role.Guild.Id,
                 RoleIds = new[] { role.Id },
                 Claims = new[] { claim },
                 IsDeleted = false,
-            }));
+            });
 
             if (!mappingIds.Any())
                 throw new InvalidOperationException($"A claim mapping of type {type} to claim {claim} for role {role.Name} does not exist");
@@ -366,19 +366,19 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task RemoveClaimMapping(IGuildUser user, ClaimMappingType type, AuthorizationClaim claim)
+        public async Task RemoveClaimMappingAsync(IGuildUser user, ClaimMappingType type, AuthorizationClaim claim)
         {
             RequireAuthenticatedUser();
             RequireClaims(AuthorizationClaim.AuthorizationConfigure);
 
-            var mappingIds = (await ClaimMappingRepository.SearchIdsAsync(new ClaimMappingSearchCriteria()
+            var mappingIds = await ClaimMappingRepository.SearchIdsAsync(new ClaimMappingSearchCriteria()
             {
                 Types = new[] { type },
                 GuildId = user.Guild.Id,
                 UserId = user.Id,
                 Claims = new[] { claim },
                 IsDeleted = false,
-            }));
+            });
 
             if (!mappingIds.Any())
                 throw new InvalidOperationException($"A claim mapping of type {type} to claim {claim} for user {user.GetDisplayName()} does not exist");

@@ -7,7 +7,7 @@ namespace Modix
     {
         public override bool CanConvert(Type objectType)
         {
-            return (objectType == typeof(ulong));
+            return objectType == typeof(ulong);
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)

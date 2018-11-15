@@ -54,7 +54,7 @@ namespace Modix.Modules
                 ClaimMappingType type,
             [Summary("The role to which the claim is to be added.")]
                 IRole role)
-            => AuthorizationService.AddClaimMapping(role, type, claim);
+            => AuthorizationService.AddClaimMappingAsync(role, type, claim);
 
         [Command("claims add")]
         [Summary("Adds a claim mapping to a given user")]
@@ -65,7 +65,7 @@ namespace Modix.Modules
                 ClaimMappingType type,
             [Summary("The user to which the claim is to be added.")]
                 IGuildUser user)
-            => AuthorizationService.AddClaimMapping(user, type, claim);
+            => AuthorizationService.AddClaimMappingAsync(user, type, claim);
 
         [Command("claims remove")]
         [Summary("Removes a claim mapping from a given role")]
@@ -76,7 +76,7 @@ namespace Modix.Modules
                 ClaimMappingType type,
             [Summary("The role from which the claim is to be removed.")]
                 IRole role)
-            => AuthorizationService.RemoveClaimMapping(role, type, claim);
+            => AuthorizationService.RemoveClaimMappingAsync(role, type, claim);
 
         [Command("claims remove")]
         [Summary("Removes a claim mapping from a given user")]
@@ -87,7 +87,7 @@ namespace Modix.Modules
                 ClaimMappingType type,
             [Summary("The user from which the claim is to be removed.")]
                 IGuildUser user)
-            => AuthorizationService.RemoveClaimMapping(user, type, claim);
+            => AuthorizationService.RemoveClaimMappingAsync(user, type, claim);
 
         internal protected IAuthorizationService AuthorizationService { get; }
     }

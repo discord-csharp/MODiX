@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
@@ -189,15 +189,16 @@ namespace Modix
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            var message = messageParam as SocketUserMessage;
-            if (message == null) return;
+            if (!(messageParam is SocketUserMessage message))
+                return;
 
             if (!(message.Author is IGuildUser guildUser)
                 || guildUser.IsBot
                 || guildUser.IsWebhook)
                 return;
 
-            int argPos = 0;
+            var argPos = 0;
+
             if (!(message.HasCharPrefix('!', ref argPos) || message.HasMentionPrefix(_client.CurrentUser, ref argPos)))
                 return;
 
@@ -220,7 +221,7 @@ namespace Modix
 
                     if (!result.IsSuccess)
                     {
-                        string error = $"{result.Error}: {result.ErrorReason}";
+                        var error = $"{result.Error}: {result.ErrorReason}";
 
                         if (!string.Equals(result.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
                         {

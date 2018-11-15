@@ -23,11 +23,11 @@ namespace Modix.Modules
             ManualEntryModel resultModel;
             if (string.IsNullOrWhiteSpace(version))
             {
-                resultModel = await _docsService.GetManualEntryFromLatest(manualName, entryName);
+                resultModel = await _docsService.GetManualEntryFromLatestAsync(manualName, entryName);
             }
             else
             {
-                resultModel = await _docsService.GetManualEntryFromVersion(manualName, entryName, version);
+                resultModel = await _docsService.GetManualEntryFromVersionAsync(manualName, entryName, version);
             }
 
             if (string.IsNullOrWhiteSpace(resultModel.EntryName))
@@ -48,9 +48,9 @@ namespace Modix.Modules
         [Command("versions")]
         public async Task ListVersions(string manualName)
         {
-            EmbedBuilder builder = new EmbedBuilder().WithAuthor("CURRENT SUPPORTED VERSIONS");
+            var builder = new EmbedBuilder().WithAuthor("CURRENT SUPPORTED VERSIONS");
             var sb = new StringBuilder();
-            foreach (string version in await _docsService.GetAllVersionsAsync(manualName))
+            foreach (var version in await _docsService.GetAllVersionsAsync(manualName))
             {
                 sb.AppendLine(version);
             }
