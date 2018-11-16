@@ -32,20 +32,21 @@ namespace Modix.Adapters.Discord
 
         private Task OnDiscordClientMessageUpdated(Cacheable<IMessage, ulong> oldMessage, SocketMessage newMessage,
             ISocketMessageChannel channel)
-            => PublishScoped(new ChatMessageUpdated(oldMessage, newMessage, channel), newMessage.Author as IGuildUser);
+            => PublishScoped(new ChatMessageUpdated(oldMessage, newMessage, channel));
 
         private Task OnDiscordClientMessageReceived(SocketMessage message)
-            => PublishScoped(new ChatMessageReceived(message), message.Author as IGuildUser);
+            => PublishScoped(new ChatMessageReceived(message));
 
-        private async Task PublishScoped(INotification message, IGuildUser user)
+        private async Task PublishScoped(INotification message)
         {
             using (var scope = _serviceProvider.CreateScope())
             {
                 var provider = scope.ServiceProvider;
 
                 // setup context for handlers
+                var botUser = provider.GetRequiredService<ISelfUser>();
                 await provider.GetRequiredService<IAuthorizationService>()
-                    .OnAuthenticatedAsync(user);
+                    .OnAuthenticatedAsync(botUser);
 
                 var mediator = provider.GetRequiredService<IMediator>();
                 await mediator.Publish(message);

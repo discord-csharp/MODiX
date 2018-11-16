@@ -34,7 +34,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 }));
 
             services.AddSingleton<IDiscordClient>(provider => provider.GetRequiredService<DiscordSocketClient>());
-            services.AddSingleton<ISelfUser>(p => p.GetRequiredService<DiscordSocketClient>().CurrentUser);
+            services.AddScoped<ISelfUser>(p => p.GetRequiredService<DiscordSocketClient>().CurrentUser);
 
             services.AddSingleton(_ =>
                 {
