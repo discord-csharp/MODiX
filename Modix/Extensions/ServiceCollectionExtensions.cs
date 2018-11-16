@@ -3,6 +3,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Modix;
+using Modix.Adapters.Discord;
 using Modix.Behaviors;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
@@ -33,6 +34,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 }));
 
             services.AddSingleton<IDiscordClient>(provider => provider.GetRequiredService<DiscordSocketClient>());
+            services.AddSingleton<ISelfUser>(p => p.GetRequiredService<DiscordSocketClient>().CurrentUser);
 
             services.AddSingleton(_ =>
                 {
@@ -53,11 +55,13 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSingleton<DiscordSerilogAdapter>();
             services.AddSingleton<HttpClient>();
+            services.AddMediator();
 
             services.AddModixCore()
                 .AddModixModeration()
                 .AddModixPromotions();
 
+            services.AddSingleton<IBehavior, DiscordAdapter>();
             services.AddScoped<IQuoteService, QuoteService>();
             services.AddSingleton<CodePasteHandler>();
             services.AddSingleton<IBehavior, AttachmentBlacklistBehavior>();

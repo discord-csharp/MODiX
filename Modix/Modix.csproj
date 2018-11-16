@@ -41,6 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Modix.Adapters.Discord\Modix.Adapters.Discord.csproj" />
     <ProjectReference Include="..\Modix.Bot\Modix.Bot.csproj" />
     <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
     <ProjectReference Include="..\Modix.Services\Modix.Services.csproj" />
