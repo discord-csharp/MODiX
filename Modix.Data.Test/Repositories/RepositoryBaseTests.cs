@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿using System.Threading.Tasks;
+
+using NUnit.Framework;
 using NSubstitute;
 using Shouldly;
 
@@ -9,22 +11,14 @@ namespace Modix.Data.Test.Repositories
     [TestFixture]
     public class RepositoryBaseTests
     {
-        protected class TestContext
-        {
-            public ModixContext modixContext = Substitute.For<ModixContext>();
-
-            public RepositoryBase ConstructUUT()
-                => Substitute.For<RepositoryBase>(modixContext);
-        }
-
         [Test]
-        public void Constructor_Always_ModixContextIsGiven()
+        public async Task Constructor_Always_ModixContextIsGiven()
         {
-            var context = new TestContext();
+            var modixContext = await TestDataContextFactory.BuildTestDataContextAsync();
 
-            var uut = context.ConstructUUT();
+            var uut = Substitute.For<RepositoryBase>(modixContext);
 
-            uut.ModixContext.ShouldBeSameAs(context.modixContext);
+            uut.ModixContext.ShouldBeSameAs(modixContext);
         }
     }
 }
