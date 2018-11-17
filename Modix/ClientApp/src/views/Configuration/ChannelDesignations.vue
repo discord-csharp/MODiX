@@ -73,7 +73,7 @@
                         <button class="button" @click="cancel()">Cancel</button>
                     </div>
                     <div class="level-right">
-                        <button class="button is-success" :class="{'is-loading': createLoading}" @click="createAssignment()">Assign</button>
+                        <button class="button is-success" :class="{'is-loading': createLoading}" @click="createAssignment()" :disable="disableAssignButton()">Assign</button>
                     </div>
                 </footer>
             </div>
@@ -201,6 +201,15 @@ export default class ChannelDesignations extends Vue
         return _.some(this.$store.state.modix.channelDesignations, channel => 
                 channel.channelId == this.designationCreationData.channelId &&
                 channel.channelDesignation == designation);
+    }
+
+    disableAssignButton(): boolean
+    {
+        if (this.designationCreationData.channelId == '') { return true; }
+
+        return _.some(this.$store.state.modix.channelDesignations, channel =>
+            channel.channelId == this.designationCreationData.channelId &&
+            this.designationCreationData.channelDesignations.indexOf(channel.channelDesignation) > -1);
     }
 
     async createAssignment()
