@@ -73,7 +73,7 @@
                         <button class="button" @click="cancel()">Cancel</button>
                     </div>
                     <div class="level-right">
-                        <button class="button is-success" :class="{'is-loading': createLoading}" @click="createAssignment()">Assign</button>
+                        <button class="button is-success" :class="{'is-loading': createLoading}" @click="createAssignment()" :disabled="disableAssignButton()">Assign</button>
                     </div>
                 </footer>
             </div>
@@ -203,6 +203,15 @@ export default class RoleDesignations extends Vue
         return _.some(this.$store.state.modix.roleMappings, (role: DesignatedRoleMapping) => 
                 role.roleId == this.designationCreationData.roleId &&
                 role.roleDesignation == designation);
+    }
+
+    disableAssignButton(): boolean
+    {
+        if (this.designationCreationData.roleId == '') { return true; }
+
+        return _.some(this.$store.state.modix.roleMappings, (role: DesignatedRoleMapping) =>
+            role.roleId == this.designationCreationData.roleId &&
+            this.designationCreationData.roleDesignations.indexOf(role.roleDesignation) > -1);
     }
 
     async createAssignment()
