@@ -12,9 +12,9 @@ namespace Modix.Data.Test.Repositories
     public class RepositoryBaseTests
     {
         [Test]
-        public async Task Constructor_Always_ModixContextIsGiven()
+        public void Constructor_Always_ModixContextIsGiven()
         {
-            var modixContext = await TestDataContextFactory.BuildTestDataContextAsync();
+            var modixContext = TestDataContextFactory.BuildTestDataContext();
 
             var uut = Substitute.For<RepositoryBase>(modixContext);
 

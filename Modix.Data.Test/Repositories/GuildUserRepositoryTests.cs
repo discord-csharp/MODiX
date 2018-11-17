@@ -1,15 +1,13 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
-
-using Newtonsoft.Json;
+using Modix.Data.Test.TestData;
 
 using NSubstitute;
 using NUnit.Framework;
@@ -20,37 +18,29 @@ namespace Modix.Data.Test.Repositories
     [TestFixture]
     public class GuildUserRepositoryTests
     {
-        #region Test Data
+        #region Test Context
 
-        private static GuildUserCreationData BuildCreationData(ulong userId, ulong guildId)
-            => new GuildUserCreationData()
+        private static (ModixContext, GuildUserRepository) BuildTestContext()
+        {
+            var modixContext = TestDataContextFactory.BuildTestDataContext(x =>
             {
-                UserId = userId,
-                GuildId = guildId,
-                Username = $"NewUser{userId}",
-                Discriminator = userId.ToString().PadLeft(4, '0'),
-                Nickname = $"NewNickname{userId}",
-                FirstSeen = DateTimeOffset.Now - TimeSpan.FromMinutes(userId),
-                LastSeen = DateTimeOffset.Now
-            };
-
-        private static Task<ModixContext> BuildTestDataContextAsync()
-            => TestDataContextFactory.BuildTestDataContextAsync(async modixContext =>
-            {
-                await modixContext.SeedUsersAsync();
-                await modixContext.SeedGuildUsersAsync();
+                x.Users.AddRange(Users.Entities.Clone());
+                x.GuildUsers.AddRange(GuildUsers.Entities.Clone());
             });
 
-        #endregion Test Data
+            var uut = new GuildUserRepository(modixContext);
+
+            return (modixContext, uut);
+        }
+
+        #endregion Test Context
 
         #region Constructor() Tests
 
         [Test]
-        public async Task Constructor_Always_InvokesBaseConstructor()
+        public void Constructor_Always_InvokesBaseConstructor()
         {
-            var modixContext = await TestDataContextFactory.BuildTestDataContextAsync();
-
-            var uut = new GuildUserRepository(modixContext);
+            (var modixContext, var uut) = BuildTestContext();
 
             uut.ModixContext.ShouldBeSameAs(modixContext);
         }
@@ -63,9 +53,7 @@ namespace Modix.Data.Test.Repositories
         [NonParallelizable]
         public async Task BeginCreateTransactionAsync_CreateTransactionIsInProgress_WaitsForCompletion()
         {
-            var modixContext = await BuildTestDataContextAsync();
-
-            var uut = new GuildUserRepository(modixContext);
+            (var modixContext, var uut) = BuildTestContext();
 
             var existingTransaction = await uut.BeginCreateTransactionAsync();
 
@@ -81,9 +69,7 @@ namespace Modix.Data.Test.Repositories
         [NonParallelizable]
         public async Task BeginCreateTransactionAsync_CreateTransactionIsNotInProgress_ReturnsImmediately()
         {
-            var modixContext = await BuildTestDataContextAsync();
-
-            var uut = new GuildUserRepository(modixContext);
+            (var modixContext, var uut) = BuildTestContext();
 
             var result = uut.BeginCreateTransactionAsync();
 
@@ -96,12 +82,10 @@ namespace Modix.Data.Test.Repositories
         [NonParallelizable]
         public async Task BeginCreateTransactionAsync_Always_TransactionIsForContextDatabase()
         {
-            var modixContext = await BuildTestDataContextAsync();
+            (var modixContext, var uut) = BuildTestContext();
 
             var database = Substitute.ForPartsOf<DatabaseFacade>(modixContext);
             modixContext.Database.Returns(database);
-
-            var uut = new GuildUserRepository(modixContext);
 
             using (var transaction = await uut.BeginCreateTransactionAsync()) { }
 
@@ -116,9 +100,7 @@ namespace Modix.Data.Test.Repositories
         [Test]
         public async Task CreateAsync_DataIsNull_ThrowsException()
         {
-            var modixContext = await BuildTestDataContextAsync();
-
-            var uut = new GuildUserRepository(modixContext);
+            (var modixContext, var uut) = BuildTestContext();
 
             await Should.ThrowAsync<ArgumentNullException>(async () => 
                 await uut.CreateAsync(null));
@@ -127,14 +109,10 @@ namespace Modix.Data.Test.Repositories
                 .SaveChangesAsync();
         }
 
-        [TestCase(4UL, 1UL)]
-        public async Task CreateAsync_UserDoesNotExist_InsertsUser(ulong userId, ulong guildId)
+        [TestCaseSource(nameof(NewUserCreationTestCases))]
+        public async Task CreateAsync_UserDoesNotExist_InsertsUser(GuildUserCreationData data)
         {
-            var modixContext = await BuildTestDataContextAsync();
-
-            var uut = new GuildUserRepository(modixContext);
-
-            var data = BuildCreationData(userId, guildId);
+            (var modixContext, var uut) = BuildTestContext();
 
             await uut.CreateAsync(data);
 
@@ -148,16 +126,10 @@ namespace Modix.Data.Test.Repositories
                 .SaveChangesAsync();
         }
 
-        [TestCase(1UL, 2UL)]
-        [TestCase(2UL, 2UL)]
-        [TestCase(3UL, 3UL)]
-        public async Task CreateAsync_UserExists_UpdatestUser(ulong userId, ulong guildId)
+        [TestCaseSource(nameof(ExistingUserCreationTestCases))]
+        public async Task CreateAsync_UserExists_UpdatestUser(GuildUserCreationData data)
         {
-            var modixContext = await BuildTestDataContextAsync();
-
-            var uut = new GuildUserRepository(modixContext);
-
-            var data = BuildCreationData(userId, guildId);
+            (var modixContext, var uut) = BuildTestContext();
 
             var userCount = modixContext.Users.Count();
 
@@ -173,14 +145,11 @@ namespace Modix.Data.Test.Repositories
                 .SaveChangesAsync();
         }
 
-        [TestCase(1UL, 2UL)]
-        public async Task CreateAsync_UserExistsAndDataUsernameIsNull_DoesNotUpdateUsername(ulong userId, ulong guildId)
+        [TestCaseSource(nameof(ExistingUserCreationTestCases))]
+        public async Task CreateAsync_UserExistsAndDataUsernameIsNull_DoesNotUpdateUsername(GuildUserCreationData data)
         {
-            var modixContext = await BuildTestDataContextAsync();
+            (var modixContext, var uut) = BuildTestContext();
 
-            var uut = new GuildUserRepository(modixContext);
-
-            var data = BuildCreationData(userId, guildId);
             data.Username = null;
 
             var userCount = modixContext.Users.Count();
@@ -197,14 +166,11 @@ namespace Modix.Data.Test.Repositories
                 .SaveChangesAsync();
         }
 
-        [TestCase(1UL, 2UL)]
-        public async Task CreateAsync_UserExistsAndDataDiscriminatorIsNull_DoesNotUpdateDiscriminator(ulong userId, ulong guildId)
+        [TestCaseSource(nameof(ExistingUserCreationTestCases))]
+        public async Task CreateAsync_UserExistsAndDataDiscriminatorIsNull_DoesNotUpdateDiscriminator(GuildUserCreationData data)
         {
-            var modixContext = await BuildTestDataContextAsync();
+            (var modixContext, var uut) = BuildTestContext();
 
-            var uut = new GuildUserRepository(modixContext);
-
-            var data = BuildCreationData(userId, guildId);
             data.Discriminator = null;
 
             var userCount = modixContext.Users.Count();
@@ -221,17 +187,10 @@ namespace Modix.Data.Test.Repositories
                 .SaveChangesAsync();
         }
 
-        [TestCase(1UL, 2UL)]
-        [TestCase(2UL, 2UL)]
-        [TestCase(3UL, 3UL)]
-        [TestCase(4UL, 1UL)]
-        public async Task CreateAsync_GuildUserDoesNotExist_InsertsGuildUser(ulong userId, ulong guildId)
+        [TestCaseSource(nameof(NewGuildUserCreationTestCases))]
+        public async Task CreateAsync_GuildUserDoesNotExist_InsertsGuildUser(GuildUserCreationData data)
         {
-            var modixContext = await BuildTestDataContextAsync();
-
-            var uut = new GuildUserRepository(modixContext);
-
-            var data = BuildCreationData(userId, guildId);
+            (var modixContext, var uut) = BuildTestContext();
 
             await uut.CreateAsync(data);
 
@@ -246,16 +205,10 @@ namespace Modix.Data.Test.Repositories
                 .SaveChangesAsync();
         }
 
-        [TestCase(1UL, 1UL)]
-        [TestCase(2UL, 1UL)]
-        [TestCase(3UL, 2UL)]
-        public async Task CreateAsync_GuildUserExists_ThrowsException(ulong userId, ulong guildId)
+        [TestCaseSource(nameof(ExistingGuildUserCreationTestCases))]
+        public async Task CreateAsync_GuildUserExists_ThrowsException(GuildUserCreationData data)
         {
-            var modixContext = await BuildTestDataContextAsync();
-
-            var uut = new GuildUserRepository(modixContext);
-
-            var data = BuildCreationData(userId, guildId);
+            (var modixContext, var uut) = BuildTestContext();
 
             await Should.ThrowAsync<InvalidOperationException>(uut.CreateAsync(data));
 
@@ -267,14 +220,10 @@ namespace Modix.Data.Test.Repositories
 
         #region ReadSummaryAsync() Tests
 
-        [TestCase(1UL, 1UL)]
-        [TestCase(2UL, 1UL)]
-        [TestCase(3UL, 2UL)]
+        [TestCaseSource(nameof(ExistingGuildUserIds))]
         public async Task ReadSummaryAsync_GuildUserExists_ReturnsGuildUser(ulong userId, ulong guildId)
         {
-            var modixContext = await BuildTestDataContextAsync();
-
-            var uut = new GuildUserRepository(modixContext);
+            (var modixContext, var uut) = BuildTestContext();
 
             var result = await uut.ReadSummaryAsync(userId, guildId);
 
@@ -290,15 +239,10 @@ namespace Modix.Data.Test.Repositories
             result.LastSeen.ShouldBe(guildUser.LastSeen);
         }
 
-        [TestCase(1UL, 2UL)]
-        [TestCase(2UL, 2UL)]
-        [TestCase(3UL, 3UL)]
-        [TestCase(4UL, 1UL)]
+        [TestCaseSource(nameof(NewGuildUserIds))]
         public async Task ReadSummaryAsync_GuildUserDoesNotExist_ReturnsNull(ulong userId, ulong guildId)
         {
-            var modixContext = await BuildTestDataContextAsync();
-
-            var uut = new GuildUserRepository(modixContext);
+            (var modixContext, var uut) = BuildTestContext();
 
             var result = await uut.ReadSummaryAsync(userId, guildId);
 
@@ -312,9 +256,7 @@ namespace Modix.Data.Test.Repositories
         [Test]
         public async Task TryUpdateAsync_UpdateActionIsNull_ThrowsException()
         {
-            var modixContext = await BuildTestDataContextAsync();
-
-            var uut = new GuildUserRepository(modixContext);
+            (var modixContext, var uut) = BuildTestContext();
 
             await Should.ThrowAsync<ArgumentNullException>(async () =>
                 await uut.TryUpdateAsync(1, 1, null));
@@ -323,14 +265,10 @@ namespace Modix.Data.Test.Repositories
                 .SaveChangesAsync();
         }
 
-        [TestCase(1UL, 1UL)]
-        [TestCase(2UL, 1UL)]
-        [TestCase(3UL, 2UL)]
+        [TestCaseSource(nameof(ExistingGuildUserIds))]
         public async Task TryUpdateAsync_GuildUserExists_UpdatesGuildUserAndReturnsTrue(ulong userId, ulong guildId)
         {
-            var modixContext = await BuildTestDataContextAsync();
-
-            var uut = new GuildUserRepository(modixContext);
+            (var modixContext, var uut) = BuildTestContext();
 
             var user = modixContext.Users.Single(x => x.Id == userId);
             var guildUser = modixContext.GuildUsers.Single(x => (x.UserId == userId) && (x.GuildId == guildId));
@@ -367,15 +305,10 @@ namespace Modix.Data.Test.Repositories
                 .SaveChangesAsync();
         }
 
-        [TestCase(1UL, 2UL)]
-        [TestCase(2UL, 2UL)]
-        [TestCase(3UL, 3UL)]
-        [TestCase(4UL, 1UL)]
+        [TestCaseSource(nameof(NewGuildUserIds))]
         public async Task TryUpdateAsync_GuildUserDoesNotExist_DoesNotPerformUpdateAndReturnsFalse(ulong userId, ulong guildId)
         {
-            var modixContext = await BuildTestDataContextAsync();
-
-            var uut = new GuildUserRepository(modixContext);
+            (var modixContext, var uut) = BuildTestContext();
 
             var updateAction = Substitute.For<Action<GuildUserMutationData>>();
 
@@ -391,5 +324,37 @@ namespace Modix.Data.Test.Repositories
         }
 
         #endregion TryUpdateAsync() Tests
+
+        #region Test Data
+
+        public static readonly IEnumerable<TestCaseData> NewUserCreationTestCases
+            = Users.NewCreations
+                .Select(x => new TestCaseData(x)
+                    .SetName($"{{m}}({x.UserId})"));
+
+        public static readonly IEnumerable<TestCaseData> ExistingUserCreationTestCases
+            = Users.ExistingCreations
+                .Select(x => new TestCaseData(x)
+                    .SetName($"{{m}}({x.UserId})"));
+
+        public static readonly IEnumerable<TestCaseData> NewGuildUserCreationTestCases
+            = GuildUsers.NewCreations
+                .Select(x => new TestCaseData(x)
+                    .SetName($"{{m}}({x.UserId})"));
+
+        public static readonly IEnumerable<TestCaseData> ExistingGuildUserCreationTestCases
+            = GuildUsers.ExistingCreations
+                .Select(x => new TestCaseData(x)
+                    .SetName($"{{m}}({x.UserId})"));
+
+        public static readonly IEnumerable<ulong[]> NewGuildUserIds
+            = GuildUsers.NewCreations
+                .Select(x => new[] { x.UserId, x.GuildId });
+
+        public static readonly IEnumerable<ulong[]> ExistingGuildUserIds
+            = GuildUsers.ExistingCreations
+                .Select(x => new[] { x.UserId, x.GuildId });
+
+        #endregion Test Data
     }
 }
