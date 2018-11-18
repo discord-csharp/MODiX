@@ -66,10 +66,10 @@ namespace Modix.Data.Models.Core
                     x => x.GuildId == criteria.GuildId,
                     criteria?.GuildId != null)
                 .FilterBy(
-                    x => criteria.RoleIds.Contains(x.RoleId.Value) || (x.UserId == criteria.UserId),
+                    x => ((x.RoleId != null) && criteria.RoleIds.Contains(x.RoleId.Value)) || (x.UserId == criteria.UserId),
                     (criteria?.RoleIds?.Any() ?? false) && (criteria?.UserId != null))
                 .FilterBy(
-                    x => criteria.RoleIds.Contains(x.RoleId.Value),
+                    x => (x.RoleId != null) && criteria.RoleIds.Contains(x.RoleId.Value),
                     (criteria?.RoleIds?.Any() ?? false) && (criteria?.UserId == null))
                 .FilterBy(
                     x => x.UserId == criteria.UserId,
