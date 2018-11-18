@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -28,14 +27,15 @@ namespace Modix.Services.Promotions
         Task CreateCampaignAsync(ulong subjectId, string comment, Func<ProposedPromotionCampaignBrief, Task<bool>> confirmDelegate = null);
 
         /// <summary>
-        /// Creates a new promotion campaign, and attaches an initial comment to it.
+        /// Searches for the next rank role available to the supplied user.
         /// </summary>
-        /// <param name="subjectId">The Discord snowflake ID of the user whose promotion is being proposed.</param>
-        /// <param name="targetRoleId">The Discord snowflake ID of the role to which the subject is to be promoted.</param>
-        /// <param name="comment">The content of the comment to be added to the new campaign.</param>
-        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task CreateCampaignAsync(ulong subjectId, ulong targetRoleId, string comment);
-        
+        /// <param name="subjectId">The Discord snowflake ID of the user for whom the next rank is to be determined.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that completes when the operation has completed,
+        /// containing the next rank role for the user or null if no such rank could be determined.
+        /// </returns>
+        Task<GuildRoleBrief> GetNextRankRoleForUserAsync(ulong subjectId);
+
         /// <summary>
         /// Adds a comment to an active promotion campaign.
         /// </summary>
@@ -121,15 +121,9 @@ namespace Modix.Services.Promotions
             
             var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
             var subject = await UserService.GetGuildUserAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
-
-            var userRankRoles = rankRoles.Where(r => subject.RoleIds.Contains(r.Id));
-            var userCurrentRankRole = userRankRoles.OrderByDescending(r => r.Position).FirstOrDefault();
-
-            var nextRankRole = userCurrentRankRole is null
-                ? rankRoles.OrderBy(r => r.Position).FirstOrDefault()
-                    ?? throw new InvalidOperationException("There are no rank roles defined.")
-                : rankRoles.FirstOrDefault(r => r.Position == userCurrentRankRole.Position + 1)
-                    ?? throw new InvalidOperationException($"There are no rank roles available for user {subjectId} to be promoted to.");
+            
+            if (!TryGetNextRankRoleForUser(subjectId, rankRoles, subject, out var nextRankRole, out var message))
+                throw new InvalidOperationException(message);
 
             await PerformCommonCreateCampaignValidationsAsync(subject.Id, nextRankRole.Id, rankRoles);
 
@@ -153,39 +147,19 @@ namespace Modix.Services.Promotions
         }
 
         /// <inheritdoc />
-        public async Task CreateCampaignAsync(ulong subjectId, ulong targetRoleId, string comment)
+        public async Task<GuildRoleBrief> GetNextRankRoleForUserAsync(ulong subjectId)
         {
-            ValidateCreateCampaignAuthorization();
-            
+            if (subjectId == 0)
+                return null;
+
             var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
-
-            var targetRankRoleIndex = rankRoles
-                .Select((x, i) => (role: x, index: (int?)i))
-                .FirstOrDefault(x => x.role.Id == targetRoleId)
-                .index;
-            if (targetRankRoleIndex is null)
-                throw new InvalidOperationException($"Role {targetRoleId} is not a defined promotion rank");
-            var targetRankRole = rankRoles[targetRankRoleIndex.Value];
-
             var subject = await UserService.GetGuildUserAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
-            if (subject.RoleIds.Contains(targetRoleId))
-                throw new InvalidOperationException($"User {subjectId} is already a member of role {targetRoleId}");
 
-            if(targetRankRoleIndex > 0)
-            {
-                var previousRankRole = rankRoles[targetRankRoleIndex.Value - 1];
+            if (TryGetNextRankRoleForUser(subjectId, rankRoles, subject, out var nextRankRole, out _))
+                return nextRankRole;
 
-                if (!subject.RoleIds.Contains(previousRankRole.Id))
-                    throw new InvalidOperationException($"The proposed promotion would skip over rank {previousRankRole.Name}");
-            }
-            else if (subject.RoleIds.Intersect(rankRoles.Select(x => x.Id)).Any())
-                throw new InvalidOperationException($"User {subjectId} is already ranked");
-
-            await PerformCommonCreateCampaignValidationsAsync(subjectId, targetRoleId, rankRoles);
-
-            await FinalizeCreateCampaignAsync(subjectId, targetRoleId, comment);
+            return null;
         }
-
 
         /// <inheritdoc />
         public async Task AddCommentAsync(long campaignId, PromotionSentiment sentiment, string content)
@@ -408,6 +382,44 @@ namespace Modix.Services.Promotions
 
             if (!await CheckIfUserIsRankOrHigher(rankRoles, AuthorizationService.CurrentUserId.Value, targetRankRoleId))
                 throw new InvalidOperationException($"Creating a promotion campaign requires a rank at least as high as the proposed target rank");
+        }
+
+        private bool TryGetNextRankRoleForUser(
+            ulong subjectId, GuildRoleBrief[] rankRoles, IGuildUser subject, out GuildRoleBrief nextRankRole, out string message)
+        {
+            var userRankRoles = rankRoles.Where(r => subject.RoleIds.Contains(r.Id));
+            var userCurrentRankRole = userRankRoles.OrderByDescending(r => r.Position).FirstOrDefault();
+
+            if (userCurrentRankRole is null)
+            {
+                nextRankRole = rankRoles.OrderBy(r => r.Position).FirstOrDefault();
+
+                if (nextRankRole is null)
+                {
+                    message = "There are no rank roles defined.";
+                    return false;
+                }
+                else
+                {
+                    message = null;
+                    return true;
+                }
+            }
+            else
+            {
+                nextRankRole = rankRoles.FirstOrDefault(r => r.Position == userCurrentRankRole.Position + 1);
+
+                if (nextRankRole is null)
+                {
+                    message = $"There are no rank roles available for user {subjectId} to be promoted to.";
+                    return false;
+                }
+                else
+                {
+                    message = null;
+                    return true;
+                }
+            }
         }
 
         private void ValidateCreateCampaignAuthorization()
