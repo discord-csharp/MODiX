@@ -16,7 +16,7 @@
         }
 
         /// <summary>
-        /// The <see cref="ModixContext"/> to be used to interact with the data storage layer.
+        /// The <see cref="Data.ModixContext"/> to be used to interact with the data storage layer.
         /// </summary>
         internal protected ModixContext ModixContext { get; }
     }

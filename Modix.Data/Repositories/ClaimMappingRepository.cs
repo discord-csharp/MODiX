@@ -38,12 +38,12 @@ namespace Modix.Data.Repositories
         /// <summary>
         /// Retrieves information about a claim mapping, based on its ID.
         /// </summary>
-        /// <param name="roleClaimId">The <see cref="ClaimMappingEntity.Id"/> value of the mapping to be retrieved.</param>
+        /// <param name="claimMappingId">The <see cref="ClaimMappingEntity.Id"/> value of the mapping to be retrieved.</param>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing the requested mapping, or null if no such mapping exists.
         /// </returns>
-        Task<ClaimMappingSummary> ReadAsync(long roleClaimId);
+        Task<ClaimMappingSummary> ReadAsync(long claimMappingId);
 
         /// <summary>
         /// Checks whether any claims exist, for an arbitrary set of criteria.
@@ -112,11 +112,11 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public Task<ClaimMappingSummary> ReadAsync(long roleClaimId)
+        public Task<ClaimMappingSummary> ReadAsync(long claimMappingId)
             => ModixContext.ClaimMappings.AsNoTracking()
                 .AsExpandable()
                 .Select(ClaimMappingSummary.FromEntityProjection)
-                .FirstOrDefaultAsync(x => x.Id == roleClaimId);
+                .FirstOrDefaultAsync(x => x.Id == claimMappingId);
 
         /// <inheritdoc />
         public Task<bool> AnyAsync(ClaimMappingSearchCriteria criteria)
