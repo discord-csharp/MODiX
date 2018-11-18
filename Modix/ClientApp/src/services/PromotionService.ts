@@ -41,7 +41,7 @@ export default class PromotionService
 
     static async getNextRankRoleForUser(subjectId: string): Promise<Role>
     {
-        return (await client.get(`campaigns/nextRank/${subjectId}`)).data as Role;
+        return (await client.get(`campaigns/${subjectId}/nextRank`)).data as Role;
     }
 
     static async createCampaign(data: PromotionCreationData): Promise<void>

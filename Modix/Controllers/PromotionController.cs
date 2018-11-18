@@ -35,7 +35,7 @@ namespace Modix.Controllers
             return Ok(result.Comments);
         }
 
-        [HttpGet("nextRank/{subjectId}")]
+        [HttpGet("{subjectId}/nextRank")]
         public async Task<IActionResult> GetNextRankRoleForUser(ulong subjectId)
         {
             var result = await _promotionsService.GetNextRankRoleForUserAsync(subjectId);
