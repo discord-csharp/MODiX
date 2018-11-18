@@ -98,12 +98,18 @@ namespace Modix.Data.Test.Repositories
         #region CreateAsync() Tests
 
         [Test]
-        public async Task CreateAsync_DataIsNull_ThrowsException()
+        public async Task CreateAsync_DataIsNull_DoesNotUpdateUsersAndGuildUsersAndThrowsException()
         {
             (var modixContext, var uut) = BuildTestContext();
 
             await Should.ThrowAsync<ArgumentNullException>(async () => 
                 await uut.CreateAsync(null));
+
+            modixContext.GuildUsers.AsEnumerable().Select(x => (x.UserId, x.GuildId)).ShouldBe(GuildUsers.Entities.Select(x => (x.UserId, x.GuildId)));
+            modixContext.GuildUsers.EachShould(x => x.ShouldNotHaveChanged());
+
+            modixContext.Users.Select(x => x.Id).ShouldBe(Users.Entities.Select(x => x.Id));
+            modixContext.Users.EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();
@@ -127,7 +133,7 @@ namespace Modix.Data.Test.Repositories
         }
 
         [TestCaseSource(nameof(ExistingUserCreationTestCases))]
-        public async Task CreateAsync_UserExists_UpdatestUser(GuildUserCreationData data)
+        public async Task CreateAsync_UserExists_UpdatesUser(GuildUserCreationData data)
         {
             (var modixContext, var uut) = BuildTestContext();
 
@@ -206,11 +212,17 @@ namespace Modix.Data.Test.Repositories
         }
 
         [TestCaseSource(nameof(ExistingGuildUserCreationTestCases))]
-        public async Task CreateAsync_GuildUserExists_ThrowsException(GuildUserCreationData data)
+        public async Task CreateAsync_GuildUserExists_DoesNotUpdateUsersAndGuildUsersAndThrowsException(GuildUserCreationData data)
         {
             (var modixContext, var uut) = BuildTestContext();
 
             await Should.ThrowAsync<InvalidOperationException>(uut.CreateAsync(data));
+
+            modixContext.GuildUsers.AsEnumerable().Select(x => (x.UserId, x.GuildId)).ShouldBe(GuildUsers.Entities.Select(x => (x.UserId, x.GuildId)));
+            modixContext.GuildUsers.EachShould(x => x.ShouldNotHaveChanged());
+
+            modixContext.Users.Select(x => x.Id).ShouldBe(Users.Entities.Select(x => x.Id));
+            modixContext.Users.EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();
@@ -227,16 +239,9 @@ namespace Modix.Data.Test.Repositories
 
             var result = await uut.ReadSummaryAsync(userId, guildId);
 
-            var user = modixContext.Users.Single(x => x.Id == userId);
-            var guildUser = modixContext.GuildUsers.Single(x => (x.UserId == userId) && (x.GuildId == guildId));
-
             result.UserId.ShouldBe(userId);
             result.GuildId.ShouldBe(guildId);
-            result.Username.ShouldBe(user.Username);
-            result.Discriminator.ShouldBe(user.Discriminator);
-            result.Nickname.ShouldBe(guildUser.Nickname);
-            result.FirstSeen.ShouldBe(guildUser.FirstSeen);
-            result.LastSeen.ShouldBe(guildUser.LastSeen);
+            result.ShouldMatchTestData();
         }
 
         [TestCaseSource(nameof(NewGuildUserIds))]
@@ -254,12 +259,18 @@ namespace Modix.Data.Test.Repositories
         #region TryUpdateAsync() Tests
 
         [Test]
-        public async Task TryUpdateAsync_UpdateActionIsNull_ThrowsException()
+        public async Task TryUpdateAsync_UpdateActionIsNull_DoesNotUpdateUsersAndGuildUsersAndThrowsException()
         {
             (var modixContext, var uut) = BuildTestContext();
 
             await Should.ThrowAsync<ArgumentNullException>(async () =>
                 await uut.TryUpdateAsync(1, 1, null));
+
+            modixContext.GuildUsers.AsEnumerable().Select(x => (x.UserId, x.GuildId)).ShouldBe(GuildUsers.Entities.Select(x => (x.UserId, x.GuildId)));
+            modixContext.GuildUsers.EachShould(x => x.ShouldNotHaveChanged());
+
+            modixContext.Users.Select(x => x.Id).ShouldBe(Users.Entities.Select(x => x.Id));
+            modixContext.Users.EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();
@@ -306,7 +317,7 @@ namespace Modix.Data.Test.Repositories
         }
 
         [TestCaseSource(nameof(NewGuildUserIds))]
-        public async Task TryUpdateAsync_GuildUserDoesNotExist_DoesNotPerformUpdateAndReturnsFalse(ulong userId, ulong guildId)
+        public async Task TryUpdateAsync_GuildUserDoesNotExist_DoesNotUpdateUsersAndGuildUsersAndReturnsFalse(ulong userId, ulong guildId)
         {
             (var modixContext, var uut) = BuildTestContext();
 
@@ -319,6 +330,12 @@ namespace Modix.Data.Test.Repositories
             updateAction.ShouldNotHaveReceived()
                 .Invoke(Arg.Any<GuildUserMutationData>());
 
+            modixContext.GuildUsers.AsEnumerable().Select(x => (x.UserId, x.GuildId)).ShouldBe(GuildUsers.Entities.Select(x => (x.UserId, x.GuildId)));
+            modixContext.GuildUsers.EachShould(x => x.ShouldNotHaveChanged());
+
+            modixContext.Users.Select(x => x.Id).ShouldBe(Users.Entities.Select(x => x.Id));
+            modixContext.Users.EachShould(x => x.ShouldNotHaveChanged());
+
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();
         }
@@ -330,22 +347,22 @@ namespace Modix.Data.Test.Repositories
         public static readonly IEnumerable<TestCaseData> NewUserCreationTestCases
             = Users.NewCreations
                 .Select(x => new TestCaseData(x)
-                    .SetName($"{{m}}({x.UserId})"));
+                    .SetName($"{{m}}({x.UserId}, {x.GuildId})"));
 
         public static readonly IEnumerable<TestCaseData> ExistingUserCreationTestCases
             = Users.ExistingCreations
                 .Select(x => new TestCaseData(x)
-                    .SetName($"{{m}}({x.UserId})"));
+                    .SetName($"{{m}}({x.UserId}, {x.GuildId})"));
 
         public static readonly IEnumerable<TestCaseData> NewGuildUserCreationTestCases
             = GuildUsers.NewCreations
                 .Select(x => new TestCaseData(x)
-                    .SetName($"{{m}}({x.UserId})"));
+                    .SetName($"{{m}}({x.UserId}, {x.GuildId})"));
 
         public static readonly IEnumerable<TestCaseData> ExistingGuildUserCreationTestCases
             = GuildUsers.ExistingCreations
                 .Select(x => new TestCaseData(x)
-                    .SetName($"{{m}}({x.UserId})"));
+                    .SetName($"{{m}}({x.UserId}, {x.GuildId})"));
 
         public static readonly IEnumerable<ulong[]> NewGuildUserIds
             = GuildUsers.NewCreations

@@ -97,11 +97,14 @@ namespace Modix.Data.Test.Repositories
         #region CreateAsync() Tests
 
         [Test]
-        public async Task CreateAsync_DataIsNull_ThrowsException()
+        public async Task CreateAsync_DataIsNull_DoesNotUpdateGuildRolesAndThrowsException()
         {
             (var modixContext, var uut) = BuildTestContext();
 
             await Should.ThrowAsync<ArgumentNullException>(uut.CreateAsync(null));
+
+            modixContext.GuildRoles.Select(x => x.RoleId).ShouldBe(GuildRoles.Entities.Select(x => x.RoleId));
+            modixContext.GuildRoles.EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();
@@ -126,11 +129,14 @@ namespace Modix.Data.Test.Repositories
         }
 
         [TestCaseSource(nameof(ExistingGuildRoleCreationTestCases))]
-        public async Task CreateAsync_GuildRoleExists_ThrowsException(GuildRoleCreationData data)
+        public async Task CreateAsync_GuildRoleExists_DoesNotUpdateGuildRolesAndThrowsException(GuildRoleCreationData data)
         {
             (var modixContext, var uut) = BuildTestContext();
 
             await Should.ThrowAsync<InvalidOperationException>(uut.CreateAsync(data));
+
+            modixContext.GuildRoles.Select(x => x.RoleId).ShouldBe(GuildRoles.Entities.Select(x => x.RoleId));
+            modixContext.GuildRoles.EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();
@@ -141,12 +147,15 @@ namespace Modix.Data.Test.Repositories
         #region TryUpateAsync() Tests
 
         [Test]
-        public async Task TryUpdateAsync_UpdateActionIsNull_ThrowsException()
+        public async Task TryUpdateAsync_UpdateActionIsNull_DoesNotUpdateGuildRolesAndThrowsException()
         {
             (var modixContext, var uut) = BuildTestContext();
 
             await Should.ThrowAsync<ArgumentNullException>(async () =>
                 await uut.TryUpdateAsync(1, null));
+
+            modixContext.GuildRoles.Select(x => x.RoleId).ShouldBe(GuildRoles.Entities.Select(x => x.RoleId));
+            modixContext.GuildRoles.EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();
@@ -184,7 +193,7 @@ namespace Modix.Data.Test.Repositories
         }
 
         [TestCaseSource(nameof(NewGuildRoleIds))]
-        public async Task TryUpdateAsync_GuildRoleDoesNotExist_DoesNotPerformUpdateAndReturnsFalse(ulong roleId)
+        public async Task TryUpdateAsync_GuildRoleDoesNotExist_DoesNotUpdateGuildRolesAndReturnsFalse(ulong roleId)
         {
             (var modixContext, var uut) = BuildTestContext();
 
@@ -196,6 +205,9 @@ namespace Modix.Data.Test.Repositories
 
             updateAction.ShouldNotHaveReceived()
                 .Invoke(Arg.Any<GuildRoleMutationData>());
+
+            modixContext.GuildRoles.Select(x => x.RoleId).ShouldBe(GuildRoles.Entities.Select(x => x.RoleId));
+            modixContext.GuildRoles.EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();

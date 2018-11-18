@@ -49,12 +49,13 @@ namespace Modix.Data.Test.TestData
                 {
                     UserId = 4,
                     GuildId = 1,
+                    Username = "NewUsername1",
+                    Discriminator = "NewDiscriminator1",
                     Nickname = "NewNickname1",
                     FirstSeen = DateTimeOffset.Parse("2018-02-01T00:00:00Z"),
                     LastSeen = DateTimeOffset.Parse("2018-02-02T00:00:00Z")
                 }
             };
-
 
         public static readonly IEnumerable<GuildUserCreationData> ExistingCreations
             = new GuildUserCreationData[]
@@ -63,7 +64,9 @@ namespace Modix.Data.Test.TestData
                 {
                     UserId = 1,
                     GuildId = 2,
-                    Nickname = "NewNickname2",
+                    Username = "ExistingUsername1",
+                    Discriminator = "ExistingDiscriminator1",
+                    Nickname = "ExistingNickname2",
                     FirstSeen = DateTimeOffset.Parse("2018-02-03T00:00:00Z"),
                     LastSeen = DateTimeOffset.Parse("2018-02-04T00:00:00Z")
                 }

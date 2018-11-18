@@ -77,25 +77,19 @@ namespace Modix.Data.Repositories
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
-            var userEntity = await ModixContext.Users
-                .FirstOrDefaultAsync(x => x.Id == data.UserId);
-
-            if(userEntity is null)
-            {
-                await ModixContext.Users.AddAsync(data.ToUserEntity());
-            }
-            else
-            {
-                if (!(userEntity.Username is null))
-                    userEntity.Username = data.Username;
-
-                if (!(userEntity.Discriminator is null))
-                    userEntity.Discriminator = data.Discriminator;
-            }
-
             var guildDataEntity = data.ToGuildDataEntity();
 
+            guildDataEntity.User = await ModixContext.Users.FirstOrDefaultAsync(x => x.Id == data.UserId)
+                ?? data.ToUserEntity();
+
             await ModixContext.GuildUsers.AddAsync(guildDataEntity);
+
+            if ((guildDataEntity.User.Username != data.Username) && !(data.Username is null))
+                guildDataEntity.User.Username = data.Username;
+
+            if ((guildDataEntity.User.Discriminator != data.Discriminator) && !(data.Discriminator is null))
+                guildDataEntity.User.Discriminator = data.Discriminator;
+
             await ModixContext.SaveChangesAsync();
         }
 
