@@ -16,19 +16,19 @@ namespace Modix.Controllers
     [Route("~/api/infractions")]
     public class InfractionController : ModixController
     {
-        private IModerationService ModerationService { get; }
+        private IModerationOperations ModerationOperations { get; }
         private RowboatInfractionImporterService ImporterService { get; }
 
-        public InfractionController(DiscordSocketClient client, IAuthorizationService modixAuth, IModerationService moderationService, RowboatInfractionImporterService importerService) : base(client, modixAuth)
+        public InfractionController(DiscordSocketClient client, IAuthorizationService modixAuth, IModerationOperations moderationOperations, RowboatInfractionImporterService importerService) : base(client, modixAuth)
         {
-            ModerationService = moderationService;
+            ModerationOperations = moderationOperations;
             ImporterService = importerService;
         }
 
         [HttpGet]
         public async Task<IActionResult> Infractions()
         {
-            var result = await ModerationService.SearchInfractionsAsync(new InfractionSearchCriteria
+            var result = await ModerationOperations.SearchInfractionsAsync(new InfractionSearchCriteria
             {
                 GuildId = UserGuild.Id
             });
@@ -39,7 +39,7 @@ namespace Modix.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> InfractionsForUser(ulong id)
         {
-            var result = await ModerationService.SearchInfractionsAsync(new InfractionSearchCriteria
+            var result = await ModerationOperations.SearchInfractionsAsync(new InfractionSearchCriteria
             {
                 IsDeleted = false,
                 IsRescinded = false,

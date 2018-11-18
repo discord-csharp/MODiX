@@ -13,9 +13,9 @@ namespace Modix.Modules
     [Summary("Guild moderation commands")]
     public class ModerationModule : ModuleBase
     {
-        public ModerationModule(IModerationService moderationService)
+        public ModerationModule(IModerationOperations moderationOperations)
         {
-            ModerationService = moderationService;
+            ModerationOperations = moderationOperations;
         }
 
         public async Task AddConfirmation()
@@ -32,7 +32,7 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(InfractionType.Notice, subject.Id, reason, null);
+            await ModerationOperations.CreateInfractionAsync(InfractionType.Notice, subject.Id, reason, null);
             await AddConfirmation();
         }
 
@@ -45,7 +45,7 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(InfractionType.Warning, subject.Id, reason, null);
+            await ModerationOperations.CreateInfractionAsync(InfractionType.Warning, subject.Id, reason, null);
             await AddConfirmation();
         }
 
@@ -58,7 +58,7 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, null);
+            await ModerationOperations.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, null);
             await AddConfirmation();
         }
 
@@ -77,7 +77,7 @@ namespace Modix.Modules
             var duration = TimeSpanTypeReader.Read(durationString);
             if (!duration.HasValue) { throw new ArgumentException("Invalid Timespan Format"); }
 
-            await ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, duration.Value);
+            await ModerationOperations.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, duration.Value);
             await AddConfirmation();
         }
 
@@ -87,7 +87,7 @@ namespace Modix.Modules
             [Summary("The user to be un-muted.")]
                 IGuildUser subject)
         {
-            await ModerationService.RescindInfractionAsync(InfractionType.Mute, subject.Id);
+            await ModerationOperations.RescindInfractionAsync(InfractionType.Mute, subject.Id);
         }
 
         [Command("ban")]
@@ -99,7 +99,7 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(InfractionType.Ban, subject.Id, reason, null);
+            await ModerationOperations.CreateInfractionAsync(InfractionType.Ban, subject.Id, reason, null);
             await AddConfirmation();
         }
 
@@ -114,7 +114,7 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(InfractionType.Ban, subjectId, reason, null);
+            await ModerationOperations.CreateInfractionAsync(InfractionType.Ban, subjectId, reason, null);
             await AddConfirmation();
         }
 
@@ -124,7 +124,7 @@ namespace Modix.Modules
             [Summary("The user to be un-banned.")]
                 IGuildUser subject)
         {
-            await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.Id);
+            await ModerationOperations.RescindInfractionAsync(InfractionType.Ban, subject.Id);
             await AddConfirmation();
         }
 
@@ -136,10 +136,10 @@ namespace Modix.Modules
             [Summary("The id of the user to be un-banned.")]
                 ulong subjectId)
         {
-            await ModerationService.RescindInfractionAsync(InfractionType.Ban, subjectId);
+            await ModerationOperations.RescindInfractionAsync(InfractionType.Ban, subjectId);
             await AddConfirmation();
         }
 
-        internal protected IModerationService ModerationService { get; }
+        internal protected IModerationOperations ModerationOperations { get; }
     }
 }

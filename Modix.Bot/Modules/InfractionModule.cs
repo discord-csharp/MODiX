@@ -17,9 +17,9 @@ namespace Modix.Modules
     [Summary("Provides commands for working with infractions.")]
     public class InfractionModule : ModuleBase
     {
-        public InfractionModule(IModerationService moderationService, IUserService userService)
+        public InfractionModule(IModerationOperations moderationOperations, IUserService userService)
         {
-            ModerationService = moderationService;
+            ModerationOperations = moderationOperations;
             UserService = userService;
         }
 
@@ -42,7 +42,7 @@ namespace Modix.Modules
             var requestor = Context.User.Mention;
             var subject = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, subjectId);
 
-            var infractions = await ModerationService.SearchInfractionsAsync(
+            var infractions = await ModerationOperations.SearchInfractionsAsync(
                 new InfractionSearchCriteria
                 {
                     GuildId = Context.Guild.Id,
@@ -71,7 +71,7 @@ namespace Modix.Modules
                 Rescinded = infraction.RescindAction != null
             }).OrderBy(s => s.Type);
 
-            var counts = await ModerationService.GetInfractionCountsForUserAsync(subjectId);
+            var counts = await ModerationOperations.GetInfractionCountsForUserAsync(subjectId);
 
             var builder = new EmbedBuilder()
                 .WithTitle($"Infractions for user: {subject.Username}#{subject.Discriminator}")
@@ -101,9 +101,9 @@ namespace Modix.Modules
         public Task Delete(
             [Summary("The ID value of the infraction to be deleted.")]
                 long infractionId)
-            => ModerationService.DeleteInfractionAsync(infractionId);
+            => ModerationOperations.DeleteInfractionAsync(infractionId);
 
-        internal protected IModerationService ModerationService { get; }
+        internal protected IModerationOperations ModerationOperations { get; }
         public IUserService UserService { get; }
     }
 }

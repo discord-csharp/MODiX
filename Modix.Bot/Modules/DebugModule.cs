@@ -8,7 +8,6 @@ using Discord.Commands;
 using Serilog;
 
 using Modix.Services.Core;
-using Modix.Services.Moderation;
 using Modix.Services.CommandHelp;
 
 namespace Modix.Modules
@@ -19,7 +18,7 @@ namespace Modix.Modules
     [Group("debug"), RequireUserPermission(GuildPermission.BanMembers), HiddenFromHelp]
     public class DebugModule : ModuleBase
     {
-        public DebugModule(IAuthorizationService authorizationService, IModerationService moderationService)
+        public DebugModule(IAuthorizationService authorizationService)
         {
             AuthorizationService = authorizationService;
         }

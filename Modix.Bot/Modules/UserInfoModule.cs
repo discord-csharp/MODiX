@@ -23,17 +23,17 @@ namespace Modix.Modules
         //optimization: UtcNow is slow and the module is created per-request
         private readonly DateTime _utcNow = DateTime.UtcNow; 
 
-        public UserInfoModule(ILogger<UserInfoModule> logger, IUserService userService, IModerationService moderationService, IAuthorizationService authorizationService)
+        public UserInfoModule(ILogger<UserInfoModule> logger, IUserService userService, IModerationOperations moderationOperations, IAuthorizationService authorizationService)
         {
             Log = logger ?? new NullLogger<UserInfoModule>();
             UserService = userService;
-            ModerationService = moderationService;
+            ModerationOperations = moderationOperations;
             AuthorizationService = authorizationService;
         }
 
         private ILogger<UserInfoModule> Log { get; }
         private IUserService UserService { get; }
-        private IModerationService ModerationService { get; }
+        private IModerationOperations ModerationOperations { get; }
         private IAuthorizationService AuthorizationService { get; }
 
         [Command("info")]
@@ -132,7 +132,7 @@ namespace Modix.Modules
             builder.AppendLine();
             builder.AppendLine($"**\u276F Infractions [See here](https://mod.gg/infractions?subject={userId})**");
 
-            var counts = await ModerationService.GetInfractionCountsForUserAsync(userId);
+            var counts = await ModerationOperations.GetInfractionCountsForUserAsync(userId);
 
             builder.AppendLine(FormatUtilities.FormatInfractionCounts(counts));
         }
