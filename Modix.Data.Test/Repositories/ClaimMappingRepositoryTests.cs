@@ -248,8 +248,8 @@ namespace Modix.Data.Test.Repositories
 
         #region TryDeleteAsync() Tests
 
-        [TestCaseSource(nameof(ActiveClaimMappingWithInvalidGuildUserTestCases))]
-        public async Task TryDeleteAsync_OperationIsValid_UpdatesClaimMappingAndReturnsTrue(long claimMappingId, ulong deletedById)
+        [TestCaseSource(nameof(ActiveClaimMappingWithValidUserIdTestCases))]
+        public async Task TryDeleteAsync_ClaimMappingIsNotDeleted_UpdatesClaimMappingAndReturnsTrue(long claimMappingId, ulong deletedById)
         {
             (var modixContext, var uut) = BuildTestContext();
 
@@ -279,10 +279,8 @@ namespace Modix.Data.Test.Repositories
                 .SaveChangesAsync();
         }
 
-        [TestCaseSource(nameof(DeletedClaimMappingWithValidGuildUserTestCases))]
-        [TestCaseSource(nameof(ActiveClaimMappingWithInvalidGuildUserTestCases))]
-        [TestCaseSource(nameof(InvalidClaimMappingWithValidUserTestCases))]
-        public async Task TryDeleteAsync_OperationIsNotValid_DoesNotUpdateClaimMappingAndReturnsFalse(long claimMappingId, ulong deletedById)
+        [TestCaseSource(nameof(DeletedClaimMappingWithValidUserIdTestCases))]
+        public async Task TryDeleteAsync_ClaimMappingExists_DoesNotUpdateClaimMappingAndReturnsFalse(long claimMappingId, ulong deletedById)
         {
             (var modixContext, var uut) = BuildTestContext();
 
@@ -290,10 +288,25 @@ namespace Modix.Data.Test.Repositories
 
             result.ShouldBeFalse();
 
-            modixContext.ClaimMappings.ShouldContain(x => x.Id == claimMappingId);
             var claimMapping = modixContext.ClaimMappings.First(x => x.Id == claimMappingId);
 
             claimMapping.ShouldNotHaveChanged();
+
+            await modixContext.ShouldNotHaveReceived()
+                .SaveChangesAsync();
+        }
+
+        [TestCaseSource(nameof(InvalidClaimMappingWithValidUserIdTestCases))]
+        public async Task TryDeleteAsync_ClaimMappingDoesNotExist_DoesNotUpdateClaimMappingsAndReturnsFalse(long claimMappingId, ulong deletedById)
+        {
+            (var modixContext, var uut) = BuildTestContext();
+
+            var result = await uut.TryDeleteAsync(claimMappingId, deletedById);
+
+            result.ShouldBeFalse();
+
+            modixContext.ClaimMappings.Select(x => x.Id).ShouldBe(ClaimMappings.Entities.Select(x => x.Id));
+            modixContext.ClaimMappings.EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();
@@ -334,28 +347,21 @@ namespace Modix.Data.Test.Repositories
                 .Select(x => new TestCaseData(x.criteria)
                     .SetName($"{{m}}({x.name})"));
 
-        public static readonly IEnumerable<TestCaseData> ActiveClaimMappingWithValidGuildUserTestCases
+        public static readonly IEnumerable<TestCaseData> ActiveClaimMappingWithValidUserIdTestCases
             = ClaimMappings.Entities
                 .Where(x => x.DeleteActionId is null)
                 .SelectMany(x => Users.Entities
                     .Where(y => GuildUsers.Entities.Any(z => (z.UserId == y.Id) && (z.GuildId == x.GuildId)))
                     .Select(y => new TestCaseData(x.Id, y.Id)));
 
-        public static readonly IEnumerable<TestCaseData> ActiveClaimMappingWithInvalidGuildUserTestCases
-            = ClaimMappings.Entities
-                .Where(x => x.DeleteActionId is null)
-                .SelectMany(x => Users.Entities
-                    .Where(y => !GuildUsers.Entities.Any(z => (z.UserId == y.Id) && (z.GuildId == x.GuildId)))
-                    .Select(y => new TestCaseData(x.Id, y.Id)));
-
-        public static readonly IEnumerable<TestCaseData> DeletedClaimMappingWithValidGuildUserTestCases
+        public static readonly IEnumerable<TestCaseData> DeletedClaimMappingWithValidUserIdTestCases
             = ClaimMappings.Entities
                 .Where(x => !(x.DeleteActionId is null))
                 .SelectMany(x => Users.Entities
                     .Where(y => GuildUsers.Entities.Any(z => z.GuildId == x.GuildId))
                     .Select(y => new TestCaseData(x.Id, y.Id)));
 
-        public static readonly IEnumerable<TestCaseData> InvalidClaimMappingWithValidUserTestCases
+        public static readonly IEnumerable<TestCaseData> InvalidClaimMappingWithValidUserIdTestCases
             = InvalidClaimMappingIds
                 .SelectMany(x => Users.Entities
                     .Select(y => new TestCaseData(x, y.Id)));
