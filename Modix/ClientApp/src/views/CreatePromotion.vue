@@ -36,28 +36,19 @@
                     </div>
 
                     <div class="field">
-                        <label class="label is-large">Then, the rank to be promoted to</label>
-                        <div class="control">
-
-                            <Autocomplete @select="selectedRole = $event" :minimumChars="-1"
-                                          :serviceCall="roleServiceCall" placeholder="This one's fancy too">
-                                <template slot-scope="{entry}">
-                                    @{{entry.name}}
-                                </template>
-                            </Autocomplete>
-
-                        </div>
+                        <label class="label is-large">They can be promoted to this rank</label>
+                        <span class="role" :style="roleStyle()">{{nextRank}}</span>
                     </div>
 
                     <div class="field">
                         <label class="label is-large">Finally, say a few words on their behalf</label>
                         <div class="control">
-                            <textarea class="textarea" v-model="creationData.comment" placeholder="They should be promoted because..."></textarea>
+                            <textarea class="textarea" v-model="creationData.comment" placeholder="They should be promoted because..." :disabled="isNone"></textarea>
                         </div>
                     </div>
 
                     <div class="control">
-                        <button class="button is-link" @click="createCampaign()">Submit</button>
+                        <button class="button is-link" @click="createCampaign()" :disabled="isNone">Submit</button>
                     </div>
                 </div>
 
@@ -79,6 +70,23 @@
     margin-left: 0.25em;
 }
 
+.role
+{
+    font-size: 14px;
+    font-weight: 400 !important;
+    color: #607d8b;
+    padding: 4px 8px;
+    border: 2px solid #607d8b;
+    border-radius: 3px;
+    position: relative;
+    top: -2px;
+
+    @include mobile() {
+        display: table;
+        margin-top: -0.6em;
+    }
+}
+
 </style>
 
 <script lang="ts">
@@ -93,6 +101,7 @@ import User from '@/models/User';
 import Role from '@/models/Role';
 import GeneralService from '@/services/GeneralService';
 import PromotionService from '@/services/PromotionService';
+import { isNull } from 'util';
 
 @Component({
     components:
@@ -104,22 +113,45 @@ import PromotionService from '@/services/PromotionService';
 })
 export default class CreatePromotion extends Vue
 {
-    creationData: PromotionCreationData = {userId: "", comment: "", roleId: ""};
+    creationData: PromotionCreationData = {userId: "", comment: ""};
     error: string | null = null;
 
     selectedUser: User = new User();
     selectedRole: Role | null = null;
 
+    nextRank: string = "None";
+    isNone: boolean = true;
+
     @Watch('selectedUser')
-    userChanged()
+    async userChanged()
     {
         this.creationData.userId = this.selectedUser.userId;
+        this.selectedRole = await PromotionService.getNextRankRoleForUser(this.selectedUser.userId);
     }
 
     @Watch('selectedRole')
     roleChanged()
     {
-        this.creationData.roleId = this.selectedRole!.id;
+        if (this.selectedRole!.name == null)
+        {
+            this.isNone = true;
+            this.nextRank = "None";
+        }
+        else
+        {
+            this.isNone = false;
+            this.nextRank = "\u27A5 " + this.selectedRole!.name;
+        }
+    }
+
+    roleStyle()
+    {
+        if (!this.selectedRole)
+        {
+            return { color: "#607d8b", borderColor: "#607d8b" };
+        }
+
+        return { color: this.selectedRole!.fgColor, borderColor: this.selectedRole!.fgColor };
     }
 
     resetAutocomplete()
