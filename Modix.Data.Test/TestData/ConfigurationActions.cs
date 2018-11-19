@@ -56,6 +56,51 @@ namespace Modix.Data.Test.TestData
                     CreatedById = 2,
                     ClaimMappingId = 4
                 },
+                new ConfigurationActionEntity()
+                {
+                    Id = 6,
+                    GuildId = 1,
+                    Type = ConfigurationActionType.DesignatedChannelMappingCreated,
+                    Created = DateTimeOffset.Parse("2018-01-06T00:00:00Z"),
+                    CreatedById = 1,
+                    DesignatedChannelMappingId = 1
+                },
+                new ConfigurationActionEntity()
+                {
+                    Id = 7,
+                    GuildId = 1,
+                    Type = ConfigurationActionType.DesignatedChannelMappingDeleted,
+                    Created = DateTimeOffset.Parse("2018-01-07T00:00:00Z"),
+                    CreatedById = 2,
+                    DesignatedChannelMappingId = 1
+                },
+                new ConfigurationActionEntity()
+                {
+                    Id = 8,
+                    GuildId = 2,
+                    Type = ConfigurationActionType.DesignatedChannelMappingCreated,
+                    Created = DateTimeOffset.Parse("2018-01-08T00:00:00Z"),
+                    CreatedById = 3,
+                    DesignatedChannelMappingId = 2
+                },
+                new ConfigurationActionEntity()
+                {
+                    Id = 9,
+                    GuildId = 1,
+                    Type = ConfigurationActionType.DesignatedChannelMappingCreated,
+                    Created = DateTimeOffset.Parse("2018-01-09T00:00:00Z"),
+                    CreatedById = 1,
+                    DesignatedChannelMappingId = 3
+                },
+                new ConfigurationActionEntity()
+                {
+                    Id = 10,
+                    GuildId = 1,
+                    Type = ConfigurationActionType.DesignatedChannelMappingCreated,
+                    Created = DateTimeOffset.Parse("2018-01-10T00:00:00Z"),
+                    CreatedById = 2,
+                    DesignatedChannelMappingId = 4
+                }
             };
 
         public static ConfigurationActionEntity Clone(this ConfigurationActionEntity entity)
@@ -68,7 +113,7 @@ namespace Modix.Data.Test.TestData
                 CreatedById = entity.CreatedById,
                 ClaimMappingId = entity.ClaimMappingId,
                 DesignatedChannelMappingId = entity.DesignatedChannelMappingId,
-                DesignatedRoleMappingId = entity.DesignatedChannelMappingId
+                DesignatedRoleMappingId = entity.DesignatedRoleMappingId
             };
 
         public static IEnumerable<ConfigurationActionEntity> Clone(this IEnumerable<ConfigurationActionEntity> entities)

@@ -35,6 +35,10 @@ namespace Modix.Data.Test
                     x => x.Id);
 
                 modixContext.ResetSequenceToMaxValue(
+                    x => x.DesignatedChannelMappings,
+                    x => x.Id);
+
+                modixContext.ResetSequenceToMaxValue(
                     x => x.ConfigurationActions,
                     x => x.Id);
 

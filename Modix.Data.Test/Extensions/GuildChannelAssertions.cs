@@ -7,6 +7,16 @@ namespace Shouldly
 {
     public static class GuildChannelAssertions
     {
+        public static void ShouldMatchTestData(this GuildChannelBrief brief)
+        {
+            brief.ShouldNotBeNull();
+            brief.Id.ShouldBeOneOf(GuildChannels.Entities.Select(x => x.ChannelId).ToArray());
+
+            var entity = GuildChannels.Entities.First(x => x.ChannelId == brief.Id);
+
+            brief.Name.ShouldBe(entity.Name);
+        }
+
         public static void ShouldNotHaveChanged(this GuildChannelEntity entity)
         {
             entity.ShouldNotBeNull();
