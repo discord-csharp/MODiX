@@ -5,6 +5,7 @@ import client from './ApiClient';
 import _ from 'lodash';
 import PromotionComment from '@/models/promotions/PromotionComment';
 import Deserializer from '@/app/Deserializer';
+import Role from '@/models/Role';
 
 export default class PromotionService
 {
@@ -36,6 +37,11 @@ export default class PromotionService
         });
 
         return response;
+    }
+
+    static async getNextRankRoleForUser(subjectId: string): Promise<Role>
+    {
+        return (await client.get(`campaigns/${subjectId}/nextRank`)).data as Role;
     }
 
     static async createCampaign(data: PromotionCreationData): Promise<void>

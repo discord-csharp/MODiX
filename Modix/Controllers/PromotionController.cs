@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Discord;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
 using Modix.Data.Models.Promotions;
@@ -31,6 +33,17 @@ namespace Modix.Controllers
         {
             var result = await _promotionsService.GetCampaignDetailsAsync(campaignId);
             return Ok(result.Comments);
+        }
+
+        [HttpGet("{subjectId}/nextRank")]
+        public async Task<IActionResult> GetNextRankRoleForUser(ulong subjectId)
+        {
+            var result = await _promotionsService.GetNextRankRoleForUserAsync(subjectId);
+            var color = result is null
+                ? Color.DarkGrey
+                : UserGuild.Roles.FirstOrDefault(r => r.Id == result.Id).Color;
+
+            return Ok(new { result?.Id, result?.Name, fgColor = color.ToString() });
         }
 
         [HttpPut("{campaignId}/comments")]
@@ -90,8 +103,7 @@ namespace Modix.Controllers
         {
             try
             {
-                // TODO: get promotion rank from creation data
-                await _promotionsService.CreateCampaignAsync(creationData.UserId, creationData.RoleId, creationData.Comment);
+                await _promotionsService.CreateCampaignAsync(creationData.UserId, creationData.Comment);
             }
             catch (InvalidOperationException ex)
             {
