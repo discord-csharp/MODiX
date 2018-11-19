@@ -97,6 +97,71 @@ namespace Modix.Data.Test.Repositories
 
         #endregion BeginCreateTransactionAsync() Tests
 
+        #region BeginDeleteTransactionAsync() Tests
+
+        [Test]
+        [NonParallelizable]
+        public async Task BeginDeleteTransactionAsync_DeleteTransactionIsInProgress_WaitsForCompletion()
+        {
+            (var modixContext, var uut) = BuildTestContext();
+
+            var existingTransaction = await uut.BeginDeleteTransactionAsync();
+
+            var result = uut.BeginDeleteTransactionAsync();
+
+            result.IsCompleted.ShouldBeFalse();
+
+            existingTransaction.Dispose();
+            (await result).Dispose();
+        }
+
+        [Test]
+        [NonParallelizable]
+        public async Task BeginDeleteTransactionAsync_DeleteTransactionIsNotInProgress_ReturnsImmediately()
+        {
+            (var modixContext, var uut) = BuildTestContext();
+
+            var result = uut.BeginDeleteTransactionAsync();
+
+            result.IsCompleted.ShouldBeTrue();
+
+            (await result).Dispose();
+        }
+
+        [Test]
+        [NonParallelizable]
+        public async Task BeginDeleteTransactionAsync_CreateTransactionIsInProgress_ReturnsImmediately()
+        {
+            (var modixContext, var uut) = BuildTestContext();
+
+            var createTransaction = await uut.BeginCreateTransactionAsync();
+
+            var result = uut.BeginDeleteTransactionAsync();
+
+            result.IsCompleted.ShouldBeTrue();
+
+            createTransaction.Dispose();
+            (await result).Dispose();
+        }
+
+        [Test]
+        [NonParallelizable]
+        public async Task BeginDeleteTransactionAsync_Always_TransactionIsForContextDatabase()
+        {
+            (var modixContext, var uut) = BuildTestContext();
+
+            var database = Substitute.ForPartsOf<DatabaseFacade>(modixContext);
+            modixContext.Database.Returns(database);
+
+            using (var transaction = await uut.BeginDeleteTransactionAsync())
+            { }
+
+            await database.ShouldHaveReceived(1)
+                .BeginTransactionAsync();
+        }
+
+        #endregion BeginDeleteTransactionAsync() Tests
+
         #region CreateAsync() Tests
 
         [Test]

@@ -232,13 +232,16 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task UnConfigureGuildAsync(IGuild guild)
         {
-            foreach (var claimMappingId in await ClaimMappingRepository.SearchIdsAsync(new ClaimMappingSearchCriteria()
+            using (var deleteTransaction = await ClaimMappingRepository.BeginDeleteTransactionAsync())
             {
-                GuildId = guild.Id,
-                IsDeleted = false
-            }))
-            {
-                await ClaimMappingRepository.TryDeleteAsync(claimMappingId, DiscordClient.CurrentUser.Id);
+                foreach (var claimMappingId in await ClaimMappingRepository.SearchIdsAsync(new ClaimMappingSearchCriteria()
+                {
+                    GuildId = guild.Id,
+                    IsDeleted = false
+                }))
+                {
+                    await ClaimMappingRepository.TryDeleteAsync(claimMappingId, DiscordClient.CurrentUser.Id);
+                }
             }
         }
 
@@ -255,7 +258,8 @@ namespace Modix.Services.Core
                 GuildId = CurrentGuildId
             });
 
-            using (var transaction = await ClaimMappingRepository.BeginCreateTransactionAsync())
+            using (var createTransaction = await ClaimMappingRepository.BeginCreateTransactionAsync())
+            using (var deleteTransaction = await ClaimMappingRepository.BeginDeleteTransactionAsync())
             {
                 foreach (var existing in foundClaims)
                 {
@@ -274,7 +278,8 @@ namespace Modix.Services.Core
                     });
                 }
 
-                transaction.Commit();
+                createTransaction.Commit();
+                deleteTransaction.Commit();
             }
         }
 
@@ -350,19 +355,24 @@ namespace Modix.Services.Core
             RequireAuthenticatedUser();
             RequireClaims(AuthorizationClaim.AuthorizationConfigure);
 
-            var mappingIds = await ClaimMappingRepository.SearchIdsAsync(new ClaimMappingSearchCriteria()
+            using (var transaction = await ClaimMappingRepository.BeginDeleteTransactionAsync())
             {
-                Types = new[] { type },
-                GuildId = role.Guild.Id,
-                RoleIds = new[] { role.Id },
-                Claims = new[] { claim },
-                IsDeleted = false,
-            });
+                var mappingIds = await ClaimMappingRepository.SearchIdsAsync(new ClaimMappingSearchCriteria()
+                {
+                    Types = new[] { type },
+                    GuildId = role.Guild.Id,
+                    RoleIds = new[] { role.Id },
+                    Claims = new[] { claim },
+                    IsDeleted = false,
+                });
 
-            if (!mappingIds.Any())
-                throw new InvalidOperationException($"A claim mapping of type {type} to claim {claim} for role {role.Name} does not exist");
+                if (!mappingIds.Any())
+                    throw new InvalidOperationException($"A claim mapping of type {type} to claim {claim} for role {role.Name} does not exist");
 
-            await ClaimMappingRepository.TryDeleteAsync(mappingIds.First(), CurrentUserId.Value);
+                await ClaimMappingRepository.TryDeleteAsync(mappingIds.First(), CurrentUserId.Value);
+
+                transaction.Commit();
+            }
         }
 
         /// <inheritdoc />
@@ -371,19 +381,24 @@ namespace Modix.Services.Core
             RequireAuthenticatedUser();
             RequireClaims(AuthorizationClaim.AuthorizationConfigure);
 
-            var mappingIds = await ClaimMappingRepository.SearchIdsAsync(new ClaimMappingSearchCriteria()
+            using (var transaction = await ClaimMappingRepository.BeginDeleteTransactionAsync())
             {
-                Types = new[] { type },
-                GuildId = user.Guild.Id,
-                UserId = user.Id,
-                Claims = new[] { claim },
-                IsDeleted = false,
-            });
+                var mappingIds = await ClaimMappingRepository.SearchIdsAsync(new ClaimMappingSearchCriteria()
+                {
+                    Types = new[] { type },
+                    GuildId = user.Guild.Id,
+                    UserId = user.Id,
+                    Claims = new[] { claim },
+                    IsDeleted = false,
+                });
 
-            if (!mappingIds.Any())
-                throw new InvalidOperationException($"A claim mapping of type {type} to claim {claim} for user {user.GetDisplayName()} does not exist");
+                if (!mappingIds.Any())
+                    throw new InvalidOperationException($"A claim mapping of type {type} to claim {claim} for user {user.GetDisplayName()} does not exist");
 
-            await ClaimMappingRepository.TryDeleteAsync(mappingIds.First(), CurrentUserId.Value);
+                await ClaimMappingRepository.TryDeleteAsync(mappingIds.First(), CurrentUserId.Value);
+
+                transaction.Commit();
+            }
         }
 
         /// <inheritdoc />

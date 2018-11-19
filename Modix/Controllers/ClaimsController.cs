@@ -39,7 +39,13 @@ namespace Modix.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteClaim(int id)
         {
-            await ClaimMappingRepository.TryDeleteAsync(id, SocketUser.Id);
+            using (var transaction = await ClaimMappingRepository.BeginDeleteTransactionAsync())
+            {
+                if (!await ClaimMappingRepository.TryDeleteAsync(id, SocketUser.Id))
+                    return NotFound();
+
+                transaction.Commit();
+            }
             return Ok();
         }
     }
