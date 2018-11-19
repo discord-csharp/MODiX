@@ -191,7 +191,12 @@ namespace Modix.Modules
 
         private string FormatTimeAgo(string prefix, DateTimeOffset ago)
         {
-            var humanizedTimeAgo = (_utcNow - ago).Humanize(maxUnit: TimeUnit.Year, culture: CultureInfo.InvariantCulture);
+            var span = _utcNow - ago;
+
+            var humanizedTimeAgo = span > TimeSpan.FromSeconds(60)
+                ? span.Humanize(maxUnit: TimeUnit.Year, culture: CultureInfo.InvariantCulture)
+                : "a few seconds";
+
             return string.Format(CultureInfo.InvariantCulture, Format, prefix, humanizedTimeAgo, ago.UtcDateTime);
         }
 
