@@ -75,7 +75,7 @@ namespace Modix.Services.AutoCodePaste
             return await UploadCodeAsync(formatted);
         }
 
-        public EmbedBuilder BuildEmbed(IUser user, string content, string url)
+        public Embed BuildEmbed(IUser user, string content, string url)
         {
             var cleanCode = FormatUtilities.FixIndentation(content);
 
@@ -83,8 +83,9 @@ namespace Modix.Services.AutoCodePaste
                 .WithTitle("Your message was re-uploaded")
                 .WithAuthor(user)
                 .WithDescription(cleanCode.Trim().Truncate(200, 6))
-                .AddInlineField("Auto-Paste", url)
-                .WithColor(new Color(95, 186, 125));
+                .AddField("Auto-Paste", url, true)
+                .WithColor(new Color(95, 186, 125))
+                .Build();
         }
     }
 }

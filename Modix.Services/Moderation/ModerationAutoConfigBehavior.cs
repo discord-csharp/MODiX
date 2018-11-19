@@ -62,7 +62,7 @@ namespace Modix.Services.Moderation
         internal protected DiscordSocketClient DiscordClient { get; }
 
         private Task OnGuildAvailableAsync(IGuild guild)
-            => SelfExecuteRequest<IModerationService>(x => x.AutoConfigureGuldAsync(guild));
+            => SelfExecuteRequest<IModerationService>(x => x.AutoConfigureGuildAsync(guild));
 
         private Task OnChannelCreated(IChannel channel)
             => SelfExecuteRequest<IModerationService>(x => x.AutoConfigureChannelAsync(channel));

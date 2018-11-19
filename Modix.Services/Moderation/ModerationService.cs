@@ -24,7 +24,7 @@ namespace Modix.Services.Moderation
         /// </summary>
         /// <param name="guild">The guild to be configured.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has complete.</returns>
-        Task AutoConfigureGuldAsync(IGuild guild);
+        Task AutoConfigureGuildAsync(IGuild guild);
 
         /// <summary>
         /// Automatically configures role and channel permissions, related to moderation, for a given channel.
@@ -183,7 +183,7 @@ namespace Modix.Services.Moderation
         }
 
         /// <inheritdoc />
-        public async Task AutoConfigureGuldAsync(IGuild guild)
+        public async Task AutoConfigureGuildAsync(IGuild guild)
         {
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
@@ -191,7 +191,7 @@ namespace Modix.Services.Moderation
             var muteRole = await GetOrCreateDesignatedMuteRoleAsync(guild, AuthorizationService.CurrentUserId.Value);
 
             foreach (var channel in await guild.GetChannelsAsync())
-                await ConfigureChannelMuteRolePermissions(channel, muteRole);
+                await ConfigureChannelMuteRolePermissionsAsync(channel, muteRole);
         }
 
         /// <inheritdoc />
@@ -204,7 +204,7 @@ namespace Modix.Services.Moderation
             {
                 var muteRole = await GetOrCreateDesignatedMuteRoleAsync(guildChannel.Guild, AuthorizationService.CurrentUserId.Value);
 
-                await ConfigureChannelMuteRolePermissions(guildChannel, muteRole);
+                await ConfigureChannelMuteRolePermissionsAsync(guildChannel, muteRole);
             }
         }
 
@@ -553,23 +553,19 @@ namespace Modix.Services.Moderation
             }
         }
 
-        private Task ConfigureChannelMuteRolePermissions(IGuildChannel channel, IRole muteRole)
+        private async Task ConfigureChannelMuteRolePermissionsAsync(IGuildChannel channel, IRole muteRole)
         {
-            // TODO: GetPermissionOverwrite and AddPermissionOverwriteAsync are bugged in Discord.NET 1.0.2.
-            // Probably need to upgrade Discord.NET to get this functionality.
-            return Task.CompletedTask;
+            var permissionOverwrite = channel.GetPermissionOverwrite(muteRole);
+            if (permissionOverwrite != null)
+            {
+                if ((permissionOverwrite.Value.AllowValue == _mutePermissions.AllowValue) &&
+                    (permissionOverwrite.Value.DenyValue == _mutePermissions.DenyValue))
+                    return;
 
-            //var permissionOverwrite = channel.GetPermissionOverwrite(muteRole);
-            //if (permissionOverwrite != null)
-            //{
-            //    if ((permissionOverwrite.Value.AllowValue == _mutePermissions.AllowValue) &&
-            //        (permissionOverwrite.Value.DenyValue == _mutePermissions.DenyValue))
-            //        return;
+                await channel.RemovePermissionOverwriteAsync(muteRole);
+            }
 
-            //    await channel.RemovePermissionOverwriteAsync(muteRole);
-            //}
-
-            //await channel.AddPermissionOverwriteAsync(muteRole, _mutePermissions);
+            await channel.AddPermissionOverwriteAsync(muteRole, _mutePermissions);
         }
 
         private async Task DoRescindInfractionAsync(InfractionSummary infraction, bool isAutoRescind = false)

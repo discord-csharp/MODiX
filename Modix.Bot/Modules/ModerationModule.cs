@@ -63,16 +63,12 @@ namespace Modix.Modules
             [Summary("The user to be muted.")]
                 IGuildUser subject,
             [Summary("The duration of the mute.")]
-                string durationString,
+                TimeSpan duration,
             [Summary("The reason for the mute.")]
             [Remainder]
                 string reason)
         {
-            // TODO: Remove when we port to 2.0
-            var duration = TimeSpanTypeReader.Read(durationString);
-            if (!duration.HasValue) { throw new ArgumentException("Invalid Timespan Format"); }
-
-            await ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, duration.Value);
+            await ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, duration);
             await Context.AddConfirmation();
         }
 

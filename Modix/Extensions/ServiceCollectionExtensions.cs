@@ -48,7 +48,6 @@ namespace Microsoft.Extensions.DependencyInjection
                         });
 
                     service.AddTypeReader<IEmote>(new EmoteTypeReader());
-                    service.AddModulesAsync(typeof(ModixBot).Assembly).GetAwaiter().GetResult();
 
                     return service;
                 });

@@ -7,6 +7,8 @@ using Discord.Commands;
 
 namespace Modix.Modules
 {
+    //TODO: This constructor will throw with Discord.Net 2.0, so commenting it out for now
+    /*
     [Group("pingrole"), Name("Marker Role Manager"), Summary("Allows you to add and remove specific marker roles.")]
     public class MarkerRoleModule : ModuleBase
     {
@@ -110,4 +112,5 @@ namespace Modix.Modules
             await ReplyAsync($"Deleted and unregistered role `{targetRole.Name}`.");
         }
     }
+    */
 }
