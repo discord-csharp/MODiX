@@ -1,9 +1,10 @@
 ﻿using Discord;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 
-namespace Modix.Services.Moderation
+namespace Modix.Data.Models
 {
     public class EphemeralUser : IGuildUser
     {
@@ -62,12 +63,7 @@ namespace Modix.Services.Moderation
 
         public string VoiceSessionId { get; private set; } = null;
 
-        public IActivity Activity => throw new NotImplementedException();
-
-        //Discord default green user icon
-        public string GetDefaultAvatarUrl() => "https://discordapp.com/assets/dd4dbc0016779df1378e7812eabaa04d.png";
-
-        public string GetAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128) => GetDefaultAvatarUrl();
+        public IActivity Activity { get; private set; } = null;
 
         public Task AddRoleAsync(IRole role, RequestOptions options = null)
         {
@@ -75,6 +71,16 @@ namespace Modix.Services.Moderation
         }
 
         public Task AddRolesAsync(IEnumerable<IRole> roles, RequestOptions options = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetDefaultAvatarUrl()
         {
             throw new NotImplementedException();
         }
