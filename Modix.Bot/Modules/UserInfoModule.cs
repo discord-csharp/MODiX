@@ -9,6 +9,7 @@ using Humanizer;
 using Humanizer.Localisation;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Modix.Bot.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
@@ -68,13 +69,7 @@ namespace Modix.Modules
 
             try
             {
-                var messagePastWeek = await MessageRepository.GetUserMessageCountAsync(Context.Guild.Id, userId, TimeSpan.FromDays(7));
-                var messagePastMonth = await MessageRepository.GetUserMessageCountAsync(Context.Guild.Id, userId, TimeSpan.FromDays(30));
-
-                builder.AppendLine();
-                builder.AppendLine("**\u276F Guild Participation**");
-                builder.AppendLine("Last 7 days: " + messagePastWeek + " messages");
-                builder.AppendLine("Last 30 days: " + messagePastMonth + " messages");
+                await AddParticipationToEmbed(userId, builder);
             }
             catch (Exception ex)
             {
@@ -153,6 +148,45 @@ namespace Modix.Modules
             var counts = await ModerationService.GetInfractionCountsForUserAsync(userId);
 
             builder.AppendLine(FormatUtilities.FormatInfractionCounts(counts));
+        }
+
+        private async Task AddParticipationToEmbed(ulong userId, StringBuilder builder)
+        {
+            var messages = await MessageRepository.GetRecentUserMessagesAsync(Context.Guild.Id, userId, TimeSpan.FromDays(30));
+
+            var lastWeek = DateTimeOffset.UtcNow - TimeSpan.FromDays(7);
+            var pastWeekCount = messages.Count(x => x.Timestamp >= lastWeek);
+
+            builder.AppendLine();
+            builder.AppendLine("**\u276F Guild Participation**");
+            builder.AppendLine("Last 7 days: " + pastWeekCount + " messages");
+            builder.AppendLine("Last 30 days: " + messages.Count + " messages");
+
+            if (messages.Count > 0)
+            {
+                try
+                {
+                    var channels = messages.GroupBy(x => x.ChannelId)
+                        .Select(x => (ChannelId: x.Key, MessageCount: x.Count()))
+                        .OrderByDescending(x => x.MessageCount)
+                        .ToArray();
+
+                    foreach (var (channelId, messageCount) in channels)
+                    {
+                        var channel = await Context.Guild.GetChannelAsync(channelId);
+
+                        if (channel.IsPublic())
+                        {
+                            builder.AppendLine($"Most active channel: {MentionUtils.MentionChannel(channel.Id)} ({messageCount} messages)");
+                            return;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.LogDebug(ex, "Unable to get the most active channel for {UserId}.", userId);
+                }
+            }
         }
 
         private string FormatTimeAgo(string prefix, DateTimeOffset ago)
