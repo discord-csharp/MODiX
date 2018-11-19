@@ -11,6 +11,8 @@ namespace Modix.Data.Repositories
         Task<IEnumerable<MessageEntity>> GetUserMessages(ulong guildId, ulong userId);
 
         Task AddAsync(MessageEntity message);
+
+        Task RemoveAsync(ulong messageId);
     }
 
     public class MessageRepository : RepositoryBase, IMessageRepository
@@ -22,6 +24,15 @@ namespace Modix.Data.Repositories
         {
             await ModixContext.Messages.AddAsync(message);
             await ModixContext.SaveChangesAsync();
+        }
+
+        public async Task RemoveAsync(ulong messageId)
+        {
+            if (await ModixContext.Messages.FindAsync(messageId) is MessageEntity message)
+            {
+                ModixContext.Messages.Remove(message);
+                await ModixContext.SaveChangesAsync();
+            }
         }
 
         public Task<IEnumerable<MessageEntity>> GetUserMessages(ulong guildId, ulong userId)

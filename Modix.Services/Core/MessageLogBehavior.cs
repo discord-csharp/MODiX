@@ -153,6 +153,8 @@ namespace Modix.Services.Core
                 .WithDescription(descriptionContent)
                 .WithCurrentTimestamp();
 
+            await SelfExecuteRequest<IMessageRepository>(async messages => await messages.RemoveAsync(message.Id));
+
             await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
             {
                 await designatedChannelService.SendToDesignatedChannelsAsync(
