@@ -55,6 +55,9 @@ namespace Modix.Data.Models.Core
 
             return query
                 .FilterBy(
+                    x => x.Id == criteria.Id,
+                    !(criteria.Id is null))
+                .FilterBy(
                     x => x.GuildId == criteria.GuildId,
                     !(criteria.GuildId is null))
                 .FilterBy(
