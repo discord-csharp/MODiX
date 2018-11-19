@@ -24,7 +24,7 @@ namespace Modix.Services.Moderation
         private readonly IDesignatedChannelService _designatedChannelService;
         private readonly IAuthorizationService _authorizationService;
         private readonly IModerationService _moderationService;
-        private readonly IUser _botUser;
+        private readonly ISelfUser _botUser;
 
         /// <summary>
         /// Constructs a new <see cref="ModerationInvitePurgingHandler"/> object, with the given injected dependencies.
@@ -38,7 +38,7 @@ namespace Modix.Services.Moderation
             IDesignatedChannelService designatedChannelService,
             IAuthorizationService authorizationService,
             IModerationService moderationService,
-            IUser botUser)
+            ISelfUser botUser)
         {
             _designatedChannelService = designatedChannelService;
             _authorizationService = authorizationService;
