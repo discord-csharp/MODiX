@@ -4,11 +4,11 @@ using Discord;
 using Discord.WebSocket;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using Modix.Services;
 using Modix.Services.Core;
 using Modix.Services.Messages.Discord;
+using Serilog;
 
-namespace Modix.Adapters.Discord
+namespace Modix.Services.Adapters
 {
     public class DiscordAdapter : IBehavior
     {
@@ -50,6 +50,7 @@ namespace Modix.Adapters.Discord
 
                 var mediator = provider.GetRequiredService<IMediator>();
                 await mediator.Publish(message);
+                Log.Debug("Done publishing message");
             }
         }
 
