@@ -103,8 +103,13 @@ namespace Modix.Data.Test.Repositories
 
             await Should.ThrowAsync<ArgumentNullException>(uut.CreateAsync(null));
 
-            modixContext.GuildChannels.Select(x => x.ChannelId).ShouldBe(GuildChannels.Entities.Select(x => x.ChannelId));
-            modixContext.GuildChannels.EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.GuildChannels
+                .Select(x => x.ChannelId)
+                .ShouldBe(GuildChannels.Entities
+                    .Select(x => x.ChannelId));
+
+            modixContext.GuildChannels
+                .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();
@@ -117,11 +122,23 @@ namespace Modix.Data.Test.Repositories
 
             await uut.CreateAsync(data);
 
-            modixContext.GuildChannels.ShouldContain(x => x.ChannelId == data.ChannelId);
-            var role = modixContext.GuildChannels.First(x => x.ChannelId == data.ChannelId);
+            modixContext.GuildChannels
+                .ShouldContain(x => x.ChannelId == data.ChannelId);
+            var channel = modixContext.GuildChannels
+                .First(x => x.ChannelId == data.ChannelId);
 
-            role.GuildId.ShouldBe(data.GuildId);
-            role.Name.ShouldBe(data.Name);
+            channel.GuildId.ShouldBe(data.GuildId);
+            channel.Name.ShouldBe(data.Name);
+
+            modixContext.GuildChannels
+                .Where(x => x.ChannelId != channel.ChannelId)
+                .Select(x => x.ChannelId)
+                .ShouldBe(GuildChannels.Entities
+                    .Select(x => x.ChannelId));
+
+            modixContext.GuildChannels
+                .Where(x => x.ChannelId != channel.ChannelId)
+                .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldHaveReceived(1)
                 .SaveChangesAsync();
@@ -134,8 +151,13 @@ namespace Modix.Data.Test.Repositories
 
             await Should.ThrowAsync<InvalidOperationException>(uut.CreateAsync(data));
 
-            modixContext.GuildChannels.Select(x => x.ChannelId).ShouldBe(GuildChannels.Entities.Select(x => x.ChannelId));
-            modixContext.GuildChannels.EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.GuildChannels
+                .Select(x => x.ChannelId)
+                .ShouldBe(GuildChannels.Entities
+                    .Select(x => x.ChannelId));
+
+            modixContext.GuildChannels
+                .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();
@@ -153,26 +175,31 @@ namespace Modix.Data.Test.Repositories
             await Should.ThrowAsync<ArgumentNullException>(async () =>
                 await uut.TryUpdateAsync(1, null));
 
-            modixContext.GuildChannels.Select(x => x.ChannelId).ShouldBe(GuildChannels.Entities.Select(x => x.ChannelId));
-            modixContext.GuildChannels.EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.GuildChannels
+                .Select(x => x.ChannelId)
+                .ShouldBe(GuildChannels.Entities
+                    .Select(x => x.ChannelId));
+
+            modixContext.GuildChannels
+                .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();
         }
 
         [TestCaseSource(nameof(ExistingGuildChannelIds))]
-        public async Task TryUpdateAsync_GuildChannelExists_UpdatesGuildChannelAndReturnsTrue(ulong roleId)
+        public async Task TryUpdateAsync_GuildChannelExists_UpdatesGuildChannelAndReturnsTrue(ulong channelId)
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            var guildChannel = modixContext.GuildChannels.Single(x => x.ChannelId == roleId);
+            var guildChannel = modixContext.GuildChannels.Single(x => x.ChannelId == channelId);
 
             var mutatedData = new GuildChannelMutationData()
             {
                 Name = "UpdatedChannel"
             };
 
-            var result = await uut.TryUpdateAsync(roleId, data =>
+            var result = await uut.TryUpdateAsync(channelId, data =>
             {
                 data.Name.ShouldBe(guildChannel.Name);
 
@@ -182,6 +209,15 @@ namespace Modix.Data.Test.Repositories
             result.ShouldBeTrue();
 
             guildChannel.Name.ShouldBe(mutatedData.Name);
+
+            modixContext.GuildChannels
+                .Select(x => x.ChannelId)
+                .ShouldBe(GuildChannels.Entities
+                    .Select(x => x.ChannelId));
+
+            modixContext.GuildChannels
+                .Where(x => x.ChannelId != channelId)
+                .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldHaveReceived(1)
                 .SaveChangesAsync();
@@ -201,8 +237,13 @@ namespace Modix.Data.Test.Repositories
             updateAction.ShouldNotHaveReceived()
                 .Invoke(Arg.Any<GuildChannelMutationData>());
 
-            modixContext.GuildChannels.Select(x => x.ChannelId).ShouldBe(GuildChannels.Entities.Select(x => x.ChannelId));
-            modixContext.GuildChannels.EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.GuildChannels
+                .Select(x => x.ChannelId)
+                .ShouldBe(GuildChannels.Entities
+                    .Select(x => x.ChannelId));
+
+            modixContext.GuildChannels
+                .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();

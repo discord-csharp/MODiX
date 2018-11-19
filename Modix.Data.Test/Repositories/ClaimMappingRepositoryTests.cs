@@ -126,8 +126,10 @@ namespace Modix.Data.Test.Repositories
             claimMapping.UserId.ShouldBe(data.UserId);
             claimMapping.Claim.ShouldBe(data.Claim);
 
-            modixContext.ConfigurationActions.ShouldContain(x => x.Id == claimMapping.CreateActionId);
-            var createAction = modixContext.ConfigurationActions.First(x => x.Id == claimMapping.CreateActionId);
+            modixContext.ConfigurationActions
+                .ShouldContain(x => x.Id == claimMapping.CreateActionId);
+            var createAction = modixContext.ConfigurationActions
+                .First(x => x.Id == claimMapping.CreateActionId);
 
             createAction.GuildId.ShouldBe(data.GuildId);
             createAction.Type.ShouldBe(ConfigurationActionType.ClaimMappingCreated);
@@ -257,13 +259,35 @@ namespace Modix.Data.Test.Repositories
 
             result.ShouldBeTrue();
 
-            modixContext.ClaimMappings.ShouldContain(x => x.Id == claimMappingId);
-            var claimMapping = modixContext.ClaimMappings.First(x => x.Id == claimMappingId);
+            modixContext.ClaimMappings
+                .ShouldContain(x => x.Id == claimMappingId);
+            var claimMapping = modixContext.ClaimMappings
+                .First(x => x.Id == claimMappingId);
 
+            var originalClaimMapping = ClaimMappings.Entities
+                .First(x => x.Id == claimMappingId);
+
+            claimMapping.GuildId.ShouldBe(originalClaimMapping.GuildId);
+            claimMapping.Type.ShouldBe(originalClaimMapping.Type);
+            claimMapping.RoleId.ShouldBe(originalClaimMapping.RoleId);
+            claimMapping.UserId.ShouldBe(originalClaimMapping.UserId);
+            claimMapping.Claim.ShouldBe(originalClaimMapping.Claim);
+            claimMapping.CreateActionId.ShouldBe(originalClaimMapping.CreateActionId);
             claimMapping.DeleteActionId.ShouldNotBeNull();
 
-            modixContext.ConfigurationActions.ShouldContain(x => x.Id == claimMapping.DeleteActionId);
-            var deleteAction = modixContext.ConfigurationActions.First(x => x.Id == claimMapping.DeleteActionId);
+            modixContext.ClaimMappings
+                .Select(x => x.Id)
+                .ShouldBe(ClaimMappings.Entities
+                    .Select(x => x.Id));
+
+            modixContext.ClaimMappings
+                .Where(x => x.Id != claimMappingId)
+                .EachShould(x => x.ShouldNotHaveChanged());
+
+            modixContext.ConfigurationActions
+                .ShouldContain(x => x.Id == claimMapping.DeleteActionId);
+            var deleteAction = modixContext.ConfigurationActions
+                .First(x => x.Id == claimMapping.DeleteActionId);
 
             deleteAction.GuildId.ShouldBe(claimMapping.GuildId);
             deleteAction.Type.ShouldBe(ConfigurationActionType.ClaimMappingDeleted);
@@ -275,29 +299,24 @@ namespace Modix.Data.Test.Repositories
             deleteAction.DesignatedChannelMappingId.ShouldBeNull();
             deleteAction.DesignatedRoleMappingId.ShouldBeNull();
 
+            modixContext.ConfigurationActions
+                .Where(x => x.Id != deleteAction.Id)
+                .Select(x => x.Id)
+                .ShouldBe(ConfigurationActions.Entities
+                    .Where(x => !(x.ClaimMappingId is null))
+                    .Select(x => x.Id));
+
+            modixContext.ConfigurationActions
+                .Where(x => x.Id != deleteAction.Id)
+                .EachShould(x => x.ShouldNotHaveChanged());
+
             await modixContext.ShouldHaveReceived(1)
                 .SaveChangesAsync();
         }
 
         [TestCaseSource(nameof(DeletedClaimMappingWithValidUserIdTestCases))]
-        public async Task TryDeleteAsync_ClaimMappingExists_DoesNotUpdateClaimMappingAndReturnsFalse(long claimMappingId, ulong deletedById)
-        {
-            (var modixContext, var uut) = BuildTestContext();
-
-            var result = await uut.TryDeleteAsync(claimMappingId, deletedById);
-
-            result.ShouldBeFalse();
-
-            var claimMapping = modixContext.ClaimMappings.First(x => x.Id == claimMappingId);
-
-            claimMapping.ShouldNotHaveChanged();
-
-            await modixContext.ShouldNotHaveReceived()
-                .SaveChangesAsync();
-        }
-
         [TestCaseSource(nameof(InvalidClaimMappingWithValidUserIdTestCases))]
-        public async Task TryDeleteAsync_ClaimMappingDoesNotExist_DoesNotUpdateClaimMappingsAndReturnsFalse(long claimMappingId, ulong deletedById)
+        public async Task TryDeleteAsync_ClaimMappingExists_DoesNotUpdateClaimMappingsAndReturnsFalse(long claimMappingId, ulong deletedById)
         {
             (var modixContext, var uut) = BuildTestContext();
 
@@ -305,8 +324,23 @@ namespace Modix.Data.Test.Repositories
 
             result.ShouldBeFalse();
 
-            modixContext.ClaimMappings.Select(x => x.Id).ShouldBe(ClaimMappings.Entities.Select(x => x.Id));
-            modixContext.ClaimMappings.EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.ClaimMappings
+                .Select(x => x.Id)
+                .ShouldBe(ClaimMappings.Entities
+                    .Select(x => x.Id));
+
+            modixContext.ClaimMappings
+                .Where(x => x.Id != claimMappingId)
+                .EachShould(x => x.ShouldNotHaveChanged());
+
+            modixContext.ConfigurationActions
+                .Select(x => x.Id)
+                .ShouldBe(ConfigurationActions.Entities
+                    .Where(x => !(x.ClaimMappingId is null))
+                    .Select(x => x.Id));
+
+            modixContext.ConfigurationActions
+                .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();

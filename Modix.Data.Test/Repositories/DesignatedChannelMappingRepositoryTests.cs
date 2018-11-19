@@ -427,6 +427,15 @@ namespace Modix.Data.Test.Repositories
             designatedChannelMapping.CreateActionId.ShouldBe(originalDesignatedChannelMapping.CreateActionId);
             designatedChannelMapping.DeleteActionId.ShouldNotBeNull();
 
+            modixContext.DesignatedChannelMappings
+                .Select(x => x.Id)
+                .ShouldBe(DesignatedChannelMappings.Entities
+                    .Select(x => x.Id));
+
+            modixContext.DesignatedChannelMappings
+                .Where(x => x.Id != designatedChannelMappingId)
+                .EachShould(x => x.ShouldNotHaveChanged());
+
             modixContext.ConfigurationActions
                 .ShouldContain(x => x.Id == designatedChannelMapping.DeleteActionId);
             var deleteAction = modixContext.ConfigurationActions
@@ -441,6 +450,17 @@ namespace Modix.Data.Test.Repositories
             deleteAction.ClaimMappingId.ShouldBeNull();
             deleteAction.DesignatedChannelMappingId.ShouldBe(designatedChannelMapping.Id);
             deleteAction.DesignatedRoleMappingId.ShouldBeNull();
+
+            modixContext.ConfigurationActions
+                .Where(x => x.Id != deleteAction.Id)
+                .Select(x => x.Id)
+                .ShouldBe(ConfigurationActions.Entities
+                    .Where(x => !(x.DesignatedChannelMappingId is null))
+                    .Select(x => x.Id));
+
+            modixContext.ConfigurationActions
+                .Where(x => x.Id != deleteAction.Id)
+                .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldHaveReceived(1)
                 .SaveChangesAsync();

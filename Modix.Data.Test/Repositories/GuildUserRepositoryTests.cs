@@ -105,11 +105,21 @@ namespace Modix.Data.Test.Repositories
             await Should.ThrowAsync<ArgumentNullException>(async () => 
                 await uut.CreateAsync(null));
 
-            modixContext.GuildUsers.AsEnumerable().Select(x => (x.UserId, x.GuildId)).ShouldBe(GuildUsers.Entities.Select(x => (x.UserId, x.GuildId)));
-            modixContext.GuildUsers.EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.GuildUsers.AsEnumerable()
+                .Select(x => (x.UserId, x.GuildId))
+                .ShouldBe(GuildUsers.Entities
+                    .Select(x => (x.UserId, x.GuildId)));
 
-            modixContext.Users.Select(x => x.Id).ShouldBe(Users.Entities.Select(x => x.Id));
-            modixContext.Users.EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.GuildUsers
+                .EachShould(x => x.ShouldNotHaveChanged());
+
+            modixContext.Users
+                .Select(x => x.Id)
+                .ShouldBe(Users.Entities
+                    .Select(x => x.Id));
+
+            modixContext.Users
+                .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();
@@ -127,6 +137,16 @@ namespace Modix.Data.Test.Repositories
 
             user.Username.ShouldBe(data.Username);
             user.Discriminator.ShouldBe(data.Discriminator);
+
+            modixContext.Users
+                .Where(x => x.Id != user.Id)
+                .Select(x => x.Id)
+                .ShouldBe(Users.Entities
+                    .Select(x => x.Id));
+
+            modixContext.Users
+                .Where(x => x.Id != user.Id)
+                .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldHaveReceived(1)
                 .SaveChangesAsync();
@@ -146,6 +166,15 @@ namespace Modix.Data.Test.Repositories
 
             user.Username.ShouldBe(data.Username);
             user.Discriminator.ShouldBe(data.Discriminator);
+
+            modixContext.Users
+                .Select(x => x.Id)
+                .ShouldBe(Users.Entities
+                    .Select(x => x.Id));
+
+            modixContext.Users
+                .Where(x => x.Id != user.Id)
+                .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldHaveReceived(1)
                 .SaveChangesAsync();
@@ -168,6 +197,15 @@ namespace Modix.Data.Test.Repositories
 
             user.Username.ShouldBe(previousUser.Username);
 
+            modixContext.Users
+                .Select(x => x.Id)
+                .ShouldBe(Users.Entities
+                    .Select(x => x.Id));
+
+            modixContext.Users
+                .Where(x => x.Id != user.Id)
+                .EachShould(x => x.ShouldNotHaveChanged());
+
             await modixContext.ShouldHaveReceived(1)
                 .SaveChangesAsync();
         }
@@ -189,6 +227,15 @@ namespace Modix.Data.Test.Repositories
 
             user.Discriminator.ShouldBe(previousUser.Discriminator);
 
+            modixContext.Users
+                .Select(x => x.Id)
+                .ShouldBe(Users.Entities
+                    .Select(x => x.Id));
+
+            modixContext.Users
+                .Where(x => x.Id != user.Id)
+                .EachShould(x => x.ShouldNotHaveChanged());
+
             await modixContext.ShouldHaveReceived(1)
                 .SaveChangesAsync();
         }
@@ -207,6 +254,16 @@ namespace Modix.Data.Test.Repositories
             guildUser.FirstSeen.ShouldBe(data.FirstSeen);
             guildUser.LastSeen.ShouldBe(data.LastSeen);
 
+            modixContext.GuildUsers.AsEnumerable()
+                .Where(x => (x.GuildId != guildUser.GuildId) || (x.UserId != guildUser.UserId))
+                .Select(x => (x.UserId, x.GuildId))
+                .ShouldBe(GuildUsers.Entities
+                    .Select(x => (x.UserId, x.GuildId)));
+
+            modixContext.GuildUsers
+                .Where(x => (x.UserId != guildUser.UserId) || (x.GuildId != guildUser.GuildId))
+                .EachShould(x => x.ShouldNotHaveChanged());
+
             await modixContext.ShouldHaveReceived(1)
                 .SaveChangesAsync();
         }
@@ -218,11 +275,21 @@ namespace Modix.Data.Test.Repositories
 
             await Should.ThrowAsync<InvalidOperationException>(uut.CreateAsync(data));
 
-            modixContext.GuildUsers.AsEnumerable().Select(x => (x.UserId, x.GuildId)).ShouldBe(GuildUsers.Entities.Select(x => (x.UserId, x.GuildId)));
-            modixContext.GuildUsers.EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.GuildUsers.AsEnumerable()
+                .Select(x => (x.UserId, x.GuildId))
+                .ShouldBe(GuildUsers.Entities
+                    .Select(x => (x.UserId, x.GuildId)));
 
-            modixContext.Users.Select(x => x.Id).ShouldBe(Users.Entities.Select(x => x.Id));
-            modixContext.Users.EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.GuildUsers
+                .EachShould(x => x.ShouldNotHaveChanged());
+
+            modixContext.Users
+                .Select(x => x.Id)
+                .ShouldBe(Users.Entities
+                    .Select(x => x.Id));
+
+            modixContext.Users
+                .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();
@@ -266,18 +333,28 @@ namespace Modix.Data.Test.Repositories
             await Should.ThrowAsync<ArgumentNullException>(async () =>
                 await uut.TryUpdateAsync(1, 1, null));
 
-            modixContext.GuildUsers.AsEnumerable().Select(x => (x.UserId, x.GuildId)).ShouldBe(GuildUsers.Entities.Select(x => (x.UserId, x.GuildId)));
-            modixContext.GuildUsers.EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.GuildUsers.AsEnumerable()
+                .Select(x => (x.UserId, x.GuildId))
+                .ShouldBe(GuildUsers.Entities
+                    .Select(x => (x.UserId, x.GuildId)));
 
-            modixContext.Users.Select(x => x.Id).ShouldBe(Users.Entities.Select(x => x.Id));
-            modixContext.Users.EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.GuildUsers
+                .EachShould(x => x.ShouldNotHaveChanged());
+
+            modixContext.Users
+                .Select(x => x.Id)
+                .ShouldBe(Users.Entities
+                    .Select(x => x.Id));
+
+            modixContext.Users
+                .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();
         }
 
         [TestCaseSource(nameof(ExistingGuildUserIds))]
-        public async Task TryUpdateAsync_GuildUserExists_UpdatesGuildUserAndReturnsTrue(ulong userId, ulong guildId)
+        public async Task TryUpdateAsync_GuildUserExists_UpdatesGuildUsersAndReturnsTrue(ulong userId, ulong guildId)
         {
             (var modixContext, var uut) = BuildTestContext();
 
@@ -312,6 +389,24 @@ namespace Modix.Data.Test.Repositories
             guildUser.Nickname.ShouldBe(mutatedData.Nickname);
             guildUser.LastSeen.ShouldBe(mutatedData.LastSeen);
 
+            modixContext.GuildUsers.AsEnumerable()
+                .Select(x => (x.UserId, x.GuildId))
+                .ShouldBe(GuildUsers.Entities
+                    .Select(x => (x.UserId, x.GuildId)));
+
+            modixContext.GuildUsers
+                .Where(x => (x.UserId != userId) || (x.GuildId != guildId))
+                .EachShould(x => x.ShouldNotHaveChanged());
+
+            modixContext.Users
+                .Select(x => x.Id)
+                .ShouldBe(Users.Entities
+                    .Select(x => x.Id));
+
+            modixContext.Users
+                .Where(x => x.Id != userId)
+                .EachShould(x => x.ShouldNotHaveChanged());
+
             await modixContext.ShouldHaveReceived(1)
                 .SaveChangesAsync();
         }
@@ -330,11 +425,21 @@ namespace Modix.Data.Test.Repositories
             updateAction.ShouldNotHaveReceived()
                 .Invoke(Arg.Any<GuildUserMutationData>());
 
-            modixContext.GuildUsers.AsEnumerable().Select(x => (x.UserId, x.GuildId)).ShouldBe(GuildUsers.Entities.Select(x => (x.UserId, x.GuildId)));
-            modixContext.GuildUsers.EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.GuildUsers.AsEnumerable()
+                .Select(x => (x.UserId, x.GuildId))
+                .ShouldBe(GuildUsers.Entities
+                    .Select(x => (x.UserId, x.GuildId)));
 
-            modixContext.Users.Select(x => x.Id).ShouldBe(Users.Entities.Select(x => x.Id));
-            modixContext.Users.EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.GuildUsers
+                .EachShould(x => x.ShouldNotHaveChanged());
+
+            modixContext.Users
+                .Select(x => x.Id)
+                .ShouldBe(Users.Entities
+                    .Select(x => x.Id));
+
+            modixContext.Users
+                .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();
