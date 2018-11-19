@@ -3,8 +3,6 @@ using System.Linq;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 
 using NSubstitute;
 
@@ -20,10 +18,6 @@ namespace Modix.Data.Test
                 {
                     warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning);
                 })
-                //.UseLoggerFactory(new LoggerFactory(
-                //    Enumerable.Empty<ILoggerProvider>()
-                //        .Append(new ConsoleLoggerProvider((error, logLevel) => true, true))))
-                //.EnableSensitiveDataLogging()
                 .Options);
 
             if (!(initializeAction is null))
