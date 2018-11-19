@@ -1,14 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Modix.Data.Models.Core;
 
 namespace Modix.Data.Repositories
 {
     public interface IMessageRepository
     {
-        Task<IEnumerable<MessageEntity>> GetUserMessages(ulong guildId, ulong userId);
+        Task<int> GetUserMessageCountAsync(ulong guildId, ulong userId);
+
+        Task<int> GetUserMessageCountAsync(ulong guildId, ulong userId, TimeSpan timespan);
 
         Task AddAsync(MessageEntity message);
 
@@ -35,9 +37,19 @@ namespace Modix.Data.Repositories
             }
         }
 
-        public Task<IEnumerable<MessageEntity>> GetUserMessages(ulong guildId, ulong userId)
+        public Task<int> GetUserMessageCountAsync(ulong guildId, ulong userId) =>
+            GetUserMessageCountAsync(guildId, userId, TimeSpan.MaxValue);
+
+        public async Task<int> GetUserMessageCountAsync(ulong guildId, ulong userId, TimeSpan timespan)
         {
-            throw new System.NotImplementedException();
+            var utcNow = DateTimeOffset.UtcNow;
+            var maxTimespan = utcNow - DateTimeOffset.MinValue;
+            var timeRange = timespan > maxTimespan ? maxTimespan : timespan;
+            var earliestDateTime = utcNow - timeRange;
+
+            return await ModixContext.Messages.AsNoTracking()
+                .Where(x => x.GuildId == guildId && x.AuthorId == userId && x.Timestamp >= earliestDateTime)
+                .CountAsync();
         }
     }
 }
