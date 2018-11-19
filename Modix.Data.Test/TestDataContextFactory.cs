@@ -1,8 +1,10 @@
 ﻿using System;
-using System.Threading.Tasks;
+using System.Linq;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 using NSubstitute;
 
@@ -10,7 +12,7 @@ namespace Modix.Data.Test
 {
     public static class TestDataContextFactory
     {
-        public static async Task<ModixContext> BuildTestDataContextAsync(Func<ModixContext, Task> initializeAction = null)
+        public static ModixContext BuildTestDataContext(Action<ModixContext> initializeAction = null)
         {
             var modixContext = Substitute.ForPartsOf<ModixContext>(new DbContextOptionsBuilder<ModixContext>()
                 .UseInMemoryDatabase((++_databaseName).ToString())
@@ -18,25 +20,34 @@ namespace Modix.Data.Test
                 {
                     warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning);
                 })
+                //.UseLoggerFactory(new LoggerFactory(
+                //    Enumerable.Empty<ILoggerProvider>()
+                //        .Append(new ConsoleLoggerProvider((error, logLevel) => true, true))))
+                //.EnableSensitiveDataLogging()
                 .Options);
 
             if (!(initializeAction is null))
             {
-                await initializeAction.Invoke(modixContext);
+                initializeAction.Invoke(modixContext);
+
+                modixContext.ResetSequenceToMaxValue(
+                    x => x.ClaimMappings,
+                    x => x.Id);
+
+                modixContext.ResetSequenceToMaxValue(
+                    x => x.DesignatedChannelMappings,
+                    x => x.Id);
+
+                modixContext.ResetSequenceToMaxValue(
+                    x => x.ConfigurationActions,
+                    x => x.Id);
 
                 modixContext.SaveChanges();
-
                 modixContext.ClearReceivedCalls();
             }
 
             return modixContext;
         }
-
-        public static async Task SeedUsersAsync(this ModixContext modixContext)
-            => modixContext.Users.AddRange(await TestDataFactory.BuildUsersAsync());
-
-        public static async Task SeedGuildUsersAsync(this ModixContext modixContext)
-            => modixContext.GuildUsers.AddRange(await TestDataFactory.BuildGuildUsersAsync());
 
         private static int _databaseName;
     }

@@ -1,0 +1,4 @@
+[*.{cs,vb}]
+
+#Don't apply normal naming rules to test methods
+dotnet_naming_rule.async_methods_should_be_suffixed.severity = none
