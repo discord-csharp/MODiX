@@ -8,7 +8,7 @@ namespace Modix
     {
         private static readonly Emoji checkmarkEmoji = new Emoji("✅");
 
-        public static Task AddConfirmation(this ICommandContext context) =>
-            context.Message.AddReactionAsync(checkmarkEmoji);
+        public static Task AddConfirmation(this ICommandContext context)
+            => context.Message.AddReactionAsync(checkmarkEmoji);
     }
 }
