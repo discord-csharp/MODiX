@@ -11,9 +11,9 @@ namespace Modix.Data.Repositories
     {
         Task<IReadOnlyCollection<MessageEntity>> GetRecentUserMessagesAsync(ulong guildId, ulong userId, TimeSpan timespan);
 
-        Task AddAsync(MessageEntity message);
+        Task CreateAsync(MessageEntity message);
 
-        Task RemoveAsync(ulong messageId);
+        Task DeleteAsync(ulong messageId);
     }
 
     public class MessageRepository : RepositoryBase, IMessageRepository
@@ -21,13 +21,13 @@ namespace Modix.Data.Repositories
         public MessageRepository(ModixContext context)
             : base(context) { }
 
-        public async Task AddAsync(MessageEntity message)
+        public async Task CreateAsync(MessageEntity message)
         {
             await ModixContext.Messages.AddAsync(message);
             await ModixContext.SaveChangesAsync();
         }
 
-        public async Task RemoveAsync(ulong messageId)
+        public async Task DeleteAsync(ulong messageId)
         {
             if (await ModixContext.Messages.FindAsync(messageId) is MessageEntity message)
             {
