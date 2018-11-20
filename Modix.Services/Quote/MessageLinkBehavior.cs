@@ -28,19 +28,19 @@ namespace Modix.Services.Quote
 
         protected internal override Task OnStartingAsync()
         {
-            DiscordClient.MessageReceived += OnMessageReceived;
+            DiscordClient.MessageReceived += OnMessageReceivedAsync;
 
             return Task.CompletedTask;
         }
 
         protected internal override Task OnStoppedAsync()
         {
-            DiscordClient.MessageReceived -= OnMessageReceived;
+            DiscordClient.MessageReceived -= OnMessageReceivedAsync;
 
             return Task.CompletedTask;
         }
 
-        private async Task OnMessageReceived(SocketMessage message)
+        private async Task OnMessageReceivedAsync(SocketMessage message)
         {
             if (!(message is SocketUserMessage userMessage) ||
                 !(userMessage.Author is SocketGuildUser || userMessage.Author.IsBot) ||
