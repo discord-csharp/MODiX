@@ -1,4 +1,6 @@
-﻿using Discord;
+﻿using System;
+using Discord;
+using static System.FormattableString;
 
 namespace Modix.Services.Quote
 {
@@ -11,8 +13,21 @@ namespace Modix.Services.Quote
     {
         public EmbedBuilder BuildQuoteEmbed(IMessage message, IUser executingUser)
         {
+            string messageUrl = null;
+            if (message.Channel is IGuildChannel guildChannel && guildChannel.Guild is IGuild guild)
+            {
+                messageUrl = Invariant($"https://discordapp.com/channels/{guild.Id}/{guildChannel.Id}/{message.Id}");
+            }
+
             var embed = new EmbedBuilder()
-                .WithAuthor(x => x.WithIconUrl(message.Author.GetAvatarUrl()).WithName(message.Author.Username))
+                .WithAuthor(x => {
+                    x = x.WithIconUrl(message.Author.GetAvatarUrl()).WithName(message.Author.Username);
+
+                    if (messageUrl != null)
+                    {
+                        x.WithUrl(messageUrl);
+                    }
+                })
                 .WithDescription(message.Content);
 
             embed.AddField("Quoted by", executingUser.Mention, true);
