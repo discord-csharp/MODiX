@@ -88,7 +88,7 @@ namespace Modix.Services.Moderation
 #pragma warning disable CS4014
             SelfExecuteRequest<IModerationService>(async moderationService =>
             {
-                await moderationService.AutoRescindExpiredInfractions();
+                await moderationService.AutoRescindExpiredInfractionsAsync(DiscordClient.CurrentUser.Id);
 
                 var nextExpiration = await moderationService.GetNextInfractionExpiration();
 

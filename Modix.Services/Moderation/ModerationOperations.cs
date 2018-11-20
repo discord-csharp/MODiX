@@ -94,7 +94,8 @@ namespace Modix.Services.Moderation
 
             await RequireSubjectRankLowerThanModeratorRankAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
 
-            await ModerationService.CreateInfractionAsync(type, subjectId, reason, duration);
+            await ModerationService.CreateInfractionAsync(
+                type, subjectId, reason, duration, AuthorizationService.CurrentGuildId.Value, AuthorizationService.CurrentUserId.Value);
         }
 
         /// <inheritdoc />
@@ -106,7 +107,8 @@ namespace Modix.Services.Moderation
 
             await RequireSubjectRankLowerThanModeratorRankAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
 
-            await ModerationService.RescindInfractionAsync(type, subjectId);
+            await ModerationService.RescindInfractionAsync(
+                type, subjectId, AuthorizationService.CurrentGuildId.Value, AuthorizationService.CurrentUserId.Value);
         }
 
         /// <inheritdoc />
@@ -119,7 +121,7 @@ namespace Modix.Services.Moderation
 
             await RequireSubjectRankLowerThanModeratorRankAsync(infraction.GuildId, infraction.Subject.Id);
 
-            await ModerationService.DeleteInfractionAsync(infraction);
+            await ModerationService.DeleteInfractionAsync(infraction, AuthorizationService.CurrentUserId.Value);
         }
 
         /// <inheritdoc />
@@ -134,7 +136,7 @@ namespace Modix.Services.Moderation
         {
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
 
-            return await ModerationService.GetInfractionCountsForUserAsync(subjectId);
+            return await ModerationService.GetInfractionCountsForUserAsync(subjectId, AuthorizationService.CurrentGuildId.Value);
         }
 
         /// <summary>

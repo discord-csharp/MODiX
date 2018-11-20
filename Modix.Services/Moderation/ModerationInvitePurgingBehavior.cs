@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -139,7 +139,7 @@ namespace Modix.Services.Moderation
                     return;
                 }
 
-                await moderationService.DeleteMessageAsync(message, "Unauthorized Invite Link");
+                await moderationService.DeleteMessageAsync(message, "Unauthorized Invite Link", DiscordClient.CurrentUser.Id);
 
                 await msgChannel.SendMessageAsync($"Sorry {author.Mention} your invite link has been removed - please don't post links to other guilds");
             });

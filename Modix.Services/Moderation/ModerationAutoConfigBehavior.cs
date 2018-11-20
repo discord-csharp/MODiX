@@ -28,9 +28,9 @@ namespace Modix.Services.Moderation
         internal protected override Task OnStartingAsync()
         {
             DiscordClient.GuildAvailable += OnGuildAvailableAsync;
-            DiscordClient.ChannelCreated += OnChannelCreated;
-            DiscordClient.ChannelUpdated += OnChannelUpdated;
-            DiscordClient.LeftGuild += OnLeftGuild;
+            DiscordClient.ChannelCreated += OnChannelCreatedAsync;
+            DiscordClient.ChannelUpdated += OnChannelUpdatedAsync;
+            DiscordClient.LeftGuild += OnLeftGuildAsync;
 
             return Task.CompletedTask;
         }
@@ -39,9 +39,9 @@ namespace Modix.Services.Moderation
         internal protected override Task OnStoppedAsync()
         {
             DiscordClient.GuildAvailable -= OnGuildAvailableAsync;
-            DiscordClient.ChannelCreated -= OnChannelCreated;
-            DiscordClient.ChannelUpdated -= OnChannelUpdated;
-            DiscordClient.LeftGuild -= OnLeftGuild;
+            DiscordClient.ChannelCreated -= OnChannelCreatedAsync;
+            DiscordClient.ChannelUpdated -= OnChannelUpdatedAsync;
+            DiscordClient.LeftGuild -= OnLeftGuildAsync;
 
             return Task.CompletedTask;
         }
@@ -61,16 +61,16 @@ namespace Modix.Services.Moderation
         /// </summary>
         internal protected DiscordSocketClient DiscordClient { get; }
 
-        private Task OnGuildAvailableAsync(IGuild guild)
-            => SelfExecuteRequest<IModerationService>(x => x.AutoConfigureGuildAsync(guild));
+        private async Task OnGuildAvailableAsync(IGuild guild)
+            => await SelfExecuteRequest<IModerationService>(x => x.AutoConfigureGuildAsync(guild, DiscordClient.CurrentUser.Id));
 
-        private Task OnChannelCreated(IChannel channel)
-            => SelfExecuteRequest<IModerationService>(x => x.AutoConfigureChannelAsync(channel));
+        private async Task OnChannelCreatedAsync(IChannel channel)
+            => await SelfExecuteRequest<IModerationService>(x => x.AutoConfigureChannelAsync(channel, DiscordClient.CurrentUser.Id));
 
-        private Task OnChannelUpdated(IChannel oldChannel, IChannel newChannel)
-            => SelfExecuteRequest<IModerationService>(x => x.AutoConfigureChannelAsync(newChannel));
+        private async Task OnChannelUpdatedAsync(IChannel oldChannel, IChannel newChannel)
+            => await SelfExecuteRequest<IModerationService>(x => x.AutoConfigureChannelAsync(newChannel, DiscordClient.CurrentUser.Id));
 
-        private Task OnLeftGuild(IGuild guild)
-            => SelfExecuteRequest<IModerationService>(x => x.UnConfigureGuildAsync(guild));
+        private async Task OnLeftGuildAsync(IGuild guild)
+            => await SelfExecuteRequest<IModerationService>(x => x.UnConfigureGuildAsync(guild, DiscordClient.CurrentUser.Id));
     }
 }
