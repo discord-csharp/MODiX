@@ -43,7 +43,8 @@ namespace Modix.Services.Quote
         private async Task OnMessageReceivedAsync(SocketMessage message)
         {
             if (!(message is SocketUserMessage userMessage) ||
-                !(userMessage.Author is SocketGuildUser || userMessage.Author.IsBot) ||
+                !(userMessage.Author is SocketGuildUser guildUser) ||
+                guildUser.IsBot ||
                 string.IsNullOrWhiteSpace(userMessage.Content))
             {
                 return;
@@ -71,7 +72,7 @@ namespace Modix.Services.Quote
                                 await SelfExecuteRequest<IQuoteService>(
                                     quoteService =>
                                     {
-                                        var embed = quoteService.BuildQuoteEmbed(msg, userMessage.Author);
+                                        var embed = quoteService.BuildQuoteEmbed(msg, guildUser);
                                         embeds.Add(embed);
                                         return Task.CompletedTask;
                                     });
