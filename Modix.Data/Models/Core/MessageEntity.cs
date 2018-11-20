@@ -30,19 +30,19 @@ namespace Modix.Data.Models.Core
 
             modelBuilder.Entity<MessageEntity>()
                 .Property(x => x.Id)
-                .HasColumnType<ulong>("numeric(20)");
+                .HasColumnType("numeric(20)");
 
             modelBuilder.Entity<MessageEntity>()
                 .Property(x => x.GuildId)
-                .HasColumnType<ulong>("numeric(20)");
+                .HasColumnType("numeric(20)");
 
             modelBuilder.Entity<MessageEntity>()
                 .Property(x => x.ChannelId)
-                .HasColumnType<ulong>("numeric(20)");
+                .HasColumnType("numeric(20)");
 
             modelBuilder.Entity<MessageEntity>()
                 .Property(x => x.AuthorId)
-                .HasColumnType<ulong>("numeric(20)");
+                .HasColumnType("numeric(20)");
 
             modelBuilder.Entity<MessageEntity>()
                 .HasIndex(x => new { x.GuildId, x.AuthorId });
