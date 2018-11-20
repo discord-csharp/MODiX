@@ -152,32 +152,40 @@ namespace Modix.Modules
 
         private async Task AddParticipationToEmbed(ulong userId, StringBuilder builder)
         {
-            var messages = await MessageRepository.GetRecentUserMessagesAsync(Context.Guild.Id, userId, TimeSpan.FromDays(30));
+            var messagesByDate = await MessageRepository.GetGuildUserMessageCountByDate(Context.Guild.Id, userId, TimeSpan.FromDays(30));
 
-            var lastWeek = DateTimeOffset.UtcNow - TimeSpan.FromDays(7);
-            var pastWeekCount = messages.Count(x => x.Timestamp >= lastWeek);
+            var lastWeek = _utcNow - TimeSpan.FromDays(7);
+
+            var weekTotal = 0;
+            var monthTotal = 0;
+            foreach (var kvp in messagesByDate)
+            {
+                if (kvp.Key >= lastWeek)
+                {
+                    weekTotal += kvp.Value;
+                }
+
+                monthTotal += kvp.Value;
+            }
 
             builder.AppendLine();
             builder.AppendLine("**\u276F Guild Participation**");
-            builder.AppendLine("Last 7 days: " + pastWeekCount + " messages");
-            builder.AppendLine("Last 30 days: " + messages.Count + " messages");
+            builder.AppendLine("Last 7 days: " + weekTotal + " messages");
+            builder.AppendLine("Last 30 days: " + monthTotal + " messages");
 
-            if (messages.Count > 0)
+            if (monthTotal > 0)
             {
                 try
                 {
-                    var channels = messages.GroupBy(x => x.ChannelId)
-                        .Select(x => (ChannelId: x.Key, MessageCount: x.Count()))
-                        .OrderByDescending(x => x.MessageCount)
-                        .ToArray();
+                    var channels = await MessageRepository.GetGuildUserMessageCountByChannel(Context.Guild.Id, userId, TimeSpan.FromDays(30));
 
-                    foreach (var (channelId, messageCount) in channels)
+                    foreach (var kvp in channels.OrderByDescending(x => x.Value))
                     {
-                        var channel = await Context.Guild.GetChannelAsync(channelId);
+                        var channel = await Context.Guild.GetChannelAsync(kvp.Key);
 
                         if (channel.IsPublic())
                         {
-                            builder.AppendLine($"Most active channel: {MentionUtils.MentionChannel(channel.Id)} ({messageCount} messages)");
+                            builder.AppendLine($"Most active channel: {MentionUtils.MentionChannel(channel.Id)} ({kvp.Value} messages)");
                             return;
                         }
                     }
