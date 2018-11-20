@@ -59,6 +59,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddModixPromotions();
 
             services.AddScoped<IQuoteService, QuoteService>();
+            services.AddSingleton<IBehavior, MessageLinkBehavior>();
             services.AddSingleton<CodePasteHandler>();
             services.AddSingleton<IBehavior, AttachmentBlacklistBehavior>();
             services.AddSingleton<CodePasteService>();
