@@ -103,7 +103,7 @@ namespace Modix.Modules
                 long infractionId)
         {
             await ModerationService.DeleteInfractionAsync(infractionId);
-            await Context.Message.AddReactionAsync(new Emoji("✅"));
+            await Context.AddConfirmation();
         }
 
         internal protected IModerationService ModerationService { get; }
