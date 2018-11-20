@@ -44,7 +44,7 @@ namespace Modix.Services.Quote
         {
             if (!(message is SocketUserMessage userMessage) ||
                 !(userMessage.Author is SocketGuildUser guildUser) ||
-                guildUser.IsBot ||
+                guildUser.IsBot || guildUser.IsWebhook ||
                 string.IsNullOrWhiteSpace(userMessage.Content))
             {
                 return;
