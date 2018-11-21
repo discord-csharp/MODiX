@@ -20,7 +20,8 @@ namespace Modix.Services.Quote
             }
 
             var embed = new EmbedBuilder()
-                .WithAuthor(x => {
+                .WithAuthor(x =>
+                {
                     x = x.WithIconUrl(message.Author.GetAvatarUrl()).WithName(message.Author.Username);
 
                     if (messageUrl != null)
