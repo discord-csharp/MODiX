@@ -3,9 +3,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Logging;
 using Modix.Data.Models.Core;
+using Modix.Data.Repositories;
 using Modix.Services.Utilities;
-using Serilog;
 
 namespace Modix.Services.Core
 {
@@ -13,13 +14,19 @@ namespace Modix.Services.Core
     {
         private readonly DiscordSocketClient _discordClient;
 
-        public MessageLogBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider) : base(serviceProvider)
+        public MessageLogBehavior(DiscordSocketClient discordClient, ILogger<MessageLogBehavior> logger, IServiceProvider serviceProvider)
+            : base(serviceProvider)
         {
             _discordClient = discordClient;
+
+            Log = logger;
         }
+
+        private ILogger<MessageLogBehavior> Log { get; }
 
         internal protected override Task OnStartingAsync()
         {
+            _discordClient.MessageReceived += HandleMessageReceived;
             _discordClient.MessageDeleted += HandleMessageDelete;
             _discordClient.MessageUpdated += HandleMessageEdit;
 
@@ -28,13 +35,13 @@ namespace Modix.Services.Core
 
         internal protected override Task OnStoppedAsync()
         {
+            _discordClient.MessageReceived -= HandleMessageReceived;
             _discordClient.MessageDeleted -= HandleMessageDelete;
             _discordClient.MessageUpdated -= HandleMessageEdit;
 
             return Task.CompletedTask;
         }
 
-        
         private string FormatMessage(string input)
         {
             //Escape backticks to preserve formatting (zero-width spaces are quite useful)
@@ -73,7 +80,7 @@ namespace Modix.Services.Core
 
             if (guild == null)
             {
-                Log.Information("Recieved message update event for non-guild message, ignoring");
+                Log.LogInformation("Recieved message update event for non-guild message, ignoring");
                 return;
             }
 
@@ -110,7 +117,7 @@ namespace Modix.Services.Core
 
             if (guild == null)
             {
-                Log.Information("Recieved message update event for non-guild message, ignoring");
+                Log.LogInformation("Recieved message update event for non-guild message, ignoring");
                 return;
             }
 
@@ -146,12 +153,52 @@ namespace Modix.Services.Core
                 .WithDescription(descriptionContent)
                 .WithCurrentTimestamp();
 
+            await SelfExecuteRequest<IMessageRepository>(async messages => await messages.DeleteAsync(message.Id));
+
             await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
             {
                 await designatedChannelService.SendToDesignatedChannelsAsync(
                     guild, DesignatedChannelType.MessageLog,
                     $":wastebasket:Message Deleted in {MentionUtils.MentionChannel(channel.Id)} `{message.Id}`", embed.Build());
             });
+        }
+
+        private async Task HandleMessageReceived(SocketMessage message)
+        {
+            Log.LogDebug("Handling message received event for message #{MessageId}.", message.Id);
+
+            if (!message.Content.StartsWith('!') &&
+                message.Channel is IGuildChannel channel &&
+                message.Author is IGuildUser author &&
+                author.Guild is SocketGuild guild &&
+                !author.IsBot && !author.IsWebhook)
+            {
+                await SelfExecuteRequest<IMessageRepository>(
+                    async messages =>
+                    {
+                        Log.LogInformation("Logging message #{MessageId} to the database.", message.Id);
+
+                        var entity = new MessageEntity
+                        {
+                            Id = message.Id,
+                            GuildId = guild.Id,
+                            ChannelId = channel.Id,
+                            AuthorId = author.Id,
+                            Timestamp = message.Timestamp
+                        };
+
+                        Log.LogDebug("Entity for message #{MessageId}: {@Message}", message.Id, entity);
+
+                        try
+                        {
+                            await messages.CreateAsync(entity);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.LogError(ex, "An unexpected error occurred when attempting to log message #{MessageId}.", message.Id);
+                        }
+                    });
+            }
         }
     }
 }

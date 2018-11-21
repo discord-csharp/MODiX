@@ -9,7 +9,9 @@ using Humanizer;
 using Humanizer.Localisation;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Modix.Bot.Extensions;
 using Modix.Data.Models.Core;
+using Modix.Data.Repositories;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
 using Modix.Services.Utilities;
@@ -21,20 +23,22 @@ namespace Modix.Modules
         private const string Format = "{0}: {1} ago ({2:yyyy-MM-ddTHH:mm:ssK})\n";
 
         //optimization: UtcNow is slow and the module is created per-request
-        private readonly DateTime _utcNow = DateTime.UtcNow; 
+        private readonly DateTime _utcNow = DateTime.UtcNow;
 
-        public UserInfoModule(ILogger<UserInfoModule> logger, IUserService userService, IModerationService moderationService, IAuthorizationService authorizationService)
+        public UserInfoModule(ILogger<UserInfoModule> logger, IUserService userService, IModerationService moderationService, IAuthorizationService authorizationService, IMessageRepository messageRepository)
         {
             Log = logger ?? new NullLogger<UserInfoModule>();
             UserService = userService;
             ModerationService = moderationService;
             AuthorizationService = authorizationService;
+            MessageRepository = messageRepository;
         }
 
         private ILogger<UserInfoModule> Log { get; }
         private IUserService UserService { get; }
         private IModerationService ModerationService { get; }
         private IAuthorizationService AuthorizationService { get; }
+        private IMessageRepository MessageRepository { get; }
 
         [Command("info")]
         public async Task GetUserInfo(IGuildUser user = null)
@@ -62,6 +66,15 @@ namespace Modix.Modules
 
             builder.Append(FormatTimeAgo("First Seen", userSummary.FirstSeen));
             builder.Append(FormatTimeAgo("Last Seen", userSummary.LastSeen));
+
+            try
+            {
+                await AddParticipationToEmbed(userId, builder);
+            }
+            catch (Exception ex)
+            {
+                Log.LogError(ex, "An error occured while retrieving a user's message count.");
+            }
 
             var embedBuilder = new EmbedBuilder()
                 .WithAuthor(userSummary.Username + "#" + userSummary.Discriminator)
@@ -137,9 +150,61 @@ namespace Modix.Modules
             builder.AppendLine(FormatUtilities.FormatInfractionCounts(counts));
         }
 
+        private async Task AddParticipationToEmbed(ulong userId, StringBuilder builder)
+        {
+            var messagesByDate = await MessageRepository.GetGuildUserMessageCountByDate(Context.Guild.Id, userId, TimeSpan.FromDays(30));
+
+            var lastWeek = _utcNow - TimeSpan.FromDays(7);
+
+            var weekTotal = 0;
+            var monthTotal = 0;
+            foreach (var kvp in messagesByDate)
+            {
+                if (kvp.Key >= lastWeek)
+                {
+                    weekTotal += kvp.Value;
+                }
+
+                monthTotal += kvp.Value;
+            }
+
+            builder.AppendLine();
+            builder.AppendLine("**\u276F Guild Participation**");
+            builder.AppendLine("Last 7 days: " + weekTotal + " messages");
+            builder.AppendLine("Last 30 days: " + monthTotal + " messages");
+
+            if (monthTotal > 0)
+            {
+                try
+                {
+                    var channels = await MessageRepository.GetGuildUserMessageCountByChannel(Context.Guild.Id, userId, TimeSpan.FromDays(30));
+
+                    foreach (var kvp in channels.OrderByDescending(x => x.Value))
+                    {
+                        var channel = await Context.Guild.GetChannelAsync(kvp.Key);
+
+                        if (channel.IsPublic())
+                        {
+                            builder.AppendLine($"Most active channel: {MentionUtils.MentionChannel(channel.Id)} ({kvp.Value} messages)");
+                            return;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.LogDebug(ex, "Unable to get the most active channel for {UserId}.", userId);
+                }
+            }
+        }
+
         private string FormatTimeAgo(string prefix, DateTimeOffset ago)
         {
-            var humanizedTimeAgo = (_utcNow - ago).Humanize(maxUnit: TimeUnit.Year, culture: CultureInfo.InvariantCulture);
+            var span = _utcNow - ago;
+
+            var humanizedTimeAgo = span > TimeSpan.FromSeconds(60)
+                ? span.Humanize(maxUnit: TimeUnit.Year, culture: CultureInfo.InvariantCulture)
+                : "a few seconds";
+
             return string.Format(CultureInfo.InvariantCulture, Format, prefix, humanizedTimeAgo, ago.UtcDateTime);
         }
 
