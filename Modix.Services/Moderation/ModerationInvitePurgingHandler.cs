@@ -28,12 +28,11 @@ namespace Modix.Services.Moderation
 
         /// <summary>
         /// Constructs a new <see cref="ModerationInvitePurgingHandler"/> object, with the given injected dependencies.
-        /// See <see cref="BehaviorBase"/> for more details.
         /// </summary>
         /// <param name="designatedChannelService"></param>
         /// <param name="authorizationService"></param>
         /// <param name="moderationService"></param>
-        /// <param name="botUser"></param>
+        /// <param name="botUser">The Discord user that the bot is running as.</param>
         public ModerationInvitePurgingHandler(
             IDesignatedChannelService designatedChannelService,
             IAuthorizationService authorizationService,
@@ -58,11 +57,16 @@ namespace Modix.Services.Moderation
         /// <param name="guild">The guild designations should be looked up for</param>
         /// <param name="channel">The channel designations should be looked up for</param>
         /// <returns>True if the channel is designated as Unmoderated, false if not</returns>
-        private async Task<bool> ChannelIsUnmoderated(IGuild guild, IMessageChannel channel)
+        private async Task<bool> IsChannelModeratedAsync(IGuild guild, IMessageChannel channel)
         {
             return await _designatedChannelService.ChannelHasDesignationAsync(guild, channel, DesignatedChannelType.Unmoderated);
         }
 
+        /// <summary>
+        /// Deletes the message if it contains an invite link.
+        /// </summary>
+        /// <param name="message">The message to possibly purge.</param>
+        /// <returns></returns>
         private async Task TryPurgeInviteLink(IMessage message)
         {
             if
@@ -83,7 +87,7 @@ namespace Modix.Services.Moderation
                 return;
             }
 
-            if (await ChannelIsUnmoderated(guildChannel.Guild, msgChannel))
+            if (await IsChannelModeratedAsync(guildChannel.Guild, msgChannel))
             {
                 Log.Debug("Message {MessageId} was skipped because the channel {Channel} was designated as Unmoderated",
                     message.Id, msgChannel.Id);

@@ -32,10 +32,10 @@ namespace Modix.Services.Adapters
 
         private Task OnDiscordClientMessageUpdated(Cacheable<IMessage, ulong> oldMessage, SocketMessage newMessage,
             ISocketMessageChannel channel)
-            => PublishScoped(new ChatMessageUpdated(oldMessage, newMessage, channel));
+            => PublishScoped(new ChatMessageUpdated {  OldMessage = oldMessage, NewMessage = newMessage, Channel = channel });
 
         private Task OnDiscordClientMessageReceived(SocketMessage message)
-            => PublishScoped(new ChatMessageReceived(message));
+            => PublishScoped(new ChatMessageReceived { Message = message });
 
         private async Task PublishScoped(INotification message)
         {
