@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 
 using Modix.Data.Repositories;
+using Modix.Services.Messages.Discord;
 using Modix.Services.RowboatImporter;
 
 namespace Modix.Services.Moderation
@@ -19,13 +21,16 @@ namespace Modix.Services.Moderation
             => services
                 .AddSingleton<IBehavior, ModerationAutoConfigBehavior>()
                 .AddSingleton<ModerationAutoRescindBehavior>()
-                .AddSingleton<IBehavior>(serviceProvider => serviceProvider.GetRequiredService<ModerationAutoRescindBehavior>())
-                .AddSingleton<IInfractionEventHandler>(serviceProvider => serviceProvider.GetRequiredService<ModerationAutoRescindBehavior>())
-                .AddSingleton<IBehavior, ModerationInvitePurgingBehavior>()
+                .AddSingleton<IBehavior>(serviceProvider =>
+                    serviceProvider.GetRequiredService<ModerationAutoRescindBehavior>())
+                .AddSingleton<IInfractionEventHandler>(serviceProvider =>
+                    serviceProvider.GetRequiredService<ModerationAutoRescindBehavior>())
                 .AddScoped<IModerationService, ModerationService>()
                 .AddScoped<RowboatInfractionImporterService>()
                 .AddScoped<IModerationActionRepository, ModerationActionRepository>()
                 .AddScoped<IInfractionRepository, InfractionRepository>()
-                .AddScoped<IDeletedMessageRepository, DeletedMessageRepository>();
+                .AddScoped<IDeletedMessageRepository, DeletedMessageRepository>()
+                .AddScoped<INotificationHandler<ChatMessageReceived>, ModerationInvitePurgingHandler>()
+                .AddScoped<INotificationHandler<ChatMessageUpdated>, ModerationInvitePurgingHandler>();
     }
 }

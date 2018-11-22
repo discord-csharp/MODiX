@@ -1,6 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System;
+using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 
 using Modix.Data.Repositories;
+using Modix.Services.Messages.Discord;
+using Modix.Services.Moderation;
 
 namespace Modix.Services.Core
 {
