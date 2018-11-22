@@ -138,7 +138,7 @@ namespace Modix.Data.Repositories
         public async Task<IReadOnlyCollection<ulong>> SearchChannelIdsAsync(DesignatedChannelMappingSearchCriteria searchCriteria)
             => await ModixContext.DesignatedChannelMappings.AsNoTracking()
                 .FilterBy(searchCriteria)
-                .Select(x => (ulong)x.ChannelId)
+                .Select(x => x.ChannelId)
                 .ToArrayAsync();
 
         /// <inheritdoc />
@@ -153,6 +153,7 @@ namespace Modix.Data.Repositories
         public async Task<int> DeleteAsync(DesignatedChannelMappingSearchCriteria criteria, ulong deletedById)
         {
             var entities = await ModixContext.DesignatedChannelMappings
+                .Where(x => x.DeleteActionId == null)
                 .FilterBy(criteria)
                 .ToArrayAsync();
 

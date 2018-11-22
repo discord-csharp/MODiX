@@ -16,7 +16,7 @@ namespace Modix.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "2.1.1-rtm-30846")
+                .HasAnnotation("ProductVersion", "2.1.4-rtm-31024")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("Modix.Data.Models.BehaviourConfiguration", b =>
@@ -208,6 +208,34 @@ namespace Modix.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("GuildUsers");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Core.MessageEntity", b =>
+                {
+                    b.Property<decimal>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasConversion(new ValueConverter<decimal, decimal>(v => default(decimal), v => default(decimal), new ConverterMappingHints(precision: 20, scale: 0)))
+                        .HasColumnType("numeric(20)");
+
+                    b.Property<decimal>("AuthorId")
+                        .HasConversion(new ValueConverter<decimal, decimal>(v => default(decimal), v => default(decimal), new ConverterMappingHints(precision: 20, scale: 0)))
+                        .HasColumnType("numeric(20)");
+
+                    b.Property<decimal>("ChannelId")
+                        .HasConversion(new ValueConverter<decimal, decimal>(v => default(decimal), v => default(decimal), new ConverterMappingHints(precision: 20, scale: 0)))
+                        .HasColumnType("numeric(20)");
+
+                    b.Property<decimal>("GuildId")
+                        .HasConversion(new ValueConverter<decimal, decimal>(v => default(decimal), v => default(decimal), new ConverterMappingHints(precision: 20, scale: 0)))
+                        .HasColumnType("numeric(20)");
+
+                    b.Property<DateTimeOffset>("Timestamp");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GuildId", "AuthorId");
+
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("Modix.Data.Models.Core.UserEntity", b =>

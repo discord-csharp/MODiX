@@ -98,10 +98,13 @@ namespace Modix.Modules
 
         [Command("delete")]
         [Summary("Marks an infraction as deleted, so it no longer appears within infraction search results")]
-        public Task Delete(
+        public async Task Delete(
             [Summary("The ID value of the infraction to be deleted.")]
                 long infractionId)
-            => ModerationOperations.DeleteInfractionAsync(infractionId);
+        {
+            await ModerationOperations.DeleteInfractionAsync(infractionId);
+            await Context.AddConfirmation();
+        }
 
         internal protected IModerationOperations ModerationOperations { get; }
         public IUserService UserService { get; }
