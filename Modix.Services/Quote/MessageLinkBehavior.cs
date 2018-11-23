@@ -88,7 +88,7 @@ namespace Modix.Services.Quote
 
             foreach (var embed in embeds)
             {
-                await userMessage.Channel.SendMessageAsync(string.Empty, embed: embed);
+                await userMessage.Channel.SendMessageAsync(string.Empty, embed: embed.Build());
             }
         }
     }
