@@ -11,6 +11,8 @@ using Modix.Data.Models.Moderation;
 using Modix.Data.Repositories;
 
 using Modix.Services.Core;
+using Serilog;
+using Discord.Net;
 
 namespace Modix.Services.Moderation
 {
@@ -24,7 +26,7 @@ namespace Modix.Services.Moderation
         /// </summary>
         /// <param name="guild">The guild to be configured.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has complete.</returns>
-        Task AutoConfigureGuldAsync(IGuild guild);
+        Task AutoConfigureGuildAsync(IGuild guild);
 
         /// <summary>
         /// Automatically configures role and channel permissions, related to moderation, for a given channel.
@@ -183,15 +185,40 @@ namespace Modix.Services.Moderation
         }
 
         /// <inheritdoc />
-        public async Task AutoConfigureGuldAsync(IGuild guild)
+        public async Task AutoConfigureGuildAsync(IGuild guild)
         {
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
 
             var muteRole = await GetOrCreateDesignatedMuteRoleAsync(guild, AuthorizationService.CurrentUserId.Value);
 
-            foreach (var channel in await guild.GetChannelsAsync())
-                await ConfigureChannelMuteRolePermissions(channel, muteRole);
+            var nonCategoryChannels =
+                (await guild.GetChannelsAsync())
+                .Where(c => !(c is ICategoryChannel))
+                .ToList();
+
+            var setUpChannels = new List<IGuildChannel>();
+
+            try
+            {
+                foreach (var channel in nonCategoryChannels)
+                {
+                    setUpChannels.Add(channel);
+                    await ConfigureChannelMuteRolePermissionsAsync(channel, muteRole);
+                }
+            }
+            catch (HttpException ex)
+            {
+                var errorTemplate = "An exception was thrown when attempting to set up the mute role {Role} for guild {Guild}, channel #{Channel}. " +
+                    "This is likely due to Modix not having the \"Manage Permissions\" permission - please check your server settings.";
+
+                Log.Error(ex, errorTemplate, muteRole.Name, guild.Name, setUpChannels.Last().Name);
+
+                return;
+            }
+
+            Log.Information("Successfully configured mute role @{MuteRole} for {ChannelCount} channels: {Channels}",
+                muteRole.Name, nonCategoryChannels.Count, nonCategoryChannels.Select(c => c.Name));
         }
 
         /// <inheritdoc />
@@ -204,7 +231,7 @@ namespace Modix.Services.Moderation
             {
                 var muteRole = await GetOrCreateDesignatedMuteRoleAsync(guildChannel.Guild, AuthorizationService.CurrentUserId.Value);
 
-                await ConfigureChannelMuteRolePermissions(guildChannel, muteRole);
+                await ConfigureChannelMuteRolePermissionsAsync(guildChannel, muteRole);
             }
         }
 
@@ -553,23 +580,24 @@ namespace Modix.Services.Moderation
             }
         }
 
-        private Task ConfigureChannelMuteRolePermissions(IGuildChannel channel, IRole muteRole)
+        private async Task ConfigureChannelMuteRolePermissionsAsync(IGuildChannel channel, IRole muteRole)
         {
-            // TODO: GetPermissionOverwrite and AddPermissionOverwriteAsync are bugged in Discord.NET 1.0.2.
-            // Probably need to upgrade Discord.NET to get this functionality.
-            return Task.CompletedTask;
+            var permissionOverwrite = channel.GetPermissionOverwrite(muteRole);
+            if (permissionOverwrite != null)
+            {
+                if ((permissionOverwrite.Value.AllowValue == _mutePermissions.AllowValue) &&
+                    (permissionOverwrite.Value.DenyValue == _mutePermissions.DenyValue))
+                {
+                    Log.Debug("Skipping setting mute permissions for channel #{Channel} as they're already set.", channel.Name);
+                    return;
+                }
 
-            //var permissionOverwrite = channel.GetPermissionOverwrite(muteRole);
-            //if (permissionOverwrite != null)
-            //{
-            //    if ((permissionOverwrite.Value.AllowValue == _mutePermissions.AllowValue) &&
-            //        (permissionOverwrite.Value.DenyValue == _mutePermissions.DenyValue))
-            //        return;
+                Log.Debug("Removing permission overwrite for channel #{Channel}.", channel.Name);
+                await channel.RemovePermissionOverwriteAsync(muteRole);
+            }
 
-            //    await channel.RemovePermissionOverwriteAsync(muteRole);
-            //}
-
-            //await channel.AddPermissionOverwriteAsync(muteRole, _mutePermissions);
+            await channel.AddPermissionOverwriteAsync(muteRole, _mutePermissions);
+            Log.Debug("Set mute permissions for role {Role} in channel #{Channel}.", muteRole.Name, channel.Name);
         }
 
         private async Task DoRescindInfractionAsync(InfractionSummary infraction, bool isAutoRescind = false)
@@ -656,7 +684,6 @@ namespace Modix.Services.Moderation
             }
         }
             
-        // Unused, because ConfigureChannelMuteRolePermissions is currently disabled.
         private static readonly OverwritePermissions _mutePermissions
             = new OverwritePermissions(
                 sendMessages: PermValue.Deny,

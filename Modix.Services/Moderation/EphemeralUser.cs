@@ -1,9 +1,10 @@
 ﻿using Discord;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 
-namespace Modix.Services.Moderation
+namespace Modix.Data.Models
 {
     public class EphemeralUser : IGuildUser
     {
@@ -44,7 +45,7 @@ namespace Modix.Services.Moderation
 
         public string Mention => MentionUtils.MentionUser(Id);
 
-        public Game? Game { get; private set; } = null;
+        public Game Game { get; private set; } = null;
 
         public UserStatus Status { get; private set; } = UserStatus.Offline;
 
@@ -62,6 +63,8 @@ namespace Modix.Services.Moderation
 
         public string VoiceSessionId { get; private set; } = null;
 
+        public IActivity Activity { get; private set; } = null;
+
         public Task AddRoleAsync(IRole role, RequestOptions options = null)
         {
             throw new NotImplementedException();
@@ -73,6 +76,11 @@ namespace Modix.Services.Moderation
         }
 
         public string GetAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetDefaultAvatarUrl()
         {
             throw new NotImplementedException();
         }

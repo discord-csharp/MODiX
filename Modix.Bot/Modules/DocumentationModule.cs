@@ -39,8 +39,8 @@ namespace Modix.Modules
                     );
                     builder.Footer.Build();
                 }
-                builder.Build();
-                await ReplyAsync("", embed: builder);
+
+                await ReplyAsync("", embed: builder.Build());
             }
         }
     }

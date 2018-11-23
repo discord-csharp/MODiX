@@ -57,11 +57,11 @@ namespace Modix.Services.PopularityContest
             {
                 if (offset != null)
                 {
-                    lastBatch = await collectionChannel.GetMessagesAsync(offset, Direction.Before).Flatten();
+                    lastBatch = await collectionChannel.GetMessagesAsync(offset, Direction.Before).FlattenAsync();
                 }
                 else
                 {
-                    lastBatch = await collectionChannel.GetMessagesAsync().Flatten();
+                    lastBatch = await collectionChannel.GetMessagesAsync().FlattenAsync();
                 }
 
                 ret.AddRange(lastBatch);
@@ -123,9 +123,10 @@ namespace Modix.Services.PopularityContest
                 (
                     "Uh oh, we didn't find any messages that matched your criteria.", 
                     embed: new EmbedBuilder()
-                        .AddInlineField("Channel", MentionUtils.MentionChannel(collectionChannel.Id))
-                        .AddInlineField("Emoji", countedEmote)
-                        .AddInlineField("Roles", roleFilter.Any() ? roleFilter.Select(d => d.Name).Humanize() : "No Filter")
+                        .AddField("Channel", MentionUtils.MentionChannel(collectionChannel.Id), true)
+                        .AddField("Emoji", countedEmote, true)
+                        .AddField("Roles", roleFilter.Any() ? roleFilter.Select(d => d.Name).Humanize() : "No Filter", true)
+                        .Build()
                 );
 
                 return;
@@ -210,7 +211,7 @@ namespace Modix.Services.PopularityContest
                 embed = embed.WithDescription("Counting the votes...");
             }
 
-            return embed;
+            return embed.Build();
         }
     }
 }

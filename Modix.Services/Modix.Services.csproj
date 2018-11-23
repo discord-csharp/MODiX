@@ -5,7 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AsyncEvent" Version="0.2.0" />
-    <PackageReference Include="Discord.Net" Version="1.0.2" />
+    <PackageReference Include="Discord.Net" Version="2.0.0-beta2-01023" />
     <PackageReference Include="Humanizer.Core" Version="2.4.2" />
     <PackageReference Include="Kitsu" Version="1.4.1" />
     <PackageReference Include="MediatR" Version="5.1.0" />

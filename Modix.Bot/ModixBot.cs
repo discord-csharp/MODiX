@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -93,6 +94,13 @@ namespace Modix
                 // our local service scope to a field so that it's available to the HandleCommand method once events
                 // start firing after we've connected.
                 _scope = scope;
+
+                Log.LogInformation("Loading command modules...");
+
+                await _commands.AddModulesAsync(typeof(ModixBot).Assembly, _scope.ServiceProvider);
+
+                Log.LogInformation("{Modules} modules loaded, containing {Commands} commands",
+                    _commands.Modules.Count(), _commands.Modules.SelectMany(d=>d.Commands).Count());
 
                 Log.LogInformation("Logging into Discord and starting the client.");
 
@@ -205,51 +213,43 @@ namespace Modix
             if (message.Content.Length <= 1)
                 return;
 
-            // because RunMode.Async will cause an object disposed exception due to an implementation bug in discord.net. All commands must be RunMode.Sync.
-#pragma warning disable CS4014
-            Task.Run(async () =>
+            var context = new CommandContext(_client, message);
+
+            using (var scope = _scope.ServiceProvider.CreateScope())
             {
-                var context = new CommandContext(_client, message);
+                await scope.ServiceProvider
+                    .GetRequiredService<IAuthorizationService>()
+                    .OnAuthenticatedAsync(context.User as IGuildUser);
 
-                using (var scope = _scope.ServiceProvider.CreateScope())
+                var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
+
+                if (!result.IsSuccess)
                 {
-                    await scope.ServiceProvider
-                        .GetRequiredService<IAuthorizationService>()
-                        .OnAuthenticatedAsync(context.User as IGuildUser);
+                    var error = $"{result.Error}: {result.ErrorReason}";
 
-                    var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
-
-                    if (!result.IsSuccess)
+                    if (!string.Equals(result.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
                     {
-                        var error = $"{result.Error}: {result.ErrorReason}";
+                        Log.LogWarning(error);
+                    }
+                    else
+                    {
+                        Log.LogError(error);
+                    }
 
-                        if (!string.Equals(result.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
-                        {
-                            Log.LogWarning(error);
-                        }
-                        else
-                        {
-                            Log.LogError(error);
-                        }
-
-                        if (result.Error != CommandError.Exception)
-                        {
-                            var handler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
-                            await handler.AssociateError(message, error);
-                        }
-                        else
-                        {
-                            await context.Channel.SendMessageAsync("Error: " + error);
-                        }
+                    if (result.Error != CommandError.Exception)
+                    {
+                        var handler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
+                        await handler.AssociateError(message, error);
+                    }
+                    else
+                    {
+                        await context.Channel.SendMessageAsync("Error: " + error);
                     }
                 }
+            }
 
-                stopwatch.Stop();
-                Log.LogInformation($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
-            });
-#pragma warning restore CS4014
-
-            await Task.CompletedTask;
+            stopwatch.Stop();
+            Log.LogInformation($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
         }
     }
 }

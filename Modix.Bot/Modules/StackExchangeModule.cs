@@ -67,16 +67,15 @@ namespace Modix.Modules
                     .WithTitle($"{res.Score}: {WebUtility.HtmlDecode(res.Title)}")
                     .WithUrl(res.Link);
 
-                builder.Build();
-                await ReplyAsync("", embed: builder);
+                await ReplyAsync("", embed: builder.Build());
             }
 
             var footer = new EmbedBuilder()
                 .WithColor(new Color(50, 50, 50))
                 .WithFooter(
                      new EmbedFooterBuilder().WithText($"tags: {tags} | site: {site}. !stack foobar [site=stackexchange tags=c#]"));
-            footer.Build();
-            await ReplyAsync("", embed: footer);
+
+            await ReplyAsync("", embed: footer.Build());
         }
     }
 }
