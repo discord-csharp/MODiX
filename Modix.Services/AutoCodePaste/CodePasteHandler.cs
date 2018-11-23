@@ -2,7 +2,10 @@
 using Discord.WebSocket;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
+using MediatR;
+using Modix.Services.Messages.Discord;
 
 namespace Modix.Services.AutoCodePaste
 {
@@ -12,7 +15,13 @@ namespace Modix.Services.AutoCodePaste
         Removed
     }
 
-    public class CodePasteHandler
+    /// <summary>
+    /// Allows authorized users to react to a message with a tl;dr emote to re-upload a message
+    /// to a code sharing service.
+    /// </summary>
+    public class CodePasteHandler :
+        INotificationHandler<ReactionAdded>,
+        INotificationHandler<ReactionRemoved>
     {
         public CodePasteHandler(CodePasteService service)
         {
@@ -65,15 +74,11 @@ namespace Modix.Services.AutoCodePaste
             }
         }
 
-        public async Task ReactionAdded(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
-        {
-            await ModifyRatings(cachedMessage, reaction, ReactionState.Added);
-        }
+        public Task Handle(ReactionAdded notification, CancellationToken cancellationToken)
+            => ModifyRatings(notification.Message, notification.Reaction, ReactionState.Added);
 
-        public async Task ReactionRemoved(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
-        {
-            await ModifyRatings(cachedMessage, reaction, ReactionState.Removed);
-        }
+        public Task Handle(ReactionRemoved notification, CancellationToken cancellationToken)
+            => ModifyRatings(notification.Message, notification.Reaction, ReactionState.Removed);
 
         private async Task UploadMessage(IUserMessage arg)
         {
