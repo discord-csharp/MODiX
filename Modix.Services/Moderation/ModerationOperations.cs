@@ -181,10 +181,14 @@ namespace Modix.Services.Moderation
 
         private async Task RequireSubjectRankLowerThanModeratorRankAsync(ulong guildId, ulong subjectId)
         {
+            var moderator = await UserService.GetGuildUserAsync(guildId, AuthorizationService.CurrentUserId.Value);
+
+            if (moderator.GuildPermissions.Administrator)
+                return;
+
             var rankRoles = await GetRankRolesAsync();
 
             var subject = await UserService.GetGuildUserAsync(guildId, subjectId);
-            var moderator = await UserService.GetGuildUserAsync(guildId, AuthorizationService.CurrentUserId.Value);
 
             var subjectRankRoles = rankRoles.Where(r => subject.RoleIds.Contains(r.Id));
             var moderatorRankRoles = rankRoles.Where(r => moderator.RoleIds.Contains(r.Id));
