@@ -192,8 +192,10 @@ namespace Modix.Services.Moderation
 
             var muteRole = await GetOrCreateDesignatedMuteRoleAsync(guild, AuthorizationService.CurrentUserId.Value);
 
-            var allChannels = await guild.GetChannelsAsync();
-            var nonCategoryChannels = allChannels.Where(c => !(c is ICategoryChannel)).ToList();
+            var nonCategoryChannels =
+                (await guild.GetChannelsAsync())
+                .Where(c => !(c is ICategoryChannel))
+                .ToList();
 
             var setUpChannels = new List<IGuildChannel>();
 
@@ -210,9 +212,7 @@ namespace Modix.Services.Moderation
                 var errorTemplate = "An exception was thrown when attempting to set up the mute role {Role} for guild {Guild}, channel #{Channel}. " +
                     "This is likely due to Modix not having the \"Manage Permissions\" permission - please check your server settings.";
 
-                Log.Error(ex, errorTemplate, muteRole.Name, guild.Name,
-                    //Get the last channel that was set up, if any, or the first channel that was going be set up
-                    setUpChannels.Any() ? setUpChannels.Last().Name : nonCategoryChannels.First().Name);
+                Log.Error(ex, errorTemplate, muteRole.Name, guild.Name, setUpChannels.Last().Name);
 
                 return;
             }
