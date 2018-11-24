@@ -7,8 +7,8 @@ using Modix.Data.Models.Promotions;
 namespace Modix.Data.Repositories
 {
     /// <summary>
-    /// Describes a repository that creates <see cref="PromotionActionEntity"/> records in the datastore,
-    /// and thus consumes <see cref="IPromotionActionEventHandler"/> objects.
+    /// Describes a repository that creates <see cref="PromotionActionEntity"/> records in the datastore, This publishes
+    /// <see cref="PromotionActionCreated"/> messages when actions are created.
     /// </summary>
     public abstract class PromotionActionEventRepositoryBase : RepositoryBase
     {
@@ -25,7 +25,7 @@ namespace Modix.Data.Repositories
         }
 
         /// <summary>
-        /// Notifies <see cref="PromotionActionEventHandlers"/> that a new <see cref="PromotionActionEntity"/> has been created.
+        /// Notifies listeners that a new <see cref="PromotionActionEntity"/> has been created.
         /// </summary>
         /// <param name="promotionAction">The <see cref="PromotionActionEntity"/> that was created.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
