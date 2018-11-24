@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using MediatR;
+using Modix.Data.Messages;
 using Modix.Data.Models.Promotions;
 
 namespace Modix.Data.Repositories
@@ -11,37 +12,34 @@ namespace Modix.Data.Repositories
     /// </summary>
     public abstract class PromotionActionEventRepositoryBase : RepositoryBase
     {
+        private readonly IMediator _mediator;
+
         /// <summary>
         /// Constructs a new <see cref="PromotionActionEventRepositoryBase"/> object, with the given injected dependencies.
         /// See <see cref="RepositoryBase(ModixContext)"/>.
         /// </summary>
-        public PromotionActionEventRepositoryBase(ModixContext modixContext, IEnumerable<IPromotionActionEventHandler> promotionActionEventHandlers)
+        public PromotionActionEventRepositoryBase(ModixContext modixContext, IMediator mediator)
             : base(modixContext)
         {
-            PromotionActionEventHandlers = promotionActionEventHandlers;
+            _mediator = mediator;
         }
-
-        /// <summary>
-        /// A set of <see cref="IPromotionActionEventHandler"/> objects to receive information about promotion actions
-        /// affected by this repository.
-        /// </summary>
-        internal protected IEnumerable<IPromotionActionEventHandler> PromotionActionEventHandlers { get; }
 
         /// <summary>
         /// Notifies <see cref="PromotionActionEventHandlers"/> that a new <see cref="PromotionActionEntity"/> has been created.
         /// </summary>
         /// <param name="promotionAction">The <see cref="PromotionActionEntity"/> that was created.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        internal protected async Task RaisePromotionActionCreatedAsync(PromotionActionEntity promotionAction)
-        {
-            foreach (var handler in PromotionActionEventHandlers)
-                await handler.OnPromotionActionCreatedAsync(promotionAction.Id, new PromotionActionCreationData()
+        internal protected Task RaisePromotionActionCreatedAsync(PromotionActionEntity promotionAction)
+            => _mediator.Publish(new PromotionActionCreated
+            {
+                PromotionActionId = promotionAction.Id,
+                PromotionActionCreationData = new PromotionActionCreationData
                 {
-                    GuildId = (ulong)promotionAction.GuildId,
-                    Type = promotionAction.Type,
                     Created = promotionAction.Created,
-                    CreatedById = (ulong)promotionAction.CreatedById 
-                });
-        }
+                    CreatedById = promotionAction.CreatedById,
+                    GuildId = promotionAction.GuildId,
+                    Type = promotionAction.Type
+                }
+            });
     }
 }

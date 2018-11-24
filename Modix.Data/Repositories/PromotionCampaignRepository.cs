@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 using Modix.Data.ExpandableQueries;
@@ -90,10 +90,10 @@ namespace Modix.Data.Repositories
     {
         /// <summary>
         /// Creates a new <see cref="PromotionCampaignRepository"/>, with the injected dependencies
-        /// See <see cref="PromotionActionEventRepositoryBase(ModixContext, IEnumerable{IPromotionActionEventHandler})"/> for details.
+        /// See <see cref="PromotionActionEventRepositoryBase"/> for details.
         /// </summary>
-        public PromotionCampaignRepository(ModixContext modixContext, IEnumerable<IPromotionActionEventHandler> promotionActionEventHandlers)
-            : base(modixContext, promotionActionEventHandlers) { }
+        public PromotionCampaignRepository(ModixContext modixContext, IMediator mediator)
+            : base(modixContext, mediator) { }
 
         /// <inheritdoc />
         public Task<IRepositoryTransaction> BeginCreateTransactionAsync()
