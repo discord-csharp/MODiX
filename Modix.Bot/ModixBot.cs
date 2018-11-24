@@ -25,7 +25,7 @@ namespace Modix
         private readonly IServiceProvider _provider;
         private readonly ModixConfig _config;
         private readonly DiscordSerilogAdapter _serilogAdapter;
-
+        private readonly IApplicationLifetime _applicationLifetime;
         private IServiceScope _scope;
 
         public ModixBot(
@@ -33,6 +33,7 @@ namespace Modix
             ModixConfig modixConfig,
             CommandService commandService,
             DiscordSerilogAdapter serilogAdapter,
+            IApplicationLifetime applicationLifetime,
             IServiceProvider serviceProvider,
             ILogger<ModixBot> logger)
         {
@@ -41,7 +42,7 @@ namespace Modix
             _commands = commandService ?? throw new ArgumentNullException(nameof(commandService));
             _provider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _serilogAdapter = serilogAdapter ?? throw new ArgumentNullException(nameof(serilogAdapter));
-
+            _applicationLifetime = applicationLifetime ?? throw new ArgumentNullException(nameof(applicationLifetime));
             Log = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -62,6 +63,7 @@ namespace Modix
                 Log.LogTrace("Registering listeners for Discord client events.");
                 hooks = new ModixBotHooks(scope.ServiceProvider);
 
+                _client.Disconnected += OnDisconnect;
                 _client.MessageReceived += HandleCommand;
                 _client.ReactionAdded += hooks.HandleAddReaction;
                 _client.ReactionRemoved += hooks.HandleRemoveReaction;
@@ -126,6 +128,7 @@ namespace Modix
             {
                 Log.LogInformation("Stopping background service.");
 
+                _client.Disconnected -= OnDisconnect;
                 _client.MessageReceived -= HandleCommand;
 
                 if (hooks is null)
@@ -141,6 +144,13 @@ namespace Modix
                 _client.Log -= _serilogAdapter.HandleLog;
                 _commands.Log -= _serilogAdapter.HandleLog;
             }
+        }
+
+        private Task OnDisconnect(Exception ex)
+        {
+            Log.LogError(ex, "The bot has disconnected because of an error. Stopping the application.");
+            _applicationLifetime.StopApplication();
+            return Task.CompletedTask;
         }
 
         public override void Dispose()
