@@ -5,7 +5,7 @@
 
                 <div class="level">
 
-                        <div class="level-left">
+                    <div class="level-left">
 
                         <div class="level-item">
                             <h1 class="title">
@@ -13,33 +13,34 @@
                             </h1>
                         </div>
 
+                    </div>
+
+                    <div class="level-right columns is-mobile">
+
+                        <div class="column">
+                            <label class="checkbox">
+                                <input type="checkbox" v-model="showInactive">
+                                Show Inactive
+                            </label>
                         </div>
 
-                        <div class="level-right columns is-mobile">
-
-                            <div class="column">
-                                <label class="checkbox">
-                                    <input type="checkbox" v-model="showInactive">
-                                    Show Inactive
-                                </label>
-                            </div>
-
-                            <div class="column is-narrow">
-                                <router-link class="button is-pulled-right" to="/promotions/create">Start One</router-link>
-                            </div>
-                        
+                        <div class="column is-narrow">
+                            <router-link class="button is-pulled-right" to="/promotions/create">Start One</router-link>
                         </div>
-                    
+
+                    </div>
+
                 </div>
 
                 <a v-if="loading" class="button is-loading campaignLoader"></a>
-                
+
                 <p v-else-if="campaigns.length == 0">
                     There's no active campaigns at the moment. You could start one, though!
                 </p>
                 <div v-else>
-                    <PromotionListItem v-for="campaign in campaigns" :campaign="campaign" :key="campaign.id" 
-                        :dialogLoading="currentlyLoadingInfractions == campaign.id" @commentSubmitted="refresh()" @showPanel="showPanel(campaign)" />
+                    <PromotionListItem v-for="campaign in campaigns" :campaign="campaign" :key="campaign.id"
+                                       :dialogLoading="currentlyLoadingInfractions == campaign.id" @commentSubmitted="refresh()" @showPanel="showPanel(campaign)"
+                                       v-on:comment-edit-modal-opened="onCommentEditModalOpened" />
                 </div>
             </div>
         </section>
@@ -55,8 +56,8 @@
 
                         <div class="field has-addons is-hidden-mobile">
                             <div class="control is-expanded">
-                                <a class="copyButton is-small button" title="Copy to Clipboard" 
-                                    :data-clipboard-text="'!info ' + modalCampaign.subject.id">
+                                <a class="copyButton is-small button" title="Copy to Clipboard"
+                                   :data-clipboard-text="'!info ' + modalCampaign.subject.id">
                                     &#128203;
                                 </a>
                             </div>
@@ -93,6 +94,7 @@
             </div>
         </div>
 
+        <PromotionCommentEditModal v-bind:comment="commentToEdit" v-bind:showUpdateModal="showCommentEditModal" v-on:comment-edit-modal-closed="onCommentEditModalClosing()" />
 
     </div>
 </template>
@@ -184,9 +186,10 @@ import * as _ from 'lodash';
 import PromotionCampaign from '@/models/promotions/PromotionCampaign';
 import PromotionService from '@/services/PromotionService';
 import {config, setConfig} from '@/models/PersistentConfig';
-import PromotionComment from '@/models/promotions/PromotionComment';
 import InfractionSummary from '@/models/infractions/InfractionSummary';
 import GeneralService from '@/services/GeneralService';
+import PromotionComment from '@/models/promotions/PromotionComment';
+import PromotionCommentEditModal from '@/components/Promotions/PromotionCommentEditModal.vue';
 
 import {formatDate} from '@/app/Util';
 
@@ -197,7 +200,8 @@ var Clipboard = require('clipboard');
     {
         HeroHeader,
         PromotionListItem,
-        PromotionCommentView
+        PromotionCommentView,
+        PromotionCommentEditModal
     },
 })
 export default class Promotions extends Vue
@@ -211,6 +215,9 @@ export default class Promotions extends Vue
     currentlyLoadingInfractions: number | null = null;
     loading: boolean = false;
     modifyLoading: boolean = false;
+
+    commentToEdit: PromotionComment | null = null;
+    showCommentEditModal: boolean = false;
 
     get campaigns(): PromotionCampaign[]
     {
@@ -308,6 +315,17 @@ export default class Promotions extends Vue
             this.toggleModal();
             await this.refresh();
         }
+    }
+
+    onCommentEditModalOpened(comment: PromotionComment)
+    {
+        this.commentToEdit = comment;
+        this.showCommentEditModal = true;
+    }
+
+    onCommentEditModalClosing() : void
+    {
+        this.showCommentEditModal = false;
     }
 
     mounted()

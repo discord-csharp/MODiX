@@ -1,32 +1,36 @@
 <template>
 
     <div class="campaign box" :class="{'expanded': expanded, 'inactive': campaign.closeAction}" v-if="campaign">
-        
+
         <div class="columns is-mobile is-multiline" @click="expandWithSentiment('Abstain')">
             <div class="column is-12-mobile columns is-gapless is-mobile">
 
                 <div class="column is-narrow leftSide">
                     <h1 class="title is-size-4">
-                        
+
                         <span class="statusIcon" v-html="statusIcon" v-tooltip="'Status: ' + (campaign.outcome ? campaign.outcome : 'Active')"></span>
                         <span class="displayName">{{campaign.subject.displayName}}</span>
                         <span class="toRole" :style="roleStyle(campaign.targetRole.id)">&#10149; {{campaign.targetRole.name}}</span>
-                        
+
                     </h1>
                 </div>
 
                 <div class="column">
                     <span class="mobile-expander">
-                        <template v-if="expanded">&#9650;</template>
-                        <template v-else>&#9660;</template>
+                        <template v-if="expanded">
+                            &#9650;
+                        </template>
+                        <template v-else>
+                            &#9660;
+                        </template>
                     </span>
                 </div>
 
             </div>
 
-            <div class="column is-narrow-tablet adminButtons" v-if="canClose" >
+            <div class="column is-narrow-tablet adminButtons" v-if="canClose">
                 <a class="button is-primary is-small is-fullwidth" :class="{'is-loading': dialogLoading}"
-                    :disabled="campaign.outcome == 'Accepted'" @click.stop="showPanel()">More…</a>
+                   :disabled="campaign.outcome == 'Accepted'" @click.stop="showPanel()">More…</a>
             </div>
 
             <div class="column is-narrow-tablet ratings">
@@ -39,13 +43,17 @@
                     </div>
                 </div>
 
-                <progress class="progress is-small" :class="sentimentColor(campaign)" 
-                    :value="campaign.sentimentRatio" max="1" /> 
+                <progress class="progress is-small" :class="sentimentColor(campaign)"
+                          :value="campaign.sentimentRatio" max="1" />
             </div>
 
             <div class="column is-narrow expander is-hidden-mobile">
-                <template v-if="expanded">&#9650;</template>
-                <template v-else>&#9660;</template>
+                <template v-if="expanded">
+                    &#9650;
+                </template>
+                <template v-else>
+                    &#9660;
+                </template>
             </div>
         </div>
 
@@ -54,7 +62,7 @@
 
             <div class="commentList">
                 <PromotionCommentView v-for="(comment, index) in comments" :key="comment.promotionCampaignId" :comment="comment"
-                                      :style="{'transition-delay': (index * 33) + 'ms'}" />
+                                      :style="{'transition-delay': (index * 33) + 'ms'}" v-on:comment-edit-modal-opened="onCommentEditModalOpened"/>
             </div>
 
             <div class="field has-addons" v-if="!campaign.closeAction">
@@ -78,7 +86,7 @@
             </div>
 
             <p class="help is-danger" v-if="error">{{error}}</p>
-            
+
         </div>
 
     </div>
@@ -383,6 +391,11 @@ export default class PromotionListItem extends Vue
     {
         this.newComment.sentiment = sentiment;
         this.expanded = !this.expanded;
+    }
+
+    onCommentEditModalOpened(comment: PromotionComment)
+    {
+        this.$emit('comment-edit-modal-opened', comment);
     }
 }
 </script>
