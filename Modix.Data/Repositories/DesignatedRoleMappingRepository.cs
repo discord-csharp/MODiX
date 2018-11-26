@@ -139,6 +139,7 @@ namespace Modix.Data.Repositories
         public async Task<int> DeleteAsync(DesignatedRoleMappingSearchCriteria criteria, ulong deletedById)
         {
             var entities = await ModixContext.DesignatedRoleMappings
+                .Where(x => x.DeleteActionId == null)
                 .FilterBy(criteria)
                 .ToArrayAsync();
 
