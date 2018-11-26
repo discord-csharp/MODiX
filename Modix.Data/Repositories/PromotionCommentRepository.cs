@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -42,6 +43,16 @@ namespace Modix.Data.Repositories
         /// containing a flag indicating whether any matching comments exist.
         /// </returns>
         Task<bool> AnyAsync(PromotionCommentSearchCriteria searchCriteria);
+
+        /// <summary>
+        /// Marks an existing comment as deleted, based on its ID.
+        /// </summary>
+        /// <param name="commentId">The <see cref="PromotionCommentEntity.Id"/> value of the comment to be deleted.</param>
+        /// <param name="deletedById">The <see cref="UserEntity.Id"/> value of the user that is deleting the comment.</param>
+        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing a flag indicating whether the operation was successful (i.e. whether the specified comment could be found).
+        /// </returns>
+        Task<bool> TryDeleteAsync(long commentId, ulong deletedById);
     }
 
     /// <inheritdoc />
@@ -82,6 +93,31 @@ namespace Modix.Data.Repositories
             => ModixContext.PromotionComments.AsNoTracking()
                 .FilterBy(searchCriteria)
                 .AnyAsync();
+
+        /// <inheritdoc />
+        public async Task<bool> TryDeleteAsync(long commentId, ulong deletedById)
+        {
+            var entity = await ModixContext.PromotionComments
+                .Where(x => x.Id == commentId)
+                .FirstOrDefaultAsync();
+
+            if ((entity is null) || !(entity.DeleteActionId is null))
+                return false;
+
+            entity.DeleteAction = new PromotionActionEntity
+            {
+                GuildId = entity.Campaign.GuildId,
+                Type = PromotionActionType.CommentDeleted,
+                Created = DateTimeOffset.Now,
+                CreatedById = deletedById,
+                CampaignId = entity.CampaignId,
+                CommentId = entity.Id,
+            };
+
+            await ModixContext.SaveChangesAsync();
+
+            return true;
+        }
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
             = new RepositoryTransactionFactory();
