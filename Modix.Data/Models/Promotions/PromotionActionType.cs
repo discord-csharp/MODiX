@@ -16,6 +16,10 @@
         /// <summary>
         /// Describes an action where a comment was added to an active promotion campaign.
         /// </summary>
-        CommentCreated
+        CommentCreated,
+        /// <summary>
+        /// Describes an action where a comment was deleted from an active promotion campaign.
+        /// </summary>
+        CommentDeleted,
     }
 }

@@ -32,6 +32,12 @@ namespace Modix.Data.Models.Promotions
         /// according to the <see cref="PromotionActionEntity.CreatedById"/> value of <see cref="PromotionCommentEntity.CreateAction"/>.
         /// </summary>
         public ulong? CreatedById { get; set; }
+
+        /// <summary>
+        /// A flag indicating whether records to be returned should have a <see cref="PromotionCommentEntity.DeleteActionId"/> value of null, 
+        /// or non-null, (or both).
+        /// </summary>
+        public bool? IsDeleted { get; set; }
     }
 
     internal static class PromotionCommentSearchCriteriaExtensions
@@ -59,7 +65,10 @@ namespace Modix.Data.Models.Promotions
                     !(criteria.CreatedRange?.To is null))
                 .FilterBy(
                     x => x.CreateAction.CreatedById == criteria.CreatedById,
-                    !(criteria.CreatedById is null));
+                    !(criteria.CreatedById is null))
+                .FilterBy(
+                    x => (x.DeleteActionId != null) == criteria.IsDeleted,
+                    criteria?.IsDeleted != null);
         }
     }
 }
