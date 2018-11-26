@@ -195,7 +195,7 @@ namespace Modix.Data.Test.Repositories
         }
 
         [TestCaseSource(nameof(DesignatedChannelMappingCreationTestCases))]
-        public async Task CreateAsync_DataIsNotNull_InsertsClaimMapping(DesignatedChannelMappingCreationData data)
+        public async Task CreateAsync_DataIsNotNull_InsertsDesignatedChannelMapping(DesignatedChannelMappingCreationData data)
         {
             (var modixContext, var uut) = BuildTestContext();
 
