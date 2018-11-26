@@ -33,6 +33,10 @@ namespace Modix.Data.Test
                     x => x.Id);
 
                 modixContext.ResetSequenceToMaxValue(
+                    x => x.DesignatedRoleMappings,
+                    x => x.Id);
+
+                modixContext.ResetSequenceToMaxValue(
                     x => x.ConfigurationActions,
                     x => x.Id);
 

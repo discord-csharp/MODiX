@@ -100,6 +100,51 @@ namespace Modix.Data.Test.TestData
                     Created = DateTimeOffset.Parse("2018-01-10T00:00:00Z"),
                     CreatedById = 2,
                     DesignatedChannelMappingId = 4
+                },
+                new ConfigurationActionEntity()
+                {
+                    Id = 11,
+                    GuildId = 1,
+                    Type = ConfigurationActionType.DesignatedRoleMappingCreated,
+                    Created = DateTimeOffset.Parse("2018-01-11T00:00:00Z"),
+                    CreatedById = 1,
+                    DesignatedRoleMappingId = 1
+                },
+                new ConfigurationActionEntity()
+                {
+                    Id = 12,
+                    GuildId = 1,
+                    Type = ConfigurationActionType.DesignatedRoleMappingDeleted,
+                    Created = DateTimeOffset.Parse("2018-01-12T00:00:00Z"),
+                    CreatedById = 2,
+                    DesignatedRoleMappingId = 1
+                },
+                new ConfigurationActionEntity()
+                {
+                    Id = 13,
+                    GuildId = 2,
+                    Type = ConfigurationActionType.DesignatedRoleMappingCreated,
+                    Created = DateTimeOffset.Parse("2018-01-13T00:00:00Z"),
+                    CreatedById = 3,
+                    DesignatedRoleMappingId = 2
+                },
+                new ConfigurationActionEntity()
+                {
+                    Id = 14,
+                    GuildId = 1,
+                    Type = ConfigurationActionType.DesignatedRoleMappingCreated,
+                    Created = DateTimeOffset.Parse("2018-01-14T00:00:00Z"),
+                    CreatedById = 1,
+                    DesignatedRoleMappingId = 3
+                },
+                new ConfigurationActionEntity()
+                {
+                    Id = 15,
+                    GuildId = 1,
+                    Type = ConfigurationActionType.DesignatedRoleMappingCreated,
+                    Created = DateTimeOffset.Parse("2018-01-15T00:00:00Z"),
+                    CreatedById = 2,
+                    DesignatedRoleMappingId = 4
                 }
             };
 
