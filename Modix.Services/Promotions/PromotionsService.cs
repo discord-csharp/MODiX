@@ -55,6 +55,26 @@ namespace Modix.Services.Promotions
         Task UpdateCommentAsync(long commentId, PromotionSentiment newSentiment, string newContent);
 
         /// <summary>
+        /// Adds a prmotion comment message record to log the messages associated with a promotion comment.
+        /// </summary>
+        /// <param name="messageId">The <see cref="PromotionCommentMessageEntity.MessageId"/> value of the message.</param>
+        /// <param name="commentId">The <see cref="PromotionCommentMessageEntity.CommentId"/> value of the message.</param>
+        /// <param name="guildId">The <see cref="PromotionCommentMessageEntity.GuildId"/> value of the message.</param>
+        /// <param name="channelId">The <see cref="PromotionCommentMessageEntity.ChannelId"/> value of the message.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task AddPromotionCommentMessageAsync(ulong messageId, long commentId, ulong guildId, ulong channelId);
+
+        /// <summary>
+        /// Retrieves a collection of promotion comment messages for the supplied comment ID.
+        /// </summary>
+        /// <param name="commentId">The <see cref="PromotionCommentMessageEntity.CommentId"/> of the messages to retrieve.</param>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation has completed,
+        /// containing the requested set of promotion comment messages.
+        /// </returns>
+        Task<IReadOnlyCollection<PromotionCommentMessageSummary>> GetPromotionCommentMessagesAsync(long commentId);
+
+        /// <summary>
         /// Closes a campaign, with an <see cref="PromotionCampaignEntity.Outcome"/> value of <see cref="PromotionCampaignOutcome.Accepted"/>,
         /// and executes the proposed promotion.
         /// </summary>
@@ -111,7 +131,8 @@ namespace Modix.Services.Promotions
             IDesignatedRoleService designatedRoleService,
             IPromotionActionRepository promotionActionRepository,
             IPromotionCampaignRepository promotionCampaignRepository,
-            IPromotionCommentRepository promotionCommentRepository)
+            IPromotionCommentRepository promotionCommentRepository,
+            IPromotionCommentMessageRepository promotionCommentMessageRepository)
         {
             DiscordClient = discordClient;
             AuthorizationService = authorizationService;
@@ -120,6 +141,7 @@ namespace Modix.Services.Promotions
             PromotionActionRepository = promotionActionRepository;
             PromotionCampaignRepository = promotionCampaignRepository;
             PromotionCommentRepository = promotionCommentRepository;
+            PromotionCommentMessageRepository = promotionCommentMessageRepository;
         }
 
         /// <inheritdoc />
@@ -248,6 +270,20 @@ namespace Modix.Services.Promotions
         }
 
         /// <inheritdoc />
+        public async Task AddPromotionCommentMessageAsync(ulong messageId, long commentId, ulong guildId, ulong channelId)
+            => await PromotionCommentMessageRepository.CreateAsync(new PromotionCommentMessageCreationData
+            {
+                MessageId = messageId,
+                CommentId = commentId,
+                GuildId = guildId,
+                ChannelId = channelId,
+            });
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<PromotionCommentMessageSummary>> GetPromotionCommentMessagesAsync(long commentId)
+            => await PromotionCommentMessageRepository.ReadSummariesAsync(commentId);
+
+        /// <inheritdoc />
         public async Task AcceptCampaignAsync(long campaignId)
         {
             AuthorizationService.RequireAuthenticatedUser();
@@ -350,14 +386,19 @@ namespace Modix.Services.Promotions
         internal protected IPromotionActionRepository PromotionActionRepository { get; }
 
         /// <summary>
-        /// An <see cref="IPromotionActionRepository"/> for storing and retrieving promotion campaign data.
+        /// An <see cref="IPromotionCampaignRepository"/> for storing and retrieving promotion campaign data.
         /// </summary>
         internal protected IPromotionCampaignRepository PromotionCampaignRepository { get; }
 
         /// <summary>
-        /// An <see cref="IPromotionActionRepository"/> for storing and retrieving promotion comment data.
+        /// An <see cref="IPromotionCommentRepository"/> for storing and retrieving promotion comment data.
         /// </summary>
         internal protected IPromotionCommentRepository PromotionCommentRepository { get; }
+
+        /// <summary>
+        /// An <see cref="IPromotionCommentMessageRepository"/> for storing and retrieving promotion comment message data.
+        /// </summary>
+        internal protected IPromotionCommentMessageRepository PromotionCommentMessageRepository { get; }
 
         private async Task<GuildRoleBrief[]> GetRankRolesAsync(ulong guildId)
             => (await DesignatedRoleService.SearchDesignatedRolesAsync(new DesignatedRoleMappingSearchCriteria()

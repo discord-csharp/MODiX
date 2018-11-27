@@ -55,6 +55,8 @@ namespace Modix.Data
 
         public DbSet<PromotionActionEntity> PromotionActions { get; set; }
 
+        public DbSet<PromotionCommentMessageEntity> PromotionCommentMessages { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             var onModelCreatingMethods = Assembly.GetExecutingAssembly()

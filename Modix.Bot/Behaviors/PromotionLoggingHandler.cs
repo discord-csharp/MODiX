@@ -32,37 +32,65 @@ namespace Modix.Behaviors
             _lazyPromotionsService = new Lazy<IPromotionsService>(() => serviceProvider.GetRequiredService<IPromotionsService>());
         }
 
+        /// <inheritdoc />
+        public async Task OnPromotionActionCreatedAsync(long promotionActionId, PromotionActionCreationData data)
         public Task Handle(PromotionActionCreated notification, CancellationToken cancellationToken)
             => OnPromotionActionCreatedAsync(notification.PromotionActionId, notification.PromotionActionCreationData);
 
-        public async Task OnPromotionActionCreatedAsync(long moderationActionId, PromotionActionCreationData data)
+        public async Task OnPromotionActionCreatedAsync(long promotionActionId, PromotionActionCreationData data)
         {
             if (!await DesignatedChannelService.AnyDesignatedChannelAsync(data.GuildId, DesignatedChannelType.PromotionLog))
                 return;
 
             try
             {
-                var promotionAction = await PromotionsService.GetPromotionActionSummaryAsync(moderationActionId);
+                var promotionAction = await PromotionsService.GetPromotionActionSummaryAsync(promotionActionId);
+                var guild = await DiscordClient.GetGuildAsync(data.GuildId);
 
-                if (!_renderTemplates.TryGetValue((promotionAction.Type, promotionAction.Comment?.Sentiment, promotionAction.Campaign?.Outcome), out var renderTemplate))
-                    return;
+                if (promotionAction.Type != PromotionActionType.CommentDeleted)
+                {
+                    if (!_renderTemplates.TryGetValue((promotionAction.Type, promotionAction.Comment?.Sentiment, promotionAction.Campaign?.Outcome), out var renderTemplate))
+                        return;
 
-                var message = string.Format(renderTemplate,
-                    promotionAction.Created.UtcDateTime.ToString("HH:mm:ss"),
-                    promotionAction.Campaign?.Id,
-                    promotionAction.Campaign?.Subject.DisplayName,
-                    promotionAction.Campaign?.Subject.Id,
-                    promotionAction.Campaign?.TargetRole.Name,
-                    promotionAction.Campaign?.TargetRole.Id,
-                    promotionAction.Comment?.Campaign.Id,
-                    promotionAction.Comment?.Campaign.Subject.DisplayName,
-                    promotionAction.Comment?.Campaign.Subject.Id,
-                    promotionAction.Comment?.Campaign.TargetRole.Name,
-                    promotionAction.Comment?.Campaign.TargetRole.Id,
-                    promotionAction.Comment?.Content);
+                    var message = string.Format(renderTemplate,
+                        promotionAction.Created.UtcDateTime.ToString("HH:mm:ss"),
+                        promotionAction.Campaign?.Id,
+                        promotionAction.Campaign?.Subject.DisplayName,
+                        promotionAction.Campaign?.Subject.Id,
+                        promotionAction.Campaign?.TargetRole.Name,
+                        promotionAction.Campaign?.TargetRole.Id,
+                        promotionAction.Comment?.Campaign.Id,
+                        promotionAction.Comment?.Campaign.Subject.DisplayName,
+                        promotionAction.Comment?.Campaign.Subject.Id,
+                        promotionAction.Comment?.Campaign.TargetRole.Name,
+                        promotionAction.Comment?.Campaign.TargetRole.Id,
+                        promotionAction.Comment?.Content);
 
-                await DesignatedChannelService.SendToDesignatedChannelsAsync(
-                    await DiscordClient.GetGuildAsync(data.GuildId), DesignatedChannelType.PromotionLog, message);
+                    var createdMessages = await DesignatedChannelService.SendToDesignatedChannelsAsync(
+                        await DiscordClient.GetGuildAsync(data.GuildId), DesignatedChannelType.PromotionLog, message);
+
+                    if (promotionAction.Type == PromotionActionType.CommentCreated)
+                    {
+                        foreach (var createdMessage in createdMessages)
+                        {
+                            await PromotionsService.AddPromotionCommentMessageAsync(
+                                createdMessage.Id,
+                                promotionAction.Comment.Id,
+                                promotionAction.GuildId,
+                                createdMessage.Channel.Id);
+                        }
+                    }
+                }
+                else
+                {
+                    var messages = await PromotionsService.GetPromotionCommentMessagesAsync(promotionAction.Comment.Id);
+
+                    foreach (var message in messages)
+                    {
+                        var channel = await guild.GetTextChannelAsync(message.Channel.Id);
+                        await channel.DeleteMessageAsync(message.MessageId);
+                    }
+                }
             }
             catch (Exception ex)
             {

@@ -6,9 +6,9 @@ using Modix.Data.ExpandableQueries;
 namespace Modix.Data.Models.Promotions
 {
     /// <summary>
-    /// Describes a summary view of a <see cref="PromotionCommentEntity"/>, for use in higher layers of the application.
+    /// Describes a partial view of a <see cref="PromotionCommentEntity"/>, for use within the context of a projected <see cref="PromotionCommentMessageEntity"/>.
     /// </summary>
-    public class PromotionCommentSummary
+    public class PromotionCommentMessageBrief
     {
         /// <summary>
         /// See <see cref="PromotionCommentEntity.Id"/>.
@@ -30,19 +30,9 @@ namespace Modix.Data.Models.Promotions
         /// </summary>
         public string Content { get; set; }
 
-        /// <summary>
-        /// See <see cref="PromotionCommentEntity.CreateAction"/>.
-        /// </summary>
-        public PromotionActionBrief Created { get; set; }
-
-        /// <summary>
-        /// See <see cref="PromotionCommentEntity.DeleteAction"/>.
-        /// </summary>
-        public PromotionActionBrief Deleted { get; set; }
-
         [ExpansionExpression]
-        internal static Expression<Func<PromotionCommentEntity, PromotionCommentSummary>> FromEntityProjection
-            = entity => new PromotionCommentSummary
+        internal static Expression<Func<PromotionCommentEntity, PromotionCommentMessageBrief>> FromEntityProjection
+            = entity => new PromotionCommentMessageBrief
             {
                 Id = entity.Id,
                 Campaign = (entity.Campaign == null)
@@ -50,12 +40,6 @@ namespace Modix.Data.Models.Promotions
                     : entity.Campaign.Project(PromotionCampaignBrief.FromEntityProjection),
                 Sentiment = entity.Sentiment,
                 Content = entity.Content,
-                Created = (entity.CreateAction == null)
-                    ? null
-                    : entity.CreateAction.Project(PromotionActionBrief.FromEntityProjection),
-                Deleted = (entity.DeleteAction == null)
-                    ? null
-                    : entity.CreateAction.Project(PromotionActionBrief.FromEntityProjection),
             };
     }
 }

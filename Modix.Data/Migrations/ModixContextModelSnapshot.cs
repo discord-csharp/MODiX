@@ -426,8 +426,6 @@ namespace Modix.Data.Migrations
 
                     b.Property<long?>("DeleteActionId");
 
-                    b.Property<long?>("LogMessageId");
-
                     b.Property<string>("Sentiment")
                         .IsRequired();
 
@@ -442,6 +440,25 @@ namespace Modix.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("PromotionComments");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Promotions.PromotionCommentMessageEntity", b =>
+                {
+                    b.Property<long>("MessageId");
+
+                    b.Property<long>("ChannelId");
+
+                    b.Property<long>("CommentId");
+
+                    b.Property<long>("GuildId");
+
+                    b.HasKey("MessageId");
+
+                    b.HasIndex("ChannelId");
+
+                    b.HasIndex("CommentId");
+
+                    b.ToTable("PromotionCommentMessages");
                 });
 
             modelBuilder.Entity("Modix.Data.Models.Core.ClaimMappingEntity", b =>
@@ -626,6 +643,19 @@ namespace Modix.Data.Migrations
                     b.HasOne("Modix.Data.Models.Promotions.PromotionActionEntity", "DeleteAction")
                         .WithOne()
                         .HasForeignKey("Modix.Data.Models.Promotions.PromotionCommentEntity", "DeleteActionId");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Promotions.PromotionCommentMessageEntity", b =>
+                {
+                    b.HasOne("Modix.Data.Models.Core.GuildChannelEntity", "Channel")
+                        .WithMany()
+                        .HasForeignKey("ChannelId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Modix.Data.Models.Promotions.PromotionCommentEntity", "Comment")
+                        .WithMany()
+                        .HasForeignKey("CommentId")
+                        .OnDelete(DeleteBehavior.Cascade);
                 });
 #pragma warning restore 612, 618
         }
