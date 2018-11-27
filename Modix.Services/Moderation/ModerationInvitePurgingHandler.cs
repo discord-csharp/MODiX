@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -126,7 +126,11 @@ namespace Modix.Services.Moderation
                 return;
             }
 
+            Log.Debug("Message {MessageId} is going to be deleted", message.Id);
+
             await _moderationService.DeleteMessageAsync(message, "Unauthorized Invite Link");
+
+            Log.Debug("Message {MessageId} was deleted because it contains an invite link", message.Id);
 
             await msgChannel.SendMessageAsync($"Sorry {author.Mention} your invite link has been removed - please don't post links to other guilds");
         }

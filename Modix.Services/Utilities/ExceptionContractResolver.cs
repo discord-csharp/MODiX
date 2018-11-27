@@ -1,4 +1,6 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Linq;
+using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -6,20 +8,30 @@ namespace Modix.Services.Utilities
 {
     public class ExceptionContractResolver : DefaultContractResolver
     {
+        private static string[] _propertyFilter = new[]
+        {
+            "Message", "StackTraceString", "InnerException",
+            "Source", "ClassName"
+        };
+
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
         {
             var property = base.CreateProperty(member, memberSerialization);
 
-            //Skip serializing complex properties
-            if ((property.DeclaringType == typeof(MethodBase) && property.PropertyName == "TargetSite") 
-                || property.PropertyName == "Context"
-                || property.PropertyName == "Command")
+            //Refer to the default if not an exception
+            if (!typeof(Exception).IsAssignableFrom(member.ReflectedType))
             {
-                property.ShouldSerialize =
-                    instance =>
-                    {
-                        return false;
-                    };
+                return property;
+            }
+
+            //Only serialize some properties
+            if (_propertyFilter.Contains(property.PropertyName))
+            {
+                property.ShouldSerialize = instance => false;
+            }
+            else
+            {
+                property.ShouldSerialize = instance => true;
             }
             
             return property;

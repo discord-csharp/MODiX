@@ -31,10 +31,18 @@ namespace Modix
             {
                 loggerConfig.WriteTo.DiscordWebhookSink(id, webhookToken, LogEventLevel.Error);
             }
+            else
+            {
+                Log.Information("The webhook token and/or ID were not set. Logging to Discord has been disabled.");
+            }
 
             if (!string.IsNullOrWhiteSpace(sentryToken))
             {
                 loggerConfig.WriteTo.Sentry(sentryToken, restrictedToMinimumLevel: LogEventLevel.Warning);
+            }
+            else
+            {
+                Log.Information("The Sentry token was not set. Logging to Sentry has been disabled.");
             }
 
             Log.Logger = loggerConfig.CreateLogger();
@@ -82,9 +90,25 @@ namespace Modix
                 DiscordClientSecret = Environment.GetEnvironmentVariable("DiscordClientSecret")
             };
 
+            if (string.IsNullOrWhiteSpace(config.DiscordToken))
+            {
+                Log.Fatal("The discord token was not set - this is fatal! Check your envvars.");
+            }
+
+            if (string.IsNullOrWhiteSpace(config.DiscordClientId) || string.IsNullOrWhiteSpace(config.DiscordClientSecret))
+            {
+                Log.Warning("The discord client id and/or client secret were not set. These are required for Web API functionality - " +
+                    "if you need that, set your envvars, and make sure to configure redirect URIs");
+            }
+
             if (int.TryParse(Environment.GetEnvironmentVariable("DiscordMessageCacheSize"), out var cacheSize))
             {
                 config.MessageCacheSize = cacheSize;
+            }
+            else
+            {
+                config.MessageCacheSize = 0;
+                Log.Information("The message cache size was not set. Defaulting to 0.");
             }
 
             var id = Environment.GetEnvironmentVariable("log_webhook_id");
