@@ -36,7 +36,7 @@ export default class PromotionService
             }
         });
 
-        return response;
+        return response.filter(comment => !comment.deleteAction);
     }
 
     static async getNextRankRoleForUser(subjectId: string): Promise<Role>
@@ -52,6 +52,11 @@ export default class PromotionService
     static async commentOnCampaign(campaign: PromotionCampaign, data: PromotionCommentData): Promise<void>
     {
         await client.put(`campaigns/${campaign.id}/comments`, data);
+    }
+
+    static async updateComment(comment: PromotionComment, data: PromotionCommentData): Promise<void>
+    {
+        await client.put(`campaigns/${comment.id}/updateComment`, data);
     }
 
     static async approveCampaign(campaign: PromotionCampaign): Promise<void>

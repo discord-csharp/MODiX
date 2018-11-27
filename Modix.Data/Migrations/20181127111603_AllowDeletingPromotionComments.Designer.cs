@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    [Migration("20181126220257_AllowDeletionOfPromotionComments")]
-    partial class AllowDeletionOfPromotionComments
+    [Migration("20181127111603_AllowDeletingPromotionComments")]
+    partial class AllowDeletingPromotionComments
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -427,6 +427,8 @@ namespace Modix.Data.Migrations
                     b.Property<long>("CreateActionId");
 
                     b.Property<long?>("DeleteActionId");
+
+                    b.Property<long?>("LogMessageId");
 
                     b.Property<string>("Sentiment")
                         .IsRequired();

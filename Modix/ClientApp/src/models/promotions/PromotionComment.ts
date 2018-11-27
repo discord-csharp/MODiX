@@ -7,4 +7,5 @@ export default interface PromotionComment
     sentiment: PromotionSentiment;
     content: string;
     createAction: PromotionAction;
+    deleteAction: PromotionAction;
 }

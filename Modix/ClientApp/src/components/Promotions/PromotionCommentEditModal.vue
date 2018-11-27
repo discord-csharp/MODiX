@@ -24,6 +24,8 @@
                         <input class="input" type="text" v-model="newComment.body" placeholder="Make a comment...">
                     </p>
 
+                    <p class="help is-danger" v-if="error">{{error}}</p>
+
                 </div>
             </section>
 
@@ -73,6 +75,7 @@ export default class PromotionCommentEditModal extends Vue
     
     loadingCommentUpdate: boolean = false;
     newComment: PromotionCommentData = { body: "", sentiment: PromotionSentiment.Abstain };
+    error: string = "";
 
     @Watch('showUpdateModal')
     modalShownOrUnshown()
@@ -93,16 +96,19 @@ export default class PromotionCommentEditModal extends Vue
 
         try
         {
-            this.$emit("comment-edited");
+            await PromotionService.updateComment(this.comment, this.newComment);
         }
-        catch (err)
-        {
+        catch (err) {
+            this.error = err;
             console.log(err);
+            return;
         }
         finally
         {
             this.loadingCommentUpdate = false;
         }
+
+        this.$emit("comment-edited");
     }
 
     sentimentIcon(sentiment: PromotionSentiment)

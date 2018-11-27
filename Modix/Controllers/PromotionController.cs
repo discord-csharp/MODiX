@@ -76,6 +76,21 @@ namespace Modix.Controllers
             return Ok();
         }
 
+        [HttpPut("{commentId}/updateComment")]
+        public async Task<IActionResult> UpdateComment(int commentId, [FromBody] PromotionCommentData commentData)
+        {
+            try
+            {
+                await _promotionsService.UpdateCommentAsync(commentId, commentData.Sentiment, commentData.Body);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            return Ok();
+        }
+
         [HttpPost("{campaignId}/accept")]
         public async Task<IActionResult> AcceptCampaign(int campaignId)
         {

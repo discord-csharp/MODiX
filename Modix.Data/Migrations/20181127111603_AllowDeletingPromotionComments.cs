@@ -2,12 +2,17 @@
 
 namespace Modix.Data.Migrations
 {
-    public partial class AllowDeletionOfPromotionComments : Migration
+    public partial class AllowDeletingPromotionComments : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<long>(
                 name: "DeleteActionId",
+                table: "PromotionComments",
+                nullable: true);
+
+            migrationBuilder.AddColumn<long>(
+                name: "LogMessageId",
                 table: "PromotionComments",
                 nullable: true);
 
@@ -38,6 +43,10 @@ namespace Modix.Data.Migrations
 
             migrationBuilder.DropColumn(
                 name: "DeleteActionId",
+                table: "PromotionComments");
+
+            migrationBuilder.DropColumn(
+                name: "LogMessageId",
                 table: "PromotionComments");
         }
     }

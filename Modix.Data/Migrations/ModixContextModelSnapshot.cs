@@ -426,6 +426,8 @@ namespace Modix.Data.Migrations
 
                     b.Property<long?>("DeleteActionId");
 
+                    b.Property<long?>("LogMessageId");
+
                     b.Property<string>("Sentiment")
                         .IsRequired();
 

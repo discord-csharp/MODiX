@@ -68,6 +68,11 @@ namespace Modix.Data.Models.Promotions
         /// </summary>
         public virtual PromotionActionEntity DeleteAction { get; set; }
 
+        /// <summary>
+        /// The message in the promotion log channel that corresponds with this comment.
+        /// </summary>
+        public ulong? LogMessageId { get; set; }
+
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -75,6 +80,11 @@ namespace Modix.Data.Models.Promotions
                 .Entity<PromotionCommentEntity>()
                 .Property(x => x.Sentiment)
                 .HasConversion<string>();
+
+            modelBuilder
+                .Entity<PromotionCommentEntity>()
+                .Property(x => x.LogMessageId)
+                .HasConversion<long>();
 
             modelBuilder
                 .Entity<PromotionCommentEntity>()

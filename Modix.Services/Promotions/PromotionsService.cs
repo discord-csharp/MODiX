@@ -317,8 +317,8 @@ namespace Modix.Services.Promotions
             => PromotionCampaignRepository.SearchSummariesAsync(searchCriteria);
 
         /// <inheritdoc />
-        public Task<PromotionCampaignDetails> GetCampaignDetailsAsync(long campaignId)
-            => PromotionCampaignRepository.ReadDetailsAsync(campaignId);
+        public async Task<PromotionCampaignDetails> GetCampaignDetailsAsync(long campaignId)
+            => await PromotionCampaignRepository.ReadDetailsAsync(campaignId);
 
         /// <inheritdoc />
         public Task<PromotionActionSummary> GetPromotionActionSummaryAsync(long promotionActionId)

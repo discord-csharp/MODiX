@@ -40,7 +40,7 @@
                 <div v-else>
                     <PromotionListItem v-for="campaign in campaigns" :campaign="campaign" :key="campaign.id"
                                        :dialogLoading="currentlyLoadingInfractions == campaign.id" @commentSubmitted="refresh()" @showPanel="showPanel(campaign)"
-                                       v-on:comment-edit-modal-opened="onCommentEditModalOpened" />
+                                       v-on:comment-edit-modal-opened="onCommentEditModalOpened" v-on:comment-edited="refresh" />
                 </div>
             </div>
         </section>

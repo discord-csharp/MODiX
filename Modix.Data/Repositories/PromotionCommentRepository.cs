@@ -129,6 +129,7 @@ namespace Modix.Data.Repositories
         public async Task<bool> TryDeleteAsync(long commentId, ulong deletedById)
         {
             var entity = await ModixContext.PromotionComments
+                .Include(x => x.Campaign)
                 .Where(x => x.Id == commentId)
                 .FirstOrDefaultAsync();
 

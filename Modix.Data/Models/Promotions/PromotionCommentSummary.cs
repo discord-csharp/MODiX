@@ -40,6 +40,11 @@ namespace Modix.Data.Models.Promotions
         /// </summary>
         public PromotionActionBrief Deleted { get; set; }
 
+        /// <summary>
+        /// See <see cref="PromotionCommentEntity.LogMessageId"/>.
+        /// </summary>
+        public ulong? LogMessageId { get; set; }
+
         [ExpansionExpression]
         internal static Expression<Func<PromotionCommentEntity, PromotionCommentSummary>> FromEntityProjection
             = entity => new PromotionCommentSummary
@@ -56,6 +61,7 @@ namespace Modix.Data.Models.Promotions
                 Deleted = (entity.DeleteAction == null)
                     ? null
                     : entity.CreateAction.Project(PromotionActionBrief.FromEntityProjection),
+                LogMessageId = entity.LogMessageId,
             };
     }
 }
