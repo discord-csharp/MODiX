@@ -27,11 +27,11 @@ namespace Modix.Services.Utilities
             //Only serialize some properties
             if (_propertyFilter.Contains(property.PropertyName))
             {
-                property.ShouldSerialize = instance => false;
+                property.ShouldSerialize = instance => true;
             }
             else
             {
-                property.ShouldSerialize = instance => true;
+                property.ShouldSerialize = instance => false;
             }
             
             return property;
