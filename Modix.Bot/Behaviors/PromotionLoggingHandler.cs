@@ -31,9 +31,7 @@ namespace Modix.Behaviors
 
             _lazyPromotionsService = new Lazy<IPromotionsService>(() => serviceProvider.GetRequiredService<IPromotionsService>());
         }
-
-        /// <inheritdoc />
-        public async Task OnPromotionActionCreatedAsync(long promotionActionId, PromotionActionCreationData data)
+        
         public Task Handle(PromotionActionCreated notification, CancellationToken cancellationToken)
             => OnPromotionActionCreatedAsync(notification.PromotionActionId, notification.PromotionActionCreationData);
 
@@ -45,58 +43,31 @@ namespace Modix.Behaviors
             try
             {
                 var promotionAction = await PromotionsService.GetPromotionActionSummaryAsync(promotionActionId);
-                var guild = await DiscordClient.GetGuildAsync(data.GuildId);
 
-                if (promotionAction.Type != PromotionActionType.CommentDeleted)
-                {
-                    if (!_renderTemplates.TryGetValue((promotionAction.Type, promotionAction.Comment?.Sentiment, promotionAction.Campaign?.Outcome), out var renderTemplate))
-                        return;
+                if (!_renderTemplates.TryGetValue((promotionAction.Type, promotionAction.Comment?.Sentiment, promotionAction.Campaign?.Outcome), out var renderTemplate))
+                    return;
 
-                    var message = string.Format(renderTemplate,
-                        promotionAction.Created.UtcDateTime.ToString("HH:mm:ss"),
-                        promotionAction.Campaign?.Id,
-                        promotionAction.Campaign?.Subject.DisplayName,
-                        promotionAction.Campaign?.Subject.Id,
-                        promotionAction.Campaign?.TargetRole.Name,
-                        promotionAction.Campaign?.TargetRole.Id,
-                        promotionAction.Comment?.Campaign.Id,
-                        promotionAction.Comment?.Campaign.Subject.DisplayName,
-                        promotionAction.Comment?.Campaign.Subject.Id,
-                        promotionAction.Comment?.Campaign.TargetRole.Name,
-                        promotionAction.Comment?.Campaign.TargetRole.Id,
-                        promotionAction.Comment?.Content);
+                var message = string.Format(renderTemplate,
+                    promotionAction.Created.UtcDateTime.ToString("HH:mm:ss"),
+                    promotionAction.Campaign?.Id,
+                    promotionAction.Campaign?.Subject.DisplayName,
+                    promotionAction.Campaign?.Subject.Id,
+                    promotionAction.Campaign?.TargetRole.Name,
+                    promotionAction.Campaign?.TargetRole.Id,
+                    promotionAction.Comment?.Campaign.Id,
+                    promotionAction.Comment?.Campaign.Subject.DisplayName,
+                    promotionAction.Comment?.Campaign.Subject.Id,
+                    promotionAction.Comment?.Campaign.TargetRole.Name,
+                    promotionAction.Comment?.Campaign.TargetRole.Id,
+                    promotionAction.Comment?.Content);
 
-                    var createdMessages = await DesignatedChannelService.SendToDesignatedChannelsAsync(
-                        await DiscordClient.GetGuildAsync(data.GuildId), DesignatedChannelType.PromotionLog, message);
-
-                    if (promotionAction.Type == PromotionActionType.CommentCreated)
-                    {
-                        foreach (var createdMessage in createdMessages)
-                        {
-                            await PromotionsService.AddPromotionCommentMessageAsync(
-                                createdMessage.Id,
-                                promotionAction.Comment.Id,
-                                promotionAction.GuildId,
-                                createdMessage.Channel.Id);
-                        }
-                    }
-                }
-                else
-                {
-                    var messages = await PromotionsService.GetPromotionCommentMessagesAsync(promotionAction.Comment.Id);
-
-                    foreach (var message in messages)
-                    {
-                        var channel = await guild.GetTextChannelAsync(message.Channel.Id);
-                        await channel.DeleteMessageAsync(message.MessageId);
-                    }
-                }
+                await DesignatedChannelService.SendToDesignatedChannelsAsync(
+                    await DiscordClient.GetGuildAsync(data.GuildId), DesignatedChannelType.PromotionLog, message);
             }
             catch (Exception ex)
             {
                 var text = Newtonsoft.Json.JsonConvert.SerializeObject(ex);
             }
-
         }
 
         /// <summary>
@@ -123,6 +94,9 @@ namespace Modix.Behaviors
                 { (PromotionActionType.CommentCreated,   PromotionSentiment.Abstain, null),                              "`[{0}]` A comment was added to the campaign (`{6}`) to promote **{7}** (`{8}`) to **{9}** (`{10}`), abstaining from the campaign. ```{11}```" },
                 { (PromotionActionType.CommentCreated,   PromotionSentiment.Approve, null),                              "`[{0}]` A comment was added to the campaign (`{6}`) to promote **{7}** (`{8}`) to **{9}** (`{10}`), approving of the promotion. ```{11}```" },
                 { (PromotionActionType.CommentCreated,   PromotionSentiment.Oppose,  null),                              "`[{0}]` A comment was added to the campaign (`{6}`) to promote **{7}** (`{8}`) to **{9}** (`{10}`), opposing the promotion. ```{11}```" },
+                { (PromotionActionType.CommentUpdated,   PromotionSentiment.Abstain, null),                              "`[{0}]` A comment was modified in the campaign (`{6}`) to promote **{7}** (`{8}`) to **{9}** (`{10}`), abstaining from the campaign. ```{11}```" },
+                { (PromotionActionType.CommentUpdated,   PromotionSentiment.Approve, null),                              "`[{0}]` A comment was modified in the campaign (`{6}`) to promote **{7}** (`{8}`) to **{9}** (`{10}`), approving of the promotion. ```{11}```" },
+                { (PromotionActionType.CommentUpdated,   PromotionSentiment.Oppose,  null),                              "`[{0}]` A comment was modified in the campaign (`{6}`) to promote **{7}** (`{8}`) to **{9}** (`{10}`), opposing the promotion. ```{11}```" },
                 { (PromotionActionType.CampaignClosed,   null,                       PromotionCampaignOutcome.Accepted), "`[{0}]` The campaign (`{1}`) to promote **{2}** (`{3}`) to **{4}** (`{5}`) was accepted." },
                 { (PromotionActionType.CampaignClosed,   null,                       PromotionCampaignOutcome.Rejected), "`[{0}]` The campaign (`{1}`) to promote **{2}** (`{3}`) to **{4}** (`{5}`) was rejected." },
                 { (PromotionActionType.CampaignClosed,   null,                       PromotionCampaignOutcome.Failed),   "`[{0}]` The campaign (`{1}`) to promote **{2}** (`{3}`) to **{4}** (`{5}`) failed to process." },

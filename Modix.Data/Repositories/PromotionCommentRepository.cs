@@ -44,6 +44,17 @@ namespace Modix.Data.Repositories
         Task<long> CreateAsync(PromotionCommentCreationData data);
 
         /// <summary>
+        /// Creates a modified comment within the repository.
+        /// </summary>
+        /// <param name="data">The data for the comment to be created.</param>
+        /// <exception cref="ArgumentNullException">Throws for <paramref name="data"/>.</exception>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing the auto-generated <see cref="PromotionCommentEntity.Id"/> value assigned to the new comment.
+        /// </returns>
+        Task<long> CreateModifiedAsync(PromotionCommentCreationData data);
+
+        /// <summary>
         /// Retrieves information about a promotion comment based on its ID.
         /// </summary>
         /// <param name="commentId">The <see cref="PromotionCommentEntity.Id"/> value of the promotion comment to be retrieved.</param>
@@ -95,10 +106,31 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<long> CreateAsync(PromotionCommentCreationData data)
         {
-            if (data == null)
+            if (data is null)
                 throw new ArgumentNullException(nameof(data));
 
             var entity = data.ToEntity();
+
+            await ModixContext.PromotionComments.AddAsync(entity);
+            await ModixContext.SaveChangesAsync();
+
+            entity.CreateAction.CommentId = entity.Id;
+            await ModixContext.SaveChangesAsync();
+
+            await RaisePromotionActionCreatedAsync(entity.CreateAction);
+
+            return entity.Id;
+        }
+
+        /// <inheritdoc />
+        public async Task<long> CreateModifiedAsync(PromotionCommentCreationData data)
+        {
+            if (data is null)
+                throw new ArgumentNullException(nameof(data));
+
+            var entity = data.ToEntity();
+
+            entity.CreateAction.Type = PromotionActionType.CommentUpdated;
 
             await ModixContext.PromotionComments.AddAsync(entity);
             await ModixContext.SaveChangesAsync();
