@@ -32,7 +32,15 @@ namespace Modix.Controllers
         public async Task<IActionResult> CampaignComments(long campaignId)
         {
             var result = await _promotionsService.GetCampaignDetailsAsync(campaignId);
-            return Ok(result.Comments);
+
+            //TODO: Map this properly
+            return Ok(result.Comments.Select(c => new
+            {
+                c.Id,
+                c.Sentiment,
+                c.Content,
+                CreateAction = new { c.CreateAction.Id, c.CreateAction.Created }
+            }));
         }
 
         [HttpGet("{subjectId}/nextRank")]
