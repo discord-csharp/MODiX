@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
+using Modix.Data.Models.Core;
 using Modix.Models;
 using Modix.Services.Core;
 
@@ -28,6 +29,25 @@ namespace Modix.Controllers
                 RoleId = d.Role.Id,
                 RoleDesignation = d.Type,
                 Name = UserGuild?.GetRole(d.Role.Id).Name ?? d.Id.ToString()
+            });
+
+            return Ok(mapped);
+        }
+
+        [HttpGet("ranks")]
+        public async Task<IActionResult> Ranks()
+        {
+            var ranks = await RoleService.SearchDesignatedRolesAsync(new DesignatedRoleMappingSearchCriteria
+            {
+                GuildId = ModixAuth.CurrentGuildId.Value,
+                Type = DesignatedRoleType.Rank,
+            });
+
+            var mapped = ranks.Select(d => new
+            {
+                d.Role.Id,
+                d.Role.Name,
+                d.Role.Position,
             });
 
             return Ok(mapped);

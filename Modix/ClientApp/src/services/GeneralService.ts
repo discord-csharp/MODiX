@@ -10,6 +10,7 @@ import Deserializer from '@/app/Deserializer';
 import Claim from '@/models/Claim';
 import Guild from '@/models/Guild';
 import GuildStatApiData from '@/models/GuildStatApiData';
+import Rank from '@/models/configuration/Rank';
 
 export default class GeneralService
 {
@@ -31,6 +32,17 @@ export default class GeneralService
     {
         let response = (await client.get("roles")).data;
         return _.map(response, response => Deserializer.getNew(Role, response));
+    }
+
+    static async getGuildRolesExceptEveryone(): Promise<Role[]>
+    {
+        let response = (await client.get("rolesExceptEveryone")).data;
+        return _.map(response, response => Deserializer.getNew(Role, response));
+    }
+
+    static async getRanks(): Promise<Rank[]>
+    {
+        return (await client.get("config/roles/ranks")).data;
     }
 
     static async getClaims(): Promise<{[claim: string]: Claim[]}>

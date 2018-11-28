@@ -7,6 +7,7 @@ import Deserializer from '@/app/Deserializer';
 import RoleClaimModifyData from '@/models/configuration/RoleClaimModifyData';
 import DesignatedRoleMapping from '@/models/moderation/DesignatedRoleMapping';
 import DesignatedRoleCreationData from '@/models/moderation/DesignatedRoleCreationData';
+import MentionabilityType from '@/models/configuration/MentionabilityType';
 
 export default class ConfigurationService
 {
@@ -51,5 +52,10 @@ export default class ConfigurationService
     static async modifyRoleClaim(data: RoleClaimModifyData)
     {
         await client.patch("config/claims", data);
+    }
+
+    static async getMentionabilityTypes(): Promise<MentionabilityType[]>
+    {
+        return (await client.get("config/mentions")).data;
     }
 }

@@ -20,6 +20,11 @@ namespace Modix.Controllers
             return Ok(UserGuild.Roles.Select(d => new { d.Id, d.Name, Color = d.Color.ToString() }));
         }
 
+        public IActionResult RolesExceptEveryone()
+        {
+            return Ok(UserGuild.Roles.Where(d => !d.IsEveryone).Select(d => new { d.Id, d.Name, Color = d.Color.ToString(), d.Position, d.IsMentionable }));
+        }
+
         public IActionResult Channels()
         {
             return Ok(UserGuild.Channels.Select(d => new { d.Id, d.Name }));
