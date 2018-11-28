@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Discord;
-
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-
+using Modix.Data.Messages;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
 using Modix.Data.Repositories;
@@ -17,12 +18,13 @@ namespace Modix.Behaviors
     /// <summary>
     /// Renders moderation actions, as they are created, as messages to each configured moderation log channel.
     /// </summary>
-    public class PromotionLoggingBehavior : IPromotionActionEventHandler
+    public class PromotionLoggingHandler :
+        INotificationHandler<PromotionActionCreated>
     {
         /// <summary>
-        /// Constructs a new <see cref="PromotionLoggingBehavior"/> object, with injected dependencies.
+        /// Constructs a new <see cref="PromotionLoggingHandler"/> object, with injected dependencies.
         /// </summary>
-        public PromotionLoggingBehavior(IServiceProvider serviceProvider, IDiscordClient discordClient, IDesignatedChannelService designatedChannelService)
+        public PromotionLoggingHandler(IServiceProvider serviceProvider, IDiscordClient discordClient, IDesignatedChannelService designatedChannelService)
         {
             DiscordClient = discordClient;
             DesignatedChannelService = designatedChannelService;
@@ -30,7 +32,9 @@ namespace Modix.Behaviors
             _lazyPromotionsService = new Lazy<IPromotionsService>(() => serviceProvider.GetRequiredService<IPromotionsService>());
         }
 
-        /// <inheritdoc />
+        public Task Handle(PromotionActionCreated notification, CancellationToken cancellationToken)
+            => OnPromotionActionCreatedAsync(notification.PromotionActionId, notification.PromotionActionCreationData);
+
         public async Task OnPromotionActionCreatedAsync(long moderationActionId, PromotionActionCreationData data)
         {
             if (!await DesignatedChannelService.AnyDesignatedChannelAsync(data.GuildId, DesignatedChannelType.PromotionLog))
