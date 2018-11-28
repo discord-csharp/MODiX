@@ -148,6 +148,8 @@ namespace Modix.Data.Repositories
 
             await ModixContext.SaveChangesAsync();
 
+            await RaisePromotionActionCreatedAsync(entity.DeleteAction);
+
             return true;
         }
 

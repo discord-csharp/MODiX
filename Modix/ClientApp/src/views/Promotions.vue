@@ -40,7 +40,7 @@
                 <div v-else>
                     <PromotionListItem v-for="campaign in campaigns" :campaign="campaign" :key="campaign.id"
                                        :dialogLoading="currentlyLoadingInfractions == campaign.id" @commentSubmitted="refresh()" @showPanel="showPanel(campaign)"
-                                       v-on:comment-edit-modal-opened="onCommentEditModalOpened" v-on:comment-edited="refresh" />
+                                       v-on:comment-edit-modal-opened="onCommentEditModalOpened" />
                 </div>
             </div>
         </section>
@@ -94,7 +94,8 @@
             </div>
         </div>
 
-        <PromotionCommentEditModal v-bind:comment="commentToEdit" v-bind:showUpdateModal="showCommentEditModal" v-on:comment-edit-modal-closed="onCommentEditModalClosing()" />
+        <PromotionCommentEditModal v-bind:comment="commentToEdit" v-bind:showUpdateModal="showCommentEditModal"
+                                   v-on:comment-edit-modal-closed="onCommentEditModalClosing" v-on:comment-edited="refresh" />
 
     </div>
 </template>
@@ -246,6 +247,8 @@ export default class Promotions extends Vue
 
     async refresh()
     {
+        this.showCommentEditModal = false;
+
         this.loading = true;
 
         await store.retrieveRoles();

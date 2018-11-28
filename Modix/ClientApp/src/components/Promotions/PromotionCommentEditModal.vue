@@ -24,9 +24,9 @@
                         <input class="input" type="text" v-model="newComment.body" placeholder="Make a comment...">
                     </p>
 
-                    <p class="help is-danger" v-if="error">{{error}}</p>
-
                 </div>
+
+                <p class="help is-danger" v-if="error">{{error}}</p>
             </section>
 
             <footer class="modal-card-foot level">
@@ -34,7 +34,8 @@
                     <button class="button" v-on:click="showUpdateModal = false">Cancel</button>
                 </div>
                 <div class="level-right">
-                    <button class="button is-success" v-bind:class="{'is-loading': loadingCommentUpdate}" v-on:click="updateComment()">Update</button>
+                    <button class="button is-success" v-bind:class="{'is-loading': loadingCommentUpdate}"
+                            v-on:click="updateComment()" v-bind:disabled="newComment.body.length <= 3 || newComment.body == comment.content">Update</button>
                 </div>
             </footer>
         </div>
@@ -98,8 +99,9 @@ export default class PromotionCommentEditModal extends Vue
         {
             await PromotionService.updateComment(this.comment, this.newComment);
         }
-        catch (err) {
-            this.error = err;
+        catch (err)
+        {
+            this.error = err.response.data;
             console.log(err);
             return;
         }
@@ -108,7 +110,8 @@ export default class PromotionCommentEditModal extends Vue
             this.loadingCommentUpdate = false;
         }
 
-        this.$emit("comment-edited");
+        this.$emit('comment-edited');
+        this.$emit('comment-edit-modal-closed')
     }
 
     sentimentIcon(sentiment: PromotionSentiment)
