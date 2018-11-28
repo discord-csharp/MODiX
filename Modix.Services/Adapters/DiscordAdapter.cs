@@ -25,20 +25,31 @@ namespace Modix.Services.Adapters
 
         public Task StartAsync()
         {
-            _discordClient.MessageReceived += OnDiscordClientMessageReceived;
-            _discordClient.MessageUpdated += OnDiscordClientMessageUpdated;
+            _discordClient.MessageReceived += OnMessageReceived;
+            _discordClient.MessageUpdated += OnMessageUpdated;
+            _discordClient.ReactionAdded += OnReactionAdded;
+            _discordClient.ReactionRemoved += OnReactionRemoved;
             return Task.CompletedTask;
         }
 
-        private Task OnDiscordClientMessageUpdated(Cacheable<IMessage, ulong> oldMessage, SocketMessage newMessage,
+        private Task OnReactionRemoved(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel,
+            SocketReaction reaction)
+            => PublishScoped(new ReactionRemoved { Channel = channel, Message = message, Reaction = reaction });
+
+        private Task OnReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel,
+            SocketReaction reaction)
+            => PublishScoped(new ReactionAdded { Channel = channel, Message = message, Reaction = reaction});
+
+        private Task OnMessageUpdated(Cacheable<IMessage, ulong> oldMessage, SocketMessage newMessage,
             ISocketMessageChannel channel)
             => PublishScoped(new ChatMessageUpdated {  OldMessage = oldMessage, NewMessage = newMessage, Channel = channel });
 
-        private Task OnDiscordClientMessageReceived(SocketMessage message)
+        private Task OnMessageReceived(SocketMessage message)
             => PublishScoped(new ChatMessageReceived { Message = message });
 
         private async Task PublishScoped(INotification message)
         {
+            Log.Debug($"Beginning to publish a {message.GetType().Name} message");
             using (var scope = _serviceProvider.CreateScope())
             {
                 var provider = scope.ServiceProvider;
@@ -50,14 +61,16 @@ namespace Modix.Services.Adapters
 
                 var mediator = provider.GetRequiredService<IMediator>();
                 await mediator.Publish(message);
-                Log.Debug("Done publishing message");
             }
+            Log.Debug($"Finished invoking {message.GetType().Name} handlers");
         }
 
         public Task StopAsync()
         {
-            _discordClient.MessageReceived -= OnDiscordClientMessageReceived;
-            _discordClient.MessageUpdated -= OnDiscordClientMessageUpdated;
+            _discordClient.MessageReceived -= OnMessageReceived;
+            _discordClient.MessageUpdated -= OnMessageUpdated;
+            _discordClient.ReactionAdded -= OnReactionAdded;
+            _discordClient.ReactionRemoved -= OnReactionRemoved;
             return Task.CompletedTask;
         }
     }

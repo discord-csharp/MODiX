@@ -1,17 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using MediatR;
 using Microsoft.Extensions.Caching.Memory;
+using Modix.Services.Messages.Discord;
 
 namespace Modix.Services.GuildInfo
 {
-    public class GuildInfoService
+    public class GuildInfoService :
+        INotificationHandler<UserJoined>,
+        INotificationHandler<UserLeft>,
+        INotificationHandler<ChatMessageReceived>
     {
         private readonly IMemoryCache _cache;
 
-        private readonly MemoryCacheEntryOptions _cacheEntryOptions = 
+        private readonly MemoryCacheEntryOptions _cacheEntryOptions =
             new MemoryCacheEntryOptions().SetSlidingExpiration(TimeSpan.FromDays(1));
 
         public GuildInfoService(IMemoryCache cache)
@@ -30,6 +36,23 @@ namespace Modix.Services.GuildInfo
         public void ClearCacheEntry(IGuild guild)
         {
             _cache.Remove(GetKeyForGuild(guild));
+        }
+
+        public Task Handle(ChatMessageReceived notification, CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task Handle(UserJoined notification, CancellationToken cancellationToken)
+        {
+            ClearCacheEntry(notification.Guild);
+            return Task.CompletedTask;
+        }
+
+        public Task Handle(UserLeft notification, CancellationToken cancellationToken)
+        {
+            ClearCacheEntry(notification.Guild);
+            return Task.CompletedTask;
         }
 
         /// <summary>

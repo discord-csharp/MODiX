@@ -1,11 +1,16 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using MediatR;
+using Modix.Services.Messages.Discord;
 
 namespace Modix.Services.CommandHelp
 {
-    public class CommandErrorHandler
+    public class CommandErrorHandler :
+        INotificationHandler<ReactionAdded>,
+        INotificationHandler<ReactionRemoved>
     {
         //This relates user messages with errors
         private readonly Dictionary<ulong, string> _associatedErrors = new Dictionary<ulong, string>();
@@ -25,6 +30,9 @@ namespace Modix.Services.CommandHelp
             await message.AddReactionAsync(new Emoji(_emoji));
             _associatedErrors.Add(message.Id, error);
         }
+
+        public Task Handle(ReactionAdded notification, CancellationToken cancellationToken)
+            => ReactionAdded(notification.Message, notification.Channel, notification.Reaction);
 
         public async Task ReactionAdded(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
         {
@@ -53,6 +61,9 @@ namespace Modix.Services.CommandHelp
                 _errorReplies.Add(cachedMessage.Id, msg.Id);
             }
         }
+
+        public Task Handle(ReactionRemoved notification, CancellationToken cancellationToken)
+            => ReactionRemoved(notification.Message, notification.Channel, notification.Reaction);
 
         public async Task ReactionRemoved(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
         {

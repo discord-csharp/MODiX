@@ -55,21 +55,15 @@ namespace Modix
             Log.LogInformation("Starting bot background service.");
 
             IServiceScope scope = null;
-            ModixBotHooks hooks = null;
             try
             {
                 // Create a new scope for the session.
                 scope = _provider.CreateScope();
 
                 Log.LogTrace("Registering listeners for Discord client events.");
-                hooks = new ModixBotHooks(scope.ServiceProvider);
 
                 _client.Disconnected += OnDisconnect;
                 _client.MessageReceived += HandleCommand;
-                _client.ReactionAdded += hooks.HandleAddReaction;
-                _client.ReactionRemoved += hooks.HandleRemoveReaction;
-                _client.UserJoined += hooks.HandleUserJoined;
-                _client.UserLeft += hooks.HandleUserLeft;
 
                 _client.Log += _serilogAdapter.HandleLog;
                 _commands.Log += _serilogAdapter.HandleLog;
@@ -138,16 +132,6 @@ namespace Modix
 
                 _client.Disconnected -= OnDisconnect;
                 _client.MessageReceived -= HandleCommand;
-
-                if (hooks is null)
-                {
-                    return;
-                }
-
-                _client.ReactionAdded -= hooks.HandleAddReaction;
-                _client.ReactionRemoved -= hooks.HandleRemoveReaction;
-                _client.UserJoined -= hooks.HandleUserJoined;
-                _client.UserLeft -= hooks.HandleUserLeft;
 
                 _client.Log -= _serilogAdapter.HandleLog;
                 _commands.Log -= _serilogAdapter.HandleLog;

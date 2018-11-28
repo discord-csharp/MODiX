@@ -58,7 +58,10 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddModixCore()
                 .AddModixModeration()
-                .AddModixPromotions();
+                .AddModixPromotions()
+                .AddAutoCodePaste()
+                .AddCommandHelp()
+                .AddGuildInfo();
 
             services.AddSingleton<IBehavior, DiscordAdapter>();
             services.AddScoped<IQuoteService, QuoteService>();
@@ -69,9 +72,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<DocsMasterRetrievalService>();
             services.AddMemoryCache();
 
-            services.AddSingleton<GuildInfoService>();
             services.AddSingleton<ICodePasteRepository, MemoryCodePasteRepository>();
-            services.AddSingleton<CommandHelpService>();
             services.AddScoped<IPopularityContestService, PopularityContestService>();
 
             services.AddSingleton<CommandErrorHandler>();
