@@ -40,6 +40,12 @@ export default class GeneralService
         return _.map(response, response => Deserializer.getNew(Role, response));
     }
 
+    static async getGuildRolesExceptEveryone(): Promise<Role[]>
+    {
+        let response = (await client.get("rolesExceptEveryone")).data;
+        return _.map(response, response => Deserializer.getNew(Role, response));
+    }
+
     static async getRanks(): Promise<Rank[]>
     {
         return (await client.get("config/roles/ranks")).data;
