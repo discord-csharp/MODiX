@@ -38,7 +38,13 @@ namespace Modix.Services.CommandHelp
         {
             //Don't trigger if the emoji is wrong, if the user is a bot, or if we've
             //made an error message reply already
-            if (reaction.User.Value.IsBot || reaction.Emote.Name != _emoji || _errorReplies.ContainsKey(cachedMessage.Id))
+
+            if (reaction.User.IsSpecified && reaction.User.Value.IsBot)
+            {
+                return;
+            }
+
+            if (reaction.Emote.Name != _emoji || _errorReplies.ContainsKey(cachedMessage.Id))
             {
                 return;
             }
@@ -68,7 +74,12 @@ namespace Modix.Services.CommandHelp
         public async Task ReactionRemoved(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
         {
             //Don't trigger if the emoji is wrong, or if the user is bot
-            if (reaction.User.Value.IsBot || reaction.Emote.Name != _emoji)
+            if (reaction.User.IsSpecified && reaction.User.Value.IsBot)
+            {
+                return;
+            }
+
+            if (reaction.Emote.Name != _emoji)
             {
                 return;
             }
