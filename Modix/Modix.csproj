@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
@@ -35,6 +35,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <UpToDateCheckInput Include="$(SpaRoot)package-lock.json"/>
+    <UpToDateCheckInput Include="@(ClientSrc)"/>
+
+    <UpToDateCheckBuilt Include="$(SpaRoot)node_modules\.npm_timestamp"/>
+    <UpToDateCheckBuilt Include="$(MSBuildThisFileDirectory)obj\$(Configuration)\.vue_timestamp"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Don't publish the SPA source files, but do show them in the project files list -->
     <Content Remove="$(SpaRoot)**" />
     <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
@@ -65,11 +73,14 @@
     </Touch>
   </Target>
 
-  <Target Name="RunVueCli" BeforeTargets="Build" DependsOnTargets="NpmInstall" Inputs="@(ClientSrc)" Outputs="$(MSBuildThisFileDirectory)obj\$(Configuration)\.vue_timestamp" 
+  <Target Name="RunVueCli" AfterTargets="BeforeBuild" DependsOnTargets="NpmInstall" Inputs="@(ClientSrc)" Outputs="$(MSBuildThisFileDirectory)obj\$(Configuration)\.vue_timestamp"
           Condition=" '$(Configuration)' == 'Debug'">
-    <Exec WorkingDirectory="$(SpaRoot)" Command="npm run $(NpmBuild)" />
+    <Exec WorkingDirectory="$(SpaRoot)" Command="npm run $(NpmBuild)">
+      <Output TaskParameter="ExitCode" PropertyName="VueErrorCode" />
+    </Exec>
 
-    <Touch Files="$(MSBuildThisFileDirectory)obj\$(Configuration)\.vue_timestamp" AlwaysCreate="true">
+    <Touch Files="$(MSBuildThisFileDirectory)obj\$(Configuration)\.vue_timestamp" AlwaysCreate="true"
+           Condition=" '$(VueErrorCode)' == '0' ">
       <Output TaskParameter="TouchedFiles" ItemName="FileWrites" />
     </Touch>
   </Target>
