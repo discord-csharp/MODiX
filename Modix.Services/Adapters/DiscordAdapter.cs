@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
@@ -50,18 +50,27 @@ namespace Modix.Services.Adapters
         private async Task PublishScoped(INotification message)
         {
             Log.Debug($"Beginning to publish a {message.GetType().Name} message");
-            using (var scope = _serviceProvider.CreateScope())
+            
+            try
             {
-                var provider = scope.ServiceProvider;
-
-                // setup context for handlers
-                var botUser = provider.GetRequiredService<ISelfUser>();
-                await provider.GetRequiredService<IAuthorizationService>()
-                    .OnAuthenticatedAsync(botUser);
-
-                var mediator = provider.GetRequiredService<IMediator>();
-                await mediator.Publish(message);
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    var provider = scope.ServiceProvider;
+    
+                    // setup context for handlers
+                    var botUser = provider.GetRequiredService<ISelfUser>();
+                    await provider.GetRequiredService<IAuthorizationService>()
+                        .OnAuthenticatedAsync(botUser);
+    
+                    var mediator = provider.GetRequiredService<IMediator>();
+                    await mediator.Publish(message);
+                }
             }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "An exception was thrown in the Discord MediatR adapter.");
+            }
+
             Log.Debug($"Finished invoking {message.GetType().Name} handlers");
         }
 
