@@ -16,22 +16,22 @@ using Shouldly;
 
 namespace Modix.Data.Test.Repositories
 {
-    public class DesignatedChannelMappingRepositoryTests
+    public class DesignatedRoleMappingRepositoryTests
     {
         #region Test Context
 
-        private static (ModixContext, DesignatedChannelMappingRepository) BuildTestContext()
+        private static (ModixContext, DesignatedRoleMappingRepository) BuildTestContext()
         {
             var modixContext = TestDataContextFactory.BuildTestDataContext(x =>
             {
                 x.Users.AddRange(Users.Entities.Clone());
                 x.GuildUsers.AddRange(GuildUsers.Entities.Clone());
-                x.GuildChannels.AddRange(GuildChannels.Entities.Clone());
-                x.DesignatedChannelMappings.AddRange(DesignatedChannelMappings.Entities.Clone());
-                x.ConfigurationActions.AddRange(ConfigurationActions.Entities.Where(y => !(y.DesignatedChannelMappingId is null)).Clone());
+                x.GuildRoles.AddRange(GuildRoles.Entities.Clone());
+                x.DesignatedRoleMappings.AddRange(DesignatedRoleMappings.Entities.Clone());
+                x.ConfigurationActions.AddRange(ConfigurationActions.Entities.Where(y => !(y.DesignatedRoleMappingId is null)).Clone());
             });
 
-            var uut = new DesignatedChannelMappingRepository(modixContext);
+            var uut = new DesignatedRoleMappingRepository(modixContext);
 
             return (modixContext, uut);
         }
@@ -181,52 +181,52 @@ namespace Modix.Data.Test.Repositories
         #region CreateAsync() Tests
 
         [Test]
-        public async Task CreateAsync_DataIsNull_DoesNotUpdateDesignatedChannelMappingsAndThrowsException()
+        public async Task CreateAsync_DataIsNull_DoesNotUpdateDesignatedRoleMappingsAndThrowsException()
         {
             (var modixContext, var uut) = BuildTestContext();
 
             await Should.ThrowAsync<ArgumentNullException>(uut.CreateAsync(null));
 
-            modixContext.DesignatedChannelMappings.Select(x => x.Id).ShouldBe(DesignatedChannelMappings.Entities.Select(x => x.Id));
-            modixContext.DesignatedChannelMappings.EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.DesignatedRoleMappings.Select(x => x.Id).ShouldBe(DesignatedRoleMappings.Entities.Select(x => x.Id));
+            modixContext.DesignatedRoleMappings.EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();
         }
 
-        [TestCaseSource(nameof(DesignatedChannelMappingCreationTestCases))]
-        public async Task CreateAsync_DataIsNotNull_InsertsDesignatedChannelMapping(DesignatedChannelMappingCreationData data)
+        [TestCaseSource(nameof(DesignatedRoleMappingCreationTestCases))]
+        public async Task CreateAsync_DataIsNotNull_InsertsDesignatedRoleMapping(DesignatedRoleMappingCreationData data)
         {
             (var modixContext, var uut) = BuildTestContext();
 
             var id = await uut.CreateAsync(data);
 
-            modixContext.DesignatedChannelMappings.ShouldContain(x => x.Id == id);
-            var designatedChannelMapping = modixContext.DesignatedChannelMappings.First(x => x.Id == id);
+            modixContext.DesignatedRoleMappings.ShouldContain(x => x.Id == id);
+            var designatedRoleMapping = modixContext.DesignatedRoleMappings.First(x => x.Id == id);
 
-            designatedChannelMapping.GuildId.ShouldBe(data.GuildId);
-            designatedChannelMapping.Type.ShouldBe(data.Type);
-            designatedChannelMapping.ChannelId.ShouldBe(data.ChannelId);
-            designatedChannelMapping.CreateActionId.ShouldNotBeNull();
-            designatedChannelMapping.DeleteActionId.ShouldBeNull();
+            designatedRoleMapping.GuildId.ShouldBe(data.GuildId);
+            designatedRoleMapping.Type.ShouldBe(data.Type);
+            designatedRoleMapping.RoleId.ShouldBe(data.RoleId);
+            designatedRoleMapping.CreateActionId.ShouldNotBeNull();
+            designatedRoleMapping.DeleteActionId.ShouldBeNull();
 
-            modixContext.DesignatedChannelMappings.Where(x => x.Id != designatedChannelMapping.Id).Select(x => x.Id).ShouldBe(DesignatedChannelMappings.Entities.Select(x => x.Id));
-            modixContext.DesignatedChannelMappings.Where(x => x.Id != designatedChannelMapping.Id).EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.DesignatedRoleMappings.Where(x => x.Id != designatedRoleMapping.Id).Select(x => x.Id).ShouldBe(DesignatedRoleMappings.Entities.Select(x => x.Id));
+            modixContext.DesignatedRoleMappings.Where(x => x.Id != designatedRoleMapping.Id).EachShould(x => x.ShouldNotHaveChanged());
 
-            modixContext.ConfigurationActions.ShouldContain(x => x.Id == designatedChannelMapping.CreateActionId);
-            var createAction = modixContext.ConfigurationActions.First(x => x.Id == designatedChannelMapping.CreateActionId);
+            modixContext.ConfigurationActions.ShouldContain(x => x.Id == designatedRoleMapping.CreateActionId);
+            var createAction = modixContext.ConfigurationActions.First(x => x.Id == designatedRoleMapping.CreateActionId);
 
             createAction.GuildId.ShouldBe(data.GuildId);
-            createAction.Type.ShouldBe(ConfigurationActionType.DesignatedChannelMappingCreated);
+            createAction.Type.ShouldBe(ConfigurationActionType.DesignatedRoleMappingCreated);
             createAction.Created.ShouldBeInRange(
                 DateTimeOffset.Now - TimeSpan.FromSeconds(1),
                 DateTimeOffset.Now + TimeSpan.FromSeconds(1));
             createAction.CreatedById.ShouldBe(data.CreatedById);
-            createAction.ClaimMappingId.ShouldBeNull();
-            createAction.DesignatedChannelMappingId.ShouldBe(designatedChannelMapping.Id);
-            createAction.DesignatedRoleMappingId.ShouldBeNull();
+            createAction.DesignatedChannelMappingId.ShouldBeNull();
+            createAction.DesignatedRoleMappingId.ShouldNotBeNull();
+            createAction.DesignatedRoleMappingId.ShouldBe(designatedRoleMapping.Id);
 
-            modixContext.ConfigurationActions.Where(x => x.Id != createAction.Id).Select(x => x.Id).ShouldBe(ConfigurationActions.Entities.Where(x => !(x.DesignatedChannelMappingId is null)).Select(x => x.Id));
+            modixContext.ConfigurationActions.Where(x => x.Id != createAction.Id).Select(x => x.Id).ShouldBe(ConfigurationActions.Entities.Where(x => !(x.DesignatedRoleMappingId is null)).Select(x => x.Id));
             modixContext.ConfigurationActions.Where(x => x.Id != createAction.Id).EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldHaveReceived(2)
@@ -238,7 +238,7 @@ namespace Modix.Data.Test.Repositories
         #region AnyAsync() Tests
 
         [TestCaseSource(nameof(ValidSearchCriteriaTestCases))]
-        public async Task AnyAsync_DesignatedChannelMappingsExist_ReturnsTrue(DesignatedChannelMappingSearchCriteria criteria)
+        public async Task AnyAsync_DesignatedRoleMappingsExist_ReturnsTrue(DesignatedRoleMappingSearchCriteria criteria)
         {
             (var modixContext, var uut) = BuildTestContext();
 
@@ -248,7 +248,7 @@ namespace Modix.Data.Test.Repositories
         }
 
         [TestCaseSource(nameof(InvalidSearchCriteriaTestCases))]
-        public async Task AnyAsync_DesignatedChannelMappingsDoNotExist_ReturnsFalse(DesignatedChannelMappingSearchCriteria criteria)
+        public async Task AnyAsync_DesignatedRoleMappingsDoNotExist_ReturnsFalse(DesignatedRoleMappingSearchCriteria criteria)
         {
             (var modixContext, var uut) = BuildTestContext();
 
@@ -259,36 +259,10 @@ namespace Modix.Data.Test.Repositories
 
         #endregion AnyAsync() Tests
 
-        #region SearchChannelIdsAsync() Tests
-
-        [TestCaseSource(nameof(ValidSearchCriteriaAndResultIdsTestCases))]
-        public async Task SearchChannelIdsAsync_DesignatedChannelMappingsExist_ReturnsMatchingIds(DesignatedChannelMappingSearchCriteria criteria, long[] resultIds)
-        {
-            (var modixContext, var uut) = BuildTestContext();
-
-            var result = await uut.SearchChannelIdsAsync(criteria);
-
-            result.ShouldNotBeNull();
-            result.ShouldBe(resultIds.Select(x => DesignatedChannelMappings.Entities.First(y => y.Id == x).ChannelId));
-        }
-
-        [TestCaseSource(nameof(InvalidSearchCriteriaTestCases))]
-        public async Task SearchChannelIdsAsync_DesignatedChannelMappingsDoNotExist_ReturnsEmpty(DesignatedChannelMappingSearchCriteria criteria)
-        {
-            (var modixContext, var uut) = BuildTestContext();
-
-            var result = await uut.SearchChannelIdsAsync(criteria);
-
-            result.ShouldNotBeNull();
-            result.ShouldBeEmpty();
-        }
-
-        #endregion SearchChannelIdsAsync() Tests
-
         #region SearchBriefsAsync() Tests
 
         [TestCaseSource(nameof(ValidSearchCriteriaAndResultIdsTestCases))]
-        public async Task SearchBriefsAsync_DesignatedChannelMappingsExist_ReturnsMatchingBriefs(DesignatedChannelMappingSearchCriteria criteria, long[] resultIds)
+        public async Task SearchBriefsAsync_DesignatedRoleMappingsExist_ReturnsMatchingBriefs(DesignatedRoleMappingSearchCriteria criteria, long[] resultIds)
         {
             (var modixContext, var uut) = BuildTestContext();
 
@@ -300,7 +274,7 @@ namespace Modix.Data.Test.Repositories
         }
 
         [TestCaseSource(nameof(InvalidSearchCriteriaTestCases))]
-        public async Task SearchBriefsAsync_DesignatedChannelMappingsDoNotExist_ReturnsEmpty(DesignatedChannelMappingSearchCriteria criteria)
+        public async Task SearchBriefsAsync_DesignatedRoleMappingsDoNotExist_ReturnsEmpty(DesignatedRoleMappingSearchCriteria criteria)
         {
             (var modixContext, var uut) = BuildTestContext();
 
@@ -315,29 +289,29 @@ namespace Modix.Data.Test.Repositories
         #region DeleteAsync() Tests
 
         [TestCaseSource(nameof(ValidSearchCriteriaAndValidUserIdAndResultIdsTestCases))]
-        public async Task DeleteAsync_DesignatedChannelMappingsAreNotDeleted_UpdatesDesignatedChannelMappingsAndReturnsCount(DesignatedChannelMappingSearchCriteria criteria, ulong deletedById, long[] designatedChannelMappingIds)
+        public async Task DeleteAsync_DesignatedRoleMappingsAreNotDeleted_UpdatesDesignatedRoleMappingsAndReturnsCount(DesignatedRoleMappingSearchCriteria criteria, ulong deletedById, long[] designatedRoleMappingIds)
         {
             (var modixContext, var uut) = BuildTestContext();
 
             var result = await uut.DeleteAsync(criteria, deletedById);
 
-            result.ShouldBe(designatedChannelMappingIds
-                .Where(x => DesignatedChannelMappings.Entities
+            result.ShouldBe(designatedRoleMappingIds
+                .Where(x => DesignatedRoleMappings.Entities
                     .Any(y => (y.Id == x) && (y.DeleteActionId == null)))
                 .Count());
 
-            modixContext.DesignatedChannelMappings
+            modixContext.DesignatedRoleMappings
                 .Select(x => x.Id)
-                .ShouldBe(DesignatedChannelMappings.Entities.Select(x => x.Id));
+                .ShouldBe(DesignatedRoleMappings.Entities.Select(x => x.Id));
 
-            modixContext.DesignatedChannelMappings
-                .Where(x => designatedChannelMappingIds.Contains(x.Id) && (x.DeleteActionId == null))
+            modixContext.DesignatedRoleMappings
+                .Where(x => designatedRoleMappingIds.Contains(x.Id) && (x.DeleteActionId == null))
                 .EachShould(entity =>
                 {
-                    var originalEntity = DesignatedChannelMappings.Entities.First(x => x.Id == entity.Id);
+                    var originalEntity = DesignatedRoleMappings.Entities.First(x => x.Id == entity.Id);
 
                     entity.GuildId.ShouldBe(originalEntity.GuildId);
-                    entity.ChannelId.ShouldBe(originalEntity.ChannelId);
+                    entity.RoleId.ShouldBe(originalEntity.RoleId);
                     entity.Type.ShouldBe(originalEntity.Type);
                     entity.CreateActionId.ShouldBe(originalEntity.CreateActionId);
                     entity.DeleteActionId.ShouldNotBeNull();
@@ -346,24 +320,24 @@ namespace Modix.Data.Test.Repositories
                     var deleteAction = modixContext.ConfigurationActions.First(x => x.Id == entity.DeleteActionId);
 
                     deleteAction.GuildId.ShouldBe(entity.GuildId);
-                    deleteAction.Type.ShouldBe(ConfigurationActionType.DesignatedChannelMappingDeleted);
+                    deleteAction.Type.ShouldBe(ConfigurationActionType.DesignatedRoleMappingDeleted);
                     deleteAction.Created.ShouldBeInRange(
                         DateTimeOffset.Now - TimeSpan.FromMinutes(1),
                         DateTimeOffset.Now + TimeSpan.FromMinutes(1));
                     deleteAction.CreatedById.ShouldBe(deletedById);
-                    deleteAction.ClaimMappingId.ShouldBeNull();
-                    deleteAction.DesignatedChannelMappingId.ShouldBe(entity.Id);
+                    deleteAction.DesignatedRoleMappingId.ShouldBeNull();
+                    deleteAction.DesignatedRoleMappingId.ShouldBe(entity.Id);
                     deleteAction.DesignatedRoleMappingId.ShouldBeNull();
                 });
 
-            modixContext.DesignatedChannelMappings
-                .Where(x => !designatedChannelMappingIds.Contains(x.Id) || DesignatedChannelMappings.Entities
+            modixContext.DesignatedRoleMappings
+                .Where(x => !designatedRoleMappingIds.Contains(x.Id) || DesignatedRoleMappings.Entities
                     .Any(y => (y.Id == x.Id) && (x.DeleteActionId == null)))
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.ConfigurationActions
-                .Where(x => DesignatedChannelMappings.Entities
-                    .Any(y => (y.DeleteActionId == x.Id) && designatedChannelMappingIds.Contains(y.Id)))
+                .Where(x => DesignatedRoleMappings.Entities
+                    .Any(y => (y.DeleteActionId == x.Id) && designatedRoleMappingIds.Contains(y.Id)))
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldHaveReceived(1)
@@ -371,7 +345,7 @@ namespace Modix.Data.Test.Repositories
         }
 
         [TestCaseSource(nameof(InvalidSearchCriteriaAndValidUserIdTestCases))]
-        public async Task DeleteAsync_DesignatedChannelMappingsDoNotExist_DoesNotUpdateDesignatedChannelMappingsAndReturns0(DesignatedChannelMappingSearchCriteria criteria, ulong deletedById)
+        public async Task DeleteAsync_DesignatedRoleMappingsDoNotExist_DoesNotUpdateDesignatedRoleMappingsAndReturns0(DesignatedRoleMappingSearchCriteria criteria, ulong deletedById)
         {
             (var modixContext, var uut) = BuildTestContext();
 
@@ -379,18 +353,18 @@ namespace Modix.Data.Test.Repositories
 
             result.ShouldBe(0);
 
-            modixContext.DesignatedChannelMappings
+            modixContext.DesignatedRoleMappings
                 .Select(x => x.Id)
-                .ShouldBe(DesignatedChannelMappings.Entities
+                .ShouldBe(DesignatedRoleMappings.Entities
                     .Select(x => x.Id));
 
-            modixContext.DesignatedChannelMappings
+            modixContext.DesignatedRoleMappings
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.ConfigurationActions
                 .Select(x => x.Id)
                 .ShouldBe(ConfigurationActions.Entities
-                    .Where(x => x.DesignatedChannelMappingId != null)
+                    .Where(x => x.DesignatedRoleMappingId != null)
                     .Select(x => x.Id));
 
             modixContext.ConfigurationActions
@@ -404,58 +378,58 @@ namespace Modix.Data.Test.Repositories
 
         #region TryDeleteAsync() Tests
 
-        [TestCaseSource(nameof(ActiveDesignatedChannelMappingAndValidUserIdTestCases))]
-        public async Task TryDeleteAsync_DesignatedChannelMappingIsNotDeleted_UpdatesDesignatedChannelMappingAndReturnsTrue(long designatedChannelMappingId, ulong deletedById)
+        [TestCaseSource(nameof(ActiveDesignatedRoleMappingAndValidUserIdTestCases))]
+        public async Task TryDeleteAsync_DesignatedRoleMappingIsNotDeleted_UpdatesDesignatedRoleMappingAndReturnsTrue(long designatedRoleMappingId, ulong deletedById)
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            var result = await uut.TryDeleteAsync(designatedChannelMappingId, deletedById);
+            var result = await uut.TryDeleteAsync(designatedRoleMappingId, deletedById);
 
             result.ShouldBeTrue();
 
-            modixContext.DesignatedChannelMappings
-                .ShouldContain(x => x.Id == designatedChannelMappingId);
-            var designatedChannelMapping = modixContext.DesignatedChannelMappings
-                .First(x => x.Id == designatedChannelMappingId);
+            modixContext.DesignatedRoleMappings
+                .ShouldContain(x => x.Id == designatedRoleMappingId);
+            var designatedRoleMapping = modixContext.DesignatedRoleMappings
+                .First(x => x.Id == designatedRoleMappingId);
 
-            var originalDesignatedChannelMapping = DesignatedChannelMappings.Entities
-                .First(x => x.Id == designatedChannelMappingId);
+            var originalDesignatedRoleMapping = DesignatedRoleMappings.Entities
+                .First(x => x.Id == designatedRoleMappingId);
 
-            designatedChannelMapping.GuildId.ShouldBe(originalDesignatedChannelMapping.GuildId);
-            designatedChannelMapping.ChannelId.ShouldBe(originalDesignatedChannelMapping.ChannelId);
-            designatedChannelMapping.Type.ShouldBe(originalDesignatedChannelMapping.Type);
-            designatedChannelMapping.CreateActionId.ShouldBe(originalDesignatedChannelMapping.CreateActionId);
-            designatedChannelMapping.DeleteActionId.ShouldNotBeNull();
+            designatedRoleMapping.GuildId.ShouldBe(originalDesignatedRoleMapping.GuildId);
+            designatedRoleMapping.RoleId.ShouldBe(originalDesignatedRoleMapping.RoleId);
+            designatedRoleMapping.Type.ShouldBe(originalDesignatedRoleMapping.Type);
+            designatedRoleMapping.CreateActionId.ShouldBe(originalDesignatedRoleMapping.CreateActionId);
+            designatedRoleMapping.DeleteActionId.ShouldNotBeNull();
 
-            modixContext.DesignatedChannelMappings
+            modixContext.DesignatedRoleMappings
                 .Select(x => x.Id)
-                .ShouldBe(DesignatedChannelMappings.Entities
+                .ShouldBe(DesignatedRoleMappings.Entities
                     .Select(x => x.Id));
 
-            modixContext.DesignatedChannelMappings
-                .Where(x => x.Id != designatedChannelMappingId)
+            modixContext.DesignatedRoleMappings
+                .Where(x => x.Id != designatedRoleMappingId)
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.ConfigurationActions
-                .ShouldContain(x => x.Id == designatedChannelMapping.DeleteActionId);
+                .ShouldContain(x => x.Id == designatedRoleMapping.DeleteActionId);
             var deleteAction = modixContext.ConfigurationActions
-                .First(x => x.Id == designatedChannelMapping.DeleteActionId);
+                .First(x => x.Id == designatedRoleMapping.DeleteActionId);
 
-            deleteAction.GuildId.ShouldBe(designatedChannelMapping.GuildId);
-            deleteAction.Type.ShouldBe(ConfigurationActionType.DesignatedChannelMappingDeleted);
+            deleteAction.GuildId.ShouldBe(designatedRoleMapping.GuildId);
+            deleteAction.Type.ShouldBe(ConfigurationActionType.DesignatedRoleMappingDeleted);
             deleteAction.Created.ShouldBeInRange(
                 DateTimeOffset.Now - TimeSpan.FromSeconds(1),
                 DateTimeOffset.Now + TimeSpan.FromSeconds(1));
             deleteAction.CreatedById.ShouldBe(deletedById);
-            deleteAction.ClaimMappingId.ShouldBeNull();
-            deleteAction.DesignatedChannelMappingId.ShouldBe(designatedChannelMapping.Id);
-            deleteAction.DesignatedRoleMappingId.ShouldBeNull();
+            deleteAction.DesignatedChannelMappingId.ShouldBeNull();
+            deleteAction.DesignatedRoleMappingId.ShouldNotBeNull();
+            deleteAction.DesignatedRoleMappingId.ShouldBe(designatedRoleMapping.Id);
 
             modixContext.ConfigurationActions
                 .Where(x => x.Id != deleteAction.Id)
                 .Select(x => x.Id)
                 .ShouldBe(ConfigurationActions.Entities
-                    .Where(x => !(x.DesignatedChannelMappingId is null))
+                    .Where(x => !(x.DesignatedRoleMappingId is null))
                     .Select(x => x.Id));
 
             modixContext.ConfigurationActions
@@ -466,28 +440,28 @@ namespace Modix.Data.Test.Repositories
                 .SaveChangesAsync();
         }
 
-        [TestCaseSource(nameof(DeletedDesignatedChannelMappingAndValidUserIdTestCases))]
-        [TestCaseSource(nameof(InvalidDesignatedChannelMappingAndValidUserIdTestCases))]
-        public async Task TryDeleteAsync_DesignatedChannelMappingIsDeleted_DoesNotUpdateDesignatedChannelMappingsAndReturnsFalse(long designatedChannelMappingId, ulong deletedById)
+        [TestCaseSource(nameof(DeletedDesignatedRoleMappingAndValidUserIdTestCases))]
+        [TestCaseSource(nameof(InvalidDesignatedRoleMappingAndValidUserIdTestCases))]
+        public async Task TryDeleteAsync_DesignatedRoleMappingIsDeleted_DoesNotUpdateDesignatedRoleMappingsAndReturnsFalse(long designatedRoleMappingId, ulong deletedById)
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            var result = await uut.TryDeleteAsync(designatedChannelMappingId, deletedById);
+            var result = await uut.TryDeleteAsync(designatedRoleMappingId, deletedById);
 
             result.ShouldBeFalse();
 
-            modixContext.DesignatedChannelMappings
+            modixContext.DesignatedRoleMappings
                 .Select(x => x.Id)
-                .ShouldBe(DesignatedChannelMappings.Entities
+                .ShouldBe(DesignatedRoleMappings.Entities
                     .Select(x => x.Id));
 
-            modixContext.DesignatedChannelMappings
+            modixContext.DesignatedRoleMappings
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.ConfigurationActions
                 .Select(x => x.Id)
                 .ShouldBe(ConfigurationActions.Entities
-                    .Where(x => !(x.DesignatedChannelMappingId is null))
+                    .Where(x => !(x.DesignatedRoleMappingId is null))
                     .Select(x => x.Id));
 
             modixContext.ConfigurationActions
@@ -501,28 +475,28 @@ namespace Modix.Data.Test.Repositories
 
         #region Test Data
 
-        public static readonly IEnumerable<TestCaseData> DesignatedChannelMappingCreationTestCases
-            = DesignatedChannelMappings.Creations
+        public static readonly IEnumerable<TestCaseData> DesignatedRoleMappingCreationTestCases
+            = DesignatedRoleMappings.Creations
                 .Select(x => new TestCaseData(x)
-                    .SetName($"{{m}}({x.GuildId}, {x.ChannelId}, {x.Type})"));
+                    .SetName($"{{m}}({x.GuildId}, {x.RoleId}, {x.Type})"));
 
         public static readonly IEnumerable<TestCaseData> ValidSearchCriteriaTestCases
-            = DesignatedChannelMappings.Searches
+            = DesignatedRoleMappings.Searches
                 .Where(x => x.resultIds.Any())
                 .Select(x => new TestCaseData(x.criteria)
                     .SetName($"{{m}}({x.name})"));
 
         public static readonly IEnumerable<TestCaseData> ValidSearchCriteriaAndResultIdsTestCases
-            = DesignatedChannelMappings.Searches
+            = DesignatedRoleMappings.Searches
                 .Where(x => x.resultIds.Any())
                 .Select(x => new TestCaseData(x.criteria, x.resultIds)
                     .SetName($"{{m}}({x.name})"));
 
         public static readonly IEnumerable<TestCaseData> ValidSearchCriteriaAndValidUserIdAndResultIdsTestCases
-            = DesignatedChannelMappings.Searches
+            = DesignatedRoleMappings.Searches
                 .Where(x => x.resultIds.Any())
                 .SelectMany(x => Users.Entities
-                    .Where(y => DesignatedChannelMappings.Entities
+                    .Where(y => DesignatedRoleMappings.Entities
                         .Where(z => x.resultIds.Contains(z.Id))
                         .Select(z => z.GuildId)
                         .Distinct()
@@ -532,35 +506,35 @@ namespace Modix.Data.Test.Repositories
                         .SetName($"{{m}}(\"{x.name}\", {y.Id})")));
 
         public static readonly IEnumerable<TestCaseData> InvalidSearchCriteriaTestCases
-            = DesignatedChannelMappings.Searches
+            = DesignatedRoleMappings.Searches
                 .Where(x => !x.resultIds.Any())
                 .Select(x => new TestCaseData(x.criteria)
                     .SetName($"{{m}}({x.name})"));
 
         public static readonly IEnumerable<TestCaseData> InvalidSearchCriteriaAndValidUserIdTestCases
-            = DesignatedChannelMappings.Searches
+            = DesignatedRoleMappings.Searches
                 .Where(x => !x.resultIds.Any())
                 .SelectMany(x => Users.Entities
                     .Select(y => new TestCaseData(x.criteria, y.Id)
                         .SetName($"{{m}}(\"{x.name}\", {y.Id})")));
 
-        public static readonly IEnumerable<TestCaseData> ActiveDesignatedChannelMappingAndValidUserIdTestCases
-            = DesignatedChannelMappings.Entities
+        public static readonly IEnumerable<TestCaseData> ActiveDesignatedRoleMappingAndValidUserIdTestCases
+            = DesignatedRoleMappings.Entities
                 .Where(x => x.DeleteActionId is null)
                 .SelectMany(x => GuildUsers.Entities
                     .Where(y => y.GuildId == x.GuildId)
                     .Select(y => new TestCaseData(x.Id, y.UserId)));
 
-        public static readonly IEnumerable<TestCaseData> DeletedDesignatedChannelMappingAndValidUserIdTestCases
-            = DesignatedChannelMappings.Entities
+        public static readonly IEnumerable<TestCaseData> DeletedDesignatedRoleMappingAndValidUserIdTestCases
+            = DesignatedRoleMappings.Entities
                 .Where(x => !(x.DeleteActionId is null))
                 .SelectMany(x => GuildUsers.Entities
                     .Where(y => y.GuildId == x.GuildId)
                     .Select(y => new TestCaseData(x.Id, y.UserId)));
 
-        public static readonly IEnumerable<TestCaseData> InvalidDesignatedChannelMappingAndValidUserIdTestCases
+        public static readonly IEnumerable<TestCaseData> InvalidDesignatedRoleMappingAndValidUserIdTestCases
             = Enumerable.Empty<long>()
-                .Append(DesignatedChannelMappings.Entities
+                .Append(DesignatedRoleMappings.Entities
                     .Select(x => x.Id)
                     .Max() + 1)
                 .SelectMany(x => Users.Entities

@@ -19,6 +19,34 @@ namespace Shouldly
             brief.CreatedBy.ShouldMatchTestData(guildId);
         }
 
+        public static void ShouldMatchTestData(this ConfigurationActionSummary summary)
+        {
+            summary.ShouldNotBeNull();
+            summary.Id.ShouldBeOneOf(ConfigurationActions.Entities.Select(x => x.Id).ToArray());
+
+            var entity = ConfigurationActions.Entities.First(x => x.Id == summary.Id);
+
+            summary.GuildId.ShouldBe(entity.GuildId);
+            summary.Type.ShouldBe(entity.Type);
+            summary.Created.ShouldBe(entity.Created);
+            summary.CreatedBy.ShouldMatchTestData(summary.GuildId);
+
+            if (entity.ClaimMappingId is null)
+                summary.ClaimMapping.ShouldBeNull();
+            else
+                summary.ClaimMapping.ShouldMatchTestData();
+
+            if (entity.DesignatedChannelMappingId is null)
+                summary.DesignatedChannelMapping.ShouldBeNull();
+            else
+                summary.DesignatedChannelMapping.ShouldMatchTestData();
+
+            if (entity.DesignatedRoleMappingId is null)
+                summary.DesignatedRoleMapping.ShouldBeNull();
+            else
+                summary.DesignatedRoleMapping.ShouldMatchTestData();
+        }
+
         public static void ShouldNotHaveChanged(this ConfigurationActionEntity entity)
         {
             entity.ShouldNotBeNull();

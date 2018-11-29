@@ -20,9 +20,18 @@ namespace Modix.Data.Repositories
         /// </summary>
         /// <returns>
         /// A <see cref="Task"/> that will complete, with the requested transaction object,
-        /// when no other transactions are active upon the repository.
+        /// when no other create transactions are active upon the repository.
         /// </returns>
         Task<IRepositoryTransaction> BeginCreateTransactionAsync();
+
+        /// <summary>
+        /// Begins a new transaction to delete mappings within the repository.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete, with the requested transaction object,
+        /// when no other delete transactions are active upon the repository.
+        /// </returns>
+        Task<IRepositoryTransaction> BeginDeleteTransactionAsync();
 
         /// <summary>
         /// Creates a new claim mapping within the repository.
@@ -95,6 +104,10 @@ namespace Modix.Data.Repositories
             => _createTransactionFactory.BeginTransactionAsync(ModixContext.Database);
 
         /// <inheritdoc />
+        public Task<IRepositoryTransaction> BeginDeleteTransactionAsync()
+            => _deleteTransactionFactory.BeginTransactionAsync(ModixContext.Database);
+
+        /// <inheritdoc />
         public async Task<long> CreateAsync(ClaimMappingCreationData data)
         {
             if (data == null)
@@ -163,6 +176,9 @@ namespace Modix.Data.Repositories
         }
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
+            = new RepositoryTransactionFactory();
+
+        private static readonly RepositoryTransactionFactory _deleteTransactionFactory
             = new RepositoryTransactionFactory();
     }
 }
