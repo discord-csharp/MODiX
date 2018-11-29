@@ -8,7 +8,7 @@ namespace Modix.Services.Utilities
 {
     public class ExceptionContractResolver : DefaultContractResolver
     {
-        private static string[] _propertyFilter = new[]
+        private static readonly string[] _propertyFilter = new[]
         {
             "Message", "StackTraceString", "InnerException",
             "Source", "ClassName"
