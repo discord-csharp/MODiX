@@ -35,6 +35,14 @@
   </ItemGroup>
 
   <ItemGroup>
+    <UpToDateCheckInput Include="$(SpaRoot)package-lock.json"/>
+    <UpToDateCheckInput Include="@(ClientSrc)"/>
+
+    <UpToDateCheckBuilt Include="$(SpaRoot)node_modules\.npm_timestamp"/>
+    <UpToDateCheckBuilt Include="$(MSBuildThisFileDirectory)obj\$(Configuration)\.vue_timestamp"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <!-- Don't publish the SPA source files, but do show them in the project files list -->
     <Content Remove="$(SpaRoot)**" />
     <None Include="$(SpaRoot)**" Exclude="$(SpaRoot)node_modules\**" />
