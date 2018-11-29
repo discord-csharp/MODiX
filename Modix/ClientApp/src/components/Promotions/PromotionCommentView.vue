@@ -5,7 +5,7 @@
         <span class="commentBody">
             {{comment.content}} <span class="date">{{formatDate(comment.createAction.created)}}</span>
         </span>
-        <span class="button is-primary" :style="{'margin-left': '0.33em'}" v-if="commentIsFromCurrentUser" v-on:click="$emit('comment-edit-modal-opened', comment)">Edit</span>
+        <span class="button is-primary" :style="{'margin-left': '0.33em'}" v-if="comment.isFromCurrentUser" v-on:click="$emit('comment-edit-modal-opened', comment)">Edit</span>
 
     </div>
 
@@ -112,11 +112,6 @@ export default class PromotionCommentView extends Vue
 
     @Prop() private comment!: PromotionComment;
 
-    get commentIsFromCurrentUser(): boolean
-    {
-        return this.$store.state.modix.user.userId == this.comment.createAction.createdBy.id.toString();
-    }
-
     sentimentIcon(sentiment: PromotionSentiment)
     {
         return SentimentIcons[sentiment];
@@ -129,7 +124,7 @@ export default class PromotionCommentView extends Vue
 
     backgroundColor()
     {
-        return this.commentIsFromCurrentUser
+        return this.comment.isFromCurrentUser
             ? 'rgb(240, 210, 240)'
             : 'rgb(245, 245, 245)';
     }
