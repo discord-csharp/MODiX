@@ -59,14 +59,14 @@ namespace Modix.Data.Models.Promotions
         public virtual PromotionActionEntity CreateAction { get; set; }
 
         /// <summary>
-        /// The <see cref="PromotionActionEntity.Id"/> value of <see cref="DeleteAction"/>.
+        /// The <see cref="PromotionActionEntity.Id"/> value of <see cref="ModifyAction"/>.
         /// </summary>
-        public long? DeleteActionId { get; set; }
+        public long? ModifyActionId { get; set; }
 
         /// <summary>
-        /// The <see cref="PromotionActionEntity"/> that deleted this comment.
+        /// The <see cref="PromotionActionEntity"/> that modified this comment.
         /// </summary>
-        public virtual PromotionActionEntity DeleteAction { get; set; }
+        public virtual PromotionActionEntity ModifyAction { get; set; }
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)
@@ -84,9 +84,9 @@ namespace Modix.Data.Models.Promotions
 
             modelBuilder
                 .Entity<PromotionCommentEntity>()
-                .HasOne(x => x.DeleteAction)
+                .HasOne(x => x.ModifyAction)
                 .WithOne()
-                .HasForeignKey<PromotionCommentEntity>(x => x.DeleteActionId);
+                .HasForeignKey<PromotionCommentEntity>(x => x.ModifyActionId);
         }
     }
 }

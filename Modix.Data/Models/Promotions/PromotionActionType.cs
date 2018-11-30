@@ -18,12 +18,8 @@
         /// </summary>
         CommentCreated,
         /// <summary>
-        /// Describes an action where a comment was updated in an active promotion campaign.
+        /// Describes an action where a comment was modified in an active promotion campaign.
         /// </summary>
-        CommentUpdated,
-        /// <summary>
-        /// Describes an action where a comment was deleted from an active promotion campaign.
-        /// </summary>
-        CommentDeleted,
+        CommentModified,
     }
 }

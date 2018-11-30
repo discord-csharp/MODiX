@@ -187,7 +187,7 @@ namespace Modix.Services.Promotions
                 {
                     CampaignId = campaignId,
                     CreatedById = AuthorizationService.CurrentUserId.Value,
-                    IsDeleted = false
+                    IsModified = false
                 }))
                     throw new InvalidOperationException("Only one comment can be made per user, per campaign");
 
@@ -231,17 +231,12 @@ namespace Modix.Services.Promotions
                 if (!(campaign.CloseAction is null))
                     throw new InvalidOperationException($"Campaign {oldComment.Campaign.Id} has already been closed");
 
-                if (!await PromotionCommentRepository.TryDeleteAsync(commentId, AuthorizationService.CurrentUserId.Value))
-                    throw new InvalidOperationException("Unable to find the comment to be updated.");
-
-                await PromotionCommentRepository.CreateModifiedAsync(new PromotionCommentCreationData
-                {
-                    GuildId = campaign.GuildId,
-                    CampaignId = campaign.Id,
-                    Sentiment = newSentiment,
-                    Content = newContent,
-                    CreatedById = AuthorizationService.CurrentUserId.Value,
-                });
+                await PromotionCommentRepository.TryUpdateAsync(commentId, AuthorizationService.CurrentUserId.Value,
+                    x =>
+                    {
+                        x.Sentiment = newSentiment;
+                        x.Content = newContent;
+                    });
 
                 transaction.Commit();
             }

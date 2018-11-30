@@ -68,7 +68,7 @@ namespace Modix.Data.Models.Promotions
                     ? null
                     : entity.CloseAction.Project(PromotionActionBrief.FromEntityProjection),
                 CommentCounts = entity.Comments
-                    .Where(x => x.DeleteActionId == null)
+                    .Where(x => x.ModifyActionId == null)
                     .GroupBy(x => x.Sentiment)
                     .Select(x => new { x.Key, Count = x.Count() })
                     .ToDictionary(x => x.Key, x => x.Count)

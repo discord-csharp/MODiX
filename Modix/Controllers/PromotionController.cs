@@ -40,7 +40,7 @@ namespace Modix.Controllers
                 c.Sentiment,
                 c.Content,
                 CreateAction = new { c.CreateAction.Id, c.CreateAction.Created },
-                IsDeleted = !(c.DeleteAction is null),
+                IsModified = !(c.ModifyAction is null),
                 IsFromCurrentUser = c.CreateAction.CreatedBy.Id == ModixAuth.CurrentUserId,
             }));
         }

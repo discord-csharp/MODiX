@@ -44,7 +44,7 @@ namespace Modix.Behaviors
             {
                 var promotionAction = await PromotionsService.GetPromotionActionSummaryAsync(promotionActionId);
 
-                if (!_renderTemplates.TryGetValue((promotionAction.Type, promotionAction.Comment?.Sentiment, promotionAction.Campaign?.Outcome), out var renderTemplate))
+                if (!_renderTemplates.TryGetValue((promotionAction.Type, promotionAction.NewComment?.Sentiment, promotionAction.Campaign?.Outcome), out var renderTemplate))
                     return;
 
                 var message = string.Format(renderTemplate,
@@ -54,12 +54,12 @@ namespace Modix.Behaviors
                     promotionAction.Campaign?.Subject.Id,
                     promotionAction.Campaign?.TargetRole.Name,
                     promotionAction.Campaign?.TargetRole.Id,
-                    promotionAction.Comment?.Campaign.Id,
-                    promotionAction.Comment?.Campaign.Subject.DisplayName,
-                    promotionAction.Comment?.Campaign.Subject.Id,
-                    promotionAction.Comment?.Campaign.TargetRole.Name,
-                    promotionAction.Comment?.Campaign.TargetRole.Id,
-                    promotionAction.Comment?.Content);
+                    promotionAction.NewComment?.Campaign.Id,
+                    promotionAction.NewComment?.Campaign.Subject.DisplayName,
+                    promotionAction.NewComment?.Campaign.Subject.Id,
+                    promotionAction.NewComment?.Campaign.TargetRole.Name,
+                    promotionAction.NewComment?.Campaign.TargetRole.Id,
+                    promotionAction.NewComment?.Content);
 
                 await DesignatedChannelService.SendToDesignatedChannelsAsync(
                     await DiscordClient.GetGuildAsync(data.GuildId), DesignatedChannelType.PromotionLog, message);
@@ -94,9 +94,9 @@ namespace Modix.Behaviors
                 { (PromotionActionType.CommentCreated,   PromotionSentiment.Abstain, null),                              "`[{0}]` A comment was added to the campaign (`{6}`) to promote **{7}** (`{8}`) to **{9}** (`{10}`), abstaining from the campaign. ```{11}```" },
                 { (PromotionActionType.CommentCreated,   PromotionSentiment.Approve, null),                              "`[{0}]` A comment was added to the campaign (`{6}`) to promote **{7}** (`{8}`) to **{9}** (`{10}`), approving of the promotion. ```{11}```" },
                 { (PromotionActionType.CommentCreated,   PromotionSentiment.Oppose,  null),                              "`[{0}]` A comment was added to the campaign (`{6}`) to promote **{7}** (`{8}`) to **{9}** (`{10}`), opposing the promotion. ```{11}```" },
-                { (PromotionActionType.CommentUpdated,   PromotionSentiment.Abstain, null),                              "`[{0}]` A comment was modified in the campaign (`{6}`) to promote **{7}** (`{8}`) to **{9}** (`{10}`), abstaining from the campaign. ```{11}```" },
-                { (PromotionActionType.CommentUpdated,   PromotionSentiment.Approve, null),                              "`[{0}]` A comment was modified in the campaign (`{6}`) to promote **{7}** (`{8}`) to **{9}** (`{10}`), approving of the promotion. ```{11}```" },
-                { (PromotionActionType.CommentUpdated,   PromotionSentiment.Oppose,  null),                              "`[{0}]` A comment was modified in the campaign (`{6}`) to promote **{7}** (`{8}`) to **{9}** (`{10}`), opposing the promotion. ```{11}```" },
+                { (PromotionActionType.CommentModified,   PromotionSentiment.Abstain, null),                              "`[{0}]` A comment was modified in the campaign (`{6}`) to promote **{7}** (`{8}`) to **{9}** (`{10}`), abstaining from the campaign. ```{11}```" },
+                { (PromotionActionType.CommentModified,   PromotionSentiment.Approve, null),                              "`[{0}]` A comment was modified in the campaign (`{6}`) to promote **{7}** (`{8}`) to **{9}** (`{10}`), approving of the promotion. ```{11}```" },
+                { (PromotionActionType.CommentModified,   PromotionSentiment.Oppose,  null),                              "`[{0}]` A comment was modified in the campaign (`{6}`) to promote **{7}** (`{8}`) to **{9}** (`{10}`), opposing the promotion. ```{11}```" },
                 { (PromotionActionType.CampaignClosed,   null,                       PromotionCampaignOutcome.Accepted), "`[{0}]` The campaign (`{1}`) to promote **{2}** (`{3}`) to **{4}** (`{5}`) was accepted." },
                 { (PromotionActionType.CampaignClosed,   null,                       PromotionCampaignOutcome.Rejected), "`[{0}]` The campaign (`{1}`) to promote **{2}** (`{3}`) to **{4}** (`{5}`) was rejected." },
                 { (PromotionActionType.CampaignClosed,   null,                       PromotionCampaignOutcome.Failed),   "`[{0}]` The campaign (`{1}`) to promote **{2}** (`{3}`) to **{4}** (`{5}`) failed to process." },

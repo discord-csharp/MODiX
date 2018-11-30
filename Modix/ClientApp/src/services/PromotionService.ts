@@ -36,7 +36,7 @@ export default class PromotionService
             }
         });
 
-        return response.filter(comment => !comment.isDeleted);
+        return response.filter(comment => !comment.isModified);
     }
 
     static async getNextRankRoleForUser(subjectId: string): Promise<Role>

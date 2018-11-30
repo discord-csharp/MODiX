@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MediatR;
@@ -42,17 +41,19 @@ namespace Modix.Data.Repositories
         /// containing the auto-generated <see cref="PromotionCommentEntity.Id"/> value assigned to the new comment.
         /// </returns>
         Task<long> CreateAsync(PromotionCommentCreationData data);
-
+        
         /// <summary>
         /// Creates a modified comment within the repository.
         /// </summary>
-        /// <param name="data">The data for the comment to be created.</param>
-        /// <exception cref="ArgumentNullException">Throws for <paramref name="data"/>.</exception>
+        /// <param name="commentId">The ID of the comment that is being modified.</param>
+        /// <param name="userId">The ID of the user that is modifying the comment.</param>
+        /// <param name="updateAction">An action to be invoked to perform the requested update.</param>
+        /// <exception cref="ArgumentNullException">Throws for <paramref name="updateAction"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing the auto-generated <see cref="PromotionCommentEntity.Id"/> value assigned to the new comment.
         /// </returns>
-        Task<long> CreateModifiedAsync(PromotionCommentCreationData data);
+        Task<long> TryUpdateAsync(long commentId, ulong userId, Action<PromotionCommentMutationData> updateAction);
 
         /// <summary>
         /// Retrieves information about a promotion comment based on its ID.
@@ -73,16 +74,6 @@ namespace Modix.Data.Repositories
         /// containing a flag indicating whether any matching comments exist.
         /// </returns>
         Task<bool> AnyAsync(PromotionCommentSearchCriteria searchCriteria);
-
-        /// <summary>
-        /// Marks an existing comment as deleted, based on its ID.
-        /// </summary>
-        /// <param name="commentId">The <see cref="PromotionCommentEntity.Id"/> value of the comment to be deleted.</param>
-        /// <param name="deletedById">The <see cref="UserEntity.Id"/> value of the user that is deleting the comment.</param>
-        /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing a flag indicating whether the operation was successful (i.e. whether the specified comment could be found).
-        /// </returns>
-        Task<bool> TryDeleteAsync(long commentId, ulong deletedById);
     }
 
     /// <inheritdoc />
@@ -114,7 +105,7 @@ namespace Modix.Data.Repositories
             await ModixContext.PromotionComments.AddAsync(entity);
             await ModixContext.SaveChangesAsync();
 
-            entity.CreateAction.CommentId = entity.Id;
+            entity.CreateAction.NewCommentId = entity.Id;
             await ModixContext.SaveChangesAsync();
 
             await RaisePromotionActionCreatedAsync(entity.CreateAction);
@@ -123,24 +114,45 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<long> CreateModifiedAsync(PromotionCommentCreationData data)
+        public async Task<long> TryUpdateAsync(long commentId, ulong userId, Action<PromotionCommentMutationData> updateAction)
         {
-            if (data is null)
-                throw new ArgumentNullException(nameof(data));
+            if (updateAction is null)
+                throw new ArgumentNullException(nameof(updateAction));
 
-            var entity = data.ToEntity();
+            var oldComment = await ModixContext.PromotionComments
+                                               .Include(x => x.Campaign)
+                                               .SingleAsync(x => x.Id == commentId);
 
-            entity.CreateAction.Type = PromotionActionType.CommentUpdated;
+            var modifyAction = new PromotionActionEntity
+            {
+                CampaignId = oldComment.CampaignId,
+                Created = DateTimeOffset.Now,
+                CreatedById = userId,
+                GuildId = oldComment.Campaign.GuildId,
+                Type = PromotionActionType.CommentModified,
+            };
 
-            await ModixContext.PromotionComments.AddAsync(entity);
+            await ModixContext.PromotionActions.AddAsync(modifyAction);
             await ModixContext.SaveChangesAsync();
 
-            entity.CreateAction.CommentId = entity.Id;
+            var data = PromotionCommentMutationData.FromEntity(oldComment);
+            updateAction(data);
+
+            var newComment = data.ToEntity();
+            newComment.CreateActionId = modifyAction.Id;
+
+            await ModixContext.PromotionComments.AddAsync(newComment);
             await ModixContext.SaveChangesAsync();
 
-            await RaisePromotionActionCreatedAsync(entity.CreateAction);
+            modifyAction.OldCommentId = oldComment.Id;
+            modifyAction.NewCommentId = newComment.Id;
+            oldComment.ModifyActionId = modifyAction.Id;
+            newComment.CreateActionId = modifyAction.Id;
+            await ModixContext.SaveChangesAsync();
 
-            return entity.Id;
+            await RaisePromotionActionCreatedAsync(modifyAction);
+
+            return newComment.Id;
         }
 
         /// <inheritdoc />
@@ -156,34 +168,6 @@ namespace Modix.Data.Repositories
             => ModixContext.PromotionComments.AsNoTracking()
                 .FilterBy(searchCriteria)
                 .AnyAsync();
-
-        /// <inheritdoc />
-        public async Task<bool> TryDeleteAsync(long commentId, ulong deletedById)
-        {
-            var entity = await ModixContext.PromotionComments
-                .Include(x => x.Campaign)
-                .Where(x => x.Id == commentId)
-                .FirstOrDefaultAsync();
-
-            if ((entity is null) || !(entity.DeleteActionId is null))
-                return false;
-
-            entity.DeleteAction = new PromotionActionEntity
-            {
-                GuildId = entity.Campaign.GuildId,
-                Type = PromotionActionType.CommentDeleted,
-                Created = DateTimeOffset.Now,
-                CreatedById = deletedById,
-                CampaignId = entity.CampaignId,
-                CommentId = entity.Id,
-            };
-
-            await ModixContext.SaveChangesAsync();
-
-            await RaisePromotionActionCreatedAsync(entity.DeleteAction);
-
-            return true;
-        }
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
             = new RepositoryTransactionFactory();

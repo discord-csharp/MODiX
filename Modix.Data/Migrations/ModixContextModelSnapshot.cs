@@ -358,13 +358,15 @@ namespace Modix.Data.Migrations
 
                     b.Property<long?>("CampaignId");
 
-                    b.Property<long?>("CommentId");
-
                     b.Property<DateTimeOffset>("Created");
 
                     b.Property<long>("CreatedById");
 
                     b.Property<long>("GuildId");
+
+                    b.Property<long?>("NewCommentId");
+
+                    b.Property<long?>("OldCommentId");
 
                     b.Property<string>("Type")
                         .IsRequired();
@@ -373,7 +375,11 @@ namespace Modix.Data.Migrations
 
                     b.HasIndex("CampaignId");
 
-                    b.HasIndex("CommentId");
+                    b.HasIndex("NewCommentId")
+                        .IsUnique();
+
+                    b.HasIndex("OldCommentId")
+                        .IsUnique();
 
                     b.HasIndex("GuildId", "CreatedById");
 
@@ -424,7 +430,7 @@ namespace Modix.Data.Migrations
 
                     b.Property<long>("CreateActionId");
 
-                    b.Property<long?>("DeleteActionId");
+                    b.Property<long?>("ModifyActionId");
 
                     b.Property<string>("Sentiment")
                         .IsRequired();
@@ -436,7 +442,7 @@ namespace Modix.Data.Migrations
                     b.HasIndex("CreateActionId")
                         .IsUnique();
 
-                    b.HasIndex("DeleteActionId")
+                    b.HasIndex("ModifyActionId")
                         .IsUnique();
 
                     b.ToTable("PromotionComments");
@@ -577,9 +583,13 @@ namespace Modix.Data.Migrations
                         .WithMany()
                         .HasForeignKey("CampaignId");
 
-                    b.HasOne("Modix.Data.Models.Promotions.PromotionCommentEntity", "Comment")
-                        .WithMany()
-                        .HasForeignKey("CommentId");
+                    b.HasOne("Modix.Data.Models.Promotions.PromotionCommentEntity", "NewComment")
+                        .WithOne()
+                        .HasForeignKey("Modix.Data.Models.Promotions.PromotionActionEntity", "NewCommentId");
+
+                    b.HasOne("Modix.Data.Models.Promotions.PromotionCommentEntity", "OldComment")
+                        .WithOne()
+                        .HasForeignKey("Modix.Data.Models.Promotions.PromotionActionEntity", "OldCommentId");
 
                     b.HasOne("Modix.Data.Models.Core.GuildUserEntity", "CreatedBy")
                         .WithMany()
@@ -621,9 +631,9 @@ namespace Modix.Data.Migrations
                         .HasForeignKey("Modix.Data.Models.Promotions.PromotionCommentEntity", "CreateActionId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("Modix.Data.Models.Promotions.PromotionActionEntity", "DeleteAction")
+                    b.HasOne("Modix.Data.Models.Promotions.PromotionActionEntity", "ModifyAction")
                         .WithOne()
-                        .HasForeignKey("Modix.Data.Models.Promotions.PromotionCommentEntity", "DeleteActionId");
+                        .HasForeignKey("Modix.Data.Models.Promotions.PromotionCommentEntity", "ModifyActionId");
                 });
 #pragma warning restore 612, 618
         }

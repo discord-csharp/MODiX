@@ -65,16 +65,28 @@ namespace Modix.Data.Models.Promotions
         public virtual PromotionCampaignEntity Campaign { get; set; }
 
         /// <summary>
-        /// The <see cref="PromotionCommentEntity.Id"/> value of <see cref="Comment"/>, if any.
+        /// The <see cref="PromotionCommentEntity.Id"/> value of <see cref="NewComment"/>, if any.
         /// </summary>
-        [ForeignKey(nameof(Comment))]
-        public long? CommentId { get; set; }
+        [ForeignKey(nameof(NewComment))]
+        public long? NewCommentId { get; set; }
 
         /// <summary>
         /// The <see cref="PromotionCommentEntity"/> to which this <see cref="PromotionActionEntity"/> applies.
-        /// Null, if an <see cref="PromotionCommentEntity"/> was involved in this <see cref="PromotionActionEntity"/>.
+        /// Null, if a <see cref="PromotionCommentEntity"/> was not involved in this <see cref="PromotionActionEntity"/>.
         /// </summary>
-        public virtual PromotionCommentEntity Comment { get; set; }
+        public virtual PromotionCommentEntity NewComment { get; set; }
+
+        /// <summary>
+        /// The <see cref="PromotionCommentEntity.Id"/> value of <see cref="OldComment"/>, if any.
+        /// </summary>
+        [ForeignKey(nameof(OldComment))]
+        public long? OldCommentId { get; set; }
+
+        /// <summary>
+        /// The old <see cref="PromotionCommentEntity"/> to which this <see cref="PromotionActionEntity"/> applies.
+        /// Null, if a <see cref="PromotionCommentEntity"/> was not involved in this <see cref="PromotionActionEntity"/>.
+        /// </summary>
+        public virtual PromotionCommentEntity OldComment { get; set; }
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)
@@ -99,6 +111,18 @@ namespace Modix.Data.Models.Promotions
                 .HasOne(x => x.CreatedBy)
                 .WithMany()
                 .HasForeignKey(x => new { x.GuildId, x.CreatedById });
+
+            modelBuilder
+                .Entity<PromotionActionEntity>()
+                .HasOne(x => x.OldComment)
+                .WithOne()
+                .HasForeignKey<PromotionActionEntity>(x => x.OldCommentId);
+
+            modelBuilder
+                .Entity<PromotionActionEntity>()
+                .HasOne(x => x.NewComment)
+                .WithOne()
+                .HasForeignKey<PromotionActionEntity>(x => x.NewCommentId);
         }
     }
 }

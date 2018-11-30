@@ -31,9 +31,9 @@ namespace Modix.Data.Models.Promotions
         public PromotionActionBrief CreateAction { get; set; }
 
         /// <summary>
-        /// See <see cref="PromotionCommentEntity.DeleteAction"/>.
+        /// See <see cref="PromotionCommentEntity.ModifyAction"/>.
         /// </summary>
-        public PromotionActionBrief DeleteAction { get; set; }
+        public PromotionActionBrief ModifyAction { get; set; }
 
         [ExpansionExpression]
         internal static Expression<Func<PromotionCommentEntity, PromotionCommentCampaignBrief>> FromEntityProjection
@@ -43,9 +43,9 @@ namespace Modix.Data.Models.Promotions
                 Sentiment = entity.Sentiment,
                 Content = entity.Content,
                 CreateAction = entity.CreateAction.Project(PromotionActionBrief.FromEntityProjection),
-                DeleteAction = (entity.DeleteAction == null)
+                ModifyAction = (entity.ModifyAction == null)
                     ? null
-                    : entity.DeleteAction.Project(PromotionActionBrief.FromEntityProjection),
+                    : entity.ModifyAction.Project(PromotionActionBrief.FromEntityProjection),
             };
     }
 }
