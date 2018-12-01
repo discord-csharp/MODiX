@@ -12,6 +12,8 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0006" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Discord.Net.Abstractions\Discord.Net.Abstractions.csproj" />
+    <ProjectReference Include="..\Modix.Common\Modix.Common.csproj" />
     <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
   </ItemGroup>
 </Project>

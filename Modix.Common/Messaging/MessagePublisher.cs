@@ -10,20 +10,10 @@ using Serilog;
 namespace Modix.Common.Messaging
 {
     /// <summary>
-    /// Describes an object that publishes and dispatches application-wide notifications.
+    /// Describes an object that publishes application-wide notifications.
     /// </summary>
-    public interface IMediator
+    public interface IMessagePublisher
     {
-        /// <summary>
-        /// Dispatches a notification to be handled by all registered <see cref="INotificationHandler{TNotification}"/> objects.
-        /// on a new logical application thread. I.E. handlers for the notification are executed within a new <see cref="IServiceScope"/>
-        /// and synchronized through a new <see cref="Task"/> that will run in parallel to the current one, on the <see cref="ThreadPool"/>.
-        /// Note that exceptions thrown by and handler of the notification will be logged, and will not affect the execution of other handlers for the notification.
-        /// </summary>
-        /// <typeparam name="TNotification">The type of notification to be dispatched.</typeparam>
-        /// <param name="notification">The notification data to be dispatched.</param>
-        void Dispatch<TNotification>(TNotification notification) where TNotification : INotification;
-
         /// <summary>
         /// Publishes a notification to be handled by all registered <see cref="INotificationHandler{TNotification}"/> objects.
         /// </summary>
@@ -48,22 +38,15 @@ namespace Modix.Common.Messaging
     }
 
     /// <inheritdoc />
-    public class Mediator : IMediator
+    public class MessagePublisher : IMessagePublisher
     {
         /// <summary>
-        /// Constructs a new <see cref="Mediator"/> with the given dependencies.
+        /// Constructs a new <see cref="MessagePublisher"/> with the given dependencies.
         /// </summary>
-        /// <param name="serviceProvider">The value to use for <see cref="ServiceProvider"/>.</param>
-        public Mediator(IServiceProvider serviceProvider)
+        public MessagePublisher(IServiceProvider serviceProvider)
         {
             ServiceProvider = serviceProvider;
         }
-
-        /// <inheritdoc />
-        public void Dispatch<TNotification>(TNotification notification) where TNotification : INotification
-            #pragma warning disable CS4014
-            => DispatchAsync(notification);
-            #pragma warning restore CS4014
 
         /// <inheritdoc />
         public async Task PublishAsync<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : INotification
@@ -86,32 +69,8 @@ namespace Modix.Common.Messaging
         }
 
         /// <summary>
-        /// An <see cref="IServiceProvider"/> to be used to retrieve message handlers.
+        /// An <see cref="IServiceProvider"/> used to retrieve message handlers.
         /// </summary>
         internal protected IServiceProvider ServiceProvider { get; }
-
-        // For testing
-        internal async Task DispatchAsync<TNotification>(TNotification notification) where TNotification : INotification
-        {
-            if (notification == null)
-                throw new ArgumentNullException(nameof(notification));
-
-            using (var serviceScope = ServiceProvider.CreateScope())
-            {
-                var logger = serviceScope.ServiceProvider.GetService<ILogger>();
-
-                foreach (var handler in serviceScope.ServiceProvider.GetServices<INotificationHandler<TNotification>>())
-                {
-                    try
-                    {
-                        await handler.HandleNotificationAsync(notification);
-                    }
-                    catch (Exception ex)
-                    {
-                        logger?.Error(ex, "An unexpected error occurred within a handler for a dispatched message: {notification}", notification);
-                    }
-                }
-            }
-        }
     }
 }

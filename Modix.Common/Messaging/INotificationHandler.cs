@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace Modix.Common.Messaging
 {
     /// <summary>
-    /// Describes an object that receives and handles application-wide notifications from an <see cref="IMediator"/>.
+    /// Describes an object that receives and handles application-wide notifications from an <see cref="IMessagePublisher"/>.
     /// </summary>
     /// <typeparam name="TNotification">The type of notification that this object handles.</typeparam>
     public interface INotificationHandler<TNotification> where TNotification : INotification

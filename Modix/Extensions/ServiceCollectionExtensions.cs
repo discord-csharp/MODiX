@@ -6,8 +6,10 @@ using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Options;
+
 using Modix;
 using Modix.Behaviors;
+using Modix.Bot.Behaviors;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Services;
@@ -23,6 +25,7 @@ using Modix.Services.DocsMaster;
 using Modix.Services.EmojiStats;
 using Modix.Services.GuildStats;
 using Modix.Services.Mentions;
+using Modix.Services.Messaging;
 using Modix.Services.Moderation;
 using Modix.Services.NotificationDispatch;
 using Modix.Services.PopularityContest;
@@ -69,6 +72,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         .MessageCacheSize //needed to log deletions
                 }));
 
+            services.AddSingleton<IDiscordSocketClient>(provider => provider.GetRequiredService<DiscordSocketClient>().Abstract());
             services.AddSingleton<IDiscordClient>(provider => provider.GetRequiredService<DiscordSocketClient>());
             services.AddScoped<ISelfUser>(p => p.GetRequiredService<DiscordSocketClient>().CurrentUser);
 
@@ -84,7 +88,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         new CommandServiceConfig
                         {
                             LogLevel = LogSeverity.Debug,
-                            DefaultRunMode = RunMode.Async,
+                            DefaultRunMode = RunMode.Sync,
                             CaseSensitiveCommands = false,
                             SeparatorChar = ' '
                         });
@@ -93,12 +97,15 @@ namespace Microsoft.Extensions.DependencyInjection
                     service.AddTypeReader<DiscordUserEntity>(new UserEntityTypeReader());
 
                     return service;
-                });
+                })
+                .AddScoped<Modix.Common.Messaging.INotificationHandler<MessageReceivedNotification>, CommandListeningBehavior>();
 
             services.AddSingleton<DiscordSerilogAdapter>();
             services.AddMediator();
 
-            services.AddModixCore()
+            services
+                .AddModixCore()
+                .AddModixMessaging()
                 .AddModixModeration()
                 .AddModixPromotions()
                 .AddAutoCodePaste()
