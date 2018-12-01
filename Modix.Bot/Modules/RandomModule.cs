@@ -18,7 +18,7 @@
                 return;
             }
 
-            var number = Random.Next(min, max);
+            var number = Random.Next(min, max + 1);
 
             await Context.Channel.SendMessageAsync(number.ToString());
         }
