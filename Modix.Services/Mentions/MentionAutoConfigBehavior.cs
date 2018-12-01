@@ -21,6 +21,8 @@ namespace Modix.Services.Mentions
         internal protected override Task OnStartingAsync()
         {
             DiscordClient.GuildAvailable += OnGuildAvailableAsync;
+            DiscordClient.RoleCreated += OnRoleCreatedAsync;
+            DiscordClient.RoleUpdated += OnRoleUpdatedAsync;
 
             return Task.CompletedTask;
         }
@@ -40,5 +42,11 @@ namespace Modix.Services.Mentions
 
         private Task OnGuildAvailableAsync(IGuild guild)
             => SelfExecuteRequest<IMentionService>(x => x.AutoConfigureGuildAsync(guild));
+
+        private Task OnRoleCreatedAsync(IRole role)
+            => SelfExecuteRequest<IMentionService>(x => x.AutoConfigureRoleAsync(role));
+
+        private Task OnRoleUpdatedAsync(IRole role1, IRole role2)
+            => SelfExecuteRequest<IMentionService>(x => x.AutoConfigureRoleAsync(role2));
     }
 }

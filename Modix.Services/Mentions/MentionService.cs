@@ -21,6 +21,24 @@ namespace Modix.Services.Mentions
         Task AutoConfigureGuildAsync(IGuild guild);
 
         /// <summary>
+        /// Automatically configures mention mappings for the supplied role.
+        /// </summary>
+        /// <param name="role">The role to be configured.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task AutoConfigureRoleAsync(IRole role);
+
+        /// <summary>
+        /// Determines whether the user can mention the supplied role.
+        /// </summary>
+        /// <param name="role">The role that the user is trying to mention.</param>
+        /// <exception cref="ArgumentNullException">Throws for <paramref name="role"/>.</exception>
+        /// <returns>
+        /// A <see cref="task"/> that will complete when the operation completes,
+        /// with a flag indicating whether the user can mention <paramref name="role"/>.
+        /// </returns>
+        Task<bool> CanUserMentionAsync(IRole role);
+
+        /// <summary>
         /// Retireves mention mapping data for the supplied role ID.
         /// </summary>
         /// <param name="roleId">The Discord snowflake ID of the role for which the mapping is to be retrieved.</param>
@@ -71,23 +89,82 @@ namespace Modix.Services.Mentions
         }
 
         /// <inheritdoc />
+        public async Task AutoConfigureRoleAsync(IRole role)
+        {
+            if (role is null)
+                return;
+
+            await EnsureValidMappingAsync(role);
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> CanUserMentionAsync(IRole role)
+        {
+            if (role.IsMentionable)
+                return true;
+
+            var mentionMapping = await MentionMappingRepository.ReadAsync(role.Id);
+
+            if (mentionMapping.Mentionability == MentionabilityType.NotMentionable)
+                return false;
+
+            if (mentionMapping.MinimumRank is null)
+                return true;
+
+            var userRank = (await DesignatedRoleMappingRepository.SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria
+                {
+                    GuildId = AuthorizationService.CurrentGuildId.Value,
+                    RoleId = role.Id,
+                    Type = DesignatedRoleType.Rank,
+                    IsDeleted = false,
+                }))
+                .Select(x => x.Role)
+                .OrderByDescending(x => x.Position)
+                .FirstOrDefault();
+
+            return userRank.Position >= mentionMapping.MinimumRank.Position;
+        }
+
+        /// <inheritdoc />
         public async Task<MentionMappingSummary> GetMentionMappingAsync(ulong roleId)
             => await MentionMappingRepository.ReadAsync(roleId);
 
         /// <inheritdoc />
         public async Task<bool> TryUpdateMentionMappingAsync(ulong roleId, Action<MentionMappingMutationData> updateAction)
         {
+            AuthorizationService.RequireAuthenticatedUser();
+            AuthorizationService.RequireClaims(AuthorizationClaim.MentionConfigure);
+
             if (updateAction is null)
                 throw new ArgumentNullException(nameof(updateAction));
 
+            bool succeeded;
+
             using (var transaction = await MentionMappingRepository.BeginUpdateTransactionAsync())
             {
-                var succeeded = await MentionMappingRepository.TryUpdateAsync(roleId, updateAction);
+                succeeded = await MentionMappingRepository.TryUpdateAsync(roleId, updateAction);
 
                 transaction.Commit();
-
-                return succeeded;
             }
+
+            var mentionMapping = await MentionMappingRepository.ReadAsync(roleId);
+            var guild = await DiscordClient.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
+            var role = guild.GetRole(roleId);
+
+            switch (mentionMapping.Mentionability)
+            {
+                case MentionabilityType.NotMentionable:
+                    await role.ModifyAsync(x => x.Mentionable = false);
+                    break;
+                case MentionabilityType.ModixCommand:
+                    await role.ModifyAsync(x => x.Mentionable = false);
+                    break;
+                case MentionabilityType.DiscordSyntaxAndModixCommand:
+                    await role.ModifyAsync(x => x.Mentionable = true);
+                    break;
+            }
+
+            return succeeded;
         }
 
         /// <summary>
@@ -114,9 +191,8 @@ namespace Modix.Services.Mentions
         {
             var mentionMapping = await MentionMappingRepository.ReadAsync(role.Id);
 
-            await EnsureMappingIsCreatedAsync(mentionMapping, role);
-
-            mentionMapping = await MentionMappingRepository.ReadAsync(role.Id);
+            if (await EnsureMappingIsCreatedAsync(mentionMapping, role))
+                mentionMapping = await MentionMappingRepository.ReadAsync(role.Id);
 
             if (role.IsMentionable)
             {
@@ -128,10 +204,15 @@ namespace Modix.Services.Mentions
             }
         }
 
-        private async Task EnsureMappingIsCreatedAsync(MentionMappingSummary mentionMapping, IRole role)
+        private async Task<bool> EnsureMappingIsCreatedAsync(MentionMappingSummary mentionMapping, IRole role)
         {
             if (mentionMapping is null)
+            {
                 await CreateMappingAsync(role);
+                return true;
+            }
+
+            return false;
         }
 
         private async Task EnsureMappingForIsMentionableAsync(MentionMappingSummary mentionMapping, IRole role)

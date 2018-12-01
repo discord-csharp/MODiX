@@ -40,6 +40,7 @@ namespace Modix.Data.Models.Mentions
         internal static readonly Expression<Func<MentionMappingEntity, MentionMappingSummary>> FromEntityProjection
             = entity => new MentionMappingSummary
             {
+                RoleId = entity.RoleId,
                 Role = (entity.Role == null)
                     ? null
                     : entity.Role.Project(GuildRoleBrief.FromEntityProjection),
