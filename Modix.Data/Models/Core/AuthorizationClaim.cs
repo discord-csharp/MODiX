@@ -112,6 +112,11 @@ namespace Modix.Data.Models.Core
         /// Authorizes a request to perform a count for a popularity contest
         /// </summary>
         [ClaimInfo(Misc, "Authorizes a request to perform a count for a popularity contest")]
-        PopularityContestCount
+        PopularityContestCount,
+        /// <summary>
+        /// Authorizes a request to configure mention settings.
+        /// </summary>
+        [ClaimInfo(Configuration, "Authorizes a request to configure mention settings.")]
+        MentionConfigure,
     }
 }

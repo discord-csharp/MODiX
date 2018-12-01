@@ -1,52 +1,59 @@
-﻿using System.Linq;
+﻿using System;
 using System.Threading.Tasks;
+
 using Discord.WebSocket;
+
 using Microsoft.AspNetCore.Mvc;
+
+using Modix.Data.Models.Mentions;
 using Modix.Models;
 using Modix.Services.Core;
+using Modix.Services.Mentions;
 
 namespace Modix.Controllers
 {
     [Route("~/api/config/mentions")]
     public class MentionController : ModixController
     {
-        private IDesignatedRoleService RoleService { get; }
+        private IMentionService MentionService { get; }
 
-        public MentionController(DiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedRoleService roleService) : base(client, modixAuth)
+        public MentionController(DiscordSocketClient client, IAuthorizationService modixAuth, IMentionService mentionService) : base(client, modixAuth)
         {
-            RoleService = roleService;
+            MentionService = mentionService;
         }
 
-        [HttpGet]
-
-        public IActionResult MentionabilityTypes()
+        [HttpGet("mentionabilityTypes")]
+        public IActionResult GetMentionabilityTypes()
             => Ok(MentionabilityData.GetMentionabilityTypes());
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> RemoveDesignation(long id)
+        [HttpGet("{roleId}/mentionData")]
+        public async Task<IActionResult> GetMentionDataAsync(ulong roleId)
         {
-            await RoleService.RemoveDesignatedRoleByIdAsync(id);
-            return Ok();
+            var mentionMapping = await MentionService.GetMentionMappingAsync(roleId);
+
+            return Ok(new
+            {
+                mentionMapping.Role,
+                Mentionability = mentionMapping.Mentionability.ToString(),
+                mentionMapping.MinimumRank,
+            });
         }
 
-        [HttpPut]
-        public async Task<IActionResult> CreateDesignation([FromBody] DesignatedRoleCreationData creationData)
+        [HttpPatch("{roleId}/mentionability/{mentionability}")]
+        public async Task<IActionResult> UpdateMentionabilityAsync(ulong roleId, string mentionability)
         {
-            var foundRole = DiscordSocketClient
-                ?.GetGuild(ModixAuth.CurrentGuildId.Value)
-                ?.GetRole(creationData.RoleId);
+            if (!Enum.TryParse<MentionabilityType>(mentionability, out var mentionabilityType))
+                return BadRequest($"{mentionability} is not a valid mentionability type.");
 
-            if (foundRole == null)
-            {
-                return BadRequest($"A role was not found with id {creationData.RoleId} in guild with id {ModixAuth.CurrentGuildId}");
-            }
-
-            foreach (var designation in creationData.RoleDesignations)
-            {
-                await RoleService.AddDesignatedRoleAsync(foundRole.Guild.Id, foundRole.Id, designation);
-            }
-
-            return Ok();
+            return await MentionService.TryUpdateMentionMappingAsync(roleId, x => x.Mentionability = mentionabilityType)
+                ? (IActionResult)Ok()
+                : (IActionResult)BadRequest($"Unable to update the mention mapping for role {roleId}.");
         }
+
+        [HttpPatch("{roleId}/minimumRank/{minimumRankId}")]
+        public async Task<IActionResult> UpdateMinimumRankAsync(ulong roleId, ulong? minimumRankId)
+            => await MentionService.TryUpdateMentionMappingAsync(roleId, x => x.MinimumRankId = minimumRankId)
+                ? (IActionResult)Ok()
+                : (IActionResult)BadRequest($"Unable to update the mention mapping for role {roleId}.");
     }
 }

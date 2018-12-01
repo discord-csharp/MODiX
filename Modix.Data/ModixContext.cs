@@ -5,10 +5,10 @@ using Modix.Data.Models;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Models.Promotions;
+using Modix.Data.Models.Mentions;
 using Modix.Data.Utilities;
 
 using Microsoft.EntityFrameworkCore;
-using Modix.Data.Models.Mentions;
 
 namespace Modix.Data
 {

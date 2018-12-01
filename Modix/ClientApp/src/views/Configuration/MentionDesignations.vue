@@ -11,7 +11,7 @@
                     <ul class="menu-list">
 
                         <li v-for="role in allRoles" v-bind:key="role.id">
-                            <a v-on:click="selectedRole = role" v-bind:style="roleStyle(role)" v-bind:class="{'toRole': role == selectedRole, 'is-active': role == selectedRole}">
+                            <a v-on:click="selectedRole = role" v-bind:style="roleStyle(role)" v-bind:class="{'is-active': role == selectedRole}">
                                 {{role.name}}
                             </a>
                         </li>
@@ -23,19 +23,24 @@
             <div class="column">
                 <template v-if="selectedRole">
                     <div class="field">
+
                         <label class="label">Mentionability</label>
+
                         <div class="control">
                             <div class="select is-primary">
-                                <select v-model="selectedMentionability">
+                                <select v-model="selectedMentionability" v-bind:key="mentionability">
                                     <option v-for="mentionability in possibleMentionabilityTypes" v-bind:value="mentionability">
                                         {{mentionability.description}}
                                     </option>
                                 </select>
                             </div>
                         </div>
+
                     </div>
                     <div class="field" v-if="selectedMentionability.name === 'ModixCommand'">
+
                         <label class="label">Minimum rank required to mention</label>
+
                         <div class="control">
                             <div class="select is-primary">
                                 <select v-model="selectedRank">
@@ -44,7 +49,10 @@
                                     </option>
                                 </select>
                             </div>
+
+                            <button class="delete" v-if="selectedRank" v-on:click="selectedRank = null"></button>
                         </div>
+
                     </div>
                 </template>
             </div>
@@ -63,18 +71,6 @@
     @import '~bulma/sass/elements/form';
     @import "~bulma/sass/components/menu";
 
-    .claim.box
-    {
-        padding: 15px;
-
-    }
-
-    .claimLoader
-    {
-        width: 100%;
-        height: 64px;
-    }
-
     .menu-list li a
     {
         border: 2px solid transparent;
@@ -86,77 +82,74 @@
         }
     }
 
+    .delete
+    {
+        vertical-align: middle;
+        margin: 8px;
+    }
+
 </style>
 
 <script lang="ts">
-import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
-import ModixRoute from '@/app/ModixRoute';
-import {toTitleCase} from '@/app/Util';
-import store from "@/app/Store";
+import { Component, Vue, Watch } from 'vue-property-decorator';
 import * as _ from 'lodash';
-import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
-import Channel from '@/models/Channel';
 import Role from '@/models/Role';
-import { ChannelDesignation } from '@/models/moderation/ChannelDesignation';
-import DesignatedChannelCreationData from '@/models/moderation/DesignatedChannelCreationData';
 import GeneralService from '@/services/GeneralService';
-import Autocomplete from '@/components/Autocomplete.vue';
-import TriStateCheckbox from '@/components/TriStateCheckbox.vue';
 import ConfigurationService from '@/services/ConfigurationService';
-import ClaimMapping, { ClaimMappingType, MappingTypeFromBoolean } from '@/models/ClaimMapping';
 import MentionabilityType from '@/models/configuration/MentionabilityType';
 import Rank from '@/models/configuration/Rank';
+import MentionData from '@/models/configuration/MentionData';
 
-@Component({
-    components:
-    {
-        Autocomplete,
-        TriStateCheckbox
-    },
-})
+@Component({})
 export default class MentionDesignations extends Vue
 {
     allRoles: Role[] = [];
+
     selectedRole: Role | null = null;
-    mappedClaims: ClaimMapping[] = [];
-
-    changingClaim: string | null = null;
-
-    @Prop()
     selectedMentionability: MentionabilityType = { name: "", description: "" };
     selectedRank: Rank | null = null;
 
     possibleMentionabilityTypes: MentionabilityType[] = [];
     possibleRanks: Rank[] = [];
 
-    mappedClaim(claim: string): ClaimMapping | undefined
+    mentionData: MentionData | null = null;
+    newMentionData: MentionData | null = null;
+
+    @Watch('selectedRole')
+    async selectedRoleChanged()
     {
-        return _.find(this.mappedClaims, (mapping: ClaimMapping) => mapping.roleId == this.selectedRole!.id && mapping.claim == claim);
+        this.newMentionData = await ConfigurationService.getMentionData(this.selectedRole!.id);
+
+        this.selectedMentionability = _.find(this.possibleMentionabilityTypes, x => x.name == this.newMentionData!.mentionability)!;
+        this.selectedRank = this.newMentionData!.minimumRank;
+
+        this.mentionData = this.newMentionData;
     }
 
-    mappedClaimValue(claim: string): boolean | null
+    @Watch('selectedMentionability')
+    async selectedMentionabilityChanged()
     {
-        let foundClaim = this.mappedClaim(claim);
-
-        if (!foundClaim) { return null; }
-
-        switch (foundClaim.type)
+        if (this.mentionData != this.newMentionData)
         {
-            case ClaimMappingType.Granted:
-                return true;
-            case ClaimMappingType.Denied:
-                return false;
-            default:
-                return null;
+            return;
         }
+
+        await ConfigurationService.updateMentionability(this.selectedRole!.id, this.selectedMentionability.name);
     }
 
-    get roleClaims()
+    @Watch('selectedRank')
+    async selectedRankChanged()
     {
-        var filtered = _.filter(this.mappedClaims, (claim: ClaimMapping) => claim.isRoleMapping);
-        var grouped = _.groupBy(filtered, (claim: ClaimMapping) => claim.claim);
+        if (this.mentionData != this.newMentionData)
+        {
+            return;
+        }
 
-        return grouped;
+        let newRank = this.selectedRank == null
+            ? null
+            : this.selectedRank.id;
+
+        await ConfigurationService.updateMinimumRank(this.selectedRole!.id, newRank);
     }
 
     roleStyle(role: Role)
@@ -169,59 +162,12 @@ export default class MentionDesignations extends Vue
         return {};
     }
 
-    toTitleCase(input: string)
-    {
-        return input
-            .replace(/([A-Z])/g, ' $1')
-            .replace(/^./, function(str){ return str.toUpperCase(); });
-    }
-
-    get userClaims(): ClaimMapping[]
-    {
-        return _.filter(this.mappedClaims, (claim: ClaimMapping) => claim.isUserMapping);
-    }
-
     async created()
     {
         this.allRoles = _.sortBy(await GeneralService.getGuildRolesExceptEveryone(), role => role.name);
 
         this.possibleRanks = _.sortBy(await GeneralService.getRanks(), rank => rank.position).reverse();
         this.possibleMentionabilityTypes = await ConfigurationService.getMentionabilityTypes();
-
-        await store.retrieveClaims();
-        await store.retrieveRoles();
-        this.mappedClaims = await ConfigurationService.getMappedClaims();
-
-        if (this.selectedRole == null)
-        {
-            this.selectedRole = this.allRoles[0];
-        }
-    }
-
-    async claimChanged(key: string, newValue: boolean | null)
-    {
-        console.log(`${key} changed to ${newValue}`);
-
-        this.changingClaim = key;
-
-        try
-        {
-            await ConfigurationService.modifyRoleClaim(
-            {
-                claim: key,
-                mappingType: MappingTypeFromBoolean(newValue),
-                roleId: this.selectedRole!.id
-            });
-        }
-        catch (err)
-        {
-            store.pushErrorMessage(`Error when updating claims: <strong>${err}</strong>`);
-        }
-        finally
-        {
-            this.mappedClaims = await ConfigurationService.getMappedClaims();
-            this.changingClaim = null;
-        }
     }
 }
 </script>

@@ -19,6 +19,28 @@ namespace Modix.Services.Mentions
         /// <param name="guild">The guild to be configured.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
         Task AutoConfigureGuildAsync(IGuild guild);
+
+        /// <summary>
+        /// Retireves mention mapping data for the supplied role ID.
+        /// </summary>
+        /// <param name="roleId">The Discord snowflake ID of the role for which the mapping is to be retrieved.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation has completed,
+        /// with a <see cref="MentionMappingSummary"/> describing the retrieved mapping.
+        /// </returns>
+        Task<MentionMappingSummary> GetMentionMappingAsync(ulong roleId);
+
+        /// <summary>
+        /// Attempts to modify the mention mapping for the supplied role ID.
+        /// </summary>
+        /// <param name="roleId">The <see cref="MentionMappingEntity.RoleId"/> value of the mapping to be modified.</param>
+        /// <param name="updateAction">An action that describes how to modify the mapping.</param>
+        /// <exception cref="ArgumentNullException">Throws for <paramref name="updateAction"/>.</exception>
+        /// <returns>
+        /// A <see cref="task"/> that will complete when the operation completes,
+        /// with a flag indicating whether the operation was successful.
+        /// </returns>
+        Task<bool> TryUpdateMentionMappingAsync(ulong roleId, Action<MentionMappingMutationData> updateAction);
     }
 
     /// <inheritdoc />
@@ -45,6 +67,26 @@ namespace Modix.Services.Mentions
             foreach (var role in guild.Roles)
             {
                 await EnsureValidMappingAsync(role);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<MentionMappingSummary> GetMentionMappingAsync(ulong roleId)
+            => await MentionMappingRepository.ReadAsync(roleId);
+
+        /// <inheritdoc />
+        public async Task<bool> TryUpdateMentionMappingAsync(ulong roleId, Action<MentionMappingMutationData> updateAction)
+        {
+            if (updateAction is null)
+                throw new ArgumentNullException(nameof(updateAction));
+
+            using (var transaction = await MentionMappingRepository.BeginUpdateTransactionAsync())
+            {
+                var succeeded = await MentionMappingRepository.TryUpdateAsync(roleId, updateAction);
+
+                transaction.Commit();
+
+                return succeeded;
             }
         }
 

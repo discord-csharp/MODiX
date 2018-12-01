@@ -1,6 +1,6 @@
 ﻿export default interface Rank
 {
-    id: number;
+    id: string;
     name: string;
     position: number;
 }
