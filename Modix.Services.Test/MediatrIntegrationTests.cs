@@ -1,4 +1,4 @@
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using MediatR;
@@ -7,6 +7,7 @@ using Modix.Services.Core;
 using Modix.Services.Messages.Discord;
 using Moq;
 using NUnit.Framework;
+using Shouldly;
 
 namespace Modix.Services.Test
 {

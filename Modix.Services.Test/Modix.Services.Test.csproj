@@ -12,6 +12,7 @@
         <PackageReference Include="Shouldly" Version="3.0.2" />
     </ItemGroup>
     <ItemGroup>
+      <ProjectReference Include="..\Modix.Common.Test\Modix.Common.Test.csproj" />
       <ProjectReference Include="..\Modix.Services\Modix.Services.csproj" />
     </ItemGroup>
 </Project>
