@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Modix.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -9,9 +10,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    partial class ModixContextModelSnapshot : ModelSnapshot
+    [Migration("20181201162349_MentionMappings")]
+    partial class MentionMappings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -376,15 +378,13 @@ namespace Modix.Data.Migrations
 
                     b.Property<long?>("CampaignId");
 
+                    b.Property<long?>("CommentId");
+
                     b.Property<DateTimeOffset>("Created");
 
                     b.Property<long>("CreatedById");
 
                     b.Property<long>("GuildId");
-
-                    b.Property<long?>("NewCommentId");
-
-                    b.Property<long?>("OldCommentId");
 
                     b.Property<string>("Type")
                         .IsRequired();
@@ -393,11 +393,7 @@ namespace Modix.Data.Migrations
 
                     b.HasIndex("CampaignId");
 
-                    b.HasIndex("NewCommentId")
-                        .IsUnique();
-
-                    b.HasIndex("OldCommentId")
-                        .IsUnique();
+                    b.HasIndex("CommentId");
 
                     b.HasIndex("GuildId", "CreatedById");
 
@@ -448,8 +444,6 @@ namespace Modix.Data.Migrations
 
                     b.Property<long>("CreateActionId");
 
-                    b.Property<long?>("ModifyActionId");
-
                     b.Property<string>("Sentiment")
                         .IsRequired();
 
@@ -458,9 +452,6 @@ namespace Modix.Data.Migrations
                     b.HasIndex("CampaignId");
 
                     b.HasIndex("CreateActionId")
-                        .IsUnique();
-
-                    b.HasIndex("ModifyActionId")
                         .IsUnique();
 
                     b.ToTable("PromotionComments");
@@ -614,13 +605,9 @@ namespace Modix.Data.Migrations
                         .WithMany()
                         .HasForeignKey("CampaignId");
 
-                    b.HasOne("Modix.Data.Models.Promotions.PromotionCommentEntity", "NewComment")
-                        .WithOne()
-                        .HasForeignKey("Modix.Data.Models.Promotions.PromotionActionEntity", "NewCommentId");
-
-                    b.HasOne("Modix.Data.Models.Promotions.PromotionCommentEntity", "OldComment")
-                        .WithOne()
-                        .HasForeignKey("Modix.Data.Models.Promotions.PromotionActionEntity", "OldCommentId");
+                    b.HasOne("Modix.Data.Models.Promotions.PromotionCommentEntity", "Comment")
+                        .WithMany()
+                        .HasForeignKey("CommentId");
 
                     b.HasOne("Modix.Data.Models.Core.GuildUserEntity", "CreatedBy")
                         .WithMany()
@@ -661,10 +648,6 @@ namespace Modix.Data.Migrations
                         .WithOne()
                         .HasForeignKey("Modix.Data.Models.Promotions.PromotionCommentEntity", "CreateActionId")
                         .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("Modix.Data.Models.Promotions.PromotionActionEntity", "ModifyAction")
-                        .WithOne()
-                        .HasForeignKey("Modix.Data.Models.Promotions.PromotionCommentEntity", "ModifyActionId");
                 });
 #pragma warning restore 612, 618
         }

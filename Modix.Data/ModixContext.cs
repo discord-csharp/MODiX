@@ -8,6 +8,7 @@ using Modix.Data.Models.Promotions;
 using Modix.Data.Utilities;
 
 using Microsoft.EntityFrameworkCore;
+using Modix.Data.Models.Mentions;
 
 namespace Modix.Data
 {
@@ -54,6 +55,8 @@ namespace Modix.Data
         public DbSet<PromotionCommentEntity> PromotionComments { get; set; }
 
         public DbSet<PromotionActionEntity> PromotionActions { get; set; }
+
+        public DbSet<MentionMappingEntity> MentionMappings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
