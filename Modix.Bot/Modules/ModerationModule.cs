@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
-
+using Modix.Common.ErrorHandling;
 using Modix.Data.Models.Moderation;
 using Modix.Services.Moderation;
 
@@ -11,9 +11,10 @@ namespace Modix.Modules
 {
     [Name("Moderation")]
     [Summary("Guild moderation commands")]
-    public class ModerationModule : ModuleBase
+    public class ModerationModule : ModixModule
     {
-        public ModerationModule(IModerationService moderationService)
+        public ModerationModule(IModerationService moderationService, IResultFormatManager resultVisualizerFactory)
+            : base(resultVisualizerFactory)
         {
             ModerationService = moderationService;
         }
@@ -27,8 +28,8 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(InfractionType.Notice, subject.Id, reason, null);
-            await Context.AddConfirmation();
+            var result = await ModerationService.CreateInfractionAsync(InfractionType.Notice, subject.Id, reason, null);
+            await AddConfirmationOrHandleAsync(result);
         }
 
         [Command("warn")]
@@ -40,8 +41,8 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(InfractionType.Warning, subject.Id, reason, null);
-            await Context.AddConfirmation();
+            var result = await ModerationService.CreateInfractionAsync(InfractionType.Warning, subject.Id, reason, null);
+            await AddConfirmationOrHandleAsync(result);
         }
 
         [Command("mute")]
@@ -53,8 +54,8 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, null);
-            await Context.AddConfirmation();
+            var result = await ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, null);
+            await AddConfirmationOrHandleAsync(result);
         }
 
         [Command("tempmute")]
@@ -68,8 +69,8 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, duration);
-            await Context.AddConfirmation();
+            var result = await ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, duration);
+            await AddConfirmationOrHandleAsync(result);
         }
 
         [Command("unmute")]
@@ -78,7 +79,8 @@ namespace Modix.Modules
             [Summary("The user to be un-muted.")]
                 IGuildUser subject)
         {
-            await ModerationService.RescindInfractionAsync(InfractionType.Mute, subject.Id);
+            var result = await ModerationService.RescindInfractionAsync(InfractionType.Mute, subject.Id);
+            await AddConfirmationOrHandleAsync(result);
         }
 
         [Command("ban")]
@@ -90,8 +92,8 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(InfractionType.Ban, subject.Id, reason, null);
-            await Context.AddConfirmation();
+            var result = await ModerationService.CreateInfractionAsync(InfractionType.Ban, subject.Id, reason, null);
+            await AddConfirmationOrHandleAsync(result);
         }
 
         [Command("forceban")]
@@ -105,8 +107,8 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(InfractionType.Ban, subjectId, reason, null);
-            await Context.AddConfirmation();
+            var result = await ModerationService.CreateInfractionAsync(InfractionType.Ban, subjectId, reason, null);
+            await AddConfirmationOrHandleAsync(result);
         }
 
         [Command("unban")]
@@ -115,8 +117,8 @@ namespace Modix.Modules
             [Summary("The user to be un-banned.")]
                 IGuildUser subject)
         {
-            await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.Id);
-            await Context.AddConfirmation();
+            var result = await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.Id);
+            await AddConfirmationOrHandleAsync(result);
         }
 
         [Command("forceunban")]
@@ -127,8 +129,8 @@ namespace Modix.Modules
             [Summary("The id of the user to be un-banned.")]
                 ulong subjectId)
         {
-            await ModerationService.RescindInfractionAsync(InfractionType.Ban, subjectId);
-            await Context.AddConfirmation();
+            var result = await ModerationService.RescindInfractionAsync(InfractionType.Ban, subjectId);
+            await AddConfirmationOrHandleAsync(result);
         }
 
         internal protected IModerationService ModerationService { get; }

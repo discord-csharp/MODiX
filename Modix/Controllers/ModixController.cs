@@ -5,6 +5,7 @@ using Discord.WebSocket;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Modix.Common.ErrorHandling;
 using Modix.Models;
 
 namespace Modix.Controllers
@@ -67,6 +68,16 @@ namespace Modix.Controllers
                 .Select(d => new Claim(ClaimTypes.Role, d.ToString()));
 
             (HttpContext.User.Identity as ClaimsIdentity).AddClaims(claims);
+        }
+
+        protected IActionResult ActionResultFor<T>(ServiceResult<T> serviceResult)
+        {
+            if (serviceResult.IsSuccess)
+            {
+                return Ok(serviceResult.Result);
+            }
+
+            return BadRequest(serviceResult.Error);
         }
     }
 }

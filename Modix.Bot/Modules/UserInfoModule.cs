@@ -10,6 +10,7 @@ using Humanizer.Localisation;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Modix.Bot.Extensions;
+using Modix.Common.ErrorHandling;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
@@ -18,14 +19,16 @@ using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
-    public class UserInfoModule : ModuleBase
+    public class UserInfoModule : ModixModule
     {
         private const string Format = "{0}: {1} ago ({2:yyyy-MM-ddTHH:mm:ssK})\n";
 
         //optimization: UtcNow is slow and the module is created per-request
         private readonly DateTime _utcNow = DateTime.UtcNow;
 
-        public UserInfoModule(ILogger<UserInfoModule> logger, IUserService userService, IModerationService moderationService, IAuthorizationService authorizationService, IMessageRepository messageRepository)
+        public UserInfoModule(ILogger<UserInfoModule> logger, IUserService userService, IModerationService moderationService,
+            IAuthorizationService authorizationService, IMessageRepository messageRepository, IResultFormatManager resultVisualizerFactory)
+            : base(resultVisualizerFactory)
         {
             Log = logger ?? new NullLogger<UserInfoModule>();
             UserService = userService;
@@ -92,10 +95,7 @@ namespace Modix.Modules
                 builder.AppendLine("**\u276F No Member Information**");
             }
 
-            if (await AuthorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
-            {
-                await AddInfractionsToEmbed(userId, builder);
-            }
+            await AddInfractionsToEmbed(userId, builder);
 
             embedBuilder.Description = builder.ToString();
 
@@ -130,7 +130,8 @@ namespace Modix.Modules
                     Array.Sort(roles); // Sort by position: lowest positioned role is first
                     Array.Reverse(roles); // Reverse the sort: highest positioned role is first
 
-                    builder.Append(roles.Length > 1 ? "Roles: " : "Role: ");
+                    builder.Append("Role".PluralizeIf(roles.Any()));
+                    builder.Append(": ");
                     builder.AppendLine(roles.Select(r => r.Mention).Humanize());
                 }
             }
@@ -142,12 +143,14 @@ namespace Modix.Modules
 
         private async Task AddInfractionsToEmbed(ulong userId, StringBuilder builder)
         {
-            builder.AppendLine();
-            builder.AppendLine($"**\u276F Infractions [See here](https://mod.gg/infractions?subject={userId})**");
-
             var counts = await ModerationService.GetInfractionCountsForUserAsync(userId);
 
-            builder.AppendLine(FormatUtilities.FormatInfractionCounts(counts));
+            if (counts.IsSuccess)
+            {
+                builder.AppendLine();
+                builder.AppendLine($"**\u276F Infractions [See here](https://mod.gg/infractions?subject={userId})**");
+                builder.AppendLine(FormatUtilities.FormatInfractionCounts(counts.Result));
+            }
         }
 
         private async Task AddParticipationToEmbed(ulong userId, StringBuilder builder)
@@ -181,7 +184,7 @@ namespace Modix.Modules
 
                     foreach (var kvp in channels.OrderByDescending(x => x.Value))
                     {
-                        var channel = await Context.Guild.GetChannelAsync(kvp.Key);
+                        var channel = Context.Guild.GetChannel(kvp.Key);
 
                         if (channel.IsPublic())
                         {

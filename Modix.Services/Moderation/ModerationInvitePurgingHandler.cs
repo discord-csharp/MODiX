@@ -128,7 +128,13 @@ namespace Modix.Services.Moderation
 
             Log.Debug("Message {MessageId} is going to be deleted", message.Id);
 
-            await _moderationService.DeleteMessageAsync(message, "Unauthorized Invite Link");
+            var result = await _moderationService.DeleteMessageAsync(message, "Unauthorized Invite Link");
+
+            if (result.IsFailure)
+            {
+                Log.Error("Could not delete message {MessageId} - {Error}", message.Id, result.Error);
+                return;
+            }
 
             Log.Debug("Message {MessageId} was deleted because it contains an invite link", message.Id);
 

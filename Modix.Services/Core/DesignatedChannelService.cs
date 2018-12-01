@@ -113,7 +113,6 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task AddDesignatedChannelAsync(IGuild guild, IMessageChannel logChannel, DesignatedChannelType type)
         {
-            AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedChannelMappingCreate);
 
             using (var transaction = await DesignatedChannelMappingRepository.BeginCreateTransactionAsync())
@@ -144,7 +143,6 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task<int> RemoveDesignatedChannelAsync(IGuild guild, IMessageChannel logChannel, DesignatedChannelType type)
         {
-            AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedChannelMappingDelete);
 
             using (var transaction = await DesignatedChannelMappingRepository.BeginDeleteTransactionAsync())
@@ -168,7 +166,6 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task<int> RemoveDesignatedChannelByIdAsync(long designationId)
         {
-            AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedChannelMappingDelete);
 
             using (var transaction = await DesignatedChannelMappingRepository.BeginDeleteTransactionAsync())

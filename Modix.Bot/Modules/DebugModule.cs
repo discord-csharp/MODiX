@@ -7,9 +7,12 @@ using Discord.Commands;
 
 using Serilog;
 
+using Modix.Data.Models.Core;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
 using Modix.Services.CommandHelp;
+using Modix.Common.ErrorHandling;
+using Modix.Services.ErrorHandling;
 
 namespace Modix.Modules
 {
@@ -17,11 +20,30 @@ namespace Modix.Modules
     /// Used to test feature work on a private server. The contents of this module can be changed any time.
     /// </summary>
     [Group("debug"), RequireUserPermission(GuildPermission.BanMembers), HiddenFromHelp]
-    public class DebugModule : ModuleBase
+    public class DebugModule : ModixModule
     {
-        public DebugModule(IAuthorizationService authorizationService, IModerationService moderationService)
+        public DebugModule(IAuthorizationService authorizationService, IModerationService moderationService, IResultFormatManager resultVisualizerFactory)
+            : base(resultVisualizerFactory)
         {
             AuthorizationService = authorizationService;
+        }
+
+        [Command("noclaim")]
+        public async Task Claim()
+        {
+            var required = new AuthorizationClaim[]
+            {
+                AuthorizationClaim.PromotionsCloseCampaign,
+                AuthorizationClaim.PromotionsComment,
+                AuthorizationClaim.PromotionsCreateCampaign
+            };
+
+            var has = new AuthorizationClaim[]
+            {
+                AuthorizationClaim.PromotionsComment
+            };
+
+            await HandleResultAsync(new AuthResult(required, has));
         }
 
         [Command("throw")]
@@ -37,7 +59,7 @@ namespace Modix.Modules
         [Command("leave")]
         public async Task Leave(ulong guildId)
         {
-            var guild = await Context.Client.GetGuildAsync(guildId);
+            var guild = Context.Client.GetGuild(guildId);
 
             if(guild == null)
             {
@@ -52,7 +74,7 @@ namespace Modix.Modules
         [Command("joined")]
         public async Task Joined()
         {
-            var guilds = await Context.Client.GetGuildsAsync();
+            var guilds = Context.Client.Guilds;
 
             var output = string.Join(", ", guilds.Select(a => $"{a.Id}: {a.Name}"));
             await ReplyAsync(output);

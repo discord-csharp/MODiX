@@ -47,47 +47,59 @@ namespace Modix.Modules
 
         [Command("claims add")]
         [Summary("Adds a claim mapping to a given role")]
-        public Task AddClaimMapping(
+        public async Task AddClaimMapping(
             [Summary("The claim to be added.")]
                 AuthorizationClaim claim,
             [Summary("The type of claim mapping, E.G. granted or denied.")]
                 ClaimMappingType type,
             [Summary("The role to which the claim is to be added.")]
                 IRole role)
-            => AuthorizationService.AddClaimMappingAsync(role, type, claim);
+        {
+            await AuthorizationService.AddClaimMappingAsync(role, type, claim);
+            await Context.AddConfirmation();
+        }
 
         [Command("claims add")]
         [Summary("Adds a claim mapping to a given user")]
-        public Task AddClaimMapping(
+        public async Task AddClaimMapping(
             [Summary("The claim to be added.")]
                 AuthorizationClaim claim,
             [Summary("The type of claim mapping, E.G. granted or denied.")]
                 ClaimMappingType type,
             [Summary("The user to which the claim is to be added.")]
                 IGuildUser user)
-            => AuthorizationService.AddClaimMappingAsync(user, type, claim);
+        {
+            await AuthorizationService.AddClaimMappingAsync(user, type, claim);
+            await Context.AddConfirmation();
+        }
 
         [Command("claims remove")]
         [Summary("Removes a claim mapping from a given role")]
-        public Task RemoveClaimMapping(
+        public async Task RemoveClaimMapping(
             [Summary("The claim to be removed.")]
                 AuthorizationClaim claim,
             [Summary("The type of claim mapping, E.G. granted or denied.")]
                 ClaimMappingType type,
             [Summary("The role from which the claim is to be removed.")]
                 IRole role)
-            => AuthorizationService.RemoveClaimMappingAsync(role, type, claim);
+        {
+            await AuthorizationService.RemoveClaimMappingAsync(role, type, claim);
+            await Context.AddConfirmation();
+        }
 
         [Command("claims remove")]
         [Summary("Removes a claim mapping from a given user")]
-        public Task RemoveClaimMapping(
+        public async Task RemoveClaimMapping(
             [Summary("The claim to be removed.")]
                 AuthorizationClaim claim,
             [Summary("The type of claim mapping, E.G. granted or denied.")]
                 ClaimMappingType type,
             [Summary("The user from which the claim is to be removed.")]
                 IGuildUser user)
-            => AuthorizationService.RemoveClaimMappingAsync(user, type, claim);
+        {
+            await AuthorizationService.RemoveClaimMappingAsync(user, type, claim);
+            await Context.AddConfirmation();
+        }
 
         internal protected IAuthorizationService AuthorizationService { get; }
     }

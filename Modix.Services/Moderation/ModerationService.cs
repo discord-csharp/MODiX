@@ -13,6 +13,8 @@ using Modix.Data.Repositories;
 using Modix.Services.Core;
 using Serilog;
 using Discord.Net;
+using Modix.Common.ErrorHandling;
+using Modix.Services.ErrorHandling;
 
 namespace Modix.Services.Moderation
 {
@@ -57,7 +59,7 @@ namespace Modix.Services.Moderation
         /// <param name="reason">The value to use for <see cref="ModerationActionEntity.Reason"/></param>
         /// <param name="duration">The value to use for <see cref="InfractionEntity.Duration"/>.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
-        Task CreateInfractionAsync(InfractionType type, ulong subjectId, string reason, TimeSpan? duration);
+        Task<ServiceResult> CreateInfractionAsync(InfractionType type, ulong subjectId, string reason, TimeSpan? duration);
 
         /// <summary>
         /// Marks an existing, active, infraction of a given type, upon a given user, as rescinded.
@@ -65,7 +67,7 @@ namespace Modix.Services.Moderation
         /// <param name="type">The <see cref="InfractionEntity.Type"/> value of the infraction to be rescinded.</param>
         /// <param name="subjectId">The <see cref="InfractionEntity.SubjectId"/> value of the infraction to be rescinded.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
-        Task RescindInfractionAsync(InfractionType type, ulong subjectId);
+        Task<ServiceResult> RescindInfractionAsync(InfractionType type, ulong subjectId);
 
         /// <summary>
         /// Marks an existing infraction as rescinded, based on its ID.
@@ -76,14 +78,14 @@ namespace Modix.Services.Moderation
         /// This determines whether checks such as rank validation will occur.
         /// </param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
-        Task RescindInfractionAsync(long infractionId, bool isAutoRescind = false);
+        Task<ServiceResult> RescindInfractionAsync(long infractionId, bool isAutoRescind = false);
 
         /// <summary>
         /// Marks an existing infraction as deleted, based on its ID.
         /// </summary>
         /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be deleted.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
-        Task DeleteInfractionAsync(long infractionId);
+        Task<ServiceResult> DeleteInfractionAsync(long infractionId);
 
         /// <summary>
         /// Deletes a message and creates a record of the deletion within the database.
@@ -91,7 +93,7 @@ namespace Modix.Services.Moderation
         /// <param name="message">The message to be deleted.</param>
         /// <param name="reason">A description of the reason the message was deleted.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task DeleteMessageAsync(IMessage message, string reason);
+        Task<ServiceResult> DeleteMessageAsync(IMessage message, string reason);
 
         /// <summary>
         /// Retrieves a collection of infractions, based on a given set of criteria.
@@ -102,7 +104,7 @@ namespace Modix.Services.Moderation
         /// A <see cref="Task"/> which will complete when the operation has completed,
         /// containing the requested set of infractions.
         /// </returns>
-        Task<IReadOnlyCollection<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriterias = null);
+        Task<ServiceResult<IReadOnlyCollection<InfractionSummary>>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriterias = null);
 
 
         /// <summary>
@@ -111,14 +113,14 @@ namespace Modix.Services.Moderation
         /// <param name="searchCriteria">The criteria defining which infractions are to be returned.</param>
         /// <param name="sortingCriterias">The criteria defining how to sort the infractions to be returned.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has completed, containing the requested set of infractions.</returns>
-        Task<RecordsPage<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria);
+        Task<ServiceResult<RecordsPage<InfractionSummary>>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria);
 
         /// <summary>
         /// Retrieves a count of the types of infractions the given user has recieved.
         /// </summary>
         /// <param name="subjectId">The ID of the user to retrieve counts for</param>
         /// <returns>A <see cref="Task"/> which results in a Dictionary of infraction type to counts. Will return zeroes for types for which there are no infractions.</returns>
-        Task<IDictionary<InfractionType, int>> GetInfractionCountsForUserAsync(ulong subjectId);
+        Task<ServiceResult<IDictionary<InfractionType, int>>> GetInfractionCountsForUserAsync(ulong subjectId);
 
         /// <summary>
         /// Retrieves a moderation action, based on its ID.
@@ -128,7 +130,7 @@ namespace Modix.Services.Moderation
         /// A <see cref="Task"/> that will complete when the operation has completed,
         /// containing the requested moderation action.
         /// </returns>
-        Task<ModerationActionSummary> GetModerationActionSummaryAsync(long moderationActionId);
+        Task<ServiceResult<ModerationActionSummary>> GetModerationActionSummaryAsync(long moderationActionId);
 
         /// <summary>
         /// Retrieves a collection of moderation actions, based on a given set of criteria.
@@ -139,7 +141,7 @@ namespace Modix.Services.Moderation
         /// A <see cref="Task"/> which will complete when the operation has completed,
         /// containing the requested set of moderation actions.
         /// </returns>
-        Task<IReadOnlyCollection<ModerationActionSummary>> SearchModerationActionsAsync(ModerationActionSearchCriteria searchCriteria);
+        Task<ServiceResult<IReadOnlyCollection<ModerationActionSummary>>> SearchModerationActionsAsync(ModerationActionSearchCriteria searchCriteria);
 
         /// <summary>
         /// Retrieves a timestamp indicating the next time an existing infraction will be expiring.
@@ -148,7 +150,7 @@ namespace Modix.Services.Moderation
         /// A <see cref="Task"/> that will complete when the operation is complete,
         /// containing the requested timestamp value.
         /// </returns>
-        Task<DateTimeOffset?> GetNextInfractionExpiration();
+        Task<ServiceResult<DateTimeOffset>> GetNextInfractionExpiration();
     }
 
     /// <inheritdoc />
@@ -187,9 +189,6 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         public async Task AutoConfigureGuildAsync(IGuild guild)
         {
-            AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
-
             var muteRole = await GetOrCreateDesignatedMuteRoleAsync(guild, AuthorizationService.CurrentUserId.Value);
 
             var nonCategoryChannels =
@@ -224,9 +223,6 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         public async Task AutoConfigureChannelAsync(IChannel channel)
         {
-            AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
-
             if (channel is IGuildChannel guildChannel)
             {
                 var muteRole = await GetOrCreateDesignatedMuteRoleAsync(guildChannel.Guild, AuthorizationService.CurrentUserId.Value);
@@ -255,9 +251,6 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         public async Task UnConfigureGuildAsync(IGuild guild)
         {
-            AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingDelete);
-
             using (var transaction = await DesignatedRoleMappingRepository.BeginDeleteTransactionAsync())
             {
                 foreach (var mapping in await DesignatedRoleMappingRepository
@@ -280,13 +273,13 @@ namespace Modix.Services.Moderation
         }
 
         /// <inheritdoc />
-        public async Task CreateInfractionAsync(InfractionType type, ulong subjectId, string reason, TimeSpan? duration)
+        public async Task<ServiceResult> CreateInfractionAsync(InfractionType type, ulong subjectId, string reason, TimeSpan? duration)
         {
-            AuthorizationService.RequireAuthenticatedGuild();
-            AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(_createInfractionClaimsByType[type]);
+            var authResult = AuthorizationService.CheckClaims(_createInfractionClaimsByType[type]);
+            if (authResult.IsFailure) { return authResult; }
 
-            await RequireSubjectRankLowerThanModeratorRankAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
+            var rankResult = await RequireSubjectRankLowerThanModeratorRankAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
+            if (rankResult.IsFailure) { return rankResult; }
 
             var guild = await DiscordClient.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
 
@@ -302,15 +295,16 @@ namespace Modix.Services.Moderation
                 subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
             }
 
-            if (reason == null)
-                throw new ArgumentNullException(nameof(reason));
+            if (type == InfractionType.Notice || type == InfractionType.Warning)
+            {
+                if (string.IsNullOrWhiteSpace(reason))
+                {
+                    return ServiceResult.FromError($"{type.ToString()} infractions require a reason to be given");
+                }
+            }
 
-            if (reason.Length > 1000)
-                throw new ArgumentException("Reason must be less than 1000 characters in length", nameof(reason));
-
-            if (((type == InfractionType.Notice) || (type == InfractionType.Warning))
-                && string.IsNullOrWhiteSpace(reason))
-                throw new InvalidOperationException($"{type.ToString()} infractions require a reason to be given");
+            var lengthResult = new InvalidLengthResult("Reason", reason.Length, maximum: 1000);
+            if (lengthResult.IsFailure) { return lengthResult; }
 
             using (var transaction = await InfractionRepository.BeginCreateTransactionAsync())
             {
@@ -324,7 +318,7 @@ namespace Modix.Services.Moderation
                         IsRescinded = false,
                         IsDeleted = false
                     }))
-                        throw new InvalidOperationException($"Discord user {subjectId} already has an active {type} infraction");
+                        return ServiceResult.FromError($"Discord user {subjectId} already has an active {type} infraction");
                 }
 
                 await InfractionRepository.CreateAsync(
@@ -358,14 +352,18 @@ namespace Modix.Services.Moderation
                     await guild.AddBanAsync(subject, reason: reason);
                     break;
             }
+
+            return ServiceResult.FromSuccess();
         }
 
         /// <inheritdoc />
-        public async Task RescindInfractionAsync(InfractionType type, ulong subjectId)
+        public async Task<ServiceResult> RescindInfractionAsync(InfractionType type, ulong subjectId)
         {
-            AuthorizationService.RequireAuthenticatedGuild();
-            AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
+            var authResult = AuthorizationService.CheckClaims(AuthorizationClaim.ModerationRescind);
+            if (authResult.IsFailure) { return authResult; }
+
+            var rankResult = await RequireSubjectRankLowerThanModeratorRankAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
+            if (rankResult.IsFailure) { return rankResult; }
 
             await DoRescindInfractionAsync(
                 (await InfractionRepository.SearchSummariesAsync(
@@ -378,30 +376,35 @@ namespace Modix.Services.Moderation
                         IsDeleted = false,
                     }))
                     .FirstOrDefault());
+
+            return ServiceResult.FromSuccess();
         }
 
         /// <inheritdoc />
-        public async Task RescindInfractionAsync(long infractionId, bool isAutoRescind = false)
+        public async Task<ServiceResult> RescindInfractionAsync(long infractionId, bool isAutoRescind = false)
         {
-            AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
+            var authResult = AuthorizationService.CheckClaims(AuthorizationClaim.ModerationRescind);
+            if (authResult.IsFailure) { return authResult; }
 
             await DoRescindInfractionAsync(
                 await InfractionRepository.ReadSummaryAsync(infractionId), isAutoRescind);
+
+            return ServiceResult.FromSuccess();
         }
 
         /// <inheritdoc />
-        public async Task DeleteInfractionAsync(long infractionId)
+        public async Task<ServiceResult> DeleteInfractionAsync(long infractionId)
         {
-            AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationDeleteInfraction);
+            var authResult = AuthorizationService.CheckClaims(AuthorizationClaim.ModerationDeleteInfraction);
+            if (authResult.IsFailure) { return authResult; }
 
             var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
 
             if (infraction == null)
-                throw new InvalidOperationException($"Infraction {infractionId} does not exist");
+                return ServiceResult.FromError($"Infraction {infractionId} does not exist");
 
-            await RequireSubjectRankLowerThanModeratorRankAsync(infraction.GuildId, infraction.Subject.Id);
+            var rankResult = await RequireSubjectRankLowerThanModeratorRankAsync(AuthorizationService.CurrentGuildId.Value, infraction.Subject.Id);
+            if (rankResult.IsFailure) { return rankResult; }
 
             await InfractionRepository.TryDeleteAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
 
@@ -419,16 +422,21 @@ namespace Modix.Services.Moderation
                     await guild.RemoveBanAsync(subject);
                     break;
             }
+
+            return ServiceResult.FromSuccess();
         }
 
         /// <inheritdoc />
-        public async Task DeleteMessageAsync(IMessage message, string reason)
+        public async Task<ServiceResult> DeleteMessageAsync(IMessage message, string reason)
         {
-            AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationDeleteMessage);
+            var authResult = AuthorizationService.CheckClaims(AuthorizationClaim.ModerationDeleteInfraction);
+            if (authResult.IsFailure) { return authResult; }
+
+            var rankResult = await RequireSubjectRankLowerThanModeratorRankAsync(AuthorizationService.CurrentGuildId.Value, message.Author.Id);
+            if (rankResult.IsFailure) { return rankResult; }
 
             if (!(message.Channel is IGuildChannel guildChannel))
-                throw new InvalidOperationException($"Cannot delete message {message.Id} because it is not a guild message");
+                return ServiceResult.FromError($"Cannot delete message {message.Id} because it is not a guild message");
 
             await UserService.TrackUserAsync(message.Author as IGuildUser);
             await ChannelService.TrackChannelAsync(guildChannel);
@@ -450,65 +458,83 @@ namespace Modix.Services.Moderation
 
                 transaction.Commit();
             }
+
+            return ServiceResult.FromSuccess();
         }
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null)
+        public async Task<ServiceResult<IReadOnlyCollection<InfractionSummary>>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null)
         {
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
+            var authResult = AuthorizationService.CheckClaims(AuthorizationClaim.ModerationRead);
+            var result = await InfractionRepository.SearchSummariesAsync(searchCriteria, sortingCriteria);
 
-            return InfractionRepository.SearchSummariesAsync(searchCriteria, sortingCriteria);
+            return ServiceResult.ShortCircuit(authResult, result);
         }
 
         /// <inheritdoc />
-        public Task<RecordsPage<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
+        public async Task<ServiceResult<RecordsPage<InfractionSummary>>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
         {
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
+            var authResult = AuthorizationService.CheckClaims(AuthorizationClaim.ModerationRead);
+            var result = await InfractionRepository.SearchSummariesPagedAsync(searchCriteria, sortingCriteria, pagingCriteria);
 
-            return InfractionRepository.SearchSummariesPagedAsync(searchCriteria, sortingCriteria, pagingCriteria);
+            return ServiceResult.ShortCircuit(authResult, result);
         }
 
-        public async Task<IDictionary<InfractionType, int>> GetInfractionCountsForUserAsync(ulong subjectId)
+        public async Task<ServiceResult<IDictionary<InfractionType, int>>> GetInfractionCountsForUserAsync(ulong subjectId)
         {
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
-
-            return await InfractionRepository.GetInfractionCountsAsync(new InfractionSearchCriteria
+            var authResult = AuthorizationService.CheckClaims(AuthorizationClaim.ModerationRead);
+            var result = await InfractionRepository.GetInfractionCountsAsync(new InfractionSearchCriteria
             {
                 GuildId = AuthorizationService.CurrentGuildId,
                 SubjectId = subjectId,
                 IsDeleted = false
             });
+
+            return ServiceResult.ShortCircuit(authResult, result);
         }
 
         /// <inheritdoc />
-        public Task<ModerationActionSummary> GetModerationActionSummaryAsync(long moderationActionId)
+        public async Task<ServiceResult<ModerationActionSummary>> GetModerationActionSummaryAsync(long moderationActionId)
         {
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
+            var authResult = AuthorizationService.CheckClaims(AuthorizationClaim.ModerationRead);
+            var result = await ModerationActionRepository.ReadSummaryAsync(moderationActionId);
 
-            return ModerationActionRepository.ReadSummaryAsync(moderationActionId);
+            return ServiceResult.ShortCircuit(authResult, result);
         }
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<ModerationActionSummary>> SearchModerationActionsAsync(ModerationActionSearchCriteria searchCriteria)
-            => ModerationActionRepository.SearchSummariesAsync(searchCriteria);
+        public async Task<ServiceResult<IReadOnlyCollection<ModerationActionSummary>>> SearchModerationActionsAsync(ModerationActionSearchCriteria searchCriteria)
+        {
+            var authResult = AuthorizationService.CheckClaims(AuthorizationClaim.ModerationRead);
+            var result = await ModerationActionRepository.SearchSummariesAsync(searchCriteria);
+
+            return ServiceResult.ShortCircuit(authResult, result);
+        }
 
         /// <inheritdoc />
-        public Task<DateTimeOffset?> GetNextInfractionExpiration()
-            => InfractionRepository.ReadExpiresFirstOrDefaultAsync(
-                new InfractionSearchCriteria()
-                {
+        public async Task<ServiceResult<DateTimeOffset>> GetNextInfractionExpiration()
+        {
+            var result = await InfractionRepository.ReadExpiresFirstOrDefaultAsync(
+                new InfractionSearchCriteria() {
                     IsRescinded = false,
                     IsDeleted = false,
-                    ExpiresRange = new DateTimeOffsetRange()
-                    {
+                    ExpiresRange = new DateTimeOffsetRange() {
                         From = DateTimeOffset.MinValue,
                         To = DateTimeOffset.MaxValue,
                     }
                 },
-                new []
+                new[]
                 {
                     new SortingCriteria() { PropertyName = nameof(InfractionSummary.Expires), Direction = SortDirection.Ascending}
                 });
+
+            if (result == null)
+            {
+                return ServiceResult<DateTimeOffset>.FromError("No expiring infractions found.");
+            }
+
+            return ServiceResult.FromResult(result.Value);
+        }
 
         /// <summary>
         /// An <see cref="IDiscordClient"/> for interacting with the Discord API.
@@ -656,12 +682,12 @@ namespace Modix.Services.Moderation
                 }))
                 .Select(r => r.Role);
 
-        private async Task RequireSubjectRankLowerThanModeratorRankAsync(ulong guildId, ulong subjectId)
+        private async Task<ServiceResult> RequireSubjectRankLowerThanModeratorRankAsync(ulong guildId, ulong subjectId)
         {
             var moderator = await UserService.GetGuildUserAsync(guildId, AuthorizationService.CurrentUserId.Value);
 
             if (moderator.GuildPermissions.Administrator)
-                return;
+                return ServiceResult.FromSuccess();
 
             var rankRoles = await GetRankRolesAsync();
 
@@ -670,18 +696,24 @@ namespace Modix.Services.Moderation
             var subjectRankRoles = rankRoles.Where(r => subject.RoleIds.Contains(r.Id));
             var moderatorRankRoles = rankRoles.Where(r => moderator.RoleIds.Contains(r.Id));
 
-            var greatestSubjectRankPosition = subjectRankRoles.Any()
-                ? subjectRankRoles.Select(r => r.Position).Max()
-                : default(int?);
-            var greatestModeratorRankPosition = moderatorRankRoles.Any()
-                ? moderatorRankRoles.Select(r => r.Position).Max()
-                : default(int?);
+            var greatestSubjectRank = subjectRankRoles.Any()
+                ? subjectRankRoles.OrderByDescending(r => r.Position).FirstOrDefault()
+                : null;
+
+            var greatestModeratorRank = moderatorRankRoles.Any()
+                ? moderatorRankRoles.OrderByDescending(r => r.Position).FirstOrDefault()
+                : null;
+
+            var greatestSubjectRankPosition = greatestSubjectRank?.Position ?? default(int?);
+            var greatestModeratorRankPosition = greatestModeratorRank?.Position ?? default(int?);
 
             if (greatestModeratorRankPosition is null
                 || greatestSubjectRankPosition >= greatestModeratorRankPosition)
             {
-                throw new InvalidOperationException("Cannot moderate users that have a rank greater than or equal to your own.");
+                return new InsufficientRankResult(greatestModeratorRank, greatestSubjectRank);
             }
+
+            return ServiceResult.FromSuccess();
         }
             
         private static readonly OverwritePermissions _mutePermissions

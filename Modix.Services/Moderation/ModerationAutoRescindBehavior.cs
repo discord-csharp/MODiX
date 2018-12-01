@@ -92,8 +92,8 @@ namespace Modix.Services.Moderation
 
                 var nextExpiration = await moderationService.GetNextInfractionExpiration();
 
-                if (nextExpiration != null)
-                    SetNextUpdateTimerTrigger(nextExpiration.Value - DateTimeOffset.Now);
+                if (nextExpiration.IsSuccess)
+                    SetNextUpdateTimerTrigger(nextExpiration.Result - DateTimeOffset.Now);
             });
 #pragma warning restore CS4014
         }

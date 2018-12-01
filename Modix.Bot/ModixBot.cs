@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -10,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Modix.Common.ErrorHandling;
 using Modix.Data;
 using Modix.Data.Models.Core;
 using Modix.Services;
@@ -27,6 +29,8 @@ namespace Modix
         private readonly ModixConfig _config;
         private readonly DiscordSerilogAdapter _serilogAdapter;
         private readonly IApplicationLifetime _applicationLifetime;
+
+        private CommandErrorHandler _errorHandler;
         private IServiceScope _scope;
 
         public ModixBot(
@@ -85,6 +89,8 @@ namespace Modix
                     await behavior.StartAsync();
                     stoppingToken.Register(() => behavior.StopAsync().GetAwaiter().GetResult());
                 }
+
+                _errorHandler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
 
                 // The only thing that could go wrong at this point is the client failing to login and start. Promote
                 // our local service scope to a field so that it's available to the HandleCommand method once events
@@ -207,7 +213,7 @@ namespace Modix
             if (message.Content.Length <= 1)
                 return;
 
-            var context = new CommandContext(_client, message);
+            var context = new SocketCommandContext(_client, message);
 
             using (var scope = _scope.ServiceProvider.CreateScope())
             {
@@ -215,35 +221,44 @@ namespace Modix
                     .GetRequiredService<IAuthorizationService>()
                     .OnAuthenticatedAsync(context.User as IGuildUser);
 
+                scope.ServiceProvider
+                    .GetRequiredService<ICommandContextAccessor>()
+                    .Context = context;
+
                 var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
+
+                stopwatch.Stop();
 
                 if (!result.IsSuccess)
                 {
-                    var error = $"{result.Error}: {result.ErrorReason}";
-
-                    if (!string.Equals(result.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
-                    {
-                        Log.LogWarning(error);
-                    }
-                    else
-                    {
-                        Log.LogError(error);
-                    }
-
-                    if (result.Error != CommandError.Exception)
-                    {
-                        var handler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
-                        await handler.AssociateError(message, error);
-                    }
-                    else
-                    {
-                        await context.Channel.SendMessageAsync("Error: " + error);
-                    }
+                    await HandleCommandError(context, result);
                 }
             }
-
-            stopwatch.Stop();
+            
             Log.LogInformation($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
+        }
+
+        public async Task HandleCommandError(ICommandContext context, IResult result)
+        {
+            var error = $"{result.Error}: {result.ErrorReason}";
+
+            if (!string.Equals(result.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
+            {
+                Log.LogWarning(error);
+            }
+            else
+            {
+                Log.LogError(error);
+            }
+
+            if (result.Error != CommandError.Exception)
+            {
+                await _errorHandler.AssociateError(context.Message, error);
+            }
+            else
+            {
+                await context.Channel.SendMessageAsync("Error: " + error);
+            }
         }
     }
 }

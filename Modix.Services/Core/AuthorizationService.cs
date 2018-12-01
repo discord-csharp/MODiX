@@ -10,6 +10,9 @@ using Discord;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Services.Utilities;
+using Modix.Common;
+using Modix.Common.ErrorHandling;
+using Modix.Services.ErrorHandling;
 
 namespace Modix.Services.Core
 {
@@ -159,19 +162,11 @@ namespace Modix.Services.Core
         Task OnAuthenticatedAsync(ISelfUser self);
 
         /// <summary>
-        /// Requires that there be an authenticated guild for the current request.
-        /// </summary>
-        void RequireAuthenticatedGuild();
-
-        /// <summary>
-        /// Requires that there be an authenticated user for the current request.
-        /// </summary>
-        void RequireAuthenticatedUser();
-
-        /// <summary>
         /// Requires that the given set of claims be present, for the current request.
         /// </summary>
-        /// <param name="claims">A set of claims to be checked against <see cref="CurrentClaims"/>.</param>
+        /// <param name="requiredClaims">A set of claims to be checked against <see cref="CurrentClaims"/>.</param>
+        ServiceResult CheckClaims(params AuthorizationClaim[] requiredClaims);
+
         void RequireClaims(params AuthorizationClaim[] claims);
     }
 
@@ -248,7 +243,6 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task ModifyClaimMappingAsync(ulong roleId, AuthorizationClaim claim, ClaimMappingType? newType)
         {
-            RequireAuthenticatedUser();
             RequireClaims(AuthorizationClaim.AuthorizationConfigure);
 
             var foundClaims = await ClaimMappingRepository.SearchBriefsAsync(new ClaimMappingSearchCriteria
@@ -286,7 +280,6 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task AddClaimMappingAsync(IRole role, ClaimMappingType type, AuthorizationClaim claim)
         {
-            RequireAuthenticatedUser();
             RequireClaims(AuthorizationClaim.AuthorizationConfigure);
 
             using (var transaction = await ClaimMappingRepository.BeginCreateTransactionAsync())
@@ -319,7 +312,6 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task AddClaimMappingAsync(IGuildUser user, ClaimMappingType type, AuthorizationClaim claim)
         {
-            RequireAuthenticatedUser();
             RequireClaims(AuthorizationClaim.AuthorizationConfigure);
 
             using (var transaction = await ClaimMappingRepository.BeginCreateTransactionAsync())
@@ -352,7 +344,6 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task RemoveClaimMappingAsync(IRole role, ClaimMappingType type, AuthorizationClaim claim)
         {
-            RequireAuthenticatedUser();
             RequireClaims(AuthorizationClaim.AuthorizationConfigure);
 
             using (var transaction = await ClaimMappingRepository.BeginDeleteTransactionAsync())
@@ -378,7 +369,6 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task RemoveClaimMappingAsync(IGuildUser user, ClaimMappingType type, AuthorizationClaim claim)
         {
-            RequireAuthenticatedUser();
             RequireClaims(AuthorizationClaim.AuthorizationConfigure);
 
             using (var transaction = await ClaimMappingRepository.BeginDeleteTransactionAsync())
@@ -407,8 +397,10 @@ namespace Modix.Services.Core
             if (guildUser == null)
                 throw new ArgumentNullException(nameof(guildUser));
 
+            /*
             if (guildUser.Id == DiscordClient.CurrentUser.Id || guildUser.GuildPermissions.Administrator)
                 return Enum.GetValues(typeof(AuthorizationClaim)).Cast<AuthorizationClaim>().ToArray();
+                */
 
             if (guildUser.Id == CurrentUserId)
                 return CurrentClaims;
@@ -459,37 +451,30 @@ namespace Modix.Services.Core
             return Task.CompletedTask;
         }
 
-        /// <inheritdoc />
-        public void RequireAuthenticatedGuild()
-        {
-            if (CurrentGuildId == null)
-                // TODO: Booooo for exception-based flow control
-                throw new InvalidOperationException("The current operation requires an authenticated guild.");
-        }
-
-        /// <inheritdoc />
-        public void RequireAuthenticatedUser()
-        {
-            if (CurrentUserId == null)
-                // TODO: Booooo for exception-based flow control
-                throw new InvalidOperationException("The current operation requires an authenticated user.");
-        }
-
-        /// <inheritdoc />
+        //TODO: Refactor out once everything has switched over to ServiceResults
         public void RequireClaims(params AuthorizationClaim[] claims)
         {
-            RequireAuthenticatedUser();
+            var result = CheckClaims(claims);
+            if (result.IsFailure)
+            {
+                throw result.AsException();
+            }
+        }
 
-            if (claims == null)
-                throw new ArgumentNullException(nameof(claims));
+        /// <inheritdoc />
+        public ServiceResult CheckClaims(params AuthorizationClaim[] requiredClaims)
+        {
+            if (requiredClaims == null)
+                throw new ArgumentNullException(nameof(requiredClaims));
 
-            var missingClaims = claims
+            if (CurrentUserId == null)
+                return ServiceResult.FromError("The current operation requires an authenticated user.");
+
+            var missingClaims = requiredClaims
                 .Except(CurrentClaims)
                 .ToArray();
 
-            if (missingClaims.Length != 0)
-                // TODO: Booooo for exception-based flow control
-                throw new InvalidOperationException($"The current operation could not be authorized. The following claims were missing: {string.Join(", ", missingClaims)}");
+            return new AuthResult(requiredClaims, CurrentClaims);
         }
 
         /// <summary>

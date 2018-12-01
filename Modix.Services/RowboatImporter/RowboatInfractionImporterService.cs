@@ -29,8 +29,6 @@ namespace Modix.Services.RowboatImporter
         /// <returns>The count of imported infractions</returns>
         public async Task<int> ImportInfractionsAsync(IEnumerable<RowboatInfraction> rowboatInfractions)
         {
-            AuthorizationService.RequireAuthenticatedGuild();
-            AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationConfigure, AuthorizationClaim.ModerationWarn, 
                 AuthorizationClaim.ModerationNote, AuthorizationClaim.ModerationBan);
 

@@ -10,14 +10,16 @@ using Modix.Data.Models.Moderation;
 using Modix.Services.Moderation;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
+using Modix.Common.ErrorHandling;
 
 namespace Modix.Modules
 {
     [Group("infraction"), Alias("infractions")]
     [Summary("Provides commands for working with infractions.")]
-    public class InfractionModule : ModuleBase
+    public class InfractionModule : ModixModule
     {
-        public InfractionModule(IModerationService moderationService, IUserService userService)
+        public InfractionModule(IModerationService moderationService, IUserService userService, IResultFormatManager resultVisualizerFactory)
+            : base(resultVisualizerFactory)
         {
             ModerationService = moderationService;
             UserService = userService;
@@ -42,7 +44,7 @@ namespace Modix.Modules
             var requestor = Context.User.Mention;
             var subject = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, subjectId);
 
-            var infractions = await ModerationService.SearchInfractionsAsync(
+            var infractionResult = await ModerationService.SearchInfractionsAsync(
                 new InfractionSearchCriteria
                 {
                     GuildId = Context.Guild.Id,
@@ -54,13 +56,13 @@ namespace Modix.Modules
                     new SortingCriteria { PropertyName = "CreateAction.Created", Direction = SortDirection.Descending }
                 });
 
-            if (infractions.Count == 0)
+            if (infractionResult.IsFailure || infractionResult.Result.Count == 0)
             {
                 await ReplyAsync(Format.Code("No infractions"));
                 return;
             }
 
-            var infractionQuery = infractions.Select(infraction => new
+            var infractionQuery = infractionResult.Result.Select(infraction => new
             {
                 Id = infraction.Id,
                 Created = infraction.CreateAction.Created.ToUniversalTime().ToString("yyyy MMM dd"),
@@ -73,9 +75,15 @@ namespace Modix.Modules
 
             var counts = await ModerationService.GetInfractionCountsForUserAsync(subjectId);
 
+            if (counts.IsFailure)
+            {
+                await HandleResultAsync(counts);
+                return;
+            }
+
             var builder = new EmbedBuilder()
                 .WithTitle($"Infractions for user: {subject.Username}#{subject.Discriminator}")
-                .WithDescription(FormatUtilities.FormatInfractionCounts(counts))
+                .WithDescription(FormatUtilities.FormatInfractionCounts(counts.Result))
                 .WithUrl($"https://mod.gg/infractions/?subject={subject.UserId}")
                 .WithColor(new Color(0xA3BF0B))
                 .WithTimestamp(DateTimeOffset.UtcNow);

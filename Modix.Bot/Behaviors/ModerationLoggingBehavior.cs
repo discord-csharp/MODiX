@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -38,7 +38,12 @@ namespace Modix.Behaviors
 
             try
             {
-                var moderationAction = await ModerationService.GetModerationActionSummaryAsync(moderationActionId);
+                var moderationActionResult = await ModerationService.GetModerationActionSummaryAsync(moderationActionId);
+
+                if (moderationActionResult.IsFailure)
+                    return;
+
+                var moderationAction = moderationActionResult.Result;
 
                 if (!_renderTemplates.TryGetValue((moderationAction.Type, moderationAction.Infraction?.Type), out var renderTemplate))
                     return;

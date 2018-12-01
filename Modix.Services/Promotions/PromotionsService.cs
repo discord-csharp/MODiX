@@ -164,7 +164,6 @@ namespace Modix.Services.Promotions
         /// <inheritdoc />
         public async Task AddCommentAsync(long campaignId, PromotionSentiment sentiment, string content)
         {
-            AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsComment);
 
             if (content == null || content.Length <= 3)
@@ -207,7 +206,6 @@ namespace Modix.Services.Promotions
         /// <inheritdoc />
         public async Task AcceptCampaignAsync(long campaignId)
         {
-            AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsCloseCampaign);
 
             using (var transaction = await PromotionCampaignRepository.BeginCloseTransactionAsync())
@@ -262,7 +260,6 @@ namespace Modix.Services.Promotions
         /// <inheritdoc />
         public async Task RejectCampaignAsync(long campaignId)
         {
-            AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsCloseCampaign);
 
             if (!await PromotionCampaignRepository.TryCloseAsync(campaignId, AuthorizationService.CurrentUserId.Value, PromotionCampaignOutcome.Rejected))
@@ -424,8 +421,6 @@ namespace Modix.Services.Promotions
 
         private void ValidateCreateCampaignAuthorization()
         {
-            AuthorizationService.RequireAuthenticatedGuild();
-            AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsCreateCampaign);
         }
     }

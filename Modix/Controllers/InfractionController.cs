@@ -33,7 +33,7 @@ namespace Modix.Controllers
                 GuildId = UserGuild.Id
             });
 
-            return Ok(result);
+            return ActionResultFor(result);
         }
 
         [HttpGet("{id}")]
@@ -47,7 +47,7 @@ namespace Modix.Controllers
                 GuildId = UserGuild.Id
             });
 
-            return Ok(result);
+            return ActionResultFor(result);
         }
 
         [HttpPut("import")]

@@ -14,4 +14,7 @@
     <PackageReference Include="Nito.AsyncEx.Coordination" Version="1.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.1.2" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Modix.Common\Modix.Common.csproj" />
+  </ItemGroup>
 </Project>

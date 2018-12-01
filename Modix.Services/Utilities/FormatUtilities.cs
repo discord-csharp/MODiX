@@ -109,5 +109,11 @@ namespace Modix.Services.Utilities
 
             return $"This user has {formatted}";
         }
+
+        public static string PluralizeIf(this string input, bool isPlural)
+            => isPlural ? input.Pluralize() : input;
+
+        public static string PluralizeWith(this string input, int count)
+            => input.PluralizeIf(count != 1);
     }
 }
