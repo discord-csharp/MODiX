@@ -11,7 +11,7 @@ namespace Modix.Services.Utilities
         private static readonly string[] _propertyFilter = new[]
         {
             "Message", "StackTraceString", "InnerException",
-            "Source", "ClassName"
+            "Source", "ClassName", "StackTrace"
         };
 
         protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
