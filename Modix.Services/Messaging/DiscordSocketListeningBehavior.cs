@@ -26,6 +26,7 @@ namespace Modix.Services.Messaging
         public Task StartAsync()
         {
             DiscordSocketClient.MessageReceived += OnMessageReceivedAsync;
+            DiscordSocketClient.MessageUpdated += OnMessageUpdatedAsync;
 
             return Task.CompletedTask;
         }
@@ -34,6 +35,7 @@ namespace Modix.Services.Messaging
         public Task StopAsync()
         {
             DiscordSocketClient.MessageReceived -= OnMessageReceivedAsync;
+            DiscordSocketClient.MessageUpdated -= OnMessageUpdatedAsync;
 
             return Task.CompletedTask;
         }
@@ -51,6 +53,13 @@ namespace Modix.Services.Messaging
         private Task OnMessageReceivedAsync(ISocketMessage message)
         {
             MessageDispatcher.Dispatch(new MessageReceivedNotification(message));
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnMessageUpdatedAsync(ICacheable<IMessage, ulong> oldMessage, ISocketMessage newMessage, IISocketMessageChannel channel)
+        {
+            MessageDispatcher.Dispatch(new MessageUpdatedNotification(oldMessage, newMessage, channel));
 
             return Task.CompletedTask;
         }

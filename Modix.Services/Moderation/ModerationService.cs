@@ -92,8 +92,9 @@ namespace Modix.Services.Moderation
         /// </summary>
         /// <param name="message">The message to be deleted.</param>
         /// <param name="reason">A description of the reason the message was deleted.</param>
+        /// <param name="deletedById">The <see cref="GuildUserEntity.UserId"/> value of the user that is deleting the message.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task DeleteMessageAsync(IMessage message, string reason);
+        Task DeleteMessageAsync(IMessage message, string reason, ulong deletedById);
 
         /// <summary>
         /// Mass-deletes a specified number of messages.
@@ -549,11 +550,8 @@ namespace Modix.Services.Moderation
         }
 
         /// <inheritdoc />
-        public async Task DeleteMessageAsync(IMessage message, string reason)
+        public async Task DeleteMessageAsync(IMessage message, string reason, ulong deletedById)
         {
-            AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationDeleteMessage);
-
             if (!(message.Channel is IGuildChannel guildChannel))
                 throw new InvalidOperationException($"Cannot delete message {message.Id} because it is not a guild message");
 
@@ -570,7 +568,7 @@ namespace Modix.Services.Moderation
                     AuthorId = message.Author.Id,
                     Content = message.Content,
                     Reason = reason,
-                    CreatedById = AuthorizationService.CurrentUserId.Value
+                    CreatedById = deletedById
                 });
 
                 await message.DeleteAsync();
@@ -672,8 +670,6 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         public Task<ModerationActionSummary> GetModerationActionSummaryAsync(long moderationActionId)
         {
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
-
             return ModerationActionRepository.ReadSummaryAsync(moderationActionId);
         }
 
