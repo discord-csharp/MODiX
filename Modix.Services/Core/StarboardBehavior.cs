@@ -5,9 +5,9 @@ using Discord.WebSocket;
 
 namespace Modix.Services.Core
 {
-    public class StarboardService : BehaviorBase
+    public class StarboardBehavior : BehaviorBase
     {
-        public StarboardService(DiscordSocketClient discordClient, IServiceProvider serviceProvider) : base(serviceProvider)
+        public StarboardBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider) : base(serviceProvider)
         {
             DiscordClient = discordClient;
         }
