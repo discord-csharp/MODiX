@@ -5,6 +5,8 @@
 
                 <div class="level is-mobile">
                     <div class="level-left">
+                        <button class="button" v-on:click="showCreateModal = true" >Create</button>
+                        &nbsp;
                         <button class="button" @click="refresh()" :class="{'is-loading': isLoading}">Refresh</button>
                         &nbsp;
                         <button class="button" disabled title="Coming Soon™" @click="showModal = true">Import</button>
@@ -22,7 +24,8 @@
                 </div>
 
                 <VueGoodTable :columns="mappedColumns" :rows="mappedRows" :sortOptions="sortOptions"
-                    :paginationOptions="paginationOptions" styleClass="vgt-table condensed bordered striped">
+                              :paginationOptions="paginationOptions" styleClass="vgt-table condensed bordered striped"
+                              v-on:infraction-rescind="onInfractionRescind" v-on:infraction-delete="onInfractionDelete">
 
                     <template slot="table-row" slot-scope="props">
                         <span v-if="props.column.field == 'type'">
@@ -31,6 +34,14 @@
                             </span>
                         </span>
                         <span v-else-if="props.column.field == 'reason'" v-html="props.formattedRow[props.column.field]">
+                        </span>
+                        <span v-else-if="props.column.field == 'actions'">
+                            <button class="button is-primary is-small" v-on:click="$emit('infraction-rescind', props.row.id)">
+                                Rescind
+                            </button>
+                            <button class="button is-primary is-small" v-on:click="$emit('infraction-delete', props.row.id)">
+                                Delete
+                            </button>
                         </span>
                         <span v-else>
                             {{props.formattedRow[props.column.field]}}
@@ -89,6 +100,82 @@
         </div>
     </div>
 </template>
+
+<style lang="scss">
+
+@import "../styles/variables";
+@import "~vue-good-table/dist/vue-good-table.css";
+
+.vgt-table.bordered
+{
+    font-size: 14px;
+
+    select
+    {
+        font-size: 12px;
+    }
+
+    th
+    {
+        text-align: center;
+        padding: 0.33em;
+    }
+}
+
+.vgt-responsive
+{
+    @include fullwidth-desktop();
+}
+
+.vgt-input, .vgt-select
+{
+    padding: 0px 4px;
+    height: 28px;
+}
+
+@include mobile()
+{
+    .vgt-table.bordered
+    {
+        font-size: initial;
+
+        select
+        {
+            font-size: initial;
+        }
+    }
+}
+
+.channel
+{
+    font-weight: bold;
+}
+
+.pre
+{
+    white-space: pre-line;
+}
+
+.button.is-primary.is-small
+{
+    margin: 2px 4px;
+}
+
+</style>
+
+<style scoped lang="scss">
+
+@import "../styles/variables";
+@import "~bulma/sass/components/modal";
+@import "~bulma/sass/elements/notification";
+@import "~bulma/sass/elements/form";
+
+.typeCell
+{
+    display: block;
+    white-space: nowrap;
+}
+</style>
 
 <script lang="ts">
 import * as _ from 'lodash';
@@ -152,6 +239,9 @@ export default class Infractions extends Vue
     showState: boolean = false;
     showDeleted: boolean = false;
 
+    canPerformActions: boolean = false;
+
+    showCreateModal: boolean = false;
     showModal: boolean = false;
     message: string | null = null;
     loadError: string | null = null;
@@ -310,6 +400,11 @@ export default class Infractions extends Vue
                 label: 'State',
                 field: 'state',
                 hidden: !this.showState
+            },
+            {
+                label: 'Actions',
+                field: 'actions'
+                //hidden: !this.canPerformActions,
             }
         ];
     }
@@ -421,6 +516,16 @@ export default class Infractions extends Vue
     deletedChanged()
     {
         setConfig(conf => conf.showDeletedInfractions = this.showDeleted);
+    }
+
+    async onInfractionRescind(id: number)
+    {
+
+    }
+
+    async onInfractionDelete(id: number)
+    {
+
     }
 }
 </script>
