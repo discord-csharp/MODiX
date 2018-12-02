@@ -21,7 +21,6 @@ namespace Modix.Services.Adapters
 
         public Task StartAsync()
         {
-            _discordClient.MessageReceived += OnMessageReceived;
             _discordClient.MessageUpdated += OnMessageUpdated;
             _discordClient.MessageDeleted += OnMessageDeleted;
             _discordClient.ReactionAdded += OnReactionAdded;
@@ -43,9 +42,6 @@ namespace Modix.Services.Adapters
             ISocketMessageChannel channel)
             => _notificationDispatchService.PublishScopedAsync(new ChatMessageUpdated {  OldMessage = oldMessage, NewMessage = newMessage, Channel = channel });
 
-        private Task OnMessageReceived(SocketMessage message)
-            => _notificationDispatchService.PublishScopedAsync(new ChatMessageReceived { Message = message });
-
         private Task OnMessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
             => _notificationDispatchService.PublishScopedAsync(new ChatMessageDeleted { Message = message, Channel = channel });
 
@@ -57,7 +53,6 @@ namespace Modix.Services.Adapters
 
         public Task StopAsync()
         {
-            _discordClient.MessageReceived -= OnMessageReceived;
             _discordClient.MessageUpdated -= OnMessageUpdated;
             _discordClient.MessageDeleted -= OnMessageDeleted;
             _discordClient.ReactionAdded -= OnReactionAdded;
