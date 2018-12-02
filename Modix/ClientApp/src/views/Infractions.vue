@@ -5,7 +5,7 @@
 
                 <div class="level is-mobile">
                     <div class="level-left">
-                        <button class="button" v-on:click="showCreateModal = true" >Create</button>
+                        <button class="button" v-on:click="showCreateModal = true">Create</button>
                         &nbsp;
                         <button class="button" @click="refresh()" :class="{'is-loading': isLoading}">Refresh</button>
                         &nbsp;
@@ -30,7 +30,7 @@
                     <template slot="table-row" slot-scope="props">
                         <span v-if="props.column.field == 'type'">
                             <span :title="props.formattedRow[props.column.field]" class="typeCell"
-                                v-html="emojiFor(props.formattedRow[props.column.field]) + ' ' + props.formattedRow[props.column.field]">
+                                  v-html="emojiFor(props.formattedRow[props.column.field]) + ' ' + props.formattedRow[props.column.field]">
                             </span>
                         </span>
                         <span v-else-if="props.column.field == 'reason'" v-html="props.formattedRow[props.column.field]">
@@ -72,7 +72,8 @@
                         </label>
 
                         <template v-if="importGuildId">
-                            Download the JSON <a :href="rowboatDownloadUrl" target="_blank">here</a>.
+                            Download the JSON
+                            <a :href="rowboatDownloadUrl" target="_blank">here</a>.
                         </template>
                     </div>
 
@@ -98,6 +99,86 @@
                 </footer>
             </div>
         </div>
+
+        <div class="modal" :class="{'is-active': showCreateModal}">
+            <div class="modal-background" v-on:click="showCreateModal = false"></div>
+            <div class="modal-card">
+                <header class="modal-card-head">
+                    <p class="modal-card-title">
+                        Create Infraction
+                    </p>
+                    <button class="delete" aria-label="close" v-on:click="showCreateModal = false"></button>
+                </header>
+                <section class="modal-card-body">
+
+                    <div class="field">
+
+                        <label class="label">Subject</label>
+
+                        <div class="control">
+                            <Autocomplete v-on:select="newInfractionUser = $event"
+                                          v-bind:serviceCall="userServiceCall" placeholder="We have a fancy autocomplete!">
+                                <template slot-scope="{entry}">
+                                    <TinyUserView :user="entry" />
+                                </template>
+                            </Autocomplete>
+                        </div>
+                    </div>
+
+                    <div class="field">
+
+                        <label class="label">Infraction</label>
+
+                        <div class="field has-addons">
+                            <p class="control">
+                                <span class="select">
+                                    <select v-model="newInfractionType">
+                                        <option v-for="infractionType in infractionTypes" v-bind:value="infractionType"
+                                                v-html="emojiFor(infractionType) + ' ' + infractionType" />
+                                    </select>
+                                </span>
+                            </p>
+                            <p class="control is-expanded">
+                                <input class="input" type="text" v-model.trim="newInfractionReason" placeholder="Give a reason for the infraction..." />
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="field" v-if="newInfractionType == muteType">
+
+                        <label class="label">Duration</label>
+
+                        <div class="field has-addons">
+                            <p class="control">
+                                <input class="input has-text-right" type="text" v-model.number="newInfractionMonths" placeholder="Months" />
+                            </p>
+                            <p class="control">
+                                <input class="input has-text-right" type="text" v-model.number="newInfractionDays" placeholder="Days" />
+                            </p>
+                            <p class="control">
+                                <input class="input has-text-right" type="text" v-model.number="newInfractionHours" placeholder="Hours" />
+                            </p>
+                            <p class="control">
+                                <input class="input has-text-right" type="text" v-model.number="newInfractionMinutes" placeholder="Minutes" />
+                            </p>
+                            <p class="control">
+                                <input class="input has-text-right" type="text" v-model.number="newInfractionSeconds" placeholder="Seconds" />
+                            </p>
+                        </div>
+                    </div>
+
+                </section>
+                <footer class="modal-card-foot level">
+                    <div class="level-left">
+                        <button class="button is-success" v-bind:disabled="!canCreateInfraction" v-on:click="uploadFile()">Create</button>
+                    </div>
+                    <div class="level-right">
+                        <button class="button is-danger" v-on:click="showCreateModal = false">Cancel</button>
+                    </div>
+                </footer>
+            </div>
+        </div>
+
     </div>
 </template>
 
@@ -182,12 +263,14 @@ import * as _ from 'lodash';
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import HeroHeader from '@/components/HeroHeader.vue';
 import LoadingSpinner from '@/components/LoadingSpinner.vue';
+import TinyUserView from '@/components/TinyUserView.vue';
+import Autocomplete from '@/components/Autocomplete.vue';
 import store from "@/app/Store";
 import { Route } from 'vue-router';
 import { VueGoodTable } from 'vue-good-table';
 import { InfractionType } from '@/models/infractions/InfractionType'
 import GuildUserIdentity from '@/models/core/GuildUserIdentity'
-
+import User from '@/models/User';
 import GeneralService from '@/services/GeneralService';
 import InfractionSummary from '@/models/infractions/InfractionSummary';
 import {config, setConfig} from '@/models/PersistentConfig';
@@ -214,7 +297,9 @@ const guildUserFormat = (subject: GuildUserIdentity) => subject.displayName;
     components:
     {
         HeroHeader,
-        VueGoodTable
+        VueGoodTable,
+        TinyUserView,
+        Autocomplete
     }
 })
 export default class Infractions extends Vue
@@ -248,7 +333,23 @@ export default class Infractions extends Vue
     importGuildId: number | null = null;
     isLoading: boolean = false;
 
-    channelCache: {[channel: string]: DesignatedChannelMapping} | null = null;
+    muteType: InfractionType = InfractionType.Mute;
+
+    newInfractionUser: User | null = new User();
+    newInfractionType: InfractionType | null = null;
+    newInfractionReason: string = "";
+    newInfractionMonths: number | null = null;
+    newInfractionDays: number | null = null;
+    newInfractionHours: number | null = null;
+    newInfractionMinutes: number | null = null;
+    newInfractionSeconds: number | null = null;
+
+    channelCache: { [channel: string]: DesignatedChannelMapping } | null = null;
+
+    get canCreateInfraction(): boolean
+    {
+        return this.newInfractionUser != null && this.newInfractionType != null && this.newInfractionReason != "";
+    }
 
     get fileInput(): HTMLInputElement
     {
@@ -518,12 +619,22 @@ export default class Infractions extends Vue
         setConfig(conf => conf.showDeletedInfractions = this.showDeleted);
     }
 
+    get userServiceCall()
+    {
+        return GeneralService.getUserAutocomplete;
+    }
+
     async onInfractionRescind(id: number)
     {
 
     }
 
     async onInfractionDelete(id: number)
+    {
+
+    }
+
+    async onInfractionCreate()
     {
 
     }
