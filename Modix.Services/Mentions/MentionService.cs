@@ -33,10 +33,20 @@ namespace Modix.Services.Mentions
         /// <param name="role">The role that the user is trying to mention.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="role"/>.</exception>
         /// <returns>
-        /// A <see cref="task"/> that will complete when the operation completes,
+        /// A <see cref="Task"/> that will complete when the operation completes,
         /// with a flag indicating whether the user can mention <paramref name="role"/>.
         /// </returns>
         Task<bool> CanUserMentionAsync(IRole role);
+
+        /// <summary>
+        /// Ensures that the role can be mentioned.
+        /// </summary>
+        /// <param name="role">The role to be mentioned.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation completes,
+        /// with a delegate that can be invoked to restore the role to its previous configuration.
+        /// </returns>
+        Task<Func<Task>> EnsureMentionable(IRole role);
 
         /// <summary>
         /// Retireves mention mapping data for the supplied role ID.
@@ -139,6 +149,18 @@ namespace Modix.Services.Mentions
                 .FirstOrDefault(x => user.RoleIds.Contains(x.Id));
 
             return userRank?.Position >= mentionMapping.MinimumRank.Position;
+        }
+
+        public async Task<Func<Task>> EnsureMentionable(IRole role)
+        {
+            if (!role.IsMentionable)
+            {
+                await role.ModifyAsync(x => x.Mentionable = true);
+
+                return async () => await role.ModifyAsync(x => x.Mentionable = false);
+            }
+
+            return () => Task.CompletedTask;
         }
 
         /// <inheritdoc />

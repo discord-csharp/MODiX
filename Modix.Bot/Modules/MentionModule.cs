@@ -25,7 +25,11 @@ namespace Modix.Bot.Modules
         {
             if (await MentionService.CanUserMentionAsync(role))
             {
+                var mentionContinuation = await MentionService.EnsureMentionable(role);
+
                 await Context.Channel.SendMessageAsync(MentionUtils.MentionRole(role.Id));
+
+                await mentionContinuation();
             }
             else
             {
