@@ -67,11 +67,13 @@ namespace Modix.Services.Mentions
         public MentionService(
             IDiscordClient discordClient,
             IAuthorizationService authorizationService,
+            IUserService userService,
             IMentionMappingRepository mentionMappingRepository,
             IDesignatedRoleMappingRepository designatedRoleMappingRepository)
         {
             DiscordClient = discordClient;
             AuthorizationService = authorizationService;
+            UserService = userService;
             MentionMappingRepository = mentionMappingRepository;
             DesignatedRoleMappingRepository = designatedRoleMappingRepository;
         }
@@ -81,6 +83,13 @@ namespace Modix.Services.Mentions
         {
             if (guild is null)
                 return;
+
+            var mappings = await MentionMappingRepository.ReadByGuildAsync(guild.Id);
+
+            foreach (var deletionCandidate in mappings.Where(x => !guild.Roles.Select(r => r.Id).Contains(x.RoleId)))
+            {
+                await MentionMappingRepository.TryDeleteAsync(deletionCandidate.RoleId);
+            }
 
             foreach (var role in guild.Roles)
             {
@@ -100,7 +109,15 @@ namespace Modix.Services.Mentions
         /// <inheritdoc />
         public async Task<bool> CanUserMentionAsync(IRole role)
         {
+            AuthorizationService.RequireAuthenticatedGuild();
+            AuthorizationService.RequireAuthenticatedUser();
+
             if (role.IsMentionable)
+                return true;
+
+            var user = await UserService.GetGuildUserAsync(AuthorizationService.CurrentGuildId.Value, AuthorizationService.CurrentUserId.Value);
+
+            if (user.GuildPermissions.Administrator || user.GuildPermissions.MentionEveryone)
                 return true;
 
             var mentionMapping = await MentionMappingRepository.ReadAsync(role.Id);
@@ -114,15 +131,14 @@ namespace Modix.Services.Mentions
             var userRank = (await DesignatedRoleMappingRepository.SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria
                 {
                     GuildId = AuthorizationService.CurrentGuildId.Value,
-                    RoleId = role.Id,
                     Type = DesignatedRoleType.Rank,
                     IsDeleted = false,
                 }))
                 .Select(x => x.Role)
                 .OrderByDescending(x => x.Position)
-                .FirstOrDefault();
+                .FirstOrDefault(x => user.RoleIds.Contains(x.Id));
 
-            return userRank.Position >= mentionMapping.MinimumRank.Position;
+            return userRank?.Position >= mentionMapping.MinimumRank.Position;
         }
 
         /// <inheritdoc />
@@ -132,6 +148,7 @@ namespace Modix.Services.Mentions
         /// <inheritdoc />
         public async Task<bool> TryUpdateMentionMappingAsync(ulong roleId, Action<MentionMappingMutationData> updateAction)
         {
+            AuthorizationService.RequireAuthenticatedGuild();
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.MentionConfigure);
 
@@ -176,6 +193,11 @@ namespace Modix.Services.Mentions
         /// An <see cref="IAuthorizationService"/> to be used to interact with frontend authentication system, and perform authorization.
         /// </summary>
         internal protected IAuthorizationService AuthorizationService { get; }
+
+        /// <summary>
+        /// An <see cref="IUserService"/> for interacting with discord users within the application.
+        /// </summary>
+        internal protected IUserService UserService { get; }
 
         /// <summary>
         /// An <see cref="IMentionMappingRepository"/> for storing and retrieving mention mapping data.

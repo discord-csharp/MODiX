@@ -41,6 +41,7 @@ namespace Modix.Controllers
             {
                 GuildId = ModixAuth.CurrentGuildId.Value,
                 Type = DesignatedRoleType.Rank,
+                IsDeleted = false,
             });
 
             var mapped = ranks.Select(d => new

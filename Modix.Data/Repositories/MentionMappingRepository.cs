@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -50,6 +52,26 @@ namespace Modix.Data.Repositories
         Task<ulong> CreateAsync(MentionMappingCreationData data);
 
         /// <summary>
+        /// Retrieves information about a mapping based on the role it is associated with.
+        /// </summary>
+        /// <param name="roleId">The <see cref="MentionMappingEntity.RoleId"/> value of the mapping to be retrieved.</param>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing the requested mapping, or null if no such mapping exists.
+        /// </returns>
+        Task<MentionMappingSummary> ReadAsync(ulong roleId);
+
+        /// <summary>
+        /// Retrieves information about a mapping based on the guild it is associated with.
+        /// </summary>
+        /// <param name="guildId">The <see cref="MentionMappingEntity.GuildId"/> value of the mapping to be retrieved.</param>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing the requested mapping, or null if no such mapping exists.
+        /// </returns>
+        Task<IReadOnlyCollection<MentionMappingSummary>> ReadByGuildAsync(ulong guildId);
+
+        /// <summary>
         /// Modifies an existing mapping within the repository.
         /// </summary>
         /// <param name="roleId">The <see cref="MentionMappingEntity.RoleId"/> value of the mapping to be modified.</param>
@@ -61,14 +83,14 @@ namespace Modix.Data.Repositories
         Task<bool> TryUpdateAsync(ulong roleId, Action<MentionMappingMutationData> updateAction);
 
         /// <summary>
-        /// Retrieves information about a claim mapping based on the role it is associated with.
+        /// Deletes an existing mapping within the repository.
         /// </summary>
-        /// <param name="roleId">The <see cref="MentionMappingEntity.RoleId"/> value of the mapping to be retrieved.</param>
+        /// <param name="roleId">The <see cref="MentionMappingEntity.RoleId"/> value of the mapping to be deleted.</param>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing the requested mapping, or null if no such mapping exists.
+        /// containing a flag indicating whether the deletion operation was successful.
         /// </returns>
-        Task<MentionMappingSummary> ReadAsync(ulong roleId);
+        Task<bool> TryDeleteAsync(ulong roleId);
     }
 
     public class MentionMappingRepository : RepositoryBase, IMentionMappingRepository
@@ -106,13 +128,23 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public Task<MentionMappingSummary> ReadAsync(ulong roleId)
-            => ModixContext.MentionMappings.AsNoTracking()
+        public async Task<MentionMappingSummary> ReadAsync(ulong roleId)
+            => await ModixContext.MentionMappings.AsNoTracking()
                 .AsExpandable()
                 .Include(x => x.Role)
                 .Include(x => x.MinimumRank)
                 .Select(MentionMappingSummary.FromEntityProjection)
                 .FirstOrDefaultAsync(x => x.Role.Id == roleId);
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<MentionMappingSummary>> ReadByGuildAsync(ulong guildId)
+            => await ModixContext.MentionMappings.AsNoTracking()
+                .AsExpandable()
+                .Include(x => x.Role)
+                .Include(x => x.MinimumRank)
+                .Where(x => x.GuildId == guildId)
+                .Select(MentionMappingSummary.FromEntityProjection)
+                .ToArrayAsync();
 
         /// <inheritdoc />
         public async Task<bool> TryUpdateAsync(ulong roleId, Action<MentionMappingMutationData> updateAction)
@@ -131,6 +163,22 @@ namespace Modix.Data.Repositories
             data.ApplyTo(entity);
 
             ModixContext.Update(entity);
+
+            await ModixContext.SaveChangesAsync();
+
+            return true;
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> TryDeleteAsync(ulong roleId)
+        {
+            var entity = await ModixContext.MentionMappings
+                .FirstOrDefaultAsync(x => x.RoleId == roleId);
+
+            if (entity is null)
+                return false;
+
+            ModixContext.Remove(entity);
 
             await ModixContext.SaveChangesAsync();
 
