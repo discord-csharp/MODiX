@@ -149,6 +149,18 @@ namespace Modix.Services.Moderation
         /// containing the requested timestamp value.
         /// </returns>
         Task<DateTimeOffset?> GetNextInfractionExpiration();
+
+        /// <summary>
+        /// Determines whether the supplied moderator outranks the supplied subject.
+        /// </summary>
+        /// <param name="guildId">The guild in which the moderation would be performed.</param>
+        /// <param name="moderatorId">The moderator that would perform the moderation.</param>
+        /// <param name="subjectId">The subject of the moderation.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation is complete,
+        /// containing a flag indicating whether the moderator outranks the subject.
+        /// </returns>
+        Task<bool> DoesModeratorOutrankUserAsync(ulong guildId, ulong moderatorId, ulong subjectId);
     }
 
     /// <inheritdoc />
@@ -510,6 +522,30 @@ namespace Modix.Services.Moderation
                     new SortingCriteria() { PropertyName = nameof(InfractionSummary.Expires), Direction = SortDirection.Ascending}
                 });
 
+        public async Task<bool> DoesModeratorOutrankUserAsync(ulong guildId, ulong moderatorId, ulong subjectId)
+        {
+            var moderator = await UserService.GetGuildUserAsync(guildId, AuthorizationService.CurrentUserId.Value);
+
+            if (moderator.GuildPermissions.Administrator)
+                return true;
+
+            var rankRoles = await GetRankRolesAsync();
+
+            var subject = await UserService.GetGuildUserAsync(guildId, subjectId);
+
+            var subjectRankRoles = rankRoles.Where(r => subject.RoleIds.Contains(r.Id));
+            var moderatorRankRoles = rankRoles.Where(r => moderator.RoleIds.Contains(r.Id));
+
+            var greatestSubjectRankPosition = subjectRankRoles.Any()
+                ? subjectRankRoles.Select(r => r.Position).Max()
+                : int.MinValue;
+            var greatestModeratorRankPosition = moderatorRankRoles.Any()
+                ? moderatorRankRoles.Select(r => r.Position).Max()
+                : int.MinValue;
+
+            return greatestSubjectRankPosition < greatestModeratorRankPosition;
+        }
+
         /// <summary>
         /// An <see cref="IDiscordClient"/> for interacting with the Discord API.
         /// </summary>
@@ -658,30 +694,8 @@ namespace Modix.Services.Moderation
 
         private async Task RequireSubjectRankLowerThanModeratorRankAsync(ulong guildId, ulong subjectId)
         {
-            var moderator = await UserService.GetGuildUserAsync(guildId, AuthorizationService.CurrentUserId.Value);
-
-            if (moderator.GuildPermissions.Administrator)
-                return;
-
-            var rankRoles = await GetRankRolesAsync();
-
-            var subject = await UserService.GetGuildUserAsync(guildId, subjectId);
-
-            var subjectRankRoles = rankRoles.Where(r => subject.RoleIds.Contains(r.Id));
-            var moderatorRankRoles = rankRoles.Where(r => moderator.RoleIds.Contains(r.Id));
-
-            var greatestSubjectRankPosition = subjectRankRoles.Any()
-                ? subjectRankRoles.Select(r => r.Position).Max()
-                : default(int?);
-            var greatestModeratorRankPosition = moderatorRankRoles.Any()
-                ? moderatorRankRoles.Select(r => r.Position).Max()
-                : default(int?);
-
-            if (greatestModeratorRankPosition is null
-                || greatestSubjectRankPosition >= greatestModeratorRankPosition)
-            {
+            if (!await DoesModeratorOutrankUserAsync(guildId, AuthorizationService.CurrentUserId.Value, subjectId))
                 throw new InvalidOperationException("Cannot moderate users that have a rank greater than or equal to your own.");
-            }
         }
             
         private static readonly OverwritePermissions _mutePermissions

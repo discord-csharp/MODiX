@@ -5,7 +5,7 @@
 
                 <div class="level is-mobile">
                     <div class="level-left">
-                        <button class="button" v-on:click="showCreateModal = true">Create</button>
+                        <button class="button" v-if="canCreate" v-on:click="showCreateModal = true">Create</button>
                         &nbsp;
                         <button class="button" @click="refresh()" :class="{'is-loading': isLoading}">Refresh</button>
                         &nbsp;
@@ -24,8 +24,7 @@
                 </div>
 
                 <VueGoodTable :columns="mappedColumns" :rows="mappedRows" :sortOptions="sortOptions"
-                              :paginationOptions="paginationOptions" styleClass="vgt-table condensed bordered striped"
-                              v-on:infraction-rescind="onInfractionRescind" v-on:infraction-delete="onInfractionDelete">
+                              :paginationOptions="paginationOptions" styleClass="vgt-table condensed bordered striped">
 
                     <template slot="table-row" slot-scope="props">
                         <span v-if="props.column.field == 'type'">
@@ -36,12 +35,14 @@
                         <span v-else-if="props.column.field == 'reason'" v-html="props.formattedRow[props.column.field]">
                         </span>
                         <span v-else-if="props.column.field == 'actions'">
-                            <button class="button is-primary is-small" v-on:click="$emit('infraction-rescind', props.row.id)">
-                                Rescind
-                            </button>
-                            <button class="button is-primary is-small" v-on:click="$emit('infraction-delete', props.row.id)">
-                                Delete
-                            </button>
+                            <span class="level">
+                                <button class="button is-primary is-small level-left" v-show="props.row.canDelete" v-on:click="onInfractionDelete(props.row.id)">
+                                    Delete
+                                </button>
+                                <button class="button is-primary is-small level-right" v-if="props.row.canRescind" v-on:click="onInfractionRescind(props.row.id)">
+                                    Rescind
+                                </button>
+                            </span>
                         </span>
                         <span v-else>
                             {{props.formattedRow[props.column.field]}}
@@ -101,13 +102,13 @@
         </div>
 
         <div class="modal" :class="{'is-active': showCreateModal}">
-            <div class="modal-background" v-on:click="showCreateModal = false"></div>
+            <div class="modal-background" v-on:click="closeCreateModal"></div>
             <div class="modal-card">
                 <header class="modal-card-head">
                     <p class="modal-card-title">
                         Create Infraction
                     </p>
-                    <button class="delete" aria-label="close" v-on:click="showCreateModal = false"></button>
+                    <button class="delete" aria-label="close" v-on:click="closeCreateModal"></button>
                 </header>
                 <section class="modal-card-body">
 
@@ -133,8 +134,10 @@
                             <p class="control">
                                 <span class="select">
                                     <select v-model="newInfractionType">
-                                        <option v-for="infractionType in infractionTypes" v-bind:value="infractionType"
-                                                v-html="emojiFor(infractionType) + ' ' + infractionType" />
+                                        <option v-if="canNote" v-html="emojiFor(noteType) + ' ' + noteType" v-bind:value="noteType" />
+                                        <option v-if="canWarn" v-html="emojiFor(warnType) + ' ' + warnType" v-bind:value="warnType" />
+                                        <option v-if="canMute" v-html="emojiFor(muteType) + ' ' + muteType" v-bind:value="muteType" />
+                                        <option v-if="canBan" v-html="emojiFor(banType) + ' ' + banType" v-bind:value="banType" />
                                     </select>
                                 </span>
                             </p>
@@ -170,14 +173,17 @@
                 </section>
                 <footer class="modal-card-foot level">
                     <div class="level-left">
-                        <button class="button is-success" v-bind:disabled="!canCreateInfraction" v-on:click="uploadFile()">Create</button>
+                        <button class="button is-success" v-bind:disabled="!canCreateNewInfraction" v-on:click="onInfractionCreate">Create</button>
                     </div>
                     <div class="level-right">
-                        <button class="button is-danger" v-on:click="showCreateModal = false">Cancel</button>
+                        <button class="button is-danger" v-on:click="closeCreateModal">Cancel</button>
                     </div>
                 </footer>
             </div>
         </div>
+
+        <ConfirmationModal v-bind:isShown="showRescindConfirmation" v-on:modal-confirmed="confirmRescind" v-on:modal-cancelled="cancelRescind" />
+        <ConfirmationModal v-bind:isShown="showDeleteConfirmation" v-on:modal-confirmed="confirmDelete" v-on:modal-cancelled="cancelDelete" />
 
     </div>
 </template>
@@ -262,11 +268,10 @@
 import * as _ from 'lodash';
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import HeroHeader from '@/components/HeroHeader.vue';
-import LoadingSpinner from '@/components/LoadingSpinner.vue';
 import TinyUserView from '@/components/TinyUserView.vue';
 import Autocomplete from '@/components/Autocomplete.vue';
+import ConfirmationModal from '@/components/ConfirmationModal.vue';
 import store from "@/app/Store";
-import { Route } from 'vue-router';
 import { VueGoodTable } from 'vue-good-table';
 import { InfractionType } from '@/models/infractions/InfractionType'
 import GuildUserIdentity from '@/models/core/GuildUserIdentity'
@@ -275,6 +280,7 @@ import GeneralService from '@/services/GeneralService';
 import InfractionSummary from '@/models/infractions/InfractionSummary';
 import {config, setConfig} from '@/models/PersistentConfig';
 import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
+import InfractionCreationData from '@/models/infractions/InfractionCreationData';
 
 const messageResolvingRegex = /<#(\d+)>/gm;
 
@@ -299,7 +305,8 @@ const guildUserFormat = (subject: GuildUserIdentity) => subject.displayName;
         HeroHeader,
         VueGoodTable,
         TinyUserView,
-        Autocomplete
+        Autocomplete,
+        ConfirmationModal
     }
 })
 export default class Infractions extends Vue
@@ -324,8 +331,6 @@ export default class Infractions extends Vue
     showState: boolean = false;
     showDeleted: boolean = false;
 
-    canPerformActions: boolean = false;
-
     showCreateModal: boolean = false;
     showModal: boolean = false;
     message: string | null = null;
@@ -333,9 +338,12 @@ export default class Infractions extends Vue
     importGuildId: number | null = null;
     isLoading: boolean = false;
 
+    noteType: InfractionType = InfractionType.Notice;
+    warnType: InfractionType = InfractionType.Warning;
     muteType: InfractionType = InfractionType.Mute;
+    banType: InfractionType = InfractionType.Ban;
 
-    newInfractionUser: User | null = new User();
+    newInfractionUser: User | null = null;
     newInfractionType: InfractionType | null = null;
     newInfractionReason: string = "";
     newInfractionMonths: number | null = null;
@@ -344,11 +352,71 @@ export default class Infractions extends Vue
     newInfractionMinutes: number | null = null;
     newInfractionSeconds: number | null = null;
 
+    showRescindConfirmation: boolean = false;
+    showDeleteConfirmation: boolean = false;
+    toRescind: number = 0;
+    toDelete: number = 0;
+
     channelCache: { [channel: string]: DesignatedChannelMapping } | null = null;
 
-    get canCreateInfraction(): boolean
+    get canNote(): boolean
+    {
+        return store.userHasClaims(["ModerationNote"]);
+    }
+
+    get canWarn(): boolean
+    {
+        return store.userHasClaims(["ModerationWarn"]);
+    }
+
+    get canMute(): boolean
+    {
+        return store.userHasClaims(["ModerationMute"]);
+    }
+
+    get canBan(): boolean
+    {
+        return store.userHasClaims(["ModerationBan"]);
+    }
+
+    get canCreate(): boolean
+    {
+        return this.canNote || this.canWarn || this.canMute || this.canBan;
+    }
+
+    get canCreateNewInfraction(): boolean
     {
         return this.newInfractionUser != null && this.newInfractionType != null && this.newInfractionReason != "";
+    }
+
+    async canRescind(type: InfractionType, state: string, subjectId: string): Promise<boolean>
+    {
+        return (type == this.muteType || type == this.banType)
+            && state != "Rescinded"
+            && state != "Deleted"
+            && this.hasRescindPermission
+            && await GeneralService.doesModeratorOutrankUser(subjectId);
+    }
+
+    get hasRescindPermission(): boolean
+    {
+        return store.userHasClaims(["ModerationRescind"]);
+    }
+
+    async canDelete(state: string, subjectId: string): Promise<boolean>
+    {
+        return state != "Deleted"
+            && await GeneralService.doesModeratorOutrankUser(subjectId);
+    }
+
+    get hasDeletePermission(): boolean
+    {
+        return store.userHasClaims(["ModerationDeleteInfraction"]);
+    }
+
+    get canPerformActions(): boolean
+    {
+        return this.hasRescindPermission || this.hasDeletePermission;
     }
 
     get fileInput(): HTMLInputElement
@@ -504,8 +572,9 @@ export default class Infractions extends Vue
             },
             {
                 label: 'Actions',
-                field: 'actions'
-                //hidden: !this.canPerformActions,
+                field: 'actions',
+                hidden: !this.canPerformActions,
+                width: '32px'
             }
         ];
     }
@@ -561,9 +630,13 @@ export default class Infractions extends Vue
             type: infraction.type,
             reason: infraction.reason,
 
-            state: infraction.rescindAction != null ? "Rescinded"
-                   : infraction.deleteAction != null ? "Deleted"
-                       : "Active"
+                state: infraction.rescindAction != null ? "Rescinded"
+                    : infraction.deleteAction != null ? "Deleted"
+                        : "Active",
+
+                canDelete: canDelete,
+                canRescind: canRescind
+            }
         }));
     }
 
@@ -577,7 +650,23 @@ export default class Infractions extends Vue
 
         this.channelCache = _.keyBy(this.$store.state.modix.channels, channel => channel.id);
 
+        this.clearNewInfractionData();
+
+        this.mappedRows = await this.getMappedRows();
+
         this.isLoading = false;
+    }
+
+    clearNewInfractionData()
+    {
+        this.newInfractionUser = null;
+        this.newInfractionType = null;
+        this.newInfractionReason = "";
+        this.newInfractionMonths = null;
+        this.newInfractionDays = null;
+        this.newInfractionHours = null;
+        this.newInfractionMinutes = null;
+        this.newInfractionSeconds = null;
     }
 
     applyFilters()
@@ -604,19 +693,23 @@ export default class Infractions extends Vue
         this.showState = config().showInfractionState;
         this.showDeleted = config().showDeletedInfractions;
 
+        this.mappedRows = await this.getMappedRows();
+
         this.applyFilters();
     }
 
     @Watch('showState')
-    inactiveChanged()
+    async inactiveChanged()
     {
         setConfig(conf => conf.showInfractionState = this.showState);
+        this.mappedRows = await this.getMappedRows();
     }
 
     @Watch('showDeleted')
-    deletedChanged()
+    async deletedChanged()
     {
         setConfig(conf => conf.showDeletedInfractions = this.showDeleted);
+        this.mappedRows = await this.getMappedRows();
     }
 
     get userServiceCall()
@@ -624,19 +717,70 @@ export default class Infractions extends Vue
         return GeneralService.getUserAutocomplete;
     }
 
-    async onInfractionRescind(id: number)
+    closeCreateModal(): void
     {
-
+        this.clearNewInfractionData();
+        this.showCreateModal = false;
     }
 
-    async onInfractionDelete(id: number)
+    async onInfractionCreate(): Promise<void>
     {
+        let subjectId = this.newInfractionUser!.userId;
 
+        let creationData = new InfractionCreationData();
+
+        creationData.type = this.newInfractionType!;
+        creationData.reason = this.newInfractionReason!;
+        creationData.durationMonths = this.newInfractionMonths;
+        creationData.durationDays = this.newInfractionDays;
+        creationData.durationHours = this.newInfractionHours;
+        creationData.durationMinutes = this.newInfractionMinutes;
+        creationData.durationSeconds = this.newInfractionSeconds;
+
+        await GeneralService.createInfraction(subjectId, creationData);
+
+        await this.refresh();
+        await this.closeCreateModal();
     }
 
-    async onInfractionCreate()
+    onInfractionRescind(id: number): void
     {
+        this.toRescind = id;
+        this.showRescindConfirmation = true;
+    }
 
+    async confirmRescind(): Promise<void>
+    {
+        this.showRescindConfirmation = false;
+        await GeneralService.rescindInfraction(this.toRescind);
+        this.toRescind = 0;
+        await this.refresh();
+    }
+
+    cancelRescind(): void
+    {
+        this.showRescindConfirmation = false;
+        this.toRescind = 0;
+    }
+
+    onInfractionDelete(id: number): void
+    {
+        this.toDelete = id;
+        this.showDeleteConfirmation = true;
+    }
+
+    async confirmDelete(): Promise<void>
+    {
+        this.showDeleteConfirmation = false;
+        await GeneralService.deleteInfraction(this.toDelete);
+        this.toDelete = 0;
+        await this.refresh();
+    }
+
+    cancelDelete(): void
+    {
+        this.showDeleteConfirmation = false;
+        this.toDelete = 0;
     }
 }
 </script>
