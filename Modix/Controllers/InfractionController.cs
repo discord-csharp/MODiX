@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Discord.WebSocket;
@@ -32,7 +33,39 @@ namespace Modix.Controllers
                 GuildId = UserGuild.Id
             });
 
-            return Ok(result);
+            var outranksValues = result
+                .Select(x => (guildId: x.GuildId, subjectId: x.Subject.Id))
+                .Distinct()
+                .ToDictionary(
+                    x => x.subjectId,
+                    async x => await ModerationService.DoesModeratorOutrankUserAsync(x.guildId, SocketUser.Id, x.subjectId));
+
+            var mapped = await Task.WhenAll(result.Select(
+                async x => new
+                {
+                    x.Id,
+                    x.GuildId,
+                    x.Type,
+                    x.Reason,
+                    x.Duration,
+                    x.Subject,
+
+                    x.CreateAction,
+                    x.RescindAction,
+                    x.DeleteAction,
+
+                    CanRescind
+                        = x.RescindAction is null
+                        && x.DeleteAction is null
+                        && (x.Type == InfractionType.Mute || x.Type == InfractionType.Ban)
+                        && await outranksValues[x.Subject.Id],
+
+                    CanDelete
+                        = x.DeleteAction is null
+                        && await outranksValues[x.Subject.Id],
+                }));
+
+            return Ok(mapped);
         }
 
         [HttpGet("{id}")]

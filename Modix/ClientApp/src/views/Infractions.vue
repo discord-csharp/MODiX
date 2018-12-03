@@ -634,9 +634,8 @@ export default class Infractions extends Vue
                     : infraction.deleteAction != null ? "Deleted"
                         : "Active",
 
-                canDelete: canDelete,
-                canRescind: canRescind
-            }
+            canDelete: infraction.canDelete,
+            canRescind: infraction.canRescind
         }));
     }
 
@@ -651,8 +650,6 @@ export default class Infractions extends Vue
         this.channelCache = _.keyBy(this.$store.state.modix.channels, channel => channel.id);
 
         this.clearNewInfractionData();
-
-        this.mappedRows = await this.getMappedRows();
 
         this.isLoading = false;
     }
@@ -693,8 +690,6 @@ export default class Infractions extends Vue
         this.showState = config().showInfractionState;
         this.showDeleted = config().showDeletedInfractions;
 
-        this.mappedRows = await this.getMappedRows();
-
         this.applyFilters();
     }
 
@@ -702,14 +697,12 @@ export default class Infractions extends Vue
     async inactiveChanged()
     {
         setConfig(conf => conf.showInfractionState = this.showState);
-        this.mappedRows = await this.getMappedRows();
     }
 
     @Watch('showDeleted')
     async deletedChanged()
     {
         setConfig(conf => conf.showDeletedInfractions = this.showDeleted);
-        this.mappedRows = await this.getMappedRows();
     }
 
     get userServiceCall()

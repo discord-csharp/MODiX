@@ -524,12 +524,12 @@ namespace Modix.Services.Moderation
 
         public async Task<bool> DoesModeratorOutrankUserAsync(ulong guildId, ulong moderatorId, ulong subjectId)
         {
-            var moderator = await UserService.GetGuildUserAsync(guildId, AuthorizationService.CurrentUserId.Value);
+            var moderator = await UserService.GetGuildUserAsync(guildId, moderatorId);
 
             if (moderator.GuildPermissions.Administrator)
                 return true;
 
-            var rankRoles = await GetRankRolesAsync();
+            var rankRoles = await GetRankRolesAsync(guildId);
 
             var subject = await UserService.GetGuildUserAsync(guildId, subjectId);
 
@@ -682,11 +682,11 @@ namespace Modix.Services.Moderation
             return guild.Roles.First(x => x.Id == mapping.Role.Id);
         }
 
-        private async Task<IEnumerable<GuildRoleBrief>> GetRankRolesAsync()
+        private async Task<IEnumerable<GuildRoleBrief>> GetRankRolesAsync(ulong guildId)
             => (await DesignatedRoleMappingRepository
                 .SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria
                 {
-                    GuildId = AuthorizationService.CurrentGuildId,
+                    GuildId = guildId,
                     Type = DesignatedRoleType.Rank,
                     IsDeleted = false,
                 }))
