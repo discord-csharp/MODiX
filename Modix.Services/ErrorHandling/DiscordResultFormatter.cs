@@ -13,7 +13,7 @@ namespace Modix.Services.ErrorHandling
     /// <summary>
     /// Formats instances of <typeparamref name="TResult"/> into <see cref="EmbedBuilder"/>s for sending to Discord
     /// </summary>
-    public abstract class DiscordResultFormatter<TResult> : IResultFormatter<TResult, EmbedBuilder> where TResult : ServiceResult
+    public abstract class DiscordResultFormatter<TInput> : IResultFormatter<TInput, EmbedBuilder> where TInput : ServiceResult
     {
         protected ICommandContext Context { get; private set; }
 
@@ -23,7 +23,7 @@ namespace Modix.Services.ErrorHandling
         }
 
         /// <inheritdoc />
-        public virtual EmbedBuilder Format(TResult result)
+        public virtual EmbedBuilder Format(TInput result)
         {
             if (result.IsSuccess) { return null; }
 
