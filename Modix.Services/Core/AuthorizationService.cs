@@ -397,10 +397,8 @@ namespace Modix.Services.Core
             if (guildUser == null)
                 throw new ArgumentNullException(nameof(guildUser));
 
-            /*
             if (guildUser.Id == DiscordClient.CurrentUser.Id || guildUser.GuildPermissions.Administrator)
                 return Enum.GetValues(typeof(AuthorizationClaim)).Cast<AuthorizationClaim>().ToArray();
-                */
 
             if (guildUser.Id == CurrentUserId)
                 return CurrentClaims;

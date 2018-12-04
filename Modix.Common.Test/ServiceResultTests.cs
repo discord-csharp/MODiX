@@ -13,28 +13,30 @@ namespace Modix.Common.Test
         public void SuccessfulResult_IsNotFailure()
         {
             var result = new MockServiceResult { OverrideSuccess = true };
-            result.IsFailure.ShouldBe(false);
+
+            //explicitly check IsFailure, as we are testing its implementation
+            result.IsFailure.ShouldBeFalse(); 
         }
 
         [Test]
         public void NotSuccessfulResult_IsFailure()
         {
             var result = new MockServiceResult { OverrideSuccess = false };
-            result.IsFailure.ShouldBe(true);
+            result.ShouldBeFailure();
         }
 
         [Test]
         public void FromResult_IsSuccess_IfArgumentNotSet()
         {
             var result = ServiceResult.FromResult("");
-            result.IsSuccess.ShouldBe(true);
+            result.ShouldBeSuccessful();
         }
 
         [Test]
         public void FromResult_IsFailure_IfArgumentSet()
         {
             var result = ServiceResult.FromResult("", false);
-            result.IsFailure.ShouldBe(true);
+            result.ShouldBeFailure();
         }
     }
 }

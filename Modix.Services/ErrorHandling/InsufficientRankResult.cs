@@ -37,6 +37,8 @@ namespace Modix.Services.ErrorHandling
         /// <param name="currentRole">The role that the user had</param>
         public InsufficientRankResult(IRole requiredRole, IRole currentRole)
         {
+            //TODO: Move actual rank checking logic into here
+
             RequiredRoleId = requiredRole.Id;
             RequiredRoleName = requiredRole.Name;
 
@@ -55,6 +57,13 @@ namespace Modix.Services.ErrorHandling
         /// <param name="currentRole">The role that the user had</param>
         public InsufficientRankResult(GuildRoleBrief requiredRole, GuildRoleBrief currentRole)
         {
+            if (requiredRole == null || currentRole == null)
+            {
+                IsSuccess = false;
+                Error = "Either you or the target user are missing roles that are configured as \"Rank\"s. Please check your Modix config.";
+                return;
+            }
+
             RequiredRoleId = requiredRole.Id;
             RequiredRoleName = requiredRole.Name;
 

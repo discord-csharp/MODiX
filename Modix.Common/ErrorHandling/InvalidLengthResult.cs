@@ -9,34 +9,53 @@ namespace Modix.Common.ErrorHandling
         public string Name { get; private set; }
         public int Maximum { get; private set; }
         public int Minimum { get; private set; }
-        public int Value { get; private set; }
+        public int Length { get; private set; }
 
-        public InvalidLengthResult(string name, int value, int minimum = 0, int maximum = 0)
+        /// <summary>
+        /// A <see cref="ServiceResult"/> representing a result that was checked for a minimum and/or maximum length
+        /// </summary>
+        /// <param name="name">The name of the parameter being checked</param>
+        /// <param name="length">The actual length to check</param>
+        /// <param name="minimum">Optional: The minimum value the length can be, inclusive</param>
+        /// <param name="maximum">Optional: The maximum value the length can be, inclusive</param>
+        /// <remarks>If both maximum and minimum are specified, both are checked inclusively.</remarks>
+        public InvalidLengthResult(string name, int length, int minimum = 0, int maximum = 0)
         {
+            if (minimum < 0) { throw new ArgumentOutOfRangeException("Minimum must be greater than or equal to 0"); }
+            if (maximum < 0) { throw new ArgumentOutOfRangeException("Minimum must be greater than or equal to 0"); }
+
             Name = name;
             Minimum = minimum;
             Maximum = maximum;
-            Value = value;
+            Length = length;
 
             if (Minimum > 0 && Maximum > 0)
             {
-                IsSuccess = Value >= Minimum && Value <= Maximum;
-                Error = $"Length of \"{Name}\" must be between {Minimum} and {Maximum}. Actual: {Value}";
+                if (Minimum == Maximum)
+                {
+                    IsSuccess = Length == Maximum;
+                    Error = $"Length of \"{Name}\" must be exactly {Maximum}. Actual: {Length}";
+                }
+                else
+                {
+                    IsSuccess = Length >= Minimum && Length <= Maximum;
+                    Error = $"Length of \"{Name}\" must be between {Minimum} and {Maximum}. Actual: {Length}";
+                }
             }
             else if (Minimum > 0)
             {
-                IsSuccess = Value >= Minimum;
-                Error = $"Length of \"{Name}\" must be greater than or equal to {Minimum}. Actual: {Value}";
+                IsSuccess = Length >= Minimum;
+                Error = $"Length of \"{Name}\" must be greater than or equal to {Minimum}. Actual: {Length}";
             }
             else if (Maximum > 0)
             {
-                IsSuccess = Value <= Maximum;
-                Error = $"Length of \"{Name}\" must be less than or equal to {Maximum}. Actual: {Value}";
+                IsSuccess = Length <= Maximum;
+                Error = $"Length of \"{Name}\" must be less than or equal to {Maximum}. Actual: {Length}";
             }
             else
             {
                 IsSuccess = false;
-                Error = $"Length of \"{Name}\" was invalid. Actual: {Value}";
+                Error = $"Length of \"{Name}\" was invalid. Actual: {Length}";
             }
         }
     }

@@ -23,6 +23,16 @@ namespace Modix.Common.ErrorHandling
             return new InvalidOperationException(Error);
         }
 
+        public override string ToString()
+        {
+            if (IsSuccess)
+            {
+                return "Success";
+            }
+
+            return $"Failure: {Error}";
+        }
+
         /// <summary>
         /// Returns a successful ServiceResult
         /// </summary>
