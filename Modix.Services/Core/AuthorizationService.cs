@@ -468,10 +468,6 @@ namespace Modix.Services.Core
             if (CurrentUserId == null)
                 return ServiceResult.FromError("The current operation requires an authenticated user.");
 
-            var missingClaims = requiredClaims
-                .Except(CurrentClaims)
-                .ToArray();
-
             return new AuthResult(requiredClaims, CurrentClaims);
         }
 
