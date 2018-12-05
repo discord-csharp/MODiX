@@ -57,7 +57,12 @@ export default class PromotionCampaign
 
     get sentimentRatio(): number
     {
-        return this.votesFor / (this.votesFor + this.votesAgainst);
+        if (this.votesFor > 0 || this.votesAgainst > 0)
+        {
+            return this.votesFor / (this.votesFor + this.votesAgainst);
+        }
+
+        return 0;
     }
 
     get votesFor(): number

@@ -7,4 +7,6 @@ export default interface PromotionComment
     sentiment: PromotionSentiment;
     content: string;
     createAction: PromotionAction;
+    isModified: boolean;
+    isFromCurrentUser: boolean;
 }

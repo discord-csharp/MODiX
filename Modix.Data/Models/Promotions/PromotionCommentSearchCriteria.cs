@@ -32,6 +32,12 @@ namespace Modix.Data.Models.Promotions
         /// according to the <see cref="PromotionActionEntity.CreatedById"/> value of <see cref="PromotionCommentEntity.CreateAction"/>.
         /// </summary>
         public ulong? CreatedById { get; set; }
+
+        /// <summary>
+        /// A flag indicating whether records to be returned should have a <see cref="PromotionCommentEntity.ModifyActionId"/> value of null, 
+        /// or non-null, (or both).
+        /// </summary>
+        public bool? IsModified { get; set; }
     }
 
     internal static class PromotionCommentSearchCriteriaExtensions
@@ -59,7 +65,10 @@ namespace Modix.Data.Models.Promotions
                     !(criteria.CreatedRange?.To is null))
                 .FilterBy(
                     x => x.CreateAction.CreatedById == criteria.CreatedById,
-                    !(criteria.CreatedById is null));
+                    !(criteria.CreatedById is null))
+                .FilterBy(
+                    x => (x.ModifyActionId != null) == criteria.IsModified,
+                    criteria?.IsModified != null);
         }
     }
 }

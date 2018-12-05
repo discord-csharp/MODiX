@@ -42,10 +42,15 @@ namespace Modix.Data.Models.Promotions
         public PromotionCampaignBrief Campaign { get; set; }
 
         /// <summary>
-        /// See <see cref="PromotionActionEntity.Comment"/>.
+        /// See <see cref="PromotionActionEntity.NewComment"/>.
         /// </summary>
-        public PromotionCommentActionBrief Comment { get; set; }
-        
+        public PromotionCommentActionBrief NewComment { get; set; }
+
+        /// <summary>
+        /// See <see cref="PromotionActionEntity.OldComment"/>.
+        /// </summary>
+        public PromotionCommentActionBrief OldComment { get; set; }
+
         [ExpansionExpression]
         internal static Expression<Func<PromotionActionEntity, PromotionActionSummary>> FromEntityProjection
             = entity => new PromotionActionSummary()
@@ -58,9 +63,12 @@ namespace Modix.Data.Models.Promotions
                 Campaign = (entity.Campaign == null)
                     ? null
                     : entity.Campaign.Project(PromotionCampaignBrief.FromEntityProjection),
-                Comment = (entity.Comment == null)
+                NewComment = (entity.NewComment == null)
                     ? null
-                    : entity.Comment.Project(PromotionCommentActionBrief.FromEntityProjection)
+                    : entity.NewComment.Project(PromotionCommentActionBrief.FromEntityProjection),
+                OldComment = (entity.OldComment == null)
+                    ? null
+                    : entity.OldComment.Project(PromotionCommentActionBrief.FromEntityProjection)
             };
     }
 }

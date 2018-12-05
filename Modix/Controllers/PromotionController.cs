@@ -39,7 +39,9 @@ namespace Modix.Controllers
                 c.Id,
                 c.Sentiment,
                 c.Content,
-                CreateAction = new { c.CreateAction.Id, c.CreateAction.Created }
+                CreateAction = new { c.CreateAction.Id, c.CreateAction.Created },
+                IsModified = !(c.ModifyAction is null),
+                IsFromCurrentUser = c.CreateAction.CreatedBy.Id == ModixAuth.CurrentUserId,
             }));
         }
 
@@ -67,6 +69,21 @@ namespace Modix.Controllers
             try
             {
                 await _promotionsService.AddCommentAsync(campaignId, commentData.Sentiment, commentData.Body);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            return Ok();
+        }
+
+        [HttpPut("{commentId}/updateComment")]
+        public async Task<IActionResult> UpdateComment(int commentId, [FromBody] PromotionCommentData commentData)
+        {
+            try
+            {
+                await _promotionsService.UpdateCommentAsync(commentId, commentData.Sentiment, commentData.Body);
             }
             catch (InvalidOperationException ex)
             {
