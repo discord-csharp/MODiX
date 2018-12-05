@@ -22,7 +22,7 @@ namespace Modix.Common.ErrorHandling
         public InvalidLengthResult(string name, int length, int minimum = 0, int maximum = 0)
         {
             if (minimum < 0) { throw new ArgumentOutOfRangeException("Minimum must be greater than or equal to 0"); }
-            if (maximum < 0) { throw new ArgumentOutOfRangeException("Minimum must be greater than or equal to 0"); }
+            if (maximum < 0) { throw new ArgumentOutOfRangeException("Maximum must be greater than or equal to 0"); }
 
             Name = name;
             Minimum = minimum;

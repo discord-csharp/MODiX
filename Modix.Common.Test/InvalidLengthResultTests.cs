@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Modix.Common.ErrorHandling;
 using NUnit.Framework;
+using Shouldly;
 
 namespace Modix.Common.Test
 {
@@ -90,6 +91,18 @@ namespace Modix.Common.Test
         {
             var result = new InvalidLengthResult("test", length: 10, maximum: 12, minimum: 12);
             result.ShouldBeFailure();
+        }
+
+        [Test]
+        public void InvalidLengthResult_ShouldThrow_IfMinimumLessThanZero()
+        {
+            Should.Throw<ArgumentException>(() => new InvalidLengthResult("test", length: 0, minimum: -1));
+        }
+
+        [Test]
+        public void InvalidLengthResult_ShouldThrow_IfMaximumLessThanZero()
+        {
+            Should.Throw<ArgumentException>(() => new InvalidLengthResult("test", length: 0, maximum: -1));
         }
     }
 }
