@@ -56,7 +56,13 @@ namespace Modix.Modules
                     new SortingCriteria { PropertyName = "CreateAction.Created", Direction = SortDirection.Descending }
                 });
 
-            if (infractionResult.IsFailure || infractionResult.Result.Count == 0)
+            if (infractionResult.IsFailure)
+            {
+                await HandleResultAsync(infractionResult);
+                return;
+            }
+
+            if (infractionResult.Result.Count == 0)
             {
                 await ReplyAsync(Format.Code("No infractions"));
                 return;

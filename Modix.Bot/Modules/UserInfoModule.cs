@@ -130,7 +130,7 @@ namespace Modix.Modules
                     Array.Sort(roles); // Sort by position: lowest positioned role is first
                     Array.Reverse(roles); // Reverse the sort: highest positioned role is first
 
-                    builder.Append("Role".PluralizeIf(roles.Any()));
+                    builder.Append("Role".PluralizeWith(roles.Count()));
                     builder.Append(": ");
                     builder.AppendLine(roles.Select(r => r.Mention).Humanize());
                 }

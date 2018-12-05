@@ -73,5 +73,63 @@ namespace Modix.Services.Test
 
             authResult.ShouldBeSuccessful();
         }
+
+        [Test]
+        public void AuthResult_HadRequiredClaim_TrueIfUserHasClaim()
+        {
+            var requiredClaims = new AuthorizationClaim[]
+            {
+                AuthorizationClaim.ModerationRead,
+                AuthorizationClaim.ModerationWarn
+            };
+
+            var hasClaims = new AuthorizationClaim[]
+            {
+                AuthorizationClaim.ModerationRead,
+                AuthorizationClaim.ModerationWarn
+            };
+
+            var authResult = new AuthResult(requiredClaims, hasClaims);
+
+            authResult.HadRequiredClaim(AuthorizationClaim.ModerationRead).ShouldBeTrue();
+        }
+
+        [Test]
+        public void AuthResult_HadRequiredClaim_FalseIfUserMissingClaim()
+        {
+            var requiredClaims = new AuthorizationClaim[]
+            {
+                AuthorizationClaim.ModerationRead,
+                AuthorizationClaim.ModerationWarn
+            };
+
+            var hasClaims = new AuthorizationClaim[]
+            {
+                AuthorizationClaim.ModerationWarn
+            };
+
+            var authResult = new AuthResult(requiredClaims, hasClaims);
+
+            authResult.HadRequiredClaim(AuthorizationClaim.ModerationRead).ShouldBeFalse();
+        }
+
+        [Test]
+        public void AuthResult_HadRequiredClaim_FalseIfClaimNotRequired()
+        {
+            var requiredClaims = new AuthorizationClaim[]
+            {
+                AuthorizationClaim.ModerationRead,
+                AuthorizationClaim.ModerationWarn
+            };
+
+            var hasClaims = new AuthorizationClaim[]
+            {
+                AuthorizationClaim.ModerationWarn
+            };
+
+            var authResult = new AuthResult(requiredClaims, hasClaims);
+
+            authResult.HadRequiredClaim(AuthorizationClaim.PostInviteLink).ShouldBeFalse();
+        }
     }
 }

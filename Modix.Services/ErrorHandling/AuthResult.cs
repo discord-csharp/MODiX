@@ -25,7 +25,7 @@ namespace Modix.Services.ErrorHandling
         public IReadOnlyList<AuthorizationClaim> CurrentClaims { get; private set; }
 
         /// <summary>
-        /// Creates an <see cref="InsufficientRankResult"/> using the given collections of <see cref="AuthorizationClaim"/>
+        /// Creates an <see cref="AuthResult"/> using the given collections of <see cref="AuthorizationClaim"/>
         /// </summary>
         /// <param name="requiredClaims">The claims that are required for the request</param>
         /// <param name="currentClaims">The claims that the current user has</param>
@@ -46,13 +46,15 @@ namespace Modix.Services.ErrorHandling
         }
 
         /// <summary>
-        /// Returns true if the user had the given claim when the request was executed, false if not
+        /// Returns true if the user had the given required claim when the request was executed, false if not
         /// </summary>
-        /// <param name="claim">The claim to check for</param>
-        public bool HadClaim(AuthorizationClaim claim)
-            => _hasClaimLookup.ContainsKey(claim)
-                   ? _hasClaimLookup[claim]
-                   : false;
+        /// <param name="claim">The claim to check for - must have been required</param>
+        /// <remarks>Will return false if the given claim is not within the RequiredClaims</remarks>
+        public bool HadRequiredClaim(AuthorizationClaim claim)
+        {
+            var hasKey = _hasClaimLookup.TryGetValue(claim, out var hasClaim);
+            return hasKey ? hasClaim : false;
+        }
 
         public override string ToString()
         {

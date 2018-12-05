@@ -21,9 +21,9 @@ namespace Modix.Services.ErrorHandling
             var listBuilder = new StringBuilder();
 
             //Order so we have the claims the user actually had first
-            foreach (var status in result.RequiredClaims.OrderByDescending(d => result.HadClaim(d)))
+            foreach (var status in result.RequiredClaims.OrderByDescending(d => result.HadRequiredClaim(d)))
             {
-                listBuilder.Append(result.HadClaim(status) ? "✅ " : "❌ ");
+                listBuilder.Append(result.HadRequiredClaim(status) ? "✅ " : "❌ ");
                 listBuilder.AppendLine(status.ToString());
             }
 

@@ -450,6 +450,7 @@ namespace Modix.Services.Core
         }
 
         //TODO: Refactor out once everything has switched over to ServiceResults
+        [Obsolete("Prefer to call CheckClaims and handle the result. This will be removed eventually.")]
         public void RequireClaims(params AuthorizationClaim[] claims)
         {
             var result = CheckClaims(claims);
