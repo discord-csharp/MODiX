@@ -61,7 +61,7 @@
             <small class="date">Campaign started <span class="has-text-weight-bold">{{formatDate(campaign.startDate)}}</span></small>
 
             <div class="commentList">
-                <PromotionCommentView v-for="(comment, index) in comments" :key="comment.promotionCampaignId" :comment="comment"
+                <PromotionCommentView v-for="(comment, index) in comments" :key="comment.promotionCampaignId" :comment="comment" :isCampaignClosed="campaign.closeAction"
                                       :style="{'transition-delay': (index * 33) + 'ms'}" v-on:comment-edit-modal-opened="onCommentEditModalOpened"/>
             </div>
 
