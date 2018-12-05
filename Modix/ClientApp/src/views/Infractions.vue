@@ -101,7 +101,7 @@
             </div>
         </div>
 
-        <div class="modal" :class="{'is-active': showCreateModal}">
+        <div class="modal" v-bind:class="{'is-active': showCreateModal}">
             <div class="modal-background" v-on:click="closeCreateModal"></div>
             <div class="modal-card">
                 <header class="modal-card-head">
@@ -386,7 +386,9 @@ export default class Infractions extends Vue
 
     get canCreateNewInfraction(): boolean
     {
-        return this.newInfractionUser != null && this.newInfractionType != null && this.newInfractionReason != "";
+        let requiresReason = this.newInfractionType == InfractionType.Notice || this.newInfractionType == InfractionType.Warning;
+
+        return this.newInfractionUser != null && this.newInfractionType != null && (!requiresReason || this.newInfractionReason != "");
     }
 
     async canRescind(type: InfractionType, state: string, subjectId: string): Promise<boolean>
