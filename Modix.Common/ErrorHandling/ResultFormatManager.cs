@@ -29,6 +29,9 @@ namespace Modix.Common.ErrorHandling
     {
         private readonly IServiceProvider _provider;
 
+        private static readonly ConcurrentDictionary<(Type, Type), Type> _formatterTypeCache
+            = new ConcurrentDictionary<(Type, Type), Type>();
+
         private static readonly ConcurrentDictionary<(Type, Type), MethodInfo> _formatMethodCache
             = new ConcurrentDictionary<(Type, Type), MethodInfo>();
 
@@ -44,26 +47,36 @@ namespace Modix.Common.ErrorHandling
         private TOutput FindCacheAndInvokeFormatter<TOutput>(ServiceResult input)
         {
             //Get the actual, most derived type of the input
-            var inputType = input.GetType();
+            var typeKey = (input: input.GetType(), output: typeof(TOutput));
 
-            //Create a Type instance representing an IResultFormatter with the determined input type and provided
-            //output type
-            var type = typeof(IResultFormatter<,>).MakeGenericType(inputType, typeof(TOutput));
+            object instance = null;
 
-            //Try to get an instance of this most derived version from the IoC container - if it fails,
-            //get the default version
-            var instance = _provider.GetService(type);
-
-            if (instance == null)
+            if (_formatterTypeCache.ContainsKey(typeKey) == false)
             {
-                type = typeof(IResultFormatter<,>).MakeGenericType(typeof(ServiceResult), typeof(TOutput));
-                instance = _provider.GetRequiredService(type);
+                //Create a Type instance representing an IResultFormatter with the determined input type and provided
+                //output type
+                var type = typeof(IResultFormatter<,>).MakeGenericType(typeKey.input, typeof(TOutput));
+
+                //Try to get an instance of this most derived version from the IoC container
+                instance = _provider.GetService(type);
+
+                //If we can't find a formatter for the derived ServiceResult type, try to find one for the
+                //base type (kind of a catch-all)
+                if (instance == null)
+                {
+                    type = typeof(IResultFormatter<,>).MakeGenericType(typeof(ServiceResult), typeof(TOutput));
+                }
+
+                //Add the type and its format method to the cache - we can't add the actual instance
+                //because it's instantiated per-scope
+                _formatterTypeCache.TryAdd(typeKey, type);
+                _formatMethodCache.TryAdd(typeKey, type.GetMethod(nameof(IResultFormatter<ServiceResult, object>.Format)));
             }
 
-            //Finally, get the Format method for the (TInput, TOutput) pair, either from the cache or
-            //from the resolved type
-            var formatMethod = _formatMethodCache.GetOrAdd((inputType, typeof(TOutput)),
-                (_) => type.GetMethod(nameof(IResultFormatter<ServiceResult, object>.Format)));
+            instance = _provider.GetRequiredService(_formatterTypeCache[typeKey]);
+
+            //Get the Format method for the (TInput, TOutput) pair from the cache
+            var formatMethod = _formatMethodCache[typeKey];
 
             //Invoke the format method on the instance of the formatter, and return the result
             return (TOutput)formatMethod.Invoke(instance, new object[] { input });
