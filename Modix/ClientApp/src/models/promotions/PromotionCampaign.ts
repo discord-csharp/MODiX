@@ -35,13 +35,14 @@ export const StatusIcons: {[sentiment in CampaignOutcome]: string} =
 
 export default class PromotionCampaign
 {
-    id:              number = 0;
-    guildId:         string = '';
-    subject?:        GuildUserIdentity;
-    targetRole?:     TargetRole;
-    createAction?:   PromotionAction;
-    outcome:         CampaignOutcome = CampaignOutcome.Failed;
-    closeAction?:    PromotionAction;
+    id:                     number = 0;
+    guildId:                string = '';
+    subject?:               GuildUserIdentity;
+    targetRole?:            TargetRole;
+    createAction?:          PromotionAction;
+    outcome:                CampaignOutcome = CampaignOutcome.Failed;
+    closeAction?:           PromotionAction;
+    userAlreadyCommented:   boolean = false;
     
     commentCounts: {[sentiment in PromotionSentiment]: number} = 
     {

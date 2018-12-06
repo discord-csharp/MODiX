@@ -23,10 +23,28 @@ namespace Modix.Controllers
 
         [HttpGet]
         public async Task<IActionResult> Campaigns()
-            => Ok(await _promotionsService.SearchCampaignsAsync(new PromotionCampaignSearchCriteria
+        {
+            var campaigns = await _promotionsService.SearchCampaignsAsync(new PromotionCampaignSearchCriteria
             {
                 GuildId = UserGuild.Id
-            }));
+            });
+
+            var mapped = await Task.WhenAll(campaigns.Select(
+                async x => new
+                {
+                    x.Id,
+                    x.GuildId,
+                    x.Subject,
+                    x.TargetRole,
+                    x.CreateAction,
+                    x.Outcome,
+                    x.CloseAction,
+                    x.CommentCounts,
+                    UserAlreadyCommented = await _promotionsService.DidUserCommentOnCampaignAsync(ModixAuth.CurrentUserId.Value, x.Id),
+                }));
+
+            return Ok(mapped);
+        }
 
         [HttpGet("{campaignId}")]
         public async Task<IActionResult> CampaignComments(long campaignId)

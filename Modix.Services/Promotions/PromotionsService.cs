@@ -99,6 +99,17 @@ namespace Modix.Services.Promotions
         /// containing the requested action information.
         /// </returns>
         Task<PromotionActionSummary> GetPromotionActionSummaryAsync(long promotionActionId);
+
+        /// <summary>
+        /// Determines whether the supplied user has already commented on a given campaign.
+        /// </summary>
+        /// <param name="userId">The Discord snowflake ID of the user whose commenting status the service should query.</param>
+        /// <param name="campaignId">The unique ID of the campaign whose commenting status the service should query.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that completes when the operation has completed,
+        /// containing a flag indicating whether the user has already commented on the campaign.
+        /// </returns>
+        Task<bool> DidUserCommentOnCampaignAsync(ulong userId, long campaignId);
     }
 
     /// <inheritdoc />
@@ -318,6 +329,14 @@ namespace Modix.Services.Promotions
         /// <inheritdoc />
         public Task<PromotionActionSummary> GetPromotionActionSummaryAsync(long promotionActionId)
             => PromotionActionRepository.ReadSummaryAsync(promotionActionId);
+
+        /// <inheritdoc />
+        public async Task<bool> DidUserCommentOnCampaignAsync(ulong userId, long campaignId)
+            => await PromotionCommentRepository.AnyAsync(new PromotionCommentSearchCriteria()
+            {
+                CreatedById = userId,
+                CampaignId = campaignId,
+            });
 
         /// <summary>
         /// An <see cref="IDiscordClient"/> for interacting with the Discord API.

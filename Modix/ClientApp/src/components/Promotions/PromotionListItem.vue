@@ -65,7 +65,7 @@
                                       :style="{'transition-delay': (index * 33) + 'ms'}" v-on:comment-edit-modal-opened="onCommentEditModalOpened"/>
             </div>
 
-            <div class="field has-addons" v-if="!campaign.closeAction">
+            <div class="field has-addons" v-if="!campaign.closeAction && !campaign.userAlreadyCommented">
                 <p class="control">
                     <span class="select">
                         <select v-model="newComment.sentiment">
