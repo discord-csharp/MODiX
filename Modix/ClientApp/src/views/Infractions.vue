@@ -123,6 +123,7 @@
                                     <TinyUserView :user="entry" />
                                 </template>
                             </Autocomplete>
+                            <div class="notification is-danger" v-if="!userOutranksSubject">You need to have a higher rank than {{newInfractionUser.name}} in order to add an infraction for them.</div>
                         </div>
                     </div>
 
@@ -187,82 +188,6 @@
 
     </div>
 </template>
-
-<style lang="scss">
-
-@import "../styles/variables";
-@import "~vue-good-table/dist/vue-good-table.css";
-
-.vgt-table.bordered
-{
-    font-size: 14px;
-
-    select
-    {
-        font-size: 12px;
-    }
-
-    th
-    {
-        text-align: center;
-        padding: 0.33em;
-    }
-}
-
-.vgt-responsive
-{
-    @include fullwidth-desktop();
-}
-
-.vgt-input, .vgt-select
-{
-    padding: 0px 4px;
-    height: 28px;
-}
-
-@include mobile()
-{
-    .vgt-table.bordered
-    {
-        font-size: initial;
-
-        select
-        {
-            font-size: initial;
-        }
-    }
-}
-
-.channel
-{
-    font-weight: bold;
-}
-
-.pre
-{
-    white-space: pre-line;
-}
-
-.button.is-primary.is-small
-{
-    margin: 2px 4px;
-}
-
-</style>
-
-<style scoped lang="scss">
-
-@import "../styles/variables";
-@import "~bulma/sass/components/modal";
-@import "~bulma/sass/elements/notification";
-@import "~bulma/sass/elements/form";
-
-.typeCell
-{
-    display: block;
-    white-space: nowrap;
-}
-</style>
 
 <script lang="ts">
 import * as _ from 'lodash';
@@ -352,6 +277,8 @@ export default class Infractions extends Vue
     newInfractionMinutes: number | null = null;
     newInfractionSeconds: number | null = null;
 
+    userOutranksSubject: boolean = true;
+
     showRescindConfirmation: boolean = false;
     showDeleteConfirmation: boolean = false;
     toRescind: number = 0;
@@ -384,11 +311,24 @@ export default class Infractions extends Vue
         return this.canNote || this.canWarn || this.canMute || this.canBan;
     }
 
+    @Watch('newInfractionUser')
+    async setUserOutranksFlag(): Promise<void>
+    {
+        if (!this.newInfractionUser)
+        {
+            this.userOutranksSubject = true;
+        }
+        else
+        {
+            this.userOutranksSubject = await GeneralService.doesModeratorOutrankUser(this.newInfractionUser!.userId);
+        }
+    }
+
     get canCreateNewInfraction(): boolean
     {
         let requiresReason = this.newInfractionType == InfractionType.Notice || this.newInfractionType == InfractionType.Warning;
 
-        return this.newInfractionUser != null && this.newInfractionType != null && (!requiresReason || this.newInfractionReason != "");
+        return this.newInfractionUser != null && this.newInfractionType != null && (!requiresReason || this.newInfractionReason != "") && this.userOutranksSubject;
     }
 
     async canRescind(type: InfractionType, state: string, subjectId: string): Promise<boolean>

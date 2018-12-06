@@ -29,14 +29,6 @@
 
 </template>
 
-<style scoped lang="scss">
-
-    @import "../styles/variables";
-    @import "~bulma/sass/base/_all";
-    @import "~bulma/sass/components/modal";
-
-</style>
-
 <script lang="ts">
     import { Component, Prop, Vue } from 'vue-property-decorator';
     import * as _ from 'lodash';
