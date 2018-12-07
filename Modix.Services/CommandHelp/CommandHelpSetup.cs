@@ -17,7 +17,8 @@ namespace Modix.Services.CommandHelp
         public static IServiceCollection AddCommandHelp(this IServiceCollection services)
             => services
                 .AddSingleton<CommandHelpService>()
-                .AddScoped<INotificationHandler<ReactionAdded>, CommandErrorHandler>()
-                .AddScoped<INotificationHandler<ReactionRemoved>, CommandErrorHandler>();
+                .AddSingleton<CommandErrorHandler>()
+                .AddSingleton<INotificationHandler<ReactionAdded>>(x => x.GetService<CommandErrorHandler>())
+                .AddSingleton<INotificationHandler<ReactionRemoved>>(x => x.GetService<CommandErrorHandler>());
     }
 }

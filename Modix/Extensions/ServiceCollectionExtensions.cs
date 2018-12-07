@@ -77,7 +77,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<ICodePasteRepository, MemoryCodePasteRepository>();
             services.AddScoped<IPopularityContestService, PopularityContestService>();
 
-            services.AddSingleton<CommandErrorHandler>();
             services.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
             services.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
             services.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
