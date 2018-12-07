@@ -21,6 +21,9 @@ namespace Modix.Data.Utilities
 
         public static bool OrdinalContains(this string value, string search)
         {
+            if (value is null || search is null)
+                return false;
+
             return value.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0;
         }
     }
