@@ -43,10 +43,12 @@ namespace Modix.Controllers
         {
             await UserGuild.DownloadUsersAsync();
 
-            var result = UserGuild.Users
-                .Where(d => d.Username.OrdinalContains(query))
-                .Take(10)
-                .Select(d => new ModixUser { Name = $"{d.Username}#{d.Discriminator}", UserId = d.Id, AvatarHash = d.AvatarId });
+            var result = UserGuild.Users is null
+                ? Enumerable.Empty<ModixUser>()
+                : UserGuild.Users
+                    .Where(d => d.Username.OrdinalContains(query))
+                    .Take(10)
+                    .Select(d => new ModixUser { Name = $"{d.Username}#{d.Discriminator}", UserId = d.Id, AvatarHash = d.AvatarId });
 
             return Ok(result);
         }
