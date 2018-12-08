@@ -552,6 +552,8 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         public async Task DeleteMessagesAsync(ITextChannel channel, int count)
         {
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationMassDeleteMessages);
+
             if (!(channel is IGuildChannel guildChannel))
                 throw new InvalidOperationException($"Cannot delete messages in {channel.Name} because it is not a guild channel.");
 

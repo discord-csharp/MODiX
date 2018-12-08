@@ -112,6 +112,15 @@ namespace Modix.Modules
                 int count)
             => await ModerationService.DeleteMessagesAsync(Context.Channel as ITextChannel, count + 1);
 
+        [Command("clean")]
+        [Summary("Mass-deletes a specified number of messages.")]
+        public async Task Clean(
+            [Summary("The number of messages to delete.")]
+                int count,
+            [Summary("The channel to clean.")]
+                ITextChannel channel)
+            => await ModerationService.DeleteMessagesAsync(channel, count);
+
         internal protected IModerationService ModerationService { get; }
     }
 }
