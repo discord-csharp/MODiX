@@ -94,6 +94,14 @@ namespace Modix.Services.Moderation
         Task DeleteMessageAsync(IMessage message, string reason);
 
         /// <summary>
+        /// Mass-deletes a specified number of messages.
+        /// </summary>
+        /// <param name="channel">The channel in which the messages are to be deleted.</param>
+        /// <param name="count">The number of messages to delete.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task DeleteMessagesAsync(ITextChannel channel, int count);
+
+        /// <summary>
         /// Retrieves a collection of infractions, based on a given set of criteria.
         /// </summary>
         /// <param name="searchCriteria">The criteria defining which infractions are to be returned.</param>
@@ -536,6 +544,45 @@ namespace Modix.Services.Moderation
                 });
 
                 await message.DeleteAsync();
+
+                transaction.Commit();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteMessagesAsync(ITextChannel channel, int count)
+        {
+            if (!(channel is IGuildChannel guildChannel))
+                throw new InvalidOperationException($"Cannot delete messages in {channel.Name} because it is not a guild channel.");
+
+            var clampedCount = Math.Clamp(count, 0, 100);
+
+            if (clampedCount == 0)
+                return;
+
+            var messages = await channel.GetMessagesAsync(clampedCount).FlattenAsync();
+
+            await channel.DeleteMessagesAsync(messages);
+
+            using (var transaction = await DeletedMessageRepository.BeginCreateTransactionAsync())
+            {
+                await ChannelService.TrackChannelAsync(guildChannel);
+
+                foreach (var message in messages)
+                {
+                    await UserService.TrackUserAsync((IGuildUser)message.Author);
+
+                    await DeletedMessageRepository.CreateAsync(new DeletedMessageCreationData()
+                    {
+                        GuildId = guildChannel.GuildId,
+                        ChannelId = guildChannel.Id,
+                        MessageId = message.Id,
+                        AuthorId = message.Author.Id,
+                        Content = message.Content,
+                        Reason = "Mass-deleted.",
+                        CreatedById = AuthorizationService.CurrentUserId.Value
+                    });
+                }
 
                 transaction.Commit();
             }
