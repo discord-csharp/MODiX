@@ -112,7 +112,7 @@ namespace Modix.Modules
             [Summary("The number of messages to delete.")]
                 int count)
             => await ModerationService.DeleteMessagesAsync(
-                Context.Channel as ITextChannel, count + 1, () => ConfirmCleanAsync(Context.User.Id, Context.Channel.Name, count));
+                Context.Channel as ITextChannel, count, true, () => ConfirmCleanAsync(Context.User.Id, Context.Channel.Name, count));
 
         [Command("clean")]
         [Summary("Mass-deletes a specified number of messages.")]
@@ -122,7 +122,7 @@ namespace Modix.Modules
             [Summary("The channel to clean.")]
                 ITextChannel channel)
             => await ModerationService.DeleteMessagesAsync(
-                channel, count, () => ConfirmCleanAsync(Context.User.Id, Context.Channel.Name, count));
+                channel, count, Context.Channel.Id == channel.Id, () => ConfirmCleanAsync(Context.User.Id, Context.Channel.Name, count));
 
         internal protected IModerationService ModerationService { get; }
 
@@ -132,7 +132,7 @@ namespace Modix.Modules
             var cancelEmote = new Emoji("❌");
             const int secondsToWait = 10;
 
-            var cleanInfo = $"You are attempting to delete the past {count} messages in {channelName}.{Environment.NewLine}";
+            var cleanInfo = $"You are attempting to delete the past {count} messages in #{channelName}.{Environment.NewLine}";
 
             var confirmationMessage = await ReplyAsync(cleanInfo +
                 $"React with {confirmEmote} or {cancelEmote} in the next {secondsToWait} seconds to finalize or cancel the operation.");
@@ -154,7 +154,7 @@ namespace Modix.Modules
                 var confirmingUsers = await confirmationMessage.GetReactionUsersAsync(confirmEmote, int.MaxValue).FlattenAsync();
                 if (confirmingUsers.Any(u => u.Id == moderatorId))
                 {
-                    await RemoveReactionsAndUpdateMessage("Confirmation was succesfully received. Deleting messages.");
+                    await RemoveReactionsAndUpdateMessage("Confirmation was successfully received. Deleting messages.");
                     return true;
                 }
             }

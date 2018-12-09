@@ -50,6 +50,8 @@ namespace Modix.Data
 
         public DbSet<DeletedMessageEntity> DeletedMessages { get; set; }
 
+        public DbSet<DeletedMessageBatchEntity> DeletedMessageBatches { get; set; }
+
         public DbSet<PromotionCampaignEntity> PromotionCampaigns { get; set; }
 
         public DbSet<PromotionCommentEntity> PromotionComments { get; set; }

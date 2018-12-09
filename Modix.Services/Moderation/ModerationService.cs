@@ -98,9 +98,10 @@ namespace Modix.Services.Moderation
         /// </summary>
         /// <param name="channel">The channel in which the messages are to be deleted.</param>
         /// <param name="count">The number of messages to delete.</param>
+        /// <param name="skipOne">Indicates whether to skip one message (i.e. the command message) before deleting.</param>
         /// <param name="confirmDelegate">A delegate that is invoked to confirm whether to proceed with the operation.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task DeleteMessagesAsync(ITextChannel channel, int count, Func<Task<bool>> confirmDelegate);
+        Task DeleteMessagesAsync(ITextChannel channel, int count, bool skipOne, Func<Task<bool>> confirmDelegate);
 
         /// <summary>
         /// Retrieves a collection of infractions, based on a given set of criteria.
@@ -215,7 +216,8 @@ namespace Modix.Services.Moderation
             IModerationActionRepository moderationActionRepository,
             IDesignatedRoleMappingRepository designatedRoleMappingRepository,
             IInfractionRepository infractionRepository,
-            IDeletedMessageRepository deletedMessageRepository)
+            IDeletedMessageRepository deletedMessageRepository,
+            IDeletedMessageBatchRepository deletedMessageBatchRepository)
         {
             DiscordClient = discordClient;
             AuthorizationService = authorizationService;
@@ -225,6 +227,7 @@ namespace Modix.Services.Moderation
             DesignatedRoleMappingRepository = designatedRoleMappingRepository;
             InfractionRepository = infractionRepository;
             DeletedMessageRepository = deletedMessageRepository;
+            DeletedMessageBatchRepository = deletedMessageBatchRepository;
         }
 
         /// <inheritdoc />
@@ -551,7 +554,7 @@ namespace Modix.Services.Moderation
         }
 
         /// <inheritdoc />
-        public async Task DeleteMessagesAsync(ITextChannel channel, int count, Func<Task<bool>> confirmDelegate)
+        public async Task DeleteMessagesAsync(ITextChannel channel, int count, bool skipOne, Func<Task<bool>> confirmDelegate)
         {
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationMassDeleteMessages);
 
@@ -564,38 +567,38 @@ namespace Modix.Services.Moderation
             var confirmed = await confirmDelegate();
 
             if (!confirmed)
-            {
                 return;
-            }
 
             var clampedCount = Math.Clamp(count, 0, 100);
 
             if (clampedCount == 0)
                 return;
 
-            var messages = await channel.GetMessagesAsync(clampedCount).FlattenAsync();
+            var messages = skipOne
+                ? (await channel.GetMessagesAsync(clampedCount + 1).FlattenAsync()).Skip(1)
+                : await channel.GetMessagesAsync(clampedCount).FlattenAsync();
 
             await channel.DeleteMessagesAsync(messages);
 
-            using (var transaction = await DeletedMessageRepository.BeginCreateTransactionAsync())
+            using (var transaction = await DeletedMessageBatchRepository.BeginCreateTransactionAsync())
             {
                 await ChannelService.TrackChannelAsync(guildChannel);
 
-                foreach (var message in messages)
+                await DeletedMessageBatchRepository.CreateAsync(new DeletedMessageBatchCreationData()
                 {
-                    await UserService.TrackUserAsync((IGuildUser)message.Author);
-
-                    await DeletedMessageRepository.CreateAsync(new DeletedMessageCreationData()
-                    {
-                        GuildId = guildChannel.GuildId,
-                        ChannelId = guildChannel.Id,
-                        MessageId = message.Id,
-                        AuthorId = message.Author.Id,
-                        Content = message.Content,
-                        Reason = "Mass-deleted.",
-                        CreatedById = AuthorizationService.CurrentUserId.Value
-                    });
-                }
+                    CreatedById = AuthorizationService.CurrentUserId.Value,
+                    GuildId = AuthorizationService.CurrentGuildId.Value,
+                    Data = messages.Select(
+                        x => new DeletedMessageCreationData()
+                        {
+                            AuthorId = x.Author.Id,
+                            ChannelId = x.Channel.Id,
+                            Content = x.Content,
+                            GuildId = AuthorizationService.CurrentGuildId.Value,
+                            MessageId = x.Id,
+                            Reason = "Mass-deleted.",
+                        }),
+                });
 
                 transaction.Commit();
             }
@@ -771,6 +774,11 @@ namespace Modix.Services.Moderation
         /// An <see cref="IDeletedMessageRepository"/> for storing and retrieving records of deleted messages.
         /// </summary>
         internal protected IDeletedMessageRepository DeletedMessageRepository { get; }
+
+        /// <summary>
+        /// An <see cref="IDeletedMessageBatchRepository"/> for storing and retrieving records of deleted message batches.
+        /// </summary>
+        internal protected IDeletedMessageBatchRepository DeletedMessageBatchRepository { get; }
 
         private async Task ConfigureChannelMuteRolePermissionsAsync(IGuildChannel channel, IRole muteRole)
         {

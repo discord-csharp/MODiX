@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 
 using Modix.Data.ExpandableQueries;
@@ -46,6 +48,11 @@ namespace Modix.Data.Models.Moderation
         /// </summary>
         public DeletedMessageBrief DeletedMessage { get; set; }
 
+        /// <summary>
+        /// See <see cref="DeletedMessageBatchEntity.DeletedMessages"/>.
+        /// </summary>
+        public IReadOnlyCollection<DeletedMessageBrief> DeletedMessages { get; set; }
+
         [ExpansionExpression]
         internal static readonly Expression<Func<ModerationActionEntity, ModerationActionSummary>> FromEntityProjection
             = entity => new ModerationActionSummary()
@@ -60,7 +67,10 @@ namespace Modix.Data.Models.Moderation
                     : entity.Infraction.Project(InfractionBrief.FromEntityProjection),
                 DeletedMessage = (entity.DeletedMessage == null)
                     ? null
-                    : entity.DeletedMessage.Project(DeletedMessageBrief.FromEntityProjection)
+                    : entity.DeletedMessage.Project(DeletedMessageBrief.FromEntityProjection),
+                DeletedMessages = (entity.DeletedMessageBatch == null)
+                    ? null
+                    : entity.DeletedMessageBatch.DeletedMessages.Select(x => x.Project(DeletedMessageBrief.FromEntityProjection)).ToArray(),
             };
     }
 }

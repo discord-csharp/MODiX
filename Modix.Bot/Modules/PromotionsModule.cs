@@ -106,7 +106,7 @@ namespace Modix.Modules
                     var confirmingUsers = await confirmationMessage.GetReactionUsersAsync(confirmEmote, int.MaxValue).FlattenAsync();
                     if (confirmingUsers.Any(u => u.Id == proposedPromotionCampaign.NominatingUserId))
                     {
-                        await RemoveReactionsAndUpdateMessage("Confirmation was succesfully received. Creating promotion campaign.");
+                        await RemoveReactionsAndUpdateMessage("Confirmation was successfully received. Creating promotion campaign.");
                         return true;
                     }
                 }
