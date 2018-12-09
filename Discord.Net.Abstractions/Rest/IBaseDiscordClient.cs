@@ -45,6 +45,8 @@ namespace Discord.Rest
                 throw new ArgumentNullException(nameof(baseDiscordClient));
 
             BaseDiscordClient = baseDiscordClient;
+
+            baseDiscordClient.Log += x => Log.InvokeAsync(x.Abstract());
         }
 
         /// <inheritdoc />
@@ -64,36 +66,7 @@ namespace Discord.Rest
             => BaseDiscordClient.TokenType;
 
         /// <inheritdoc />
-        public event Func<ILogMessage, Task> Log
-        {
-            add
-            {
-                if (value is null)
-                    throw new ArgumentNullException(nameof(value));
-
-                if (_logHandlers.ContainsKey(value))
-                    throw new ArgumentException("This handler has already been attached");
-
-                var handler = new Func<LogMessage, Task>((logMessage) => value.Invoke(logMessage.Abstract()));
-                _logHandlers[value] = handler;
-
-                BaseDiscordClient.Log += handler;
-            }
-            remove
-            {
-                if (value is null)
-                    throw new ArgumentNullException(nameof(value));
-
-                if (!_logHandlers.TryGetValue(value, out var handler))
-                    throw new ArgumentException("This handler is not currently attached");
-
-                BaseDiscordClient.Log -= handler;
-
-                _logHandlers.Remove(value);
-            }
-        }
-        private Dictionary<Func<ILogMessage, Task>, Func<LogMessage, Task>> _logHandlers
-            = new Dictionary<Func<ILogMessage, Task>, Func<LogMessage, Task>>();
+        public event Func<ILogMessage, Task> Log;
 
         /// <inheritdoc />
         public event Func<Task> LoggedIn
