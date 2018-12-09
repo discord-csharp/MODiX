@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Discord;
@@ -110,7 +111,8 @@ namespace Modix.Modules
         public async Task Clean(
             [Summary("The number of messages to delete.")]
                 int count)
-            => await ModerationService.DeleteMessagesAsync(Context.Channel as ITextChannel, count + 1);
+            => await ModerationService.DeleteMessagesAsync(
+                Context.Channel as ITextChannel, count + 1, () => ConfirmCleanAsync(Context.User.Id, Context.Channel.Name, count));
 
         [Command("clean")]
         [Summary("Mass-deletes a specified number of messages.")]
@@ -119,8 +121,52 @@ namespace Modix.Modules
                 int count,
             [Summary("The channel to clean.")]
                 ITextChannel channel)
-            => await ModerationService.DeleteMessagesAsync(channel, count);
+            => await ModerationService.DeleteMessagesAsync(
+                channel, count, () => ConfirmCleanAsync(Context.User.Id, Context.Channel.Name, count));
 
         internal protected IModerationService ModerationService { get; }
+
+        private async Task<bool> ConfirmCleanAsync(ulong moderatorId, string channelName, int count)
+        {
+            var confirmEmote = new Emoji("✅");
+            var cancelEmote = new Emoji("❌");
+            const int secondsToWait = 10;
+
+            var cleanInfo = $"You are attempting to delete the past {count} messages in {channelName}.{Environment.NewLine}";
+
+            var confirmationMessage = await ReplyAsync(cleanInfo +
+                $"React with {confirmEmote} or {cancelEmote} in the next {secondsToWait} seconds to finalize or cancel the operation.");
+
+            await confirmationMessage.AddReactionAsync(confirmEmote);
+            await confirmationMessage.AddReactionAsync(cancelEmote);
+
+            for (var i = 0; i < secondsToWait; i++)
+            {
+                await Task.Delay(1000);
+
+                var cancelingUsers = await confirmationMessage.GetReactionUsersAsync(cancelEmote, int.MaxValue).FlattenAsync();
+                if (cancelingUsers.Any(u => u.Id == moderatorId))
+                {
+                    await RemoveReactionsAndUpdateMessage("Cancellation was successfully received. Cancelling deletion.");
+                    return false;
+                }
+
+                var confirmingUsers = await confirmationMessage.GetReactionUsersAsync(confirmEmote, int.MaxValue).FlattenAsync();
+                if (confirmingUsers.Any(u => u.Id == moderatorId))
+                {
+                    await RemoveReactionsAndUpdateMessage("Confirmation was succesfully received. Deleting messages.");
+                    return true;
+                }
+            }
+
+            await RemoveReactionsAndUpdateMessage("Confirmation was not received. Cancelling deletion.");
+            return false;
+
+            async Task RemoveReactionsAndUpdateMessage(string bottomMessage)
+            {
+                await confirmationMessage.RemoveAllReactionsAsync();
+                await confirmationMessage.ModifyAsync(m => m.Content = cleanInfo + bottomMessage);
+            }
+        }
     }
 }

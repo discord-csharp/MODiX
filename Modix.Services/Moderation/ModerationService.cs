@@ -98,8 +98,9 @@ namespace Modix.Services.Moderation
         /// </summary>
         /// <param name="channel">The channel in which the messages are to be deleted.</param>
         /// <param name="count">The number of messages to delete.</param>
+        /// <param name="confirmDelegate">A delegate that is invoked to confirm whether to proceed with the operation.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task DeleteMessagesAsync(ITextChannel channel, int count);
+        Task DeleteMessagesAsync(ITextChannel channel, int count, Func<Task<bool>> confirmDelegate);
 
         /// <summary>
         /// Retrieves a collection of infractions, based on a given set of criteria.
@@ -550,12 +551,22 @@ namespace Modix.Services.Moderation
         }
 
         /// <inheritdoc />
-        public async Task DeleteMessagesAsync(ITextChannel channel, int count)
+        public async Task DeleteMessagesAsync(ITextChannel channel, int count, Func<Task<bool>> confirmDelegate)
         {
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationMassDeleteMessages);
 
+            if (confirmDelegate is null)
+                throw new ArgumentNullException(nameof(confirmDelegate));
+
             if (!(channel is IGuildChannel guildChannel))
                 throw new InvalidOperationException($"Cannot delete messages in {channel.Name} because it is not a guild channel.");
+
+            var confirmed = await confirmDelegate();
+
+            if (!confirmed)
+            {
+                return;
+            }
 
             var clampedCount = Math.Clamp(count, 0, 100);
 
