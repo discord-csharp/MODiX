@@ -46,7 +46,7 @@ namespace Discord.Rest
 
             BaseDiscordClient = baseDiscordClient;
 
-            baseDiscordClient.Log += x => Log.InvokeAsync(x.Abstract());
+            baseDiscordClient.Log += x => Log?.InvokeAsync(x.Abstract());
         }
 
         /// <inheritdoc />

@@ -175,36 +175,36 @@ namespace Discord.WebSocket
         protected BaseSocketClientAbstraction(BaseSocketClient baseSocketClient)
             : base(baseSocketClient)
         {
-            baseSocketClient.ChannelCreated += x => ChannelCreated.InvokeAsync(x.Abstract());
-            baseSocketClient.ChannelDestroyed += x => ChannelDestroyed.InvokeAsync(x.Abstract());
-            baseSocketClient.ChannelUpdated += (x, y) => ChannelUpdated.InvokeAsync(x.Abstract(), y.Abstract());
-            baseSocketClient.CurrentUserUpdated += (x, y) => CurrentUserUpdated.InvokeAsync(x.Abstract(), y.Abstract());
-            baseSocketClient.GuildAvailable += x => GuildAvailable.InvokeAsync(x.Abstract());
-            baseSocketClient.GuildMembersDownloaded += x => GuildMembersDownloaded.InvokeAsync(x.Abstract());
-            baseSocketClient.GuildMemberUpdated += (x, y) => GuildMemberUpdated.InvokeAsync(x.Abstract(), y.Abstract());
-            baseSocketClient.GuildUnavailable += x => GuildUnavailable.InvokeAsync(x.Abstract());
-            baseSocketClient.GuildUpdated += (x, y) => GuildUpdated.InvokeAsync(x.Abstract(), y.Abstract());
-            baseSocketClient.JoinedGuild += x => JoinedGuild.InvokeAsync(x.Abstract());
-            baseSocketClient.LeftGuild += x => LeftGuild.InvokeAsync(x.Abstract());
-            baseSocketClient.MessageReceived += x => MessageReceived.InvokeAsync(x.Abstract());
-            baseSocketClient.MessageUpdated += (x, y, z) => MessageUpdated.InvokeAsync(x, y.Abstract(), z.Abstract());
-            baseSocketClient.MessageDeleted += (x, y) => MessageDeleted.InvokeAsync(x, y.Abstract());
-            baseSocketClient.ReactionAdded += (x, y, z) => ReactionAdded.InvokeAsync(x, y.Abstract(), z.Abstract());
-            baseSocketClient.ReactionRemoved += (x, y, z) => ReactionRemoved.InvokeAsync(x, y.Abstract(), z.Abstract());
-            baseSocketClient.ReactionsCleared += (x, y) => ReactionsCleared.InvokeAsync(x, y.Abstract());
-            baseSocketClient.RecipientAdded += x => RecipientAdded.InvokeAsync(x.Abstract());
-            baseSocketClient.RecipientRemoved += x => RecipientRemoved.InvokeAsync(x.Abstract());
-            baseSocketClient.RoleCreated += x => RoleCreated.InvokeAsync(x.Abstract());
-            baseSocketClient.RoleDeleted += x => RoleDeleted.InvokeAsync(x.Abstract());
-            baseSocketClient.RoleUpdated += (x, y) => RoleUpdated.InvokeAsync(x.Abstract(), y.Abstract());
-            baseSocketClient.UserBanned += (x, y) => UserBanned.InvokeAsync(x.Abstract(), y.Abstract());
-            baseSocketClient.UserIsTyping += (x, y) => UserIsTyping.InvokeAsync(x.Abstract(), y.Abstract());
-            baseSocketClient.UserJoined += x => UserJoined.InvokeAsync(x.Abstract());
-            baseSocketClient.UserLeft += x => UserLeft.InvokeAsync(x.Abstract());
-            baseSocketClient.UserUnbanned += (x, y) => UserUnbanned.InvokeAsync(x.Abstract(), y.Abstract());
-            baseSocketClient.UserUpdated += (x, y) => UserUpdated.InvokeAsync(x.Abstract(), y.Abstract());
-            baseSocketClient.UserVoiceStateUpdated += (x, y, z) => UserVoiceStateUpdated.InvokeAsync(x.Abstract(), y.Abstract(), z.Abstract());
-            baseSocketClient.VoiceServerUpdated += x => VoiceServerUpdated.InvokeAsync(x.Abstract());
+            baseSocketClient.ChannelCreated += x => ChannelCreated?.InvokeAsync(x.Abstract());
+            baseSocketClient.ChannelDestroyed += x => ChannelDestroyed?.InvokeAsync(x.Abstract());
+            baseSocketClient.ChannelUpdated += (x, y) => ChannelUpdated?.InvokeAsync(x.Abstract(), y.Abstract());
+            baseSocketClient.CurrentUserUpdated += (x, y) => CurrentUserUpdated?.InvokeAsync(x.Abstract(), y.Abstract());
+            baseSocketClient.GuildAvailable += x => GuildAvailable?.InvokeAsync(x.Abstract());
+            baseSocketClient.GuildMembersDownloaded += x => GuildMembersDownloaded?.InvokeAsync(x.Abstract());
+            baseSocketClient.GuildMemberUpdated += (x, y) => GuildMemberUpdated?.InvokeAsync(x.Abstract(), y.Abstract());
+            baseSocketClient.GuildUnavailable += x => GuildUnavailable?.InvokeAsync(x.Abstract());
+            baseSocketClient.GuildUpdated += (x, y) => GuildUpdated?.InvokeAsync(x.Abstract(), y.Abstract());
+            baseSocketClient.JoinedGuild += x => JoinedGuild?.InvokeAsync(x.Abstract());
+            baseSocketClient.LeftGuild += x => LeftGuild?.InvokeAsync(x.Abstract());
+            baseSocketClient.MessageReceived += x => MessageReceived?.InvokeAsync(x.Abstract());
+            baseSocketClient.MessageUpdated += (x, y, z) => MessageUpdated?.InvokeAsync(x, y.Abstract(), z.Abstract());
+            baseSocketClient.MessageDeleted += (x, y) => MessageDeleted?.InvokeAsync(x, y.Abstract());
+            baseSocketClient.ReactionAdded += (x, y, z) => ReactionAdded?.InvokeAsync(x, y.Abstract(), z.Abstract());
+            baseSocketClient.ReactionRemoved += (x, y, z) => ReactionRemoved?.InvokeAsync(x, y.Abstract(), z.Abstract());
+            baseSocketClient.ReactionsCleared += (x, y) => ReactionsCleared?.InvokeAsync(x, y.Abstract());
+            baseSocketClient.RecipientAdded += x => RecipientAdded?.InvokeAsync(x.Abstract());
+            baseSocketClient.RecipientRemoved += x => RecipientRemoved?.InvokeAsync(x.Abstract());
+            baseSocketClient.RoleCreated += x => RoleCreated?.InvokeAsync(x.Abstract());
+            baseSocketClient.RoleDeleted += x => RoleDeleted?.InvokeAsync(x.Abstract());
+            baseSocketClient.RoleUpdated += (x, y) => RoleUpdated?.InvokeAsync(x.Abstract(), y.Abstract());
+            baseSocketClient.UserBanned += (x, y) => UserBanned?.InvokeAsync(x.Abstract(), y.Abstract());
+            baseSocketClient.UserIsTyping += (x, y) => UserIsTyping?.InvokeAsync(x.Abstract(), y.Abstract());
+            baseSocketClient.UserJoined += x => UserJoined?.InvokeAsync(x.Abstract());
+            baseSocketClient.UserLeft += x => UserLeft?.InvokeAsync(x.Abstract());
+            baseSocketClient.UserUnbanned += (x, y) => UserUnbanned?.InvokeAsync(x.Abstract(), y.Abstract());
+            baseSocketClient.UserUpdated += (x, y) => UserUpdated?.InvokeAsync(x.Abstract(), y.Abstract());
+            baseSocketClient.UserVoiceStateUpdated += (x, y, z) => UserVoiceStateUpdated?.InvokeAsync(x.Abstract(), y.Abstract(), z.Abstract());
+            baseSocketClient.VoiceServerUpdated += x => VoiceServerUpdated?.InvokeAsync(x.Abstract());
         }
 
         /// <inheritdoc />
