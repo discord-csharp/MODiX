@@ -25,10 +25,6 @@ namespace Discord.WebSocket
         public SocketUserAbstraction(SocketUser socketUser)
         {
             SocketUser = socketUser ?? throw new ArgumentNullException(nameof(socketUser));
-
-            MutualGuilds = socketUser.MutualGuilds
-                .Select(x => x.Abstract())
-                .ToArray();
         }
 
         /// <inheritdoc />
@@ -76,7 +72,10 @@ namespace Discord.WebSocket
             => SocketUser.Status;
 
         /// <inheritdoc />
-        public IReadOnlyCollection<ISocketGuild> MutualGuilds { get; }
+        public IReadOnlyCollection<ISocketGuild> MutualGuilds
+            => SocketUser.MutualGuilds
+                .Select(x => x.Abstract())
+                .ToArray();
 
         /// <inheritdoc />
         public string GetAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
