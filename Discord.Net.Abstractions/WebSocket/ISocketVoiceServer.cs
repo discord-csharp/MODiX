@@ -27,10 +27,7 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="socketVoiceServer"/>.</exception>
         public SocketVoiceServerAbstraction(SocketVoiceServer socketVoiceServer)
         {
-            if (socketVoiceServer is null)
-                throw new ArgumentNullException(nameof(socketVoiceServer));
-
-            SocketVoiceServer = socketVoiceServer;
+            SocketVoiceServer = socketVoiceServer ?? throw new ArgumentNullException(nameof(socketVoiceServer));
         }
 
         /// <inheritdoc />

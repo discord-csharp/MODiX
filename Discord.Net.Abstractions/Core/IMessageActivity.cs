@@ -24,10 +24,7 @@ namespace Discord
         /// <exception cref="ArgumentNullException">Throws for <paramref name="messageActivity"/>.</exception>
         public MessageActivityAbstraction(MessageActivity messageActivity)
         {
-            if (messageActivity is null)
-                throw new ArgumentNullException(nameof(messageActivity));
-
-            MessageActivity = messageActivity;
+            MessageActivity = messageActivity ?? throw new ArgumentNullException(nameof(messageActivity));
         }
 
         /// <inheritdoc />

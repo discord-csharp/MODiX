@@ -27,10 +27,7 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="socketChannel"/>.</exception>
         public SocketChannelAbstraction(SocketChannel socketChannel)
         {
-            if (socketChannel is null)
-                throw new ArgumentNullException(nameof(socketChannel));
-
-            SocketChannel = socketChannel;
+            SocketChannel = socketChannel ?? throw new ArgumentNullException(nameof(socketChannel));
         }
 
         /// <inheritdoc />

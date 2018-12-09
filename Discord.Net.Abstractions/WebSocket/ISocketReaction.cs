@@ -33,10 +33,7 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="socketReaction"/>.</exception>
         public SocketReactionAbstraction(SocketReaction socketReaction)
         {
-            if (socketReaction is null)
-                throw new ArgumentNullException(nameof(socketReaction));
-
-            SocketReaction = socketReaction;
+            SocketReaction = socketReaction ?? throw new ArgumentNullException(nameof(socketReaction));
         }
 
         /// <inheritdoc />

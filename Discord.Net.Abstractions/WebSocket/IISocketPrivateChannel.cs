@@ -24,10 +24,7 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="iSocketPrivateChannel"/>.</exception>
         public ISocketPrivateChannelAbstraction(ISocketPrivateChannel iSocketPrivateChannel)
         {
-            if (iSocketPrivateChannel is null)
-                throw new ArgumentNullException(nameof(iSocketPrivateChannel));
-
-            ISocketPrivateChannel = iSocketPrivateChannel;
+            ISocketPrivateChannel = iSocketPrivateChannel ?? throw new ArgumentNullException(nameof(iSocketPrivateChannel));
         }
 
         /// <inheritdoc />

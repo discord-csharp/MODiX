@@ -17,10 +17,7 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restAuditLogEntry"/>.</exception>
         public RestAuditLogEntryAbstraction(RestAuditLogEntry restAuditLogEntry)
         {
-            if (restAuditLogEntry is null)
-                throw new ArgumentNullException(nameof(restAuditLogEntry));
-
-            RestAuditLogEntry = restAuditLogEntry;
+            RestAuditLogEntry = restAuditLogEntry ?? throw new ArgumentNullException(nameof(restAuditLogEntry));
         }
 
         /// <inheritdoc />

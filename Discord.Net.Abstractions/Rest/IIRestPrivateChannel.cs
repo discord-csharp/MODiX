@@ -24,10 +24,7 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="iRestPrivateChannel"/>.</exception>
         public IRestPrivateChannelAbstraction(IRestPrivateChannel iRestPrivateChannel)
         {
-            if (iRestPrivateChannel is null)
-                throw new ArgumentNullException(nameof(iRestPrivateChannel));
-
-            IRestPrivateChannel = iRestPrivateChannel;
+            IRestPrivateChannel = iRestPrivateChannel ?? throw new ArgumentNullException(nameof(iRestPrivateChannel));
         }
 
         /// <inheritdoc />

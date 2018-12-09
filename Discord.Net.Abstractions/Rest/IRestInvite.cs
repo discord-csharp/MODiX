@@ -18,10 +18,7 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restInvite"/>.</exception>
         public RestInviteAbstraction(RestInvite restInvite)
         {
-            if (restInvite is null)
-                throw new ArgumentNullException(nameof(restInvite));
-
-            RestInvite = restInvite;
+            RestInvite = restInvite ?? throw new ArgumentNullException(nameof(restInvite));
         }
 
         /// <inheritdoc />

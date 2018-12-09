@@ -144,10 +144,7 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restGuild"/>.</exception>
         public RestGuildAbstraction(RestGuild restGuild)
         {
-            if (restGuild is null)
-                throw new ArgumentNullException(nameof(restGuild));
-
-            RestGuild = restGuild;
+            RestGuild = restGuild ?? throw new ArgumentNullException(nameof(restGuild));
         }
 
         /// <inheritdoc />

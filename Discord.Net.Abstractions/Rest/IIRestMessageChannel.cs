@@ -46,10 +46,7 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="iRestMessageChannel"/>.</exception>
         public IRestMessageChannelAbstraction(IRestMessageChannel iRestMessageChannel)
         {
-            if (iRestMessageChannel is null)
-                throw new ArgumentNullException(nameof(iRestMessageChannel));
-
-            IRestMessageChannel = iRestMessageChannel;
+            IRestMessageChannel = iRestMessageChannel ?? throw new ArgumentNullException(nameof(iRestMessageChannel));
         }
 
         /// <inheritdoc />

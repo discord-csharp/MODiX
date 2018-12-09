@@ -161,10 +161,7 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="socketGuild"/>.</exception>
         public SocketGuildAbstraction(SocketGuild socketGuild)
         {
-            if (socketGuild is null)
-                throw new ArgumentNullException(nameof(socketGuild));
-
-            SocketGuild = socketGuild;
+            SocketGuild = socketGuild ?? throw new ArgumentNullException(nameof(socketGuild));
         }
 
         /// <inheritdoc />

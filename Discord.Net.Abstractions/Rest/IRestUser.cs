@@ -22,10 +22,7 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restUser"/>.</exception>
         public RestUserAbstraction(RestUser restUser)
         {
-            if (restUser is null)
-                throw new ArgumentNullException(nameof(restUser));
-
-            RestUser = restUser;
+            RestUser = restUser ?? throw new ArgumentNullException(nameof(restUser));
         }
 
         /// <inheritdoc />

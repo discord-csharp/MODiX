@@ -19,10 +19,7 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restChannel"/>.</exception>
         public RestChannelAbstraction(RestChannel restChannel)
         {
-            if (restChannel is null)
-                throw new ArgumentNullException(nameof(restChannel));
-
-            RestChannel = restChannel;
+            RestChannel = restChannel ?? throw new ArgumentNullException(nameof(restChannel));
         }
 
         /// <inheritdoc />

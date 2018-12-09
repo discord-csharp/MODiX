@@ -24,10 +24,7 @@ namespace Discord
         /// <exception cref="ArgumentNullException">Throws for <paramref name="emote"/>.</exception>
         public EmoteAbstraction(Emote emote)
         {
-            if (emote is null)
-                throw new ArgumentNullException(nameof(emote));
-
-            Emote = emote;
+            Emote = emote ?? throw new ArgumentNullException(nameof(emote));
         }
 
         /// <inheritdoc />

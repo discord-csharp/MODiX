@@ -18,10 +18,7 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restWebhook"/>.</exception>
         public RestWebhookAbstraction(RestWebhook restWebhook)
         {
-            if (restWebhook is null)
-                throw new ArgumentNullException(nameof(restWebhook));
-
-            RestWebhook = restWebhook;
+            RestWebhook = restWebhook ?? throw new ArgumentNullException(nameof(restWebhook));
         }
 
         /// <inheritdoc />

@@ -22,10 +22,7 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restApplication"/>.</exception>
         public RestApplicationAbstraction(RestApplication restApplication)
         {
-            if (restApplication is null)
-                throw new ArgumentNullException(nameof(restApplication));
-
-            RestApplication = restApplication;
+            RestApplication = restApplication ?? throw new ArgumentNullException(nameof(restApplication));
         }
 
         /// <inheritdoc />

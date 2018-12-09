@@ -34,10 +34,7 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restGuildIntegration"/>.</exception>
         public RestGuildIntegrationAbstraction(RestGuildIntegration restGuildIntegration)
         {
-            if (restGuildIntegration is null)
-                throw new ArgumentNullException(nameof(restGuildIntegration));
-
-            RestGuildIntegration = restGuildIntegration;
+            RestGuildIntegration = restGuildIntegration ?? throw new ArgumentNullException(nameof(restGuildIntegration));
         }
 
         /// <inheritdoc />

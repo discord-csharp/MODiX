@@ -36,10 +36,7 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="socketMessage"/>.</exception>
         protected SocketMessageAbstraction(SocketMessage socketMessage)
         {
-            if (socketMessage is null)
-                throw new ArgumentNullException(nameof(socketMessage));
-
-            SocketMessage = socketMessage;
+            SocketMessage = socketMessage ?? throw new ArgumentNullException(nameof(socketMessage));
         }
 
         /// <inheritdoc />

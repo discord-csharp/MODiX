@@ -51,10 +51,7 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="iSocketMessageChannel"/>.</exception>
         public ISocketMessageChannelAbstraction(ISocketMessageChannel iSocketMessageChannel)
         {
-            if (iSocketMessageChannel is null)
-                throw new ArgumentNullException(nameof(iSocketMessageChannel));
-
-            ISocketMessageChannel = iSocketMessageChannel;
+            ISocketMessageChannel = iSocketMessageChannel ?? throw new ArgumentNullException(nameof(iSocketMessageChannel));
         }
 
         /// <inheritdoc />

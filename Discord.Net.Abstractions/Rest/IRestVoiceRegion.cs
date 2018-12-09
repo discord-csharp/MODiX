@@ -17,10 +17,7 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restVoiceRegion"/>.</exception>
         public RestVoiceRegionAbstraction(RestVoiceRegion restVoiceRegion)
         {
-            if (restVoiceRegion is null)
-                throw new ArgumentNullException(nameof(restVoiceRegion));
-
-            RestVoiceRegion = restVoiceRegion;
+            RestVoiceRegion = restVoiceRegion ?? throw new ArgumentNullException(nameof(restVoiceRegion));
         }
 
         /// <inheritdoc />

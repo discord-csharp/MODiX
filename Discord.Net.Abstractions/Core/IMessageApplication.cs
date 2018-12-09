@@ -36,10 +36,7 @@ namespace Discord
         /// <exception cref="ArgumentNullException">Throws for <paramref name="messageApplication"/>.</exception>
         public MessageApplicationAbstraction(MessageApplication messageApplication)
         {
-            if (messageApplication is null)
-                throw new ArgumentNullException(nameof(messageApplication));
-
-            MessageApplication = messageApplication;
+            MessageApplication = messageApplication ?? throw new ArgumentNullException(nameof(messageApplication));
         }
 
         /// <inheritdoc />

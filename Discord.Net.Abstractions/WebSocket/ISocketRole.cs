@@ -30,10 +30,7 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="socketRole"/>.</exception>
         public SocketRoleAbstraction(SocketRole socketRole)
         {
-            if (socketRole is null)
-                throw new ArgumentNullException(nameof(socketRole));
-
-            SocketRole = socketRole;
+            SocketRole = socketRole ?? throw new ArgumentNullException(nameof(socketRole));
         }
 
         /// <inheritdoc />

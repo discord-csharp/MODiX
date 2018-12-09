@@ -41,10 +41,7 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="baseDiscordClient"/>.</exception>
         protected BaseDiscordClientAbstraction(BaseDiscordClient baseDiscordClient)
         {
-            if (baseDiscordClient is null)
-                throw new ArgumentNullException(nameof(baseDiscordClient));
-
-            BaseDiscordClient = baseDiscordClient;
+            BaseDiscordClient = baseDiscordClient ?? throw new ArgumentNullException(nameof(baseDiscordClient));
 
             baseDiscordClient.Log += x => Log?.InvokeAsync(x.Abstract());
         }

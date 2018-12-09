@@ -24,8 +24,7 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="socketUser"/>.</exception>
         public SocketUserAbstraction(SocketUser socketUser)
         {
-            if (socketUser is null)
-                throw new ArgumentNullException(nameof(socketUser));
+            SocketUser = socketUser ?? throw new ArgumentNullException(nameof(socketUser));
 
             MutualGuilds = socketUser.MutualGuilds
                 .Select(x => x.Abstract())

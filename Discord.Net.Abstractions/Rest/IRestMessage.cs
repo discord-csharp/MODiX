@@ -36,10 +36,7 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restMessage"/>.</exception>
         protected RestMessageAbstraction(RestMessage restMessage)
         {
-            if (restMessage is null)
-                throw new ArgumentNullException(nameof(restMessage));
-
-            RestMessage = restMessage;
+            RestMessage = restMessage ?? throw new ArgumentNullException(nameof(restMessage));
         }
 
         /// <inheritdoc />

@@ -22,10 +22,7 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restRole"/>.</exception>
         public RestRoleAbstraction(RestRole restRole)
         {
-            if (restRole is null)
-                throw new ArgumentNullException(nameof(restRole));
-
-            RestRole = restRole;
+            RestRole = restRole ?? throw new ArgumentNullException(nameof(restRole));
         }
 
         /// <inheritdoc />
