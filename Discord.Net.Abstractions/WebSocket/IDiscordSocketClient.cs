@@ -109,6 +109,3 @@ namespace Discord.WebSocket
             => new DiscordSocketClientAbstraction(discordSocketClient);
     }
 }
-
-
-
