@@ -140,7 +140,7 @@ dotnet_naming_style.pascal_case_style.capitalization = pascal_case
 [*.cs]
 
 # Modifier settings
-csharp_preferred_modifier_order = public,private,internal,protected,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
+csharp_preferred_modifier_order = new,public,private,internal,protected,static,extern,virtual,abstract,sealed,override,readonly,unsafe,volatile,async:suggestion
 
 # Newline settings
 csharp_new_line_before_open_brace = all
