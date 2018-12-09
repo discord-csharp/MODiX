@@ -28,8 +28,7 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public IReadOnlyDictionary<IEmote, IReactionMetadata> Reactions
             => SocketUserMessage.Reactions
-                .Select(x => (x.Key, Value: x.Value.Abstract()))
-                .ToDictionary(x => x.Key, x => x.Value);
+                .ToDictionary(x => x.Key, x => x.Value.Abstract());
 
         /// <inheritdoc />
         IReadOnlyDictionary<IEmote, ReactionMetadata> IUserMessage.Reactions

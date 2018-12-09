@@ -28,8 +28,7 @@ namespace Discord.Rest
         /// <inheritdoc />
         public IReadOnlyDictionary<IEmote, IReactionMetadata> Reactions
             => RestUserMessage.Reactions
-                .Select(x => (x.Key, Value: x.Value.Abstract()))
-                .ToDictionary(x => x.Key, x => x.Value);
+                .ToDictionary(x => x.Key, x => x.Value.Abstract());
 
         /// <inheritdoc />
         IReadOnlyDictionary<IEmote, ReactionMetadata> IUserMessage.Reactions
