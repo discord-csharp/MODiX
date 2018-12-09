@@ -43,7 +43,7 @@ namespace Discord
 
         /// <inheritdoc cref="GuildEmote.ToString" />
         public override string ToString()
-            => Emote.ToString();
+            => GuildEmote.ToString();
 
         /// <summary>
         /// The existing <see cref="Discord.GuildEmote"/> being abstracted.
