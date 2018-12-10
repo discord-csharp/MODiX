@@ -15,7 +15,7 @@ using Humanizer;
 using Humanizer.Localisation;
 
 using Modix.Data.Models.Moderation;
-using Modix.Services.AutoCodePaste;
+using Modix.Services.CodePaste;
 using Modix.Services.Utilities.ColorQuantization;
 
 namespace Modix.Services.Utilities

@@ -2,7 +2,7 @@
 using Discord.WebSocket;
 using Humanizer;
 using Modix.Data.Models.Core;
-using Modix.Services.AutoCodePaste;
+using Modix.Services.CodePaste;
 using Modix.Services.Core;
 using System;
 using System.Collections.Generic;

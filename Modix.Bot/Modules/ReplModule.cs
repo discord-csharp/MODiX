@@ -10,8 +10,8 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Options;
 using Modix.Data.Models.Core;
-using Modix.Services.AutoCodePaste;
 using Modix.Services.AutoRemoveMessage;
+using Modix.Services.CodePaste;
 using Modix.Services.Utilities;
 using Newtonsoft.Json;
 

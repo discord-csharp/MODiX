@@ -4,10 +4,11 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
-using Modix.Services.Messages.Discord;
 
-namespace Modix.Services.AutoCodePaste
+using Modix.Common.Messaging;
+using Modix.Services.CodePaste;
+
+namespace Modix.Bot.Behaviors
 {
     internal enum ReactionState
     {
@@ -19,11 +20,11 @@ namespace Modix.Services.AutoCodePaste
     /// Allows authorized users to react to a message with a tl;dr emote to re-upload a message
     /// to a code sharing service.
     /// </summary>
-    public class CodePasteHandler :
-        INotificationHandler<ReactionAdded>,
-        INotificationHandler<ReactionRemoved>
+    public class AutoCodePasteBehavior :
+        INotificationHandler<ReactionAddedNotification>,
+        INotificationHandler<ReactionRemovedNotification>
     {
-        public CodePasteHandler(CodePasteService service)
+        public AutoCodePasteBehavior(CodePasteService service)
         {
             _service = service;
         }
@@ -31,7 +32,7 @@ namespace Modix.Services.AutoCodePaste
         private readonly Dictionary<ulong, int> _repasteRatings = new Dictionary<ulong, int>();
         private readonly CodePasteService _service;
 
-        private async Task ModifyRatings(Cacheable<IUserMessage, ulong> cachedMessage, SocketReaction reaction, ReactionState state)
+        private async Task ModifyRatings(ICacheable<IUserMessage, ulong> cachedMessage, ISocketReaction reaction, ReactionState state)
         {
             if (reaction.Emote.Name != "tldr")
             {
@@ -45,9 +46,9 @@ namespace Modix.Services.AutoCodePaste
                 return;
             }
 
-            var roles = (reaction.User.GetValueOrDefault() as SocketGuildUser)?.Roles;
+            var roleIds = (reaction.User.GetValueOrDefault() as IGuildUser)?.RoleIds;
 
-            if (roles == null)
+            if (roleIds == null)
             {
                 return;
             }
@@ -56,7 +57,7 @@ namespace Modix.Services.AutoCodePaste
 
             var modifier = state == ReactionState.Added ? 1 : -1;
 
-            if (roles.Count > 1)
+            if (roleIds.Count > 1)
             {
                 currentRating += 2 * modifier;
             }
@@ -74,10 +75,10 @@ namespace Modix.Services.AutoCodePaste
             }
         }
 
-        public Task Handle(ReactionAdded notification, CancellationToken cancellationToken)
+        public Task HandleNotificationAsync(ReactionAddedNotification notification, CancellationToken cancellationToken)
             => ModifyRatings(notification.Message, notification.Reaction, ReactionState.Added);
 
-        public Task Handle(ReactionRemoved notification, CancellationToken cancellationToken)
+        public Task HandleNotificationAsync(ReactionRemovedNotification notification, CancellationToken cancellationToken)
             => ModifyRatings(notification.Message, notification.Reaction, ReactionState.Removed);
 
         private async Task UploadMessage(IUserMessage arg)

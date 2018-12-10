@@ -27,6 +27,8 @@ namespace Modix.Services.Messaging
         {
             DiscordSocketClient.MessageReceived += OnMessageReceivedAsync;
             DiscordSocketClient.MessageUpdated += OnMessageUpdatedAsync;
+            DiscordSocketClient.ReactionAdded += OnReactionAddedAsync;
+            DiscordSocketClient.ReactionRemoved += OnReactionRemovedAsync;
 
             return Task.CompletedTask;
         }
@@ -36,6 +38,8 @@ namespace Modix.Services.Messaging
         {
             DiscordSocketClient.MessageReceived -= OnMessageReceivedAsync;
             DiscordSocketClient.MessageUpdated -= OnMessageUpdatedAsync;
+            DiscordSocketClient.ReactionAdded -= OnReactionAddedAsync;
+            DiscordSocketClient.ReactionRemoved -= OnReactionRemovedAsync;
 
             return Task.CompletedTask;
         }
@@ -60,6 +64,20 @@ namespace Modix.Services.Messaging
         private Task OnMessageUpdatedAsync(ICacheable<IMessage, ulong> oldMessage, ISocketMessage newMessage, IISocketMessageChannel channel)
         {
             MessageDispatcher.Dispatch(new MessageUpdatedNotification(oldMessage, newMessage, channel));
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnReactionAddedAsync(ICacheable<IUserMessage, ulong> message, IISocketMessageChannel channel, ISocketReaction reaction)
+        {
+            MessageDispatcher.Dispatch(new ReactionAddedNotification(message, channel, reaction));
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnReactionRemovedAsync(ICacheable<IUserMessage, ulong> message, IISocketMessageChannel channel, ISocketReaction reaction)
+        {
+            MessageDispatcher.Dispatch(new ReactionRemovedNotification(message, channel, reaction));
 
             return Task.CompletedTask;
         }

@@ -6,7 +6,7 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Modix.Services.AutoCodePaste
+namespace Modix.Services.CodePaste
 {
     public class CodePasteService
     {

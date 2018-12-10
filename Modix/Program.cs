@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Data.Models.Core;
-using Modix.Services.AutoCodePaste;
+using Modix.Services.CodePaste;
 using Modix.Services.Utilities;
 using Serilog;
 using Serilog.Events;

@@ -5,7 +5,7 @@ using Serilog.Events;
 using Serilog.Configuration;
 using Discord.Webhook;
 using Discord;
-using Modix.Services.AutoCodePaste;
+using Modix.Services.CodePaste;
 using Newtonsoft.Json;
 
 namespace Modix.Services.Utilities

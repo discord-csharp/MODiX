@@ -14,7 +14,7 @@ using Modix.Auth;
 using Modix.Configuration;
 using Modix.Data;
 using Modix.Data.Models.Core;
-using Modix.Services.AutoCodePaste;
+using Modix.Services.CodePaste;
 using Newtonsoft.Json.Converters;
 using Serilog;
 
