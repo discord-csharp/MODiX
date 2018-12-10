@@ -60,7 +60,7 @@ namespace Modix.Controllers
                     }),
             };
 
-            return Ok(result);
+            return Ok(mapped);
         }
     }
 }

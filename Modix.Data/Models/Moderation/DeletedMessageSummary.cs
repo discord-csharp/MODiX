@@ -58,6 +58,11 @@ namespace Modix.Data.Models.Moderation
         public long? BatchId { get; set; }
 
         /// <summary>
+        /// See <see cref="DeletedMessageEntity.Batch"/>.
+        /// </summary>
+        public DeletedMessageBatchBrief Batch {get;set;}
+
+        /// <summary>
         /// Defines the sortable properties of a <see cref="DeletedMessageSummary"/>
         /// by defining the <see cref="SortingCriteria.PropertyName"/> values that are legal for use with <see cref="DeletedMessageSummary"/> records.
         /// </summary>
@@ -96,8 +101,12 @@ namespace Modix.Data.Models.Moderation
                 GuildId = entity.GuildId,
                 Channel = entity.Channel.Project(GuildChannelBrief.FromEntityProjection),
                 Author = entity.Author.Project(GuildUserBrief.FromEntityProjection),
-                Created = entity.CreateAction.Created,
-                CreatedBy = entity.CreateAction.CreatedBy.Project(GuildUserBrief.FromEntityProjection),
+                Created = entity.BatchId == null
+                    ? entity.CreateAction.Created
+                    : entity.Batch.CreateAction.Created,
+                CreatedBy = entity.BatchId == null
+                    ? entity.CreateAction.CreatedBy.Project(GuildUserBrief.FromEntityProjection)
+                    : entity.Batch.CreateAction.CreatedBy.Project(GuildUserBrief.FromEntityProjection),
                 Content = entity.Content,
                 Reason = entity.Reason,
                 BatchId = entity.BatchId,

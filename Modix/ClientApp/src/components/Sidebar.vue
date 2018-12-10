@@ -3,9 +3,8 @@
         <section class="section">
             <div class="container">
                 <div class="columns">
-
                     <div class="column is-one-fifth">
-                        <aside class="menu">
+                        <div class="menu">
 
                             <div>
                                 <p class="menu-label">{{title}}</p>
@@ -21,7 +20,7 @@
                                 </ul>
                             </div>
 
-                        </aside>
+                        </div>
                     </div>
 
                     <div class="column">

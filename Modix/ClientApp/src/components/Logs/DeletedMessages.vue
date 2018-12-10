@@ -9,16 +9,13 @@
                     </div>
                 </div>
 
-                <VueGoodTable v-bind:columns="mappedColumns" v-bind:rows="mappedRows" v-bind:sortOptions="sortOptions"
-                    v-bind:paginationOptions="paginationOptions" styleClass="vgt-table condensed bordered striped">
+                <VueGoodTable v-bind:columns="mappedColumns" v-bind:rows="recordsPage.records" v-bind:sortOptions="sortOptions"
+                              v-bind:paginationOptions="paginationOptions" styleClass="vgt-table condensed bordered striped">
 
                     <template slot="table-row" slot-scope="props">
-                        <span v-if="props.column.field == 'type'">
-                            <span v-bind:title="props.formattedRow[props.column.field]" class="typeCell"
-                                v-html="emojiFor(props.formattedRow[props.column.field]) + ' ' + props.formattedRow[props.column.field]">
-                            </span>
-                        </span>
-                        <span v-else-if="props.column.field == 'reason'" v-html="props.formattedRow[props.column.field]">
+                        <span v-if="props.column.html" v-html="props.formattedRow[props.column.field]" />
+                        <span v-else-if="props.column.field == 'channel'">
+                            #{{props.formattedRow[props.column.field]}}
                         </span>
                         <span v-else>
                             {{props.formattedRow[props.column.field]}}
@@ -28,8 +25,6 @@
                 </VueGoodTable>
             </div>
         </section>
-
-        
     </div>
 </template>
 
@@ -120,6 +115,9 @@ import InfractionSummary from '@/models/infractions/InfractionSummary';
 import {config, setConfig} from '@/models/PersistentConfig';
 import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
 import GuildInfoResult from '@/models/GuildInfoResult';
+import RecordsPage from '@/models/RecordsPage';
+import DeletedMessage from '@/models/log/DeletedMessage';
+import LogService from '@/services/LogService';
 
 const messageResolvingRegex = /<#(\d+)>/gm;
 
@@ -132,11 +130,6 @@ const messageResolvingRegex = /<#(\d+)>/gm;
 })
 export default class DeletedMessages extends Vue
 {
-    get infractionTypes(): string[] 
-    {
-        return Object.keys(InfractionType).map(c => InfractionType[<any>c]);
-    }
-
     paginationOptions: any = 
     {
         enabled: true,
@@ -160,30 +153,6 @@ export default class DeletedMessages extends Vue
 
     channelCache: {[channel: string]: DesignatedChannelMapping} | null = null;
 
-    get fileInput(): HTMLInputElement
-    {
-        return <HTMLInputElement>this.$refs.fileInput;
-    }
-
-    async uploadFile()
-    {
-        let formData = new FormData();
-        formData.append("file", this.fileInput.files![0]);
-
-        if (formData)
-        {
-            try
-            {
-                let result = await GeneralService.uploadRowboatJson(formData);
-                this.message = `${result} rows imported`;
-            }
-            catch (err)
-            {
-                this.loadError = err;
-            }
-        }
-    }
-
     resolveMentions(description: string)
     {
         let replaced = description;
@@ -206,39 +175,6 @@ export default class DeletedMessages extends Vue
         return `<span class='pre'>${replaced}</span>`;
     }
 
-    fileChange(input: HTMLInputElement)
-    {
-        let files = input.files;
-        if (!files || files.length == 0) { return; }
-
-        let reader = new FileReader();
-
-        reader.onloadend = () =>
-        {
-            try
-            {
-                let data = JSON.parse(<string>reader.result);
-                
-                if (!Array.isArray(data))
-                {
-                    throw Error("JSON was not valid - should be an array of Rowboat infractions.");
-                }
-                
-                this.loadError = null;
-                this.message = `${data.length} infractions found. Ready to import.`;
-            }
-            catch (err)
-            {
-                console.log(err);
-
-                this.loadError = err;
-                this.message = null;
-            }
-        };
-
-        reader.readAsText(files[0]);
-    }
-
     staticFilters: {[field: string]: string} = {subject: "", creator: "", id: ""};
 
     get mappedColumns(): Array<any>
@@ -248,6 +184,7 @@ export default class DeletedMessages extends Vue
                 label: 'Channel',
                 field: 'channel',
                 sortFn: (x: string, y: string) => (x < y ? -1 : (x > y ? 1 : 0)),
+                width: '60px',
                 filterOptions:
                 {
                     enabled: true,
@@ -259,6 +196,7 @@ export default class DeletedMessages extends Vue
                 label: 'Author',
                 field: 'author',
                 sortFn: (x: string, y: string) => (x.toLowerCase() < y.toLowerCase() ? -1 : (x.toLowerCase() > y.toLowerCase() ? 1 : 0)),
+                width: '60px',
                 filterOptions:
                 {
                     enabled: true,
@@ -271,11 +209,12 @@ export default class DeletedMessages extends Vue
                 type: 'date',
                 dateInputFormat: 'YYYY-MM-DDTHH:mm:ss',
                 dateOutputFormat: 'MM/DD/YY, h:mm:ss a',
-                width: '160px'
+                width: '120px'
             },
             {
                 label: 'Deleted By',
                 field: 'createdBy',
+                width: '60px',
                 filterOptions:
                 {
                     enabled: true,
@@ -286,86 +225,32 @@ export default class DeletedMessages extends Vue
                 label: 'Content',
                 field: 'content',
                 formatFn: this.resolveMentions,
-                html: true
+                html: true,
+                width: '240px',
             },
             {
                 label: 'Reason',
                 field: 'reason',
                 formatFn: this.resolveMentions,
-                html: true
+                html: true,
+                width: '240px',
             },
             {
                 label: 'Batch ID',
-                field: 'batchId'
+                field: 'batchId',
+                type: 'number',
+                width: '60px',
             }
         ];
-    }
-
-    get filteredInfractions(): InfractionSummary[]
-    {
-        return _.filter(this.$store.state.modix.infractions, (infraction: InfractionSummary) =>
-        {
-            if (infraction.rescindAction != null)
-            {
-                return this.showState;
-            }
-
-            if (infraction.deleteAction != null)
-            {
-                return this.showDeleted;
-            }
-            
-            return true;
-        });
-    }
-
-    emojiFor(infractionType: InfractionType): string
-    {
-        switch (infractionType)
-        {
-            case "Notice":
-                return "&#128221;";
-            case "Warning":
-                return "&#9888;";
-            case "Mute":
-                return "&#128263;";
-            case "Ban":
-                return "&#128296;";
-            default:
-                return infractionType;
-        }
-    }
-
-    get rowboatDownloadUrl()
-    {
-        return `https://dashboard.rowboat.party/api/guilds/${this.importGuildId}/infractions`;
-    }
-
-    get mappedRows(): any[]
-    {
-        return _.map(this.filteredInfractions, infraction => 
-        ({
-            id: infraction.id,
-            subject: infraction.subject,
-            creator: infraction.createAction.createdBy,
-            date: infraction.createAction.created,
-            type: infraction.type,
-            reason: infraction.reason,
-
-            state: infraction.rescindAction != null ? "Rescinded"
-                   : infraction.deleteAction != null ? "Deleted"
-                       : "Active"
-        }));
     }
 
     async refresh()
     {
         this.isLoading = true;
 
-        store.clearInfractionData();
-        await store.retrieveInfractions();
-        await store.retrieveChannels();
+        this.recordsPage = await LogService.getDeletedMessages(10, 0);
 
+        await store.retrieveChannels();
         this.channelCache = _.keyBy(this.$store.state.modix.channels, channel => channel.id);
 
         this.isLoading = false;
@@ -388,13 +273,11 @@ export default class DeletedMessages extends Vue
         console.log(this.mappedColumns);
     }
 
+    recordsPage: RecordsPage<DeletedMessage> = new RecordsPage<DeletedMessage>();
+
     async created()
     {
         await this.refresh();
-
-        this.showState = config().showInfractionState;
-        this.showDeleted = config().showDeletedInfractions;
-
         this.applyFilters();
     }
 
