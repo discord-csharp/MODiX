@@ -43,7 +43,7 @@ namespace Discord.Rest
         {
             BaseDiscordClient = baseDiscordClient ?? throw new ArgumentNullException(nameof(baseDiscordClient));
 
-            baseDiscordClient.Log += x => Log?.InvokeAsync(x.Abstract());
+            baseDiscordClient.Log += x => Log?.InvokeAsync(x.Abstract()) ?? Task.CompletedTask;
         }
 
         /// <inheritdoc />

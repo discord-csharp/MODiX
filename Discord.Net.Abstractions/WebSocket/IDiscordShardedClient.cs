@@ -43,10 +43,10 @@ namespace Discord.WebSocket
         public DiscordShardedClientAbstraction(DiscordShardedClient discordShardedClient)
             : base(discordShardedClient)
         {
-            discordShardedClient.ShardConnected += x => ShardConnected?.InvokeAsync(x.Abstract());
-            discordShardedClient.ShardDisconnected += (x, y) => ShardDisconnected?.InvokeAsync(x, y.Abstract());
-            discordShardedClient.ShardLatencyUpdated += (x, y, z) => ShardLatencyUpdated?.InvokeAsync(x, y, z.Abstract());
-            discordShardedClient.ShardReady += x => ShardReady?.InvokeAsync(x.Abstract());
+            discordShardedClient.ShardConnected += x => ShardConnected?.InvokeAsync(x.Abstract()) ?? Task.CompletedTask;
+            discordShardedClient.ShardDisconnected += (x, y) => ShardDisconnected?.InvokeAsync(x, y.Abstract()) ?? Task.CompletedTask;
+            discordShardedClient.ShardLatencyUpdated += (x, y, z) => ShardLatencyUpdated?.InvokeAsync(x, y, z.Abstract()) ?? Task.CompletedTask;
+            discordShardedClient.ShardReady += x => ShardReady?.InvokeAsync(x.Abstract()) ?? Task.CompletedTask;
         }
 
         /// <inheritdoc />
