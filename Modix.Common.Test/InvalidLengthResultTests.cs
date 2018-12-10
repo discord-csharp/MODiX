@@ -9,88 +9,22 @@ namespace Modix.Common.Test
 {
     public class InvalidLengthResultTests
     {
-        [Test]
-        public void InvalidLengthResult_IsSuccess_IfLengthLessThanMax()
+        //Order is Length, Minimum, Maximum
+        [TestCase(5, 0, 10, ExpectedResult = true)]    // Length < Max            == success
+        [TestCase(15, 10, 0, ExpectedResult = true)]   // Length > Min            == success
+        [TestCase(5, 5, 0, ExpectedResult = true)]     // Length == Min           == success
+        [TestCase(5, 0, 5, ExpectedResult = true)]     // Length == Max           == success
+        [TestCase(5, 3, 5, ExpectedResult = true)]     // Length == Max, Min == ? == success
+        [TestCase(3, 1, 5, ExpectedResult = true)]     // Max > Length > Min      == success
+        [TestCase(10, 10, 10, ExpectedResult = true)]  // Length == Min == Max    == success
+        [TestCase(15, 0, 10, ExpectedResult = false)]  // Length > Max            == failure
+        [TestCase(5, 10, 0, ExpectedResult = false)]   // Length < Min            == failure
+        [TestCase(8, 1, 5, ExpectedResult = false)]    // Length > Max > Min      == failure
+        [TestCase(10, 12, 12, ExpectedResult = false)] // Length != (Min == Max)  == failure
+        public bool Constructor_WithValidParams_ReturnsCorrectResult(int length, int min, int max)
         {
-            var result = new InvalidLengthResult("test", length: 5, maximum: 10);
-            result.ShouldBeSuccessful();
-        }
-
-        [Test]
-        public void InvalidLengthResult_IsFailure_IfLengthGreaterThanMax()
-        {
-            var result = new InvalidLengthResult("test", length: 15, maximum: 10);
-            result.ShouldBeFailure();
-        }
-
-        [Test]
-        public void InvalidLengthResult_IsSuccess_IfLengthGreaterThanMin()
-        {
-            var result = new InvalidLengthResult("test", length: 15, minimum: 10);
-            result.ShouldBeSuccessful();
-        }
-
-        [Test]
-        public void InvalidLengthResult_IsFailure_IfLengthLessThanMin()
-        {
-            var result = new InvalidLengthResult("test", length: 5, minimum: 10);
-            result.ShouldBeFailure();
-        }
-
-        [Test]
-        public void InvalidLengthResult_IsSuccess_IfLengthEqualToMin()
-        {
-            var result = new InvalidLengthResult("test", length: 5, minimum: 5);
-            result.ShouldBeSuccessful();
-        }
-
-        [Test]
-        public void InvalidLengthResult_IsSuccess_IfLengthEqualToMax()
-        {
-            var result = new InvalidLengthResult("test", length: 5, maximum: 5);
-            result.ShouldBeSuccessful();
-        }
-
-        [Test]
-        public void InvalidLengthResult_IsSuccess_IfLengthEqualToMax_WithMinSpecified()
-        {
-            var result = new InvalidLengthResult("test", length: 5, maximum: 5, minimum: 3);
-            result.ShouldBeSuccessful();
-        }
-
-        [Test]
-        public void InvalidLengthResult_IsSuccess_IfLengthEqualToMin_WithMaxSpecified()
-        {
-            var result = new InvalidLengthResult("test", length: 3, maximum: 5, minimum: 3);
-            result.ShouldBeSuccessful();
-        }
-
-        [Test]
-        public void InvalidLengthResult_IsSuccess_IfLengthBetweenMinAndMax()
-        {
-            var result = new InvalidLengthResult("test", length: 3, maximum: 5, minimum: 1);
-            result.ShouldBeSuccessful();
-        }
-
-        [Test]
-        public void InvalidLengthResult_IsFailure_IfLengthNotBetweenMinAndMax()
-        {
-            var result = new InvalidLengthResult("test", length: 8, maximum: 5, minimum: 1);
-            result.ShouldBeFailure();
-        }
-
-        [Test]
-        public void InvalidLengthResult_IsSuccess_IfLengthEqualToMinAndMax()
-        {
-            var result = new InvalidLengthResult("test", length: 10, maximum: 10, minimum: 10);
-            result.ShouldBeSuccessful();
-        }
-
-        [Test]
-        public void InvalidLengthResult_IsFailure_IfLengthNotEqualToMinAndMax()
-        {
-            var result = new InvalidLengthResult("test", length: 10, maximum: 12, minimum: 12);
-            result.ShouldBeFailure();
+            var result = new InvalidLengthResult("Test", length, min, max);
+            return result.IsSuccess;
         }
 
         [Test]

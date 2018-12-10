@@ -15,20 +15,20 @@ namespace Modix.Services.ErrorHandling
         /// <summary>
         /// The Id of the required role
         /// </summary>
-        public ulong RequiredRoleId { get; private set; }
+        public ulong RequiredRoleId { get; }
         /// <summary>
         /// The name of the required role
         /// </summary>
-        public string RequiredRoleName { get; private set; }
+        public string RequiredRoleName { get; }
 
         /// <summary>
         /// The Id of the current role
         /// </summary>
-        public ulong CurrentRoleId { get; private set; }
+        public ulong CurrentRoleId { get; }
         /// <summary>
         /// The name of the current role
         /// </summary>
-        public string CurrentRoleName { get; private set; }
+        public string CurrentRoleName { get; }
 
         /// <summary>
         /// Creates an <see cref="InsufficientRankResult"/> using the given instances of <see cref="IRole"/>

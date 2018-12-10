@@ -12,70 +12,70 @@ namespace Modix.Services.Test
     public class AuthResultTests
     {
         [Test]
-        public void AuthResult_IsSuccess_IfUserHasClaims()
+        public void Constructor_OwnedClaimsContainsRequiredClaims_IsSuccess()
         {
             var requiredClaims = new AuthorizationClaim[]
             {
                 AuthorizationClaim.ModerationWarn
             };
 
-            var hasClaims = new AuthorizationClaim[]
+            var ownedClaims = new AuthorizationClaim[]
             {
                 AuthorizationClaim.ModerationRead,
                 AuthorizationClaim.ModerationWarn
             };
 
-            var authResult = new AuthResult(requiredClaims, hasClaims);
+            var authResult = new AuthResult(requiredClaims, ownedClaims);
 
             authResult.ShouldBeSuccessful();
         }
 
         [Test]
-        public void AuthResult_IsFailure_IfUserMissingClaims()
+        public void Constructor_OwnedClaimsMissingRequiredClaims_IsFailure()
         {
             var requiredClaims = new AuthorizationClaim[]
             {
                 AuthorizationClaim.ModerationWarn
             };
 
-            var hasClaims = new AuthorizationClaim[]
+            var ownedClaims = new AuthorizationClaim[]
             {
                 AuthorizationClaim.ModerationRead
             };
 
-            var authResult = new AuthResult(requiredClaims, hasClaims);
+            var authResult = new AuthResult(requiredClaims, ownedClaims);
 
             authResult.ShouldBeFailure();
         }
 
         [Test]
-        public void AuthResult_IsFailure_IfUserHasNoClaims()
+        public void Constructor_OwnedClaimsEmpty_IsFailure()
         {
             var requiredClaims = new AuthorizationClaim[]
             {
                 AuthorizationClaim.ModerationWarn
             };
 
-            var hasClaims = new AuthorizationClaim[] { };
+            var ownedClaims = new AuthorizationClaim[] { };
 
-            var authResult = new AuthResult(requiredClaims, hasClaims);
+            var authResult = new AuthResult(requiredClaims, ownedClaims);
 
             authResult.ShouldBeFailure();
         }
 
         [Test]
-        public void AuthResult_IsSuccess_IfNoClaimsRequired_AndUserHasNoClaims()
+        public void Constructor_OwnedAndRequiredClaimsEmpty_IsSuccess()
         {
             var requiredClaims = new AuthorizationClaim[] { };
-            var hasClaims = new AuthorizationClaim[] { };
+            var ownedClaims = new AuthorizationClaim[] { };
 
-            var authResult = new AuthResult(requiredClaims, hasClaims);
+            var authResult = new AuthResult(requiredClaims, ownedClaims);
 
             authResult.ShouldBeSuccessful();
         }
 
         [Test]
-        public void AuthResult_HadRequiredClaim_TrueIfUserHasClaim()
+        public void HadRequiredClaim_OwnedClaimsContainsARequiredClaim_IsTrue()
         {
             var requiredClaims = new AuthorizationClaim[]
             {
@@ -83,19 +83,19 @@ namespace Modix.Services.Test
                 AuthorizationClaim.ModerationWarn
             };
 
-            var hasClaims = new AuthorizationClaim[]
+            var ownedClaims = new AuthorizationClaim[]
             {
                 AuthorizationClaim.ModerationRead,
                 AuthorizationClaim.ModerationWarn
             };
 
-            var authResult = new AuthResult(requiredClaims, hasClaims);
+            var authResult = new AuthResult(requiredClaims, ownedClaims);
 
             authResult.HadRequiredClaim(AuthorizationClaim.ModerationRead).ShouldBeTrue();
         }
 
         [Test]
-        public void AuthResult_HadRequiredClaim_FalseIfUserMissingClaim()
+        public void HadRequiredClaim_OwnedClaimsMissingARequiredClaim_IsFalse()
         {
             var requiredClaims = new AuthorizationClaim[]
             {
@@ -103,18 +103,18 @@ namespace Modix.Services.Test
                 AuthorizationClaim.ModerationWarn
             };
 
-            var hasClaims = new AuthorizationClaim[]
+            var ownedClaims = new AuthorizationClaim[]
             {
                 AuthorizationClaim.ModerationWarn
             };
 
-            var authResult = new AuthResult(requiredClaims, hasClaims);
+            var authResult = new AuthResult(requiredClaims, ownedClaims);
 
             authResult.HadRequiredClaim(AuthorizationClaim.ModerationRead).ShouldBeFalse();
         }
 
         [Test]
-        public void AuthResult_HadRequiredClaim_FalseIfClaimNotRequired()
+        public void HadRequiredClaim_CheckedClaimWasNotRequired_IsFalse()
         {
             var requiredClaims = new AuthorizationClaim[]
             {
@@ -122,12 +122,12 @@ namespace Modix.Services.Test
                 AuthorizationClaim.ModerationWarn
             };
 
-            var hasClaims = new AuthorizationClaim[]
+            var ownedClaims = new AuthorizationClaim[]
             {
                 AuthorizationClaim.ModerationWarn
             };
 
-            var authResult = new AuthResult(requiredClaims, hasClaims);
+            var authResult = new AuthResult(requiredClaims, ownedClaims);
 
             authResult.HadRequiredClaim(AuthorizationClaim.PostInviteLink).ShouldBeFalse();
         }

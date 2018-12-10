@@ -5,8 +5,9 @@ using System.Text;
 using Discord;
 using Discord.Commands;
 using Modix.Services.Core;
+using Modix.Services.ErrorHandling;
 
-namespace Modix.Services.ErrorHandling
+namespace Modix.Bot.ResultFormatters
 {
     public class AuthResultFormatter : DiscordResultFormatter<AuthResult>
     {

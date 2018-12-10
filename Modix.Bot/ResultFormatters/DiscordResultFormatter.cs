@@ -8,10 +8,10 @@ using MediatR;
 using Modix.Common.ErrorHandling;
 using Modix.Services.Core;
 
-namespace Modix.Services.ErrorHandling
+namespace Modix.Bot.ResultFormatters
 {
     /// <summary>
-    /// Formats instances of <typeparamref name="TResult"/> into <see cref="EmbedBuilder"/>s for sending to Discord
+    /// Formats instances of <typeparamref name="TInput"/> into <see cref="EmbedBuilder"/>s for sending to Discord
     /// </summary>
     public abstract class DiscordResultFormatter<TInput> : IResultFormatter<TInput, EmbedBuilder> where TInput : ServiceResult
     {
@@ -23,15 +23,7 @@ namespace Modix.Services.ErrorHandling
         }
 
         /// <inheritdoc />
-        public virtual EmbedBuilder Format(TInput result)
-        {
-            if (result.IsSuccess) { return null; }
-
-            return new EmbedBuilder()
-                .WithTitle("Uh oh, an error occurred.")
-                .WithDescription(result.Error)
-                .WithColor(new Color(255, 0, 0));
-        }
+        public abstract EmbedBuilder Format(TInput result);
     }
 
     //We need to seal the generic otherwise DI is not happy with us
@@ -40,6 +32,16 @@ namespace Modix.Services.ErrorHandling
     {
         public DefaultDiscordResultFormatter(ICommandContextAccessor contextAccessor) : base(contextAccessor)
         {
+        }
+
+        public override EmbedBuilder Format(ServiceResult result)
+        {
+            if (result.IsSuccess) { return null; }
+
+            return new EmbedBuilder()
+                .WithTitle("Uh oh, an error occurred.")
+                .WithDescription(result.Error)
+                .WithColor(new Color(255, 0, 0));
         }
     }
 }

@@ -9,6 +9,8 @@ namespace Modix.Common.ErrorHandling
     /// </summary>
     public class ServiceResult
     {
+        private static readonly ServiceResult _successfulResult = new ServiceResult { IsSuccess = true };
+
         public bool IsSuccess { get; protected set; }
         public virtual bool IsFailure => !IsSuccess;
         public string Error { get; protected set; }
@@ -24,25 +26,13 @@ namespace Modix.Common.ErrorHandling
         }
 
         public override string ToString()
-        {
-            if (IsSuccess)
-            {
-                return "Success";
-            }
-
-            return $"Failure: {Error}";
-        }
+            => IsSuccess ? "Success" : $"Failure {Error}";
 
         /// <summary>
         /// Returns a successful ServiceResult
         /// </summary>
         public static ServiceResult FromSuccess()
-        {
-            return new ServiceResult
-            {
-                IsSuccess = true
-            };
-        }
+            => _successfulResult;
 
         /// <summary>
         /// Returns a failed ServiceResult with the <see cref="Error"/> populated from the given error

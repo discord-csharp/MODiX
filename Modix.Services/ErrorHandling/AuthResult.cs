@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Humanizer;
 using Modix.Common.ErrorHandling;
 using Modix.Data.Models.Core;
 
@@ -60,13 +59,11 @@ namespace Modix.Services.ErrorHandling
         {
             var builder = new StringBuilder();
 
-            builder.AppendLine("The following claims are required:");
-            builder.AppendLine(RequiredClaims.Humanize());
+            builder.Append("Required: ");
+            builder.AppendLine(string.Join(",", RequiredClaims));
 
-            builder.AppendLine();
-
-            builder.AppendLine("The following claims are present:");
-            builder.AppendLine(CurrentClaims.Humanize());
+            builder.Append("Present: ");
+            builder.AppendLine(string.Join(",", CurrentClaims));
 
             return builder.ToString();
         }

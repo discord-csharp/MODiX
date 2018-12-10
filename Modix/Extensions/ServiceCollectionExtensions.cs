@@ -5,6 +5,8 @@ using Discord.WebSocket;
 using MediatR;
 using Modix;
 using Modix.Behaviors;
+using Modix.Bot.ResultFormatters;
+using Modix.Common.ErrorHandling;
 using Modix.Data.Messages;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
@@ -16,6 +18,7 @@ using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.DocsMaster;
+using Modix.Services.ErrorHandling;
 using Modix.Services.GuildInfo;
 using Modix.Services.Moderation;
 using Modix.Services.PopularityContest;
@@ -84,6 +87,9 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>();
             services.AddScoped<INotificationHandler<PromotionActionCreated>, PromotionLoggingHandler>();
+
+            services.AddScoped<IResultFormatter<ServiceResult, EmbedBuilder>, DefaultDiscordResultFormatter>();
+            services.AddScoped<IResultFormatter<AuthResult, EmbedBuilder>, AuthResultFormatter>();
 
             services.AddHostedService<ModixBot>();
 

@@ -27,11 +27,7 @@ namespace Modix.Services.Core
                 .AddSingleton<IBehavior, RoleTrackingBehavior>()
                 .AddSingleton<IBehavior, UserTrackingBehavior>()
                 .AddSingleton<IBehavior, MessageLogBehavior>()
-                
                 .AddScoped<IResultFormatManager, ResultFormatManager>()
-                .AddScoped<IResultFormatter<ServiceResult, EmbedBuilder>, DefaultDiscordResultFormatter>()
-                .AddScoped<IResultFormatter<AuthResult, EmbedBuilder>, AuthResultFormatter>()
-
                 .AddScoped<ICommandContextAccessor, CommandContextAccessor>()
                 .AddScoped<IAuthorizationService, AuthorizationService>()
                 .AddScoped<IChannelService, ChannelService>()
