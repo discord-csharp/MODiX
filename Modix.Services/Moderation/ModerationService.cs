@@ -104,6 +104,15 @@ namespace Modix.Services.Moderation
         Task DeleteMessagesAsync(ITextChannel channel, int count, bool skipOne, Func<Task<bool>> confirmDelegate);
 
         /// <summary>
+        /// Retrieves a collection of deleted messages based on a given set of criteria, and returns a paged subset of the results based on a given set of paging criteria.
+        /// </summary>
+        /// <param name="searchCriteria">The criteria defining which deleted messages are to be returned.</param>
+        /// <param name="sortingCriteria">The criteria defining how to sort the deleted messages to be returned.</param>
+        /// <param name="pagingCriteria">The criteria defining how to page the deleted messages to be returned.</param>
+        /// <returns>A <see cref="Task"/> which will complete when the operation has completed, containing the requested set of deleted messages.</returns>
+        Task<RecordsPage<DeletedMessageSummary>> SearchDeletedMessagesAsync(DeletedMessageSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria);
+
+        /// <summary>
         /// Retrieves a collection of infractions, based on a given set of criteria.
         /// </summary>
         /// <param name="searchCriteria">The criteria defining which infractions are to be returned.</param>
@@ -602,6 +611,14 @@ namespace Modix.Services.Moderation
 
                 transaction.Commit();
             }
+        }
+
+        /// <inheritdoc />
+        public async Task<RecordsPage<DeletedMessageSummary>> SearchDeletedMessagesAsync(DeletedMessageSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
+        {
+            AuthorizationService.RequireClaims(AuthorizationClaim.LogViewDeletedMessages);
+
+            return await DeletedMessageRepository.SearchSummariesPagedAsync(searchCriteria, sortingCriteria, pagingCriteria);
         }
 
         /// <inheritdoc />

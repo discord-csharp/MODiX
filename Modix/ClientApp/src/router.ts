@@ -16,7 +16,9 @@ const CreatePromotion = () => import('./views/CreatePromotion.vue').then(m => m.
 const Infractions = () => import('./views/Infractions.vue').then(m => m.default)
 const Promotions = () => import('./views/Promotions.vue').then(m => m.default)
 const Stats = () => import('./views/Stats.vue').then(m => m.default)
-const Tags = () => import('./views/Tags/Tags.vue').then(m => m.default);
+const Tags = () => import('./views/Tags/Tags.vue').then(m => m.default)
+const Logs = () => import('./views/Logs.vue').then(m => m.default)
+const DeletedMessages = () => import('./components/Logs/DeletedMessages.vue').then(m => m.default)
 
 Vue.use(Router)
 
@@ -69,6 +71,23 @@ let routes: ModixRouteData[] =
         component: Infractions,
         showInNavbar: true,
         requiredClaims: ["ModerationRead"]
+    },
+    {
+        path: '/logs',
+        name: 'logs',
+        component: Logs,
+        showInNavbar: true,
+        requiresAuth: true,
+        children:
+        [
+            {
+                path: 'deletedMessages',
+                name: 'deletedMessages',
+                title: 'Deleted Messages',
+                component: DeletedMessages,
+                requiredClaims: ["LogViewDeletedMessages"]
+            }
+        ]
     },
     {
         path: '/config',

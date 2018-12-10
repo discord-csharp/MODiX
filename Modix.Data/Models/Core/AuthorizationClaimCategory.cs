@@ -8,6 +8,7 @@
         DesignatedRoles,
         PromotionActions,
         TagActions,
-        Misc
+        Misc,
+        Log,
     }
 }
