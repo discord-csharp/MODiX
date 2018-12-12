@@ -2,7 +2,6 @@
     <div>
         <section class="section">
             <div class="container">
-
                 <div class="level is-mobile">
                     <div class="level-left">
                         <button class="button" v-on:click="refresh()" v-bind:class="{ 'is-loading': isLoading }">Refresh</button>
@@ -10,7 +9,9 @@
                 </div>
 
                 <VueGoodTable v-bind:columns="mappedColumns" v-bind:rows="recordsPage.records" v-bind:sortOptions="sortOptions"
-                              v-bind:paginationOptions="paginationOptions" styleClass="vgt-table condensed bordered striped">
+                              v-bind:paginationOptions="paginationOptions" styleClass="vgt-table condensed bordered striped deleted-messages"
+                              mode="remote" v-bind:totalRows="recordsPage.filteredRecordCount" v-on:on-page-change="onPageChange"
+                              v-on:on-sort-change="onSortChange" v-on:on-column-filter="onColumnFilter" v-on:on-per-page-change="onPerPageChange">
 
                     <template slot="table-row" slot-scope="props">
                         <span v-if="props.column.html" v-html="props.formattedRow[props.column.field]" />
@@ -30,267 +31,269 @@
 
 <style lang="scss">
 
-@import "../../styles/variables";
-@import "~vue-good-table/dist/vue-good-table.css";
+    @import "../../styles/variables";
+    @import "~vue-good-table/dist/vue-good-table.css";
+    @import "~bulma/sass/elements/form";
 
-.vgt-table.bordered
-{
-    font-size: 14px;
-
-    select
+    .vgt-table.deleted-messages
     {
-        font-size: 12px;
-    }
-
-    th
-    {
-        text-align: center;
-        padding: 0.33em;
-    }
-}
-
-.vgt-responsive
-{
-    @include fullwidth-desktop();
-}
-
-.vgt-input, .vgt-select
-{
-    padding: 0px 4px;
-    height: 28px;
-}
-
-@include mobile()
-{
-    .vgt-table.bordered
-    {
-        font-size: initial;
-
+        font-size: 14px;
+        width: auto;
+        margin: auto;
         select
         {
-            font-size: initial;
+            font-size: 12px;
+        }
+
+        th
+        {
+            text-align: center;
+            padding: 0.33em;
         }
     }
-}
 
-.channel
-{
-    font-weight: bold;
-}
+    .vgt-responsive
+    {
+        @include fullwidth-desktop();
+    }
 
-.pre
-{
-    white-space: pre-line;
-}
+    .vgt-input, .vgt-select
+    {
+        padding: 0px 4px;
+        height: 28px;
+    }
 
-</style>
+    @include mobile()
+    {
+        .vgt-table.bordered
+        {
+            font-size: initial;
+            select
+            {
+                font-size: initial;
+            }
+        }
+    }
 
-<style scoped lang="scss">
+    .channel
+    {
+        font-weight: bold;
+    }
 
-@import "../../styles/variables";
-@import "~bulma/sass/components/modal";
-@import "~bulma/sass/elements/notification";
-@import "~bulma/sass/elements/form";
+    .pre
+    {
+        white-space: pre-line;
+    }
 
-.typeCell
-{
-    display: block;
-    white-space: nowrap;
-}
+    .typeCell
+    {
+        display: block;
+        white-space: nowrap;
+    }
 </style>
 
 <script lang="ts">
-import * as _ from 'lodash';
-import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
-import HeroHeader from '@/components/HeroHeader.vue';
-import LoadingSpinner from '@/components/LoadingSpinner.vue';
-import store from "@/app/Store";
-import { Route } from 'vue-router';
-import { VueGoodTable } from 'vue-good-table';
-import { InfractionType } from '@/models/infractions/InfractionType'
-import GuildUserIdentity from '@/models/core/GuildUserIdentity'
+    import * as _ from 'lodash';
+    import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
+    import store from "@/app/Store";
+    import { VueGoodTable } from 'vue-good-table';
+    import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
+    import RecordsPage from '@/models/RecordsPage';
+    import DeletedMessage from '@/models/logs/DeletedMessage';
+    import LogService from '@/services/LogService';
+    import TableParameters from '@/models/TableParameters';
+    import { SortDirection } from '@/models/SortDirection';
 
-import GeneralService from '@/services/GeneralService';
-import InfractionSummary from '@/models/infractions/InfractionSummary';
-import {config, setConfig} from '@/models/PersistentConfig';
-import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
-import GuildInfoResult from '@/models/GuildInfoResult';
-import RecordsPage from '@/models/RecordsPage';
-import DeletedMessage from '@/models/log/DeletedMessage';
-import LogService from '@/services/LogService';
+    const messageResolvingRegex = /<#(\d+)>/gm;
 
-const messageResolvingRegex = /<#(\d+)>/gm;
-
-@Component({
-    components:
+    function getSortDirection(direction: string): SortDirection
     {
-        HeroHeader,
-        VueGoodTable
+        return (direction == "asc")
+            ? SortDirection.Ascending
+            : SortDirection.Descending;
     }
-})
-export default class DeletedMessages extends Vue
-{
-    paginationOptions: any = 
-    {
-        enabled: true,
-        perPage: 10
-    };
 
-    sortOptions: any = 
-    {
-        enabled: true,
-        initialSortBy: {field: 'created', type: 'desc'}
-    };
-
-    showState: boolean = false;
-    showDeleted: boolean = false;
-
-    showModal: boolean = false;
-    message: string | null = null;
-    loadError: string | null = null;
-    importGuildId: number | null = null;
-    isLoading: boolean = false;
-
-    channelCache: {[channel: string]: DesignatedChannelMapping} | null = null;
-
-    resolveMentions(description: string)
-    {
-        let replaced = description;
-
-        if (this.channelCache)
+    @Component({
+        components:
         {
-            replaced = description.replace(messageResolvingRegex, (sub, args: string) =>
+            VueGoodTable
+        }
+    })
+    export default class DeletedMessages extends Vue
+    {
+        paginationOptions: any =
+        {
+            enabled: true,
+            perPage: 10,
+            mode: 'pages'
+        };
+
+        sortOptions: any =
+        {
+            enabled: true,
+            initialSortBy: { field: 'created', type: 'desc' }
+        };
+        
+        isLoading: boolean = false;
+
+        recordsPage: RecordsPage<DeletedMessage> = new RecordsPage<DeletedMessage>();
+        tableParams: TableParameters = new TableParameters();
+
+        channelCache: { [channel: string]: DesignatedChannelMapping } | null = null;
+
+        resolveMentions(description: string)
+        {
+            let replaced = description;
+
+            if (this.channelCache)
             {
-                let found = this.channelCache![args].name;
-
-                if (!found)
+                replaced = description.replace(messageResolvingRegex, (sub, args: string) =>
                 {
-                    found = args;
-                }
+                    let found = this.channelCache![args].name;
 
-                return `<span class='channel'>#${found}</span>`;
-            });
+                    if (!found)
+                    {
+                        found = args;
+                    }
+
+                    return `<span class='channel'>#${found}</span>`;
+                });
+            }
+
+            return `<span class='pre'>${replaced}</span>`;
         }
 
-        return `<span class='pre'>${replaced}</span>`;
-    }
+        staticFilters: { [field: string]: string } = { subject: "", creator: "", id: "" };
 
-    staticFilters: {[field: string]: string} = {subject: "", creator: "", id: ""};
-
-    get mappedColumns(): Array<any>
-    {
-        return [
-            {
-                label: 'Channel',
-                field: 'channel',
-                sortFn: (x: string, y: string) => (x < y ? -1 : (x > y ? 1 : 0)),
-                width: '60px',
-                filterOptions:
-                {
-                    enabled: true,
-                    filterFn: (channel: string, filter: string) => channel.includes(filter),
-                    placeholder: "Filter"
-                }
-            },
-            {
-                label: 'Author',
-                field: 'author',
-                sortFn: (x: string, y: string) => (x.toLowerCase() < y.toLowerCase() ? -1 : (x.toLowerCase() > y.toLowerCase() ? 1 : 0)),
-                width: '60px',
-                filterOptions:
-                {
-                    enabled: true,
-                    placeholder: "Filter"
-                }
-            },
-            {
-                label: 'Deleted On',
-                field: 'created',
-                type: 'date',
-                dateInputFormat: 'YYYY-MM-DDTHH:mm:ss',
-                dateOutputFormat: 'MM/DD/YY, h:mm:ss a',
-                width: '120px'
-            },
-            {
-                label: 'Deleted By',
-                field: 'createdBy',
-                width: '60px',
-                filterOptions:
-                {
-                    enabled: true,
-                    placeholder: "Filter"
-                }
-            },
-            {
-                label: 'Content',
-                field: 'content',
-                formatFn: this.resolveMentions,
-                html: true,
-                width: '240px',
-            },
-            {
-                label: 'Reason',
-                field: 'reason',
-                formatFn: this.resolveMentions,
-                html: true,
-                width: '240px',
-            },
-            {
-                label: 'Batch ID',
-                field: 'batchId',
-                type: 'number',
-                width: '60px',
-            }
-        ];
-    }
-
-    async refresh()
-    {
-        this.isLoading = true;
-
-        this.recordsPage = await LogService.getDeletedMessages(10, 0);
-
-        await store.retrieveChannels();
-        this.channelCache = _.keyBy(this.$store.state.modix.channels, channel => channel.id);
-
-        this.isLoading = false;
-    }
-
-    applyFilters()
-    {
-        let urlParams = new URLSearchParams(window.location.search);
-
-        for (let i = 0; i < this.mappedColumns.length; i++)
+        get mappedColumns(): Array<any>
         {
-            let currentField: string = this.mappedColumns[i].field;
-
-            if (urlParams.has(currentField))
-            {
-                this.staticFilters[currentField] = urlParams.get(currentField) || "";
-            }
+            return [
+                {
+                    label: 'Channel',
+                    field: 'channel',
+                    width: '10%',
+                    sortFn: (x: string, y: string) => (x < y ? -1 : (x > y ? 1 : 0)),
+                    filterOptions:
+                    {
+                        enabled: true,
+                        filterFn: (channel: string, filter: string) => channel.includes(filter),
+                        placeholder: "Filter"
+                    }
+                },
+                {
+                    label: 'Author',
+                    field: 'author',
+                    width: '10%',
+                    sortFn: (x: string, y: string) => (x.toLowerCase() < y.toLowerCase() ? -1 : (x.toLowerCase() > y.toLowerCase() ? 1 : 0)),
+                    filterOptions:
+                    {
+                        enabled: true,
+                        placeholder: "Filter"
+                    }
+                },
+                {
+                    label: 'Deleted On',
+                    field: 'created',
+                    type: 'date',
+                    width: '10%',
+                    dateInputFormat: 'YYYY-MM-DDTHH:mm:ss',
+                    dateOutputFormat: 'MM/DD/YY, h:mm:ss a'
+                },
+                {
+                    label: 'Deleted By',
+                    field: 'createdBy',
+                    width: '10%',
+                    filterOptions:
+                    {
+                        enabled: true,
+                        placeholder: "Filter"
+                    }
+                },
+                {
+                    label: 'Content',
+                    field: 'content',
+                    width: '25%',
+                    formatFn: this.resolveMentions,
+                    html: true
+                },
+                {
+                    label: 'Reason',
+                    field: 'reason',
+                    width: '25%',
+                    formatFn: this.resolveMentions,
+                    html: true
+                },
+                {
+                    label: 'Batch ID',
+                    field: 'batchId',
+                    type: 'number',
+                    width: '5%'
+                }
+            ];
         }
 
-        console.log(this.mappedColumns);
-    }
+        async refresh()
+        {
+            this.isLoading = true;
 
-    recordsPage: RecordsPage<DeletedMessage> = new RecordsPage<DeletedMessage>();
+            this.recordsPage = await LogService.getDeletedMessages(this.tableParams);
 
-    async created()
-    {
-        await this.refresh();
-        this.applyFilters();
-    }
+            await store.retrieveChannels();
+            this.channelCache = _.keyBy(this.$store.state.modix.channels, channel => channel.id);
 
-    @Watch('showState')
-    inactiveChanged()
-    {
-        setConfig(conf => conf.showInfractionState = this.showState);
-    }
+            this.isLoading = false;
+        }
 
-    @Watch('showDeleted')
-    deletedChanged()
-    {
-        setConfig(conf => conf.showDeletedInfractions = this.showDeleted);
+        applyFilters()
+        {
+            let urlParams = new URLSearchParams(window.location.search);
+
+            for (let i = 0; i < this.mappedColumns.length; i++)
+            {
+                let currentField: string = this.mappedColumns[i].field;
+
+                if (urlParams.has(currentField))
+                {
+                    this.staticFilters[currentField] = urlParams.get(currentField) || "";
+                }
+            }
+
+            console.log(this.mappedColumns);
+        }
+
+        async created(): Promise<void>
+        {
+            await this.refresh();
+            this.applyFilters();
+        }
+
+        async onPageChange(params: any): Promise<void>
+        {
+            this.tableParams.page = params.currentPage - 1;
+
+            await this.refresh();
+        }
+
+        async onSortChange(params: any): Promise<void>
+        {
+            this.tableParams.sort.field = this.mappedColumns[params.columnIndex].field;
+            this.tableParams.sort.direction = getSortDirection(params.sortType);
+
+            await this.refresh();
+        }
+
+        async onColumnFilter(): Promise<void>
+        {
+
+        }
+
+        async onPerPageChange(params: any): Promise<void>
+        {
+            this.tableParams.perPage = (params.currentPerPage == "all")
+                ? 2147483647
+                : params.currentPerPage;
+
+            await this.refresh();
+        }
     }
-}
 </script>

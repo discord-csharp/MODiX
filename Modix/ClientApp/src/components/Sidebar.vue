@@ -1,36 +1,33 @@
 <template>
-    <div>
-        <section class="section">
-            <div class="container">
-                <div class="columns">
-                    <div class="column is-one-fifth">
-                        <div class="menu">
+    <div class="columns is-mobile">
 
-                            <div>
-                                <p class="menu-label">{{title}}</p>
+        <div class="column is-1 sidebar">
+            <aside class="menu">
+                <div>
+                    <p class="menu-label">
+                        Logs
+                    </p>
 
-                                <ul class="menu-list">
-                                    <li v-for="route in routes" v-bind:key="route.path">
-                                        <router-link v-bind:class="{ 'is-disabled': !hasClaimsForRoute(route) }" v-tooltip.right-end="claimsFor(route)"
-                                                     v-bind:key="route.routeData.name" v-bind:to="{ 'name': route.routeData.name }" exact-active-class="is-active"
-                                                     v-bind:event="!hasClaimsForRoute(route) ? '' : 'click'">
-                                            {{toTitleCase(route.title)}}
-                                        </router-link>
-                                    </li>
-                                </ul>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <div class="column">
-                        <router-view />
-                    </div>
-
+                    <ul class="menu-list">
+                        <li v-for="route in routes" v-bind:key="route.path">
+                            <router-link v-bind:class="{ 'is-disabled': !hasClaimsForRoute(route) }" v-tooltip.right-end="claimsFor(route)"
+                                         v-bind:key="route.routeData.name" v-bind:to="{ 'name': route.routeData.name }" exact-active-class="is-active"
+                                         v-bind:event="!hasClaimsForRoute(route) ? '' : 'click'">
+                                {{toTitleCase(route.title)}}
+                            </router-link>
+                        </li>
+                    </ul>
                 </div>
-            </div>
-        </section>
-    </div>
+            </aside>
+        </div>
+
+        <div class="column">
+            <router-view />
+        </div>
+
+        <div class="column is-1 sidebar"/>
+
+        </div>
 </template>
 
 <style scope lang="scss">
@@ -38,6 +35,13 @@
     @import "../styles/variables";
     @import "~bulma/sass/utilities/_all";
     @import "~bulma/sass/components/menu";
+    @import "~bulma/sass/components/tabs";
+
+    .column.sidebar
+    {
+        margin: 2em;
+        width: auto;
+    }
 
     a.is-disabled
     {
@@ -48,53 +52,53 @@
 
 <script lang="ts">
 
-import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
-import ModixRoute from '@/app/ModixRoute';
-import { toTitleCase } from '@/app/Util';
-import store from "@/app/Store";
-import * as _ from 'lodash';
+    import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
+    import ModixRoute from '@/app/ModixRoute';
+    import { toTitleCase } from '@/app/Util';
+    import store from "@/app/Store";
+    import * as _ from 'lodash';
 
-@Component({})
-export default class Sidebar extends Vue
-{
-    @Prop({ default: "" })
-    public title!: string;
-
-    @Prop({ default: "" })
-    public routeName!: string;
-
-    get routes(): ModixRoute[]
+    @Component({})
+    export default class Sidebar extends Vue
     {
-        let allRoutes = (<any>this.$router).options.routes;
-        let currentChildren = _.find(allRoutes, route => route.name == this.routeName).children;
+        @Prop({ default: "" })
+        public title!: string;
 
-        return <any>_.map(currentChildren, child => child.meta as ModixRoute);
-    }
+        @Prop({ default: "" })
+        public routeName!: string;
 
-    hasClaimsForRoute(route: ModixRoute): boolean
-    {
-        return store.userHasClaims(route.routeData.requiredClaims || []);
-    }
-
-    toTitleCase(input: string): string
-    {
-        return toTitleCase(input);
-    }
-
-    claimsFor(route: ModixRoute): string
-    {
-        if (this.hasClaimsForRoute(route))
+        get routes(): ModixRoute[]
         {
-            return "";
+            let allRoutes = (<any>this.$router).options.routes;
+            let currentChildren = _.find(allRoutes, route => route.name == this.routeName).children;
+
+            return <any>_.map(currentChildren, child => child.meta as ModixRoute);
         }
 
-        if (!route.routeData.requiredClaims)
+        hasClaimsForRoute(route: ModixRoute): boolean
         {
-            return "Disallowed";
+            return store.userHasClaims(route.routeData.requiredClaims || []);
         }
 
-        return "Required Claims: " + route.routeData.requiredClaims.toString();
+        toTitleCase(input: string): string
+        {
+            return toTitleCase(input);
+        }
+
+        claimsFor(route: ModixRoute): string
+        {
+            if (this.hasClaimsForRoute(route))
+            {
+                return "";
+            }
+
+            if (!route.routeData.requiredClaims)
+            {
+                return "Disallowed";
+            }
+
+            return "Required Claims: " + route.routeData.requiredClaims.toString();
+        }
     }
-}
 
 </script>

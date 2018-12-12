@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 using Discord.WebSocket;
@@ -7,8 +9,10 @@ using Microsoft.AspNetCore.Mvc;
 
 using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
+using Modix.Models;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
+using Newtonsoft.Json;
 
 namespace Modix.Controllers
 {
@@ -22,9 +26,17 @@ namespace Modix.Controllers
             ModerationService = moderationService;
         }
 
-        [HttpGet("{pageSize}/{pageNumber}/deletedMessages")]
-        public async Task<IActionResult> DeletedMessagesAsync(int pageSize, int pageNumber)
+        [HttpPut("deletedMessages")]
+        public async Task<IActionResult> DeletedMessagesAsync()
         {
+            var buffer = new byte[Request.ContentLength.Value];
+            await Request.Body.ReadAsync(buffer, 0, (int)Request.ContentLength);
+            var json = Encoding.UTF8.GetString(buffer);
+            var tableParams = JsonConvert.DeserializeObject<TableParameters>(json);
+
+            var sortProperty = DeletedMessageSummary.SortablePropertyNames.FirstOrDefault(
+                x => x.Equals(tableParams.Sort.Field, StringComparison.OrdinalIgnoreCase)) ?? nameof(DeletedMessageSummary.Created);
+
             var result = await ModerationService.SearchDeletedMessagesAsync(new DeletedMessageSearchCriteria()
             {
                 GuildId = UserGuild.Id
@@ -33,14 +45,14 @@ namespace Modix.Controllers
             {
                 new SortingCriteria
                 {
-                    PropertyName = nameof(DeletedMessageSummary.Created),
-                    Direction = SortDirection.Descending,
+                    PropertyName = sortProperty,
+                    Direction = tableParams.Sort.Direction,
                 }
             },
             new PagingCriteria
             {
-                FirstRecordIndex = pageNumber * pageSize,
-                PageSize = pageSize,
+                FirstRecordIndex = tableParams.Page * tableParams.PerPage,
+                PageSize = tableParams.PerPage,
             });
 
             var mapped = new

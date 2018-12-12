@@ -1,13 +1,14 @@
 import _ from 'lodash';
 import client from './ApiClient';
 import RecordsPage from '@/models/RecordsPage';
-import DeletedMessage from '@/models/log/DeletedMessage'
+import DeletedMessage from '@/models/logs/DeletedMessage'
+import TableParameters from '@/models/TableParameters';
 
 export default class LogService
 {
-    static async getDeletedMessages(pageSize: number, pageNumber: number): Promise<RecordsPage<DeletedMessage>>
+    static async getDeletedMessages(tableParams: TableParameters): Promise<RecordsPage<DeletedMessage>>
     {
-        return (await client.get(`logs/${pageSize}/${pageNumber}/deletedMessages`)).data;
+        return (await client.put(`logs/deletedMessages`, tableParams)).data;
     }
 }
 
