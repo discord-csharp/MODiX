@@ -1,16 +1,17 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Discord;
 using Discord.WebSocket;
-using MediatR;
-using Modix.Services.Messages.Discord;
+
+using Modix.Common.Messaging;
 
 namespace Modix.Services.CommandHelp
 {
     public class CommandErrorHandler :
-        INotificationHandler<ReactionAdded>,
-        INotificationHandler<ReactionRemoved>
+        INotificationHandler<ReactionAddedNotification>,
+        INotificationHandler<ReactionRemovedNotification>
     {
         //This relates user messages with errors
         private readonly Dictionary<ulong, string> _associatedErrors = new Dictionary<ulong, string>();
@@ -31,10 +32,10 @@ namespace Modix.Services.CommandHelp
             _associatedErrors.Add(message.Id, error);
         }
 
-        public Task Handle(ReactionAdded notification, CancellationToken cancellationToken)
+        public Task HandleNotificationAsync(ReactionAddedNotification notification, CancellationToken cancellationToken)
             => ReactionAdded(notification.Message, notification.Channel, notification.Reaction);
 
-        public async Task ReactionAdded(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
+        public async Task ReactionAdded(ICacheable<IUserMessage, ulong> cachedMessage, IISocketMessageChannel channel, ISocketReaction reaction)
         {
             //Don't trigger if the emoji is wrong, if the user is a bot, or if we've
             //made an error message reply already
@@ -68,10 +69,10 @@ namespace Modix.Services.CommandHelp
             }
         }
 
-        public Task Handle(ReactionRemoved notification, CancellationToken cancellationToken)
+        public Task HandleNotificationAsync(ReactionRemovedNotification notification, CancellationToken cancellationToken)
             => ReactionRemoved(notification.Message, notification.Channel, notification.Reaction);
 
-        public async Task ReactionRemoved(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
+        public async Task ReactionRemoved(ICacheable<IUserMessage, ulong> cachedMessage, IISocketMessageChannel channel, ISocketReaction reaction)
         {
             //Bugfix for NRE?
             if (reaction is null || reaction.User.Value is null)
