@@ -22,20 +22,10 @@ namespace Modix.Services.Adapters
         public Task StartAsync()
         {
             _discordClient.MessageDeleted += OnMessageDeleted;
-            _discordClient.ReactionAdded += OnReactionAdded;
-            _discordClient.ReactionRemoved += OnReactionRemoved;
             _discordClient.UserJoined += OnUserJoined;
             _discordClient.UserBanned += OnUserBanned;
             return Task.CompletedTask;
         }
-
-        private Task OnReactionRemoved(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel,
-            SocketReaction reaction)
-            => _notificationDispatchService.PublishScopedAsync(new ReactionRemoved { Channel = channel, Message = message, Reaction = reaction });
-
-        private Task OnReactionAdded(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel,
-            SocketReaction reaction)
-            => _notificationDispatchService.PublishScopedAsync(new ReactionAdded { Channel = channel, Message = message, Reaction = reaction});
 
         private Task OnMessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
             => _notificationDispatchService.PublishScopedAsync(new ChatMessageDeleted { Message = message, Channel = channel });
@@ -49,8 +39,6 @@ namespace Modix.Services.Adapters
         public Task StopAsync()
         {
             _discordClient.MessageDeleted -= OnMessageDeleted;
-            _discordClient.ReactionAdded -= OnReactionAdded;
-            _discordClient.ReactionRemoved -= OnReactionRemoved;
             _discordClient.UserJoined -= OnUserJoined;
             _discordClient.UserBanned -= OnUserBanned;
             return Task.CompletedTask;
