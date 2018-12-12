@@ -14,7 +14,6 @@ using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Services;
-using Modix.Services.Adapters;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.BehaviourConfiguration;
 using Modix.Services.CodePaste;
@@ -118,7 +117,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddAutoRemoveMessage()
                 .AddEmojiStats();
 
-            services.AddSingleton<IBehavior, DiscordAdapter>();
             services.AddScoped<IQuoteService, QuoteService>();
             services.AddSingleton<IBehavior, MessageLinkBehavior>();
             services.AddSingleton<IBehavior, AttachmentBlacklistBehavior>();
