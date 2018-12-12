@@ -6,7 +6,7 @@ namespace Discord.WebSocket
     public interface ISocketVoiceServer
     {
         /// <inheritdoc cref="SocketVoiceServer.Guild" />
-        Cacheable<IGuild, ulong> Guild { get; }
+        ICacheable<IGuild, ulong> Guild { get; }
 
         /// <inheritdoc cref="SocketVoiceServer.Endpoint" />
         string Endpoint { get; }
@@ -35,8 +35,9 @@ namespace Discord.WebSocket
             => SocketVoiceServer.Endpoint;
 
         /// <inheritdoc />
-        public Cacheable<IGuild, ulong> Guild
-            => SocketVoiceServer.Guild;
+        public ICacheable<IGuild, ulong> Guild
+            => SocketVoiceServer.Guild
+                .Abstract();
 
         /// <inheritdoc />
         public string Token

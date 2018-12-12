@@ -48,7 +48,7 @@ namespace Discord.WebSocket
         event Func<ISocketGuild, Task> LeftGuild;
 
         /// <inheritdoc cref="BaseSocketClient.ReactionsCleared" />
-        event Func<Cacheable<IUserMessage, ulong>, IISocketMessageChannel, Task> ReactionsCleared;
+        event Func<ICacheable<IUserMessage, ulong>, IISocketMessageChannel, Task> ReactionsCleared;
 
         /// <inheritdoc cref="BaseSocketClient.GuildAvailable" />
         event Func<ISocketGuild, Task> GuildAvailable;
@@ -93,16 +93,16 @@ namespace Discord.WebSocket
         event Func<ISocketGuild, Task> GuildUnavailable;
 
         /// <inheritdoc cref="BaseSocketClient.ReactionRemoved" />
-        event Func<Cacheable<IUserMessage, ulong>, IISocketMessageChannel, ISocketReaction, Task> ReactionRemoved;
+        event Func<ICacheable<IUserMessage, ulong>, IISocketMessageChannel, ISocketReaction, Task> ReactionRemoved;
 
         /// <inheritdoc cref="BaseSocketClient.MessageReceived" />
         event Func<ISocketMessage, Task> MessageReceived;
 
         /// <inheritdoc cref="BaseSocketClient.MessageUpdated" />
-        event Func<Cacheable<IMessage, ulong>, ISocketMessage, IISocketMessageChannel, Task> MessageUpdated;
+        event Func<ICacheable<IMessage, ulong>, ISocketMessage, IISocketMessageChannel, Task> MessageUpdated;
 
         /// <inheritdoc cref="BaseSocketClient.ReactionAdded" />
-        event Func<Cacheable<IUserMessage, ulong>, IISocketMessageChannel, ISocketReaction, Task> ReactionAdded;
+        event Func<ICacheable<IUserMessage, ulong>, IISocketMessageChannel, ISocketReaction, Task> ReactionAdded;
 
         /// <inheritdoc cref="BaseSocketClient.ChannelCreated" />
         event Func<ISocketChannel, Task> ChannelCreated;
@@ -117,7 +117,7 @@ namespace Discord.WebSocket
         event Func<ISocketGroupUser, Task> RecipientAdded;
 
         /// <inheritdoc cref="BaseSocketClient.MessageDeleted" />
-        event Func<Cacheable<IMessage, ulong>, IISocketMessageChannel, Task> MessageDeleted;
+        event Func<ICacheable<IMessage, ulong>, IISocketMessageChannel, Task> MessageDeleted;
 
         /// <inheritdoc cref="BaseSocketClient.ChannelUpdated" />
         event Func<ISocketChannel, ISocketChannel, Task> ChannelUpdated;
@@ -187,11 +187,11 @@ namespace Discord.WebSocket
             baseSocketClient.JoinedGuild += x => JoinedGuild?.InvokeAsync(x.Abstract()) ?? Task.CompletedTask;
             baseSocketClient.LeftGuild += x => LeftGuild?.InvokeAsync(x.Abstract()) ?? Task.CompletedTask;
             baseSocketClient.MessageReceived += x => MessageReceived?.InvokeAsync(x.Abstract()) ?? Task.CompletedTask;
-            baseSocketClient.MessageUpdated += (x, y, z) => MessageUpdated?.InvokeAsync(x, y.Abstract(), z.Abstract()) ?? Task.CompletedTask;
-            baseSocketClient.MessageDeleted += (x, y) => MessageDeleted?.InvokeAsync(x, y.Abstract()) ?? Task.CompletedTask;
-            baseSocketClient.ReactionAdded += (x, y, z) => ReactionAdded?.InvokeAsync(x, y.Abstract(), z.Abstract()) ?? Task.CompletedTask;
-            baseSocketClient.ReactionRemoved += (x, y, z) => ReactionRemoved?.InvokeAsync(x, y.Abstract(), z.Abstract()) ?? Task.CompletedTask;
-            baseSocketClient.ReactionsCleared += (x, y) => ReactionsCleared?.InvokeAsync(x, y.Abstract()) ?? Task.CompletedTask;
+            baseSocketClient.MessageUpdated += (x, y, z) => MessageUpdated?.InvokeAsync(x.Abstract(), y.Abstract(), z.Abstract()) ?? Task.CompletedTask;
+            baseSocketClient.MessageDeleted += (x, y) => MessageDeleted?.InvokeAsync(x.Abstract(), y.Abstract()) ?? Task.CompletedTask;
+            baseSocketClient.ReactionAdded += (x, y, z) => ReactionAdded?.InvokeAsync(x.Abstract(), y.Abstract(), z.Abstract()) ?? Task.CompletedTask;
+            baseSocketClient.ReactionRemoved += (x, y, z) => ReactionRemoved?.InvokeAsync(x.Abstract(), y.Abstract(), z.Abstract()) ?? Task.CompletedTask;
+            baseSocketClient.ReactionsCleared += (x, y) => ReactionsCleared?.InvokeAsync(x.Abstract(), y.Abstract()) ?? Task.CompletedTask;
             baseSocketClient.RecipientAdded += x => RecipientAdded?.InvokeAsync(x.Abstract()) ?? Task.CompletedTask;
             baseSocketClient.RecipientRemoved += x => RecipientRemoved?.InvokeAsync(x.Abstract()) ?? Task.CompletedTask;
             baseSocketClient.RoleCreated += x => RoleCreated?.InvokeAsync(x.Abstract()) ?? Task.CompletedTask;
@@ -279,19 +279,19 @@ namespace Discord.WebSocket
         public event Func<ISocketMessage, Task> MessageReceived;
 
         /// <inheritdoc />
-        public event Func<Cacheable<IMessage, ulong>, IISocketMessageChannel, Task> MessageDeleted;
+        public event Func<ICacheable<IMessage, ulong>, IISocketMessageChannel, Task> MessageDeleted;
 
         /// <inheritdoc />
-        public event Func<Cacheable<IMessage, ulong>, ISocketMessage, IISocketMessageChannel, Task> MessageUpdated;
+        public event Func<ICacheable<IMessage, ulong>, ISocketMessage, IISocketMessageChannel, Task> MessageUpdated;
 
         /// <inheritdoc />
-        public event Func<Cacheable<IUserMessage, ulong>, IISocketMessageChannel, ISocketReaction, Task> ReactionAdded;
+        public event Func<ICacheable<IUserMessage, ulong>, IISocketMessageChannel, ISocketReaction, Task> ReactionAdded;
 
         /// <inheritdoc />
-        public event Func<Cacheable<IUserMessage, ulong>, IISocketMessageChannel, ISocketReaction, Task> ReactionRemoved;
+        public event Func<ICacheable<IUserMessage, ulong>, IISocketMessageChannel, ISocketReaction, Task> ReactionRemoved;
 
         /// <inheritdoc />
-        public event Func<Cacheable<IUserMessage, ulong>, IISocketMessageChannel, Task> ReactionsCleared;
+        public event Func<ICacheable<IUserMessage, ulong>, IISocketMessageChannel, Task> ReactionsCleared;
 
         /// <inheritdoc />
         public event Func<ISocketGroupUser, Task> RecipientAdded;
