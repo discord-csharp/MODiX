@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 
+using Modix.Bot.Extensions;
 using Modix.Data.Models.Moderation;
 using Modix.Services.Moderation;
 
@@ -113,7 +114,8 @@ namespace Modix.Modules
                 int count)
             => await ModerationService.DeleteMessagesAsync(
                 Context.Channel as ITextChannel, count, true,
-                    () => ConfirmCleanAsync(Context.User.Id, $"in #{Context.Channel.Name}", count));
+                    () => Context.GetUserConfirmationAsync(
+                        $"You are attempting to delete the past {count} messages in #{Context.Channel.Name}.{Environment.NewLine}"));
 
         [Command("clean")]
         [Summary("Mass-deletes a specified number of messages.")]
@@ -124,7 +126,8 @@ namespace Modix.Modules
                 ITextChannel channel)
             => await ModerationService.DeleteMessagesAsync(
                 channel, count, Context.Channel.Id == channel.Id,
-                    () => ConfirmCleanAsync(Context.User.Id, $"in #{Context.Channel.Name}", count));
+                    () => Context.GetUserConfirmationAsync(
+                        $"You are attempting to delete the past {count} messages in #{Context.Channel.Name}.{Environment.NewLine}"));
 
         [Command("clean")]
         [Summary("Mass-deletes a specified number of messages by the supplied user.")]
@@ -135,51 +138,9 @@ namespace Modix.Modules
                 IGuildUser user)
             => await ModerationService.DeleteMessagesAsync(
                 Context.Channel as ITextChannel, user, count,
-                    () => ConfirmCleanAsync(Context.User.Id, $"by {user.Nickname ?? $"{user.Username}#{user.Discriminator}"} in #{Context.Channel.Name}", count));
+                    () => Context.GetUserConfirmationAsync(
+                        $"You are attempting to delete the past {count} messages by {user.Nickname ?? $"{user.Username}#{user.Discriminator}"} in #{Context.Channel.Name}.{Environment.NewLine}"));
 
         internal protected IModerationService ModerationService { get; }
-
-        private async Task<bool> ConfirmCleanAsync(ulong moderatorId, string messageOriginText, int count)
-        {
-            var confirmEmote = new Emoji("✅");
-            var cancelEmote = new Emoji("❌");
-            const int secondsToWait = 10;
-
-            var cleanInfo = $"You are attempting to delete the past {count} messages {messageOriginText}.{Environment.NewLine}";
-
-            var confirmationMessage = await ReplyAsync(cleanInfo +
-                $"React with {confirmEmote} or {cancelEmote} in the next {secondsToWait} seconds to finalize or cancel the operation.");
-
-            await confirmationMessage.AddReactionAsync(confirmEmote);
-            await confirmationMessage.AddReactionAsync(cancelEmote);
-
-            for (var i = 0; i < secondsToWait; i++)
-            {
-                await Task.Delay(1000);
-
-                var cancelingUsers = await confirmationMessage.GetReactionUsersAsync(cancelEmote, int.MaxValue).FlattenAsync();
-                if (cancelingUsers.Any(u => u.Id == moderatorId))
-                {
-                    await RemoveReactionsAndUpdateMessage("Cancellation was successfully received. Cancelling deletion.");
-                    return false;
-                }
-
-                var confirmingUsers = await confirmationMessage.GetReactionUsersAsync(confirmEmote, int.MaxValue).FlattenAsync();
-                if (confirmingUsers.Any(u => u.Id == moderatorId))
-                {
-                    await RemoveReactionsAndUpdateMessage("Confirmation was successfully received. Deleting messages.");
-                    return true;
-                }
-            }
-
-            await RemoveReactionsAndUpdateMessage("Confirmation was not received. Cancelling deletion.");
-            return false;
-
-            async Task RemoveReactionsAndUpdateMessage(string bottomMessage)
-            {
-                await confirmationMessage.RemoveAllReactionsAsync();
-                await confirmationMessage.ModifyAsync(m => m.Content = cleanInfo + bottomMessage);
-            }
-        }
     }
 }
