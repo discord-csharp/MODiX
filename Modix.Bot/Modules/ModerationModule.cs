@@ -112,7 +112,8 @@ namespace Modix.Modules
             [Summary("The number of messages to delete.")]
                 int count)
             => await ModerationService.DeleteMessagesAsync(
-                Context.Channel as ITextChannel, count, true, () => ConfirmCleanAsync(Context.User.Id, Context.Channel.Name, count));
+                Context.Channel as ITextChannel, count, true,
+                    () => ConfirmCleanAsync(Context.User.Id, $"in #{Context.Channel.Name}", count));
 
         [Command("clean")]
         [Summary("Mass-deletes a specified number of messages.")]
@@ -122,17 +123,29 @@ namespace Modix.Modules
             [Summary("The channel to clean.")]
                 ITextChannel channel)
             => await ModerationService.DeleteMessagesAsync(
-                channel, count, Context.Channel.Id == channel.Id, () => ConfirmCleanAsync(Context.User.Id, Context.Channel.Name, count));
+                channel, count, Context.Channel.Id == channel.Id,
+                    () => ConfirmCleanAsync(Context.User.Id, $"in #{Context.Channel.Name}", count));
 
-        internal protected IModerationService ModerationService { get; }
+        [Command("clean")]
+        [Summary("Mass-deletes a specified number of messages by the supplied user.")]
+        public async Task Clean(
+            [Summary("The number of messages to delete.")]
+                int count,
+            [Summary("The user whose messages should be deleted.")]
+                IGuildUser user)
+            => await ModerationService.DeleteMessagesAsync(
+                Context.Channel as ITextChannel, user, count,
+                    () => ConfirmCleanAsync(Context.User.Id, $"by {user.Nickname ?? $"{user.Username}#{user.Discriminator}"} in #{Context.Channel.Name}", count));
 
-        private async Task<bool> ConfirmCleanAsync(ulong moderatorId, string channelName, int count)
+    internal protected IModerationService ModerationService { get; }
+
+        private async Task<bool> ConfirmCleanAsync(ulong moderatorId, string messageOriginText, int count)
         {
             var confirmEmote = new Emoji("✅");
             var cancelEmote = new Emoji("❌");
             const int secondsToWait = 10;
 
-            var cleanInfo = $"You are attempting to delete the past {count} messages in #{channelName}.{Environment.NewLine}";
+            var cleanInfo = $"You are attempting to delete the past {count} messages {messageOriginText}.{Environment.NewLine}";
 
             var confirmationMessage = await ReplyAsync(cleanInfo +
                 $"React with {confirmEmote} or {cancelEmote} in the next {secondsToWait} seconds to finalize or cancel the operation.");

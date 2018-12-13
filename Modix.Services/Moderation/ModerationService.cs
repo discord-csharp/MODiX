@@ -104,6 +104,16 @@ namespace Modix.Services.Moderation
         Task DeleteMessagesAsync(ITextChannel channel, int count, bool skipOne, Func<Task<bool>> confirmDelegate);
 
         /// <summary>
+        /// Mass-deletes a specified number of messages.
+        /// </summary>
+        /// <param name="channel">The channel in which the messages are to be deleted.</param>
+        /// <param name="user">The user whose messages are to be deleted.</param>
+        /// <param name="count">The number of messages to delete.</param>
+        /// <param name="confirmDelegate">A delegate that is invoked to confirm whether to proceed with the operation.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task DeleteMessagesAsync(ITextChannel channel, IGuildUser user, int count, Func<Task<bool>> confirmDelegate);
+
+        /// <summary>
         /// Retrieves a collection of deleted messages based on a given set of criteria, and returns a paged subset of the results based on a given set of paging criteria.
         /// </summary>
         /// <param name="searchCriteria">The criteria defining which deleted messages are to be returned.</param>
@@ -586,6 +596,55 @@ namespace Modix.Services.Moderation
             var messages = skipOne
                 ? (await channel.GetMessagesAsync(clampedCount + 1).FlattenAsync()).Skip(1)
                 : await channel.GetMessagesAsync(clampedCount).FlattenAsync();
+
+            await channel.DeleteMessagesAsync(messages);
+
+            using (var transaction = await DeletedMessageBatchRepository.BeginCreateTransactionAsync())
+            {
+                await ChannelService.TrackChannelAsync(guildChannel);
+
+                await DeletedMessageBatchRepository.CreateAsync(new DeletedMessageBatchCreationData()
+                {
+                    CreatedById = AuthorizationService.CurrentUserId.Value,
+                    GuildId = AuthorizationService.CurrentGuildId.Value,
+                    Data = messages.Select(
+                        x => new DeletedMessageCreationData()
+                        {
+                            AuthorId = x.Author.Id,
+                            ChannelId = x.Channel.Id,
+                            Content = x.Content,
+                            GuildId = AuthorizationService.CurrentGuildId.Value,
+                            MessageId = x.Id,
+                            Reason = "Mass-deleted.",
+                        }),
+                });
+
+                transaction.Commit();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteMessagesAsync(ITextChannel channel, IGuildUser user, int count, Func<Task<bool>> confirmDelegate)
+        {
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationMassDeleteMessages);
+
+            if (confirmDelegate is null)
+                throw new ArgumentNullException(nameof(confirmDelegate));
+
+            if (!(channel is IGuildChannel guildChannel))
+                throw new InvalidOperationException($"Cannot delete messages in {channel.Name} because it is not a guild channel.");
+
+            var confirmed = await confirmDelegate();
+
+            if (!confirmed)
+                return;
+
+            var clampedCount = Math.Clamp(count, 0, 100);
+
+            if (clampedCount == 0)
+                return;
+
+            var messages = (await channel.GetMessagesAsync(100).FlattenAsync()).Where(x => x.Author.Id == user.Id).Take(clampedCount);
 
             await channel.DeleteMessagesAsync(messages);
 
