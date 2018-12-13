@@ -103,6 +103,7 @@
     import LogService from '@/services/LogService';
     import TableParameters from '@/models/TableParameters';
     import { SortDirection } from '@/models/SortDirection';
+import FilterParameter from '@/models/FilterParameter';
 
     const messageResolvingRegex = /<#(\d+)>/gm;
 
@@ -282,9 +283,19 @@
             await this.refresh();
         }
 
-        async onColumnFilter(): Promise<void>
+        async onColumnFilter(params: any): Promise<void>
         {
+            this.tableParams.filters = [];
 
+            for (let prop in params.columnFilters)
+            {
+                console.log(prop);
+                console.log(params.columnFilters[prop]);
+
+                this.tableParams.filters.push({ field: prop, value: params.columnFilters[prop] })
+            }
+
+            await this.refresh();
         }
 
         async onPerPageChange(params: any): Promise<void>

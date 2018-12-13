@@ -32,7 +32,7 @@
 
 <style scope lang="scss">
 
-    @import "../styles/variables";
+    @import "../../styles/variables";
     @import "~bulma/sass/utilities/_all";
     @import "~bulma/sass/components/menu";
     @import "~bulma/sass/components/tabs";

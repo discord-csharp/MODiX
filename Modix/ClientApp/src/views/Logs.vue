@@ -8,7 +8,7 @@
 
     import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
     import * as _ from 'lodash';
-    import Sidebar from '@/components/Sidebar.vue';
+    import Sidebar from '@/components/Logs/Sidebar.vue';
 
     @Component({
         components:
