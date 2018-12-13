@@ -33,7 +33,7 @@ namespace Modix.Data.Models.Moderation
         public ulong? AuthorId { get; set; }
 
         /// <summary>
-        /// A <see cref="DeletedMessageEntity.Author.DisplayName"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
+        /// A <see cref="DeletedMessageEntity.Author"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
         /// </summary>
         public string Author { get; set; }
 
@@ -43,7 +43,7 @@ namespace Modix.Data.Models.Moderation
         public ulong? CreatedById { get; set; }
 
         /// <summary>
-        /// A <see cref="DeletedMessageEntity.CreatedBy.Nickname"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
+        /// A <see cref="DeletedMessageEntity.CreatedBy"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
         /// </summary>
         public string CreatedBy { get; set; }
 
