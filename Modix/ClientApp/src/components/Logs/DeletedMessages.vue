@@ -103,7 +103,6 @@
     import LogService from '@/services/LogService';
     import TableParameters from '@/models/TableParameters';
     import { SortDirection } from '@/models/SortDirection';
-import FilterParameter from '@/models/FilterParameter';
 
     const messageResolvingRegex = /<#(\d+)>/gm;
 
@@ -142,7 +141,7 @@ import FilterParameter from '@/models/FilterParameter';
 
         channelCache: { [channel: string]: DesignatedChannelMapping } | null = null;
 
-        resolveMentions(description: string)
+        resolveMentions(description: string): string
         {
             let replaced = description;
 
@@ -164,7 +163,7 @@ import FilterParameter from '@/models/FilterParameter';
             return `<span class='pre'>${replaced}</span>`;
         }
 
-        staticFilters: { [field: string]: string } = { subject: "", creator: "", id: "" };
+        staticFilters: { [field: string]: string } = { channel: "", author: "", createdBy: "", content: "", reason: "", batchId: "" };
 
         get mappedColumns(): Array<any>
         {
@@ -173,23 +172,22 @@ import FilterParameter from '@/models/FilterParameter';
                     label: 'Channel',
                     field: 'channel',
                     width: '10%',
-                    sortFn: (x: string, y: string) => (x < y ? -1 : (x > y ? 1 : 0)),
                     filterOptions:
                     {
                         enabled: true,
-                        filterFn: (channel: string, filter: string) => channel.includes(filter),
-                        placeholder: "Filter"
+                        placeholder: "Filter",
+                        filterValue: this.staticFilters["channel"]
                     }
                 },
                 {
                     label: 'Author',
                     field: 'author',
                     width: '10%',
-                    sortFn: (x: string, y: string) => (x.toLowerCase() < y.toLowerCase() ? -1 : (x.toLowerCase() > y.toLowerCase() ? 1 : 0)),
                     filterOptions:
                     {
                         enabled: true,
-                        placeholder: "Filter"
+                        placeholder: "Filter",
+                        filterValue: this.staticFilters["author"]
                     }
                 },
                 {
@@ -207,33 +205,52 @@ import FilterParameter from '@/models/FilterParameter';
                     filterOptions:
                     {
                         enabled: true,
-                        placeholder: "Filter"
+                        placeholder: "Filter",
+                        filterValue: this.staticFilters["createdBy"]
                     }
                 },
                 {
                     label: 'Content',
                     field: 'content',
-                    width: '25%',
+                    width: '24%',
                     formatFn: this.resolveMentions,
-                    html: true
+                    html: true,
+                    filterOptions:
+                    {
+                        enabled: true,
+                        placeholder: "Filter",
+                        filterValue: this.staticFilters["content"]
+                    }
                 },
                 {
                     label: 'Reason',
                     field: 'reason',
-                    width: '25%',
+                    width: '24%',
                     formatFn: this.resolveMentions,
-                    html: true
+                    html: true,
+                    filterOptions:
+                    {
+                        enabled: true,
+                        placeholder: "Filter",
+                        filterValue: this.staticFilters["reason"]
+                    }
                 },
                 {
                     label: 'Batch ID',
                     field: 'batchId',
                     type: 'number',
-                    width: '5%'
+                    width: '10%',
+                    filterOptions:
+                    {
+                        enabled: true,
+                        placeholder: "#",
+                        filterValue: this.staticFilters["batchId"]
+                    }
                 }
             ];
         }
 
-        async refresh()
+        async refresh(): Promise<void>
         {
             this.isLoading = true;
 
@@ -245,7 +262,7 @@ import FilterParameter from '@/models/FilterParameter';
             this.isLoading = false;
         }
 
-        applyFilters()
+        applyFilters(): void
         {
             let urlParams = new URLSearchParams(window.location.search);
 
@@ -253,19 +270,18 @@ import FilterParameter from '@/models/FilterParameter';
             {
                 let currentField: string = this.mappedColumns[i].field;
 
-                if (urlParams.has(currentField))
+                if (urlParams.has(currentField.toLowerCase()))
                 {
-                    this.staticFilters[currentField] = urlParams.get(currentField) || "";
+                    this.tableParams.filters.push({ field: currentField, value: urlParams.get(currentField.toLowerCase()) || "" });
+                    this.staticFilters[currentField] = urlParams.get(currentField.toLowerCase()) || "";
                 }
             }
-
-            console.log(this.mappedColumns);
         }
 
         async created(): Promise<void>
         {
-            await this.refresh();
             this.applyFilters();
+            await this.refresh();
         }
 
         async onPageChange(params: any): Promise<void>
@@ -289,9 +305,6 @@ import FilterParameter from '@/models/FilterParameter';
 
             for (let prop in params.columnFilters)
             {
-                console.log(prop);
-                console.log(params.columnFilters[prop]);
-
                 this.tableParams.filters.push({ field: prop, value: params.columnFilters[prop] })
             }
 

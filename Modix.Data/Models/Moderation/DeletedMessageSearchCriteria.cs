@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Immutable;
+using System.Linq;
 
 using Modix.Data.Repositories;
 using Modix.Data.Utilities;
@@ -21,14 +23,29 @@ namespace Modix.Data.Models.Moderation
         public ulong? ChannelId { get; set; }
 
         /// <summary>
+        /// A <see cref="DeletedMessageEntity.Channel.Name"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
+        /// </summary>
+        public string Channel { get; set; }
+
+        /// <summary>
         /// A <see cref="DeletedMessageEntity.AuthorId"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
         /// </summary>
         public ulong? AuthorId { get; set; }
 
         /// <summary>
+        /// A <see cref="DeletedMessageEntity.Author.DisplayName"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
+        /// </summary>
+        public string Author { get; set; }
+
+        /// <summary>
         /// A <see cref="DeletedMessageEntity.CreateAction.CreatedById"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
         /// </summary>
         public ulong? CreatedById { get; set; }
+
+        /// <summary>
+        /// A <see cref="DeletedMessageEntity.CreatedBy.Nickname"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
+        /// </summary>
+        public string CreatedBy { get; set; }
 
         /// <summary>
         /// A <see cref="DeletedMessageEntity.Content"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
@@ -44,6 +61,54 @@ namespace Modix.Data.Models.Moderation
         /// A <see cref="DeletedMessageEntity.BatchId"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
         /// </summary>
         public long? BatchId { get; set; }
+
+        /// <summary>
+        /// Defines the searchable properties of a <see cref="DeletedMessageSummary"/>.
+        /// </summary>
+        public static readonly ImmutableArray<string> SearchablePropertyNames = ImmutableArray.Create
+            (
+                nameof(Channel),
+                nameof(Author),
+                nameof(CreatedBy),
+                nameof(Content),
+                nameof(Reason),
+                nameof(BatchId)
+            );
+
+        public DeletedMessageSearchCriteria WithPropertyValue(string propertyName, string propertyValue)
+        {
+            if (propertyName.Equals(nameof(Channel), StringComparison.OrdinalIgnoreCase))
+            {
+                Channel = propertyValue;
+            }
+            else if (propertyName.Equals(nameof(Author), StringComparison.OrdinalIgnoreCase))
+            {
+                Author = propertyValue;
+            }
+            else if (propertyName.Equals(nameof(CreatedBy), StringComparison.OrdinalIgnoreCase))
+            {
+                CreatedBy = propertyValue;
+            }
+            else if (propertyName.Equals(nameof(Content), StringComparison.OrdinalIgnoreCase))
+            {
+                Content = propertyValue;
+            }
+            else if (propertyName.Equals(nameof(Reason), StringComparison.OrdinalIgnoreCase))
+            {
+                Reason = propertyValue;
+            }
+            else if (propertyName.Equals(nameof(BatchId), StringComparison.OrdinalIgnoreCase))
+            {
+                if (long.TryParse(propertyValue, out var batchId))
+                    BatchId = batchId;
+            }
+            else
+            {
+                throw new ArgumentException(nameof(propertyName));
+            }
+
+            return this;
+        }
     }
 
     internal static class DeletedMessageQueryableExtensions
@@ -57,11 +122,20 @@ namespace Modix.Data.Models.Moderation
                     x => x.ChannelId == criteria.ChannelId,
                     criteria?.ChannelId != null)
                 .FilterBy(
+                    x => x.Channel.Name.OrdinalContains(criteria.Channel),
+                    !string.IsNullOrWhiteSpace(criteria?.Channel))
+                .FilterBy(
                     x => x.AuthorId == criteria.AuthorId,
                     criteria?.AuthorId != null)
                 .FilterBy(
+                    x => (x.Author.Nickname ?? $"{x.Author.User.Username}#{x.Author.User.Discriminator}").OrdinalContains(criteria.Author),
+                    !string.IsNullOrWhiteSpace(criteria?.Author))
+                .FilterBy(
                     x => x.CreateAction.CreatedById == criteria.CreatedById,
                     criteria?.CreatedById != null)
+                .FilterBy(
+                    x => (x.CreateAction.CreatedBy.Nickname ?? $"{x.CreateAction.CreatedBy.User.Username}#{x.Author.User.Discriminator}").OrdinalContains(criteria.CreatedBy),
+                    !string.IsNullOrWhiteSpace(criteria?.CreatedBy))
                 .FilterBy(
                     x => x.Content.OrdinalContains(criteria.Content),
                     !string.IsNullOrWhiteSpace(criteria?.Content))

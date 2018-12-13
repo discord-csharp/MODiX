@@ -37,10 +37,14 @@ namespace Modix.Controllers
             var sortProperty = DeletedMessageSummary.SortablePropertyNames.FirstOrDefault(
                 x => x.Equals(tableParams.Sort.Field, StringComparison.OrdinalIgnoreCase)) ?? nameof(DeletedMessageSummary.Created);
 
-            var result = await ModerationService.SearchDeletedMessagesAsync(new DeletedMessageSearchCriteria()
+            var searchCriteria = new DeletedMessageSearchCriteria() { GuildId = UserGuild.Id };
+
+            foreach (var filter in tableParams.Filters)
             {
-                GuildId = UserGuild.Id
-            },
+                searchCriteria.WithPropertyValue(filter.Field, filter.Value);
+            }
+
+            var result = await ModerationService.SearchDeletedMessagesAsync(searchCriteria,
             new[]
             {
                 new SortingCriteria

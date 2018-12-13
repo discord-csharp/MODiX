@@ -60,7 +60,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="DeletedMessageEntity.Batch"/>.
         /// </summary>
-        public DeletedMessageBatchBrief Batch {get;set;}
+        public DeletedMessageBatchBrief Batch { get; set; }
 
         /// <summary>
         /// Defines the sortable properties of a <see cref="DeletedMessageSummary"/>
