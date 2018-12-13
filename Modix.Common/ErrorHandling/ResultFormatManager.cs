@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,13 +26,16 @@ namespace Modix.Common.ErrorHandling
     /// <inheritdoc />
     public class ResultFormatManager : IResultFormatManager
     {
-        private readonly IServiceProvider _provider;
+        private const string ConditionPropertyName = nameof(ConditionalServiceResult<object, ServiceResult<object>>.Condition);
+        private const string FormatMethodName = nameof(IResultFormatter<ServiceResult, object>.Format);
 
         private static readonly ConcurrentDictionary<(Type, Type), Type> _formatterTypeCache
             = new ConcurrentDictionary<(Type, Type), Type>();
 
         private static readonly ConcurrentDictionary<(Type, Type), MethodInfo> _formatMethodCache
             = new ConcurrentDictionary<(Type, Type), MethodInfo>();
+
+        private readonly IServiceProvider _provider;
 
         public ResultFormatManager(IServiceProvider provider)
         {
@@ -47,15 +49,24 @@ namespace Modix.Common.ErrorHandling
         private TOutput FindCacheAndInvokeFormatter<TOutput>(ServiceResult input)
         {
             //Get the actual, most derived type of the input
-            var typeKey = (input: input.GetType(), output: typeof(TOutput));
+            var inputType = input.GetType();
+            var typeKey = (input: inputType, output: typeof(TOutput));
 
             object instance = null;
+
+            //Special case for conditional results, we need to get the formatter for the type of the conditional within
+            if (inputType.IsGenericType && inputType.GetGenericTypeDefinition() == typeof(ConditionalServiceResult<,>))
+            {
+                //Reassign input to the given condition, and the inputType to the type of that condition so it resolves correctly
+                input = typeKey.input.GetProperty(ConditionPropertyName).GetValue(input) as ServiceResult;
+                inputType = input.GetType();
+            }
 
             if (_formatterTypeCache.ContainsKey(typeKey) == false)
             {
                 //Create a Type instance representing an IResultFormatter with the determined input type and provided
                 //output type
-                var type = typeof(IResultFormatter<,>).MakeGenericType(typeKey.input, typeof(TOutput));
+                var type = typeof(IResultFormatter<,>).MakeGenericType(inputType, typeof(TOutput));
 
                 //Try to get an instance of this most derived version from the IoC container
                 instance = _provider.GetService(type);
@@ -64,13 +75,13 @@ namespace Modix.Common.ErrorHandling
                 //base type (kind of a catch-all)
                 if (instance == null)
                 {
-                    type = typeof(IResultFormatter<,>).MakeGenericType(typeof(ServiceResult), typeof(TOutput));
+                    type = typeof(IResultFormatter<ServiceResult, TOutput>);
                 }
 
                 //Add the type and its format method to the cache - we can't add the actual instance
                 //because it's instantiated per-scope
                 _formatterTypeCache.TryAdd(typeKey, type);
-                _formatMethodCache.TryAdd(typeKey, type.GetMethod(nameof(IResultFormatter<ServiceResult, object>.Format)));
+                _formatMethodCache.TryAdd(typeKey, type.GetMethod(FormatMethodName));
             }
 
             instance = _provider.GetRequiredService(_formatterTypeCache[typeKey]);

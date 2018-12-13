@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Common.ErrorHandling;
-using Moq;
 using NUnit.Framework;
 using Shouldly;
 
@@ -48,6 +47,18 @@ namespace Modix.Common.Test
         {
             var derivedResult = new DerivedServiceResult();
             var result = ResultFormatManager.Format<ServiceResult, string>(derivedResult);
+
+            result.ShouldStartWith(DerivedResultFormatter.Value);
+        }
+
+        [Test]
+        public void ResultFormatManager_ReturnsSpecializedFormatter_ForFailedConditionalResult()
+        {
+            var derivedResult = new DerivedServiceResult(false);
+            var conditional = new ConditionalServiceResult<string, ServiceResult<string>>
+                (ServiceResult.FromResult(""), derivedResult);
+
+            var result = ResultFormatManager.Format<ServiceResult, string>(conditional);
 
             result.ShouldStartWith(DerivedResultFormatter.Value);
         }

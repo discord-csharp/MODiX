@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Modix.Common.ErrorHandling
 {
@@ -11,7 +12,7 @@ namespace Modix.Common.ErrorHandling
     {
         private static readonly ServiceResult _successfulResult = new ServiceResult { IsSuccess = true };
 
-        public bool IsSuccess { get; protected set; }
+        public virtual bool IsSuccess { get; protected set; }
         public virtual bool IsFailure => !IsSuccess;
         public string Error { get; protected set; }
 
@@ -75,20 +76,37 @@ namespace Modix.Common.ErrorHandling
         }
 
         /// <summary>
-        /// Returns the first ServiceResult if it failed, otherwise, returns a new successful ServiceResult<<typeparamref name="T"/>> for the second
+        /// Returns a <see cref="ConditionalServiceResult{TData, TGeneric}"/> which will be successful if this result is
         /// </summary>
-        /// <remarks>Useful for returning a generic ServiceResult when you have a non-generic condition</remarks>
-        /// <typeparam name="T">The return type of the ServiceResult if the first succeeded</typeparam>
-        /// <param name="condition">The conditional ServiceResult - if failed, will be returned</param>
-        /// <param name="result">The instance that will be assigned to the returned ServiceResult<typeparamref name="T"/></param>
-        public static ServiceResult<T> ShortCircuit<T>(ServiceResult condition, T result)
+        /// <typeparam name="TServiceResult">The type of the conditional service result</typeparam>
+        /// <typeparam name="TData">The type of the data to be returned in the result</typeparam>
+        /// <param name="result">A task that, if the condition is successful, will be awaited and accessible via <see cref="ConditionalServiceResult{TData, TGeneric}.Result"/></param>
+        public async Task<ConditionalServiceResult<TData, ServiceResult<TData>>> ShortCircuitAsync<TData>(Task<TData> result)
         {
-            if (condition.IsFailure)
+            var ret = new ServiceResult<TData>();
+
+            if (IsSuccess)
             {
-                return (ServiceResult<T>)condition;
+                ret = FromResult(await result);
             }
 
-            return new ServiceResult<T>() { IsSuccess = true, Result = result };
+            return new ConditionalServiceResult<TData, ServiceResult<TData>>(ret, this);
+        }
+    }
+
+    public class ConditionalServiceResult<TData, TGeneric> : ServiceResult<TData>
+        where TGeneric : ServiceResult<TData>
+    {
+        public TGeneric GenericResult { get; private set; }
+        public ServiceResult Condition { get; private set; }
+
+        public override bool IsSuccess => Condition.IsSuccess ? true : false;
+        public override TData Result => GenericResult.Result;
+
+        public ConditionalServiceResult(TGeneric genericResult, ServiceResult baseResult)
+        {
+            GenericResult = genericResult;
+            Condition = baseResult;
         }
     }
 
@@ -99,7 +117,7 @@ namespace Modix.Common.ErrorHandling
     public class ServiceResult<T> : ServiceResult
     {
         internal protected ServiceResult() { }
-        public T Result { get; internal protected set; }
+        public virtual T Result { get; internal protected set; }
 
         public static new ServiceResult<T> FromError(string error)
         {
@@ -108,21 +126,6 @@ namespace Modix.Common.ErrorHandling
                 IsSuccess = false,
                 Error = error
             };
-        }
-
-        /// <summary>
-        /// Returns the passed ServiceResult if it failed, otherwise, returns this one
-        /// </summary>
-        /// <remarks>Useful for returning a generic ServiceResult when you have a non-generic condition</remarks>
-        /// <param name="condition">The conditional ServiceResult - if failed, will be returned</param>
-        public ServiceResult<T> ShortCircuit(ServiceResult condition)
-        {
-            if (condition.IsFailure)
-            {
-                return (ServiceResult<T>)condition;
-            }
-
-            return this;
         }
     }
 }

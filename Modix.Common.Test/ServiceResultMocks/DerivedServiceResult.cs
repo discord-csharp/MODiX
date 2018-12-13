@@ -9,6 +9,11 @@ namespace Modix.Common.Test
     {
         public const string Value = "[DERIVED_SERVICE_RESULT]";
 
+        public DerivedServiceResult(bool isSuccess = true)
+        {
+            IsSuccess = isSuccess;
+        }
+
         public override string ToString()
         {
             return Value;

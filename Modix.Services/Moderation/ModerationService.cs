@@ -464,52 +464,32 @@ namespace Modix.Services.Moderation
 
         /// <inheritdoc />
         public async Task<ServiceResult<IReadOnlyCollection<InfractionSummary>>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null)
-        {
-            var authResult = AuthorizationService.CheckClaims(AuthorizationClaim.ModerationRead);
-            var result = await InfractionRepository.SearchSummariesAsync(searchCriteria, sortingCriteria);
-
-            return ServiceResult.ShortCircuit(authResult, result);
-        }
+            => await AuthorizationService.CheckClaims(AuthorizationClaim.ModerationRead)
+                    .ShortCircuitAsync(InfractionRepository.SearchSummariesAsync(searchCriteria, sortingCriteria));
 
         /// <inheritdoc />
         public async Task<ServiceResult<RecordsPage<InfractionSummary>>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
-        {
-            var authResult = AuthorizationService.CheckClaims(AuthorizationClaim.ModerationRead);
-            var result = await InfractionRepository.SearchSummariesPagedAsync(searchCriteria, sortingCriteria, pagingCriteria);
-
-            return ServiceResult.ShortCircuit(authResult, result);
-        }
+            => await AuthorizationService.CheckClaims(AuthorizationClaim.ModerationRead)
+                    .ShortCircuitAsync(InfractionRepository.SearchSummariesPagedAsync(searchCriteria, sortingCriteria, pagingCriteria));
 
         public async Task<ServiceResult<IDictionary<InfractionType, int>>> GetInfractionCountsForUserAsync(ulong subjectId)
-        {
-            var authResult = AuthorizationService.CheckClaims(AuthorizationClaim.ModerationRead);
-            var result = await InfractionRepository.GetInfractionCountsAsync(new InfractionSearchCriteria
-            {
-                GuildId = AuthorizationService.CurrentGuildId,
-                SubjectId = subjectId,
-                IsDeleted = false
-            });
-
-            return ServiceResult.ShortCircuit(authResult, result);
-        }
+            => await AuthorizationService.CheckClaims(AuthorizationClaim.ModerationRead)
+                    .ShortCircuitAsync(InfractionRepository.GetInfractionCountsAsync(new InfractionSearchCriteria
+                    {
+                        GuildId = AuthorizationService.CurrentGuildId,
+                        SubjectId = subjectId,
+                        IsDeleted = false
+                    }));
 
         /// <inheritdoc />
         public async Task<ServiceResult<ModerationActionSummary>> GetModerationActionSummaryAsync(long moderationActionId)
-        {
-            var authResult = AuthorizationService.CheckClaims(AuthorizationClaim.ModerationRead);
-            var result = await ModerationActionRepository.ReadSummaryAsync(moderationActionId);
-
-            return ServiceResult.ShortCircuit(authResult, result);
-        }
+            => await AuthorizationService.CheckClaims(AuthorizationClaim.ModerationRead)
+                    .ShortCircuitAsync(ModerationActionRepository.ReadSummaryAsync(moderationActionId));
 
         /// <inheritdoc />
         public async Task<ServiceResult<IReadOnlyCollection<ModerationActionSummary>>> SearchModerationActionsAsync(ModerationActionSearchCriteria searchCriteria)
-        {
-            var authResult = AuthorizationService.CheckClaims(AuthorizationClaim.ModerationRead);
-            var result = await ModerationActionRepository.SearchSummariesAsync(searchCriteria);
-
-            return ServiceResult.ShortCircuit(authResult, result);
-        }
+            => await AuthorizationService.CheckClaims(AuthorizationClaim.ModerationRead)
+                    .ShortCircuitAsync(ModerationActionRepository.SearchSummariesAsync(searchCriteria));
 
         /// <inheritdoc />
         public async Task<ServiceResult<DateTimeOffset>> GetNextInfractionExpiration()
