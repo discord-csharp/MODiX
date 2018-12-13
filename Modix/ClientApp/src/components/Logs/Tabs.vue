@@ -1,54 +1,24 @@
 <template>
-    <div class="columns is-mobile">
+    <div class="section">
 
-        <div class="column is-1 sidebar">
-            <aside class="menu">
-                <div>
-                    <p class="menu-label">
-                        Logs
-                    </p>
-
-                    <ul class="menu-list">
-                        <li v-for="route in routes" v-bind:key="route.path">
-                            <router-link v-bind:class="{ 'is-disabled': !hasClaimsForRoute(route) }" v-tooltip.right-end="claimsFor(route)"
-                                         v-bind:key="route.routeData.name" v-bind:to="{ 'name': route.routeData.name }" exact-active-class="is-active"
-                                         v-bind:event="!hasClaimsForRoute(route) ? '' : 'click'">
-                                {{toTitleCase(route.title)}}
-                            </router-link>
-                        </li>
-                    </ul>
-                </div>
-            </aside>
+        <div class="tabs">
+            <ul>
+                <li v-for="route in routes" v-bind:key="route.path">
+                    <router-link v-bind:class="{ 'is-disabled': !hasClaimsForRoute(route) }" v-tooltip.right-end="claimsFor(route)"
+                                 v-bind:key="route.routeData.name" v-bind:to="{ 'name': route.routeData.name }" exact-active-class="is-active"
+                                 v-bind:event="!hasClaimsForRoute(route) ? '' : 'click'">
+                        {{toTitleCase(route.title)}}
+                    </router-link>
+                </li>
+            </ul>
         </div>
 
-        <div class="column">
+        <div class="container">
             <router-view />
         </div>
 
-        <div class="column is-1 sidebar"/>
-
-        </div>
+    </div>
 </template>
-
-<style scope lang="scss">
-
-    @import "../../styles/variables";
-    @import "~bulma/sass/utilities/_all";
-    @import "~bulma/sass/components/menu";
-    @import "~bulma/sass/components/tabs";
-
-    .column.sidebar
-    {
-        margin: 2em;
-        width: auto;
-    }
-
-    a.is-disabled
-    {
-        color: $grey;
-        cursor: not-allowed;
-    }
-</style>
 
 <script lang="ts">
 
@@ -59,7 +29,7 @@
     import * as _ from 'lodash';
 
     @Component({})
-    export default class Sidebar extends Vue
+    export default class Tabs extends Vue
     {
         @Prop({ default: "" })
         public title!: string;

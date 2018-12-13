@@ -597,30 +597,7 @@ namespace Modix.Services.Moderation
                 ? (await channel.GetMessagesAsync(clampedCount + 1).FlattenAsync()).Skip(1)
                 : await channel.GetMessagesAsync(clampedCount).FlattenAsync();
 
-            await channel.DeleteMessagesAsync(messages);
-
-            using (var transaction = await DeletedMessageBatchRepository.BeginCreateTransactionAsync())
-            {
-                await ChannelService.TrackChannelAsync(guildChannel);
-
-                await DeletedMessageBatchRepository.CreateAsync(new DeletedMessageBatchCreationData()
-                {
-                    CreatedById = AuthorizationService.CurrentUserId.Value,
-                    GuildId = AuthorizationService.CurrentGuildId.Value,
-                    Data = messages.Select(
-                        x => new DeletedMessageCreationData()
-                        {
-                            AuthorId = x.Author.Id,
-                            ChannelId = x.Channel.Id,
-                            Content = x.Content,
-                            GuildId = AuthorizationService.CurrentGuildId.Value,
-                            MessageId = x.Id,
-                            Reason = "Mass-deleted.",
-                        }),
-                });
-
-                transaction.Commit();
-            }
+            await DoDeleteMessagesAsync(channel, guildChannel, messages);
         }
 
         /// <inheritdoc />
@@ -646,30 +623,7 @@ namespace Modix.Services.Moderation
 
             var messages = (await channel.GetMessagesAsync(100).FlattenAsync()).Where(x => x.Author.Id == user.Id).Take(clampedCount);
 
-            await channel.DeleteMessagesAsync(messages);
-
-            using (var transaction = await DeletedMessageBatchRepository.BeginCreateTransactionAsync())
-            {
-                await ChannelService.TrackChannelAsync(guildChannel);
-
-                await DeletedMessageBatchRepository.CreateAsync(new DeletedMessageBatchCreationData()
-                {
-                    CreatedById = AuthorizationService.CurrentUserId.Value,
-                    GuildId = AuthorizationService.CurrentGuildId.Value,
-                    Data = messages.Select(
-                        x => new DeletedMessageCreationData()
-                        {
-                            AuthorId = x.Author.Id,
-                            ChannelId = x.Channel.Id,
-                            Content = x.Content,
-                            GuildId = AuthorizationService.CurrentGuildId.Value,
-                            MessageId = x.Id,
-                            Reason = "Mass-deleted.",
-                        }),
-                });
-
-                transaction.Commit();
-            }
+            await DoDeleteMessagesAsync(channel, guildChannel, messages);
         }
 
         /// <inheritdoc />
@@ -874,6 +828,34 @@ namespace Modix.Services.Moderation
 
             await channel.AddPermissionOverwriteAsync(muteRole, _mutePermissions);
             Log.Debug("Set mute permissions for role {Role} in channel #{Channel}.", muteRole.Name, channel.Name);
+        }
+
+        private async Task DoDeleteMessagesAsync(ITextChannel channel, IGuildChannel guildChannel, IEnumerable<IMessage> messages)
+        {
+            await channel.DeleteMessagesAsync(messages);
+
+            using (var transaction = await DeletedMessageBatchRepository.BeginCreateTransactionAsync())
+            {
+                await ChannelService.TrackChannelAsync(guildChannel);
+
+                await DeletedMessageBatchRepository.CreateAsync(new DeletedMessageBatchCreationData()
+                {
+                    CreatedById = AuthorizationService.CurrentUserId.Value,
+                    GuildId = AuthorizationService.CurrentGuildId.Value,
+                    Data = messages.Select(
+                        x => new DeletedMessageCreationData()
+                        {
+                            AuthorId = x.Author.Id,
+                            ChannelId = x.Channel.Id,
+                            Content = x.Content,
+                            GuildId = AuthorizationService.CurrentGuildId.Value,
+                            MessageId = x.Id,
+                            Reason = "Mass-deleted.",
+                        }),
+                });
+
+                transaction.Commit();
+            }
         }
 
         private async Task DoRescindInfractionAsync(InfractionSummary infraction, bool isAutoRescind = false)

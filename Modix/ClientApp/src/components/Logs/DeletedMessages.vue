@@ -29,69 +29,6 @@
     </div>
 </template>
 
-<style lang="scss">
-
-    @import "../../styles/variables";
-    @import "~vue-good-table/dist/vue-good-table.css";
-    @import "~bulma/sass/elements/form";
-
-    .vgt-table.deleted-messages
-    {
-        font-size: 14px;
-        width: auto;
-        margin: auto;
-        select
-        {
-            font-size: 12px;
-        }
-
-        th
-        {
-            text-align: center;
-            padding: 0.33em;
-        }
-    }
-
-    .vgt-responsive
-    {
-        @include fullwidth-desktop();
-    }
-
-    .vgt-input, .vgt-select
-    {
-        padding: 0px 4px;
-        height: 28px;
-    }
-
-    @include mobile()
-    {
-        .vgt-table.bordered
-        {
-            font-size: initial;
-            select
-            {
-                font-size: initial;
-            }
-        }
-    }
-
-    .channel
-    {
-        font-weight: bold;
-    }
-
-    .pre
-    {
-        white-space: pre-line;
-    }
-
-    .typeCell
-    {
-        display: block;
-        white-space: nowrap;
-    }
-</style>
-
 <script lang="ts">
     import * as _ from 'lodash';
     import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
