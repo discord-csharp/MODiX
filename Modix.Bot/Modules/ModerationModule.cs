@@ -137,7 +137,7 @@ namespace Modix.Modules
                 Context.Channel as ITextChannel, user, count,
                     () => ConfirmCleanAsync(Context.User.Id, $"by {user.Nickname ?? $"{user.Username}#{user.Discriminator}"} in #{Context.Channel.Name}", count));
 
-    internal protected IModerationService ModerationService { get; }
+        internal protected IModerationService ModerationService { get; }
 
         private async Task<bool> ConfirmCleanAsync(ulong moderatorId, string messageOriginText, int count)
         {
