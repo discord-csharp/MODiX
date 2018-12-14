@@ -13,6 +13,8 @@ namespace Modix.Data.Repositories
 
         Task<IReadOnlyDictionary<ulong, int>> GetGuildUserMessageCountByChannel(ulong guildId, ulong userId, TimeSpan timespan);
 
+        Task<IReadOnlyDictionary<GuildUserEntity, int>> GetPerUserMessageCounts(ulong guildId, TimeSpan timespan, int userCount = 10);
+
         Task CreateAsync(MessageEntity message);
 
         Task DeleteAsync(ulong messageId);
@@ -59,6 +61,29 @@ namespace Modix.Data.Repositories
             return await GetGuildUserMessages(guildId, userId, timespan)
                 .GroupBy(x => x.ChannelId)
                 .ToDictionaryAsync(x => x.Key, x => x.Count());
+        }
+
+        public async Task<IReadOnlyDictionary<GuildUserEntity, int>> GetPerUserMessageCounts(ulong guildId, TimeSpan timespan, int userCount = 10)
+        {
+            var earliestDateTime = DateTimeOffset.UtcNow - timespan;
+
+            var userQuery = ModixContext.GuildUsers
+                .Where(x => x.GuildId == guildId)
+                .Include(x => x.User)
+                .AsNoTracking();
+
+            var result = ModixContext.Messages.AsNoTracking()
+                .Where(x => x.GuildId == guildId && x.Timestamp >= earliestDateTime)
+                .GroupBy(x => x.AuthorId)
+                .OrderByDescending(x => x.Count())
+                .Take(userCount)
+                .Join(userQuery, x => x.Key, x => x.UserId, (message, user) => new
+                {
+                    Count = message.Count(),
+                    User = user
+                });
+
+            return await result.ToDictionaryAsync(x => x.User, x => x.Count);
         }
 
         private IQueryable<MessageEntity> GetGuildUserMessages(ulong guildId, ulong userId, TimeSpan timespan)

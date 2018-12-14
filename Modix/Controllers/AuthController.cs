@@ -29,12 +29,25 @@ namespace Modix.Controllers
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
             //Make sure we remove the SelectedGuild cookie too
-            Response.Cookies.Append("SelectedGuild", null, new CookieOptions
+            Response.Cookies.Append("SelectedGuild", "", new CookieOptions
             {
                 Expires = DateTimeOffset.MinValue
             });
 
             return Redirect("/");
+        }
+
+        [HttpGet("userInfo")]
+        public IActionResult UserInfo()
+        {
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("LoggedInUserInfo", "Api");
+            }
+            else
+            {
+                return Unauthorized();
+            }
         }
     }
 }

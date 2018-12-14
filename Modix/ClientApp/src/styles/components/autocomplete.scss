@@ -1,0 +1,27 @@
+.autocomplete
+{
+    position: fixed;
+    z-index: 999;
+
+    background: $white;
+
+    padding: 0em 0em 0 0em;
+
+    box-shadow: $box-shadow;
+    border-radius: $box-radius;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+
+    .entry
+    {
+        padding: 0.25em 0.5em 0.25em 0.5em;
+
+        &.hovered
+        {
+            background: $info;
+            color: $white;
+
+            cursor: pointer;
+        }
+    }
+}

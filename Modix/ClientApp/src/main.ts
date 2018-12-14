@@ -4,10 +4,13 @@ import App from './App.vue';
 import router from '@/router';
 import VueClipboards from 'vue-clipboards';
 import VTooltip from 'v-tooltip';
+import { ensureConfig } from './models/PersistentConfig';
 
 Vue.config.productionTip = false;
 Vue.use(VueClipboards);
 Vue.use(VTooltip);
+
+ensureConfig();
 
 new Vue
 ({

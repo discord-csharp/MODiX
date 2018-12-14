@@ -45,19 +45,19 @@
                             <label class="label">Channel Name</label>
                             <Autocomplete :serviceCall="serviceCall" placeholder="#general"
                                 @select="selectedAutocomplete = $event" minimumChars="1" >
-                                
+
                                 <template slot-scope="{entry}">
                                     #{{entry.name}}
                                 </template>
 
                             </Autocomplete>
                         </div>
-                        
+
                         <div class="column is-one-third">
                             <label class="label">Designation</label>
                             <div class="select is-multiple is-small">
                                 <select multiple v-model="designationCreationData.channelDesignations">
-                                    <option v-for="designation in possibleDesignations" :key="designation" 
+                                    <option v-for="designation in possibleDesignations" :key="designation"
                                             :disabled="channelHasDesignation(designation)">
                                         {{designation}}
                                     </option>
@@ -83,12 +83,6 @@
 </template>
 
 <style scoped lang="scss">
-
-@import "../../styles/variables";
-@import "~bulma/sass/base/_all";
-@import "~bulma/sass/components/tabs";
-@import "~bulma/sass/components/modal";
-@import '~bulma/sass/elements/form';
 
 .designation
 {
@@ -198,7 +192,7 @@ export default class ChannelDesignations extends Vue
     {
         if (this.designationCreationData.channelId == '') { return true; }
 
-        return _.some(this.$store.state.modix.channelDesignations, channel => 
+        return _.some(this.$store.state.modix.channelDesignations, channel =>
                 channel.channelId == this.designationCreationData.channelId &&
                 channel.channelDesignation == designation);
     }

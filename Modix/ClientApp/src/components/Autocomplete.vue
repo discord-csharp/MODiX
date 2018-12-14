@@ -10,7 +10,7 @@
         <template v-else>
             <input class="input" type="text" :class="{'is-danger': error}" :placeholder="placeholder"
                 v-model="searchQuery" @input="debouncedAutocomplete()" @blur="blur()" ref="inputBox">
-            
+
             <div class="autocomplete" v-show="entries.length > 0">
 
                 <div class="entry" v-for="entry in entries" :key="entry.id" :class="{'hovered': hovered == entry}"
@@ -24,44 +24,6 @@
     </div>
 
 </template>
-
-<style scoped lang="scss">
-
-@import "../styles/variables";
-@import "~bulma/sass/base/_all";
-@import '~bulma/sass/elements/form';
-@import "~bulma/sass/elements/box";
-
-.autocomplete
-{
-    position: fixed;
-    z-index: 999;
-
-    background: $white;
-
-    padding: 0em 0em 0 0em;
-
-    box-shadow: $box-shadow;
-    border-radius: $box-radius;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-
-    .entry
-    {
-        padding: 0.25em 0.5em 0.25em 0.5em;
-
-        &.hovered
-        {
-            background: $info;
-            color: $white;
-
-            cursor: pointer;
-        }
-    }
-}
-
-</style>
-
 
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
@@ -125,7 +87,7 @@ export default class Autocomplete extends Vue
 
     blur()
     {
-        
+
     }
 
     select(entry: any)
@@ -172,7 +134,7 @@ export default class Autocomplete extends Vue
             {
                 await this.makeServiceCall();
             }
-            
+
             if (this.selectedIndex >= this.entries.length - 1)
             {
                 this.selectedIndex = 0;

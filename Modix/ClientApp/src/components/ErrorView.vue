@@ -29,10 +29,6 @@ export default class ErrorView extends Vue
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
 
-@import "../styles/variables";
-@import "~bulma/sass/utilities/_all";
-@import "~bulma/sass/elements/notification";
-
 .notification.is-danger strong
 {
     color: white !important;

@@ -1,5 +1,5 @@
 <template>
-    <div>
+    <div class="configuration">
         <section class="section">
             <div class="container">
                 <div class="columns">
@@ -14,10 +14,10 @@
 
                                     <li v-for="route in routes" :key="route.path">
                                         <router-link
-                                            :class="{'is-disabled': !hasClaimsForRoute(route)}" v-tooltip.right-end="claimsFor(route)" 
+                                            :class="{'is-disabled': !hasClaimsForRoute(route)}" v-tooltip.right-end="claimsFor(route)"
                                             :key="route.routeData.name" :to="{'name': route.routeData.name}" exact-active-class="is-active"
                                             :event="!hasClaimsForRoute(route) ? '' : 'click'">
-                                            
+
                                             {{toTitleCase(route.title)}}
                                         </router-link>
                                     </li>
@@ -26,31 +26,16 @@
                             </div>
                         </aside>
                     </div>
-                
+
                     <div class="column">
                         <router-view />
                     </div>
-                    
+
                 </div>
             </div>
         </section>
     </div>
 </template>
-
-<style scope lang="scss">
-
-@import "../../styles/variables";
-@import "~bulma/sass/utilities/_all";
-
-@import "~bulma/sass/components/menu";
-
-a.is-disabled
-{
-    color: $grey;
-    cursor: not-allowed;
-}
-
-</style>
 
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
@@ -62,14 +47,14 @@ import * as _ from 'lodash';
 @Component({
     components:
     {
-        
+
     },
 })
 export default class Configuration extends Vue
 {
     created()
     {
-        
+
     }
 
     get routes(): ModixRoute[]
@@ -85,7 +70,7 @@ export default class Configuration extends Vue
         return store.userHasClaims(route.routeData.requiredClaims || []);
     }
 
-    toTitleCase(input: string) 
+    toTitleCase(input: string)
     {
         return toTitleCase(input);
     }

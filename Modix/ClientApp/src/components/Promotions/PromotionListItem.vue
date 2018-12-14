@@ -44,7 +44,7 @@
                 </div>
 
                 <progress class="progress is-small" :class="sentimentColor(campaign)"
-                          :value="campaign.sentimentRatio" max="1" />
+                    :value="campaign.sentimentRatio" max="1" />
             </div>
 
             <div class="column is-narrow expander is-hidden-mobile">
@@ -95,11 +95,7 @@
 
 <style scoped lang="scss">
 
-@import "../../styles/variables";
 @import "~bulma/sass/utilities/_all";
-@import "~bulma/sass/elements/box";
-@import '~bulma/sass/elements/form';
-@import "~bulma/sass/elements/progress";
 
 .commentBox
 {
@@ -125,7 +121,7 @@
 
     margin-bottom: -10px;
 
-  
+
 }
 
 .displayName
@@ -162,7 +158,7 @@
     }
 }
 
-.ratings 
+.ratings
 {
     padding: 0.85rem 0.75rem 0em 0.75em;
 
@@ -187,7 +183,7 @@
 {
     position: relative;
     padding: 1.35em 1.2em 1.2em 1.2em;
-    
+
     max-height: 70px;
     overflow: hidden;
 
@@ -366,7 +362,7 @@ export default class PromotionListItem extends Vue
         finally
         {
             this.commentSubmitting = false;
-        }       
+        }
     }
 
     showPanel()
@@ -375,7 +371,7 @@ export default class PromotionListItem extends Vue
         {
             return;
         }
-        
+
         this.$emit('showPanel');
     }
 

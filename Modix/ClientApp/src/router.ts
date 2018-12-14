@@ -1,20 +1,21 @@
+import ModixRoute, { ModixRouteData } from '@/app/ModixRoute';
+import store from '@/app/Store';
+import { getCookie } from '@/app/Util';
 import _ from 'lodash';
 import Vue from 'vue';
 import Router from 'vue-router';
-import store from '@/app/Store';
-import { getCookie } from '@/app/Util';
-import Commands from './views/Commands.vue';
-import CreatePromotion from './views/CreatePromotion.vue';
+import { toTitleCase } from './app/Util';
+
 import Home from './views/Home.vue';
-import Infractions from './views/Infractions.vue';
-import Promotions from './views/Promotions.vue';
-import Configuration from './views/Configuration/Configuration.vue';
-import ChannelDesignations from './views/Configuration/ChannelDesignations.vue';
-import RoleDesignations from './views/Configuration/RoleDesignations.vue';
-import Claims from './views/Configuration/Claims.vue';
-import Stats from './views/Stats.vue';
-import ModixRoute, { ModixRouteData } from '@/app/ModixRoute';
-import {toTitleCase} from './app/Util';
+const Commands = () => import('./views/Commands.vue').then(m => m.default);
+const ChannelDesignations = () => import('./views/Configuration/ChannelDesignations.vue').then(m => m.default)
+const Claims = () => import('./views/Configuration/Claims.vue').then(m => m.default)
+const Configuration = () => import('./views/Configuration/Configuration.vue').then(m => m.default)
+const RoleDesignations = () => import('./views/Configuration/RoleDesignations.vue').then(m => m.default)
+const CreatePromotion = () => import('./views/CreatePromotion.vue').then(m => m.default)
+const Infractions = () => import('./views/Infractions.vue').then(m => m.default)
+const Promotions = () => import('./views/Promotions.vue').then(m => m.default)
+const Stats = () => import('./views/Stats.vue').then(m => m.default)
 
 Vue.use(Router)
 
@@ -68,7 +69,7 @@ let routes: ModixRouteData[] =
         component: Configuration,
         showInNavbar: false,
         requiresAuth: true,
-        children: 
+        children:
         [
             {
                 path: 'roles',
@@ -116,9 +117,9 @@ const router = new Router
 
 router.beforeEach(async (to, from, next) =>
 {
-    if (!store.hasTriedAuth())
+    if (from.name == null && to.name != "home" && !store.hasTriedAuth())
     {
-        await store.retrieveUserInfo()
+        await store.retrieveUserInfo();
     }
 
     let toRoute: ModixRoute = to.meta;
@@ -137,7 +138,7 @@ router.beforeEach(async (to, from, next) =>
     {
         store.pushErrorMessage(`You are not authorized to view <code>${to.fullPath}</code>. Required claims: ` +
             toRoute.routeData.requiredClaims.join(', '));
-            
+
         next('/');
     }
     else

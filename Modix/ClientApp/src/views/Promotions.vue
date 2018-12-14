@@ -102,13 +102,7 @@
 
 <style scoped lang="scss">
 
-@import "../styles/variables";
-@import "~bulma/sass/elements/box";
-@import "~bulma/sass/elements/tag";
-@import "~bulma/sass/elements/form";
-@import "~bulma/sass/components/menu";
-@import "~bulma/sass/components/panel";
-@import "~bulma/sass/components/modal";
+@import "~bulma/sass/utilities/_all";
 
 .modal
 {
@@ -226,7 +220,7 @@ export default class Promotions extends Vue
 
         let ordered = _.orderBy(campaigns, campaign =>
         [
-            campaign.isActive, 
+            campaign.isActive,
             campaign.startDate
         ], ['desc', 'desc']);
 
@@ -343,7 +337,7 @@ export default class Promotions extends Vue
 
     updated()
     {
-        
+
     }
 }
 </script>

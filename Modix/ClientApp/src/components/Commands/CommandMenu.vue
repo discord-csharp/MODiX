@@ -12,9 +12,6 @@
 </template>
 
 <style lang="scss" scoped>
-@import "../../styles/variables";
-@import "~bulma/sass/components/menu";
-
 .menu
 {
     position: sticky;

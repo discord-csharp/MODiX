@@ -2,10 +2,33 @@
     <div class="profile">
         <template v-if="user && user.userId">
             <img class="avatar-icon" :src="user.avatarUrl">
-            <p class="title is-4">
-                <span class="username">{{user.name}}</span>
-                <!--<a href="/api/logout" title="Log Out">&#128075;</a>-->
-            </p>
+
+            <v-popover>
+                <p class="title is-4">
+                    <span class="username">{{user.name}} <small>&#9660;</small></span>
+                </p>
+
+                <template slot="popover">
+                    <div class="options">
+                        <v-popover trigger="hover click" placement="right" :delay="{hide: 300}">
+                            <a class="option">
+                                Theme &#9654;
+                            </a>
+                            <template slot="popover">
+                                <div class="options">
+                                    <div class="option theme" v-for="theme in themes" v-bind:key="theme.value" v-on:click="switchTheme(theme)">
+                                        {{theme.name}}
+                                    </div>
+                                </div>
+                            </template>
+                        </v-popover>
+
+                        <a class="option divider"></a>
+
+                        <a class="option" href="/api/logout">Log Out</a>
+                    </div>
+                </template>
+            </v-popover>
 
             <v-popover>
                 <div class="guildDropdown tooltip-target" v-if="currentGuild" v-tooltip="'Selected: ' + currentGuild.name">
@@ -13,8 +36,7 @@
                     <img class="dropdown-icon" :src="currentGuild.iconUrl">
 
                     <div class="expander">
-                        <template v-if="expanded">&#9650;</template>
-                        <template v-else>&#9660;</template>
+                        <template>&#9660;</template>
                     </div>
 
                 </div>
@@ -22,12 +44,12 @@
                 <template slot="popover">
                     <div class="options">
                         <div class="option" v-for="guild in guilds" :key="guild.id" @click="selectGuild(guild)">
-                            <img class="guildIcon" :src="guild.iconUrl">{{guild.name}}
+                            <img class="icon" :src="guild.iconUrl">{{guild.name}}
                         </div>
                     </div>
                 </template>
             </v-popover>
-            
+
         </template>
 
         <template v-else>
@@ -38,107 +60,6 @@
     </div>
 </template>
 
-
-<style scoped lang="scss">
-@import "../styles/variables";
-@import "~bulma/sass/base/_all";
-@import "~bulma/sass/components/media";
-@import "~bulma/sass/elements/box";
-
-.title:not(:last-child)
-{
-    margin-bottom: 0;
-}
-
-.guildDropdown
-{
-    cursor: pointer;
-
-    border-left: 1px solid transparentize($white, 0.75);
-
-    margin: 2px 0.25em 0 0.33em;
-    padding-left: 0.66em;
-
-    display: inline-block;
-
-    & > .avatar-icon
-    {
-        position: relative;
-        top: 2px;
-    }
-}
-
-.guildIcon
-{
-    vertical-align: middle;
-    margin-right: 0.5em;
-
-    max-height: 32px;
-}
-
-.option
-{
-    color: $black;
-    padding: 0.5em 0.5em 0.5em 0.5em;
-
-    &:hover
-    {
-        background: $info;
-        color: $text;
-
-        cursor: pointer;
-    }
-}
-
-.expander
-{
-    display: inline-block;
-    font-size: 0.8em;
-
-    position: relative;
-    top: -7px;
-}
-
-.profile
-{
-    justify-self: flex-end;
-    color: white;
-
-    padding: 8px 6px 8px 12px;
-}
-
-.title.is-4, .title.is-4 a
-{
-    word-break: normal;
-    color: white;
-}
-
-.v-popover
-{
-    
-}
-
-.avatar-icon, .dropdown-icon
-{
-    margin-right: 0.5em;
-
-    border-radius: 4px;
-    box-shadow: -1px 1px 0px white;
-
-    
-}
-
-.username
-{
-    margin-right: 0.2em;
-
-    @include tiny()
-    {
-        display: none;
-    }
-}
-</style>
-
 <script lang="ts">
 import Vue from 'vue';
 import User from '@/models/User';
@@ -147,12 +68,11 @@ import { Component } from 'vue-property-decorator';
 import Guild from '@/models/Guild';
 import store from '@/app/Store';
 import GeneralService from '@/services/GeneralService';
+import { Theme, themeContext, config, setConfig } from '@/models/PersistentConfig';
 
 @Component({})
 export default class MiniProfile extends Vue
 {
-    expanded: boolean = false;
-
     get user(): User
     {
         return this.$store.state.modix.user;
@@ -163,14 +83,36 @@ export default class MiniProfile extends Vue
         return this.$store.state.modix.guilds as Guild[];
     }
 
-    get currentGuild()
+    get themes(): Theme[]
     {
-        return store.currentGuild();
+        return themeContext.keys().map((theme: Theme) =>
+        {
+            return {
+                name: this.toCaps(theme.slice(2, theme.length - 5)),
+                value: theme
+            }
+        });
     }
 
-    async created()
+    get currentGuild(): Guild
     {
-        await store.retrieveGuilds();
+        return store.currentGuild() ||
+        {
+            id: "0",
+            name: "Unknown",
+            iconUrl: ""
+        };
+    }
+
+    toCaps(input: string): string
+    {
+        return input.charAt(0).toUpperCase() + input.substr(1);
+    }
+
+    switchTheme(theme: any)
+    {
+        setConfig(conf => conf.theme = theme.name);
+        location.reload();
     }
 
     async selectGuild(guild: Guild)

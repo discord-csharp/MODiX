@@ -45,19 +45,19 @@
                             <label class="label">Role Name</label>
                             <Autocomplete :serviceCall="serviceCall" placeholder="@Administrator"
                                 @select="selectedAutocomplete = $event" minimumChars="-1" >
-                                
+
                                 <template slot-scope="{entry}">
                                     @{{entry.name}}
                                 </template>
 
                             </Autocomplete>
                         </div>
-                        
+
                         <div class="column is-one-third">
                             <label class="label">Designation</label>
                             <div class="select is-multiple is-small">
                                 <select multiple v-model="designationCreationData.roleDesignations">
-                                    <option v-for="designation in possibleDesignations" :key="designation" 
+                                    <option v-for="designation in possibleDesignations" :key="designation"
                                             :disabled="roleHasDesignation(designation)">
                                         {{designation}}
                                     </option>
@@ -83,12 +83,6 @@
 </template>
 
 <style scoped lang="scss">
-
-@import "../../styles/variables";
-@import "~bulma/sass/base/_all";
-@import "~bulma/sass/components/tabs";
-@import "~bulma/sass/components/modal";
-@import '~bulma/sass/elements/form';
 
 .designation
 {
@@ -200,7 +194,7 @@ export default class RoleDesignations extends Vue
 
         console.log(this.$store.state.modix.roleMappings);
 
-        return _.some(this.$store.state.modix.roleMappings, (role: DesignatedRoleMapping) => 
+        return _.some(this.$store.state.modix.roleMappings, (role: DesignatedRoleMapping) =>
                 role.roleId == this.designationCreationData.roleId &&
                 role.roleDesignation == designation);
     }

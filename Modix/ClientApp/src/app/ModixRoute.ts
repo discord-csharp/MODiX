@@ -1,4 +1,4 @@
-import Vue, { VueConstructor } from 'vue';
+import Vue, { ComponentOptions, AsyncComponent } from 'vue';
 import { RouteConfig, Route } from 'vue-router';
 import _ from 'lodash';
 
@@ -7,7 +7,7 @@ export interface ModixRouteData
     path: string;
     name: string;
     title?: string;
-    component?: VueConstructor<Vue>;
+    component?: ComponentOptions<Vue> | typeof Vue | AsyncComponent;
     requiredClaims?: string[];
     showInNavbar?: boolean;
     children?: ModixRouteData[];
