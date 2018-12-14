@@ -15,7 +15,7 @@ namespace Modix.Services.GuildStats
     public interface IGuildStatService
     {
         /// <summary>
-        /// Gets a list of GuildInfoResult objects representing the role distriution for the given guild.
+        /// Gets a list of GuildInfoResult objects representing the role distribution for the given guild.
         /// </summary>
         /// <param name="guild">The guild to retrieve roles/counts from</param>
         /// <returns>A list of GuildInfoResult(s), each representing a role in the guild</returns>
@@ -25,14 +25,12 @@ namespace Modix.Services.GuildStats
         /// Returns a mapping of <see cref="GuildUserEntity"/> to a count of the messages they've sent
         /// </summary>
         /// <param name="guildId">The guild to count messages for</param>
-        /// <param name="after">How long before now to count messages for</param>
         Task<IReadOnlyDictionary<GuildUserEntity, int>> GetTopMessageCounts(IGuild guild);
     }
 
     public class GuildStatService :
         INotificationHandler<UserJoined>,
         INotificationHandler<UserLeft>,
-        INotificationHandler<ChatMessageReceived>,
         IGuildStatService
     {
         private readonly IMemoryCache _cache;
@@ -68,11 +66,6 @@ namespace Modix.Services.GuildStats
             _cache.Remove(GetKeyForGuild(guild));
         }
 
-        public Task Handle(ChatMessageReceived notification, CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
         public Task Handle(UserJoined notification, CancellationToken cancellationToken)
         {
             ClearCacheEntry(notification.Guild);
@@ -85,7 +78,7 @@ namespace Modix.Services.GuildStats
             return Task.CompletedTask;
         }
 
-        /// <inheritDoc />
+        /// <inheritdoc />
         public async Task<IReadOnlyDictionary<GuildUserEntity, int>> GetTopMessageCounts(IGuild guild)
         {
             var key = GetKeyForMsgCounts(guild);
@@ -99,7 +92,7 @@ namespace Modix.Services.GuildStats
             return ret;
         }
 
-        /// <inheritDoc />
+        /// <inheritdoc />
         public async Task<List<GuildRoleCount>> GetGuildMemberDistributionAsync(IGuild guild)
         {
             var key = GetKeyForGuild(guild);

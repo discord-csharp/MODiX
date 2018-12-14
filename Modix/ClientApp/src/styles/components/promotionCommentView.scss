@@ -71,3 +71,8 @@
     color: grey;
     margin-left: 0.5em;
 }
+
+.own
+{
+    background: lighten($primary, 50%);
+}

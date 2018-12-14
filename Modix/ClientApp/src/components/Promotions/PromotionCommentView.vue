@@ -1,6 +1,6 @@
 <template>
 
-    <div class="comment" :style="{'background-color': backgroundColor()}">
+    <div class="comment" v-bind:class="{'own': this.comment.isFromCurrentUser}">
         <span class="sentimentIcon" v-html="sentimentIcon(comment.sentiment)"></span>
         <span class="commentBody">
             {{comment.content}} <span class="date">{{formatDate(comment.createAction.created)}}</span>
@@ -38,13 +38,6 @@ export default class PromotionCommentView extends Vue
     formatDate(date: Date): string
     {
         return formatDate(date);
-    }
-
-    backgroundColor()
-    {
-        return this.comment.isFromCurrentUser
-            ? 'rgb(240, 210, 240)'
-            : 'rgb(245, 245, 245)';
     }
 
     openModal()
