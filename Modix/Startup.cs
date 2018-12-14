@@ -88,8 +88,6 @@ namespace Modix
                 });
             });
 
-            var cachePeriod = env.IsDevelopment() ? "600" : "604800";
-
             //Map to static files when not hitting the API
             app.MapWhen(x => !x.Request.Path.Value.StartsWith("/api"), builder =>
             {
@@ -105,13 +103,7 @@ namespace Modix
                     }
                 })
                 .UseDefaultFiles()
-                .UseStaticFiles(new StaticFileOptions
-                {
-                    OnPrepareResponse = ctx =>
-                    {
-                        ctx.Context.Response.Headers.Append("Cache-Control", $"public, max-age={cachePeriod}");
-                    }
-                });
+                .UseStaticFiles();
             });
 
             //Defer to MVC for anything that doesn't match (and ostensibly
