@@ -6,7 +6,7 @@ using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
 using Modix.Models;
 using Modix.Services.Core;
-using Modix.Services.GuildInfo;
+using Modix.Services.GuildStats;
 
 namespace Modix.Controllers
 {

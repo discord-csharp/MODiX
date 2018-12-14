@@ -16,7 +16,7 @@ using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.DocsMaster;
-using Modix.Services.GuildInfo;
+using Modix.Services.GuildStats;
 using Modix.Services.Moderation;
 using Modix.Services.PopularityContest;
 using Modix.Services.Promotions;
@@ -63,7 +63,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddModixPromotions()
                 .AddAutoCodePaste()
                 .AddCommandHelp()
-                .AddGuildInfo();
+                .AddGuildStats();
 
             services.AddSingleton<IBehavior, DiscordAdapter>();
             services.AddScoped<IQuoteService, QuoteService>();

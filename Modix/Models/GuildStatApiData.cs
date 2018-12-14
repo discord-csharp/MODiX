@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Modix.Data.Models.Core;
-using Modix.Services.GuildInfo;
+using Modix.Services.GuildStats;
 
 namespace Modix.Models
 {

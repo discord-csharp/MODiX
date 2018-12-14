@@ -60,7 +60,7 @@
 .userList
 {
     font-size: 1.5em;
-    padding: 0 1em;
+    padding: 1em;
 
     .first strong
     {

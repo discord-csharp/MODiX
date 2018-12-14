@@ -1,5 +1,4 @@
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-const ExtractCssChunks = require("extract-css-chunks-webpack-plugin");
 const webpack = require('webpack');
 
 module.exports = {
