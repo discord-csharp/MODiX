@@ -1,0 +1,108 @@
+
+@keyframes fadeOut
+{
+    0%
+    {
+        transform: scale(1);
+    }
+    100%
+    {
+        transform: scale(0);
+
+        visibility: hidden;
+        pointer-events: none;
+    }
+}
+
+@keyframes fadeIn
+{
+    0%
+    {
+        opacity: 0;
+    }
+    100%
+    {
+        opacity: 1;
+    }
+}
+
+.loaderRoot
+{
+    background: $primary;
+    position: fixed;
+
+    width: 6000px;
+    height: 6000px;
+
+    top: 50%;
+    left: 50%;
+
+    margin-top: -3000px;
+    margin-left: -3000px;
+
+    border-radius: 9999em;
+
+    transform-origin: 50% 50%;
+    z-index: 999;
+}
+
+.loaderRoot.complete
+{
+    animation: fadeOut $default-transition forwards;
+    animation-delay: 800ms;
+}
+
+.spinner
+{
+    @include loader();
+
+    background: $primary;
+
+    position: relative;
+
+    border-width: 48px;
+    top: calc(50% - 300px);
+    left: calc(50% - 300px);
+
+    width: 600px;
+    height: 600px;
+
+    border-color: transparent;
+
+    animation-duration: 0.5s;
+    animation-iteration-count: infinite;
+
+    box-shadow: -12px 12px 24px -10px rgba(0, 0, 0, 0.25), 6px -6px 32px -16px inset rgba(255, 255, 255, 0.33);
+
+    .complete &
+    {
+        animation-iteration-count: 4;
+    }
+}
+
+.spinnerCenter
+{
+    opacity: 0;
+
+    max-width: 250px;
+    position: absolute;
+
+    top: calc(50% - 125px);
+    left: calc(50% - 125px);
+
+    .complete &
+    {
+        animation: fadeIn 0.25s $default-easing forwards;
+    }
+}
+
+.loadingText
+{
+    font-size: 1em;
+    position: absolute;
+    top: 52.25%;
+    width: 100%;
+    text-align: center;
+
+    color: white;
+}

@@ -8,14 +8,14 @@
 
         <template v-else>
             <div class="option false" title="False"
-                @click="internalChange(false)" 
+                @click="internalChange(false)"
                 :class="{'active': innerValue == false}">X</div>
 
-            <div class="option null" 
+            <div class="option null"
                 @click="internalChange(null)" title="Unset"
                 :class="{'active': innerValue == null}">–</div>
 
-            <div class="option true" 
+            <div class="option true"
                 @click="internalChange(true)" title="True"
                 :class="{'active': innerValue == true}">✓</div>
         </template>
@@ -25,8 +25,6 @@
 </template>
 
 <style scoped lang="scss">
-
-@import "../styles/variables";
 
 $radius: 4px;
 $trueColor: green;
@@ -78,7 +76,7 @@ $falseColor: red;
     display: inline-block;
 
     font-family: monospace;
-    font-weight: bold;    
+    font-weight: bold;
     text-align: center;
     color: gray;
 

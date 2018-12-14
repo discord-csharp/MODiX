@@ -5,7 +5,7 @@
             <h1 class="title">
                 Start a Campaign
             </h1>
-            
+
             <div class="columns">
 
                 <div class="column is-one-third">
@@ -13,7 +13,7 @@
                         <p class="box">Feel like someone deserves recognition? <strong>Start a promotion campaign for them</strong> - even if that person is yourself!</p>
                         <p class="box">Once a campaign is started, users can <strong>anonymously comment</strong>, voicing their opinions for or against the individual up for promotion</p>
                         <p class="box">
-                            Staff will periodically review campaigns. If approved, the user will be <strong>immediately promoted!</strong> If not, they may be permanently denied, 
+                            Staff will periodically review campaigns. If approved, the user will be <strong>immediately promoted!</strong> If not, they may be permanently denied,
                             or further looked into as the campaign runs its course.
                         </p>
                     </div>
@@ -60,9 +60,6 @@
 <style scoped lang="scss">
 
 @import "~bulma/sass/utilities/_all";
-@import "~bulma/sass/base/_all";
-@import '~bulma/sass/elements/form';
-@import "~bulma/sass/elements/box";
 
 .delete
 {
@@ -197,7 +194,7 @@ export default class CreatePromotion extends Vue
 
     updated()
     {
-        
+
     }
 }
 </script>

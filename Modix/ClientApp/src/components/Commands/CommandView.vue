@@ -3,13 +3,13 @@
     <li class="command box">
 
         <div :class="{'field is-grouped is-grouped-multiline': overload.parameters.length > 0}" v-for="(overload, index) in commandGroup" :key="index">
-            <span class="commandName" v-if="overload == commandGroup[0] || isAlias(overload)">
+            <span class="commandName" v-if="overload.alias == commandGroup[0].alias || isAlias(overload)">
                 !{{overload.alias.toLowerCase()}}
             </span>
             <span class="commandName overload" v-else>
                 or
             </span>
-            
+
             <div class="summary" v-if="!isAlias(overload)">
                 {{overload.summary}}
             </div>
@@ -26,48 +26,6 @@
     </li>
 
 </template>
-
-<style lang="scss" scoped>
-@import "../../styles/variables";
-@import "~bulma/sass/utilities/_all";
-@import "~bulma/sass/elements/form";
-@import "~bulma/sass/elements/box";
-@import "~bulma/sass/elements/title";
-
-.command
-{
-    background: $light;
-    padding: 0.5em 1em;
-
-    .commandName
-    {
-        display: inline-block;
-        font-family: "Consolas", monospace;
-        font-size: 1.15em;
-        margin-right: 1em;
-        font-weight: bold;
-    }
-
-    .overload
-    {
-        color: $subtitle-color;
-    }
-}
-
-.spacer
-{
-    margin-bottom: 1em;
-    color: $subtitle-color;
-}
-
-.summary
-{
-    display: inline-block;
-    margin-right: 1em;
-}
-
-</style>
-
 
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';

@@ -2,7 +2,7 @@
 
     <div>
         <h1 class="title">
-            <a :name="commandModule.name" :href="'#' + commandModule.name" 
+            <a :name="commandModule.name" :href="'#' + commandModule.name"
                 v-on:click.prevent="emitClick(commandModule)">
                 {{commandModule.name}}
             </a>
@@ -10,7 +10,7 @@
         <h2 class="subtitle">
             {{commandModule.summary}}
         </h2>
-        <ul> 
+        <ul>
             <CommandView v-for="(commandGroup, key) in overloads(commandModule.commands)" :key="key" :commandGroup="commandGroup" />
         </ul>
         <br />

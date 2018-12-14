@@ -1,9 +1,7 @@
 import { ModuleHelpData } from '@/models/ModuleHelpData';
 import User from '@/models/User';
-import UserCodePaste from '@/models/UserCodePaste';
 import _ from 'lodash';
 import InfractionSummary from '@/models/infractions/InfractionSummary';
-import GuildInfoResult from '@/models/GuildInfoResult';
 
 import client from './ApiClient';
 import Channel from '@/models/Channel';
@@ -11,6 +9,7 @@ import Role from '@/models/Role';
 import Deserializer from '@/app/Deserializer';
 import Claim from '@/models/Claim';
 import Guild from '@/models/Guild';
+import GuildStatApiData from '@/models/GuildStatApiData';
 
 export default class GeneralService
 {
@@ -18,14 +17,14 @@ export default class GeneralService
     {
         let response = (await client.get("userInfo")).data;
         let user = Deserializer.getNew(User, response);
-        
+
         return user;
     }
 
-    static async getGuildInfo(): Promise<Map<string, GuildInfoResult>>
+    static async getGuildStats(): Promise<GuildStatApiData>
     {
-        let response = (await client.get("guilds")).data;
-        return (<Map<string, GuildInfoResult>>response);
+        let response = (await client.get("guildStats")).data;
+        return response;
     }
 
     static async getGuildRoles(): Promise<Role[]>
@@ -86,7 +85,7 @@ export default class GeneralService
         let response = (await client.get(`autocomplete/roles?query=${encodeURIComponent(query)}&rankOnly=false`)).data;
         return response;
     }
-    
+
     static async getInfractions(): Promise<InfractionSummary[]>
     {
         let response = (await client.get("infractions")).data;

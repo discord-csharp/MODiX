@@ -5,9 +5,9 @@
             <span class="tag is-dark">
                 {{param.name}}
             </span>
-            <span class="tag description" v-tooltip.top-center="{content: description, trigger: 'hover click'}" v-if="hasDescription">&hellip;</span>                          
+            <span class="tag description" v-tooltip.top-center="{content: description, trigger: 'hover click'}" v-if="hasDescription">&hellip;</span>
             <span class="tag is-info">{{param.type}}</span>
-            <span v-if="param.isOptional" class="tag pointer is-warning" 
+            <span v-if="param.isOptional" class="tag pointer is-warning"
                 v-tooltip.top-center="{content: 'Optional', trigger: 'hover click'}">?</span>
         </div>
     </div>
@@ -15,15 +15,13 @@
 </template>
 
 <style scoped lang="scss">
-@import "../../styles/variables";
-@import "~bulma/sass/elements/tag";
 
 .tag:not(body).is-dark
 {
     color: white !important;
 }
 
-.tooltip-inner 
+.tooltip-inner
 {
     font-size: 14px;
 
@@ -37,19 +35,6 @@
 }
 
 </style>
-
-<style scoped lang="scss">
-@import "../../styles/variables";
-@import "~bulma/sass/utilities/_all";
-@import "~bulma/sass/elements/tag";
-@import "~bulma/sass/elements/form";
-
-.pointer
-{
-    cursor: pointer;
-}
-</style>
-
 
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';

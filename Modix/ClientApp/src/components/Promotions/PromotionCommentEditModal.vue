@@ -44,13 +44,6 @@
 </template>
 
 <style scoped lang="scss">
-
-    @import "../../styles/variables";
-    @import "~bulma/sass/utilities/_all";
-    @import "~bulma/sass/elements/box";
-    @import '~bulma/sass/elements/form';
-    @import "~bulma/sass/components/modal";
-
     .statusIcon
     {
         display: inline-block;
@@ -73,7 +66,7 @@ export default class PromotionCommentEditModal extends Vue
 {
     @Prop() public comment!: PromotionComment;
     @Prop({default: false}) public showUpdateModal!: boolean;
-    
+
     loadingCommentUpdate: boolean = false;
     newComment: PromotionCommentData = { body: "", sentiment: PromotionSentiment.Abstain };
     error: string = "";

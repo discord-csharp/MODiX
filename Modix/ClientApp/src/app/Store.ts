@@ -1,5 +1,4 @@
 import _ from 'lodash';
-import GuildInfoResult from "@/models/GuildInfoResult";
 import ModixState from "@/models/ModixState";
 import { ModuleHelpData } from "@/models/ModuleHelpData";
 import PromotionCampaign from "@/models/promotions/PromotionCampaign";
@@ -13,12 +12,12 @@ import InfractionSummary from '@/models/infractions/InfractionSummary';
 import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
 import ConfigurationService from '@/services/ConfigurationService';
 import PromotionService from '@/services/PromotionService';
-import ClaimMapping from '@/models/ClaimMapping';
 import Role from '@/models/Role';
 import Claim from '@/models/Claim';
 import Guild from '@/models/Guild';
 import DesignatedRoleMapping from '@/models/moderation/DesignatedRoleMapping';
 import Channel from '@/models/Channel';
+import { AxiosError } from 'axios';
 
 Vue.use(Vuex);
 
@@ -27,7 +26,6 @@ type ModixContext = BareActionContext<ModixState, RootState>;
 const modixState: ModixState =
 {
     user: null,
-    guildInfo: new Map<string, GuildInfoResult>(),
     errors: [],
     pastes: [],
     currentPaste: null,
@@ -48,47 +46,54 @@ const moduleBuilder = storeBuilder.module<ModixState>("modix", modixState);
 namespace modix
 {
     const setUser = (state: ModixState, user: User) => state.user = user;
-    const setGuildInfo = (state: ModixState, guildInfo: Map<string, GuildInfoResult>) => state.guildInfo = guildInfo;
     const setCommands = (state: ModixState, commands: ModuleHelpData[]) => state.commands = commands;
     const setCampaigns = (state: ModixState, campaigns: PromotionCampaign[]) => state.campaigns = campaigns;
     const setInfractions = (state: ModixState, infractions: InfractionSummary[]) => state.infractions = infractions;
     const setRoles = (state: ModixState, roles: Role[]) => state.roles = roles;
     const setGuilds = (state: ModixState, guilds: Guild[]) => state.guilds = guilds;
     const setChannels = (state: ModixState, channels: Channel[]) => state.channels = channels;
-    
+
     const setChannelDesignations = (state: ModixState, mappings: DesignatedChannelMapping[]) => state.channelDesignations = mappings;
     const setRoleDesignations = (state: ModixState, mappings: DesignatedRoleMapping[]) => state.roleMappings = mappings;
     const setClaims = (state: ModixState, claims: {[claim: string]: Claim[]}) => state.claims = claims;
-    
+
     const getHasTriedAuth = (state: ModixState) => state.user != null;
     const getIsLoggedIn = (state: ModixState) => state.user && state.user.userId;
     const getCurrentClaims = (state: ModixState) => (state.user && state.user.claims) || [];
     const getCurrentGuild = (state: ModixState) => _.find(state.guilds, (guild: Guild) => guild.id == state.user!.selectedGuild);
- 
+
     const pushError = (state: ModixState, error: string) => state.errors.push(error);
     const removeError = (state: ModixState, error: string) => state.errors.splice(state.errors.indexOf(error), 1);
     const clearErrors = (state: ModixState) => state.errors = [];
     const clearInfractions = (state: ModixState) => state.infractions = [];
 
-    const updateUserInfo = async (context: ModixContext) => 
-        mutatingServiceCall(GeneralService.getUser, setUser, err => setUser(modixState, new User()));
-		
-    const updateGuilds = async (context: ModixContext) => 
-        mutatingServiceCall(GeneralService.getGuilds, setGuilds, err => setGuilds(modixState, []));
+    const updateUserInfo = async (context: ModixContext) => mutatingServiceCall(GeneralService.getUser, setUser, context, (err: AxiosError) =>
+    {
+        if (err.response)
+        {
+            if (err.response.status != 401)
+            {
+                modix.pushErrorMessage(err.toString());
+                return;
+            }
 
-    const updateGuildInfo = async (context: ModixContext) => mutatingServiceCall(GeneralService.getGuildInfo, setGuildInfo);
-    const updateCommands = async (context: ModixContext) => mutatingServiceCall(GeneralService.getCommands, setCommands);
-    const updateCampaigns = async (context: ModixContext) => mutatingServiceCall(PromotionService.getCampaigns, setCampaigns);
-    const updateInfractions = async (context: ModixContext) => mutatingServiceCall(GeneralService.getInfractions, setInfractions);
-    const updateRoles = async (context: ModixContext) => mutatingServiceCall(GeneralService.getGuildRoles, setRoles);
-    const updateChannels = async (context: ModixContext) => mutatingServiceCall(GeneralService.getChannels, setChannels);
+            //else we're just not logged in
+            setUser(context.state, new User());
+        }
+    });
 
-    const updateChannelDesignations = async (context: ModixContext) => mutatingServiceCall(ConfigurationService.getChannelDesignations, setChannelDesignations);
-    const updateRoleDesignations = async (context: ModixContext) => mutatingServiceCall(ConfigurationService.getRoleDesignations, setRoleDesignations);
-    const updateClaims = async (context: ModixContext) => mutatingServiceCall(GeneralService.getClaims, setClaims);
-    
+    const updateGuilds = async (context: ModixContext) => mutatingServiceCall(GeneralService.getGuilds, setGuilds, context);
+    const updateCommands = async (context: ModixContext) => mutatingServiceCall(GeneralService.getCommands, setCommands, context);
+    const updateCampaigns = async (context: ModixContext) => mutatingServiceCall(PromotionService.getCampaigns, setCampaigns, context);
+    const updateInfractions = async (context: ModixContext) => mutatingServiceCall(GeneralService.getInfractions, setInfractions, context);
+    const updateRoles = async (context: ModixContext) => mutatingServiceCall(GeneralService.getGuildRoles, setRoles, context);
+    const updateChannels = async (context: ModixContext) => mutatingServiceCall(GeneralService.getChannels, setChannels, context);
+
+    const updateChannelDesignations = async (context: ModixContext) => mutatingServiceCall(ConfigurationService.getChannelDesignations, setChannelDesignations, context);
+    const updateRoleDesignations = async (context: ModixContext) => mutatingServiceCall(ConfigurationService.getRoleDesignations, setRoleDesignations, context);
+    const updateClaims = async (context: ModixContext) => mutatingServiceCall(GeneralService.getClaims, setClaims, context);
+
     export const retrieveUserInfo = moduleBuilder.dispatch(updateUserInfo);
-    export const retrieveGuildInfo = moduleBuilder.dispatch(updateGuildInfo);
     export const retrieveCommands = moduleBuilder.dispatch(updateCommands);
     export const retrieveCampaigns = moduleBuilder.dispatch(updateCampaigns);
     export const retrieveInfractions = moduleBuilder.dispatch(updateInfractions);
@@ -121,28 +126,28 @@ export default modix;
 
 const mutatingServiceCall = async function<T>
 (
-    serviceAction: () => Promise<T>, 
-    mutator: (state: ModixState, param: any) => void, 
-    actionError: ((err: Error) => void) | null = null
+    serviceAction: () => Promise<T>,
+    mutator: (state: ModixState, param: any) => void,
+    context: ModixContext,
+    actionError: ((err: AxiosError) => void) | null = null
 )
 {
     try
     {
         let result = await serviceAction();
-        mutator(modixState, result);
+
+        mutator(context.state, result);
     }
     catch (err)
     {
-        if (actionError != null)
+        if (actionError != null && err.response)
         {
             actionError(err);
         }
         else
         {
-            mutator(modixState, null);
-
             let message = `<strong>${err}</strong> while attempting service call. Call an admin!`;
-            modixState.errors.push(message);
+            modix.pushErrorMessage(message);
             console.trace(err);
         }
     }

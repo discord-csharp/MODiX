@@ -1,0 +1,109 @@
+.guildDropdown
+{
+    cursor: pointer;
+
+    border-left: 1px solid transparentize($white, 0.75);
+
+    margin: 2px 0.25em 0 0.33em;
+    padding-left: 0.66em;
+
+    display: inline-block;
+
+    & > .avatar-icon
+    {
+        position: relative;
+        top: 2px;
+    }
+}
+
+.icon
+{
+    vertical-align: middle;
+    margin-right: 0.5em;
+}
+
+
+.expander
+{
+    display: inline-block;
+    font-size: 0.8em;
+
+    position: relative;
+    top: -7px;
+}
+
+.profile
+{
+    justify-self: flex-end;
+    color: white;
+
+    padding: 0px 6px 0px 12px;
+
+    .title:not(:last-child)
+    {
+        margin-bottom: 0;
+    }
+}
+
+.options .option
+{
+    color: $black;
+    padding: 0.5em 0.5em 0.5em 0.5em;
+    display: block;
+    cursor: pointer;
+
+    &:hover
+    {
+        background: $info;
+        color: white;
+
+        cursor: pointer;
+    }
+
+    &.theme
+    {
+        text-transform: capitalize;
+    }
+
+    &.divider
+    {
+        padding-top: 0;
+        padding-bottom: 0;
+        border-bottom: 1px solid $link;
+    }
+}
+
+.title.is-4, .title.is-4 a
+{
+    word-break: normal;
+    color: white;
+}
+
+img.avatar-icon, img.dropdown-icon
+{
+    margin-right: 0.5em;
+
+    border-radius: 4px;
+    box-shadow: -1px 1px 0px white;
+
+    height: 32px;
+    max-height: 32px;
+}
+
+.username
+{
+    margin-right: 0.2em;
+    cursor: pointer;
+
+    small
+    {
+        font-size: 0.6em;
+        position: relative;
+        top: -3px;
+    }
+
+    @include tiny()
+    {
+        display: none;
+    }
+}

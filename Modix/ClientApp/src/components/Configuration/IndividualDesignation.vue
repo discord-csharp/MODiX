@@ -15,19 +15,6 @@
 
 </template>
 
-<style scoped lang="scss">
-@import "../../styles/variables";
-@import "~bulma/sass/utilities/_all";
-@import "~bulma/sass/elements/tag";
-@import "~bulma/sass/elements/form";
-
-.pointer
-{
-    cursor: pointer;
-}
-</style>
-
-
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
 import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
@@ -48,7 +35,7 @@ export default class IndividualDesignation extends Vue
         this.loading = true;
 
         this.$emit("confirm", this.designation);
-        
+
         this.loading = false;
     }
 

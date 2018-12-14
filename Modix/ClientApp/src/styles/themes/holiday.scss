@@ -1,0 +1,21 @@
+$holiday-green: #235941;
+$holiday-red: #9c2b40;
+
+$info: $holiday-green;
+$link: $holiday-red;
+
+$primary: $holiday-green;
+
+$navbar-item-hover-background-color: darken($holiday-green, 5%);
+$navbar-item-hover-color: white;
+
+$modal-card-head-background-color: $holiday-red;
+$modal-card-title-color: white;
+
+.modal-card-head strong
+{
+    color: white;
+}
+
+//THIS SHOULD BE THE LAST LINE OF THE FILE
+@import "../required";

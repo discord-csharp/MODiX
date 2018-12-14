@@ -90,77 +90,6 @@
     </div>
 </template>
 
-<style lang="scss">
-
-@import "../styles/variables";
-@import "~vue-good-table/dist/vue-good-table.css";
-
-.vgt-table.bordered
-{
-    font-size: 14px;
-
-    select
-    {
-        font-size: 12px;
-    }
-
-    th
-    {
-        text-align: center;
-        padding: 0.33em;
-    }
-}
-
-.vgt-responsive
-{
-    @include fullwidth-desktop();
-}
-
-.vgt-input, .vgt-select
-{
-    padding: 0px 4px;
-    height: 28px;
-}
-
-@include mobile()
-{
-    .vgt-table.bordered
-    {
-        font-size: initial;
-
-        select
-        {
-            font-size: initial;
-        }
-    }
-}
-
-.channel
-{
-    font-weight: bold;
-}
-
-.pre
-{
-    white-space: pre-line;
-}
-
-</style>
-
-<style scoped lang="scss">
-
-@import "../styles/variables";
-@import "~bulma/sass/components/modal";
-@import "~bulma/sass/elements/notification";
-@import "~bulma/sass/elements/form";
-
-.typeCell
-{
-    display: block;
-    white-space: nowrap;
-}
-</style>
-
 <script lang="ts">
 import * as _ from 'lodash';
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
@@ -176,14 +105,13 @@ import GeneralService from '@/services/GeneralService';
 import InfractionSummary from '@/models/infractions/InfractionSummary';
 import {config, setConfig} from '@/models/PersistentConfig';
 import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
-import GuildInfoResult from '@/models/GuildInfoResult';
 
 const messageResolvingRegex = /<#(\d+)>/gm;
 
 const guildUserFilter = (subject: GuildUserIdentity, filter: string) =>
 {
     filter = filter.toLowerCase();
-    
+
     return subject.id.toString().startsWith(filter) ||
            subject.displayName.toLowerCase().indexOf(filter) >= 0;
 };
@@ -204,18 +132,18 @@ const guildUserFormat = (subject: GuildUserIdentity) => subject.displayName;
 })
 export default class Infractions extends Vue
 {
-    get infractionTypes(): string[] 
+    get infractionTypes(): string[]
     {
         return Object.keys(InfractionType).map(c => InfractionType[<any>c]);
     }
 
-    paginationOptions: any = 
+    paginationOptions: any =
     {
         enabled: true,
         perPage: 10
     };
 
-    sortOptions: any = 
+    sortOptions: any =
     {
         enabled: true,
         initialSortBy: {field: 'date', type: 'desc'}
@@ -290,12 +218,12 @@ export default class Infractions extends Vue
             try
             {
                 let data = JSON.parse(<string>reader.result);
-                
+
                 if (!Array.isArray(data))
                 {
                     throw Error("JSON was not valid - should be an array of Rowboat infractions.");
                 }
-                
+
                 this.loadError = null;
                 this.message = `${data.length} infractions found. Ready to import.`;
             }
@@ -399,7 +327,7 @@ export default class Infractions extends Vue
             {
                 return this.showDeleted;
             }
-            
+
             return true;
         });
     }
@@ -428,7 +356,7 @@ export default class Infractions extends Vue
 
     get mappedRows(): any[]
     {
-        return _.map(this.filteredInfractions, infraction => 
+        return _.map(this.filteredInfractions, infraction =>
         ({
             id: infraction.id,
             subject: infraction.subject,

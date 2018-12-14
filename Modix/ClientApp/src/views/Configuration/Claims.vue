@@ -16,7 +16,7 @@
         <div class="columns">
 
             <div class="column is-one-third">
-                <aside class="menu">                   
+                <aside class="menu">
                     <ul class="menu-list">
 
                         <li v-for="role in allRoles" :key="role.id">
@@ -28,7 +28,7 @@
                     </ul>
                 </aside>
             </div>
-        
+
             <div class="column">
                 <template v-if="selectedRole">
                     <div class="" v-for="(claims, category) in groupedPossibleClaims" :key="category">
@@ -49,14 +49,6 @@
 </template>
 
 <style scoped lang="scss">
-
-@import "../../styles/variables";
-@import "~bulma/sass/base/_all";
-@import "~bulma/sass/components/tabs";
-@import "~bulma/sass/components/modal";
-@import '~bulma/sass/elements/form';
-@import "~bulma/sass/components/menu";
-
 .claim.box
 {
     padding: 15px;
@@ -69,15 +61,32 @@
     height: 64px;
 }
 
+.menu-list
+{
+    margin: 0;
+}
+
+.menu-list li
+{
+    list-style-type: none;
+    margin: 0;
+}
+
 .menu-list li a
 {
     border: 2px solid transparent;
-    
+
     &.is-active
     {
         border: 2px solid black;
         background: transparent;
     }
+}
+
+.small-title
+{
+    font-size: 1em;
+    color: grey;
 }
 
 </style>
@@ -122,7 +131,7 @@ export default class Claims extends Vue
 
     get groupedPossibleClaims(): {[category: string]: Claim[]}
     {
-        let sorted = _.sortBy(this.possibleClaims, (claim: Claim) => claim.name);
+        let sorted = _.orderBy(this.possibleClaims, (claim: Claim) => claim.name);
         return _.groupBy(sorted, (claim: Claim) => claim.category);
     }
 
@@ -184,7 +193,7 @@ export default class Claims extends Vue
         await store.retrieveRoles();
         this.mappedClaims = await ConfigurationService.getMappedClaims();
 
-        this.allRoles = _.sortBy(this.$store.state.modix.roles, role => role.name);
+        this.allRoles = _.orderBy(this.$store.state.modix.roles, role => role.name);
 
         if (this.selectedRole == null)
         {

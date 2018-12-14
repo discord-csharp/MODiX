@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Modix.Models;
 using Modix.Services.Core;
-using Modix.Services.GuildInfo;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,23 +10,9 @@ namespace Modix.Controllers
 {
     public class ApiController : ModixController
     {
-        private readonly GuildInfoService _guildInfoService;
-
-        public ApiController(DiscordSocketClient client, GuildInfoService guildInfoService, IAuthorizationService auth) : base(client, auth)
+        public ApiController(DiscordSocketClient client, IAuthorizationService auth) : base(client, auth)
         {
-            _guildInfoService = guildInfoService;
-        }
-
-        public async Task<IActionResult> Guilds()
-        {
-            var guildInfo = new Dictionary<string, List<GuildInfoResult>>();
-
-            foreach (var guild in DiscordSocketClient.Guilds)
-            {
-                guildInfo.Add(guild.Name, await _guildInfoService.GetGuildMemberDistributionAsync(guild));
-            }
-
-            return Ok(guildInfo);
+            
         }
 
         public IActionResult Roles()
@@ -45,7 +30,8 @@ namespace Modix.Controllers
             return Ok(ClaimInfoData.GetClaims());
         }
 
-        public IActionResult UserInfo()
+        [HttpGet("~/api/me")]
+        public IActionResult LoggedInUserInfo()
         {
             return Ok(ModixUser);
         }

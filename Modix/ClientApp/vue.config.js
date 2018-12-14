@@ -1,3 +1,6 @@
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
+const webpack = require('webpack');
+
 module.exports = {
     "devServer":
     {
@@ -11,22 +14,15 @@ module.exports = {
         }
     },
 
-    configureWebpack: config =>
+    css:
     {
-        if (process.env.NODE_ENV === 'production')
-        {
-			var uglify = config.optimization.minimizer[0].options.uglifyOptions;
-			
-			if (uglify)
-			{
-				uglify.compress.keep_fnames = true;
-				uglify.mangle.keep_fnames = true;
-			}
-        }
+        extract: false
     },
 
     chainWebpack: config =>
     {
+        config.resolve
+
         config
             .plugin('html')
             .tap(args =>
@@ -35,8 +31,35 @@ module.exports = {
 				{
 					args[0].minify.removeScriptTypeAttributes = false;
 				}
-				
+
                 return args;
             });
+
+        config
+            .plugin('fork-ts-checker')
+                .use(ForkTsCheckerWebpackPlugin,
+                    [{
+                        checkSyntacticErrors: true,
+                        vue: true,
+                        formatter: 'codeframe',
+                        workers: ForkTsCheckerWebpackPlugin.TWO_CPUS_FREE
+                    }]);
+
+        config.module
+            .rule('ts')
+            .use('ts-loader')
+                .loader('ts-loader')
+                .tap(args =>
+                {
+                    args.experimentalWatchApi = true;
+                    return args;
+                });
+
+        config.resolve.alias
+            .set('chart.js', 'chart.js/dist/Chart.js');
+
+        config
+            .plugin('context-replacement')
+                .use(webpack.IgnorePlugin, [/^\.\/locale$/, /moment$/]);
     }
 }
