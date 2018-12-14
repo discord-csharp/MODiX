@@ -67,23 +67,23 @@ namespace Modix.Data.Repositories
         {
             var earliestDateTime = DateTimeOffset.UtcNow - timespan;
 
-            var userQuery = ModixContext.GuildUsers
-                .Where(x => x.GuildId == guildId)
-                .Include(x => x.User)
-                .AsNoTracking();
-
-            var result = ModixContext.Messages.AsNoTracking()
+            var result = await ModixContext.Messages.AsNoTracking()
                 .Where(x => x.GuildId == guildId && x.Timestamp >= earliestDateTime)
                 .GroupBy(x => x.AuthorId)
                 .OrderByDescending(x => x.Count())
                 .Take(userCount)
-                .Join(userQuery, x => x.Key, x => x.UserId, (message, user) => new
-                {
-                    Count = message.Count(),
-                    User = user
-                });
+                .ToListAsync();
 
-            return await result.ToDictionaryAsync(x => x.User, x => x.Count);
+            var userIds = result.Select(d => d.Key).ToArray();
+
+            var userQuery = await ModixContext.GuildUsers
+                .Where(x => x.GuildId == guildId)
+                .Where(x => userIds.Contains(x.UserId))
+                .Include(x => x.User)
+                .AsNoTracking()
+                .ToDictionaryAsync(x => x.UserId, x => x);
+
+            return result.ToDictionary(x => userQuery[x.Key], x => x.Count());
         }
 
         private IQueryable<MessageEntity> GetGuildUserMessages(ulong guildId, ulong userId, TimeSpan timespan)
