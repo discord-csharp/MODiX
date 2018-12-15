@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-using Modix.Data.Repositories;
-
 namespace Modix.Services.Mentions
 {
     /// <summary>
@@ -14,10 +12,8 @@ namespace Modix.Services.Mentions
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/> to which the Mention services are to be added.</param>
         /// <returns><paramref name="services"/></returns>
-        public static IServiceCollection AddModixMentions(this IServiceCollection services)
+        public static IServiceCollection AddMentions(this IServiceCollection services)
             => services
-                .AddSingleton<IBehavior, MentionAutoConfigBehavior>()
-                .AddScoped<IMentionMappingRepository, MentionMappingRepository>()
                 .AddScoped<IMentionService, MentionService>();
     }
 }

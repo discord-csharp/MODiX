@@ -7,8 +7,6 @@ import Deserializer from '@/app/Deserializer';
 import RoleClaimModifyData from '@/models/configuration/RoleClaimModifyData';
 import DesignatedRoleMapping from '@/models/moderation/DesignatedRoleMapping';
 import DesignatedRoleCreationData from '@/models/moderation/DesignatedRoleCreationData';
-import MentionabilityType from '@/models/configuration/MentionabilityType';
-import MentionData from '@/models/configuration/MentionData';
 
 export default class ConfigurationService
 {
@@ -53,24 +51,5 @@ export default class ConfigurationService
     static async modifyRoleClaim(data: RoleClaimModifyData)
     {
         await client.patch("config/claims", data);
-    }
-
-    static async getMentionabilityTypes(): Promise<MentionabilityType[]>
-    {
-        return (await client.get("config/mentions/mentionabilityTypes")).data;
-    }
-
-    static async getMentionData(roleId: string): Promise<MentionData>
-    {
-        return (await client.get(`config/mentions/${roleId}/mentionData`)).data
-    }
-
-    static async updateMentionability(roleId: string, mentionability: string): Promise<void>
-    {
-        await client.patch(`config/mentions/${roleId}/mentionability/${mentionability}`);
-    }
-
-    static async updateMinimumRank(roleId: string, minimumRankId: string | null): Promise<void> {
-        await client.patch(`config/mentions/${roleId}/minimumRank/${minimumRankId}`);
     }
 }

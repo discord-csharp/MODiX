@@ -114,9 +114,9 @@ namespace Modix.Data.Models.Core
         [ClaimInfo(Misc, "Authorizes a request to perform a count for a popularity contest")]
         PopularityContestCount,
         /// <summary>
-        /// Authorizes a request to configure mention settings.
+        /// Authorizes a request to mention a role that has restricted mentionability.
         /// </summary>
-        [ClaimInfo(Configuration, "Authorizes a request to configure mention settings.")]
-        MentionConfigure,
+        [ClaimInfo(Misc, "Authorizes a request to mention a role that has restricted mentionability.")]
+        MentionRestrictedRole,
     }
 }

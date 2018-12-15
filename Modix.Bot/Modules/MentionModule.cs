@@ -23,17 +23,17 @@ namespace Modix.Bot.Modules
             [Summary("The role that the user is attempting to mention.")]
                 IRole role)
         {
-            if (await MentionService.CanUserMentionAsync(role))
-            {
-                var mentionContinuation = await MentionService.EnsureMentionable(role);
+            MentionService.AuthorizeMention(role);
 
+            var mentionContinuation = await MentionService.EnsureMentionableAsync(role);
+
+            try
+            {
                 await Context.Channel.SendMessageAsync(MentionUtils.MentionRole(role.Id));
-
-                await mentionContinuation();
             }
-            else
+            finally
             {
-                await Context.Channel.SendMessageAsync($"Sorry, but you do not have permission to mention the {role.Name} role.");
+                await mentionContinuation();
             }
         }
 

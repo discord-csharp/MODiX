@@ -12,6 +12,10 @@
         /// <summary>
         /// Defines a role that is used by the moderation feature to mute users.
         /// </summary>
-        ModerationMute
+        ModerationMute,
+        /// <summary>
+        /// Defines a role whose mentionability is restricted in MODiX.
+        /// </summary>
+        ResctrictedMentionability,
     }
 }

@@ -253,24 +253,6 @@ namespace Modix.Data.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Modix.Data.Models.Mentions.MentionMappingEntity", b =>
-                {
-                    b.Property<long>("RoleId");
-
-                    b.Property<long>("GuildId");
-
-                    b.Property<string>("Mentionability")
-                        .IsRequired();
-
-                    b.Property<long?>("MinimumRankId");
-
-                    b.HasKey("RoleId");
-
-                    b.HasIndex("MinimumRankId");
-
-                    b.ToTable("MentionMappings");
-                });
-
             modelBuilder.Entity("Modix.Data.Models.Moderation.DeletedMessageEntity", b =>
                 {
                     b.Property<long>("MessageId");
@@ -537,19 +519,6 @@ namespace Modix.Data.Migrations
                     b.HasOne("Modix.Data.Models.Core.UserEntity", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("Modix.Data.Models.Mentions.MentionMappingEntity", b =>
-                {
-                    b.HasOne("Modix.Data.Models.Core.GuildRoleEntity", "MinimumRank")
-                        .WithMany()
-                        .HasForeignKey("MinimumRankId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Modix.Data.Models.Core.GuildRoleEntity", "Role")
-                        .WithOne()
-                        .HasForeignKey("Modix.Data.Models.Mentions.MentionMappingEntity", "RoleId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 

@@ -65,7 +65,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddAutoCodePaste()
                 .AddCommandHelp()
                 .AddGuildStats()
-                .AddModixMentions();
+                .AddMentions();
 
             services.AddSingleton<IBehavior, DiscordAdapter>();
             services.AddScoped<IQuoteService, QuoteService>();

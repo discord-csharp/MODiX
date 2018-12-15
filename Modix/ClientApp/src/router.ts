@@ -88,12 +88,6 @@ let routes: ModixRouteData[] =
                 name: 'claims',
                 component: Claims,
                 requiredClaims: ["AuthorizationConfigure"]
-            },
-            {
-                path: 'mentions',
-                name: 'mentions',
-                component: MentionDesignations,
-                requiredClaims: ["MentionConfigure"]
             }
         ]
     },
