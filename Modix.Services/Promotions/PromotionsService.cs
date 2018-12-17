@@ -308,16 +308,28 @@ namespace Modix.Services.Promotions
         }
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<PromotionCampaignSummary>> SearchCampaignsAsync(PromotionCampaignSearchCriteria searchCriteria)
-            => PromotionCampaignRepository.SearchSummariesAsync(searchCriteria);
+        public async Task<IReadOnlyCollection<PromotionCampaignSummary>> SearchCampaignsAsync(PromotionCampaignSearchCriteria searchCriteria)
+        {
+            AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsRead);
+
+            return await PromotionCampaignRepository.SearchSummariesAsync(searchCriteria);
+        }
 
         /// <inheritdoc />
         public async Task<PromotionCampaignDetails> GetCampaignDetailsAsync(long campaignId)
-            => await PromotionCampaignRepository.ReadDetailsAsync(campaignId);
+        {
+            AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsRead);
+
+            return await PromotionCampaignRepository.ReadDetailsAsync(campaignId);
+        }
 
         /// <inheritdoc />
-        public Task<PromotionActionSummary> GetPromotionActionSummaryAsync(long promotionActionId)
-            => PromotionActionRepository.ReadSummaryAsync(promotionActionId);
+        public async Task<PromotionActionSummary> GetPromotionActionSummaryAsync(long promotionActionId)
+        {
+            AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsRead);
+
+            return await PromotionActionRepository.ReadSummaryAsync(promotionActionId);
+        }
 
         /// <summary>
         /// An <see cref="IDiscordClient"/> for interacting with the Discord API.
