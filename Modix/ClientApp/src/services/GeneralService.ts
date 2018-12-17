@@ -10,6 +10,7 @@ import Deserializer from '@/app/Deserializer';
 import Claim from '@/models/Claim';
 import Guild from '@/models/Guild';
 import GuildStatApiData from '@/models/GuildStatApiData';
+import InfractionCreationData from '@/models/infractions/InfractionCreationData';
 
 export default class GeneralService
 {
@@ -104,6 +105,26 @@ export default class GeneralService
 
         let response = await client.put("infractions/import", data, { timeout: 30000 });
         return response.data;
+    }
+
+    static async createInfraction(subjectId: string, data: InfractionCreationData): Promise<void>
+    {
+        await client.put(`infractions/${subjectId}/create`, data);
+    }
+
+    static async rescindInfraction(id: number): Promise<void>
+    {
+        await client.post(`infractions/${id}/rescind`);
+    }
+
+    static async deleteInfraction(id: number): Promise<void>
+    {
+        await client.post(`infractions/${id}/delete`);
+    }
+
+    static async doesModeratorOutrankUser(subjectId: string): Promise<boolean>
+    {
+        return (await client.get(`infractions/${subjectId}/doesModeratorOutrankUser`)).data;
     }
 }
 

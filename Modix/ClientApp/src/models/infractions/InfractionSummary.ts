@@ -14,4 +14,7 @@ export default interface InfractionSummary
     createAction: ModerationAction;
     rescindAction: ModerationAction;
     deleteAction: ModerationAction;
+
+    canRescind: boolean;
+    canDelete: boolean;
 }
