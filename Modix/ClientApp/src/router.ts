@@ -45,7 +45,7 @@ let routes: ModixRouteData[] =
         name: 'promotions',
         component: Promotions,
         showInNavbar: true,
-        requiresAuth: true
+        requiredClaims: ["PromotionsRead"]
     },
     {
         path: '/promotions/create',

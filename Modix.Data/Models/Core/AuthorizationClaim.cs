@@ -109,6 +109,11 @@ namespace Modix.Data.Models.Core
         [ClaimInfo(PromotionActions, "Authorizes a request to comment on a promotion campaign for a user.")]
         PromotionsComment,
         /// <summary>
+        /// Authorizes a request to read promotion campaign data.
+        /// </summary>
+        [ClaimInfo(PromotionActions, "Authorizes a request to read promotion campaign data.")]
+        PromotionsRead,
+        /// <summary>
         /// Authorizes a request to perform a count for a popularity contest
         /// </summary>
         [ClaimInfo(Misc, "Authorizes a request to perform a count for a popularity contest")]
