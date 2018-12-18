@@ -71,6 +71,10 @@ namespace Modix.Behaviors
 
             var embed = new EmbedBuilder();
 
+            //Because we have comment creation as a separate operation from starting the campaign,
+            //we don't have access to the "initial" comment when a campaign is created. So, we have to
+            //note that a campaign was created, and actually send the log message when the first comment
+            //is created (containing the comment body)
             switch (promotionAction.Type)
             {
                 case PromotionActionType.CampaignCreated:
