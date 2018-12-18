@@ -12,7 +12,7 @@ Issues are the center of MODiX´s development. You can see what features are bei
 
 ## Getting Started
 
-1. Download and install the latest version of the [.NET Core SDK](https://www.microsoft.com/net/download).
+1. Download and install the latest version of the [.NET Core SDK](https://www.microsoft.com/net/download). (You need at minimum SDK Version 2.1.402 or higher.)
 2. Download and install [Docker](https://www.docker.com/get-docker).
 3. Create a new [Discord application](https://discordapp.com/developers/applications/me) with a bot user.
 4. Create the following environment variables for your user account:
