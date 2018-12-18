@@ -140,7 +140,7 @@ namespace Modix
 
         private Task OnDisconnect(Exception ex)
         {
-            Log.LogError(ex, "The bot has disconnected because of an error. Stopping the application.");
+            Log.LogInformation(ex, "The bot has disconnected unexpectedly. Stopping the application.");
             _applicationLifetime.StopApplication();
             return Task.CompletedTask;
         }
