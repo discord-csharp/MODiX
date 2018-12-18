@@ -1,7 +1,7 @@
 <template>
 
     <div class="tags has-addons">
-        <span class="tag is-info">
+        <span class="tag is-link">
             <template v-if="isChannel">#</template><template v-else>@</template>{{designation.name}}
         </span>
 

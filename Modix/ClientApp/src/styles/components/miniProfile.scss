@@ -4,32 +4,16 @@
 
     border-left: 1px solid transparentize($white, 0.75);
 
-    margin: 2px 0.25em 0 0.33em;
+    margin: 5px 5px 0 5px;
     padding-left: 0.66em;
 
     display: inline-block;
-
-    & > .avatar-icon
-    {
-        position: relative;
-        top: 2px;
-    }
 }
 
 .icon
 {
     vertical-align: middle;
     margin-right: 0.5em;
-}
-
-
-.expander
-{
-    display: inline-block;
-    font-size: 0.8em;
-
-    position: relative;
-    top: -7px;
 }
 
 .profile
@@ -54,7 +38,7 @@
 
     &:hover
     {
-        background: $info;
+        background: $link;
         color: white;
 
         cursor: pointer;
@@ -69,7 +53,7 @@
     {
         padding-top: 0;
         padding-bottom: 0;
-        border-bottom: 1px solid $link;
+        border-bottom: 1px solid lightgray;
     }
 }
 
@@ -84,7 +68,6 @@ img.avatar-icon, img.dropdown-icon
     margin-right: 0.5em;
 
     border-radius: 4px;
-    box-shadow: -1px 1px 0px white;
 
     height: 32px;
     max-height: 32px;

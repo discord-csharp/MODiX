@@ -38,10 +38,10 @@
                         </span>
                         <span v-else-if="props.column.field == 'actions'">
                             <span class="level">
-                                <button class="button is-primary is-small level-left" v-show="props.row.canDelete" v-on:click="onInfractionDelete(props.row.id)">
+                                <button class="button is-link is-small level-left" v-show="props.row.canDelete" v-on:click="onInfractionDelete(props.row.id)">
                                     Delete
                                 </button>
-                                <button class="button is-primary is-small level-right" v-if="props.row.canRescind" v-on:click="onInfractionRescind(props.row.id)">
+                                <button class="button is-link is-small level-right" v-if="props.row.canRescind" v-on:click="onInfractionRescind(props.row.id)">
                                     Rescind
                                 </button>
                             </span>

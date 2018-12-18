@@ -85,6 +85,10 @@
                     <footer class="modal-card-foot level">
                         <div class="level-left">
                             <button class="button is-success" :class="{'is-loading': modifyLoading}" :disabled="modalCampaign.closeAction" @click="promote()">Accept</button>
+                            <label class="checkbox">
+                                <input type="checkbox" v-model="modalForceAccept">
+                                Force?
+                            </label>
                         </div>
                         <div class="level-right">
                             <button class="button is-danger" :class="{'is-loading': modifyLoading}" :disabled="modalCampaign.closeAction" @click="deny()">Reject</button>
@@ -206,6 +210,7 @@ export default class Promotions extends Vue
 
     modalCampaign: PromotionCampaign | null = null;
     modalCampaignInfractions: InfractionSummary[] = [];
+    modalForceAccept: boolean = false;
 
     currentlyLoadingInfractions: number | null = null;
     loading: boolean = false;
@@ -257,6 +262,7 @@ export default class Promotions extends Vue
 
         this.modalCampaign = campaign;
         this.modalCampaignInfractions = await GeneralService.getInfractionsForUser(this.modalCampaign.subject!.id);
+        this.modalForceAccept = false;
 
         this.toggleModal();
 
@@ -276,7 +282,14 @@ export default class Promotions extends Vue
 
         try
         {
-            await PromotionService.approveCampaign(this.modalCampaign);
+            if (this.modalForceAccept)
+            {
+                await PromotionService.forceApproveCampaign(this.modalCampaign);
+            }
+            else
+            {
+                await PromotionService.approveCampaign(this.modalCampaign);
+            }
         }
         catch (err)
         {

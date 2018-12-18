@@ -61,11 +61,11 @@
             <small class="date">Campaign started <span class="has-text-weight-bold">{{formatDate(campaign.startDate)}}</span></small>
 
             <div class="commentList">
-                <PromotionCommentView v-for="(comment, index) in comments" :key="comment.promotionCampaignId" :comment="comment" :isCampaignClosed="campaign.closeAction"
+                <PromotionCommentView v-for="(comment, index) in comments" :key="comment.promotionCampaignId" :comment="comment" :hidden="!shouldShowEdit(campaign, comment)"
                                       :style="{'transition-delay': (index * 33) + 'ms'}" v-on:comment-edit-modal-opened="onCommentEditModalOpened"/>
             </div>
 
-            <div class="field has-addons" v-if="!campaign.closeAction">
+            <div class="field has-addons" v-if="!campaign.closeAction && !userAlreadyCommented(campaign)">
                 <p class="control">
                     <span class="select">
                         <select v-model="newComment.sentiment">
@@ -230,6 +230,16 @@ export default class PromotionListItem extends Vue
     onCommentEditModalOpened(comment: PromotionComment)
     {
         this.$emit('comment-edit-modal-opened', comment);
+    }
+
+    userAlreadyCommented()
+    {
+        return _.some(this.comments, comment => comment.isFromCurrentUser);
+    }
+
+    shouldShowEdit(campaign: PromotionCampaign, comment: PromotionComment): boolean
+    {
+        return campaign.closeAction == null;
     }
 }
 </script>

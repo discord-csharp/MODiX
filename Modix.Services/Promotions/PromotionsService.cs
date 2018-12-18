@@ -60,7 +60,7 @@ namespace Modix.Services.Promotions
         /// </summary>
         /// <param name="campaignId">The <see cref="PromotionCampaignEntity.Id"/> value fo the campaign to be accepted.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task AcceptCampaignAsync(long campaignId);
+        Task AcceptCampaignAsync(long campaignId, bool force);
 
         /// <summary>
         /// Closes a campaign, with an <see cref="PromotionCampaignEntity.Outcome"/> value of <see cref="PromotionCampaignOutcome.Rejected"/>,
@@ -121,6 +121,8 @@ namespace Modix.Services.Promotions
             PromotionCampaignRepository = promotionCampaignRepository;
             PromotionCommentRepository = promotionCommentRepository;
         }
+
+        private static readonly TimeSpan CampaignAcceptCooldown = TimeSpan.FromHours(48);
 
         /// <inheritdoc />
         public async Task CreateCampaignAsync(
@@ -250,7 +252,7 @@ namespace Modix.Services.Promotions
         }
 
         /// <inheritdoc />
-        public async Task AcceptCampaignAsync(long campaignId)
+        public async Task AcceptCampaignAsync(long campaignId, bool force)
         {
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsCloseCampaign);
@@ -266,8 +268,8 @@ namespace Modix.Services.Promotions
 
                 var timeSince = DateTime.UtcNow - campaign.CreateAction.Created;
 
-                if (timeSince < TimeSpan.FromHours(48))
-                    throw new InvalidOperationException($"Campaign {campaignId} cannot be accepted until 48 hours after its creation ({48 - timeSince.TotalHours:#.##} hrs remain)");
+                if (timeSince < CampaignAcceptCooldown && !force)
+                    throw new InvalidOperationException($"Campaign {campaignId} cannot be accepted until {CampaignAcceptCooldown.TotalHours} hours after its creation ({(CampaignAcceptCooldown - timeSince).TotalHours:#.##} hrs remain)");
 
                 try
                 {
