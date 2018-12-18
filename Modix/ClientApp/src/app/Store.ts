@@ -8,7 +8,6 @@ import GeneralService from "@/services/GeneralService";
 import Vue from "vue";
 import * as Vuex from "vuex";
 import { BareActionContext, getStoreBuilder } from "vuex-typex";
-import InfractionSummary from '@/models/infractions/InfractionSummary';
 import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
 import ConfigurationService from '@/services/ConfigurationService';
 import PromotionService from '@/services/PromotionService';
@@ -31,7 +30,6 @@ const modixState: ModixState =
     currentPaste: null,
     commands: [],
     campaigns: [],
-    infractions: [],
     channelDesignations: [],
     claims: {},
     roles: [],
@@ -48,7 +46,6 @@ namespace modix
     const setUser = (state: ModixState, user: User) => state.user = user;
     const setCommands = (state: ModixState, commands: ModuleHelpData[]) => state.commands = commands;
     const setCampaigns = (state: ModixState, campaigns: PromotionCampaign[]) => state.campaigns = campaigns;
-    const setInfractions = (state: ModixState, infractions: InfractionSummary[]) => state.infractions = infractions;
     const setRoles = (state: ModixState, roles: Role[]) => state.roles = roles;
     const setGuilds = (state: ModixState, guilds: Guild[]) => state.guilds = guilds;
     const setChannels = (state: ModixState, channels: Channel[]) => state.channels = channels;
@@ -65,7 +62,6 @@ namespace modix
     const pushError = (state: ModixState, error: string) => state.errors.push(error);
     const removeError = (state: ModixState, error: string) => state.errors.splice(state.errors.indexOf(error), 1);
     const clearErrors = (state: ModixState) => state.errors = [];
-    const clearInfractions = (state: ModixState) => state.infractions = [];
 
     const updateUserInfo = async (context: ModixContext) => mutatingServiceCall(GeneralService.getUser, setUser, context, (err: AxiosError) =>
     {
@@ -85,7 +81,6 @@ namespace modix
     const updateGuilds = async (context: ModixContext) => mutatingServiceCall(GeneralService.getGuilds, setGuilds, context);
     const updateCommands = async (context: ModixContext) => mutatingServiceCall(GeneralService.getCommands, setCommands, context);
     const updateCampaigns = async (context: ModixContext) => mutatingServiceCall(PromotionService.getCampaigns, setCampaigns, context);
-    const updateInfractions = async (context: ModixContext) => mutatingServiceCall(GeneralService.getInfractions, setInfractions, context);
     const updateRoles = async (context: ModixContext) => mutatingServiceCall(GeneralService.getGuildRoles, setRoles, context);
     const updateChannels = async (context: ModixContext) => mutatingServiceCall(GeneralService.getChannels, setChannels, context);
 
@@ -96,7 +91,6 @@ namespace modix
     export const retrieveUserInfo = moduleBuilder.dispatch(updateUserInfo);
     export const retrieveCommands = moduleBuilder.dispatch(updateCommands);
     export const retrieveCampaigns = moduleBuilder.dispatch(updateCampaigns);
-    export const retrieveInfractions = moduleBuilder.dispatch(updateInfractions);
     export const retrieveChannelDesignations = moduleBuilder.dispatch(updateChannelDesignations);
     export const retrieveRoleDesignations = moduleBuilder.dispatch(updateRoleDesignations);
     export const retrieveClaims = moduleBuilder.dispatch(updateClaims);
@@ -107,7 +101,6 @@ namespace modix
     export const pushErrorMessage = moduleBuilder.commit(pushError);
     export const removeErrorMessage = moduleBuilder.commit(removeError);
     export const clearErrorMessages = moduleBuilder.commit(clearErrors);
-    export const clearInfractionData = moduleBuilder.commit(clearInfractions);
 
     export const hasTriedAuth = moduleBuilder.read(getHasTriedAuth);
     export const isLoggedIn = moduleBuilder.read(getIsLoggedIn);

@@ -1,6 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
+using Modix.Data.Models.Core;
 using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Moderation
@@ -11,14 +14,24 @@ namespace Modix.Data.Models.Moderation
     public class InfractionSearchCriteria
     {
         /// <summary>
+        /// A <see cref="InfractionEntity.Id"/> value, defining the <see cref="InfractionEntity"/> entity to be returned.
+        /// </summary>
+        public long? Id { get; set; }
+
+        /// <summary>
         /// A <see cref="InfractionEntity.GuildId"/> value, defining the <see cref="InfractionEntity"/> entities to be returned.
         /// </summary>
         public ulong? GuildId { get; set; }
 
         /// <summary>
-        /// A set of <see cref="InfractionEntity.Type"/> values, defining the <see cref="InfractionEntity"/> entities to be returned.
+        /// A <see cref="InfractionEntity.Type"/> value, defining the <see cref="InfractionEntity"/> entities to be returned.
         /// </summary>
-        public IReadOnlyCollection<InfractionType> Types { get; set; }
+        public InfractionType? Type { get; set; }
+
+        /// <summary>
+        /// A <see cref="GuildUserBrief.DisplayName"/> value, defining the <see cref="InfractionEntity"/> entities to be returned.
+        /// </summary>
+        public string Subject { get; set; }
 
         /// <summary>
         /// A <see cref="InfractionEntity.SubjectId"/> value, defining the <see cref="InfractionEntity"/> entities to be returned.
@@ -31,6 +44,11 @@ namespace Modix.Data.Models.Moderation
         /// with a <see cref="ModerationActionEntity.Type"/> value of <see cref="ModerationActionType.InfractionCreated"/>.
         /// </summary>
         public DateTimeOffsetRange? CreatedRange { get; set; }
+
+        /// <summary>
+        /// A <see cref="GuildUserBrief.DisplayName"/> value, defining the <see cref="InfractionEntity"/> entities to be returned.
+        /// </summary>
+        public string Creator { get; set; }
 
         /// <summary>
         /// A value defining the <see cref="InfractionEntity"/> entities to be returned.
@@ -57,6 +75,49 @@ namespace Modix.Data.Models.Moderation
         /// or non-null, (or both).
         /// </summary>
         public bool? IsDeleted { get; set; }
+
+        /// <summary>
+        /// Defines the searchable properties of an <see cref="InfractionSummary"/>.
+        /// </summary>
+        public static readonly ImmutableArray<string> SearchablePropertyNames = ImmutableArray.Create
+            (
+                nameof(Id),
+                nameof(Type),
+                nameof(Subject),
+                nameof(Creator)
+            );
+
+        public void SetPropertyValue(string propertyName, string propertyValue)
+        {
+            if (propertyName.Equals(nameof(Id), StringComparison.OrdinalIgnoreCase))
+            {
+                if (long.TryParse(propertyValue, out var id))
+                    Id = id;
+            }
+            else if (propertyName.Equals(nameof(Type), StringComparison.OrdinalIgnoreCase))
+            {
+                if (Enum.TryParse<InfractionType>(propertyValue, out var type))
+                    Type = type;
+            }
+            else if (propertyName.Equals(nameof(Subject), StringComparison.OrdinalIgnoreCase))
+            {
+                if (ulong.TryParse(propertyValue, out var subjectId))
+                    SubjectId = subjectId;
+                else
+                    Subject = propertyValue;
+            }
+            else if (propertyName.Equals(nameof(Creator), StringComparison.OrdinalIgnoreCase))
+            {
+                if (ulong.TryParse(propertyValue, out var creatorId))
+                    CreatedById = creatorId;
+                else
+                    Creator = propertyValue;
+            }
+            else
+            {
+                throw new ArgumentException(nameof(propertyName));
+            }
+        }
     }
 
     internal static class InfractionQueryableExtensions
@@ -64,11 +125,17 @@ namespace Modix.Data.Models.Moderation
         public static IQueryable<InfractionEntity> FilterBy(this IQueryable<InfractionEntity> query, InfractionSearchCriteria criteria)
             => query
                 .FilterBy(
+                    x => x.Id == criteria.Id,
+                    criteria?.Id != null)
+                .FilterBy(
                     x => x.GuildId == criteria.GuildId,
                     criteria?.GuildId != null)
                 .FilterBy(
-                    x => criteria.Types.Contains(x.Type),
-                    criteria?.Types?.Any() ?? false)
+                    x => x.Type == criteria.Type.Value,
+                    criteria?.Type != null)
+                .FilterBy(
+                    x => $"{x.Subject.Nickname ?? x.Subject.User.Username}#{x.Subject.User.Discriminator}".OrdinalContains(criteria.Subject),
+                    !string.IsNullOrWhiteSpace(criteria?.Subject))
                 .FilterBy(
                     x => x.SubjectId == criteria.SubjectId,
                     criteria?.SubjectId != null)
@@ -78,6 +145,9 @@ namespace Modix.Data.Models.Moderation
                 .FilterBy(
                     x => x.CreateAction.Created <= criteria.CreatedRange.Value.To,
                     criteria?.CreatedRange?.To != null)
+                .FilterBy(
+                    x => $"{x.CreateAction.CreatedBy.Nickname ?? x.CreateAction.CreatedBy.User.Username}#{x.CreateAction.CreatedBy.User.Discriminator}".OrdinalContains(criteria.Creator),
+                    !string.IsNullOrWhiteSpace(criteria?.Creator))
                 .FilterBy(
                     x => x.CreateAction.CreatedById == criteria.CreatedById,
                     criteria?.CreatedById != null)

@@ -331,7 +331,7 @@ namespace Modix.Services.Moderation
                     if (await InfractionRepository.AnyAsync(new InfractionSearchCriteria()
                     {
                         GuildId = guild.Id,
-                        Types = new[] { type },
+                        Type = type,
                         SubjectId = subject.Id,
                         IsRescinded = false,
                         IsDeleted = false
@@ -384,7 +384,7 @@ namespace Modix.Services.Moderation
                     new InfractionSearchCriteria()
                     {
                         GuildId = AuthorizationService.CurrentGuildId.Value,
-                        Types = new [] { type },
+                        Type = type,
                         SubjectId = subjectId,
                         IsRescinded = false,
                         IsDeleted = false,
@@ -524,14 +524,16 @@ namespace Modix.Services.Moderation
 
         public async Task<bool> DoesModeratorOutrankUserAsync(ulong guildId, ulong moderatorId, ulong subjectId)
         {
-            var moderator = await UserService.GetGuildUserAsync(guildId, moderatorId);
+            var guild = await DiscordClient.GetGuildAsync(guildId);
+
+            var moderator = await guild.GetUserAsync(moderatorId);
 
             if (moderator.GuildPermissions.Administrator)
                 return true;
 
             var rankRoles = await GetRankRolesAsync(guildId);
 
-            var subject = await UserService.GetGuildUserAsync(guildId, subjectId);
+            var subject = await guild.GetUserAsync(subjectId);
 
             var subjectRankRoles = rankRoles.Where(r => subject.RoleIds.Contains(r.Id));
             var moderatorRankRoles = rankRoles.Where(r => moderator.RoleIds.Contains(r.Id));
