@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
@@ -44,13 +45,10 @@ namespace Modix.Services.Quote
         {
             if (!(message is SocketUserMessage userMessage) ||
                 !(userMessage.Author is SocketGuildUser guildUser) ||
-                guildUser.IsBot || guildUser.IsWebhook ||
-                string.IsNullOrWhiteSpace(userMessage.Content))
+                guildUser.IsBot || guildUser.IsWebhook || IsQuote(message))
             {
                 return;
             }
-
-            var embeds = new List<EmbedBuilder>();
 
             foreach (Match match in Pattern.Matches(message.Content))
             {
@@ -60,24 +58,7 @@ namespace Modix.Services.Quote
                 {
                     try
                     {
-                        var channel = DiscordClient.GetChannel(channelId);
-
-                        if (channel is IGuildChannel &&
-                            channel is ISocketMessageChannel messageChannel)
-                        {
-                            var msg = await messageChannel.GetMessageAsync(messageId);
-
-                            if (msg != null)
-                            {
-                                await SelfExecuteRequest<IQuoteService>(
-                                    quoteService =>
-                                    {
-                                        var embed = quoteService.BuildQuoteEmbed(msg, guildUser);
-                                        embeds.Add(embed);
-                                        return Task.CompletedTask;
-                                    });
-                            }
-                        }
+                        await SendQuoteEmbedAsync(channelId, messageId, guildUser, userMessage.Channel);
                     }
                     catch (Exception ex)
                     {
@@ -85,11 +66,35 @@ namespace Modix.Services.Quote
                     }
                 }
             }
+        }
 
-            foreach (var embed in embeds)
+        private async Task SendQuoteEmbedAsync(ulong originalChannelId, ulong messageId, SocketGuildUser quoter, ISocketMessageChannel targetChannel)
+        {
+            var channel = DiscordClient.GetChannel(originalChannelId);
+
+            if (channel is IGuildChannel &&
+                channel is ISocketMessageChannel messageChannel)
             {
-                await userMessage.Channel.SendMessageAsync(string.Empty, embed: embed.Build());
+                var msg = await messageChannel.GetMessageAsync(messageId);
+                if (msg == null) { return; }
+
+                await SelfExecuteRequest<IQuoteService>(async quoteService =>
+                {
+                    var embed = quoteService.BuildQuoteEmbed(msg, quoter)?.Build();
+                    if (embed == null) { return; }
+
+                    await targetChannel.SendMessageAsync(string.Empty, embed: embed);
+                });
             }
+        }
+
+        private bool IsQuote(IMessage message)
+        {
+            return
+                message
+                .Embeds?.FirstOrDefault()
+                ?.Fields.FirstOrDefault()
+                .Name == "Quoted by";
         }
     }
 }
