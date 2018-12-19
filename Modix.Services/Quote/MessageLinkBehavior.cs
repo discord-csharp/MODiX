@@ -45,7 +45,7 @@ namespace Modix.Services.Quote
         {
             if (!(message is SocketUserMessage userMessage) ||
                 !(userMessage.Author is SocketGuildUser guildUser) ||
-                guildUser.IsBot || guildUser.IsWebhook || IsQuote(message))
+                guildUser.IsBot || guildUser.IsWebhook)
             {
                 return;
             }
@@ -58,6 +58,8 @@ namespace Modix.Services.Quote
                 {
                     try
                     {
+                        if (await IsQuote(channelId, messageId)) { return; }
+
                         await SendQuoteEmbedAsync(channelId, messageId, guildUser, userMessage.Channel);
                     }
                     catch (Exception ex)
@@ -88,10 +90,13 @@ namespace Modix.Services.Quote
             }
         }
 
-        private bool IsQuote(IMessage message)
+        private async Task<bool> IsQuote(ulong channelId, ulong messageId)
         {
+            var foundMessage = await (DiscordClient.GetChannel(channelId) as ISocketMessageChannel)
+                .GetMessageAsync(messageId);
+
             return
-                message
+                foundMessage
                 .Embeds?.FirstOrDefault()
                 ?.Fields.FirstOrDefault()
                 .Name == "Quoted by";
