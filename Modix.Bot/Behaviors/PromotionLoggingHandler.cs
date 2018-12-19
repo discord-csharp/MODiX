@@ -104,10 +104,7 @@ namespace Modix.Behaviors
                                 .AddField("Their new role is", MentionUtils.MentionRole(targetCampaign.TargetRole.Id));
                             break;
                         case PromotionCampaignOutcome.Rejected:
-                            embed = embed
-                                .WithDescription("The campaign was rejected by staff.")
-                                .AddField("Their new role would have been", MentionUtils.MentionRole(targetCampaign.TargetRole.Id));
-                            break;
+                            return null; //Don't send notifications for rejections
                         case PromotionCampaignOutcome.Failed:
                         default:
                             embed = embed
