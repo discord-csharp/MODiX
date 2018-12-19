@@ -67,7 +67,7 @@ namespace Modix.Services.Quote
                         {
                             var msg = await messageChannel.GetMessageAsync(messageId);
 
-                            if (msg != null)
+                            if (msg != null && !string.IsNullOrWhiteSpace(msg.Content))
                             {
                                 await SelfExecuteRequest<IQuoteService>(
                                     quoteService =>
