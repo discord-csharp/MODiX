@@ -11,21 +11,11 @@ namespace Modix.Services.Mentions
     public interface IMentionService
     {
         /// <summary>
-        /// Determines whether the user can mention the supplied role.
+        /// Mentions the given role in the given channel
         /// </summary>
-        /// <param name="role">The role that the user is trying to mention.</param>
-        /// <exception cref="ArgumentNullException">Throws for <paramref name="role"/>.</exception>
-        void AuthorizeMention(IRole role);
-
-        /// <summary>
-        /// Ensures that the role can be mentioned.
-        /// </summary>
-        /// <param name="role">The role to be mentioned.</param>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation completes,
-        /// with a delegate that can be invoked to restore the role to its previous configuration.
-        /// </returns>
-        Task<Func<Task>> EnsureMentionableAsync(IRole role);
+        /// <param name="role">The role to mention</param>
+        /// <param name="channel">The channel to mention in</param>
+        Task MentionRoleAsync(IRole role, IMessageChannel channel);
     }
 
     /// <inheritdoc />
@@ -33,31 +23,51 @@ namespace Modix.Services.Mentions
     {
         public MentionService(
             IDiscordClient discordClient,
-            IAuthorizationService authorizationService)
+            IAuthorizationService authorizationService,
+            IDesignatedRoleService designatedRoleService)
         {
             DiscordClient = discordClient;
             AuthorizationService = authorizationService;
+            DesignatedRoleService = designatedRoleService;
         }
 
         /// <inheritdoc />
-        public void AuthorizeMention(IRole role)
+        public async Task MentionRoleAsync(IRole role, IMessageChannel channel)
         {
-            AuthorizationService.RequireClaims(AuthorizationClaim.MentionRestrictedRole);
-
             if (role is null)
                 throw new ArgumentNullException(nameof(role));
-        }
 
-        public async Task<Func<Task>> EnsureMentionableAsync(IRole role)
-        {
-            if (!role.IsMentionable)
+            if (channel is null)
+                throw new ArgumentNullException(nameof(channel));
+
+            if (role.IsMentionable)
             {
-                await role.ModifyAsync(x => x.Mentionable = true);
-
-                return async () => await role.ModifyAsync(x => x.Mentionable = false);
+                await channel.SendMessageAsync($"You can do that yourself - but fine: {role.Mention}");
+                return;
             }
 
-            return () => Task.CompletedTask;
+            AuthorizationService.RequireClaims(AuthorizationClaim.MentionRestrictedRole);
+
+            if (await DesignatedRoleService.RoleHasDesignationAsync(role.Guild.Id, role.Id, DesignatedRoleType.RestrictedMentionability) == false)
+            {
+                await channel.SendMessageAsync($"Sorry, **{role.Name}** hasn't been designated as mentionable.");
+                return;
+            }
+
+            //Set the role to mentionable, immediately mention it, then set it
+            //to unmentionable again
+
+            await role.ModifyAsync(x => x.Mentionable = true);
+
+            //Make sure we set the role to unmentionable again no matter what
+            try
+            {
+                await channel.SendMessageAsync(role.Mention);
+            }
+            finally
+            {
+                await role.ModifyAsync(x => x.Mentionable = false);
+            }
         }
 
         /// <summary>
@@ -69,5 +79,10 @@ namespace Modix.Services.Mentions
         /// An <see cref="IAuthorizationService"/> to be used to interact with frontend authentication system, and perform authorization.
         /// </summary>
         internal protected IAuthorizationService AuthorizationService { get; }
+
+        /// <summary>
+        /// An <see cref="IDesignatedRoleService"/> to be used to check if a role is mentionable
+        /// </summary>
+        public IDesignatedRoleService DesignatedRoleService { get; }
     }
 }

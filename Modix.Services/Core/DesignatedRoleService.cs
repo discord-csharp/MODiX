@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
@@ -55,6 +56,14 @@ namespace Modix.Services.Core
         /// containing the requested role designations.
         /// </returns>
         Task<IReadOnlyCollection<DesignatedRoleMappingBrief>> SearchDesignatedRolesAsync(DesignatedRoleMappingSearchCriteria searchCriteria);
+
+        /// <summary>
+        /// Checks if the given role has the given designation
+        /// </summary>
+        /// <param name="guild">The Id of the guild where the role is located</param>
+        /// <param name="channel">The Id of the role to check the designation for</param>
+        /// <param name="designation">The <see cref="DesignatedRoleType"/> to check for</param>
+        Task<bool> RoleHasDesignationAsync(ulong guildId, ulong roleId, DesignatedRoleType designation);
     }
 
     public class DesignatedRoleService : IDesignatedRoleService
@@ -153,6 +162,17 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public Task<IReadOnlyCollection<DesignatedRoleMappingBrief>> SearchDesignatedRolesAsync(DesignatedRoleMappingSearchCriteria searchCriteria)
             => DesignatedRoleMappingRepository.SearchBriefsAsync(searchCriteria);
+
+        public async Task<bool> RoleHasDesignationAsync(ulong guildId, ulong roleId, DesignatedRoleType designation)
+        {
+            return (await SearchDesignatedRolesAsync(new DesignatedRoleMappingSearchCriteria
+            {
+                GuildId = guildId,
+                RoleId = roleId,
+                IsDeleted = false,
+                Type = designation
+            })).Any();
+        }
 
         /// <summary>
         /// A <see cref="IAuthorizationService"/> to be used to perform authorization.
