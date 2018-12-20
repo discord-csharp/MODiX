@@ -22,20 +22,7 @@ namespace Modix.Bot.Modules
         public async Task MentionAsync(
             [Summary("The role that the user is attempting to mention.")]
                 IRole role)
-        {
-            MentionService.AuthorizeMention(role);
-
-            var mentionContinuation = await MentionService.EnsureMentionableAsync(role);
-
-            try
-            {
-                await Context.Channel.SendMessageAsync(MentionUtils.MentionRole(role.Id));
-            }
-            finally
-            {
-                await mentionContinuation();
-            }
-        }
+            => await MentionService.MentionRoleAsync(role, Context.Channel);
 
         [Command("mention")]
         [Alias("@")]

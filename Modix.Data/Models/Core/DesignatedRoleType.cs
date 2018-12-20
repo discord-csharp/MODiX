@@ -16,6 +16,6 @@
         /// <summary>
         /// Defines a role whose mentionability is restricted in MODiX.
         /// </summary>
-        ResctrictedMentionability,
+        RestrictedMentionability,
     }
 }
