@@ -31,24 +31,22 @@ namespace Modix.Services.Mentions
             DesignatedRoleService = designatedRoleService;
         }
 
-        private void AuthorizeMention(IRole role)
+        /// <inheritdoc />
+        public async Task MentionRoleAsync(IRole role, IMessageChannel channel)
         {
             if (role is null)
                 throw new ArgumentNullException(nameof(role));
 
-            AuthorizationService.RequireClaims(AuthorizationClaim.MentionRestrictedRole);
-        }
+            if (channel is null)
+                throw new ArgumentNullException(nameof(channel));
 
-        /// <inheritdoc />
-        public async Task MentionRoleAsync(IRole role, IMessageChannel channel)
-        {
             if (role.IsMentionable)
             {
                 await channel.SendMessageAsync($"You can do that yourself - but fine: {role.Mention}");
                 return;
             }
 
-            AuthorizeMention(role);
+            AuthorizationService.RequireClaims(AuthorizationClaim.MentionRestrictedRole);
 
             if (await DesignatedRoleService.RoleHasDesignationAsync(role.Guild.Id, role.Id, DesignatedRoleType.RestrictedMentionability) == false)
             {
