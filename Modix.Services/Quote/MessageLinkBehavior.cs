@@ -95,11 +95,13 @@ namespace Modix.Services.Quote
             var foundMessage = await (DiscordClient.GetChannel(channelId) as ISocketMessageChannel)
                 .GetMessageAsync(messageId);
 
-            return
+            var hasQuoteField =
                 foundMessage
-                .Embeds?.FirstOrDefault()
-                ?.Fields.FirstOrDefault()
-                .Name == "Quoted by";
+                .Embeds?
+                .SelectMany(d=>d.Fields)
+                .Any(d => d.Name == "Quoted by");
+
+            return hasQuoteField.HasValue && hasQuoteField.Value;
         }
     }
 }
