@@ -2,12 +2,21 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Discord;
     using Discord.Commands;
 
     [Group("random"), Name("Random"), Summary("A bunch of random commands")]
     public class RandomModule : ModuleBase
     {
-        private static readonly Random Random = new Random();
+        private static readonly Random _random = new Random();
+
+        private Embed GetEmbed(object description)
+        {
+            return new EmbedBuilder()
+                .WithTitle("🎱 Magic 8 ball says...")
+                .WithDescription(description.ToString())
+                .Build();
+        }
 
         [Command("number"), Summary("Gets a random number")]
         public async Task RandomNumber(int min = 0, int max = 10)
@@ -18,23 +27,23 @@
                 return;
             }
 
-            var number = Random.Next(min, max);
+            var number = _random.Next(min, max);
 
-            await Context.Channel.SendMessageAsync(number.ToString());
+            await Context.Channel.SendMessageAsync("", embed: GetEmbed(number));
         }
 
         [Command("coin"), Summary("Flips a coin")]
         public async Task FlipCoin()
         {
-            var coin = Random.Next(0, 2);
+            var coin = _random.Next(0, 2);
 
             if (coin == 0)
             {
-                await Context.Channel.SendMessageAsync("heads");
+                await Context.Channel.SendMessageAsync("", embed: GetEmbed("Heads"));
             }
             else
             {
-                await Context.Channel.SendMessageAsync("tails");
+                await Context.Channel.SendMessageAsync("", embed: GetEmbed("Tails"));
             }
         }
 
@@ -47,11 +56,10 @@
                 return;
             }
 
-            var random = Random.Next(0, inputs.Length);
-
+            var random = _random.Next(0, inputs.Length);
             var choice = inputs[random];
 
-            await ReplyAsync(choice);
+            await ReplyAsync("", embed: GetEmbed(choice));
         }
     }
 }
