@@ -24,9 +24,9 @@ namespace Modix.Data.Models.Moderation
         public ulong? GuildId { get; set; }
 
         /// <summary>
-        /// A <see cref="InfractionEntity.Type"/> value, defining the <see cref="InfractionEntity"/> entities to be returned.
+        /// A set of <see cref="InfractionEntity.Type"/> values, defining the <see cref="InfractionEntity"/> entities to be returned.
         /// </summary>
-        public InfractionType? Type { get; set; }
+        public IReadOnlyCollection<InfractionType> Types { get; set; }
 
         /// <summary>
         /// A <see cref="GuildUserBrief.DisplayName"/> value, defining the <see cref="InfractionEntity"/> entities to be returned.
@@ -75,49 +75,6 @@ namespace Modix.Data.Models.Moderation
         /// or non-null, (or both).
         /// </summary>
         public bool? IsDeleted { get; set; }
-
-        /// <summary>
-        /// Defines the searchable properties of an <see cref="InfractionSummary"/>.
-        /// </summary>
-        public static readonly ImmutableArray<string> SearchablePropertyNames = ImmutableArray.Create
-            (
-                nameof(Id),
-                nameof(Type),
-                nameof(Subject),
-                nameof(Creator)
-            );
-
-        public void SetPropertyValue(string propertyName, string propertyValue)
-        {
-            if (propertyName.Equals(nameof(Id), StringComparison.OrdinalIgnoreCase))
-            {
-                if (long.TryParse(propertyValue, out var id))
-                    Id = id;
-            }
-            else if (propertyName.Equals(nameof(Type), StringComparison.OrdinalIgnoreCase))
-            {
-                if (Enum.TryParse<InfractionType>(propertyValue, out var type))
-                    Type = type;
-            }
-            else if (propertyName.Equals(nameof(Subject), StringComparison.OrdinalIgnoreCase))
-            {
-                if (ulong.TryParse(propertyValue, out var subjectId))
-                    SubjectId = subjectId;
-                else
-                    Subject = propertyValue;
-            }
-            else if (propertyName.Equals(nameof(Creator), StringComparison.OrdinalIgnoreCase))
-            {
-                if (ulong.TryParse(propertyValue, out var creatorId))
-                    CreatedById = creatorId;
-                else
-                    Creator = propertyValue;
-            }
-            else
-            {
-                throw new ArgumentException(nameof(propertyName));
-            }
-        }
     }
 
     internal static class InfractionQueryableExtensions
@@ -131,10 +88,10 @@ namespace Modix.Data.Models.Moderation
                     x => x.GuildId == criteria.GuildId,
                     criteria?.GuildId != null)
                 .FilterBy(
-                    x => x.Type == criteria.Type.Value,
-                    criteria?.Type != null)
+                    x => criteria.Types.Contains(x.Type),
+                    criteria?.Types?.Any() ?? false)
                 .FilterBy(
-                    x => $"{x.Subject.Nickname ?? x.Subject.User.Username}#{x.Subject.User.Discriminator}".OrdinalContains(criteria.Subject),
+                    x => x.Subject.Nickname.ToUpper().Contains(criteria.Subject.ToUpper()) || x.Subject.User.Username.ToUpper().Contains(criteria.Subject.ToUpper()),
                     !string.IsNullOrWhiteSpace(criteria?.Subject))
                 .FilterBy(
                     x => x.SubjectId == criteria.SubjectId,
@@ -146,7 +103,7 @@ namespace Modix.Data.Models.Moderation
                     x => x.CreateAction.Created <= criteria.CreatedRange.Value.To,
                     criteria?.CreatedRange?.To != null)
                 .FilterBy(
-                    x => $"{x.CreateAction.CreatedBy.Nickname ?? x.CreateAction.CreatedBy.User.Username}#{x.CreateAction.CreatedBy.User.Discriminator}".OrdinalContains(criteria.Creator),
+                    x => x.CreateAction.CreatedBy.Nickname.ToUpper().Contains(criteria.Creator.ToUpper()) || x.CreateAction.CreatedBy.User.Username.ToUpper().Contains(criteria.Creator.ToUpper()),
                     !string.IsNullOrWhiteSpace(criteria?.Creator))
                 .FilterBy(
                     x => x.CreateAction.CreatedById == criteria.CreatedById,

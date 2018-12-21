@@ -76,6 +76,10 @@ namespace Modix.Data.Models.Moderation
             = new Dictionary<string, Expression<Func<InfractionSummary, object>>>()
             {
                 {
+                    nameof(Id),
+                    x => x.Id
+                },
+                {
                     nameof(Type),
                     x => x.Type
                 },
@@ -84,32 +88,16 @@ namespace Modix.Data.Models.Moderation
                     x => x.Duration
                 },
                 {
-                    $"{nameof(Subject)}.{nameof(InfractionSummary.Subject.Username)}",
-                    x => x.Subject.Username
+                    "Subject",
+                    x => x.Subject.DisplayName
                 },
                 {
-                    $"{nameof(Subject)}.{nameof(InfractionSummary.Subject.Nickname)}",
-                    x => x.Subject.Nickname
-                },
-                {
-                    $"{nameof(Subject)}.{nameof(InfractionSummary.Subject.Discriminator)}",
-                    x => x.Subject.Discriminator
-                },
-                {
-                    $"{nameof(CreateAction)}.{nameof(InfractionSummary.CreateAction.Created)}",
+                    "Created",
                     x => x.CreateAction.Created
                 },
                 {
-                    $"{nameof(CreateAction)}.{nameof(InfractionSummary.CreateAction.CreatedBy)}.{nameof(InfractionSummary.CreateAction.CreatedBy.Username)}",
+                    "Creator",
                     x => x.CreateAction.CreatedBy.Username
-                },
-                {
-                    $"{nameof(CreateAction)}.{nameof(InfractionSummary.CreateAction.CreatedBy)}.{nameof(InfractionSummary.CreateAction.CreatedBy.Nickname)}",
-                    x => x.CreateAction.CreatedBy.Nickname
-                },
-                {
-                    $"{nameof(CreateAction)}.{nameof(InfractionSummary.CreateAction.CreatedBy)}.{nameof(InfractionSummary.CreateAction.CreatedBy.Discriminator)}",
-                    x => x.CreateAction.CreatedBy.Discriminator
                 },
                 {
                     nameof(Expires),
