@@ -17,13 +17,13 @@ namespace Modix.Data.Repositories
     public interface ITagRepository
     {
         /// <summary>
-        /// Begins a new transaction to create tags within the repository.
+        /// Begins a new transaction to maintain tags within the repository.
         /// </summary>
         /// <returns>
         /// A <see cref="Task"/> that will complete, with the requested transaction object,
         /// when no other transactions are active upon the repository.
         /// </returns>
-        Task<IRepositoryTransaction> BeginCreateTransactionAsync();
+        Task<IRepositoryTransaction> BeginMaintainTransactionAsync();
 
         /// <summary>
         /// Begins a new transaction to use tags within the repository.
@@ -58,16 +58,15 @@ namespace Modix.Data.Repositories
         Task<TagSummary> ReadSummaryAsync(ulong guildId, string name);
 
         /// <summary>
-        /// Retrieves a collection of tags in a guild that have a name similar to the supplied name.
+        /// Retrieves a collection of tags based on the supplied search criteria.
         /// </summary>
-        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tags belong.</param>
-        /// <param name="query">The partial name text of the tag to search.</param>
-        /// <exception cref="ArgumentException">Throws for <paramref name="query"/>.</exception>
+        /// <param name="searchCriteria">Criteria describing how to filter the result set of tags.</param>
+        /// <exception cref="ArgumentException">Throws for <paramref name="searchCriteria"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing a collection of tags that have similar names to the supplied name.
         /// </returns>
-        Task<IReadOnlyCollection<TagSummary>> SearchSummariesAsync(ulong guildId, string query);
+        Task<IReadOnlyCollection<TagSummary>> SearchSummariesAsync(TagSearchCriteria searchCriteria);
 
         /// <summary>
         /// Increments the usage counter on the supplied tag.
@@ -121,8 +120,8 @@ namespace Modix.Data.Repositories
             : base(modixContext) { }
 
         /// <inheritdoc />
-        public Task<IRepositoryTransaction> BeginCreateTransactionAsync()
-            => _createTransactionFactory.BeginTransactionAsync(ModixContext.Database);
+        public Task<IRepositoryTransaction> BeginMaintainTransactionAsync()
+            => _maintainTransactionFactory.BeginTransactionAsync(ModixContext.Database);
 
         /// <inheritdoc />
         public Task<IRepositoryTransaction> BeginUseTransactionAsync()
@@ -162,16 +161,14 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<TagSummary>> SearchSummariesAsync(ulong guildId, string query)
+        public async Task<IReadOnlyCollection<TagSummary>> SearchSummariesAsync(TagSearchCriteria searchCriteria)
         {
-            if (string.IsNullOrWhiteSpace(query))
-                throw new ArgumentException("The supplied query cannot be null or whitespace.", nameof(query));
+            if (searchCriteria is null)
+                throw new ArgumentNullException(nameof(searchCriteria));
 
             return await ModixContext.Tags.AsNoTracking()
-                .Where(x
-                    => x.GuildId == guildId
-                    && x.Name.Contains(query.ToLower())
-                    && x.DeleteActionId == null)
+                .Where(x => x.DeleteActionId == null)
+                .FilterBy(searchCriteria)
                 .OrderBy(x => x.Name)
                 .Take(20)
                 .AsExpandable()
@@ -278,7 +275,7 @@ namespace Modix.Data.Repositories
             return true;
         }
 
-        private static readonly RepositoryTransactionFactory _createTransactionFactory
+        private static readonly RepositoryTransactionFactory _maintainTransactionFactory
             = new RepositoryTransactionFactory();
 
         private static readonly RepositoryTransactionFactory _useTransactionFactory

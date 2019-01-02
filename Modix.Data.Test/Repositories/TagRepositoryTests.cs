@@ -51,17 +51,17 @@ namespace Modix.Data.Test.Repositories
 
         #endregion Constructor() Tests
 
-        #region BeginCreateTransactionAsync() Tests
+        #region BeginMaintainTransactionAsync() Tests
 
         [Test]
         [NonParallelizable]
-        public async Task BeginCreateTransactionAsync_CreateTransactionIsInProgress_WaitsForCompletion()
+        public async Task BeginMaintainTransactionAsync_MaintainTransactionIsInProgress_WaitsForCompletion()
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            var existingTransaction = await uut.BeginCreateTransactionAsync();
+            var existingTransaction = await uut.BeginMaintainTransactionAsync();
 
-            var result = uut.BeginCreateTransactionAsync();
+            var result = uut.BeginMaintainTransactionAsync();
 
             result.IsCompleted.ShouldBeFalse();
 
@@ -71,11 +71,11 @@ namespace Modix.Data.Test.Repositories
 
         [Test]
         [NonParallelizable]
-        public async Task BeginCreateTransactionAsync_CreateTransactionIsNotInProgress_ReturnsImmediately()
+        public async Task BeginMaintainTransactionAsync_MaintainTransactionIsNotInProgress_ReturnsImmediately()
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            var result = uut.BeginCreateTransactionAsync();
+            var result = uut.BeginMaintainTransactionAsync();
 
             result.IsCompleted.ShouldBeTrue();
 
@@ -84,13 +84,13 @@ namespace Modix.Data.Test.Repositories
 
         [Test]
         [NonParallelizable]
-        public async Task BeginCreateTransactionAsync_UseTransactionIsInProgress_ReturnsImmediately()
+        public async Task BeginMaintainTransactionAsync_UseTransactionIsInProgress_ReturnsImmediately()
         {
             (var modixContext, var uut) = BuildTestContext();
 
             var deleteTransaction = await uut.BeginUseTransactionAsync();
 
-            var result = uut.BeginCreateTransactionAsync();
+            var result = uut.BeginMaintainTransactionAsync();
 
             result.IsCompleted.ShouldBeTrue();
 
@@ -100,21 +100,21 @@ namespace Modix.Data.Test.Repositories
 
         [Test]
         [NonParallelizable]
-        public async Task BeginCreateTransactionAsync_Always_TransactionIsForContextDatabase()
+        public async Task BeginMaintainTransactionAsync_Always_TransactionIsForContextDatabase()
         {
             (var modixContext, var uut) = BuildTestContext();
 
             var database = Substitute.ForPartsOf<DatabaseFacade>(modixContext);
             modixContext.Database.Returns(database);
 
-            using (var transaction = await uut.BeginCreateTransactionAsync())
+            using (var transaction = await uut.BeginMaintainTransactionAsync())
             { }
 
             await database.ShouldHaveReceived(1)
                 .BeginTransactionAsync();
         }
 
-        #endregion BeginCreateTransactionAsync() Tests
+        #endregion BeginMaintainTransactionAsync() Tests
 
         #region BeginUseTransactionAsync() Tests
 
@@ -149,11 +149,11 @@ namespace Modix.Data.Test.Repositories
 
         [Test]
         [NonParallelizable]
-        public async Task BeginUseTransactionAsync_CreateTransactionIsInProgress_ReturnsImmediately()
+        public async Task BeginUseTransactionAsync_MaintainTransactionIsInProgress_ReturnsImmediately()
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            var createTransaction = await uut.BeginCreateTransactionAsync();
+            var createTransaction = await uut.BeginMaintainTransactionAsync();
 
             var result = uut.BeginUseTransactionAsync();
 
@@ -271,46 +271,6 @@ namespace Modix.Data.Test.Repositories
         }
 
         #endregion ReadSummaryAsync() Tests
-
-        #region SearchSummariesAsync() Tests
-
-        [TestCaseSource(nameof(ValidSearchTestCases))]
-        public async Task SearchSummariesAsync_TagExists_ReturnsMatchingSummaries(ulong guildId, string query, long[] resultIds)
-        {
-            (var modixContext, var uut) = BuildTestContext();
-
-            var results = await uut.SearchSummariesAsync(guildId, query);
-
-            results.ShouldNotBeNull();
-            results.ShouldNotBeEmpty();
-
-            foreach (var result in results)
-                result.ShouldMatchTestData();
-
-            results.Select(x => x.Id).ShouldBeSubsetOf(resultIds);
-            resultIds.ShouldBeSubsetOf(results.Select(x => x.Id));
-        }
-
-        [TestCaseSource(nameof(NonexistentSearchTestCases))]
-        public async Task SearchSummariesAsync_TagDoesNotExist_ReturnsEmpty(ulong guildId, string query)
-        {
-            (var modixContext, var uut) = BuildTestContext();
-
-            var result = await uut.SearchSummariesAsync(guildId, query);
-
-            result.ShouldNotBeNull();
-            result.ShouldBeEmpty();
-        }
-
-        [TestCaseSource(nameof(ExceptionSearchTestCases))]
-        public async Task SearchSummariesAsync_CriteriaIsInvalid_Throws(ulong guildId, string query, Type exceptionType)
-        {
-            (var modixContext, var uut) = BuildTestContext();
-
-            await Should.ThrowAsync(() => uut.SearchSummariesAsync(guildId, query), exceptionType);
-        }
-
-        #endregion SearchSummariesAsync() Tests
 
         #region TryIncrementUsesAsync() Tests
 
@@ -436,21 +396,6 @@ namespace Modix.Data.Test.Repositories
         public static readonly IEnumerable<TestCaseData> ExceptionReadTestCases
             = Reads.ExceptionReads
                 .Select(x => new TestCaseData(x.GuildId, x.TagName, x.ExceptionType)
-                    .SetName($"{{m}}({x.TestName})"));
-
-        public static readonly IEnumerable<TestCaseData> ValidSearchTestCases
-            = Searches.ValidSearches
-                .Select(x => new TestCaseData(x.GuildId, x.Query, x.ResultIds)
-                    .SetName($"{{m}}({x.TestName})"));
-
-        public static readonly IEnumerable<TestCaseData> NonexistentSearchTestCases
-            = Searches.NonexistentSearches
-                .Select(x => new TestCaseData(x.GuildId, x.Query)
-                    .SetName($"{{m}}({x.TestName})"));
-
-        public static readonly IEnumerable<TestCaseData> ExceptionSearchTestCases
-            = Searches.ExceptionSearches
-                .Select(x => new TestCaseData(x.GuildId, x.Query, x.ExceptionType)
                     .SetName($"{{m}}({x.TestName})"));
 
         public static readonly IEnumerable<TestCaseData> ValidIncrementTestCases
