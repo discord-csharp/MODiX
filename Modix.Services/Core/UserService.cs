@@ -48,6 +48,17 @@ namespace Modix.Services.Core
         Task<GuildUserSummary> GetGuildUserSummaryAsync(ulong guildId, ulong userId);
 
         /// <summary>
+        /// Retrieves all available information on a user matching the supplied criteria.
+        /// </summary>
+        /// <param name="guildId">The Discord snowflake ID of the guild in which the user is being searched.</param>
+        /// <param name="userId">The Discord snowflake ID of the user that is being searched for.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that completes when the operation completes,
+        /// containing all user information that was found for the user.
+        /// </returns>
+        Task<UserInformation> GetUserInformationAsync(ulong guildId, ulong userId);
+
+        /// <summary>
         /// Updates information about the given user within the user tracking system of a guild.
         /// </summary>
         /// <param name="user">The user whose info is to be tracked.</param>
@@ -122,6 +133,25 @@ namespace Modix.Services.Core
         {
             var found = await GuildUserRepository.ReadSummaryAsync(userId, guildId);
             return found;
+        }
+
+        /// <inheritdoc />
+        public async Task<UserInformation> GetUserInformationAsync(ulong guildId, ulong userId)
+        {
+            var guild = await DiscordClient.GetGuildAsync(guildId);
+            var guildUser = await guild.GetUserAsync(userId);
+
+            if (!(guildUser is null))
+                await TrackUserAsync(guildUser);
+
+            var user = await DiscordClient.GetUserAsync(userId);
+
+            var guildUserSummary = await GetGuildUserSummaryAsync(guildId, userId);
+
+            return new UserInformation()
+                .WithGuildUserSummaryData(guildUserSummary)
+                .WithIUserData(user)
+                .WithIGuildUserData(guildUser);
         }
 
         /// <inheritdoc />

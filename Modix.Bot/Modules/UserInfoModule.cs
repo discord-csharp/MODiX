@@ -49,9 +49,9 @@ namespace Modix.Modules
         [Command("info")]
         public async Task GetUserInfoFromId(ulong userId)
         {
-            var userSummary = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, userId);
+            var userInfo = await UserService.GetUserInformationAsync(Context.Guild.Id, userId);
 
-            if (userSummary == null)
+            if (userInfo == null)
             {
                 await ReplyAsync("We don't have any data for that user.");
                 return;
@@ -59,13 +59,16 @@ namespace Modix.Modules
 
             var builder = new StringBuilder();
             builder.AppendLine("**\u276F User Information**");
-            builder.AppendLine("ID: " + userSummary.UserId);
-            builder.AppendLine("Profile: " + MentionUtils.MentionUser(userSummary.UserId));
+            builder.AppendLine("ID: " + userInfo.Id);
+            builder.AppendLine("Profile: " + MentionUtils.MentionUser(userInfo.Id));
 
             // TODO: Add content about the user's presence, if any
 
-            builder.Append(FormatTimeAgo("First Seen", userSummary.FirstSeen));
-            builder.Append(FormatTimeAgo("Last Seen", userSummary.LastSeen));
+            if (!(userInfo.FirstSeen is null))
+                builder.Append(FormatTimeAgo("First Seen", userInfo.FirstSeen.Value));
+
+            if (!(userInfo.LastSeen is null))
+                builder.Append(FormatTimeAgo("Last Seen", userInfo.LastSeen.Value));
 
             try
             {
@@ -77,7 +80,7 @@ namespace Modix.Modules
             }
 
             var embedBuilder = new EmbedBuilder()
-                .WithAuthor(userSummary.Username + "#" + userSummary.Discriminator)
+                .WithAuthor(userInfo.Username + "#" + userInfo.Discriminator)
                 .WithColor(new Color(253, 95, 0))
                 .WithTimestamp(_utcNow);
 
