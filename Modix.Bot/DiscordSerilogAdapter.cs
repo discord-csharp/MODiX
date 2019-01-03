@@ -17,6 +17,9 @@ namespace Modix
         }
 
         public Task HandleLog(LogMessage message)
+            => HandleLog(message.Abstract());
+
+        public Task HandleLog(ILogMessage message)
         {
             switch (message.Severity)
             {

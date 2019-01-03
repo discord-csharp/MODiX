@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 
 using Discord;
-
+using Discord.Rest;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 
@@ -75,9 +75,14 @@ namespace Modix.Services.Core
         /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
         /// <param name="authorizationService">The value to use for <see cref="AuthorizationService"/>.</param>
         /// <param name="guildUserRepository">The value to use for <see cref="GuildUserRepository"/>.</param>
-        public UserService(IDiscordClient discordClient, IAuthorizationService authorizationService, IGuildUserRepository guildUserRepository)
+        public UserService(
+            IDiscordClient discordClient,
+            IDiscordRestClient discordRestClient,
+            IAuthorizationService authorizationService,
+            IGuildUserRepository guildUserRepository)
         {
             DiscordClient = discordClient;
+            DiscordRestClient = discordRestClient;
             AuthorizationService = authorizationService;
             GuildUserRepository = guildUserRepository;
         }
@@ -93,7 +98,7 @@ namespace Modix.Services.Core
             if (user == null)
                 throw new InvalidOperationException($"Discord user {userId} does not exist");
 
-            if(user is IGuildUser guildUser)
+            if (user is IGuildUser guildUser)
                 await TrackUserAsync(guildUser);
 
             return user;
@@ -146,10 +151,13 @@ namespace Modix.Services.Core
 
             var user = await DiscordClient.GetUserAsync(userId);
 
+            var restUser = await DiscordRestClient.GetUserAsync(userId);
+
             var guildUserSummary = await GetGuildUserSummaryAsync(guildId, userId);
 
             return new UserInformation()
                 .WithGuildUserSummaryData(guildUserSummary)
+                .WithIUserData(restUser)
                 .WithIUserData(user)
                 .WithIGuildUserData(guildUser);
         }
@@ -159,17 +167,17 @@ namespace Modix.Services.Core
         {
             using (var transaction = await GuildUserRepository.BeginCreateTransactionAsync())
             {
-                if(!await GuildUserRepository.TryUpdateAsync(user.Id, user.GuildId, data =>
-                {
+                if (!await GuildUserRepository.TryUpdateAsync(user.Id, user.GuildId, data =>
+                 {
                     // Only update properties that we were given. Updates can be triggered from several different sources, not all of which have all the user's info.
                     if (user.Username != null)
-                        data.Username = user.Username;
-                    if (user.DiscriminatorValue != 0)
-                        data.Discriminator = user.Discriminator;
-                    if ((user.Username != null) && (user.DiscriminatorValue != 0))
-                        data.Nickname = user.Nickname;
-                    data.LastSeen = DateTimeOffset.Now;
-                }))
+                         data.Username = user.Username;
+                     if (user.DiscriminatorValue != 0)
+                         data.Discriminator = user.Discriminator;
+                     if ((user.Username != null) && (user.DiscriminatorValue != 0))
+                         data.Nickname = user.Nickname;
+                     data.LastSeen = DateTimeOffset.Now;
+                 }))
                 {
                     await GuildUserRepository.CreateAsync(new GuildUserCreationData()
                     {
@@ -191,6 +199,11 @@ namespace Modix.Services.Core
         /// A <see cref="IDiscordClient"/> to be used to interact with the Discord API.
         /// </summary>
         internal protected IDiscordClient DiscordClient { get; }
+
+        /// <summary>
+        /// A <see cref="IDiscordRestClient"/> to be used to interact with the Discord API.
+        /// </summary>
+        internal protected IDiscordRestClient DiscordRestClient { get; }
 
         /// <summary>
         /// A <see cref="IAuthorizationService"/> to be used to interact with frontend authentication system, and perform authorization.

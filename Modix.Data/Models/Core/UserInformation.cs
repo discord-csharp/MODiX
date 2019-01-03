@@ -64,7 +64,8 @@ namespace Modix.Data.Models.Core
             if (user is null)
                 return this;
 
-            Id = user.Id;
+            if (user.Id != default)
+                Id = user.Id;
 
             return this;
         }
@@ -73,8 +74,9 @@ namespace Modix.Data.Models.Core
         {
             if (user is null)
                 return this;
-            
-            CreatedAt = user.CreatedAt;
+
+            if (user.CreatedAt != default)
+                CreatedAt = user.CreatedAt;
 
             return WithIEntityData(user);
         }
@@ -84,7 +86,8 @@ namespace Modix.Data.Models.Core
             if (user is null)
                 return this;
 
-            Mention = user.Mention;
+            if (user.Mention != default)
+                Mention = user.Mention;
 
             return this;
         }
@@ -94,8 +97,11 @@ namespace Modix.Data.Models.Core
             if (user is null)
                 return this;
 
-            Activity = user.Activity;
-            Status = user.Status;
+            if (user.Activity != default)
+                Activity = user.Activity;
+
+            if (user.Status != default)
+                Status = user.Status;
 
             return this;
         }
@@ -105,14 +111,26 @@ namespace Modix.Data.Models.Core
             if (user is null)
                 return this;
 
-            Activity = user.Activity;
-            AvatarId = user.AvatarId;
-            Discriminator = user.Discriminator;
-            DiscriminatorValue = user.DiscriminatorValue;
-            IsBot = user.IsBot;
-            IsWebhook = user.IsWebhook;
-            Status = user.Status;
-            Username = user.Username;
+            if (user.AvatarId != default)
+                AvatarId = user.AvatarId;
+            
+            if (user.Discriminator != default)
+                Discriminator = user.Discriminator;
+            
+            if (user.DiscriminatorValue != default)
+                DiscriminatorValue = user.DiscriminatorValue;
+
+            if (user.IsBot != default)
+                IsBot = user.IsBot;
+
+            if (user.IsWebhook != default)
+                IsWebhook = user.IsWebhook;
+
+            if (user.Status != default)
+                Status = user.Status;
+
+            if (user.Username != default)
+                Username = user.Username;
 
             return WithISnowflakeEntityData(user)
                 .WithIMentionableData(user)
@@ -124,13 +142,26 @@ namespace Modix.Data.Models.Core
             if (user is null)
                 return this;
 
-            IsDeafened = user.IsDeafened;
-            IsMuted = user.IsMuted;
-            IsSelfDeafened = user.IsSelfDeafened;
-            IsSelfMuted = user.IsSelfMuted;
-            IsSuppressed = user.IsSuppressed;
-            VoiceChannel = user.VoiceChannel;
-            VoiceSessionId = user.VoiceSessionId;
+            if (user.IsDeafened != default)
+                IsDeafened = user.IsDeafened;
+
+            if (user.IsMuted != default)
+                IsMuted = user.IsMuted;
+
+            if (user.IsSelfDeafened != default)
+                IsSelfDeafened = user.IsSelfDeafened;
+
+            if (user.IsSelfMuted != default)
+                IsSelfMuted = user.IsSelfMuted;
+
+            if (user.IsSuppressed != default)
+                IsSuppressed = user.IsSuppressed;
+
+            if (user.VoiceChannel != default)
+                VoiceChannel = user.VoiceChannel;
+
+            if (user.VoiceSessionId != default)
+                VoiceSessionId = user.VoiceSessionId;
 
             return this;
         }
@@ -140,12 +171,23 @@ namespace Modix.Data.Models.Core
             if (user is null)
                 return this;
 
-            JoinedAt = user.JoinedAt;
-            Nickname = user.Nickname;
-            GuildPermissions = user.GuildPermissions;
-            Guild = user.Guild;
-            GuildId = user.GuildId;
-            RoleIds = user.RoleIds;
+            if (user.JoinedAt != default)
+                JoinedAt = user.JoinedAt;
+
+            if (user.Nickname != default)
+                Nickname = user.Nickname;
+
+            if (user.Guild != default)
+                Guild = user.Guild;
+
+            if (user.GuildId != default)
+                GuildId = user.GuildId;
+
+            if (!user.GuildPermissions.Equals(default(GuildPermissions)))
+                GuildPermissions = user.GuildPermissions;
+
+            if (user.RoleIds != default)
+                RoleIds = user.RoleIds;
 
             return WithIUserData(user)
                 .WithIVoiceStateData(user);
@@ -156,13 +198,26 @@ namespace Modix.Data.Models.Core
             if (user is null)
                 return this;
 
-            Id = user.UserId;
-            GuildId = user.GuildId;
-            Username = user.Username;
-            Discriminator = user.Discriminator;
-            Nickname = user.Nickname;
-            FirstSeen = user.FirstSeen;
-            LastSeen = user.LastSeen;
+            if (user.UserId != default)
+                Id = user.UserId;
+
+            if (user.GuildId != default)
+                GuildId = user.GuildId;
+
+            if (user.Username != default)
+                Username = user.Username;
+
+            if (user.Discriminator != default)
+                Discriminator = user.Discriminator;
+
+            if (user.Nickname != default)
+                Nickname = user.Nickname;
+
+            if (user.FirstSeen != default)
+                FirstSeen = user.FirstSeen;
+
+            if (user.LastSeen != default)
+                LastSeen = user.LastSeen;
 
             return this;
         }
