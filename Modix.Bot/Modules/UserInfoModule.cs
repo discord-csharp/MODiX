@@ -84,6 +84,9 @@ namespace Modix.Modules
                 .WithColor(new Color(253, 95, 0))
                 .WithTimestamp(_utcNow);
 
+            embedBuilder.ThumbnailUrl = userInfo.GetAvatarUrl();
+            embedBuilder.Author.IconUrl = userInfo.GetAvatarUrl();
+
             if (await UserService.GuildUserExistsAsync(Context.Guild.Id, userId))
             {
                 var member = await UserService.GetGuildUserAsync(Context.Guild.Id, userId);
@@ -139,8 +142,6 @@ namespace Modix.Modules
             }
 
             embedBuilder.Color = GetDominantColor(member);
-            embedBuilder.ThumbnailUrl = member.GetAvatarUrl();
-            embedBuilder.Author.IconUrl = member.GetAvatarUrl();
         }
 
         private async Task AddInfractionsToEmbed(ulong userId, StringBuilder builder)

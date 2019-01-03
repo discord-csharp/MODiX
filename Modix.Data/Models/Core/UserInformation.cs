@@ -59,6 +59,12 @@ namespace Modix.Data.Models.Core
 
         public string VoiceSessionId { get; set; }
 
+        public string GetAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
+            => _user?.GetAvatarUrl(format, size);
+
+        public string GetDefaultAvatarUrl()
+            => _user?.GetDefaultAvatarUrl();
+
         public UserInformation WithIEntityData(IEntity<ulong> user)
         {
             if (user is null)
@@ -110,6 +116,8 @@ namespace Modix.Data.Models.Core
         {
             if (user is null)
                 return this;
+
+            _user = user;
 
             if (user.AvatarId != default)
                 AvatarId = user.AvatarId;
@@ -221,5 +229,7 @@ namespace Modix.Data.Models.Core
 
             return this;
         }
+
+        private IUser _user;
     }
 }
