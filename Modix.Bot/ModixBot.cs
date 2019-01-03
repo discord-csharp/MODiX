@@ -23,7 +23,7 @@ namespace Modix
     public sealed class ModixBot : BackgroundService
     {
         private readonly DiscordSocketClient _client;
-        private readonly IDiscordRestClient _restClient;
+        private readonly DiscordRestClient _restClient;
         private readonly CommandService _commands;
         private readonly IServiceProvider _provider;
         private readonly ModixConfig _config;
@@ -33,7 +33,7 @@ namespace Modix
 
         public ModixBot(
             DiscordSocketClient discordClient,
-            IDiscordRestClient restClient,
+            DiscordRestClient restClient,
             ModixConfig modixConfig,
             CommandService commandService,
             DiscordSerilogAdapter serilogAdapter,

@@ -77,7 +77,7 @@ namespace Modix.Services.Core
         /// <param name="guildUserRepository">The value to use for <see cref="GuildUserRepository"/>.</param>
         public UserService(
             IDiscordClient discordClient,
-            IDiscordRestClient discordRestClient,
+            DiscordRestClient discordRestClient,
             IAuthorizationService authorizationService,
             IGuildUserRepository guildUserRepository)
         {
@@ -203,7 +203,7 @@ namespace Modix.Services.Core
         /// <summary>
         /// A <see cref="IDiscordRestClient"/> to be used to interact with the Discord API.
         /// </summary>
-        internal protected IDiscordRestClient DiscordRestClient { get; }
+        internal protected DiscordRestClient DiscordRestClient { get; }
 
         /// <summary>
         /// A <see cref="IAuthorizationService"/> to be used to interact with frontend authentication system, and perform authorization.

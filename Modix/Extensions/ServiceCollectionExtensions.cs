@@ -44,7 +44,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 provider => new DiscordRestClient(config: new DiscordRestConfig
                 {
                     LogLevel = LogSeverity.Debug,
-                }).Abstract());
+                }));
 
             services.AddSingleton(_ =>
                 {
