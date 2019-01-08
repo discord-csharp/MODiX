@@ -62,7 +62,8 @@ namespace Modix.Modules
             builder.AppendLine("ID: " + userInfo.Id);
             builder.AppendLine("Profile: " + MentionUtils.MentionUser(userInfo.Id));
 
-            // TODO: Add content about the user's presence, if any
+            if (userInfo.Status is UserStatus status)
+                builder.AppendLine("Status: " + status.Humanize());
 
             if (userInfo.FirstSeen is DateTimeOffset firstSeen)
                 builder.Append(FormatTimeAgo("First Seen", firstSeen));

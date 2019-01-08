@@ -51,7 +51,7 @@ namespace Modix.Data.Models.Core
 
         public IReadOnlyCollection<ulong> RoleIds { get; set; }
 
-        public UserStatus Status { get; set; }
+        public UserStatus? Status { get; set; }
 
         public string Username { get; set; }
 
