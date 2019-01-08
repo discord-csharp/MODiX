@@ -64,11 +64,11 @@ namespace Modix.Modules
 
             // TODO: Add content about the user's presence, if any
 
-            if (!(userInfo.FirstSeen is null))
-                builder.Append(FormatTimeAgo("First Seen", userInfo.FirstSeen.Value));
+            if (userInfo.FirstSeen is DateTimeOffset firstSeen)
+                builder.Append(FormatTimeAgo("First Seen", firstSeen));
 
-            if (!(userInfo.LastSeen is null))
-                builder.Append(FormatTimeAgo("Last Seen", userInfo.LastSeen.Value));
+            if (userInfo.LastSeen is DateTimeOffset lastSeen)
+                builder.Append(FormatTimeAgo("Last Seen", lastSeen));
 
             try
             {
@@ -86,17 +86,8 @@ namespace Modix.Modules
 
             embedBuilder.ThumbnailUrl = userInfo.GetAvatarUrl();
             embedBuilder.Author.IconUrl = userInfo.GetAvatarUrl();
-
-            if (await UserService.GuildUserExistsAsync(Context.Guild.Id, userId))
-            {
-                var member = await UserService.GetGuildUserAsync(Context.Guild.Id, userId);
-                AddMemberInformationToEmbed(member, builder, embedBuilder);
-            }
-            else
-            {
-                builder.AppendLine();
-                builder.AppendLine("**\u276F No Member Information**");
-            }
+            
+            AddMemberInformationToEmbed(userInfo, builder, embedBuilder);
 
             if (await AuthorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
             {
@@ -108,7 +99,7 @@ namespace Modix.Modules
             await ReplyAsync(string.Empty, embed: embedBuilder.Build());
         }
 
-        private void AddMemberInformationToEmbed(IGuildUser member, StringBuilder builder, EmbedBuilder embedBuilder)
+        private void AddMemberInformationToEmbed(UserInformation member, StringBuilder builder, EmbedBuilder embedBuilder)
         {
             builder.AppendLine();
             builder.AppendLine("**\u276F Member Information**");
@@ -125,7 +116,7 @@ namespace Modix.Modules
                 builder.Append(FormatTimeAgo("Joined", joinedAt));
             }
 
-            if (member.RoleIds.Count > 0)
+            if (member.RoleIds?.Count > 0)
             {
                 var roles = member.RoleIds.Select(x => member.Guild.Roles.Single(y => y.Id == x))
                     .Where(x => x.Id != x.Guild.Id) // @everyone role always has same ID than guild
@@ -212,7 +203,7 @@ namespace Modix.Modules
             return string.Format(CultureInfo.InvariantCulture, Format, prefix, humanizedTimeAgo, ago.UtcDateTime);
         }
 
-        private static Color GetDominantColor(IUser user)
+        private static Color GetDominantColor(UserInformation user)
         {
             // TODO: Get the dominate image in the user's avatar.
             return new Color(253, 95, 0);
