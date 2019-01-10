@@ -20,7 +20,7 @@ const defaultConfig: PersistentConfig =
     showInactiveCampaigns: false,
     showInfractionState: false,
     showDeletedInfractions: false,
-    theme: Theme.Holiday
+    theme: Theme.Default
 };
 
 export const config = (): PersistentConfig => PersistentKeyValueService.get("persistentConfig") || defaultConfig;
