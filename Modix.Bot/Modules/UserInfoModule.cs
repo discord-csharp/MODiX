@@ -41,15 +41,9 @@ namespace Modix.Modules
         private IMessageRepository MessageRepository { get; }
 
         [Command("info")]
-        public async Task GetUserInfo(IGuildUser user = null)
+        public async Task GetUserInfo(IEntity<ulong> subject)
         {
-            await GetUserInfoFromId(user?.Id ?? Context.User.Id);
-        }
-
-        [Command("info")]
-        public async Task GetUserInfoFromId(ulong userId)
-        {
-            var userSummary = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, userId);
+            var userSummary = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, subject.Id);
 
             if (userSummary == null)
             {
@@ -69,7 +63,7 @@ namespace Modix.Modules
 
             try
             {
-                await AddParticipationToEmbed(userId, builder);
+                await AddParticipationToEmbed(subject.Id, builder);
             }
             catch (Exception ex)
             {
@@ -81,9 +75,9 @@ namespace Modix.Modules
                 .WithColor(new Color(253, 95, 0))
                 .WithTimestamp(_utcNow);
 
-            if (await UserService.GuildUserExistsAsync(Context.Guild.Id, userId))
+            if (await UserService.GuildUserExistsAsync(Context.Guild.Id, subject.Id))
             {
-                var member = await UserService.GetGuildUserAsync(Context.Guild.Id, userId);
+                var member = await UserService.GetGuildUserAsync(Context.Guild.Id, subject.Id);
                 AddMemberInformationToEmbed(member, builder, embedBuilder);
             }
             else
@@ -94,7 +88,7 @@ namespace Modix.Modules
 
             if (await AuthorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
             {
-                await AddInfractionsToEmbed(userId, builder);
+                await AddInfractionsToEmbed(subject.Id, builder);
             }
 
             embedBuilder.Description = builder.ToString();

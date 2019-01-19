@@ -51,6 +51,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         });
 
                     service.AddTypeReader<IEmote>(new EmoteTypeReader());
+                    service.AddTypeReader<IEntity<ulong>>(new UserEntityTypeReader());
 
                     return service;
                 });
