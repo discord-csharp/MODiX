@@ -29,7 +29,7 @@ namespace Modix.Bot.Modules
             await Context.AddConfirmation();
         }
 
-        [Command("")]
+        [Command]
         [Summary("Invokes a tag so that the message associated with the tag will be displayed.")]
         public async Task UseTagAsync(
             [Summary("The name that will be used to invoke the tag.")]
@@ -50,6 +50,7 @@ namespace Modix.Bot.Modules
         }
 
         [Command("delete")]
+        [Alias("remove")]
         [Summary("Deletes a tag.")]
         public async Task DeleteTagAsync(
             [Summary("The name that is used to invoke the tag.")]

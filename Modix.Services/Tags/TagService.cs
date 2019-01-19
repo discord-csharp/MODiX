@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Discord;
@@ -8,6 +7,7 @@ using Modix.Data.Models.Core;
 using Modix.Data.Models.Tags;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
+using Modix.Services.Utilities;
 
 namespace Modix.Services.Tags
 {
@@ -139,7 +139,7 @@ namespace Modix.Services.Tags
                 if (!(channel is IMessageChannel messageChannel))
                     throw new InvalidOperationException($"The channel '{channel.Name}' is not a message channel.");
 
-                var sanitizedContent = Sanitize(tag.Content);
+                var sanitizedContent = FormatUtilities.Sanitize(tag.Content);
 
                 try
                 {
@@ -219,19 +219,5 @@ namespace Modix.Services.Tags
         /// A service for storing and retrieving tag data.
         /// </summary>
         protected ITagRepository TagRepository { get; }
-
-        private static string Sanitize(string text)
-        {
-            var everyoneSanitized = _everyoneMentionRegex.Replace(text, _sanitizedEveryoneMention);
-            var hereSanitized = _hereMentionRegex.Replace(everyoneSanitized, _sanitizedHereMention);
-
-            return hereSanitized;
-        }
-        
-        private static readonly Regex _everyoneMentionRegex = new Regex("@everyone", RegexOptions.Compiled);
-        private const string _sanitizedEveryoneMention = "@\x200beveryone";
-
-        private static readonly Regex _hereMentionRegex = new Regex("@here", RegexOptions.Compiled);
-        private const string _sanitizedHereMention = "@\x200bhere";
     }
 }
