@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Discord;
@@ -66,6 +67,17 @@ namespace Modix.Services.Tags
         /// A <see cref="Task"/> that will complete when the operation completes.
         /// </returns>
         Task DeleteTagAsync(ulong guildId, ulong deleterId, string name);
+
+        /// <summary>
+        /// Searches all tags based on the supplied criteria.
+        /// </summary>
+        /// <param name="criteria">Criteria describing how to filter the result set of tags.</param>
+        /// <exception cref="ArgumentNullException">Throws for <paramref name="criteria"/>.</exception>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation completes,
+        /// with a collection of tags that fit the supplied criteria.
+        /// </returns>
+        Task<IReadOnlyCollection<TagSummary>> GetSummariesAsync(TagSearchCriteria criteria);
     }
 
     /// <inheritdoc />
@@ -203,6 +215,15 @@ namespace Modix.Services.Tags
 
                 transaction.Commit();
             }
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<TagSummary>> GetSummariesAsync(TagSearchCriteria criteria)
+        {
+            if (criteria is null)
+                throw new ArgumentNullException(nameof(criteria));
+
+            return await TagRepository.SearchSummariesAsync(criteria);
         }
 
         /// <summary>
