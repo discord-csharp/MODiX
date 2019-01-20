@@ -1,6 +1,7 @@
 ﻿using System.Net.Http;
 using Discord;
 using Discord.Commands;
+using Discord.Rest;
 using Discord.WebSocket;
 using MediatR;
 using Modix;
@@ -38,6 +39,12 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSingleton<IDiscordClient>(provider => provider.GetRequiredService<DiscordSocketClient>());
             services.AddScoped<ISelfUser>(p => p.GetRequiredService<DiscordSocketClient>().CurrentUser);
+
+            services.AddSingleton(
+                provider => new DiscordRestClient(config: new DiscordRestConfig
+                {
+                    LogLevel = LogSeverity.Debug,
+                }));
 
             services.AddSingleton(_ =>
                 {

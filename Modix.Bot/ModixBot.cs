@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +23,7 @@ namespace Modix
     public sealed class ModixBot : BackgroundService
     {
         private readonly DiscordSocketClient _client;
+        private readonly DiscordRestClient _restClient;
         private readonly CommandService _commands;
         private readonly IServiceProvider _provider;
         private readonly ModixConfig _config;
@@ -31,6 +33,7 @@ namespace Modix
 
         public ModixBot(
             DiscordSocketClient discordClient,
+            DiscordRestClient restClient,
             ModixConfig modixConfig,
             CommandService commandService,
             DiscordSerilogAdapter serilogAdapter,
@@ -39,6 +42,7 @@ namespace Modix
             ILogger<ModixBot> logger)
         {
             _client = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
+            _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
             _config = modixConfig ?? throw new ArgumentNullException(nameof(modixConfig));
             _commands = commandService ?? throw new ArgumentNullException(nameof(commandService));
             _provider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
@@ -66,6 +70,7 @@ namespace Modix
                 _client.MessageReceived += HandleCommand;
 
                 _client.Log += _serilogAdapter.HandleLog;
+                _restClient.Log += _serilogAdapter.HandleLog;
                 _commands.Log += _serilogAdapter.HandleLog;
 
                 // Register with the cancellation token so we can stop listening to client events if the service is
@@ -135,6 +140,8 @@ namespace Modix
 
                 _client.Log -= _serilogAdapter.HandleLog;
                 _commands.Log -= _serilogAdapter.HandleLog;
+
+                _restClient.Log -= _serilogAdapter.HandleLog;
             }
         }
 
@@ -157,6 +164,7 @@ namespace Modix
             {
                 _scope?.Dispose();
                 _client.Dispose();
+                _restClient.Dispose();
             }
         }
 
@@ -170,6 +178,8 @@ namespace Modix
 
                 await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
                 await _client.StartAsync();
+
+                await _restClient.LoginAsync(TokenType.Bot, _config.DiscordToken);
             }
             catch (Exception)
             {

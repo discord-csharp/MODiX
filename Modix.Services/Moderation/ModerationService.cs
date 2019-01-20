@@ -348,7 +348,7 @@ namespace Modix.Services.Moderation
 
             if (!await UserService.GuildUserExistsAsync(guild.Id, subjectId))
             {
-                subject = new EphemeralUser(subjectId, "[FORCED]", guild);
+                subject = await UserService.GetUserInformationAsync(guild.Id, subjectId);
                 await UserService.TrackUserAsync(subject);
             }
             else

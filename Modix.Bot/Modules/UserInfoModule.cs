@@ -41,11 +41,11 @@ namespace Modix.Modules
         private IMessageRepository MessageRepository { get; }
 
         [Command("info")]
-        public async Task GetUserInfo(IEntity<ulong> subject)
+        public async Task GetUserInfo(IEntity<ulong> user)
         {
-            var userSummary = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, subject.Id);
+            var userInfo = await UserService.GetUserInformationAsync(Context.Guild.Id, user.Id);
 
-            if (userSummary == null)
+            if (userInfo == null)
             {
                 await ReplyAsync("We don't have any data for that user.");
                 return;
@@ -53,17 +53,21 @@ namespace Modix.Modules
 
             var builder = new StringBuilder();
             builder.AppendLine("**\u276F User Information**");
-            builder.AppendLine("ID: " + userSummary.UserId);
-            builder.AppendLine("Profile: " + MentionUtils.MentionUser(userSummary.UserId));
+            builder.AppendLine("ID: " + userInfo.Id);
+            builder.AppendLine("Profile: " + MentionUtils.MentionUser(userInfo.Id));
 
-            // TODO: Add content about the user's presence, if any
+            if (userInfo.Status is UserStatus status)
+                builder.AppendLine("Status: " + status.Humanize());
 
-            builder.Append(FormatTimeAgo("First Seen", userSummary.FirstSeen));
-            builder.Append(FormatTimeAgo("Last Seen", userSummary.LastSeen));
+            if (userInfo.FirstSeen is DateTimeOffset firstSeen)
+                builder.Append(FormatTimeAgo("First Seen", firstSeen));
+
+            if (userInfo.LastSeen is DateTimeOffset lastSeen)
+                builder.Append(FormatTimeAgo("Last Seen", lastSeen));
 
             try
             {
-                await AddParticipationToEmbed(subject.Id, builder);
+                await AddParticipationToEmbed(user.Id, builder);
             }
             catch (Exception ex)
             {
@@ -71,24 +75,18 @@ namespace Modix.Modules
             }
 
             var embedBuilder = new EmbedBuilder()
-                .WithAuthor(userSummary.Username + "#" + userSummary.Discriminator)
+                .WithAuthor(userInfo.Username + "#" + userInfo.Discriminator)
                 .WithColor(new Color(253, 95, 0))
                 .WithTimestamp(_utcNow);
 
-            if (await UserService.GuildUserExistsAsync(Context.Guild.Id, subject.Id))
-            {
-                var member = await UserService.GetGuildUserAsync(Context.Guild.Id, subject.Id);
-                AddMemberInformationToEmbed(member, builder, embedBuilder);
-            }
-            else
-            {
-                builder.AppendLine();
-                builder.AppendLine("**\u276F No Member Information**");
-            }
+            embedBuilder.ThumbnailUrl = userInfo.GetAvatarUrl();
+            embedBuilder.Author.IconUrl = userInfo.GetAvatarUrl();
+            
+            AddMemberInformationToEmbed(userInfo, builder, embedBuilder);
 
             if (await AuthorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
             {
-                await AddInfractionsToEmbed(subject.Id, builder);
+                await AddInfractionsToEmbed(user.Id, builder);
             }
 
             embedBuilder.Description = builder.ToString();
@@ -96,7 +94,7 @@ namespace Modix.Modules
             await ReplyAsync(string.Empty, embed: embedBuilder.Build());
         }
 
-        private void AddMemberInformationToEmbed(IGuildUser member, StringBuilder builder, EmbedBuilder embedBuilder)
+        private void AddMemberInformationToEmbed(EphemeralUser member, StringBuilder builder, EmbedBuilder embedBuilder)
         {
             builder.AppendLine();
             builder.AppendLine("**\u276F Member Information**");
@@ -113,7 +111,7 @@ namespace Modix.Modules
                 builder.Append(FormatTimeAgo("Joined", joinedAt));
             }
 
-            if (member.RoleIds.Count > 0)
+            if (member.RoleIds?.Count > 0)
             {
                 var roles = member.RoleIds.Select(x => member.Guild.Roles.Single(y => y.Id == x))
                     .Where(x => x.Id != x.Guild.Id) // @everyone role always has same ID than guild
@@ -130,8 +128,6 @@ namespace Modix.Modules
             }
 
             embedBuilder.Color = GetDominantColor(member);
-            embedBuilder.ThumbnailUrl = member.GetAvatarUrl();
-            embedBuilder.Author.IconUrl = member.GetAvatarUrl();
         }
 
         private async Task AddInfractionsToEmbed(ulong userId, StringBuilder builder)
@@ -202,7 +198,7 @@ namespace Modix.Modules
             return string.Format(CultureInfo.InvariantCulture, Format, prefix, humanizedTimeAgo, ago.UtcDateTime);
         }
 
-        private static Color GetDominantColor(IUser user)
+        private static Color GetDominantColor(IGuildUser user)
         {
             // TODO: Get the dominate image in the user's avatar.
             return new Color(253, 95, 0);
