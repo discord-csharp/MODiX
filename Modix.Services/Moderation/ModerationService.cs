@@ -348,7 +348,7 @@ namespace Modix.Services.Moderation
 
             if (!await UserService.GuildUserExistsAsync(guild.Id, subjectId))
             {
-                subject = new EphemeralUser(subjectId, "[FORCED]", guild);
+                subject = await UserService.GetUserInformationAsync(guild.Id, subjectId);
                 await UserService.TrackUserAsync(subject);
             }
             else
@@ -568,12 +568,21 @@ namespace Modix.Services.Moderation
         {
             var moderator = await UserService.GetGuildUserAsync(guildId, moderatorId);
 
+            //If the user doesn't exist in the guild, we outrank them
+            if (await UserService.GuildUserExistsAsync(guildId, subjectId) == false)
+                return true;
+
+            var subject = await UserService.GetGuildUserAsync(guildId, subjectId);
+
+            //If the subject is the guild owner, and we are not the owner, we do not outrank them
+            if (subject.Guild.OwnerId == subjectId && subject.Guild.OwnerId != moderatorId)
+                return false;
+
+            //If we have the "Admin" permission, we outrank everyone in the guild but the owner
             if (moderator.GuildPermissions.Administrator)
                 return true;
 
             var rankRoles = await GetRankRolesAsync(guildId);
-
-            var subject = await UserService.GetGuildUserAsync(guildId, subjectId);
 
             var subjectRankRoles = rankRoles.Where(r => subject.RoleIds.Contains(r.Id));
             var moderatorRankRoles = rankRoles.Where(r => moderator.RoleIds.Contains(r.Id));

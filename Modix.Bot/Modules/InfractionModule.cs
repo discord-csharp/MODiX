@@ -25,28 +25,19 @@ namespace Modix.Modules
 
         [Command("search")]
         [Summary("Display all infractions for a user, that haven't been deleted.")]
-        public async Task Search(
-            [Summary("The user whose infractions are to be displayed.")]
-                IGuildUser subject)
-        {
-            await Search(subject.Id);
-        }
-
-        [Command("search")]
-        [Summary("Display all infractions for a user, that haven't been deleted.")]
         [Priority(10)]
         public async Task Search(
             [Summary("The user whose infractions are to be displayed.")]
-            ulong subjectId)
+            IEntity<ulong> subjectEntity)
         {
             var requestor = Context.User.Mention;
-            var subject = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, subjectId);
+            var subject = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, subjectEntity.Id);
 
             var infractions = await ModerationService.SearchInfractionsAsync(
                 new InfractionSearchCriteria
                 {
                     GuildId = Context.Guild.Id,
-                    SubjectId = subjectId,
+                    SubjectId = subjectEntity.Id,
                     IsDeleted = false
                 },
                 new[]
@@ -71,7 +62,7 @@ namespace Modix.Modules
                 Rescinded = infraction.RescindAction != null
             }).OrderBy(s => s.Type);
 
-            var counts = await ModerationService.GetInfractionCountsForUserAsync(subjectId);
+            var counts = await ModerationService.GetInfractionCountsForUserAsync(subjectEntity.Id);
 
             var builder = new EmbedBuilder()
                 .WithTitle($"Infractions for user: {subject.Username}#{subject.Discriminator}")
