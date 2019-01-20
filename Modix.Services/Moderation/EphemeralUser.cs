@@ -8,6 +8,8 @@ namespace Modix.Data.Models
 {
     public class EphemeralUser : IGuildUser
     {
+        private const string NotImplementedMessage = "This operation is invalid on untrackable users";
+
         public EphemeralUser(ulong userId, string name, IGuild guild)
         {
             Id = userId;
@@ -67,52 +69,52 @@ namespace Modix.Data.Models
 
         public Task AddRoleAsync(IRole role, RequestOptions options = null)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(NotImplementedMessage);
         }
 
         public Task AddRolesAsync(IEnumerable<IRole> roles, RequestOptions options = null)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(NotImplementedMessage);
         }
 
         public string GetAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(NotImplementedMessage);
         }
 
         public string GetDefaultAvatarUrl()
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(NotImplementedMessage);
         }
 
         public Task<IDMChannel> GetOrCreateDMChannelAsync(RequestOptions options = null)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(NotImplementedMessage);
         }
 
         public ChannelPermissions GetPermissions(IGuildChannel channel)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(NotImplementedMessage);
         }
 
         public Task KickAsync(string reason = null, RequestOptions options = null)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(NotImplementedMessage);
         }
 
         public Task ModifyAsync(Action<GuildUserProperties> func, RequestOptions options = null)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(NotImplementedMessage);
         }
 
         public Task RemoveRoleAsync(IRole role, RequestOptions options = null)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(NotImplementedMessage);
         }
 
         public Task RemoveRolesAsync(IEnumerable<IRole> roles, RequestOptions options = null)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(NotImplementedMessage);
         }
     }
 }

@@ -41,15 +41,9 @@ namespace Modix.Modules
         private IMessageRepository MessageRepository { get; }
 
         [Command("info")]
-        public async Task GetUserInfo(IGuildUser user = null)
+        public async Task GetUserInfo(IEntity<ulong> user)
         {
-            await GetUserInfoFromId(user?.Id ?? Context.User.Id);
-        }
-
-        [Command("info")]
-        public async Task GetUserInfoFromId(ulong userId)
-        {
-            var userInfo = await UserService.GetUserInformationAsync(Context.Guild.Id, userId);
+            var userInfo = await UserService.GetUserInformationAsync(Context.Guild.Id, user.Id);
 
             if (userInfo == null)
             {
@@ -73,7 +67,7 @@ namespace Modix.Modules
 
             try
             {
-                await AddParticipationToEmbed(userId, builder);
+                await AddParticipationToEmbed(user.Id, builder);
             }
             catch (Exception ex)
             {
@@ -92,7 +86,7 @@ namespace Modix.Modules
 
             if (await AuthorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
             {
-                await AddInfractionsToEmbed(userId, builder);
+                await AddInfractionsToEmbed(user.Id, builder);
             }
 
             embedBuilder.Description = builder.ToString();
