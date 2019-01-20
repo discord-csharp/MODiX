@@ -56,7 +56,7 @@ namespace Modix.Services.Core
         /// A <see cref="Task"/> that completes when the operation completes,
         /// containing all user information that was found for the user.
         /// </returns>
-        Task<UserInformation> GetUserInformationAsync(ulong guildId, ulong userId);
+        Task<EphemeralUser> GetUserInformationAsync(ulong guildId, ulong userId);
 
         /// <summary>
         /// Updates information about the given user within the user tracking system of a guild.
@@ -141,7 +141,7 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task<UserInformation> GetUserInformationAsync(ulong guildId, ulong userId)
+        public async Task<EphemeralUser> GetUserInformationAsync(ulong guildId, ulong userId)
         {
             var guild = await DiscordClient.GetGuildAsync(guildId);
             var guildUser = await guild.GetUserAsync(userId);
@@ -155,7 +155,7 @@ namespace Modix.Services.Core
 
             var guildUserSummary = await GetGuildUserSummaryAsync(guildId, userId);
 
-            return new UserInformation()
+            return new EphemeralUser()
                 .WithGuildUserSummaryData(guildUserSummary)
                 .WithIUserData(restUser)
                 .WithIUserData(user)

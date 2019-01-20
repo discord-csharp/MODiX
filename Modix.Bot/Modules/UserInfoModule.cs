@@ -94,7 +94,7 @@ namespace Modix.Modules
             await ReplyAsync(string.Empty, embed: embedBuilder.Build());
         }
 
-        private void AddMemberInformationToEmbed(UserInformation member, StringBuilder builder, EmbedBuilder embedBuilder)
+        private void AddMemberInformationToEmbed(EphemeralUser member, StringBuilder builder, EmbedBuilder embedBuilder)
         {
             builder.AppendLine();
             builder.AppendLine("**\u276F Member Information**");
@@ -198,7 +198,7 @@ namespace Modix.Modules
             return string.Format(CultureInfo.InvariantCulture, Format, prefix, humanizedTimeAgo, ago.UtcDateTime);
         }
 
-        private static Color GetDominantColor(UserInformation user)
+        private static Color GetDominantColor(IGuildUser user)
         {
             // TODO: Get the dominate image in the user's avatar.
             return new Color(253, 95, 0);
