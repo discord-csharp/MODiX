@@ -111,17 +111,7 @@ namespace Modix.Services.Utilities
         }
 
         public static string Sanitize(string text)
-        {
-            var everyoneSanitized = _everyoneMentionRegex.Replace(text, _sanitizedEveryoneMention);
-            var hereSanitized = _hereMentionRegex.Replace(everyoneSanitized, _sanitizedHereMention);
-
-            return hereSanitized;
-        }
-
-        private static readonly Regex _everyoneMentionRegex = new Regex("@everyone", RegexOptions.Compiled);
-        private const string _sanitizedEveryoneMention = "@\x200beveryone";
-
-        private static readonly Regex _hereMentionRegex = new Regex("@here", RegexOptions.Compiled);
-        private const string _sanitizedHereMention = "@\x200bhere";
+            => text.Replace("@everyone", "@\x200beveryone")
+                   .Replace("@here", "@\x200bhere");
     }
 }
