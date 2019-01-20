@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 
 using Discord;
@@ -159,7 +159,8 @@ namespace Modix.Services.Core
                 .WithGuildUserSummaryData(guildUserSummary)
                 .WithIUserData(restUser)
                 .WithIUserData(user)
-                .WithIGuildUserData(guildUser);
+                .WithIGuildUserData(guildUser)
+                .WithGuildContext(guild);
         }
 
         /// <inheritdoc />

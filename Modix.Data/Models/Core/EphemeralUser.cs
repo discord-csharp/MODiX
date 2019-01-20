@@ -266,6 +266,14 @@ namespace Modix.Data.Models.Core
             return this;
         }
 
+        public EphemeralUser WithGuildContext(IGuild guild)
+        {
+            Guild = guild;
+            GuildId = guild.Id;
+
+            return this;
+        }
+
         private async Task OnGuildUserOrThrowAsync(Func<IGuildUser, Task> action)
         {
             if (_guildUser == null)

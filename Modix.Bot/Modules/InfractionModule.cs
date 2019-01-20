@@ -28,7 +28,7 @@ namespace Modix.Modules
         [Priority(10)]
         public async Task Search(
             [Summary("The user whose infractions are to be displayed.")]
-            IEntity<ulong> subjectEntity)
+            DiscordUserEntity subjectEntity)
         {
             var requestor = Context.User.Mention;
             var subject = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, subjectEntity.Id);

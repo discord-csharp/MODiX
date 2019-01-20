@@ -4,15 +4,16 @@ using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Modix.Services.CommandHelp;
 
 namespace Modix
 {
-    internal class UserEntity : IEntity<ulong>
+    public class DiscordUserEntity : IEntity<ulong>
     {
         public ulong Id { get; private set; }
-        public UserEntity(ulong id) { Id = id; }
+        public DiscordUserEntity(ulong id) { Id = id; }
 
-        public static UserEntity FromIUser(IUser user) => new UserEntity(user.Id);
+        public static DiscordUserEntity FromIUser(IUser user) => new DiscordUserEntity(user.Id);
     }
 
     public class UserEntityTypeReader : UserTypeReader<IGuildUser>
@@ -23,7 +24,7 @@ namespace Modix
 
             if (baseResult.IsSuccess)
             {
-                return TypeReaderResult.FromSuccess(UserEntity.FromIUser(baseResult.BestMatch as IUser));
+                return TypeReaderResult.FromSuccess(DiscordUserEntity.FromIUser(baseResult.BestMatch as IUser));
             }
 
             if (ulong.TryParse(input, out var uid))
@@ -38,7 +39,7 @@ namespace Modix
                     return TypeReaderResult.FromError(CommandError.ParseFailed, "Snowflake was almost certainly invalid.");
                 }
 
-                return TypeReaderResult.FromSuccess(new UserEntity(uid));
+                return TypeReaderResult.FromSuccess(new DiscordUserEntity(uid));
             }
 
             return TypeReaderResult.FromError(CommandError.ParseFailed, "Could not find user / parse user ID");

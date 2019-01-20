@@ -22,7 +22,7 @@ namespace Modix.Modules
         [Summary("Applies a note to a user's infraction history.")]
         public async Task Note(
             [Summary("The user to which the note is being applied.")]
-                IEntity<ulong> subject,
+                DiscordUserEntity subject,
             [Summary("The reason for the note.")]
             [Remainder]
                 string reason)
@@ -35,7 +35,7 @@ namespace Modix.Modules
         [Summary("Issue a warning to a user.")]
         public async Task Warn(
             [Summary("The user to which the warning is being issued.")]
-                IEntity<ulong> subject,
+                DiscordUserEntity subject,
             [Summary("The reason for the warning.")]
             [Remainder]
                 string reason)
@@ -48,7 +48,7 @@ namespace Modix.Modules
         [Summary("Mute a user.")]
         public async Task Mute(
             [Summary("The user to be muted.")]
-                IEntity<ulong> subject,
+                DiscordUserEntity subject,
             [Summary("The reason for the mute.")]
             [Remainder]
                 string reason)
@@ -61,7 +61,7 @@ namespace Modix.Modules
         [Summary("Mute a user, for a temporary amount of time.")]
         public async Task TempMute(
             [Summary("The user to be muted.")]
-                IEntity<ulong> subject,
+                DiscordUserEntity subject,
             [Summary("The duration of the mute.")]
                 TimeSpan duration,
             [Summary("The reason for the mute.")]
@@ -76,18 +76,17 @@ namespace Modix.Modules
         [Summary("Remove a mute that has been applied to a user.")]
         public async Task UnMute(
             [Summary("The user to be un-muted.")]
-                IEntity<ulong> subject)
+                DiscordUserEntity subject)
         {
             await ModerationService.RescindInfractionAsync(InfractionType.Mute, subject.Id);
         }
 
-        //TODO: Make this less stupid
         [Command("ban")]
         [Alias("forceban")]
         [Summary("Ban a user from the current guild.")]
         public async Task Ban(
             [Summary("The user to be banned.")]
-                IEntity<ulong> subject,
+                DiscordUserEntity subject,
             [Summary("The reason for the ban.")]
             [Remainder]
                 string reason)
@@ -100,7 +99,7 @@ namespace Modix.Modules
         [Summary("Remove a ban that has been applied to a user.")]
         public async Task UnBan(
             [Summary("The user to be un-banned.")]
-                IEntity<ulong> subject)
+                DiscordUserEntity subject)
         {
             await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.Id);
             await Context.AddConfirmation();
