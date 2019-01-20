@@ -109,5 +109,9 @@ namespace Modix.Services.Utilities
 
             return $"This user has {formatted}";
         }
+
+        public static string Sanitize(string text)
+            => text.Replace("@everyone", "@\x200beveryone")
+                   .Replace("@here", "@\x200bhere");
     }
 }

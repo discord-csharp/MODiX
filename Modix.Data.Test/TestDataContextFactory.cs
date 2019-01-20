@@ -40,6 +40,14 @@ namespace Modix.Data.Test
                     x => x.ConfigurationActions,
                     x => x.Id);
 
+                modixContext.ResetSequenceToMaxValue(
+                    x => x.Tags,
+                    x => x.Id);
+
+                modixContext.ResetSequenceToMaxValue(
+                    x => x.TagActions,
+                    x => x.Id);
+
                 modixContext.SaveChanges();
                 modixContext.ClearReceivedCalls();
             }

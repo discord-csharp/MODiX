@@ -7,6 +7,7 @@
         DesignatedChannels,
         DesignatedRoles,
         PromotionActions,
+        TagActions,
         Misc
     }
 }
