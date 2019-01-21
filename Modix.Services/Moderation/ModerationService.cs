@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -349,6 +349,10 @@ namespace Modix.Services.Moderation
             if (!await UserService.GuildUserExistsAsync(guild.Id, subjectId))
             {
                 subject = await UserService.GetUserInformationAsync(guild.Id, subjectId);
+
+                if (subject == null)
+                    throw new InvalidOperationException($"The given subject was not valid, ID: {subjectId}");
+
                 await UserService.TrackUserAsync(subject);
             }
             else
