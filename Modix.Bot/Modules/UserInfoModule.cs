@@ -47,7 +47,13 @@ namespace Modix.Modules
 
             if (userInfo == null)
             {
-                await ReplyAsync("We don't have any data for that user.");
+                await ReplyAsync("", embed: new EmbedBuilder()
+                    .WithTitle("Retrieval Error")
+                    .WithColor(Color.Red)
+                    .WithDescription("Sorry, we don't have any data for that user - and we couldn't find any, either.")
+                    .AddField("User Id", user.Id)
+                    .Build());
+
                 return;
             }
 

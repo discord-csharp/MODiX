@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 
 using Discord;
@@ -150,17 +150,17 @@ namespace Modix.Services.Core
                 await TrackUserAsync(guildUser);
 
             var user = await DiscordClient.GetUserAsync(userId);
-
             var restUser = await DiscordRestClient.GetUserAsync(userId);
-
             var guildUserSummary = await GetGuildUserSummaryAsync(guildId, userId);
 
-            return new EphemeralUser()
+            var buildUser = new EphemeralUser()
                 .WithGuildUserSummaryData(guildUserSummary)
                 .WithIUserData(restUser)
                 .WithIUserData(user)
                 .WithIGuildUserData(guildUser)
                 .WithGuildContext(guild);
+
+            return buildUser.Id == 0 ? null : buildUser;
         }
 
         /// <inheritdoc />
