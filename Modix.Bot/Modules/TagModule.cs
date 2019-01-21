@@ -164,7 +164,7 @@ namespace Modix.Bot.Modules
                     var pasteLink = await CodePasteService.UploadCodeAsync(pasteContent, "txt");
 
                     builder.AddField(x => x.WithName(fieldName)
-                                           .WithValue($"[View on Hastebin]({pasteLink})"));
+                                           .WithValue($"[View at {pasteLink}]({pasteLink})"));
                 }
                 catch (WebException ex)
                 {
