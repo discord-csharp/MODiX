@@ -460,17 +460,26 @@ namespace Modix.Services.Moderation
             await InfractionRepository.TryDeleteAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
 
             var guild = await DiscordClient.GetGuildAsync(infraction.GuildId);
-            var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
 
             switch (infraction.Type)
             {
                 case InfractionType.Mute:
-                    await subject.RemoveRoleAsync(
-                        await GetDesignatedMuteRoleAsync(guild));
+
+                    if (await UserService.GuildUserExistsAsync(guild.Id, infraction.Subject.Id))
+                    {
+                        var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
+                        await subject.RemoveRoleAsync(await GetDesignatedMuteRoleAsync(guild));
+                    }
+                    else
+                    {
+                        Log.Warning("Tried to unmute {User} while deleting mute infraction, but they weren't in the guild: {Guild}",
+                            infraction.Subject.Id, guild.Id);
+                    }
+                    
                     break;
 
                 case InfractionType.Ban:
-                    await guild.RemoveBanAsync(subject);
+                    await guild.RemoveBanAsync(infraction.Subject.Id);
                     break;
             }
         }
