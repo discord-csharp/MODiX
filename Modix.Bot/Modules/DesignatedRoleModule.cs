@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Humanizer;
 using Modix.Data.Models.Core;
 using Modix.Services.Core;
 
@@ -47,7 +48,7 @@ namespace Modix.Modules
 
                 builder.AddField(new EmbedFieldBuilder()
                 {
-                    Name = Format.Bold(_designatedRoleTypeRenderings[type]),
+                    Name = Format.Bold(type.Humanize()),
                     Value = (designatedRoles.Length == 0)
                         ? Format.Italics("No roles assigned")
                         : designatedRoles
@@ -77,12 +78,5 @@ namespace Modix.Modules
             [Summary("The designation to be unassigned")]
                 DesignatedRoleType designation)
             => DesignatedRoleService.RemoveDesignatedRoleAsync(role.Guild.Id, role.Id, designation);
-
-        private static readonly Dictionary<DesignatedRoleType, string> _designatedRoleTypeRenderings
-            = new Dictionary<DesignatedRoleType, string>()
-            {
-                { DesignatedRoleType.Rank,           "Rank" },
-                { DesignatedRoleType.ModerationMute, "Moderation Mute" }
-            };
     }
 }
