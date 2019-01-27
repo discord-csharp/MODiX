@@ -210,7 +210,7 @@ export default class Tags extends Vue
             || store.userHasClaims(["MaintainOtherUserTag"]);
     }
 
-    resolveMentions(description: string): string
+    resolveMentions(description: string)
     {
         let replaced = description;
 
@@ -218,12 +218,12 @@ export default class Tags extends Vue
         {
             replaced = description.replace(messageResolvingRegex, (sub, args: string) =>
             {
-                let found = this.channelCache![args].name;
-
-                if (!found)
+                if (this.channelCache == null || this.channelCache[args] == null)
                 {
-                    found = args;
+                    return args;
                 }
+
+                let found = (this.channelCache[args] ? this.channelCache[args].name : args);
 
                 return `<span class='channel'>#${found}</span>`;
             });
@@ -257,6 +257,7 @@ export default class Tags extends Vue
             {
                 label: 'Creator',
                 field: 'creator',
+                type: 'date', //Needed to bypass vue-good-table regression
                 sortFn: guildUserSort,
                 filterOptions:
                 {
@@ -341,8 +342,6 @@ export default class Tags extends Vue
                 this.staticFilters[currentField] = urlParams.get(currentField) || "";
             }
         }
-
-        console.log(this.mappedColumns);
     }
 
     async created(): Promise<void>
