@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -525,6 +525,8 @@ namespace Modix.Services.Core
                 }))
                 // Evaluate role mappings (userId is null) first, to give user mappings precedence.
                 .OrderBy(x => x.UserId)
+                // Order putting @everyone last
+                .ThenByDescending(x => x.RoleId == guildId)
                 // Evaluate granted mappings first, to give denied mappings precedence.
                 .ThenBy(x => x.Type))
             {

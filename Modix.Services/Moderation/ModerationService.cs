@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -202,6 +202,48 @@ namespace Modix.Services.Moderation
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
 
+            await SetUpMuteRole(guild);
+            await SetUpMentionableRoles(guild);
+        }
+
+        private async Task SetUpMentionableRoles(IGuild guild)
+        {
+            var mentionableRoleMappings = await DesignatedRoleMappingRepository.SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria
+            {
+                GuildId = guild.Id,
+                Type = DesignatedRoleType.RestrictedMentionability,
+                IsDeleted = false
+            });
+
+            Log.Information("Roles with RestrictedMentionability are: {Roles}", mentionableRoleMappings.Select(d => d.Role.Name));
+
+            //Get the actual roles that correspond to our mappings
+            var mentionableRoles = mentionableRoleMappings
+                .Join(guild.Roles, d => d.Role.Id, d => d.Id, (map, role) => role)
+                .Where(d => d.IsMentionable);
+
+            try
+            {
+                //Ensure all roles with restricted mentionability are not mentionable
+                foreach (var role in mentionableRoles)
+                {
+                    Log.Information("Role @{Role} has RestrictedMentionability but was marked as Mentionable.", role.Name);
+                    await role.ModifyAsync(d => d.Mentionable = false);
+                    Log.Information("Role @{Role} was set to unmentionable.", role.Name);
+                }
+            }
+            catch (HttpException ex)
+            {
+                var errorTemplate = "An exception was thrown when attempting to set up mention-restricted roles for {Guild}. " +
+                    "This is likely due to Modix not having the \"Manage Roles\" permission, or Modix's role being below one of " +
+                    "the mention-restricted roles in your server's Role list - please check your server settings.";
+
+                Log.Error(ex, errorTemplate, guild.Name);
+            }
+        }
+
+        private async Task SetUpMuteRole(IGuild guild)
+        {
             var muteRole = await GetOrCreateDesignatedMuteRoleAsync(guild, AuthorizationService.CurrentUserId.Value);
 
             var nonCategoryChannels =
@@ -306,7 +348,11 @@ namespace Modix.Services.Moderation
 
             if (!await UserService.GuildUserExistsAsync(guild.Id, subjectId))
             {
-                subject = new EphemeralUser(subjectId, "[FORCED]", guild);
+                subject = await UserService.GetUserInformationAsync(guild.Id, subjectId);
+
+                if (subject == null)
+                    throw new InvalidOperationException($"The given subject was not valid, ID: {subjectId}");
+
                 await UserService.TrackUserAsync(subject);
             }
             else
@@ -418,17 +464,26 @@ namespace Modix.Services.Moderation
             await InfractionRepository.TryDeleteAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
 
             var guild = await DiscordClient.GetGuildAsync(infraction.GuildId);
-            var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
 
             switch (infraction.Type)
             {
                 case InfractionType.Mute:
-                    await subject.RemoveRoleAsync(
-                        await GetDesignatedMuteRoleAsync(guild));
+
+                    if (await UserService.GuildUserExistsAsync(guild.Id, infraction.Subject.Id))
+                    {
+                        var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
+                        await subject.RemoveRoleAsync(await GetDesignatedMuteRoleAsync(guild));
+                    }
+                    else
+                    {
+                        Log.Warning("Tried to unmute {User} while deleting mute infraction, but they weren't in the guild: {Guild}",
+                            infraction.Subject.Id, guild.Id);
+                    }
+                    
                     break;
 
                 case InfractionType.Ban:
-                    await guild.RemoveBanAsync(subject);
+                    await guild.RemoveBanAsync(infraction.Subject.Id);
                     break;
             }
         }
@@ -526,12 +581,21 @@ namespace Modix.Services.Moderation
         {
             var moderator = await UserService.GetGuildUserAsync(guildId, moderatorId);
 
+            //If the user doesn't exist in the guild, we outrank them
+            if (await UserService.GuildUserExistsAsync(guildId, subjectId) == false)
+                return true;
+
+            var subject = await UserService.GetGuildUserAsync(guildId, subjectId);
+
+            //If the subject is the guild owner, and we are not the owner, we do not outrank them
+            if (subject.Guild.OwnerId == subjectId && subject.Guild.OwnerId != moderatorId)
+                return false;
+
+            //If we have the "Admin" permission, we outrank everyone in the guild but the owner
             if (moderator.GuildPermissions.Administrator)
                 return true;
 
             var rankRoles = await GetRankRolesAsync(guildId);
-
-            var subject = await UserService.GetGuildUserAsync(guildId, subjectId);
 
             var subjectRankRoles = rankRoles.Where(r => subject.RoleIds.Contains(r.Id));
             var moderatorRankRoles = rankRoles.Where(r => moderator.RoleIds.Contains(r.Id));

@@ -448,6 +448,71 @@ namespace Modix.Data.Migrations
                     b.ToTable("PromotionComments");
                 });
 
+            modelBuilder.Entity("Modix.Data.Models.Tags.TagActionEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<DateTimeOffset>("Created");
+
+                    b.Property<long>("CreatedById");
+
+                    b.Property<long>("GuildId");
+
+                    b.Property<long?>("NewTagId");
+
+                    b.Property<long?>("OldTagId");
+
+                    b.Property<string>("Type")
+                        .IsRequired();
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NewTagId")
+                        .IsUnique();
+
+                    b.HasIndex("OldTagId")
+                        .IsUnique();
+
+                    b.HasIndex("GuildId", "CreatedById");
+
+                    b.ToTable("TagActions");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Tags.TagEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<string>("Content")
+                        .IsRequired();
+
+                    b.Property<long>("CreateActionId");
+
+                    b.Property<long?>("DeleteActionId");
+
+                    b.Property<long>("GuildId");
+
+                    b.Property<string>("Name")
+                        .IsRequired();
+
+                    b.Property<long>("Uses");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreateActionId")
+                        .IsUnique();
+
+                    b.HasIndex("DeleteActionId")
+                        .IsUnique();
+
+                    b.HasIndex("GuildId");
+
+                    b.HasIndex("Name");
+
+                    b.ToTable("Tags");
+                });
+
             modelBuilder.Entity("Modix.Data.Models.Core.ClaimMappingEntity", b =>
                 {
                     b.HasOne("Modix.Data.Models.Core.ConfigurationActionEntity", "CreateAction")
@@ -634,6 +699,34 @@ namespace Modix.Data.Migrations
                     b.HasOne("Modix.Data.Models.Promotions.PromotionActionEntity", "ModifyAction")
                         .WithOne()
                         .HasForeignKey("Modix.Data.Models.Promotions.PromotionCommentEntity", "ModifyActionId");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Tags.TagActionEntity", b =>
+                {
+                    b.HasOne("Modix.Data.Models.Tags.TagEntity", "NewTag")
+                        .WithOne()
+                        .HasForeignKey("Modix.Data.Models.Tags.TagActionEntity", "NewTagId");
+
+                    b.HasOne("Modix.Data.Models.Tags.TagEntity", "OldTag")
+                        .WithOne()
+                        .HasForeignKey("Modix.Data.Models.Tags.TagActionEntity", "OldTagId");
+
+                    b.HasOne("Modix.Data.Models.Core.GuildUserEntity", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("GuildId", "CreatedById")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Tags.TagEntity", b =>
+                {
+                    b.HasOne("Modix.Data.Models.Tags.TagActionEntity", "CreateAction")
+                        .WithOne()
+                        .HasForeignKey("Modix.Data.Models.Tags.TagEntity", "CreateActionId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("Modix.Data.Models.Tags.TagActionEntity", "DeleteAction")
+                        .WithOne()
+                        .HasForeignKey("Modix.Data.Models.Tags.TagEntity", "DeleteActionId");
                 });
 #pragma warning restore 612, 618
         }

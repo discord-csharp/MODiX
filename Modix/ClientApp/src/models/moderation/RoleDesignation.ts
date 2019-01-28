@@ -1,5 +1,6 @@
 export enum RoleDesignation
 {
     Rank = "Rank",
-    ModerationMute = "ModerationMute"
+    ModerationMute = "ModerationMute",
+    RestrictedMentionability = "RestrictedMentionability"
 }

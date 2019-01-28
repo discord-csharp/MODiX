@@ -10,7 +10,7 @@ namespace Modix.Bot.Extensions
             {
                 var permissions = channel.GetPermissionOverwrite(guild.EveryoneRole);
 
-                return !permissions.HasValue || permissions.Value.ReadMessages != PermValue.Deny;
+                return !permissions.HasValue || permissions.Value.ViewChannel != PermValue.Deny;
             }
 
             return false;

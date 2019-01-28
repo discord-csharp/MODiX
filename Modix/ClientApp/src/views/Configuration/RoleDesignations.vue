@@ -234,7 +234,7 @@ export default class RoleDesignations extends Vue
 
     get possibleDesignations() : string[]
     {
-        return _.map(RoleDesignation, d => RoleDesignation[d]);
+        return Object.getOwnPropertyNames(RoleDesignation);
     }
 }
 </script>

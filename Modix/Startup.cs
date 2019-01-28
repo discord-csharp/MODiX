@@ -15,6 +15,7 @@ using Modix.Configuration;
 using Modix.Data;
 using Modix.Data.Models.Core;
 using Newtonsoft.Json.Converters;
+using Serilog;
 
 namespace Modix
 {
@@ -23,6 +24,8 @@ namespace Modix
         public Startup(ModixConfig configuration)
         {
             Configuration = configuration;
+
+            Log.Information("Startup complete");
         }
 
         public ModixConfig Configuration { get; }

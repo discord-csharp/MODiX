@@ -12,12 +12,4 @@ Issues are the center of MODiX´s development. You can see what features are bei
 
 ## Getting Started
 
-1. Download and install the latest version of the [.NET Core SDK](https://www.microsoft.com/net/download). (You need at minimum SDK Version 2.1.402 or higher.)
-2. Download and install [Docker](https://www.docker.com/get-docker).
-3. Create a new [Discord application](https://discordapp.com/developers/applications/me) with a bot user.
-4. Create the following environment variables for your user account:
-    - **DiscordClientId**: the client ID for your Discord app.
-    - **DiscordClientSecret**: the client secret for your Discord app.
-    - **DiscordToken**: the token for your Discord bot user.
-5. Open a browser and navigate to https://discordapp.com/oauth2/authorize?scope=bot&permissions=0&client_id=<Client ID>, replacing `<Client ID>` with your Discord app's client ID from the previous step.
-6. Select a Discord server from the dropdown list to add your bot to.
+Check out the wiki here: https://github.com/discord-csharp/MODiX/wiki/Developers

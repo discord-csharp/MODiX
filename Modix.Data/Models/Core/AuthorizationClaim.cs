@@ -117,6 +117,26 @@ namespace Modix.Data.Models.Core
         /// Authorizes a request to perform a count for a popularity contest
         /// </summary>
         [ClaimInfo(Misc, "Authorizes a request to perform a count for a popularity contest")]
-        PopularityContestCount
+        PopularityContestCount,
+        /// <summary>
+        /// Authorizes a request to mention a role that has restricted mentionability.
+        /// </summary>
+        [ClaimInfo(Misc, "Authorizes a request to mention a role that has restricted mentionability.")]
+        MentionRestrictedRole,
+        /// <summary>
+        /// Authorizes a request to create a tag.
+        /// </summary>
+        [ClaimInfo(TagActions, "Authorizes a request to create a tag.")]
+        CreateTag,
+        /// <summary>
+        /// Authorizes a request to invoke a tag.
+        /// </summary>
+        [ClaimInfo(TagActions, "Authorizes a request to invoke a tag.")]
+        UseTag,
+        /// <summary>
+        /// Authorizes a request to maintain a tag that was not created by the requesting user.
+        /// </summary>
+        [ClaimInfo(TagActions, "Authorizes a request to maintain a tag that was not created by the requesting user.")]
+        MaintainOtherUserTag,
     }
 }

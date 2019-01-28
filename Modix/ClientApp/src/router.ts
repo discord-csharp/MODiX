@@ -16,6 +16,7 @@ const CreatePromotion = () => import('./views/CreatePromotion.vue').then(m => m.
 const Infractions = () => import('./views/Infractions.vue').then(m => m.default)
 const Promotions = () => import('./views/Promotions.vue').then(m => m.default)
 const Stats = () => import('./views/Stats.vue').then(m => m.default)
+const Tags = () => import('./views/Tags/Tags.vue').then(m => m.default);
 
 Vue.use(Router)
 
@@ -39,6 +40,13 @@ let routes: ModixRouteData[] =
         name: 'commands',
         component: Commands,
         showInNavbar: true
+    },
+    {
+        path: '/tags',
+        name: 'tags',
+        component: Tags,
+        showInNavbar: true,
+        requiresAuth: true
     },
     {
         path: '/promotions',

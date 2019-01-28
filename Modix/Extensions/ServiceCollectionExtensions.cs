@@ -1,6 +1,7 @@
 ﻿using System.Net.Http;
 using Discord;
 using Discord.Commands;
+using Discord.Rest;
 using Discord.WebSocket;
 using MediatR;
 using Modix;
@@ -17,10 +18,12 @@ using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.DocsMaster;
 using Modix.Services.GuildStats;
+using Modix.Services.Mentions;
 using Modix.Services.Moderation;
 using Modix.Services.PopularityContest;
 using Modix.Services.Promotions;
 using Modix.Services.Quote;
+using Modix.Services.Tags;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -38,6 +41,12 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IDiscordClient>(provider => provider.GetRequiredService<DiscordSocketClient>());
             services.AddScoped<ISelfUser>(p => p.GetRequiredService<DiscordSocketClient>().CurrentUser);
 
+            services.AddSingleton(
+                provider => new DiscordRestClient(config: new DiscordRestConfig
+                {
+                    LogLevel = LogSeverity.Debug,
+                }));
+
             services.AddSingleton(_ =>
                 {
                     var service = new CommandService(
@@ -50,6 +59,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         });
 
                     service.AddTypeReader<IEmote>(new EmoteTypeReader());
+                    service.AddTypeReader<DiscordUserEntity>(new UserEntityTypeReader());
 
                     return service;
                 });
@@ -63,7 +73,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddModixPromotions()
                 .AddAutoCodePaste()
                 .AddCommandHelp()
-                .AddGuildStats();
+                .AddGuildStats()
+                .AddMentions()
+                .AddModixTags();
 
             services.AddSingleton<IBehavior, DiscordAdapter>();
             services.AddScoped<IQuoteService, QuoteService>();

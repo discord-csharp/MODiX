@@ -404,12 +404,12 @@ export default class Infractions extends Vue
         {
             replaced = description.replace(messageResolvingRegex, (sub, args: string) =>
             {
-                let found = this.channelCache![args].name;
-
-                if (!found)
+                if (this.channelCache == null || this.channelCache[args] == null)
                 {
-                    found = args;
+                    return args;
                 }
+
+                let found = (this.channelCache[args] ? this.channelCache[args].name : args);
 
                 return `<span class='channel'>#${found}</span>`;
             });
@@ -459,6 +459,8 @@ export default class Infractions extends Vue
             {
                 label: 'Id',
                 field: 'id',
+                sortFn: (x: number, y: number) => (x < y ? -1 : (x > y ? 1 : 0)),
+                type: 'number',
                 filterOptions:
                 {
                     enabled: true,
@@ -479,8 +481,8 @@ export default class Infractions extends Vue
             },
             {
                 label: 'Created On',
-                field: 'created',
-                type: 'date',
+                field: 'date',
+                type: 'date', //Needed to bypass vue-good-table regression
                 dateInputFormat: 'YYYY-MM-DDTHH:mm:ss',
                 dateOutputFormat: 'MM/DD/YY, h:mm:ss a',
                 width: '160px'
@@ -488,6 +490,8 @@ export default class Infractions extends Vue
             {
                 label: 'Subject',
                 field: 'subject',
+                sortFn: guildUserSort,
+                type: 'date', //Needed to bypass vue-good-table regression
                 filterOptions:
                 {
                     enabled: true,
@@ -499,6 +503,8 @@ export default class Infractions extends Vue
             {
                 label: 'Creator',
                 field: 'creator',
+                sortFn: guildUserSort,
+                type: 'date', //Needed to bypass vue-good-table regression
                 filterOptions:
                 {
                     enabled: true,
@@ -631,8 +637,6 @@ export default class Infractions extends Vue
                 this.staticFilters[currentField] = urlParams.get(currentField.toLowerCase()) || "";
             }
         }
-
-        console.log(this.mappedColumns);
     }
 
     async created()

@@ -58,6 +58,7 @@ namespace modix
     const getIsLoggedIn = (state: ModixState) => state.user && state.user.userId;
     const getCurrentClaims = (state: ModixState) => (state.user && state.user.claims) || [];
     const getCurrentGuild = (state: ModixState) => _.find(state.guilds, (guild: Guild) => guild.id == state.user!.selectedGuild);
+    const getCurrentUser = (state: ModixState) => state.user;
 
     const pushError = (state: ModixState, error: string) => state.errors.push(error);
     const removeError = (state: ModixState, error: string) => state.errors.splice(state.errors.indexOf(error), 1);
@@ -106,6 +107,7 @@ namespace modix
     export const isLoggedIn = moduleBuilder.read(getIsLoggedIn);
     export const currentClaims = moduleBuilder.read(getCurrentClaims);
     export const currentGuild = moduleBuilder.read(getCurrentGuild);
+    export const currentUser = moduleBuilder.read(getCurrentUser);
 
     export const userHasClaims = (claims: string[]) =>
     {
