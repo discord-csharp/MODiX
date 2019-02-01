@@ -127,7 +127,9 @@ namespace Modix.Services.Promotions
             ulong subjectId, string comment, Func<ProposedPromotionCampaignBrief, Task<bool>> confirmDelegate = null)
         {
             ValidateCreateCampaignAuthorization();
-            
+
+            ValidateComment(comment);
+
             var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
             var subject = await UserService.GetGuildUserAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
             
@@ -170,16 +172,22 @@ namespace Modix.Services.Promotions
             return null;
         }
 
+        public void ValidateComment(string content)
+        {
+            content = content.Trim();
+            if (string.IsNullOrWhiteSpace(content) || content.Length <= 3)
+            {
+                throw new InvalidOperationException("Comment content must be longer than 3 characters.");
+            }
+        }
+
         /// <inheritdoc />
         public async Task AddCommentAsync(long campaignId, PromotionSentiment sentiment, string content)
         {
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsComment);
 
-            if (content == null || content.Length <= 3)
-            {
-                throw new InvalidOperationException("Comment content must be longer than 3 characters.");
-            }
+            ValidateComment(content);
 
             using (var transaction = await PromotionCommentRepository.BeginCreateTransactionAsync())
             {
@@ -220,8 +228,7 @@ namespace Modix.Services.Promotions
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsComment);
 
-            if (newContent is null || newContent.Length <= 3)
-                throw new InvalidOperationException("Comment content must be longer than 3 characters.");
+            ValidateComment(newContent);
 
             using (var transaction = await PromotionCommentRepository.BeginUpdateTransactionAsync())
             {
