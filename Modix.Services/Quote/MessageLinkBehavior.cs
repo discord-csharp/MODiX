@@ -13,7 +13,7 @@ namespace Modix.Services.Quote
     public class MessageLinkBehavior : BehaviorBase
     {
         private static readonly Regex Pattern = new Regex(
-            @"https?://(canary\.)?discordapp\.com/channels/(?<GuildId>\d+)/(?<ChannelId>\d+)/(?<MessageId>\d+)",
+            @"https?://(?:(?:ptb|canary)\.)?discordapp\.com/channels/(?<GuildId>\d+)/(?<ChannelId>\d+)/(?<MessageId>\d+)",
             RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         public MessageLinkBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
