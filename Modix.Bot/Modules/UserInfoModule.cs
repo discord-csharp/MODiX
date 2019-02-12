@@ -95,6 +95,8 @@ namespace Modix.Modules
                 await AddInfractionsToEmbed(user.Id, builder);
             }
 
+            await AddBanInformationToEmbedAsync(userInfo, builder);
+
             embedBuilder.Description = builder.ToString();
 
             await ReplyAsync(string.Empty, embed: embedBuilder.Build());
@@ -191,6 +193,21 @@ namespace Modix.Modules
                     Log.LogDebug(ex, "Unable to get the most active channel for {UserId}.", userId);
                 }
             }
+        }
+
+        private async ValueTask AddBanInformationToEmbedAsync(EphemeralUser user, StringBuilder builder)
+        {
+            if (!user.IsBanned)
+                return;
+
+            builder.AppendLine();
+            builder.AppendLine("**\u276F Ban Information **");
+            builder.AppendLine("Status: Banned");
+
+            var hasModerationRead = await AuthorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead);
+
+            if (hasModerationRead)
+                builder.AppendLine($"Reason: {user.BanReason}");
         }
 
         private string FormatTimeAgo(string prefix, DateTimeOffset ago)

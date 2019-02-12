@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Discord;
 using Discord.Rest;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
+using Modix.Services.Moderation;
 
 namespace Modix.Services.Core
 {
@@ -153,12 +155,15 @@ namespace Modix.Services.Core
             var restUser = await DiscordRestClient.GetUserAsync(userId);
             var guildUserSummary = await GetGuildUserSummaryAsync(guildId, userId);
 
+            var ban = (await guild.GetBansAsync()).FirstOrDefault(x => x.User.Id == userId);
+
             var buildUser = new EphemeralUser()
                 .WithGuildUserSummaryData(guildUserSummary)
                 .WithIUserData(restUser)
                 .WithIUserData(user)
                 .WithIGuildUserData(guildUser)
-                .WithGuildContext(guild);
+                .WithGuildContext(guild)
+                .WithBanData(ban);
 
             return buildUser.Id == 0 ? null : buildUser;
         }
