@@ -62,8 +62,19 @@ namespace Modix.Modules
             builder.AppendLine("ID: " + userInfo.Id);
             builder.AppendLine("Profile: " + MentionUtils.MentionUser(userInfo.Id));
 
-            if (userInfo.Status is UserStatus status)
-                builder.AppendLine("Status: " + status.Humanize());
+            if (userInfo.IsBanned)
+            {
+                builder.AppendLine("Status: Banned");
+
+                if (await AuthorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
+                {
+                    builder.AppendLine($"Ban Reason: {userInfo.BanReason}");
+                }
+            }
+            else
+            {
+                builder.AppendLine($"Status: {userInfo.Status.Humanize()}");
+            }
 
             if (userInfo.FirstSeen is DateTimeOffset firstSeen)
                 builder.Append(FormatTimeAgo("First Seen", firstSeen));
@@ -94,8 +105,6 @@ namespace Modix.Modules
             {
                 await AddInfractionsToEmbed(user.Id, builder);
             }
-
-            await AddBanInformationToEmbedAsync(userInfo, builder);
 
             embedBuilder.Description = builder.ToString();
 
@@ -193,21 +202,6 @@ namespace Modix.Modules
                     Log.LogDebug(ex, "Unable to get the most active channel for {UserId}.", userId);
                 }
             }
-        }
-
-        private async ValueTask AddBanInformationToEmbedAsync(EphemeralUser user, StringBuilder builder)
-        {
-            if (!user.IsBanned)
-                return;
-
-            builder.AppendLine();
-            builder.AppendLine("**\u276F Ban Information **");
-            builder.AppendLine("Status: Banned");
-
-            var hasModerationRead = await AuthorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead);
-
-            if (hasModerationRead)
-                builder.AppendLine($"Reason: {user.BanReason}");
         }
 
         private string FormatTimeAgo(string prefix, DateTimeOffset ago)
