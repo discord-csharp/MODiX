@@ -62,8 +62,19 @@ namespace Modix.Modules
             builder.AppendLine("ID: " + userInfo.Id);
             builder.AppendLine("Profile: " + MentionUtils.MentionUser(userInfo.Id));
 
-            if (userInfo.Status is UserStatus status)
-                builder.AppendLine("Status: " + status.Humanize());
+            if (userInfo.IsBanned)
+            {
+                builder.AppendLine("Status: **Banned** \\🔨");
+
+                if (await AuthorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
+                {
+                    builder.AppendLine($"Ban Reason: {userInfo.BanReason}");
+                }
+            }
+            else
+            {
+                builder.AppendLine($"Status: {userInfo.Status.Humanize()}");
+            }
 
             if (userInfo.FirstSeen is DateTimeOffset firstSeen)
                 builder.Append(FormatTimeAgo("First Seen", firstSeen));

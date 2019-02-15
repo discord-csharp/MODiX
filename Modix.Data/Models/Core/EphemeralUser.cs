@@ -65,6 +65,10 @@ namespace Modix.Data.Models.Core
 
         public DateTimeOffset? LastSeen { get; private set; }
 
+        public bool IsBanned { get; private set; }
+
+        public string BanReason { get; private set; }
+
         public async Task AddRoleAsync(IRole role, RequestOptions options = null)
         {
             await OnGuildUserOrThrowAsync(user => user.AddRoleAsync(role, options));
@@ -270,6 +274,18 @@ namespace Modix.Data.Models.Core
         {
             Guild = guild;
             GuildId = guild.Id;
+
+            return this;
+        }
+
+        public EphemeralUser WithBanData(IBan ban)
+        {
+            if (ban is null)
+                return this;
+
+            IsBanned = true;
+
+            BanReason = ban.Reason;
 
             return this;
         }
