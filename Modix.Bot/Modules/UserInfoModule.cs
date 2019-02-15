@@ -64,7 +64,7 @@ namespace Modix.Modules
 
             if (userInfo.IsBanned)
             {
-                builder.AppendLine("Status: Banned");
+                builder.AppendLine("Status: **Banned** \\🔨");
 
                 if (await AuthorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
                 {
