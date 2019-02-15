@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -134,7 +134,6 @@ namespace Modix.Services.Moderation
         /// Retrieves a collection of moderation actions, based on a given set of criteria.
         /// </summary>
         /// <param name="searchCriteria">The criteria defining which moderation actions are to be returned.</param>
-        /// <param name="sortingCriterias">The criteria defining how to sort the moderation actions to be returned.</param>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation has completed,
         /// containing the requested set of moderation actions.
@@ -161,6 +160,29 @@ namespace Modix.Services.Moderation
         /// containing a flag indicating whether the moderator outranks the subject.
         /// </returns>
         Task<bool> DoesModeratorOutrankUserAsync(ulong guildId, ulong moderatorId, ulong subjectId);
+
+        /// <summary>
+        /// Determines whether there are any infractions that meet the supplied criteria.
+        /// </summary>
+        /// <param name="criteria">The criteria defining which infractions are to be searched.</param>
+        /// <exception cref="ArgumentNullException">Throws for <paramref name="criteria"/>.</exception>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operaiton is complete,
+        /// with a flag indicating whether there are any infractions meeting the supplied criteria.
+        /// </returns>
+        Task<bool> AnyInfractionsAsync(InfractionSearchCriteria criteria);
+
+        /// <summary>
+        /// Retrieves the designated mute role for the supplied guild or creates the role if it does not
+        /// already exist.
+        /// </summary>
+        /// <param name="guild">The guild to which the mute role belongs.</param>
+        /// <param name="currentUserId">The Discord snowflake ID of the current user.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation completes,
+        /// containing the designated mute role in the guild.
+        /// </returns>
+        Task<IRole> GetOrCreateDesignatedMuteRoleAsync(IGuild guild, ulong currentUserId);
     }
 
     /// <inheritdoc />
@@ -610,6 +632,46 @@ namespace Modix.Services.Moderation
             return greatestSubjectRankPosition < greatestModeratorRankPosition;
         }
 
+        public async Task<bool> AnyInfractionsAsync(InfractionSearchCriteria criteria)
+        {
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
+
+            if (criteria is null)
+                throw new ArgumentNullException(nameof(criteria));
+
+            return await InfractionRepository.AnyAsync(criteria);
+        }
+
+        public async Task<IRole> GetOrCreateDesignatedMuteRoleAsync(IGuild guild, ulong currentUserId)
+        {
+            using (var transaction = await DesignatedRoleMappingRepository.BeginCreateTransactionAsync())
+            {
+                var mapping = (await DesignatedRoleMappingRepository.SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria()
+                {
+                    GuildId = guild.Id,
+                    Type = DesignatedRoleType.ModerationMute,
+                    IsDeleted = false
+                })).FirstOrDefault();
+
+                if (!(mapping is null))
+                    return guild.Roles.First(x => x.Id == mapping.Role.Id);
+
+                var role = guild.Roles.FirstOrDefault(x => x.Name == MuteRoleName)
+                    ?? await guild.CreateRoleAsync(MuteRoleName);
+
+                await DesignatedRoleMappingRepository.CreateAsync(new DesignatedRoleMappingCreationData()
+                {
+                    GuildId = guild.Id,
+                    RoleId = role.Id,
+                    Type = DesignatedRoleType.ModerationMute,
+                    CreatedById = currentUserId
+                });
+
+                transaction.Commit();
+                return role;
+            }
+        }
+
         /// <summary>
         /// An <see cref="IDiscordClient"/> for interacting with the Discord API.
         /// </summary>
@@ -649,36 +711,6 @@ namespace Modix.Services.Moderation
         /// An <see cref="IDeletedMessageRepository"/> for storing and retrieving records of deleted messages.
         /// </summary>
         internal protected IDeletedMessageRepository DeletedMessageRepository { get; }
-
-        private async Task<IRole> GetOrCreateDesignatedMuteRoleAsync(IGuild guild, ulong currentUserId)
-        {
-            using (var transaction = await DesignatedRoleMappingRepository.BeginCreateTransactionAsync())
-            {
-                var mapping = (await DesignatedRoleMappingRepository.SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria()
-                {
-                    GuildId = guild.Id,
-                    Type = DesignatedRoleType.ModerationMute,
-                    IsDeleted = false
-                })).FirstOrDefault();
-
-                if (!(mapping is null))
-                    return guild.Roles.First(x => x.Id == mapping.Role.Id);
-
-                var role = guild.Roles.FirstOrDefault(x => x.Name == MuteRoleName)
-                    ?? await guild.CreateRoleAsync(MuteRoleName);
-
-                await DesignatedRoleMappingRepository.CreateAsync(new DesignatedRoleMappingCreationData()
-                {
-                    GuildId = guild.Id,
-                    RoleId = role.Id,
-                    Type = DesignatedRoleType.ModerationMute,
-                    CreatedById = currentUserId
-                });
-
-                transaction.Commit();
-                return role;
-            }
-        }
 
         private async Task ConfigureChannelMuteRolePermissionsAsync(IGuildChannel channel, IRole muteRole)
         {
