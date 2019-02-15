@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
@@ -29,6 +29,7 @@ namespace Modix.Services.Adapters
             _discordClient.MessageUpdated += OnMessageUpdated;
             _discordClient.ReactionAdded += OnReactionAdded;
             _discordClient.ReactionRemoved += OnReactionRemoved;
+            _discordClient.UserJoined += OnUserJoined;
             return Task.CompletedTask;
         }
 
@@ -46,6 +47,9 @@ namespace Modix.Services.Adapters
 
         private Task OnMessageReceived(SocketMessage message)
             => PublishScoped(new ChatMessageReceived { Message = message });
+
+        private Task OnUserJoined(SocketGuildUser user)
+            => PublishScoped(new UserJoined { Guild = user.Guild, User = user });
 
         private async Task PublishScoped(INotification message)
         {
@@ -80,6 +84,7 @@ namespace Modix.Services.Adapters
             _discordClient.MessageUpdated -= OnMessageUpdated;
             _discordClient.ReactionAdded -= OnReactionAdded;
             _discordClient.ReactionRemoved -= OnReactionRemoved;
+            _discordClient.UserJoined -= OnUserJoined;
             return Task.CompletedTask;
         }
     }
