@@ -41,8 +41,10 @@ namespace Modix.Modules
         private IMessageRepository MessageRepository { get; }
 
         [Command("info")]
-        public async Task GetUserInfo(DiscordUserEntity user)
+        public async Task GetUserInfo(DiscordUserEntity user = null)
         {
+            user = user ?? new DiscordUserEntity(Context.User.Id);
+
             var userInfo = await UserService.GetUserInformationAsync(Context.Guild.Id, user.Id);
 
             if (userInfo == null)
