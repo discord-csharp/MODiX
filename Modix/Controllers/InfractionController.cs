@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -42,18 +43,18 @@ namespace Modix.Controllers
                 sortingCriteria,
                 pagingCriteria);
 
-            var outranksValues = result.Records
+            var outranksValues = new Dictionary<ulong, bool>();
+
+            foreach (var (guildId, subjectId) in result.Records
                 .Select(x => (guildId: x.GuildId, subjectId: x.Subject.Id))
-                .Distinct()
-                .ToDictionary(
-                    x => x.subjectId,
-                    async x => await ModerationService.DoesModeratorOutrankUserAsync(x.guildId, SocketUser.Id, x.subjectId));
+                .Distinct())
+            {
+                outranksValues[subjectId]
+                    = await ModerationService.DoesModeratorOutrankUserAsync(guildId, SocketUser.Id, subjectId);
+            }
 
-            foreach (var task in outranksValues.Values)
-                await task;
-
-            var mapped = await Task.WhenAll(result.Records.Select(
-                async x => new InfractionData
+            var mapped = result.Records.Select(
+                x => new InfractionData
                 {
                     Id = x.Id,
                     GuildId = x.GuildId,
@@ -70,12 +71,12 @@ namespace Modix.Controllers
                         = x.RescindAction is null
                         && x.DeleteAction is null
                         && (x.Type == InfractionType.Mute || x.Type == InfractionType.Ban)
-                        && await outranksValues[x.Subject.Id],
+                        && outranksValues[x.Subject.Id],
 
                     CanDelete
                         = x.DeleteAction is null
-                        && await outranksValues[x.Subject.Id],
-                }));
+                        && outranksValues[x.Subject.Id],
+                }).ToArray();
 
             return Ok(new RecordsPage<InfractionData>()
             {
