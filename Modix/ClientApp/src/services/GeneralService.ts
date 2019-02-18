@@ -11,6 +11,8 @@ import Claim from '@/models/Claim';
 import Guild from '@/models/Guild';
 import GuildStatApiData from '@/models/GuildStatApiData';
 import InfractionCreationData from '@/models/infractions/InfractionCreationData';
+import TableParameters from '@/models/TableParameters';
+import RecordsPage from '@/models/RecordsPage';
 
 export default class GeneralService
 {
@@ -87,9 +89,9 @@ export default class GeneralService
         return response;
     }
 
-    static async getInfractions(): Promise<InfractionSummary[]>
+    static async getInfractions(tableParams: TableParameters): Promise<RecordsPage<InfractionSummary>>
     {
-        let response = (await client.get("infractions")).data;
+        let response = (await client.put("infractions", tableParams)).data;
         return response;
     }
 

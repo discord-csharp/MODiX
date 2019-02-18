@@ -26,5 +26,8 @@ namespace Modix.Data.Utilities
 
             return value.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0;
         }
+
+        public static bool OrdinalEquals(this string value, string search)
+            => string.Equals(value, search, StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using Discord.WebSocket;
 
 using Microsoft.AspNetCore.Mvc;
-
+using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
+using Modix.Mappings;
+using Modix.Models;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
 using Modix.Services.RowboatImporter;
@@ -25,35 +27,64 @@ namespace Modix.Controllers
             ImporterService = importerService;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> InfractionsAsync()
+        [HttpPut]
+        public async Task<IActionResult> GetInfractionsAsync([FromBody] TableParameters tableParams)
         {
-            var result = await ModerationService.SearchInfractionsAsync(new InfractionSearchCriteria
-            {
-                GuildId = UserGuild.Id
-            });
+            var sortingCriteria = tableParams.Sort.ToInfractionSummarySortingCriteria();
 
-            var mapped = result.Select(
-                x => new
+            var searchCriteria = tableParams.Filters.ToInfractionSearchCriteria();
+            searchCriteria.GuildId = UserGuild.Id;
+
+            var pagingCriteria = tableParams.ToPagingCriteria();
+
+            var result = await ModerationService.SearchInfractionsAsync(
+                searchCriteria,
+                sortingCriteria,
+                pagingCriteria);
+
+            var outranksValues = result.Records
+                .Select(x => (guildId: x.GuildId, subjectId: x.Subject.Id))
+                .Distinct()
+                .ToDictionary(
+                    x => x.subjectId,
+                    async x => await ModerationService.DoesModeratorOutrankUserAsync(x.guildId, SocketUser.Id, x.subjectId));
+
+            foreach (var task in outranksValues.Values)
+                await task;
+
+            var mapped = await Task.WhenAll(result.Records.Select(
+                async x => new InfractionData
                 {
-                    x.Id,
-                    x.GuildId,
-                    x.Type,
-                    x.Reason,
-                    x.Duration,
-                    x.Subject,
+                    Id = x.Id,
+                    GuildId = x.GuildId,
+                    Type = x.Type,
+                    Reason = x.Reason,
+                    Duration = x.Duration,
+                    Subject = x.Subject,
 
-                    x.CreateAction,
-                    x.RescindAction,
-                    x.DeleteAction,
+                    CreateAction = x.CreateAction,
+                    RescindAction = x.RescindAction,
+                    DeleteAction = x.DeleteAction,
 
-                    //TODO: Have EF map this and/or introduce pagination
-                    CanRescind = true,
-                    CanDelete = true
-                });
+                    CanRescind
+                        = x.RescindAction is null
+                        && x.DeleteAction is null
+                        && (x.Type == InfractionType.Mute || x.Type == InfractionType.Ban)
+                        && await outranksValues[x.Subject.Id],
 
-            return Ok(mapped);
+                    CanDelete
+                        = x.DeleteAction is null
+                        && await outranksValues[x.Subject.Id],
+                }));
+
+            return Ok(new RecordsPage<InfractionData>()
+            {
+                FilteredRecordCount = result.FilteredRecordCount,
+                TotalRecordCount = result.TotalRecordCount,
+                Records = mapped,
+            });
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> InfractionsForUserAsync(ulong id)

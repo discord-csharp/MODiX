@@ -24,7 +24,9 @@
                 </div>
 
                 <VueGoodTable :columns="mappedColumns" :rows="mappedRows" :sortOptions="sortOptions"
-                              :paginationOptions="paginationOptions" styleClass="vgt-table condensed bordered striped">
+                              :paginationOptions="paginationOptions" styleClass="vgt-table condensed bordered striped"
+                              mode="remote" :totalRows="recordsPage.filteredRecordCount" @on-page-change="onPageChange"
+                              @on-sort-change="onSortChange" @on-column-filter="onColumnFilter" @on-per-page-change="onPerPageChange">
 
                     <template slot="table-row" slot-scope="props">
                         <span v-if="props.column.field == 'type'">
@@ -206,21 +208,18 @@ import InfractionSummary from '@/models/infractions/InfractionSummary';
 import {config, setConfig} from '@/models/PersistentConfig';
 import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
 import InfractionCreationData from '@/models/infractions/InfractionCreationData';
+import RecordsPage from '@/models/RecordsPage';
+import TableParameters from '@/models/TableParameters';
+import { SortDirection } from '@/models/SortDirection';
 
 const messageResolvingRegex = /<#(\d+)>/gm;
 
-const guildUserFilter = (subject: GuildUserIdentity, filter: string) =>
+function getSortDirection(direction: string): SortDirection
 {
-    filter = filter.toLowerCase();
-
-    return subject.id.toString().startsWith(filter) ||
-           subject.displayName.toLowerCase().indexOf(filter) >= 0;
-};
-
-const guildUserSort = (x: GuildUserIdentity, y: GuildUserIdentity, col: any, rowX: any, rowY: any) =>
-{
-    return (x.id < y.id ? -1 : (x.id > y.id ? 1 : 0));
-};
+    return (direction == "asc")
+        ? SortDirection.Ascending
+        : SortDirection.Descending;
+}
 
 const guildUserFormat = (subject: GuildUserIdentity) => subject.displayName;
 
@@ -244,13 +243,14 @@ export default class Infractions extends Vue
     paginationOptions: any =
     {
         enabled: true,
-        perPage: 10
+        perPage: 10,
+        mode: 'pages'
     };
 
     sortOptions: any =
     {
         enabled: true,
-        initialSortBy: {field: 'date', type: 'desc'}
+        initialSortBy: {field: 'created', type: 'desc'}
     };
 
     showState: boolean = false;
@@ -285,6 +285,17 @@ export default class Infractions extends Vue
     toDelete: number = 0;
 
     channelCache: { [channel: string]: DesignatedChannelMapping } | null = null;
+
+    recordsPage: RecordsPage<InfractionSummary> = new RecordsPage<InfractionSummary>();
+    tableParams: TableParameters = {
+        page: 0,
+        perPage: 10,
+        sort: {
+            field: "created",
+            direction: SortDirection.Descending
+        },
+        filters: []
+    };
 
     get canNote(): boolean
     {
@@ -440,7 +451,7 @@ export default class Infractions extends Vue
         reader.readAsText(files[0]);
     }
 
-    staticFilters: {[field: string]: string} = {subject: "", creator: "", id: ""};
+    staticFilters: { [field: string]: string } = { id: "", type: "", subject: "", creator: "" };
 
     get mappedColumns(): Array<any>
     {
@@ -453,9 +464,8 @@ export default class Infractions extends Vue
                 filterOptions:
                 {
                     enabled: true,
-                    filterFn: (id: string, filter: string) => id == filter,
-                    filterValue: this.staticFilters["id"],
-                    placeholder: "Filter"
+                    placeholder: "Filter",
+                    filterValue: this.staticFilters["id"]
                 }
             },
             {
@@ -464,8 +474,9 @@ export default class Infractions extends Vue
                 filterOptions:
                 {
                     enabled: true,
+                    placeholder: "Filter",
                     filterDropdownItems: this.infractionTypes,
-                    placeholder: "Filter"
+                    filterValue: this.staticFilters["type"]
                 }
             },
             {
@@ -484,9 +495,8 @@ export default class Infractions extends Vue
                 filterOptions:
                 {
                     enabled: true,
-                    filterFn: guildUserFilter,
-                    filterValue: this.staticFilters["subject"],
-                    placeholder: "Filter"
+                    placeholder: "Filter",
+                    filterValue: this.staticFilters["subject"]
                 },
                 formatFn: guildUserFormat
             },
@@ -497,10 +507,9 @@ export default class Infractions extends Vue
                 type: 'date', //Needed to bypass vue-good-table regression
                 filterOptions:
                 {
-                     enabled: true,
-                     filterFn: guildUserFilter,
-                     filterValue: this.staticFilters["creator"],
-                     placeholder: "Filter"
+                    enabled: true,
+                    placeholder: "Filter",
+                    filterValue: this.staticFilters["creator"]
                 },
                 formatFn: guildUserFormat
             },
@@ -508,25 +517,28 @@ export default class Infractions extends Vue
                 label: 'Reason',
                 field: 'reason',
                 formatFn: this.resolveMentions,
-                html: true
+                html: true,
+                sortable: false
             },
             {
                 label: 'State',
                 field: 'state',
-                hidden: !this.showState
+                hidden: !this.showState,
+                sortable: false
             },
             {
                 label: 'Actions',
                 field: 'actions',
                 hidden: !this.canPerformActions,
-                width: '32px'
+                width: '32px',
+                sortable: false
             }
         ];
     }
 
     get filteredInfractions(): InfractionSummary[]
     {
-        return _.filter(this.$store.state.modix.infractions, (infraction: InfractionSummary) =>
+        return _.filter(this.recordsPage.records, (infraction: InfractionSummary) =>
         {
             if (infraction.rescindAction != null)
             {
@@ -571,13 +583,13 @@ export default class Infractions extends Vue
             id: infraction.id,
             subject: infraction.subject,
             creator: infraction.createAction.createdBy,
-            date: infraction.createAction.created,
+            created: infraction.createAction.created,
             type: infraction.type,
             reason: infraction.reason,
 
-                state: infraction.rescindAction != null ? "Rescinded"
-                    : infraction.deleteAction != null ? "Deleted"
-                        : "Active",
+            state: infraction.rescindAction != null ? "Rescinded"
+                : infraction.deleteAction != null ? "Deleted"
+                    : "Active",
 
             canDelete: infraction.canDelete,
             canRescind: infraction.canRescind
@@ -588,8 +600,8 @@ export default class Infractions extends Vue
     {
         this.isLoading = true;
 
-        store.clearInfractionData();
-        await store.retrieveInfractions();
+        this.recordsPage = await GeneralService.getInfractions(this.tableParams);
+
         await store.retrieveChannels();
 
         this.channelCache = _.keyBy(this.$store.state.modix.channels, channel => channel.id);
@@ -619,9 +631,10 @@ export default class Infractions extends Vue
         {
             let currentField: string = this.mappedColumns[i].field;
 
-            if (urlParams.has(currentField))
+            if (urlParams.has(currentField.toLowerCase()))
             {
-                this.staticFilters[currentField] = urlParams.get(currentField) || "";
+                this.tableParams.filters.push({ field: currentField, value: urlParams.get(currentField.toLowerCase()) || "" });
+                this.staticFilters[currentField] = urlParams.get(currentField.toLowerCase()) || "";
             }
         }
     }
@@ -634,6 +647,42 @@ export default class Infractions extends Vue
         this.showDeleted = config().showDeletedInfractions;
 
         this.applyFilters();
+    }
+
+    async onPageChange(params: any): Promise<void>
+    {
+        this.tableParams.page = params.currentPage - 1;
+
+        await this.refresh();
+    }
+
+    async onSortChange(params: any): Promise<void>
+    {
+        this.tableParams.sort.field = params[0].field;
+        this.tableParams.sort.direction = getSortDirection(params[0].type);
+
+        await this.refresh();
+    }
+
+    async onColumnFilter(params: any): Promise<void>
+    {
+        this.tableParams.filters = [];
+
+        for (let prop in params.columnFilters)
+        {
+            this.tableParams.filters.push({ field: prop, value: params.columnFilters[prop] })
+        }
+
+        await this.refresh();
+    }
+
+    async onPerPageChange(params: any): Promise<void>
+    {
+        this.tableParams.perPage = (params.currentPerPage == "all")
+            ? 2147483647
+            : params.currentPerPage;
+
+        await this.refresh();
     }
 
     @Watch('showState')

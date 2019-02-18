@@ -483,7 +483,7 @@ namespace Modix.Services.Moderation
                     new InfractionSearchCriteria()
                     {
                         GuildId = AuthorizationService.CurrentGuildId.Value,
-                        Types = new [] { type },
+                        Types = new[] { type },
                         SubjectId = subjectId,
                         IsRescinded = false,
                         IsDeleted = false,

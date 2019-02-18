@@ -18,7 +18,6 @@ export default interface ModixState
     currentPaste: UserCodePaste | null;
     commands: ModuleHelpData[];
     campaigns: PromotionCampaign[];
-    infractions: InfractionSummary[];
 
     channelDesignations: DesignatedChannelMapping[];
     roleMappings: DesignatedRoleMapping[];
