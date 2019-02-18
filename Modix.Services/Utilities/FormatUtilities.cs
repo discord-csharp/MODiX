@@ -3,6 +3,8 @@ using Humanizer;
 using Modix.Data.Models.Moderation;
 using Modix.Services.AutoCodePaste;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -113,5 +115,68 @@ namespace Modix.Services.Utilities
         public static string Sanitize(string text)
             => text.Replace("@everyone", "@\x200beveryone")
                    .Replace("@here", "@\x200bhere");
+
+        /// <summary>
+        /// Identifies a dominant color from the provided image.
+        /// </summary>
+        /// <param name="image">The image for which the dominant color is to be retrieved.</param>
+        /// <returns>A dominant color in the provided image.</returns>
+        public static unsafe Discord.Color GetDominantColor(Discord.Image image)
+        {
+            if (image.Stream is null)
+                return new Discord.Color(253, 95, 0);
+
+            var colorCounts = new Dictionary<System.Drawing.Color, int>();
+            BitmapData data = default;
+
+            using (var img = System.Drawing.Image.FromStream(image.Stream))
+            using (var bmp = new Bitmap(img))
+            {
+                try
+                {
+                    data = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+                    var sourceRowPtr = (byte*)data.Scan0.ToPointer();
+
+                    for (var row = 0; row < bmp.Height; row++, sourceRowPtr += data.Stride)
+                    {
+                        var sourcePixelPtr = (int*)sourceRowPtr;
+
+                        for (var column = 0; column < bmp.Width; column++)
+                        {
+                            var sourcePixel = *(sourcePixelPtr + column);
+
+                            // 4 bits are stripped off the end of each to account for similar colors
+                            var a = (byte)(((sourcePixel & 0xFF000000) >> 28) << 4);
+                            var r = (byte)(((sourcePixel & 0x00FF0000) >> 20) << 4);
+                            var g = (byte)(((sourcePixel & 0x0000FF00) >> 12) << 4);
+                            var b = (byte)(((sourcePixel & 0x000000FF) >> 4) << 4);
+
+                            // Don't include transparent pixels
+                            if (a > 127)
+                            {
+                                var color = System.Drawing.Color.FromArgb(a, r, g, b);
+
+                                if (colorCounts.TryGetValue(color, out var count))
+                                {
+                                    colorCounts[color] = count + 1;
+                                }
+                                else
+                                {
+                                    colorCounts[color] = 1;
+                                }
+                            }
+                        }
+                    }
+                }
+                finally
+                {
+                    bmp.UnlockBits(data);
+                }
+            }
+
+            var mostCommonColor = colorCounts.OrderByDescending(x => x.Value).FirstOrDefault().Key;
+
+            return (Discord.Color)mostCommonColor;
+        }
     }
 }
