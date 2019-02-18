@@ -490,7 +490,6 @@ export default class Infractions extends Vue
             {
                 label: 'Subject',
                 field: 'subject',
-                sortFn: guildUserSort,
                 type: 'date', //Needed to bypass vue-good-table regression
                 filterOptions:
                 {
@@ -503,7 +502,6 @@ export default class Infractions extends Vue
             {
                 label: 'Creator',
                 field: 'creator',
-                sortFn: guildUserSort,
                 type: 'date', //Needed to bypass vue-good-table regression
                 filterOptions:
                 {
