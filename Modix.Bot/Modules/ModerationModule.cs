@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
 
+using Modix.Bot.Extensions;
 using Modix.Data.Models.Moderation;
 using Modix.Services.Moderation;
 
@@ -104,6 +106,40 @@ namespace Modix.Modules
             await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.Id);
             await Context.AddConfirmation();
         }
+
+        [Command("clean")]
+        [Summary("Mass-deletes a specified number of messages.")]
+        public async Task Clean(
+            [Summary("The number of messages to delete.")]
+                int count)
+            => await ModerationService.DeleteMessagesAsync(
+                Context.Channel as ITextChannel, count, true,
+                    () => Context.GetUserConfirmationAsync(
+                        $"You are attempting to delete the past {count} messages in #{Context.Channel.Name}.{Environment.NewLine}"));
+
+        [Command("clean")]
+        [Summary("Mass-deletes a specified number of messages.")]
+        public async Task Clean(
+            [Summary("The number of messages to delete.")]
+                int count,
+            [Summary("The channel to clean.")]
+                ITextChannel channel)
+            => await ModerationService.DeleteMessagesAsync(
+                channel, count, Context.Channel.Id == channel.Id,
+                    () => Context.GetUserConfirmationAsync(
+                        $"You are attempting to delete the past {count} messages in #{Context.Channel.Name}.{Environment.NewLine}"));
+
+        [Command("clean")]
+        [Summary("Mass-deletes a specified number of messages by the supplied user.")]
+        public async Task Clean(
+            [Summary("The number of messages to delete.")]
+                int count,
+            [Summary("The user whose messages should be deleted.")]
+                IGuildUser user)
+            => await ModerationService.DeleteMessagesAsync(
+                Context.Channel as ITextChannel, user, count,
+                    () => Context.GetUserConfirmationAsync(
+                        $"You are attempting to delete the past {count} messages by {user.Nickname ?? $"{user.Username}#{user.Discriminator}"} in #{Context.Channel.Name}.{Environment.NewLine}"));
 
         internal protected IModerationService ModerationService { get; }
     }

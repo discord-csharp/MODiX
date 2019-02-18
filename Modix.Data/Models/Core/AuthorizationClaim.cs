@@ -59,6 +59,16 @@ namespace Modix.Data.Models.Core
         [ClaimInfo(ModerationActions, "Authorizes a request to delete a message from a guild.")]
         ModerationDeleteMessage,
         /// <summary>
+        /// Authorizes a request to mass-delete messages from a guild.
+        /// </summary>
+        [ClaimInfo(ModerationActions, "Authorizes a request to mass-delete messages from a guild.")]
+        ModerationMassDeleteMessages,
+        /// <summary>
+        /// Authorizes a request to view deleted message logs.
+        /// </summary>
+        [ClaimInfo(Log, "Authorizes a request to view deleted message logs.")]
+        LogViewDeletedMessages,
+        /// <summary>
         /// Authorizes a request to post a message to a guild, containing a Discord invite link.
         /// </summary>
         [ClaimInfo(Misc, "Authorizes a request to post a message to a guild, containing a Discord invite link.")]

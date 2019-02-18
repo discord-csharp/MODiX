@@ -58,7 +58,7 @@ namespace Modix.Data.Models.Moderation
 
         /// <summary>
         /// The <see cref="InfractionEntity"/> to which this <see cref="ModerationActionEntity"/> applies.
-        /// Null, if an <see cref="InfractionEntity"/> was involved in this <see cref="ModerationActionEntity"/>.
+        /// Null, if an <see cref="InfractionEntity"/> was not involved in this <see cref="ModerationActionEntity"/>.
         /// </summary>
         public virtual InfractionEntity Infraction { get; set; }
 
@@ -70,9 +70,21 @@ namespace Modix.Data.Models.Moderation
 
         /// <summary>
         /// The <see cref="DeletedMessageEntity"/> to which this <see cref="ModerationActionEntity"/> applies.
-        /// Null, if an <see cref="DeletedMessageEntity"/> was involved in this <see cref="ModerationActionEntity"/>.
+        /// Null, if a <see cref="DeletedMessageEntity"/> was not involved in this <see cref="ModerationActionEntity"/>.
         /// </summary>
         public virtual DeletedMessageEntity DeletedMessage { get; set; }
+
+        /// <summary>
+        /// The <see cref="DeletedMessageBatch.Id"/> value of the <see cref="DeletedMessageBatch"/>, if any.
+        /// </summary>
+        [ForeignKey(nameof(DeletedMessageBatch))]
+        public long? DeletedMessageBatchId { get; set; }
+
+        /// <summary>
+        /// The <see cref="DeletedMessageBatch"/> to which this <see cref="ModerationActionEntity"/> applies.
+        /// Null, if a <see cref="DeletedMessageBatch"/> was not involved in this <see cref="ModerationActionEntity"/>.
+        /// </summary>
+        public virtual DeletedMessageBatchEntity DeletedMessageBatch { get; set; }
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

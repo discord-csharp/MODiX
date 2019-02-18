@@ -20,6 +20,10 @@
         /// <summary>
         /// Describes a moderation action where a message was automatically deleted.
         /// </summary>
-        MessageDeleted
+        MessageDeleted,
+        /// <summary>
+        /// Describes a moderation action where a sequence of messages were deleted simultaneously.
+        /// </summary>
+        MessageBatchDeleted,
     }
 }

@@ -67,14 +67,24 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="CreateAction"/>.
         /// </summary>
-        [Required]
-        public long CreateActionId { get; set; }
+        public long? CreateActionId { get; set; }
 
         /// <summary>
         /// The <see cref="ModerationActionEntity"/> that created this <see cref="DeletedMessageEntity"/>.
         /// </summary>
-        [Required]
         public virtual ModerationActionEntity CreateAction { get; set; }
+
+        /// <summary>
+        /// The <see cref="DeletedMessageBatchEntity.Id"/> value of the batch
+        /// that this <see cref="DeletedMessageEntity"/> belongs to.
+        /// </summary>
+        [ForeignKey(nameof(Batch))]
+        public long? BatchId { get; set; }
+
+        /// <summary>
+        /// The batch that this <see cref="DeletedMessageEntity"/> belongs to.
+        /// </summary>
+        public virtual DeletedMessageBatchEntity Batch { get; set; }
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

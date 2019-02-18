@@ -30,6 +30,7 @@ namespace Modix.Services.Moderation
                 .AddScoped<IModerationActionRepository, ModerationActionRepository>()
                 .AddScoped<IInfractionRepository, InfractionRepository>()
                 .AddScoped<IDeletedMessageRepository, DeletedMessageRepository>()
+                .AddScoped<IDeletedMessageBatchRepository, DeletedMessageBatchRepository>()
                 .AddScoped<INotificationHandler<ChatMessageReceived>, ModerationInvitePurgingHandler>()
                 .AddScoped<INotificationHandler<ChatMessageUpdated>, ModerationInvitePurgingHandler>()
                 .AddScoped<INotificationHandler<UserJoined>, MutePersistingHandler>();

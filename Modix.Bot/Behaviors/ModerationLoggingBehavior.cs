@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Discord;
@@ -56,10 +57,12 @@ namespace Modix.Behaviors
                     moderationAction.DeletedMessage?.Id,
                     moderationAction.DeletedMessage?.Author.DisplayName,
                     moderationAction.DeletedMessage?.Author.Id,
-                    moderationAction.DeletedMessage?.Channel.Name,
+                    moderationAction.DeletedMessage?.Channel.Name ?? moderationAction.DeletedMessages?.First().Channel.Name,
                     moderationAction.DeletedMessage?.Channel.Id,
                     moderationAction.DeletedMessage?.Reason,
-                    string.IsNullOrWhiteSpace(content) ? "Empty Message Content" : content);
+                    string.IsNullOrWhiteSpace(content) ? "Empty Message Content" : content,
+                    moderationAction.DeletedMessages?.Count,
+                    moderationAction.DeletedMessages?.FirstOrDefault()?.BatchId);
 
                 await DesignatedChannelService.SendToDesignatedChannelsAsync(
                     await DiscordClient.GetGuildAsync(data.GuildId), DesignatedChannelType.ModerationLog, message);
@@ -101,6 +104,7 @@ namespace Modix.Behaviors
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Mute),    "`[{0}]` **{1}** deleted a mute (`{2}`) for **{3}** (`{4}`)" },
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Ban),     "`[{0}]` **{1}** deleted a ban (`{2}`) for **{3}** (`{4}`)" },
                 { (ModerationActionType.MessageDeleted,      null),                   "`[{0}]` **{1}** deleted the following message (`{6}`) from **{7}** (`{8}`) in **#{9}** ```{12}``` for reason ```{11}```" },
+                { (ModerationActionType.MessageBatchDeleted, null),                   "`[{0}]` **{1}** deleted **{13}** messages in **#{9}** (<https://mod.gg/logs/deletedMessages?batchId={14}>)" },
             };
     }
 }

@@ -42,6 +42,11 @@ namespace Modix.Data.Models.Moderation
         /// </summary>
         public ulong CreatedById { get; set; }
 
+        /// <summary>
+        /// See <see cref="DeletedMessageEntity.BatchId"/>.
+        /// </summary>
+        public long BatchId { get; set; }
+
         internal DeletedMessageEntity ToEntity()
             => new DeletedMessageEntity()
             {
@@ -58,6 +63,18 @@ namespace Modix.Data.Models.Moderation
                     Created = DateTimeOffset.Now,
                     CreatedById = CreatedById
                 }
+            };
+
+        internal DeletedMessageEntity ToBatchEntity()
+            => new DeletedMessageEntity()
+            {
+                MessageId = MessageId,
+                GuildId = GuildId,
+                ChannelId = ChannelId,
+                AuthorId = AuthorId,
+                Content = Content,
+                Reason = Reason,
+                BatchId = BatchId,
             };
     }
 }

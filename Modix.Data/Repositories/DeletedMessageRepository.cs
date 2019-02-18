@@ -1,8 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
+using Microsoft.EntityFrameworkCore;
+
+using Modix.Data.ExpandableQueries;
+using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
+using Modix.Data.Utilities;
 
 namespace Modix.Data.Repositories
 {
@@ -30,6 +36,15 @@ namespace Modix.Data.Repositories
         /// containing the auto-generated <see cref="DeletedMessageEntity.Id"/> value assigned to the new deleted message.
         /// </returns>
         Task CreateAsync(DeletedMessageCreationData data);
+
+        /// <summary>
+        /// Searches the repository for deleted message information, based on an arbitrary set of criteria, and pages the results.
+        /// </summary>
+        /// <param name="searchCriteria">The criteria for selecting <see cref="DeletedMessageSummary"/> records to be returned.</param>
+        /// <param name="sortingCriteria">The criteria for sorting the matching records to be returned.</param>
+        /// <param name="pagingCriteria">The criteria for selecting a subset of matching records to be returned.</param>
+        /// <returns>A <see cref="Task"/> which will complete when the matching records have been retrieved.</returns>
+        Task<RecordsPage<DeletedMessageSummary>> SearchSummariesPagedAsync(DeletedMessageSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria);
     }
 
     /// <inheritdoc />
@@ -61,6 +76,30 @@ namespace Modix.Data.Repositories
             await ModixContext.SaveChangesAsync();
 
             await RaiseModerationActionCreatedAsync(entity.CreateAction);
+        }
+
+        /// <inheritdoc />
+        public async Task<RecordsPage<DeletedMessageSummary>> SearchSummariesPagedAsync(
+            DeletedMessageSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
+        {
+            var sourceQuery = ModixContext.DeletedMessages.AsNoTracking();
+
+            var filteredQuery = sourceQuery
+                .FilterBy(searchCriteria);
+
+            var pagedQuery = filteredQuery
+                .AsExpandable()
+                .Select(DeletedMessageSummary.FromEntityProjection)
+                .SortBy(sortingCriteria, DeletedMessageSummary.SortablePropertyMap)
+                .OrderThenBy(x => x.MessageId, SortDirection.Ascending)
+                .PageBy(pagingCriteria);
+
+            return new RecordsPage<DeletedMessageSummary>()
+            {
+                TotalRecordCount = await sourceQuery.LongCountAsync(),
+                FilteredRecordCount = await filteredQuery.LongCountAsync(),
+                Records = await pagedQuery.ToArrayAsync(),
+            };
         }
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory

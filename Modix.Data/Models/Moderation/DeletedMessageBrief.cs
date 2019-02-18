@@ -36,6 +36,11 @@ namespace Modix.Data.Models.Moderation
         /// </summary>
         public string Reason { get; set; }
 
+        /// <summary>
+        /// See <see cref="DeletedMessageEntity.BatchId"/>.
+        /// </summary>
+        public long? BatchId { get; set; }
+
         [ExpansionExpression]
         internal static Expression<Func<DeletedMessageEntity, DeletedMessageBrief>> FromEntityProjection
             = entity => new DeletedMessageBrief()
@@ -44,7 +49,8 @@ namespace Modix.Data.Models.Moderation
                 Channel = entity.Channel.Project(GuildChannelBrief.FromEntityProjection),
                 Author = entity.Author.Project(GuildUserBrief.FromEntityProjection),
                 Content = entity.Content,
-                Reason = entity.Reason
+                Reason = entity.Reason,
+                BatchId = entity.BatchId,
             };
     }
 }

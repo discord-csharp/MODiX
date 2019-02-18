@@ -94,6 +94,35 @@ namespace Modix.Services.Moderation
         Task DeleteMessageAsync(IMessage message, string reason);
 
         /// <summary>
+        /// Mass-deletes a specified number of messages.
+        /// </summary>
+        /// <param name="channel">The channel in which the messages are to be deleted.</param>
+        /// <param name="count">The number of messages to delete.</param>
+        /// <param name="skipOne">Indicates whether to skip one message (i.e. the command message) before deleting.</param>
+        /// <param name="confirmDelegate">A delegate that is invoked to confirm whether to proceed with the operation.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task DeleteMessagesAsync(ITextChannel channel, int count, bool skipOne, Func<Task<bool>> confirmDelegate);
+
+        /// <summary>
+        /// Mass-deletes a specified number of messages.
+        /// </summary>
+        /// <param name="channel">The channel in which the messages are to be deleted.</param>
+        /// <param name="user">The user whose messages are to be deleted.</param>
+        /// <param name="count">The number of messages to delete.</param>
+        /// <param name="confirmDelegate">A delegate that is invoked to confirm whether to proceed with the operation.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task DeleteMessagesAsync(ITextChannel channel, IGuildUser user, int count, Func<Task<bool>> confirmDelegate);
+
+        /// <summary>
+        /// Retrieves a collection of deleted messages based on a given set of criteria, and returns a paged subset of the results based on a given set of paging criteria.
+        /// </summary>
+        /// <param name="searchCriteria">The criteria defining which deleted messages are to be returned.</param>
+        /// <param name="sortingCriteria">The criteria defining how to sort the deleted messages to be returned.</param>
+        /// <param name="pagingCriteria">The criteria defining how to page the deleted messages to be returned.</param>
+        /// <returns>A <see cref="Task"/> which will complete when the operation has completed, containing the requested set of deleted messages.</returns>
+        Task<RecordsPage<DeletedMessageSummary>> SearchDeletedMessagesAsync(DeletedMessageSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria);
+
+        /// <summary>
         /// Retrieves a collection of infractions, based on a given set of criteria.
         /// </summary>
         /// <param name="searchCriteria">The criteria defining which infractions are to be returned.</param>
@@ -206,7 +235,8 @@ namespace Modix.Services.Moderation
             IModerationActionRepository moderationActionRepository,
             IDesignatedRoleMappingRepository designatedRoleMappingRepository,
             IInfractionRepository infractionRepository,
-            IDeletedMessageRepository deletedMessageRepository)
+            IDeletedMessageRepository deletedMessageRepository,
+            IDeletedMessageBatchRepository deletedMessageBatchRepository)
         {
             DiscordClient = discordClient;
             AuthorizationService = authorizationService;
@@ -216,6 +246,7 @@ namespace Modix.Services.Moderation
             DesignatedRoleMappingRepository = designatedRoleMappingRepository;
             InfractionRepository = infractionRepository;
             DeletedMessageRepository = deletedMessageRepository;
+            DeletedMessageBatchRepository = deletedMessageBatchRepository;
         }
 
         /// <inheritdoc />
@@ -542,6 +573,68 @@ namespace Modix.Services.Moderation
         }
 
         /// <inheritdoc />
+        public async Task DeleteMessagesAsync(ITextChannel channel, int count, bool skipOne, Func<Task<bool>> confirmDelegate)
+        {
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationMassDeleteMessages);
+
+            if (confirmDelegate is null)
+                throw new ArgumentNullException(nameof(confirmDelegate));
+
+            if (!(channel is IGuildChannel guildChannel))
+                throw new InvalidOperationException($"Cannot delete messages in {channel.Name} because it is not a guild channel.");
+
+            var confirmed = await confirmDelegate();
+
+            if (!confirmed)
+                return;
+
+            var clampedCount = Math.Clamp(count, 0, 100);
+
+            if (clampedCount == 0)
+                return;
+
+            var messages = skipOne
+                ? (await channel.GetMessagesAsync(clampedCount + 1).FlattenAsync()).Skip(1)
+                : await channel.GetMessagesAsync(clampedCount).FlattenAsync();
+
+            await DoDeleteMessagesAsync(channel, guildChannel, messages);
+        }
+
+        /// <inheritdoc />
+        public async Task DeleteMessagesAsync(ITextChannel channel, IGuildUser user, int count, Func<Task<bool>> confirmDelegate)
+        {
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationMassDeleteMessages);
+
+            if (confirmDelegate is null)
+                throw new ArgumentNullException(nameof(confirmDelegate));
+
+            if (!(channel is IGuildChannel guildChannel))
+                throw new InvalidOperationException($"Cannot delete messages in {channel.Name} because it is not a guild channel.");
+
+            var confirmed = await confirmDelegate();
+
+            if (!confirmed)
+                return;
+
+            var clampedCount = Math.Clamp(count, 0, 100);
+
+            if (clampedCount == 0)
+                return;
+
+            var messages = (await channel.GetMessagesAsync(100).FlattenAsync()).Where(x => x.Author.Id == user.Id).Take(clampedCount);
+
+            await DoDeleteMessagesAsync(channel, guildChannel, messages);
+        }
+
+        /// <inheritdoc />
+        public async Task<RecordsPage<DeletedMessageSummary>> SearchDeletedMessagesAsync(DeletedMessageSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
+        {
+            AuthorizationService.RequireClaims(AuthorizationClaim.LogViewDeletedMessages);
+
+            return await DeletedMessageRepository.SearchSummariesPagedAsync(searchCriteria, sortingCriteria, pagingCriteria);
+        }
+
+        /// <inheritdoc />
         public Task<IReadOnlyCollection<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null)
         {
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
@@ -712,6 +805,11 @@ namespace Modix.Services.Moderation
         /// </summary>
         internal protected IDeletedMessageRepository DeletedMessageRepository { get; }
 
+        /// <summary>
+        /// An <see cref="IDeletedMessageBatchRepository"/> for storing and retrieving records of deleted message batches.
+        /// </summary>
+        internal protected IDeletedMessageBatchRepository DeletedMessageBatchRepository { get; }
+
         private async Task ConfigureChannelMuteRolePermissionsAsync(IGuildChannel channel, IRole muteRole)
         {
             var permissionOverwrite = channel.GetPermissionOverwrite(muteRole);
@@ -730,6 +828,34 @@ namespace Modix.Services.Moderation
 
             await channel.AddPermissionOverwriteAsync(muteRole, _mutePermissions);
             Log.Debug("Set mute permissions for role {Role} in channel #{Channel}.", muteRole.Name, channel.Name);
+        }
+
+        private async Task DoDeleteMessagesAsync(ITextChannel channel, IGuildChannel guildChannel, IEnumerable<IMessage> messages)
+        {
+            await channel.DeleteMessagesAsync(messages);
+
+            using (var transaction = await DeletedMessageBatchRepository.BeginCreateTransactionAsync())
+            {
+                await ChannelService.TrackChannelAsync(guildChannel);
+
+                await DeletedMessageBatchRepository.CreateAsync(new DeletedMessageBatchCreationData()
+                {
+                    CreatedById = AuthorizationService.CurrentUserId.Value,
+                    GuildId = AuthorizationService.CurrentGuildId.Value,
+                    Data = messages.Select(
+                        x => new DeletedMessageCreationData()
+                        {
+                            AuthorId = x.Author.Id,
+                            ChannelId = x.Channel.Id,
+                            Content = x.Content,
+                            GuildId = AuthorizationService.CurrentGuildId.Value,
+                            MessageId = x.Id,
+                            Reason = "Mass-deleted.",
+                        }),
+                });
+
+                transaction.Commit();
+            }
         }
 
         private async Task DoRescindInfractionAsync(InfractionSummary infraction, bool isAutoRescind = false)
