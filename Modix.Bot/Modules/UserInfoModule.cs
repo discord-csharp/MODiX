@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
@@ -27,9 +25,6 @@ namespace Modix.Modules
         //optimization: UtcNow is slow and the module is created per-request
         private readonly DateTime _utcNow = DateTime.UtcNow;
 
-        // TODO: Factor this out into a common botwide client.
-        private static readonly HttpClient _httpClient = new HttpClient();
-
         public UserInfoModule(ILogger<UserInfoModule> logger, IUserService userService, IModerationService moderationService, IAuthorizationService authorizationService, IMessageRepository messageRepository)
         {
             Log = logger ?? new NullLogger<UserInfoModule>();
@@ -46,7 +41,7 @@ namespace Modix.Modules
         private IMessageRepository MessageRepository { get; }
 
         [Command("info")]
-        public async Task GetUserInfoAsync(DiscordUserEntity user = null)
+        public async Task GetUserInfo(DiscordUserEntity user = null)
         {
             user = user ?? new DiscordUserEntity(Context.User.Id);
 
@@ -91,7 +86,7 @@ namespace Modix.Modules
 
             try
             {
-                await AddParticipationToEmbedAsync(user.Id, builder);
+                await AddParticipationToEmbed(user.Id, builder);
             }
             catch (Exception ex)
             {
@@ -100,18 +95,17 @@ namespace Modix.Modules
 
             var embedBuilder = new EmbedBuilder()
                 .WithAuthor(userInfo.Username + "#" + userInfo.Discriminator)
+                .WithColor(new Color(253, 95, 0))
                 .WithTimestamp(_utcNow);
 
-            var avatar = userInfo.GetAvatarUrl() ?? userInfo.GetDefaultAvatarUrl();
-
-            embedBuilder.ThumbnailUrl = avatar;
-            embedBuilder.Author.IconUrl = avatar;
+            embedBuilder.ThumbnailUrl = userInfo.GetAvatarUrl();
+            embedBuilder.Author.IconUrl = userInfo.GetAvatarUrl();
             
-            await AddMemberInformationToEmbedAsync(userInfo, builder, embedBuilder);
+            AddMemberInformationToEmbed(userInfo, builder, embedBuilder);
 
             if (await AuthorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
             {
-                await AddInfractionsToEmbedAsync(user.Id, builder);
+                await AddInfractionsToEmbed(user.Id, builder);
             }
 
             embedBuilder.Description = builder.ToString();
@@ -119,7 +113,7 @@ namespace Modix.Modules
             await ReplyAsync(string.Empty, embed: embedBuilder.Build());
         }
 
-        private async Task AddMemberInformationToEmbedAsync(EphemeralUser member, StringBuilder builder, EmbedBuilder embedBuilder)
+        private void AddMemberInformationToEmbed(EphemeralUser member, StringBuilder builder, EmbedBuilder embedBuilder)
         {
             builder.AppendLine();
             builder.AppendLine("**\u276F Member Information**");
@@ -152,23 +146,10 @@ namespace Modix.Modules
                 }
             }
 
-            if ((member.GetAvatarUrl(ImageFormat.Auto, 16) ?? member.GetDefaultAvatarUrl()) is string avatarUrl)
-            {
-                using (var httpStream = await _httpClient.GetStreamAsync(avatarUrl))
-                {
-                    using (var avatarStream = new MemoryStream())
-                    {
-                        await httpStream.CopyToAsync(avatarStream);
-
-                        var avatar = new Image(avatarStream);
-
-                        embedBuilder.WithColor(FormatUtilities.GetDominantColor(avatar));
-                    }
-                }
-            }
+            embedBuilder.Color = GetDominantColor(member);
         }
 
-        private async Task AddInfractionsToEmbedAsync(ulong userId, StringBuilder builder)
+        private async Task AddInfractionsToEmbed(ulong userId, StringBuilder builder)
         {
             builder.AppendLine();
             builder.AppendLine($"**\u276F Infractions [See here](https://mod.gg/infractions?subject={userId})**");
@@ -178,7 +159,7 @@ namespace Modix.Modules
             builder.AppendLine(FormatUtilities.FormatInfractionCounts(counts));
         }
 
-        private async Task AddParticipationToEmbedAsync(ulong userId, StringBuilder builder)
+        private async Task AddParticipationToEmbed(ulong userId, StringBuilder builder)
         {
             var messagesByDate = await MessageRepository.GetGuildUserMessageCountByDate(Context.Guild.Id, userId, TimeSpan.FromDays(30));
 
@@ -234,6 +215,12 @@ namespace Modix.Modules
                 : "a few seconds";
 
             return string.Format(CultureInfo.InvariantCulture, Format, prefix, humanizedTimeAgo, ago.UtcDateTime);
+        }
+
+        private static Color GetDominantColor(IGuildUser user)
+        {
+            // TODO: Get the dominate image in the user's avatar.
+            return new Color(253, 95, 0);
         }
     }
 }
