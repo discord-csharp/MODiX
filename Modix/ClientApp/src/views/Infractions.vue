@@ -581,7 +581,7 @@ export default class Infractions extends Vue
             id: infraction.id,
             subject: infraction.subject,
             creator: infraction.createAction.createdBy,
-            created: infraction.createAction.created,
+            date: infraction.createAction.created,
             type: infraction.type,
             reason: infraction.reason,
 
