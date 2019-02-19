@@ -54,12 +54,12 @@
     max-height: 70px;
     overflow: hidden;
 
+    transition: box-shadow 0.33s cubic-bezier(0.23, 1, 0.32, 1);
+
     & > .columns
     {
         cursor: pointer;
     }
-
-    transition: box-shadow 0.33s cubic-bezier(0.23, 1, 0.32, 1);
 
     &.expanded
     {
@@ -78,6 +78,14 @@
     &.inactive
     {
         background-color: $light;
+    }
+
+    .commentNotification
+    {
+        text-align: center;
+        font-weight: bold;
+
+        margin: 1em 0 0.5em 0;
     }
 
     .date, .role

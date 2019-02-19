@@ -191,26 +191,29 @@ namespace Modix.Services.Promotions
 
             ValidateComment(content);
 
+            if (await PromotionCommentRepository.AnyAsync(new PromotionCommentSearchCriteria()
+            {
+                CampaignId = campaignId,
+                CreatedById = AuthorizationService.CurrentUserId.Value,
+                IsModified = false
+            }))
+                throw new InvalidOperationException("Only one comment can be made per user, per campaign");
+
+            var campaign = await PromotionCampaignRepository.ReadDetailsAsync(campaignId);
+
+            if (campaign.Subject.Id == AuthorizationService.CurrentUserId)
+                throw new InvalidOperationException("You aren't allowed to comment on your own campaign");
+
+            if (!(campaign.CloseAction is null))
+                throw new InvalidOperationException($"Campaign {campaignId} has already been closed");
+
+            var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
+
+            if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value, campaign.TargetRole.Id))
+                throw new InvalidOperationException($"Commenting on a promotion campaign requires a rank at least as high as the proposed target rank");
+
             using (var transaction = await PromotionCommentRepository.BeginCreateTransactionAsync())
             {
-                if (await PromotionCommentRepository.AnyAsync(new PromotionCommentSearchCriteria()
-                {
-                    CampaignId = campaignId,
-                    CreatedById = AuthorizationService.CurrentUserId.Value,
-                    IsModified = false
-                }))
-                    throw new InvalidOperationException("Only one comment can be made per user, per campaign");
-
-                var campaign = await PromotionCampaignRepository.ReadDetailsAsync(campaignId);
-
-                if (!(campaign.CloseAction is null))
-                    throw new InvalidOperationException($"Campaign {campaignId} has already been closed");
-
-                var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
-
-                if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value, campaign.TargetRole.Id))
-                    throw new InvalidOperationException($"Commenting on a promotion campaign requires a rank at least as high as the proposed target rank");
-
                 await PromotionCommentRepository.CreateAsync(new PromotionCommentCreationData()
                 {
                     GuildId = campaign.GuildId,
@@ -329,7 +332,14 @@ namespace Modix.Services.Promotions
         {
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsRead);
 
-            return await PromotionCampaignRepository.ReadDetailsAsync(campaignId);
+            var result = await PromotionCampaignRepository.ReadDetailsAsync(campaignId);
+
+            if (result.Subject.Id == AuthorizationService.CurrentUserId)
+            {
+                throw new InvalidOperationException("You can't view comments on your own campaign.");
+            }
+
+            return result;
         }
 
         /// <inheritdoc />

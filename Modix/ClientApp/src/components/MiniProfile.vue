@@ -1,7 +1,7 @@
 <template>
     <div class="profile">
         <template v-if="user && user.userId">
-            <img class="avatar-icon" :src="user.avatarUrl">
+            <img class="avatar-icon" v-if="user.avatarHash" :src="user.avatarUrl">
 
             <v-popover>
                 <p class="title is-4">

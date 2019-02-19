@@ -61,9 +61,12 @@ namespace Modix.Controllers
         [HttpPut("{campaignId}/comments")]
         public async Task<IActionResult> AddComment(int campaignId, [FromBody] PromotionCommentData commentData)
         {
-            var campaign = await _promotionsService.GetCampaignDetailsAsync(campaignId);
+            var campaigns = await _promotionsService.SearchCampaignsAsync(new PromotionCampaignSearchCriteria
+            {
+                Id = campaignId
+            });
 
-            if (campaign == null)
+            if (!campaigns.Any())
             {
                 return BadRequest($"Invalid campaign ID specified ({campaignId})");
             }

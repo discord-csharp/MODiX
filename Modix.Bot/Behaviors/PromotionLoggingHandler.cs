@@ -92,8 +92,6 @@ namespace Modix.Behaviors
                     }))
                     .First();
 
-                    var comments = (await PromotionsService.GetCampaignDetailsAsync(targetCampaign.Id)).Comments.AsEnumerable();
-
                     embed = embed
                         .WithTitle("The campaign is over!")
                         .AddField("Approval Rate", fullCampaign.GetApprovalPercentage().ToString("p"), true);
@@ -106,14 +104,10 @@ namespace Modix.Behaviors
                         case PromotionCampaignOutcome.Accepted:
                             embed = embed
                                 .WithDescription($"Staff accepted the campaign, and {boldName} was promoted to {boldRole}! 🎉");
-
-                            comments = comments.Where(d => d.Sentiment == PromotionSentiment.Approve);
                             break;
                         case PromotionCampaignOutcome.Rejected:
                             embed = embed
                                 .WithDescription($"Staff rejected the campaign to promote {boldName} to {boldRole}");
-
-                            comments = comments.Where(d => d.Sentiment == PromotionSentiment.Oppose);
                             break;
                         case PromotionCampaignOutcome.Failed:
                         default:
@@ -121,12 +115,6 @@ namespace Modix.Behaviors
                                 .WithDescription("There was an issue while accepting or denying the campaign. Ask staff for details.")
                                 .AddField("Target Role", MentionUtils.MentionRole(targetCampaign.TargetRole.Id), true);
                             break;
-                    }
-
-                    foreach (var comment in comments.Take(5))
-                    {
-                        var commentSymbol = targetCampaign.Outcome == PromotionCampaignOutcome.Accepted ? "👍" : "👎";
-                        embed = embed.AddField($"Comment posted {comment.CreateAction.Created.ToString("g")}", $"{commentSymbol} {comment.Content}", true);
                     }
 
                     break;
