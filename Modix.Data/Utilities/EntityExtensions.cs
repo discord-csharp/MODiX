@@ -22,9 +22,9 @@ namespace Modix.Data.Utilities
                 .Select(x => x.Value)
                 .Sum();
 
-            var totalVotes = GetTotalVotes(campaign);
+            double totalVotes = GetTotalVotes(campaign);
 
-            return (float)totalApprovals / totalVotes;
+            return totalApprovals / totalVotes;
         }
     }
 }
