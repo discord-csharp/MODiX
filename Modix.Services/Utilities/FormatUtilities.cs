@@ -1,8 +1,13 @@
 ﻿using Discord;
+
 using Humanizer;
+
 using Modix.Data.Models.Moderation;
 using Modix.Services.AutoCodePaste;
+
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -113,5 +118,59 @@ namespace Modix.Services.Utilities
         public static string Sanitize(string text)
             => text.Replace("@everyone", "@\x200beveryone")
                    .Replace("@here", "@\x200bhere");
+
+        /// <summary>
+        /// Identifies a dominant color from the provided image.
+        /// </summary>
+        /// <param name="image">The image for which the dominant color is to be retrieved.</param>
+        /// <returns>A dominant color in the provided image.</returns>
+        public static Color GetDominantColor(Image image)
+        {
+            if (image.Stream is null)
+                return new Color(253, 95, 0);
+
+            var imageBytes = new byte[image.Stream.Length].AsSpan();
+            image.Stream.Seek(0, SeekOrigin.Begin);
+            image.Stream.Read(imageBytes);
+
+            var colorCounts = new Dictionary<System.Drawing.Color, int>();
+
+            using (var img = SixLabors.ImageSharp.Image.Load(imageBytes))
+            {
+                for (var x = 0; x < img.Width; x++)
+                {
+                    for (var y = 0; y < img.Height; y++)
+                    {
+                        const int bitsToStrip = 4;
+
+                        var pixel = img[x, y];
+
+                        var a = (byte)((pixel.A >> bitsToStrip) << bitsToStrip);
+                        var r = (byte)((pixel.R >> bitsToStrip) << bitsToStrip);
+                        var g = (byte)((pixel.G >> bitsToStrip) << bitsToStrip);
+                        var b = (byte)((pixel.B >> bitsToStrip) << bitsToStrip);
+
+                        // Don't include transparent pixels.
+                        if (a > 127)
+                        {
+                            var color = System.Drawing.Color.FromArgb(a, r, g, b);
+
+                            if (colorCounts.TryGetValue(color, out var count))
+                            {
+                                colorCounts[color] = count + 1;
+                            }
+                            else
+                            {
+                                colorCounts[color] = 1;
+                            }
+                        }
+                    }
+                }
+            }
+
+            var mostCommonColor = colorCounts.OrderByDescending(x => x.Value).FirstOrDefault().Key;
+
+            return (Color)mostCommonColor;
+        }
     }
 }
