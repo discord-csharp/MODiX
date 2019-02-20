@@ -18,6 +18,10 @@
         /// </summary>
         PromotionLog,
         /// <summary>
+        /// Defines a channel to send promotion campaign creation/closing notifications.
+        /// </summary>
+        PromotionNotifications,
+        /// <summary>
         /// Defines a channel that is not subject to auto-moderation behaviors of the moderation feature.
         /// </summary>
         Unmoderated

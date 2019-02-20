@@ -93,10 +93,11 @@ namespace Modix.Modules
         private static readonly Dictionary<DesignatedChannelType, string> _designatedChannelTypeRenderings
             = new Dictionary<DesignatedChannelType, string>()
             {
-                { DesignatedChannelType.MessageLog,    "Message Log" },
-                { DesignatedChannelType.ModerationLog, "Moderation Log" },
-                { DesignatedChannelType.PromotionLog,  "Promotion Log" },
-                { DesignatedChannelType.Unmoderated,   "Unmoderated" },
+                { DesignatedChannelType.MessageLog,             "Message Log" },
+                { DesignatedChannelType.ModerationLog,          "Moderation Log" },
+                { DesignatedChannelType.PromotionLog,           "Promotion Log" },
+                { DesignatedChannelType.PromotionNotifications, "Promotion Notifications" },
+                { DesignatedChannelType.Unmoderated,            "Unmoderated" },
             };
     }
 }

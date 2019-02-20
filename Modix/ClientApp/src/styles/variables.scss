@@ -90,6 +90,16 @@ a.is-disabled
     margin: 0;
 }
 
+.expander
+{
+    display: inline-block;
+    font-size: 12px;
+
+    vertical-align: top;
+    position: relative;
+    top: 10px;
+}
+
 @keyframes fadeIn
 {
     0%

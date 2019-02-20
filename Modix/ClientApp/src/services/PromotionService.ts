@@ -12,8 +12,8 @@ export default class PromotionService
     static async getCampaigns(): Promise<PromotionCampaign[]>
     {
         let response = (await client.get("campaigns")).data as PromotionCampaign[];
-        
-        _.forEach(response, campaign => 
+
+        _.forEach(response, campaign =>
         {
             if (campaign.createAction)
             {
@@ -28,7 +28,7 @@ export default class PromotionService
     {
         let response = (await client.get(`campaigns/${campaignId}`)).data as PromotionComment[];
 
-        _.forEach(response, comment => 
+        _.forEach(response, comment =>
         {
             if (comment.createAction)
             {
@@ -62,6 +62,11 @@ export default class PromotionService
     static async approveCampaign(campaign: PromotionCampaign): Promise<void>
     {
         await client.post(`campaigns/${campaign.id}/accept`);
+    }
+
+    static async forceApproveCampaign(campaign: PromotionCampaign): Promise<void>
+    {
+        await client.post(`campaigns/${campaign.id}/forceAccept`);
     }
 
     static async denyCampaign(campaign: PromotionCampaign): Promise<void>

@@ -28,7 +28,7 @@
 
             </div>
 
-            <div class="column is-narrow-tablet adminButtons" v-if="canClose">
+            <div class="column is-narrow-tablet adminButtons">
                 <a class="button is-primary is-small is-fullwidth" :class="{'is-loading': dialogLoading}"
                    :disabled="campaign.outcome == 'Accepted'" @click.stop="showPanel()">More…</a>
             </div>
@@ -61,11 +61,14 @@
             <small class="date">Campaign started <span class="has-text-weight-bold">{{formatDate(campaign.startDate)}}</span></small>
 
             <div class="commentList">
-                <PromotionCommentView v-for="(comment, index) in comments" :key="comment.promotionCampaignId" :comment="comment" :isCampaignClosed="campaign.closeAction"
+                <div v-if="forCurrentUser" class="commentNotification">
+                    Sorry, you aren't allowed to see comments on your own campaign.
+                </div>
+                <PromotionCommentView v-for="(comment, index) in comments" :key="comment.promotionCampaignId" :comment="comment" :hidden="!shouldShowEdit(campaign, comment)"
                                       :style="{'transition-delay': (index * 33) + 'ms'}" v-on:comment-edit-modal-opened="onCommentEditModalOpened"/>
             </div>
 
-            <div class="field has-addons" v-if="!campaign.closeAction">
+            <div class="field has-addons" v-if="!campaign.closeAction && !userAlreadyCommented(campaign) && !forCurrentUser">
                 <p class="control">
                     <span class="select">
                         <select v-model="newComment.sentiment">
@@ -105,12 +108,13 @@ import Role from '@/models/Role';
 import store from '@/app/Store';
 import PromotionCommentData from '@/models/promotions/PromotionCommentData';
 import PromotionService from '@/services/PromotionService';
+import ModixComponent from '@/components/ModixComponent.vue';
 
 
 @Component({
     components: {PromotionCommentView}
 })
-export default class PromotionListItem extends Vue
+export default class PromotionListItem extends ModixComponent
 {
     @Prop() private campaign!: PromotionCampaign;
     @Prop({default: false}) private dialogLoading!: boolean;
@@ -131,6 +135,11 @@ export default class PromotionListItem extends Vue
         return store.userHasClaims(["PromotionsCloseCampaign"]);
     }
 
+    get forCurrentUser()
+    {
+        return this.campaign.subject && this.state.user && this.campaign.subject.id.toString() == this.state.user.userId;
+    }
+
     @Watch('newComment.body')
     commentChanged()
     {
@@ -147,7 +156,11 @@ export default class PromotionListItem extends Vue
 
     async created()
     {
-        this.comments = await PromotionService.getComments(this.campaign.id);
+        if (!this.forCurrentUser)
+        {
+            this.comments = await PromotionService.getComments(this.campaign.id);
+        }
+
         this.resetNewComment();
     }
 
@@ -230,6 +243,16 @@ export default class PromotionListItem extends Vue
     onCommentEditModalOpened(comment: PromotionComment)
     {
         this.$emit('comment-edit-modal-opened', comment);
+    }
+
+    userAlreadyCommented()
+    {
+        return _.some(this.comments, comment => comment.isFromCurrentUser);
+    }
+
+    shouldShowEdit(campaign: PromotionCampaign, comment: PromotionComment): boolean
+    {
+        return campaign.closeAction == null;
     }
 }
 </script>

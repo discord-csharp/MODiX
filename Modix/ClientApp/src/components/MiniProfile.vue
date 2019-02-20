@@ -1,11 +1,16 @@
 <template>
     <div class="profile">
         <template v-if="user && user.userId">
-            <img class="avatar-icon" :src="user.avatarUrl">
+            <img class="avatar-icon" v-if="user.avatarHash" :src="user.avatarUrl">
 
             <v-popover>
                 <p class="title is-4">
-                    <span class="username">{{user.name}} <small>&#9660;</small></span>
+                    <span class="username">
+                        {{user.name}}
+                        <div class="expander">
+                            &#9660;
+                        </div>
+                    </span>
                 </p>
 
                 <template slot="popover">
@@ -36,7 +41,7 @@
                     <img class="dropdown-icon" :src="currentGuild.iconUrl">
 
                     <div class="expander">
-                        <template>&#9660;</template>
+                        &#9660;
                     </div>
 
                 </div>

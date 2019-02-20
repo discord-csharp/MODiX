@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Discord;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,6 +29,7 @@ namespace Modix.Controllers
 
         public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
+            if (!DiscordSocketClient.Guilds.Any()) { await next(); return; }
             if (HttpContext.User == null) { await next(); return; }
 
             //Parse the ID to look up socket user

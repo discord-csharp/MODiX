@@ -71,20 +71,27 @@
                     <section class="modal-card-body">
                         <h4 class="title is-size-4">Infractions</h4>
 
-                        <ol v-if="modalCampaignInfractions.length > 0">
-                            <li v-for="infraction in modalCampaignInfractions" :key="infraction.id" :value="infraction.id">
-                                <strong>{{infraction.createAction.createdBy.displayName}}</strong> gave a
-                                <strong>{{infraction.type}}</strong> on <strong>{{formatDate(infraction.createAction.created)}}</strong> for
-                                &quot;<strong>{{infraction.reason}}</strong>&quot;
-                            </li>
-                        </ol>
+                        <template v-if="canSeeInfractions">
+                            <ol v-if="modalCampaignInfractions.length > 0">
+                                <li v-for="infraction in modalCampaignInfractions" :key="infraction.id" :value="infraction.id">
+                                    <strong>{{infraction.createAction.createdBy.displayName}}</strong> gave a
+                                    <strong>{{infraction.type}}</strong> on <strong>{{formatDate(infraction.createAction.created)}}</strong> for
+                                    &quot;<strong>{{infraction.reason}}</strong>&quot;
+                                </li>
+                            </ol>
+                            <h6 v-else class="title is-size-6">No active infractions for this user</h6>
+                        </template>
+                        <h6 v-else>You can't see infractions because you're missing the ModerationRead claim.</h6>
 
-                        <h6 v-else class="title is-size-6">No active infractions for this user</h6>
 
                     </section>
-                    <footer class="modal-card-foot level">
+                    <footer class="modal-card-foot level" v-if="canCloseCampaign">
                         <div class="level-left">
                             <button class="button is-success" :class="{'is-loading': modifyLoading}" :disabled="modalCampaign.closeAction" @click="promote()">Accept</button>
+                            <label class="checkbox">
+                                <input type="checkbox" v-model="modalForceAccept">
+                                Force?
+                            </label>
                         </div>
                         <div class="level-right">
                             <button class="button is-danger" :class="{'is-loading': modifyLoading}" :disabled="modalCampaign.closeAction" @click="deny()">Reject</button>
@@ -187,6 +194,7 @@ import PromotionComment from '@/models/promotions/PromotionComment';
 import PromotionCommentEditModal from '@/components/Promotions/PromotionCommentEditModal.vue';
 
 import {formatDate} from '@/app/Util';
+import ModixComponent from '@/components/ModixComponent.vue';
 
 var Clipboard = require('clipboard');
 
@@ -199,13 +207,14 @@ var Clipboard = require('clipboard');
         PromotionCommentEditModal
     },
 })
-export default class Promotions extends Vue
+export default class Promotions extends ModixComponent
 {
     showInactive: boolean = false;
     showModal: boolean = false;
 
     modalCampaign: PromotionCampaign | null = null;
     modalCampaignInfractions: InfractionSummary[] = [];
+    modalForceAccept: boolean = false;
 
     currentlyLoadingInfractions: number | null = null;
     loading: boolean = false;
@@ -225,6 +234,16 @@ export default class Promotions extends Vue
         ], ['desc', 'desc']);
 
         return _.filter(ordered, campaign => (this.showInactive ? true : campaign.isActive));
+    }
+
+    get canSeeInfractions()
+    {
+        return store.userHasClaims(["ModerationRead"]);
+    }
+
+    get canCloseCampaign()
+    {
+        return store.userHasClaims(["PromotionsCloseCampaign"]);
     }
 
     @Watch('showInactive')
@@ -256,7 +275,13 @@ export default class Promotions extends Vue
         this.currentlyLoadingInfractions = campaign.id;
 
         this.modalCampaign = campaign;
-        this.modalCampaignInfractions = await GeneralService.getInfractionsForUser(this.modalCampaign.subject!.id);
+
+        if (this.state.user && store.userHasClaims(["ModerationRead"]))
+        {
+            this.modalCampaignInfractions = await GeneralService.getInfractionsForUser(this.modalCampaign.subject!.id);
+        }
+
+        this.modalForceAccept = false;
 
         this.toggleModal();
 
@@ -276,7 +301,14 @@ export default class Promotions extends Vue
 
         try
         {
-            await PromotionService.approveCampaign(this.modalCampaign);
+            if (this.modalForceAccept)
+            {
+                await PromotionService.forceApproveCampaign(this.modalCampaign);
+            }
+            else
+            {
+                await PromotionService.approveCampaign(this.modalCampaign);
+            }
         }
         catch (err)
         {

@@ -60,7 +60,7 @@ namespace Modix.Services.Promotions
         /// </summary>
         /// <param name="campaignId">The <see cref="PromotionCampaignEntity.Id"/> value fo the campaign to be accepted.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task AcceptCampaignAsync(long campaignId);
+        Task AcceptCampaignAsync(long campaignId, bool force);
 
         /// <summary>
         /// Closes a campaign, with an <see cref="PromotionCampaignEntity.Outcome"/> value of <see cref="PromotionCampaignOutcome.Rejected"/>,
@@ -121,6 +121,8 @@ namespace Modix.Services.Promotions
             PromotionCampaignRepository = promotionCampaignRepository;
             PromotionCommentRepository = promotionCommentRepository;
         }
+
+        private static readonly TimeSpan CampaignAcceptCooldown = TimeSpan.FromHours(48);
 
         /// <inheritdoc />
         public async Task CreateCampaignAsync(
@@ -189,26 +191,29 @@ namespace Modix.Services.Promotions
 
             ValidateComment(content);
 
+            if (await PromotionCommentRepository.AnyAsync(new PromotionCommentSearchCriteria()
+            {
+                CampaignId = campaignId,
+                CreatedById = AuthorizationService.CurrentUserId.Value,
+                IsModified = false
+            }))
+                throw new InvalidOperationException("Only one comment can be made per user, per campaign");
+
+            var campaign = await PromotionCampaignRepository.ReadDetailsAsync(campaignId);
+
+            if (campaign.Subject.Id == AuthorizationService.CurrentUserId)
+                throw new InvalidOperationException("You aren't allowed to comment on your own campaign");
+
+            if (!(campaign.CloseAction is null))
+                throw new InvalidOperationException($"Campaign {campaignId} has already been closed");
+
+            var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
+
+            if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value, campaign.TargetRole.Id))
+                throw new InvalidOperationException($"Commenting on a promotion campaign requires a rank at least as high as the proposed target rank");
+
             using (var transaction = await PromotionCommentRepository.BeginCreateTransactionAsync())
             {
-                if (await PromotionCommentRepository.AnyAsync(new PromotionCommentSearchCriteria()
-                {
-                    CampaignId = campaignId,
-                    CreatedById = AuthorizationService.CurrentUserId.Value,
-                    IsModified = false
-                }))
-                    throw new InvalidOperationException("Only one comment can be made per user, per campaign");
-
-                var campaign = await PromotionCampaignRepository.ReadDetailsAsync(campaignId);
-
-                if (!(campaign.CloseAction is null))
-                    throw new InvalidOperationException($"Campaign {campaignId} has already been closed");
-
-                var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
-
-                if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value, campaign.TargetRole.Id))
-                    throw new InvalidOperationException($"Commenting on a promotion campaign requires a rank at least as high as the proposed target rank");
-
                 await PromotionCommentRepository.CreateAsync(new PromotionCommentCreationData()
                 {
                     GuildId = campaign.GuildId,
@@ -250,7 +255,7 @@ namespace Modix.Services.Promotions
         }
 
         /// <inheritdoc />
-        public async Task AcceptCampaignAsync(long campaignId)
+        public async Task AcceptCampaignAsync(long campaignId, bool force)
         {
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsCloseCampaign);
@@ -266,8 +271,8 @@ namespace Modix.Services.Promotions
 
                 var timeSince = DateTime.UtcNow - campaign.CreateAction.Created;
 
-                if (timeSince < TimeSpan.FromHours(48))
-                    throw new InvalidOperationException($"Campaign {campaignId} cannot be accepted until 48 hours after its creation ({48 - timeSince.TotalHours:#.##} hrs remain)");
+                if (timeSince < CampaignAcceptCooldown && !force)
+                    throw new InvalidOperationException($"Campaign {campaignId} cannot be accepted until {CampaignAcceptCooldown.TotalHours} hours after its creation ({(CampaignAcceptCooldown - timeSince).TotalHours:#.##} hrs remain)");
 
                 try
                 {
@@ -327,7 +332,14 @@ namespace Modix.Services.Promotions
         {
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsRead);
 
-            return await PromotionCampaignRepository.ReadDetailsAsync(campaignId);
+            var result = await PromotionCampaignRepository.ReadDetailsAsync(campaignId);
+
+            if (result.Subject.Id == AuthorizationService.CurrentUserId)
+            {
+                throw new InvalidOperationException("You can't view comments on your own campaign.");
+            }
+
+            return result;
         }
 
         /// <inheritdoc />

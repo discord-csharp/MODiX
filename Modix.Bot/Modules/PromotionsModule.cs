@@ -7,6 +7,7 @@ using Discord.Commands;
 
 using Modix.Bot.Extensions;
 using Modix.Data.Models.Promotions;
+using Modix.Data.Utilities;
 using Modix.Services.Promotions;
 
 namespace Modix.Modules
@@ -44,23 +45,16 @@ namespace Modix.Modules
 
             foreach (var campaign in campaigns)
             {
-                var totalVotes = campaign.CommentCounts
-                    .Select(x => x.Value)
-                    .Sum();
-                var totalApprovals = campaign.CommentCounts
-                    .Where(x => x.Key == PromotionSentiment.Approve)
-                    .Select(x => x.Value)
-                    .Sum();
-                var approvalPercentage = Math.Round((float)totalApprovals / totalVotes * 100);
-
                 var idLabel = $"#{campaign.Id}";
-                var votesLabel = (totalVotes == 1) ? "Vote" : "Votes";
-                var approvalLabel = Format.Italics($"{approvalPercentage}% approval");
+                var votesLabel = (campaign.GetTotalVotes() == 1) ? "Vote" : "Votes";
+
+                var percentage = Math.Round(campaign.GetApprovalPercentage() * 100);
+                var approvalLabel = Format.Italics($"{percentage}% approval");
 
                 embed.AddField(new EmbedFieldBuilder()
                 {
                     Name = $"{Format.Bold(idLabel)}: For {Format.Bold(campaign.Subject.DisplayName)} to {Format.Bold(campaign.TargetRole.Name)}",
-                    Value = $"{totalVotes} {votesLabel} ({approvalLabel})",
+                    Value = $"{campaign.GetTotalVotes()} {votesLabel} ({approvalLabel})",
                     IsInline = false
                 });
             }
@@ -133,8 +127,10 @@ namespace Modix.Modules
         [Summary("Accept an ongoing campaign to promote a user, and perform the promotion.")]
         public Task Accept(
             [Summary("The ID value of the campaign to be accepted.")]
-                long campaignId)
-            => PromotionsService.AcceptCampaignAsync(campaignId);
+                long campaignId,
+            [Summary("Whether to bypass the time restriction on campaign acceptance")]
+                bool force = false)
+            => PromotionsService.AcceptCampaignAsync(campaignId, force);
 
         [Command("reject")]
         [Summary("Reject an ongoing campaign to promote a user.")]

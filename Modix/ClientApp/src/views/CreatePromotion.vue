@@ -123,7 +123,11 @@ export default class CreatePromotion extends Vue
     async userChanged()
     {
         this.creationData.userId = this.selectedUser.userId;
-        this.selectedRole = await PromotionService.getNextRankRoleForUser(this.selectedUser.userId);
+
+        if (this.selectedUser && this.selectedUser.userId)
+        {
+            this.selectedRole = await PromotionService.getNextRankRoleForUser(this.selectedUser.userId);
+        }
     }
 
     @Watch('selectedRole')

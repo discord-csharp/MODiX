@@ -19,6 +19,8 @@
     align-items: center;
     align-content: stretch;
 
+    overflow: hidden;
+
     &:first-child
     {
         border-radius: 0 1em 0 0;
@@ -75,4 +77,12 @@
 .own
 {
     background: lighten($primary, 50%);
+}
+
+.edit
+{
+    position: absolute;
+    right: 0px;
+
+    padding: 2em;
 }

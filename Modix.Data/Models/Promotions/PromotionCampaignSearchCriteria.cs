@@ -12,6 +12,11 @@ namespace Modix.Data.Models.Promotions
     public class PromotionCampaignSearchCriteria
     {
         /// <summary>
+        /// A <see cref="PromotionCampaignEntity.Id"/> value, defining the <see cref="PromotionCampaignEntity"/> entities to be returned.
+        /// </summary>
+        public long? Id { get; set; }
+
+        /// <summary>
         /// A <see cref="PromotionCampaignEntity.GuildId"/> value, defining the <see cref="PromotionCampaignEntity"/> entities to be returned.
         /// </summary>
         public ulong? GuildId { get; set; }
@@ -73,6 +78,9 @@ namespace Modix.Data.Models.Promotions
                 return query;
 
             return query
+                .FilterBy(
+                    x => x.Id == criteria.Id,
+                    !(criteria.Id is null))
                 .FilterBy(
                     x => x.GuildId == criteria.GuildId,
                     !(criteria.GuildId is null))

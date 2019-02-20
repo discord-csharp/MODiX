@@ -33,6 +33,8 @@ namespace Modix.Controllers
         {
             var result = await _promotionsService.GetCampaignDetailsAsync(campaignId);
 
+            if (result == null) { return NotFound(); }
+
             //TODO: Map this properly
             return Ok(result.Comments.Select(c => new
             {
@@ -59,9 +61,12 @@ namespace Modix.Controllers
         [HttpPut("{campaignId}/comments")]
         public async Task<IActionResult> AddComment(int campaignId, [FromBody] PromotionCommentData commentData)
         {
-            var campaign = await _promotionsService.GetCampaignDetailsAsync(campaignId);
+            var campaigns = await _promotionsService.SearchCampaignsAsync(new PromotionCampaignSearchCriteria
+            {
+                Id = campaignId
+            });
 
-            if (campaign == null)
+            if (!campaigns.Any())
             {
                 return BadRequest($"Invalid campaign ID specified ({campaignId})");
             }
@@ -98,7 +103,22 @@ namespace Modix.Controllers
         {
             try
             {
-                await _promotionsService.AcceptCampaignAsync(campaignId);
+                await _promotionsService.AcceptCampaignAsync(campaignId, false);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
+            return Ok();
+        }
+
+        [HttpPost("{campaignId}/forceAccept")]
+        public async Task<IActionResult> ForceAcceptCampaign(int campaignId)
+        {
+            try
+            {
+                await _promotionsService.AcceptCampaignAsync(campaignId, true);
             }
             catch (InvalidOperationException ex)
             {
