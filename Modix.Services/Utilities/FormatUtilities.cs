@@ -4,7 +4,7 @@ using Humanizer;
 
 using Modix.Data.Models.Moderation;
 using Modix.Services.AutoCodePaste;
-
+using Modix.Services.Utilities.ColorQuantization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -133,7 +133,7 @@ namespace Modix.Services.Utilities
             image.Stream.Seek(0, SeekOrigin.Begin);
             image.Stream.Read(imageBytes);
 
-            var colorCounts = new Dictionary<System.Drawing.Color, int>();
+            var colorTree = new Octree();
 
             using (var img = SixLabors.ImageSharp.Image.Load(imageBytes))
             {
@@ -141,36 +141,27 @@ namespace Modix.Services.Utilities
                 {
                     for (var y = 0; y < img.Height; y++)
                     {
-                        const int bitsToStrip = 4;
-
                         var pixel = img[x, y];
 
-                        var a = (byte)((pixel.A >> bitsToStrip) << bitsToStrip);
-                        var r = (byte)((pixel.R >> bitsToStrip) << bitsToStrip);
-                        var g = (byte)((pixel.G >> bitsToStrip) << bitsToStrip);
-                        var b = (byte)((pixel.B >> bitsToStrip) << bitsToStrip);
-
                         // Don't include transparent pixels.
-                        if (a > 127)
+                        if (pixel.A > 127)
                         {
-                            var color = System.Drawing.Color.FromArgb(a, r, g, b);
+                            var color = System.Drawing.Color.FromArgb(pixel.A, pixel.R, pixel.G, pixel.B);
 
-                            if (colorCounts.TryGetValue(color, out var count))
-                            {
-                                colorCounts[color] = count + 1;
-                            }
-                            else
-                            {
-                                colorCounts[color] = 1;
-                            }
+                            colorTree.Add(color);
                         }
                     }
                 }
             }
 
-            var mostCommonColor = colorCounts.OrderByDescending(x => x.Value).FirstOrDefault().Key;
+            for (var i = 0; i < 7; i++)
+            {
+                colorTree.Reduce();
+            }
 
-            return (Color)mostCommonColor;
+            var mostCommonPaletteColor = colorTree.GetPalette().OrderByDescending(x => x.Weight * x.Color.GetSaturation()).FirstOrDefault().Color;
+
+            return (Color)mostCommonPaletteColor;
         }
     }
 }
