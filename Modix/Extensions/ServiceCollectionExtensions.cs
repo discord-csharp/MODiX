@@ -12,6 +12,7 @@ using Modix.Data.Repositories;
 using Modix.Services;
 using Modix.Services.Adapters;
 using Modix.Services.AutoCodePaste;
+using Modix.Services.AutoRemoveMessage;
 using Modix.Services.BehaviourConfiguration;
 using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
@@ -20,6 +21,7 @@ using Modix.Services.DocsMaster;
 using Modix.Services.GuildStats;
 using Modix.Services.Mentions;
 using Modix.Services.Moderation;
+using Modix.Services.NotificationDispatch;
 using Modix.Services.PopularityContest;
 using Modix.Services.Promotions;
 using Modix.Services.Quote;
@@ -75,7 +77,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddCommandHelp()
                 .AddGuildStats()
                 .AddMentions()
-                .AddModixTags();
+                .AddModixTags()
+                .AddNotificationDispatch()
+                .AddAutoRemoveMessage();
 
             services.AddSingleton<IBehavior, DiscordAdapter>();
             services.AddScoped<IQuoteService, QuoteService>();
