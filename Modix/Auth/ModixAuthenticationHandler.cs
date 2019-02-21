@@ -9,19 +9,25 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Modix.Data.Models.Core;
 using Modix.Models;
 
 namespace Modix.Auth
 {
     public class ModixAuthenticationHandler : DiscordAuthenticationHandler
     {
-        private DiscordSocketClient _client;
+        private readonly DiscordSocketClient _client;
+        private readonly IOptions<ModixConfig> _config;
 
         public ModixAuthenticationHandler(IOptionsMonitor<DiscordAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock,
-            DiscordSocketClient client)
+            DiscordSocketClient client, IOptions<ModixConfig> config)
             : base(options, logger, encoder, clock)
         {
             _client = client;
+            _config = config;
+
+            options.CurrentValue.ClientId = config.Value.DiscordClientId;
+            options.CurrentValue.ClientSecret = config.Value.DiscordClientSecret;
         }
 
         protected override async Task<AuthenticationTicket> CreateTicketAsync(ClaimsIdentity identity, AuthenticationProperties properties, OAuthTokenResponse tokens)

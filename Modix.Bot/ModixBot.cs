@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Modix.Data;
 using Modix.Data.Models.Core;
 using Modix.Services;
@@ -35,7 +36,7 @@ namespace Modix
         public ModixBot(
             DiscordSocketClient discordClient,
             DiscordRestClient restClient,
-            ModixConfig modixConfig,
+            IOptions<ModixConfig> modixConfig,
             CommandService commandService,
             DiscordSerilogAdapter serilogAdapter,
             IApplicationLifetime applicationLifetime,
@@ -44,7 +45,7 @@ namespace Modix
         {
             _client = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
-            _config = modixConfig ?? throw new ArgumentNullException(nameof(modixConfig));
+            _config = modixConfig?.Value ?? throw new ArgumentNullException(nameof(modixConfig));
             _commands = commandService ?? throw new ArgumentNullException(nameof(commandService));
             _provider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _serilogAdapter = serilogAdapter ?? throw new ArgumentNullException(nameof(serilogAdapter));

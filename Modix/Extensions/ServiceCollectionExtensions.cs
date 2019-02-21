@@ -7,6 +7,7 @@ using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 using MediatR;
+using Microsoft.Extensions.Options;
 using Modix;
 using Modix.Behaviors;
 using Modix.Data.Messages;
@@ -66,7 +67,10 @@ namespace Microsoft.Extensions.DependencyInjection
                 provider => new DiscordSocketClient(config: new DiscordSocketConfig
                 {
                     LogLevel = LogSeverity.Debug,
-                    MessageCacheSize = provider.GetRequiredService<ModixConfig>().MessageCacheSize //needed to log deletions
+                    MessageCacheSize = provider
+                        .GetRequiredService<IOptions<ModixConfig>>()
+                        .Value
+                        .MessageCacheSize //needed to log deletions
                 }));
 
             services.AddSingleton<IDiscordClient>(provider => provider.GetRequiredService<DiscordSocketClient>());

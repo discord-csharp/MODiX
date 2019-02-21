@@ -10,6 +10,9 @@ using Modix.Services.AutoCodePaste;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.Utilities;
 using Serilog;
+using Microsoft.Extensions.Options;
+using Modix.Data.Models.Core;
+using System.Net.Http.Headers;
 
 namespace Modix.Modules
 {
@@ -18,19 +21,20 @@ namespace Modix.Modules
     {
         private const string ReplRemoteUrl = "http://csdiscord-repl-service:31337/Il";
         private readonly CodePasteService _pasteService;
-
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
-
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly ModixConfig _config;
 
         public IlModule(
             CodePasteService pasteService,
             IAutoRemoveMessageService autoRemoveMessageService,
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory,
+            IOptions<ModixConfig> config)
         {
             _pasteService = pasteService;
             _autoRemoveMessageService = autoRemoveMessageService;
             _httpClientFactory = httpClientFactory;
+            _config = config.Value;
         }
 
         [Command("il", RunMode = RunMode.Sync), Summary("Compile & return the resulting IL of C# code")]
@@ -60,7 +64,14 @@ namespace Modix.Modules
 
                 using (var tokenSrc = new CancellationTokenSource(30000))
                 {
-                    res = await client.PostAsync(ReplRemoteUrl, content, tokenSrc.Token);
+                    var req = new HttpRequestMessage(HttpMethod.Post, ReplRemoteUrl)
+                    {
+                        Content = content
+                    };
+
+                    req.Headers.Authorization = new AuthenticationHeaderValue("Token", _config.ReplToken);
+
+                    res = await client.SendAsync(req);
                 }
             }
             catch (TaskCanceledException)

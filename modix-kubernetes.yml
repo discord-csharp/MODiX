@@ -353,34 +353,34 @@ spec:
     spec:
       containers:
       - env:
-        - name: DiscordToken
+        - name: MODIX_DiscordToken
           valueFrom:
             secretKeyRef:
               key: discord-bot-token
               name: modix
-        - name: DiscordClientId
+        - name: MODIX_DiscordClientId
           valueFrom:
             secretKeyRef:
               key: discord-client-id
               name: modix
-        - name: DiscordClientSecret
+        - name: MODIX_DiscordClientSecret
           valueFrom:
             secretKeyRef:
               key: discord-client-secret
               name: modix
-        - name: StackoverflowToken
+        - name: MODIX_StackoverflowToken
           valueFrom:
             secretKeyRef:
               key: stackoverflow-token
               name: modix
-        - name: MODIX_DB_CONNECTION
+        - name: MODIX_DbConnection
           valueFrom:
             secretKeyRef:
               key: modix-db-connection
               name: modix
-        - name: log_webhook_id
+        - name: MODIX_LogWebhookId
           value: "382609729802862592"
-        - name: log_webhook_token
+        - name: MODIX_LogWebhookToken
           valueFrom:
             secretKeyRef:
               key: log-webhook-token

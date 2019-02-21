@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.Options;
+using Modix.Data.Models.Core;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.Utilities;
@@ -45,6 +47,8 @@ namespace Modix.Modules
             _pasteService = pasteService;
             _autoRemoveMessageService = autoRemoveMessageService;
             _httpClientFactory = httpClientFactory;
+            _pasteService = pasteService;
+
         }
 
         [Command("exec", RunMode = RunMode.Sync), Alias("eval"), Summary("Executes the given C# code and returns the result")]
@@ -72,7 +76,11 @@ namespace Modix.Modules
             {
                 var client = _httpClientFactory.CreateClient("ReplClient");
                 var tokenSrc = new CancellationTokenSource(30000);
-                res = await client.PostAsync(ReplRemoteUrl, content, tokenSrc.Token);
+                var req = new HttpRequestMessage(HttpMethod.Post, ReplRemoteUrl)
+                {
+                    Content = content
+                };
+                res = await _httpClientFactory.CreateClient().SendAsync(req, tokenSrc.Token);
             }
             catch (TaskCanceledException)
             {

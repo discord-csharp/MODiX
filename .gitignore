@@ -261,3 +261,4 @@ Modix/config
 /Modix/Properties/launchSettings.json
 
 *.DotSettings
+Modix/developmentSettings\.json

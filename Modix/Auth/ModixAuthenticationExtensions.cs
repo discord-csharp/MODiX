@@ -4,20 +4,18 @@ using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Modix.Data.Models.Core;
 
 namespace Modix.Auth
 {
     public static class ModixAuthenticationExtensions
     {
-        public static AuthenticationBuilder AddModix(this AuthenticationBuilder builder, ModixConfig config)
+        public static AuthenticationBuilder AddModixAuth(this AuthenticationBuilder builder)
         {
             return builder.AddOAuth<DiscordAuthenticationOptions, ModixAuthenticationHandler>(DiscordAuthenticationDefaults.AuthenticationScheme, options =>
             {
                 options.ClaimActions.MapJsonKey(claimType: "avatarHash", jsonKey: "avatar");
-
-                options.ClientId = config.DiscordClientId;
-                options.ClientSecret = config.DiscordClientSecret;
                 options.Scope.Add("identify");
                 //options.Scope.Add("guilds");
 

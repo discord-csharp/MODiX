@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Modix.Auth;
@@ -23,18 +24,19 @@ namespace Modix
 {
     public class Startup
     {
-        public Startup(ModixConfig configuration)
+        private readonly IConfiguration _configuration;
+
+        public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
-
-            Log.Information("Startup complete");
+            _configuration = configuration;
+            Log.Information("Configuration loaded. ASP.NET Startup is a go.");
         }
-
-        public ModixConfig Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<ModixConfig>(_configuration);
+
             services.AddDataProtection()
                 .PersistKeysToFileSystem(new DirectoryInfo(@"dataprotection"));
 
@@ -46,16 +48,17 @@ namespace Modix
                     options.ExpireTimeSpan = new TimeSpan(7, 0, 0, 0);
 
                 })
-                .AddModix(Configuration);
+                .AddModixAuth();
 
             services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
             services.AddResponseCompression();
 
             services.AddTransient<IConfigureOptions<StaticFileOptions>, StaticFilesConfiguration>();
+            services.AddTransient<IStartupFilter, ModixConfigValidator>();
 
             services.AddDbContext<ModixContext>(options =>
             {
-                options.UseNpgsql(Configuration.PostgreConnectionString);
+                options.UseNpgsql(_configuration.GetValue<string>("DbConnection"));
             });
 
             services.AddModix();
