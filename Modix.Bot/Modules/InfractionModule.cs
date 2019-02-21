@@ -43,7 +43,11 @@ namespace Modix.Modules
                 },
                 new[]
                 {
-                    new SortingCriteria { PropertyName = "CreateAction.Created", Direction = SortDirection.Descending }
+                    new SortingCriteria()
+                    {
+                        PropertyName = nameof(InfractionSummary.CreateAction.Created),
+                        Direction = SortDirection.Descending,
+                    },
                 });
 
             if (infractions.Count == 0)
