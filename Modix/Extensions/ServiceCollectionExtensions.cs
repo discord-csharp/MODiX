@@ -23,6 +23,7 @@ using Modix.Services.Moderation;
 using Modix.Services.PopularityContest;
 using Modix.Services.Promotions;
 using Modix.Services.Quote;
+using Modix.Services.Starboard;
 using Modix.Services.Tags;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -75,7 +76,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddCommandHelp()
                 .AddGuildStats()
                 .AddMentions()
-                .AddModixTags();
+                .AddModixTags()
+                .AddStarboard();
 
             services.AddSingleton<IBehavior, DiscordAdapter>();
             services.AddScoped<IQuoteService, QuoteService>();
