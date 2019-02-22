@@ -1,7 +1,7 @@
 ﻿namespace Modix.Data.Models.Core
 {
     /// <summary>
-    /// Defines the possible types designations that may be assigned to roles.
+    /// Defines the possible types designations that may be assigned to channels.
     /// </summary>
     public enum DesignatedChannelType
     {
