@@ -114,11 +114,12 @@ namespace Modix.Modules
             var consoleOut = parsedResult.ConsoleOut;
 
             var embed = new EmbedBuilder()
-               .WithTitle("Eval Result")
-               .WithDescription(string.IsNullOrEmpty(parsedResult.Exception) ? "Successful" : "Failed")
-               .WithColor(string.IsNullOrEmpty(parsedResult.Exception) ? new Color(0, 255, 0) : new Color(255, 0, 0))
-               .WithAuthor(a => a.WithIconUrl(Context.User.GetAvatarUrl()).WithName(guildUser?.Nickname ?? Context.User.Username))
-               .WithFooter(a => a.WithText($"Compile: {parsedResult.CompileTime.TotalMilliseconds:F}ms | Execution: {parsedResult.ExecutionTime.TotalMilliseconds:F}ms"));
+                .WithTitle("Eval Result")
+                .WithDescription(string.IsNullOrEmpty(parsedResult.Exception) ? "Successful" : "Failed")
+                .WithColor(string.IsNullOrEmpty(parsedResult.Exception) ? new Color(0, 255, 0) : new Color(255, 0, 0))
+                .WithAuthor(a => a.WithIconUrl(Context.User.GetAvatarUrl()).WithName(guildUser?.Nickname ?? Context.User.Username))
+                .WithFooter(a => a.WithText($"Compile: {parsedResult.CompileTime.TotalMilliseconds:F}ms | Execution: {parsedResult.ExecutionTime.TotalMilliseconds:F}ms"
+                    + " | React with ❌ to remove this embed."));
 
             embed.AddField(a => a.WithName("Code").WithValue(Format.Code(parsedResult.Code, "cs")));
 
