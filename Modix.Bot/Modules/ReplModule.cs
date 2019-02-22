@@ -3,6 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Modix.Data.Models.Core;
 using Modix.Services.AutoCodePaste;
+using Modix.Services.AutoRemoveMessage;
 using Modix.Services.Utilities;
 using Newtonsoft.Json;
 using Serilog;
@@ -34,11 +35,17 @@ namespace Modix.Modules
         private const string ReplRemoteUrl = "http://csdiscord-repl-service:31337/Eval";
         private readonly CodePasteService _pasteService;
 
+        private readonly IAutoRemoveMessageService _autoRemoveMessageService;
+
         private static readonly HttpClient _client = new HttpClient();
 
-        public ReplModule(ModixConfig config, CodePasteService pasteService)
+        public ReplModule(
+            ModixConfig config,
+            CodePasteService pasteService,
+            IAutoRemoveMessageService autoRemoveMessageService)
         {
             _pasteService = pasteService;
+            _autoRemoveMessageService = autoRemoveMessageService;
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", config.ReplToken);
         }
 
@@ -97,6 +104,8 @@ namespace Modix.Modules
             });
 
             await Context.Message.DeleteAsync();
+
+            await _autoRemoveMessageService.RegisterRemovableMessageAsync(message, Context.User);
         }
 
         private async Task<EmbedBuilder> BuildEmbed(SocketGuildUser guildUser, Result parsedResult)
