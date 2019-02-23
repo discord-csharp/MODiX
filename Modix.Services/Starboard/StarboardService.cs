@@ -29,18 +29,16 @@ namespace Modix.Services.Starboard
         //TODO: Function: => Update starred message in designated starboard channel
 
 
-        public Task<bool> IsStarReaction(SocketReaction reaction)
-            => Task.FromResult(reaction.Emote.Name == ReactionEmote);
+        public bool IsStarReaction(SocketReaction reaction)
+            => reaction.Emote.Name == ReactionEmote;
 
-        public Task<int> GetReactionCount(IUserMessage message, ReactionAdded reaction)
-            => Task.FromResult(message.Reactions[reaction.Reaction.Emote].ReactionCount);
+        public int GetReactionCount(IUserMessage message, ReactionAdded reaction)
+            => message.Reactions[reaction.Reaction.Emote].ReactionCount;
 
-        public async Task<bool> IsAboveReactionThreshold(IUserMessage message, ReactionAdded reaction)
-        {
-            return await GetReactionCount(message, reaction) >= 2;
-        }
+        public bool IsAboveReactionThreshold(IUserMessage message, ReactionAdded reaction)
+            => GetReactionCount(message, reaction) >= 2;
 
-        public Task<string> BuildQuoteUrl(IGuildChannel channel, IMessage message)
-            => Task.FromResult(string.Join("/", _baseQuoteUrl, channel.Guild.Id, channel.Id, message.Author.Id));
+        public string BuildQuoteUrl(IGuildChannel channel, IMessage message)
+            => string.Join("/", _baseQuoteUrl, channel.Guild.Id, channel.Id, message.Author.Id);
     }
 }
