@@ -1,44 +1,64 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Modix.Services.Core;
-using Modix.Services.Messages.Discord;
+using Modix.Data.Models.Core;
 
 namespace Modix.Services.Starboard
 {
     public class StarboardService
     {
-        private const string _baseQuoteUrl = "https://discordapp.com/channels";
-        public string ReactionEmote { get; } = "⭐";
-        public string GreaterEmote { get; } = "🌟";
+        private const string _baseContextUrl = "https://discordapp.com/channels";
 
-        private IDiscordClient _discordClient;
+        //TODO: Dictionary<Emoji, int>
+        public string GoodEmote { get; } = "⭐";
+        public string GreatEmote { get; } = "🌟";
+        public string GreaterEmote { get; } = "💫";
+        public string GreatestEmote { get; } = "✨";
 
-        public StarboardService(IDiscordClient discordClient, IDesignatedChannelService designatedChannelService)
+        private IDesignatedChannelService _designatedChannelService;
+
+        public StarboardService(IDesignatedChannelService designatedChannelService)
         {
-            _discordClient = discordClient;
+            _designatedChannelService = designatedChannelService;
         }
 
-        //TODO: Function<bool>: => Starred message exists in designated starboard channel
+        public async Task<IUserMessage> GetFromStarboard(IGuildChannel channel, IMessage message)
+        {
+            var starboardChannels = await _designatedChannelService
+                .GetDesignatedChannelsAsync(channel.Guild, DesignatedChannelType.Starboard);
 
-        //TODO: Function: => Delete starred message in designated starboard channel
+            var starMessages = await starboardChannels
+                .First()
+                .GetMessagesAsync()
+                .FlattenAsync();
 
-        //TODO: Function: => Update starred message in designated starboard channel
+            return starMessages
+                .Cast<IUserMessage>()
+                .FirstOrDefault(x => x.Content.EndsWith(message.Id.ToString()));
+        }
 
+        public async Task RemoveFromStarboard(IGuildChannel channel, IMessage message)
+        {
+            var messageToRemove = await GetFromStarboard(channel, message);
+            await messageToRemove.DeleteAsync();
+        }
 
         public bool IsStarReaction(SocketReaction reaction)
-            => reaction.Emote.Name == ReactionEmote;
+            => reaction.Emote.Name == GoodEmote;
 
-        public int GetReactionCount(IUserMessage message, ReactionAdded reaction)
-            => message.Reactions[reaction.Reaction.Emote].ReactionCount;
+        public int GetReactionCount(IUserMessage message, IReaction reaction)
+        {
+            if (!message.Reactions.TryGetValue(reaction.Emote, out var metadata))
+                return 0;
+            return message.Reactions[reaction.Emote].ReactionCount;
+        }
 
-        public bool IsAboveReactionThreshold(IUserMessage message, ReactionAdded reaction)
+        public bool IsAboveReactionThreshold(IUserMessage message, IReaction reaction)
             => GetReactionCount(message, reaction) >= 2;
 
-        public string BuildQuoteUrl(IGuildChannel channel, IMessage message)
-            => string.Join("/", _baseQuoteUrl, channel.Guild.Id, channel.Id, message.Author.Id);
+        public string BuildContextUrl(IGuildChannel channel, IMessage message)
+            => string.Join("/", _baseContextUrl, channel.Guild.Id, channel.Id, message.Author.Id);
     }
 }
