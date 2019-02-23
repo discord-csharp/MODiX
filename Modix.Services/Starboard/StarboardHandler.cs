@@ -15,6 +15,7 @@ namespace Modix.Services.Starboard
     {
         private readonly StarboardService _service;
         private readonly IDesignatedChannelService _designatedChannelService;
+        private const string _contentString = "**{0}** {1} ID: {2}";
 
         public StarboardHandler(StarboardService service, IDesignatedChannelService designatedChannelService)
         {
@@ -79,7 +80,7 @@ namespace Modix.Services.Starboard
         public string FormatContent(IUserMessage message, IReaction reaction)
         {
             var reactionCount = _service.GetReactionCount(message, reaction);
-            return $"**{reactionCount}** {GetStarEmote(reactionCount)} ID: {message.Id}";
+            return string.Format(_contentString, reactionCount, GetStarEmote(reactionCount), message.Id);
         }
 
         //TODO: Figure out where to put clickable link to original message
