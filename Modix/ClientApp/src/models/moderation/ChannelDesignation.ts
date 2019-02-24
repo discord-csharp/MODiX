@@ -4,5 +4,6 @@ export enum ChannelDesignation
     MessageLog = "MessageLog",
     PromotionLog = "PromotionLog",
     PromotionNotifications = "PromotionNotifications",
-    Unmoderated = "Unmoderated"
+    Unmoderated = "Unmoderated",
+    Starboard = "Starboard"
 }
