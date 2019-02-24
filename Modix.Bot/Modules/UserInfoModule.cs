@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Dapper;
 using Discord;
 using Discord.Commands;
 using Humanizer;
@@ -29,7 +31,7 @@ namespace Modix.Modules
 
         // TODO: Factor this out into a common botwide client.
         private static readonly HttpClient _httpClient = new HttpClient();
-
+        
         public UserInfoModule(ILogger<UserInfoModule> logger, IUserService userService, IModerationService moderationService, IAuthorizationService authorizationService, IMessageRepository messageRepository)
         {
             Log = logger ?? new NullLogger<UserInfoModule>();
@@ -180,6 +182,7 @@ namespace Modix.Modules
 
         private async Task AddParticipationToEmbedAsync(ulong userId, StringBuilder builder)
         {
+            var userRank = await MessageRepository.GetGuildUserParticipationStatistics(Context.Guild.Id, userId);
             var messagesByDate = await MessageRepository.GetGuildUserMessageCountByDate(Context.Guild.Id, userId, TimeSpan.FromDays(30));
 
             var lastWeek = _utcNow - TimeSpan.FromDays(7);
@@ -198,11 +201,22 @@ namespace Modix.Modules
 
             builder.AppendLine();
             builder.AppendLine("**\u276F Guild Participation**");
+
+            if (userRank?.Rank > 0)
+            {
+                builder.AppendFormat("Rank: {0} {1}\n", userRank.Rank.Ordinalize(), userRank.GetParticipationEmoji());
+            }
+
             builder.AppendLine("Last 7 days: " + weekTotal + " messages");
             builder.AppendLine("Last 30 days: " + monthTotal + " messages");
 
             if (monthTotal > 0)
             {
+                builder.AppendFormat(
+                    "Avg. per day: {0} messages (p{1})\n",
+                    decimal.Round(userRank.AveragePerDay, 3),
+                    userRank.Percentile);
+
                 try
                 {
                     var channels = await MessageRepository.GetGuildUserMessageCountByChannel(Context.Guild.Id, userId, TimeSpan.FromDays(30));
