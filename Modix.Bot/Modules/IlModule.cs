@@ -11,6 +11,7 @@ using Discord.WebSocket;
 using Serilog;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.Utilities;
+using Modix.Services.AutoRemoveMessage;
 
 namespace Modix.Modules
 {
@@ -20,11 +21,17 @@ namespace Modix.Modules
         private const string ReplRemoteUrl = "http://csdiscord-repl-service:31337/Il";
         private readonly CodePasteService _pasteService;
 
+        private readonly IAutoRemoveMessageService _autoRemoveMessageService;
+
         private static readonly HttpClient _client = new HttpClient();
 
-        public IlModule(ModixConfig config, CodePasteService pasteService)
+        public IlModule(
+            ModixConfig config,
+            CodePasteService pasteService,
+            IAutoRemoveMessageService autoRemoveMessageService)
         {
             _pasteService = pasteService;
+            _autoRemoveMessageService = autoRemoveMessageService;
             _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", config.ReplToken);
         }
 
@@ -83,6 +90,8 @@ namespace Modix.Modules
             });
 
             await Context.Message.DeleteAsync();
+
+            await _autoRemoveMessageService.RegisterRemovableMessageAsync(message, Context.User);
         }
 
         private async Task<EmbedBuilder> BuildEmbed(SocketGuildUser guildUser, string code, string result)
@@ -101,6 +110,8 @@ namespace Modix.Modules
                  .WithValue(Format.Code(result.TruncateTo(990), "asm")));
 
             await embed.UploadToServiceIfBiggerThan(result, "asm", 990, _pasteService);
+
+            embed.WithFooter("React with ❌ to remove this embed.");
 
             return embed;
         }
