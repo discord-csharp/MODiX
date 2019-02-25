@@ -118,7 +118,7 @@ namespace Modix.Services.Starboard
 
         /// <inheritdoc />
         public bool IsAboveReactionThreshold(IUserMessage message, IEmote emote)
-            => GetReactionCount(message, emote) >= 1;
+            => GetReactionCount(message, emote) >= 2;
 
         public string GetStarEmote(int reactionCount)
         {
