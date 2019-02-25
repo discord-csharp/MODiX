@@ -6,6 +6,7 @@ using Modix.Services.Messages.Discord;
 using Modix.Services.Core;
 using Modix.Data.Models.Core;
 using Discord.WebSocket;
+using Modix.Services.Quote;
 
 namespace Modix.Services.Starboard
 {
@@ -15,12 +16,14 @@ namespace Modix.Services.Starboard
     {
         private readonly StarboardService _service;
         private readonly IDesignatedChannelService _designatedChannelService;
-        private const string _contentString = "**{0}** {1} ID: {2}";
+        private readonly IQuoteService _quoteService;
+        private const string _contentString = "**{0}** {1}";
 
-        public StarboardHandler(StarboardService service, IDesignatedChannelService designatedChannelService)
+        public StarboardHandler(StarboardService service, IDesignatedChannelService designatedChannelService, IQuoteService quoteService)
         {
             _service = service;
             _designatedChannelService = designatedChannelService;
+            _quoteService = quoteService;
         }
 
         public Task Handle(ReactionAdded notification, CancellationToken cancellationToken)
@@ -31,13 +34,18 @@ namespace Modix.Services.Starboard
 
         private async Task HandleReaction(Cacheable<IUserMessage, ulong> cachedMessage, SocketReaction reaction)
         {
-            if (!_service.IsStarReaction(reaction))
+            var emote = reaction.Emote;
+            if (!_service.IsStarEmote(emote))
             {
                 return;
             }
 
             var message = await cachedMessage.GetOrDownloadAsync();
-            if (!(message.Channel is IGuildChannel channel))
+            if (!(message.Channel is IGuildChannel channel)
+                || await _designatedChannelService.ChannelHasDesignationAsync(
+                    channel.Guild,
+                    channel,
+                    DesignatedChannelType.Unmoderated))
             {
                 return;
             }
@@ -45,66 +53,57 @@ namespace Modix.Services.Starboard
             var starboardMessage = await _service.GetFromStarboard(channel, message);
             if (starboardMessage != default)
             {
-                var embed = GetStarEmbed(channel, message);
-                var quoteUrl = _service.BuildContextUrl(channel, message);
-
-                if (!_service.IsAboveReactionThreshold(message, reaction))
+                if (!_service.IsAboveReactionThreshold(message, emote))
                 {
                     await _service.RemoveFromStarboard(channel, message);
                 }
                 else
                 {
-                    await starboardMessage.ModifyAsync((messageProperties) =>
-                    {
-                        messageProperties.Embed = embed;
-                        messageProperties.Content = FormatContent(message, reaction);
-                    });
+                    await starboardMessage.ModifyAsync((messageProperties)
+                        => messageProperties.Content = FormatContent(message, emote));
                 }
             }
             else
             {
-                if (_service.IsAboveReactionThreshold(message, reaction))
+                if (_service.IsAboveReactionThreshold(message, emote))
                 {
-                    var embed = GetStarEmbed(channel, message);
-                    var quoteUrl = _service.BuildContextUrl(channel, message);
-
+                    var embed = GetStarEmbed(message);
                     await _designatedChannelService.SendToDesignatedChannelsAsync(
                         channel.Guild,
                         DesignatedChannelType.Starboard,
-                        FormatContent(message, reaction),
+                        FormatContent(message, emote),
                         embed);
                 }
             }
         }
 
-        public string FormatContent(IUserMessage message, IReaction reaction)
+        private string FormatContent(IUserMessage message, IEmote emote)
         {
-            var reactionCount = _service.GetReactionCount(message, reaction);
-            return string.Format(_contentString, reactionCount, GetStarEmote(reactionCount), message.Id);
+            var reactionCount = _service.GetReactionCount(message, emote);
+            return string.Format(_contentString, reactionCount, _service.GetStarEmote(reactionCount), message.Id);
         }
-
-        //TODO: Figure out where to put clickable link to original message
-        // Preferably in markdown format --> [Show More](link)
-        public Embed GetStarEmbed(IGuildChannel channel, IUserMessage message)
+        
+        private Embed GetStarEmbed(IUserMessage message)
         {
             var author = message.Author as IGuildUser;
-            var builder = new EmbedBuilder()
+            var builder = _quoteService.BuildQuoteEmbed(message, author)
                 .WithTimestamp(message.Timestamp)
                 .WithColor(new Color(255, 234, 174))
-                .WithAuthor(author.Nickname ?? author.Username, author.GetAvatarUrl())
-                .WithDescription(message.Content)
-                .WithFooter($"Posted in #{message.Channel.Name}");
-            //embed.Author.Url = _service.BuildContextUrl(channel, message);
+                .WithAuthor(
+                    author.Nickname ?? author.Username,
+                    author.GetAvatarUrl() ?? author.GetDefaultAvatarUrl());
 
+            builder.Fields.RemoveAt(builder.Fields.Count-1); //Remove the "Quoted by" field
+            builder.Footer = null;
+
+            if (message.Embeds.Count == 0)
+            {
+                builder.Description = null;
+                builder.AddField("Message", $"{message.Content}");
+            }
+            builder.AddField("\u200B", $"_Posted in [**#{message.Channel.Name}**]({message.GetJumpUrl()})_");
+            //------------------^ zero-width character
             return builder.Build();
-        }
-
-        public string GetStarEmote(int reactionCount)
-        {
-            if (reactionCount >= 20) return _service.GreatestEmote;
-            else if (reactionCount >= 10) return _service.GreaterEmote;
-            else if (reactionCount >= 5) return _service.GreatEmote;
-            else return _service.GoodEmote;
         }
     }
 }
