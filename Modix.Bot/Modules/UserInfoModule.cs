@@ -213,9 +213,9 @@ namespace Modix.Modules
             if (monthTotal > 0)
             {
                 builder.AppendFormat(
-                    "Avg. per day: {0} messages (p{1})\n",
+                    "Avg. per day: {0} messages (top {1} percentile)\n",
                     decimal.Round(userRank.AveragePerDay, 3),
-                    userRank.Percentile);
+                    userRank.Percentile.Ordinalize());
 
                 try
                 {
