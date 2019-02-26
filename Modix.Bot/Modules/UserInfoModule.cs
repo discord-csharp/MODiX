@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -49,6 +50,8 @@ namespace Modix.Modules
         public async Task GetUserInfoAsync(DiscordUserEntity user = null)
         {
             user = user ?? new DiscordUserEntity(Context.User.Id);
+
+            var timer = Stopwatch.StartNew();
 
             var userInfo = await UserService.GetUserInformationAsync(Context.Guild.Id, user.Id);
 
@@ -115,6 +118,9 @@ namespace Modix.Modules
             }
 
             embedBuilder.Description = builder.ToString();
+
+            timer.Stop();
+            embedBuilder.WithFooter(footer => footer.Text = $"Completed after {timer.ElapsedMilliseconds} ms");
 
             await ReplyAsync(string.Empty, embed: embedBuilder.Build());
         }
