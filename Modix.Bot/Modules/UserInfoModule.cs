@@ -204,7 +204,7 @@ namespace Modix.Modules
 
             if (userRank?.Rank > 0)
             {
-                builder.AppendFormat("Rank: {0} {1}\n", userRank.Rank.Ordinalize(), userRank.GetParticipationEmoji());
+                builder.AppendFormat("Rank: {0} {1}\n", userRank.Rank.Ordinalize(), GetParticipationEmoji(userRank));
             }
 
             builder.AppendLine("Last 7 days: " + weekTotal + " messages");
@@ -248,6 +248,28 @@ namespace Modix.Modules
                 : "a few seconds";
 
             return string.Format(CultureInfo.InvariantCulture, Format, prefix, humanizedTimeAgo, ago.UtcDateTime);
+        }
+
+        private string GetParticipationEmoji(GuildUserParticipationStatistics stats)
+        {
+            if (stats.Percentile == 100 || stats.Rank == 1)
+            {
+                return "🥇";
+            }
+            else if (stats.Percentile == 99 || stats.Rank == 2)
+            {
+                return "🥈";
+            }
+            else if (stats.Percentile == 98 || stats.Rank == 3)
+            {
+                return "🥉";
+            }
+            else if (stats.Percentile > 95 && stats.Percentile < 98)
+            {
+                return "🏆";
+            }
+
+            return string.Empty;
         }
     }
 }
