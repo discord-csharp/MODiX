@@ -4,9 +4,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Data.Models.Core;
-using Modix.Services.Utilities;
 using Serilog;
-using Serilog.Events;
 
 namespace Modix
 {
@@ -14,39 +12,6 @@ namespace Modix
     {
         public static int Main(string[] args)
         {
-            var loggerConfig = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                .MinimumLevel.Override("Modix.DiscordSerilogAdapter", LogEventLevel.Information)
-                .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .WriteTo.RollingFile(@"logs\{Date}", restrictedToMinimumLevel: LogEventLevel.Debug);
-
-            var webhookId = Environment.GetEnvironmentVariable("log_webhook_id");
-            var webhookToken = Environment.GetEnvironmentVariable("log_webhook_token");
-            var sentryToken = Environment.GetEnvironmentVariable("SentryToken");
-
-            if (!string.IsNullOrWhiteSpace(webhookToken) &&
-                ulong.TryParse(webhookId, out var id))
-            {
-                loggerConfig.WriteTo.DiscordWebhookSink(id, webhookToken, LogEventLevel.Error);
-            }
-            else
-            {
-                Log.Information("The webhook token and/or ID were not set. Logging to Discord has been disabled.");
-            }
-
-            if (!string.IsNullOrWhiteSpace(sentryToken))
-            {
-                loggerConfig.WriteTo.Sentry(sentryToken, restrictedToMinimumLevel: LogEventLevel.Warning);
-            }
-            else
-            {
-                Log.Information("The Sentry token was not set. Logging to Sentry has been disabled.");
-            }
-
-            Log.Logger = loggerConfig.CreateLogger();
-
             try
             {
                 CreateWebHostBuilder(args).Build().Run();

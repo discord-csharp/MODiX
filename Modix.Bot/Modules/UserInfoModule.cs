@@ -27,16 +27,20 @@ namespace Modix.Modules
         //optimization: UtcNow is slow and the module is created per-request
         private readonly DateTime _utcNow = DateTime.UtcNow;
 
-        // TODO: Factor this out into a common botwide client.
-        private static readonly HttpClient _httpClient = new HttpClient();
-
-        public UserInfoModule(ILogger<UserInfoModule> logger, IUserService userService, IModerationService moderationService, IAuthorizationService authorizationService, IMessageRepository messageRepository)
+        public UserInfoModule(
+            ILogger<UserInfoModule> logger,
+            IUserService userService,
+            IModerationService moderationService,
+            IAuthorizationService authorizationService,
+            IMessageRepository messageRepository,
+            IHttpClientFactory httpClientFactory)
         {
             Log = logger ?? new NullLogger<UserInfoModule>();
             UserService = userService;
             ModerationService = moderationService;
             AuthorizationService = authorizationService;
             MessageRepository = messageRepository;
+            HttpClientFactory = httpClientFactory;
         }
 
         private ILogger<UserInfoModule> Log { get; }
@@ -44,6 +48,7 @@ namespace Modix.Modules
         private IModerationService ModerationService { get; }
         private IAuthorizationService AuthorizationService { get; }
         private IMessageRepository MessageRepository { get; }
+        private IHttpClientFactory HttpClientFactory { get; }
 
         [Command("info")]
         public async Task GetUserInfoAsync(DiscordUserEntity user = null)
@@ -154,7 +159,7 @@ namespace Modix.Modules
 
             if ((member.GetAvatarUrl(size: 16) ?? member.GetDefaultAvatarUrl()) is string avatarUrl)
             {
-                using (var httpStream = await _httpClient.GetStreamAsync(avatarUrl))
+                using (var httpStream = await HttpClientFactory.CreateClient().GetStreamAsync(avatarUrl))
                 {
                     using (var avatarStream = new MemoryStream())
                     {

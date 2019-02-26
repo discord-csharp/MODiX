@@ -11,10 +11,15 @@ namespace Modix.Modules
     [Name("Wikipedia"), Summary("Search Wikipedia from Discord!")]
     public class WikipediaModule : ModuleBase
     {
+        public WikipediaModule(WikipediaService wikipediaService)
+        {
+            WikipediaService = wikipediaService;
+        }
+
         [Command("wiki"), Summary("Returns a Wikipedia page result matching the search phrase.")]
         public async Task Run([Remainder] string phrase)
         {
-            var response = await new WikipediaService().GetWikipediaResultsAsync(phrase);
+            var response = await WikipediaService.GetWikipediaResultsAsync(phrase);
 
             // Empty response.
             if (response == null || response.Query == null || !response.Query.Pages.Any())
@@ -69,5 +74,7 @@ namespace Modix.Modules
                 await ReplyAsync("", embed: builder.Build());
             }
         }
+
+        protected WikipediaService WikipediaService { get; }
     }
 }

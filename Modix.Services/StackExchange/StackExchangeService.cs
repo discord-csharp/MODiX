@@ -8,17 +8,17 @@ namespace Modix.Services.StackExchange
 {
     public class StackExchangeService
     {
-        private static HttpClient HttpClient => new HttpClient(new HttpClientHandler
-        {
-            AutomaticDecompression = DecompressionMethods.GZip
-        });
-
         private string _apiReferenceUrl =
             "http://api.stackexchange.com/2.2/search/advanced" +
             "?key={0}" +
             "&order=desc" +
             "&sort=votes" +
             "&filter=default";
+
+        public StackExchangeService(IHttpClientFactory httpClientFactory)
+        {
+            HttpClientFactory = httpClientFactory;
+        }
 
         public async Task<StackExchangeResponse> GetStackExchangeResultsAsync(string token, string phrase, string site, string tags)
         {
@@ -28,7 +28,9 @@ namespace Modix.Services.StackExchange
             tags = Uri.EscapeDataString(tags);
             var query = _apiReferenceUrl += $"&site={site}&tags={tags}&q={phrase}";
 
-            var response = await HttpClient.GetAsync(query);
+            var client = HttpClientFactory.CreateClient("StackExchangeClient");
+
+            var response = await client.GetAsync(query);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -38,5 +40,7 @@ namespace Modix.Services.StackExchange
             var jsonResponse = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<StackExchangeResponse>(jsonResponse);
         }
+
+        protected IHttpClientFactory HttpClientFactory { get; }
     }
 }

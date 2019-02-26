@@ -14,9 +14,12 @@ namespace Modix.Modules
     {
         private readonly ModixConfig _config;
 
-        public StackExchangeModule(ModixConfig config)
+        public StackExchangeModule(
+            ModixConfig config,
+            StackExchangeService stackExchangeService)
         {
             _config = config;
+            StackExchangeService = stackExchangeService;
         }
 
         [Command("stack"), Summary("Returns top results from a Stack Exchange site."), Remarks("Usage: `!stack how do i parse json with c#? [site=stackoverflow tags=c#,json]`")]
@@ -58,7 +61,7 @@ namespace Modix.Modules
                 tags = "c#";
             }
 
-            var response = await new StackExchangeService().GetStackExchangeResultsAsync(_config.StackoverflowToken, phrase, site, tags);
+            var response = await StackExchangeService.GetStackExchangeResultsAsync(_config.StackoverflowToken, phrase, site, tags);
             var filteredRes = response.Items.Where(x => x.Tags.Contains(tags));
             foreach (var res in filteredRes.Take(3))
             {
@@ -77,5 +80,7 @@ namespace Modix.Modules
 
             await ReplyAsync("", embed: footer.Build());
         }
+
+        protected StackExchangeService StackExchangeService { get; }
     }
 }
