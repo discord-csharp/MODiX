@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Dapper;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data.Models.Core;
+using Npgsql;
 
 namespace Modix.Data.Repositories
 {
@@ -91,40 +91,42 @@ namespace Modix.Data.Repositories
 
         public async Task<GuildUserParticipationStatistics> GetGuildUserParticipationStatistics(ulong guildId, ulong userId)
         {
-            var stats = await ModixContext.Database.GetDbConnection()
-                .QueryFirstOrDefaultAsync<GuildUserParticipationStatistics>(
+            var stats = await ModixContext.Query<GuildUserParticipationStatistics>()
+                .AsNoTracking()
+                .FromSql(
                     @"with msgs as (
-                        select ""AuthorId"", ""Id"" as ""MessageId""
+                        select ""AuthorId"", ""Id"" as ""MessageId"", ""GuildId""
                         from ""Messages""
                         where ""GuildId"" = cast(:GuildId as numeric(20))
                         and ""Timestamp"" >= (current_date - interval '30 day')
                     ),
                     user_count as (
-                        select ""AuthorId"", count(1) as ""MessageCount""
+                        select ""AuthorId"", count(1) as ""MessageCount"", ""GuildId""
                         from msgs
-                        group by ""AuthorId""
+                        group by ""AuthorId"", ""GuildId""
                     ),
                     user_avg as (
-                        select ""AuthorId"", ""MessageCount"", (cast(""MessageCount"" as decimal) / cast(30 as decimal)) as ""AveragePerDay""
+                        select ""AuthorId"", ""MessageCount"", (cast(""MessageCount"" as decimal) / cast(30 as decimal)) as ""AveragePerDay"", ""GuildId""
                         from user_count
-                        group by ""AuthorId"", ""MessageCount""
+                        group by ""AuthorId"", ""GuildId"", ""MessageCount""
                     ),
                     ntiles as (
-                        select ""AuthorId"", ntile(100) over (order by ""AveragePerDay"") as ""Percentile""
+                        select ""AuthorId"", ntile(100) over (order by ""AveragePerDay"") as ""Percentile"", ""GuildId""
                         from user_avg
-                        group by ""AuthorId"", ""AveragePerDay""
+                        group by ""AuthorId"", ""GuildId"", ""AveragePerDay""
                     ),
                     ranked_users as (
-	                    select user_avg.""AuthorId"" as ""UserId"", ""AveragePerDay"", ""Percentile"", dense_rank() over (order by ""AveragePerDay"" desc) as ""Rank""
+	                    select user_avg.""AuthorId"" as ""UserId"", ""AveragePerDay"", ""Percentile"", dense_rank() over (order by ""AveragePerDay"" desc) as ""Rank"", user_avg.""GuildId""
 	                    from user_avg
-	                    inner join ntiles on user_avg.""AuthorId"" = ntiles.""AuthorId""
+	                    inner join ntiles on user_avg.""AuthorId"" = ntiles.""AuthorId"" and user_avg.""GuildId"" = ntiles.""GuildId""
                     )
-                    select ""AveragePerDay"", ""Percentile"", ""Rank""
+                    select ""AveragePerDay"", ""Percentile"", ""Rank"", ""GuildId"", ""UserId""
                     from ranked_users
-                    where ""UserId"" = cast(:UserId as numeric(20))
-                    order by ""AveragePerDay"" desc",
-                    new { GuildId = guildId.ToString(), UserId = userId.ToString() }).ConfigureAwait(false)
-                    ?? new GuildUserParticipationStatistics();
+                    where ""UserId"" = cast(:UserId as numeric(20))",
+                    new NpgsqlParameter(":GuildId", guildId.ToString()),
+                    new NpgsqlParameter(":UserId", userId.ToString()))
+                .OrderByDescending(x => x.AveragePerDay)
+                .FirstOrDefaultAsync() ?? new GuildUserParticipationStatistics();
 
             stats.GuildId = guildId;
             stats.UserId = userId;
