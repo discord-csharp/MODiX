@@ -9,10 +9,15 @@ namespace Modix.Modules
     [Name("Documentation"), Summary("Search for information within the .NET docs")]
     public class DocumentationModule : ModuleBase
     {
+        public DocumentationModule(DocumentationService documentationService)
+        {
+            DocumentationService = documentationService;
+        }
+
         [Command("docs"), Summary("Shows class/method reference from the new unified .NET reference")]
         public async Task GetDocumentationAsync([Remainder]string term)
         {
-            var response = await new DocumentationService().GetDocumentationResultsAsync(term);
+            var response = await DocumentationService.GetDocumentationResultsAsync(term);
 
             if (response.Count == 0)
             {
@@ -43,5 +48,7 @@ namespace Modix.Modules
                 await ReplyAsync("", embed: builder.Build());
             }
         }
+
+        protected DocumentationService DocumentationService { get; }
     }
 }

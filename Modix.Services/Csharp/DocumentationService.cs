@@ -9,9 +9,14 @@ namespace Modix.Services.Csharp
     {
         private const string ApiReferenceUrl = "https://docs.microsoft.com/api/apibrowser/dotnet/search?search=";
 
+        public DocumentationService(IHttpClientFactory httpClientFactory)
+        {
+            HttpClientFactory = httpClientFactory;
+        }
+
         public async Task<DocumentationApiResponse> GetDocumentationResultsAsync(string term)
         {
-            var client = new HttpClient();
+            var client = HttpClientFactory.CreateClient();
             var response = await client.GetAsync(ApiReferenceUrl + term);
 
             if (!response.IsSuccessStatusCode)
@@ -21,5 +26,7 @@ namespace Modix.Services.Csharp
             var jsonResponse = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<DocumentationApiResponse>(jsonResponse);
         }
+
+        protected IHttpClientFactory HttpClientFactory { get; }
     }
 }

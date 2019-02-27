@@ -1,19 +1,17 @@
-﻿using Discord;
+﻿using System;
+using System.Net;
+using System.Net.Http;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Modix.Data.Models.Core;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.Utilities;
 using Newtonsoft.Json;
 using Serilog;
-using System;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Modix.Modules
 {
@@ -37,16 +35,16 @@ namespace Modix.Modules
 
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
 
-        private static readonly HttpClient _client = new HttpClient();
+        private readonly IHttpClientFactory _httpClientFactory;
 
         public ReplModule(
-            ModixConfig config,
             CodePasteService pasteService,
-            IAutoRemoveMessageService autoRemoveMessageService)
+            IAutoRemoveMessageService autoRemoveMessageService,
+            IHttpClientFactory httpClientFactory)
         {
             _pasteService = pasteService;
             _autoRemoveMessageService = autoRemoveMessageService;
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", config.ReplToken);
+            _httpClientFactory = httpClientFactory;
         }
 
         [Command("exec", RunMode = RunMode.Sync), Alias("eval"), Summary("Executes the given C# code and returns the result")]
@@ -72,8 +70,9 @@ namespace Modix.Modules
             HttpResponseMessage res;
             try
             {
+                var client = _httpClientFactory.CreateClient("ReplClient");
                 var tokenSrc = new CancellationTokenSource(30000);
-                res = await _client.PostAsync(ReplRemoteUrl, content, tokenSrc.Token);
+                res = await client.PostAsync(ReplRemoteUrl, content, tokenSrc.Token);
             }
             catch (TaskCanceledException)
             {

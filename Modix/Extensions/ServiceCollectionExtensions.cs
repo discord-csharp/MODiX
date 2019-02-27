@@ -1,4 +1,7 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using Discord;
 using Discord.Commands;
 using Discord.Rest;
@@ -17,6 +20,7 @@ using Modix.Services.BehaviourConfiguration;
 using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
+using Modix.Services.Csharp;
 using Modix.Services.DocsMaster;
 using Modix.Services.GuildStats;
 using Modix.Services.Mentions;
@@ -25,7 +29,9 @@ using Modix.Services.NotificationDispatch;
 using Modix.Services.PopularityContest;
 using Modix.Services.Promotions;
 using Modix.Services.Quote;
+using Modix.Services.StackExchange;
 using Modix.Services.Tags;
+using Modix.Services.Wikipedia;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -33,6 +39,28 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IServiceCollection AddModix(this IServiceCollection services)
         {
+            services.AddHttpClient();
+
+            services.AddHttpClient("ReplClient")
+                .ConfigureHttpClient((serviceProvider, client) =>
+                {
+                    var config = serviceProvider.GetRequiredService<ModixConfig>();
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", config.ReplToken);
+                });
+
+            services.AddHttpClient("CodePasteClient")
+                .ConfigureHttpClient(client =>
+                {
+                    client.Timeout = TimeSpan.FromSeconds(5);
+                });
+
+            services.AddHttpClient("StackExchangeClient")
+                .ConfigurePrimaryHttpMessageHandler(() =>
+                new HttpClientHandler()
+                {
+                    AutomaticDecompression = DecompressionMethods.GZip,
+                });
+
             services.AddSingleton(
                 provider => new DiscordSocketClient(config: new DiscordSocketConfig
                 {
@@ -67,7 +95,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 });
 
             services.AddSingleton<DiscordSerilogAdapter>();
-            services.AddSingleton<HttpClient>();
             services.AddMediator();
 
             services.AddModixCore()
@@ -92,6 +119,9 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSingleton<ICodePasteRepository, MemoryCodePasteRepository>();
             services.AddScoped<IPopularityContestService, PopularityContestService>();
+            services.AddScoped<WikipediaService>();
+            services.AddScoped<StackExchangeService>();
+            services.AddScoped<DocumentationService>();
 
             services.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
             services.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
