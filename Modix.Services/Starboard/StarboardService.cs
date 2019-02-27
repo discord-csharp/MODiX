@@ -138,12 +138,14 @@ namespace Modix.Services.Starboard
         public bool IsAboveReactionThreshold(IUserMessage message, IEmote emote)
             => GetReactionCount(message, emote) >= 2;
 
+        /// <inheritdoc />
         public string GetStarEmote(int reactionCount)
         {
             var emoteIndex = _emojis.Keys.First((val) => reactionCount >= val);
             return _emojis[emoteIndex];
         }
 
+        /// <inheritdoc />
         public async Task AddToStarboard(IGuild guild, IUserMessage message, string content, Embed embed)
         {
             var starChannel = await GetStarboardChannel(guild);
@@ -168,6 +170,7 @@ namespace Modix.Services.Starboard
             _messageRepository.UpdateStarboardColumn(messageEntity);
         }
 
+        /// <inheritdoc />
         public async Task ModifyEntry(IGuild guild, IUserMessage message, string content)
         {
             var starEntry = await GetStarboardEntry(guild, message);
