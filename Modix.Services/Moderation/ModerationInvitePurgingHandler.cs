@@ -83,22 +83,17 @@ namespace Modix.Services.Moderation
 
             if (author.Id == _botUser.Id)
             {
-                Log.Debug("Message {MessageId} was skipped because the author was Modix", message.Id);
                 return;
             }
 
             if (await IsChannelModeratedAsync(guildChannel.Guild, msgChannel))
             {
-                Log.Debug("Message {MessageId} was skipped because the channel {Channel} was designated as Unmoderated",
-                    message.Id, msgChannel.Id);
                 return;
             }
 
             var matches = _inviteLinkMatcher.Matches(message.Content);
             if (!matches.Any())
             {
-                Log.Debug("Message {MessageId} was skipped because the content did not contain an invite link: \"{Content}\"",
-                    message.Id, message.Content);
                 return;
             }
 

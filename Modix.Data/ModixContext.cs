@@ -71,6 +71,8 @@ namespace Modix.Data
 
             foreach(var method in onModelCreatingMethods)
                 method.Invoke(null, new [] { modelBuilder });
+
+            modelBuilder.Query<GuildUserParticipationStatistics>();
         }
     }
 }
