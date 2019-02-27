@@ -15,7 +15,7 @@ namespace Modix.Services.Starboard
         /// <summary>
         /// Fetches a message from the specified guilds starboard.
         /// </summary>
-        /// <param name="channel">Which guilds starboard to fetch from</param>
+        /// <param name="channel">Which guild's starboard to fetch from</param>
         /// <param name="message">The message to fetch</param>
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation has completed,
@@ -122,8 +122,8 @@ namespace Modix.Services.Starboard
 
         public string GetStarEmote(int reactionCount)
         {
-            var valIdx = _emojis.Keys.First((val) => reactionCount >= val);
-            return _emojis[valIdx];
+            var emoteIndex = _emojis.Keys.First((val) => reactionCount >= val);
+            return _emojis[emoteIndex];
         }
     }
 }

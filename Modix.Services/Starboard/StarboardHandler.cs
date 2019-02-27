@@ -17,9 +17,11 @@ namespace Modix.Services.Starboard
         private readonly StarboardService _service;
         private readonly IDesignatedChannelService _designatedChannelService;
         private readonly IQuoteService _quoteService;
-        private const string _contentString = "**{0}** {1}";
 
-        public StarboardHandler(StarboardService service, IDesignatedChannelService designatedChannelService, IQuoteService quoteService)
+        public StarboardHandler(
+            StarboardService service,
+            IDesignatedChannelService designatedChannelService,
+            IQuoteService quoteService)
         {
             _service = service;
             _designatedChannelService = designatedChannelService;
@@ -32,7 +34,7 @@ namespace Modix.Services.Starboard
         public Task Handle(ReactionRemoved notification, CancellationToken cancellationToken)
             => HandleReaction(notification.Message, notification.Reaction);
 
-        private async Task HandleReaction(Cacheable<IUserMessage, ulong> cachedMessage, SocketReaction reaction)
+        private async Task HandleReaction(Cacheable<IUserMessage, ulong> cachedMessage, IReaction reaction)
         {
             var emote = reaction.Emote;
             if (!_service.IsStarEmote(emote))
@@ -59,8 +61,8 @@ namespace Modix.Services.Starboard
                 }
                 else
                 {
-                    await starboardMessage.ModifyAsync((messageProperties)
-                        => messageProperties.Content = FormatContent(message, emote));
+                    await starboardMessage.ModifyAsync(messageProps
+                        => messageProps.Content = FormatContent(message, emote));
                 }
             }
             else
@@ -80,7 +82,7 @@ namespace Modix.Services.Starboard
         private string FormatContent(IUserMessage message, IEmote emote)
         {
             var reactionCount = _service.GetReactionCount(message, emote);
-            return string.Format(_contentString, reactionCount, _service.GetStarEmote(reactionCount), message.Id);
+            return $"**{reactionCount}** {_service.GetStarEmote(reactionCount)}";
         }
         
         private Embed GetStarEmbed(IUserMessage message)
