@@ -13,12 +13,12 @@ namespace Modix.Services.Starboard
         INotificationHandler<ReactionAdded>,
         INotificationHandler<ReactionRemoved>
     {
-        private readonly StarboardService _service;
+        private readonly IStarboardService _service;
         private readonly IDesignatedChannelService _designatedChannelService;
         private readonly IQuoteService _quoteService;
 
         public StarboardHandler(
-            StarboardService service,
+            IStarboardService service,
             IDesignatedChannelService designatedChannelService,
             IQuoteService quoteService)
         {

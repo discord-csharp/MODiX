@@ -8,7 +8,7 @@ namespace Modix.Services.Starboard
     {
         public static IServiceCollection AddStarboard(this IServiceCollection services)
             => services
-                .AddScoped<StarboardService>()
+                .AddScoped<IStarboardService, StarboardService>()
                 .AddScoped<INotificationHandler<ReactionAdded>, StarboardHandler>()
                 .AddScoped<INotificationHandler<ReactionRemoved>, StarboardHandler>();
     }

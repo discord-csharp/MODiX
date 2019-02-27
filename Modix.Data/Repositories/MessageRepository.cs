@@ -23,6 +23,7 @@ namespace Modix.Data.Repositories
         Task DeleteAsync(ulong messageId);
 
         Task<MessageEntity> GetMessage(ulong messageId);
+
         void UpdateStarboardColumn(MessageEntity message);
     }
 
