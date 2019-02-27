@@ -273,7 +273,7 @@ namespace Modix.Modules
             {
                 return "🥉";
             }
-            else if (stats.Percentile > 95 && stats.Percentile < 98)
+            else if (stats.Percentile >= 95 && stats.Percentile < 98)
             {
                 return "🏆";
             }
