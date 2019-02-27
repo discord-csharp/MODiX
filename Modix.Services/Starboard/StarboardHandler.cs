@@ -5,7 +5,6 @@ using MediatR;
 using Modix.Services.Messages.Discord;
 using Modix.Services.Core;
 using Modix.Data.Models.Core;
-using Discord.WebSocket;
 using Modix.Services.Quote;
 
 namespace Modix.Services.Starboard
@@ -43,39 +42,34 @@ namespace Modix.Services.Starboard
             }
 
             var message = await cachedMessage.GetOrDownloadAsync();
-            if (!(message.Channel is IGuildChannel channel)
-                || await _designatedChannelService.ChannelHasDesignationAsync(
-                    channel.Guild,
-                    channel,
-                    DesignatedChannelType.Unmoderated))
+            if (!(message.Channel is IGuildChannel channel))
             {
                 return;
             }
 
-            var starboardMessage = await _service.GetFromStarboard(channel, message);
-            if (starboardMessage != default)
+            if(await _designatedChannelService
+                .ChannelHasDesignationAsync(channel.Guild, channel, DesignatedChannelType.Unmoderated)
+                || !await _designatedChannelService
+                .AnyDesignatedChannelAsync(channel.GuildId, DesignatedChannelType.Starboard))
+            {
+                return;
+            }
+
+            if (await _service.ExistsOnStarboard(message))
             {
                 if (!_service.IsAboveReactionThreshold(message, emote))
                 {
-                    await _service.RemoveFromStarboard(channel, message);
+                    await _service.RemoveFromStarboard(channel.Guild, message);
                 }
                 else
                 {
-                    await starboardMessage.ModifyAsync(messageProps
-                        => messageProps.Content = FormatContent(message, emote));
+                    await _service.ModifyEntry(channel.Guild, message, FormatContent(message, emote));
                 }
             }
-            else
+            else if (_service.IsAboveReactionThreshold(message, emote))
             {
-                if (_service.IsAboveReactionThreshold(message, emote))
-                {
-                    var embed = GetStarEmbed(message);
-                    await _designatedChannelService.SendToDesignatedChannelsAsync(
-                        channel.Guild,
-                        DesignatedChannelType.Starboard,
-                        FormatContent(message, emote),
-                        embed);
-                }
+                var embed = GetStarEmbed(message);
+                await _service.AddToStarboard(channel.Guild, message, FormatContent(message, emote), embed);
             }
         }
 
@@ -84,7 +78,7 @@ namespace Modix.Services.Starboard
             var reactionCount = _service.GetReactionCount(message, emote);
             return $"**{reactionCount}** {_service.GetStarEmote(reactionCount)}";
         }
-        
+
         private Embed GetStarEmbed(IUserMessage message)
         {
             var author = message.Author as IGuildUser;

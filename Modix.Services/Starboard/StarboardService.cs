@@ -4,6 +4,7 @@ using Discord;
 using Modix.Services.Core;
 using Modix.Data.Models.Core;
 using System.Collections.Generic;
+using Modix.Data.Repositories;
 
 namespace Modix.Services.Starboard
 {
@@ -13,23 +14,19 @@ namespace Modix.Services.Starboard
     public interface IStarboardService
     {
         /// <summary>
-        /// Fetches a message from the specified guilds starboard.
+        /// Checks whether a <see cref="IMessage"/> exists as an entry on the starboard.
         /// </summary>
-        /// <param name="channel">Which guild's starboard to fetch from</param>
-        /// <param name="message">The message to fetch</param>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation has completed,
-        /// containing the an <see cref="IMessage"/> if found, otherwise returns a default value.
-        /// </returns>
-        Task<IUserMessage> GetFromStarboard(IGuildChannel channel, IMessage message);
+        /// <param name="message">The message to look for</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed, containing a flag indicating whether the <paramref name="message"/>exists on the starboard or not.</returns>
+        Task<bool> ExistsOnStarboard(IMessage message);
 
         /// <summary>
         /// Removes a message from the specified guilds starboard.
         /// </summary>
-        /// <param name="channel">Which guilds starboard to operate on</param>
+        /// <param name="guild">Which guild's starboard to operate on</param>
         /// <param name="message">The message to delete</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task RemoveFromStarboard(IGuildChannel channel, IMessage message);
+        Task RemoveFromStarboard(IGuild guild, IMessage message);
 
         /// <summary>
         /// Checks whether an <see cref="IEmote"/> is a star or not.
@@ -59,12 +56,22 @@ namespace Modix.Services.Starboard
         /// <param name="reactionCount"></param>
         /// <returns>A star-emote in string format</returns>
         string GetStarEmote(int reactionCount);
+
+        /// <summary>
+        /// Modifies a starboard entry.
+        /// </summary>
+        /// <param name="guild">Which guild's starboard to operate on</param>
+        /// <param name="message">The message to modify</param>
+        /// <param name="content">The content to modify with</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task ModifyEntry(IGuild guild, IUserMessage message, string content);
     }
 
     /// <inheritdoc />
     public class StarboardService : IStarboardService
     {
         private readonly IDesignatedChannelService _designatedChannelService;
+        private readonly IMessageRepository _messageRepository;
         private static readonly IReadOnlyDictionary<int, string> _emojis = new Dictionary<int, string>
         {
             { 20, "✨"},
@@ -73,35 +80,46 @@ namespace Modix.Services.Starboard
             { 0, "⭐" }
         }.OrderByDescending(k => k.Key).ToDictionary(k => k.Key, k => k.Value);
 
-        public StarboardService(IDesignatedChannelService designatedChannelService)
+        public StarboardService(
+            IDesignatedChannelService designatedChannelService,
+            IMessageRepository messageRepository)
         {
             _designatedChannelService = designatedChannelService;
+            _messageRepository = messageRepository;
         }
 
         /// <inheritdoc />
-        public async Task<IUserMessage> GetFromStarboard(IGuildChannel channel, IMessage message)
+        public async Task<bool> ExistsOnStarboard(IMessage message)
+        {
+            var messageEntity = await _messageRepository.GetMessage(message.Id);
+            return  messageEntity?.StarboardEntryId != null;
+        }
+
+        private async Task<IUserMessage> GetStarboardEntry(IGuild guild, IMessage message)
+        {
+            var channel = await GetStarboardChannel(guild);
+            var entity = await _messageRepository.GetMessage(message.Id);
+            return await channel.GetMessageAsync(entity.StarboardEntryId.Value) as IUserMessage;
+        }
+
+        private async Task<ITextChannel> GetStarboardChannel(IGuild guild)
         {
             var starboardChannels = await _designatedChannelService
-                .GetDesignatedChannelsAsync(channel.Guild, DesignatedChannelType.Starboard);
+                .GetDesignatedChannelsAsync(guild, DesignatedChannelType.Starboard);
 
-            var starMessages = await starboardChannels
-                .First()
-                .GetMessagesAsync()
-                .FlattenAsync();
-
-            //We need to store entries in the db to avoid this horrible mess
-            return starMessages
-                .Cast<IUserMessage>()
-                .FirstOrDefault(x => x.Embeds
-                                        .Select(y => y.Fields.Last())
-                                        .Any(y => y.Value.Contains(message.GetJumpUrl())));
+            return starboardChannels.First() as ITextChannel;
         }
 
         /// <inheritdoc />
-        public async Task RemoveFromStarboard(IGuildChannel channel, IMessage message)
+        public async Task RemoveFromStarboard(IGuild guild, IMessage message)
         {
-            var messageToRemove = await GetFromStarboard(channel, message);
-            await messageToRemove.DeleteAsync();
+            var messageEntity = await _messageRepository.GetMessage(message.Id);
+            var channel = await GetStarboardChannel(guild);
+
+            await channel.DeleteMessageAsync(messageEntity.StarboardEntryId.Value);
+
+            messageEntity.StarboardEntryId = null;
+            _messageRepository.UpdateStarboardColumn(messageEntity);
         }
 
         /// <inheritdoc />
@@ -124,6 +142,37 @@ namespace Modix.Services.Starboard
         {
             var emoteIndex = _emojis.Keys.First((val) => reactionCount >= val);
             return _emojis[emoteIndex];
+        }
+
+        public async Task AddToStarboard(IGuild guild, IUserMessage message, string content, Embed embed)
+        {
+            var starChannel = await GetStarboardChannel(guild);
+            var starEntry = await starChannel.SendMessageAsync(content, false, embed);
+
+            var messageEntity = await _messageRepository.GetMessage(message.Id);
+
+            if(messageEntity == null)
+            {
+                messageEntity = new MessageEntity
+                {
+                    Id = message.Id,
+                    GuildId = guild.Id,
+                    ChannelId = message.Channel.Id,
+                    AuthorId = message.Author.Id,
+                    Timestamp = message.Timestamp,
+                };
+                await _messageRepository.CreateAsync(messageEntity);
+            }
+
+            messageEntity.StarboardEntryId = starEntry.Id;
+            _messageRepository.UpdateStarboardColumn(messageEntity);
+        }
+
+        public async Task ModifyEntry(IGuild guild, IUserMessage message, string content)
+        {
+            var starEntry = await GetStarboardEntry(guild, message);
+
+            await starEntry.ModifyAsync(messageProps => messageProps.Content = content);
         }
     }
 }
