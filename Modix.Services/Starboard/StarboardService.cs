@@ -102,7 +102,7 @@ namespace Modix.Services.Starboard
         public async Task<bool> ExistsOnStarboard(IMessage message)
         {
             var messageEntity = await _messageRepository.GetMessage(message.Id);
-            return  messageEntity?.StarboardEntryId != null;
+            return messageEntity?.StarboardEntryId != null;
         }
 
         private async Task<IUserMessage> GetStarboardEntry(IGuild guild, IMessage message)
@@ -126,10 +126,13 @@ namespace Modix.Services.Starboard
             var messageEntity = await _messageRepository.GetMessage(message.Id);
             var channel = await GetStarboardChannel(guild);
 
-            await channel.DeleteMessageAsync(messageEntity.StarboardEntryId.Value);
-
-            messageEntity.StarboardEntryId = null;
-            _messageRepository.UpdateStarboardColumn(messageEntity);
+            var msg = await channel.GetMessageAsync(messageEntity.StarboardEntryId.Value);
+            if (msg != default)
+            {
+                await channel.DeleteMessageAsync(messageEntity.StarboardEntryId.Value);
+                messageEntity.StarboardEntryId = null;
+                _messageRepository.UpdateStarboardColumn(messageEntity);
+            }
         }
 
         /// <inheritdoc />
@@ -185,7 +188,14 @@ namespace Modix.Services.Starboard
         {
             var starEntry = await GetStarboardEntry(guild, message);
 
-            await starEntry.ModifyAsync(messageProps => messageProps.Content = content);
+            if (starEntry != default)
+            {
+                await starEntry.ModifyAsync(messageProps => messageProps.Content = content);
+            }
+            else
+            {
+                await RemoveFromStarboard(guild, message);
+            }
         }
     }
 }
