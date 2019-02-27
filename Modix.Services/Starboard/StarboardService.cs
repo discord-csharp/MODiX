@@ -65,6 +65,16 @@ namespace Modix.Services.Starboard
         /// <param name="content">The content to modify with</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
         Task ModifyEntry(IGuild guild, IUserMessage message, string content);
+
+        /// <summary>
+        /// Adds an <see cref="IUserMessage"/> to the starboard
+        /// </summary>
+        /// <param name="guild">The guild on which starboard to post</param>
+        /// <param name="message">The message to add to the starboard</param>
+        /// <param name="content">Meta-data that contains relevant information about the starred message</param>
+        /// <param name="embed">The embed to include in the starboard-message</param>
+        /// /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task AddToStarboard(IGuild guild, IUserMessage message, string content, Embed embed);
     }
 
     /// <inheritdoc />
