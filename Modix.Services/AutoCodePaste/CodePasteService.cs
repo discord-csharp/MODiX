@@ -21,10 +21,13 @@ namespace Modix.Services.AutoCodePaste
 
         private const string ApiReferenceUrl = "https://paste.mod.gg/";
         private const string FallbackApiReferenceUrl = "https://haste.charlesmilette.net/";
-        private static readonly HttpClient _client = new HttpClient
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        public CodePasteService(IHttpClientFactory httpClientFactory)
         {
-            Timeout = TimeSpan.FromSeconds(5)
-        };
+            _httpClientFactory = httpClientFactory;
+        }
+
         /// <summary>
         /// Uploads a given piece of code to the service, and returns the URL to the post.
         /// </summary>
@@ -36,14 +39,16 @@ namespace Modix.Services.AutoCodePaste
             var content = FormatUtilities.BuildContent(code);
             HttpResponseMessage response;
 
+            var client = _httpClientFactory.CreateClient("CodePasteClient");
+
             try
             {
-                response = await _client.PostAsync($"{ApiReferenceUrl}documents", content);
+                response = await client.PostAsync($"{ApiReferenceUrl}documents", content);
             }
             catch (TaskCanceledException)
             {
                 usingFallback = true;
-                response = await _client.PostAsync($"{FallbackApiReferenceUrl}documents", content);
+                response = await client.PostAsync($"{FallbackApiReferenceUrl}documents", content);
             }
 
             if (!response.IsSuccessStatusCode)

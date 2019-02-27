@@ -16,11 +16,16 @@ namespace Modix.Services.Utilities
         private readonly string _webhookToken;
         private readonly IFormatProvider _formatProvider;
         private readonly JsonSerializerSettings _jsonSerializerSettings;
-        public DiscordWebhookSink(ulong webhookId, string webhookToken, IFormatProvider formatProvider)
+        public DiscordWebhookSink(
+            ulong webhookId,
+            string webhookToken,
+            IFormatProvider formatProvider,
+            CodePasteService codePasteService)
         {
             _webhookId = webhookId;
             _webhookToken = webhookToken;
             _formatProvider = formatProvider;
+            CodePasteService = codePasteService;
 
             _jsonSerializerSettings = new JsonSerializerSettings
             {
@@ -47,8 +52,7 @@ namespace Modix.Services.Utilities
             {
                 var eventAsJson = JsonConvert.SerializeObject(logEvent, _jsonSerializerSettings);
 
-                var pasteHandler = new CodePasteService();
-                var url = pasteHandler.UploadCodeAsync(eventAsJson, "json").GetAwaiter().GetResult();
+                var url = CodePasteService.UploadCodeAsync(eventAsJson, "json").GetAwaiter().GetResult();
 
                 message.AddField(new EmbedFieldBuilder()
                     .WithIsInline(false)
@@ -69,12 +73,15 @@ namespace Modix.Services.Utilities
             }
             webhookClient.SendMessageAsync(string.Empty, embeds: new[] { message.Build() }, username: "Modix Logger");
         }
+
+        protected CodePasteService CodePasteService { get; }
     }
+    
     public static class DiscordWebhookSinkExtensions
     {
-        public static LoggerConfiguration DiscordWebhookSink(this LoggerSinkConfiguration config, ulong id, string token, LogEventLevel minLevel)
+        public static LoggerConfiguration DiscordWebhookSink(this LoggerSinkConfiguration config, ulong id, string token, LogEventLevel minLevel, CodePasteService codePasteService)
         {
-            return config.Sink(new DiscordWebhookSink(id, token, null), minLevel);
+            return config.Sink(new DiscordWebhookSink(id, token, null, codePasteService), minLevel);
         }
     }
 

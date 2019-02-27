@@ -10,6 +10,11 @@ namespace Modix.Modules
     [Name("Fun"), Summary("A bunch of miscellaneous, fun commands")]
     public class FunModule : ModuleBase
     {
+        public FunModule(IHttpClientFactory httpClientFactory)
+        {
+            HttpClientFactory = httpClientFactory;
+        }
+
         [Command("jumbo"), Summary("Jumbofy an emoji")]
         public async Task Jumbo(string emoji)
         {
@@ -29,7 +34,7 @@ namespace Modix.Modules
 
             try
             {
-                var client = new HttpClient();
+                var client = HttpClientFactory.CreateClient();
                 var req = await client.GetStreamAsync(emojiUrl);
 
                 await Context.Channel.SendFileAsync(req, Path.GetFileName(emojiUrl), Context.User.Mention);
@@ -48,5 +53,7 @@ namespace Modix.Modules
                 await ReplyAsync($"Sorry {Context.User.Mention}, I don't recognize that emoji.");
             }
         }
+
+        protected IHttpClientFactory HttpClientFactory { get; }
     }
 }

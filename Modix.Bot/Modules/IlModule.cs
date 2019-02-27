@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Modix.Data.Models.Core;
-using System.Threading;
 using Discord.WebSocket;
-using Serilog;
 using Modix.Services.AutoCodePaste;
+using Modix.Services.AutoRemoveMessage;
 using Modix.Services.Utilities;
+using Serilog;
 
 namespace Modix.Modules
 {
@@ -20,12 +19,18 @@ namespace Modix.Modules
         private const string ReplRemoteUrl = "http://csdiscord-repl-service:31337/Il";
         private readonly CodePasteService _pasteService;
 
-        private static readonly HttpClient _client = new HttpClient();
+        private readonly IAutoRemoveMessageService _autoRemoveMessageService;
 
-        public IlModule(ModixConfig config, CodePasteService pasteService)
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        public IlModule(
+            CodePasteService pasteService,
+            IAutoRemoveMessageService autoRemoveMessageService,
+            IHttpClientFactory httpClientFactory)
         {
             _pasteService = pasteService;
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", config.ReplToken);
+            _autoRemoveMessageService = autoRemoveMessageService;
+            _httpClientFactory = httpClientFactory;
         }
 
         [Command("il", RunMode = RunMode.Sync), Summary("Compile & return the resulting IL of C# code")]
@@ -51,8 +56,12 @@ namespace Modix.Modules
             HttpResponseMessage res;
             try
             {
-                var tokenSrc = new CancellationTokenSource(30000);
-                res = await _client.PostAsync(ReplRemoteUrl, content, tokenSrc.Token);
+                var client = _httpClientFactory.CreateClient("ReplClient");
+
+                using (var tokenSrc = new CancellationTokenSource(30000))
+                {
+                    res = await client.PostAsync(ReplRemoteUrl, content, tokenSrc.Token);
+                }
             }
             catch (TaskCanceledException)
             {
@@ -83,6 +92,8 @@ namespace Modix.Modules
             });
 
             await Context.Message.DeleteAsync();
+
+            await _autoRemoveMessageService.RegisterRemovableMessageAsync(message, Context.User);
         }
 
         private async Task<EmbedBuilder> BuildEmbed(SocketGuildUser guildUser, string code, string result)
@@ -101,6 +112,8 @@ namespace Modix.Modules
                  .WithValue(Format.Code(result.TruncateTo(990), "asm")));
 
             await embed.UploadToServiceIfBiggerThan(result, "asm", 990, _pasteService);
+
+            embed.WithFooter("React with ❌ to remove this embed.");
 
             return embed;
         }
