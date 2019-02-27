@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -29,7 +30,7 @@ namespace Modix.Modules
 
         // TODO: Factor this out into a common botwide client.
         private static readonly HttpClient _httpClient = new HttpClient();
-
+        
         public UserInfoModule(ILogger<UserInfoModule> logger, IUserService userService, IModerationService moderationService, IAuthorizationService authorizationService, IMessageRepository messageRepository)
         {
             Log = logger ?? new NullLogger<UserInfoModule>();
@@ -49,6 +50,8 @@ namespace Modix.Modules
         public async Task GetUserInfoAsync(DiscordUserEntity user = null)
         {
             user = user ?? new DiscordUserEntity(Context.User.Id);
+
+            var timer = Stopwatch.StartNew();
 
             var userInfo = await UserService.GetUserInformationAsync(Context.Guild.Id, user.Id);
 
@@ -116,6 +119,9 @@ namespace Modix.Modules
 
             embedBuilder.Description = builder.ToString();
 
+            timer.Stop();
+            embedBuilder.WithFooter(footer => footer.Text = $"Completed after {timer.ElapsedMilliseconds} ms");
+
             await ReplyAsync(string.Empty, embed: embedBuilder.Build());
         }
 
@@ -180,6 +186,7 @@ namespace Modix.Modules
 
         private async Task AddParticipationToEmbedAsync(ulong userId, StringBuilder builder)
         {
+            var userRank = await MessageRepository.GetGuildUserParticipationStatistics(Context.Guild.Id, userId);
             var messagesByDate = await MessageRepository.GetGuildUserMessageCountByDate(Context.Guild.Id, userId, TimeSpan.FromDays(30));
 
             var lastWeek = _utcNow - TimeSpan.FromDays(7);
@@ -198,11 +205,22 @@ namespace Modix.Modules
 
             builder.AppendLine();
             builder.AppendLine("**\u276F Guild Participation**");
+
+            if (userRank?.Rank > 0)
+            {
+                builder.AppendFormat("Rank: {0} {1}\n", userRank.Rank.Ordinalize(), GetParticipationEmoji(userRank));
+            }
+
             builder.AppendLine("Last 7 days: " + weekTotal + " messages");
             builder.AppendLine("Last 30 days: " + monthTotal + " messages");
 
             if (monthTotal > 0)
             {
+                builder.AppendFormat(
+                    "Avg. per day: {0} messages (top {1} percentile)\n",
+                    decimal.Round(userRank.AveragePerDay, 3),
+                    userRank.Percentile.Ordinalize());
+
                 try
                 {
                     var channels = await MessageRepository.GetGuildUserMessageCountByChannel(Context.Guild.Id, userId, TimeSpan.FromDays(30));
@@ -234,6 +252,28 @@ namespace Modix.Modules
                 : "a few seconds";
 
             return string.Format(CultureInfo.InvariantCulture, Format, prefix, humanizedTimeAgo, ago.UtcDateTime);
+        }
+
+        private string GetParticipationEmoji(GuildUserParticipationStatistics stats)
+        {
+            if (stats.Percentile == 100 || stats.Rank == 1)
+            {
+                return "🥇";
+            }
+            else if (stats.Percentile == 99 || stats.Rank == 2)
+            {
+                return "🥈";
+            }
+            else if (stats.Percentile == 98 || stats.Rank == 3)
+            {
+                return "🥉";
+            }
+            else if (stats.Percentile > 95 && stats.Percentile < 98)
+            {
+                return "🏆";
+            }
+
+            return string.Empty;
         }
     }
 }
