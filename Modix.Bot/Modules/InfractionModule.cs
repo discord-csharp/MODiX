@@ -24,7 +24,8 @@ namespace Modix.Modules
             UserService = userService;
         }
 
-        [Command("search")]
+        [Command]
+        [Alias("search")]
         [Summary("Display all infractions for a user, that haven't been deleted.")]
         [Priority(10)]
         public async Task Search(
