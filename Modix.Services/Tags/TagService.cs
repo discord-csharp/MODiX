@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Discord;
@@ -78,6 +80,54 @@ namespace Modix.Services.Tags
         /// with a collection of tags that fit the supplied criteria.
         /// </returns>
         Task<IReadOnlyCollection<TagSummary>> GetSummariesAsync(TagSearchCriteria criteria);
+
+        /// <summary>
+        /// Gets all tags owned by the supplied user.
+        /// </summary>
+        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tag belongs.</param>
+        /// <param name="userId">The Discord snowflake ID of the user who owns the tag.</param>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing a collection of all tags owned by the supplied user.
+        /// </returns>
+        Task<IReadOnlyCollection<TagSummary>> GetTagsOwnedByUserAsync(ulong guildId, ulong userId);
+
+        /// <summary>
+        /// Gets all tags owned by the supplied role.
+        /// </summary>
+        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tag belongs.</param>
+        /// <param name="roleId">The Discord snowflake ID of the role that owns the tag.</param>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing a collection of all tags owned by the supplied role.
+        /// </returns>
+        Task<IReadOnlyCollection<TagSummary>> GetTagsOwnedByRoleAsync(ulong guildId, ulong roleId);
+
+        /// <summary>
+        /// Transfers a tag to the supplied user.
+        /// </summary>
+        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tag belongs.</param>
+        /// <param name="name">The name that is used to invoke the tag.</param>
+        /// <param name="currentUserId">The user who is attempting to transfer the tag.</param>
+        /// <param name="userId">The user who will own the tag.</param>
+        /// <exception cref="ArgumentException">Throws for <paramref name="name"/>.</exception>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete.
+        /// </returns>
+        Task TransferToUserAsync(ulong guildId, string name, ulong currentUserId, ulong userId);
+
+        /// <summary>
+        /// Transfers a tag to the supplied role.
+        /// </summary>
+        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tag belongs.</param>
+        /// <param name="name">The name that is used to invoke the tag.</param>
+        /// <param name="currentUserId">The user who is attempting to transfer the tag.</param>
+        /// <param name="roleId">The role that will own the tag.</param>
+        /// <exception cref="ArgumentException">Throws for <paramref name="name"/>.</exception>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete.
+        /// </returns>
+        Task TransferToRoleAsync(ulong guildId, string name, ulong currentUserId, ulong roleId);
     }
 
     /// <inheritdoc />
@@ -89,11 +139,15 @@ namespace Modix.Services.Tags
         public TagService(
             IDiscordClient discordClient,
             IAuthorizationService authorizationService,
-            ITagRepository tagRepository)
+            ITagRepository tagRepository,
+            IUserService userService,
+            IDesignatedRoleMappingRepository designatedRoleMappingRepository)
         {
             DiscordClient = discordClient;
             AuthorizationService = authorizationService;
             TagRepository = tagRepository;
+            UserService = userService;
+            DesignatedRoleMappingRepository = designatedRoleMappingRepository;
         }
 
         /// <inheritdoc />
@@ -184,8 +238,7 @@ namespace Modix.Services.Tags
                 if (tag is null)
                     throw new InvalidOperationException($"The tag '{name}' does not exist.");
 
-                if (tag.CreateAction.CreatedBy.Id != modifierId)
-                    AuthorizationService.RequireClaims(AuthorizationClaim.MaintainOtherUserTag);
+                await EnsureUserCanMaintainTagAsync(guildId, name, modifierId);
 
                 await TagRepository.TryModifyAsync(guildId, name, modifierId, x => x.Content = newContent);
 
@@ -208,8 +261,7 @@ namespace Modix.Services.Tags
                 if (tag is null)
                     throw new InvalidOperationException($"The tag '{name}' does not exist.");
 
-                if (tag.CreateAction.CreatedBy.Id != deleterId)
-                    AuthorizationService.RequireClaims(AuthorizationClaim.MaintainOtherUserTag);
+                await EnsureUserCanMaintainTagAsync(guildId, name, deleterId);
 
                 await TagRepository.TryDeleteAsync(guildId, name, deleterId);
 
@@ -226,6 +278,56 @@ namespace Modix.Services.Tags
             return await TagRepository.SearchSummariesAsync(criteria);
         }
 
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<TagSummary>> GetTagsOwnedByUserAsync(ulong guildId, ulong userId)
+            => await TagRepository.GetTagsOwnedByUserAsync(guildId, userId);
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<TagSummary>> GetTagsOwnedByRoleAsync(ulong guildId, ulong roleId)
+            => await TagRepository.GetTagsOwnedByRoleAsync(guildId, roleId);
+
+        /// <inheritdoc />
+        public async Task TransferToUserAsync(ulong guildId, string name, ulong currentUserId, ulong userId)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("The tag name cannot be blank or whitespace.", nameof(name));
+
+            name = name.Trim().ToLower();
+
+            using (var transaction = await TagRepository.BeginMaintainTransactionAsync())
+            {
+                var tag = await TagRepository.ReadSummaryAsync(guildId, name);
+
+                if (tag is null)
+                    throw new InvalidOperationException($"The tag '{name}' does not exist.");
+
+                await EnsureUserCanMaintainTagAsync(guildId, name, currentUserId);
+
+                await TagRepository.SetOwnerUserAsync(guildId, name, userId);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task TransferToRoleAsync(ulong guildId, string name, ulong currentUserId, ulong roleId)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("The tag name cannot be blank or whitespace.", nameof(name));
+
+            name = name.Trim().ToLower();
+
+            using (var transaction = await TagRepository.BeginMaintainTransactionAsync())
+            {
+                var tag = await TagRepository.ReadSummaryAsync(guildId, name);
+
+                if (tag is null)
+                    throw new InvalidOperationException($"The tag '{name}' does not exist.");
+
+                await EnsureUserCanMaintainTagAsync(guildId, name, currentUserId);
+
+                await TagRepository.SetOwnerRoleAsync(guildId, name, roleId);
+            }
+        }
+
         /// <summary>
         /// A client for interacting with the Discord API.
         /// </summary>
@@ -240,5 +342,81 @@ namespace Modix.Services.Tags
         /// A service for storing and retrieving tag data.
         /// </summary>
         protected ITagRepository TagRepository { get; }
+
+        /// <summary>
+        /// An <see cref="IUserService"/> for interacting with discord users within the application.
+        /// </summary>
+        internal protected IUserService UserService { get; }
+
+        /// <summary>
+        /// An <see cref="IDesignatedRoleMappingRepository"/> storing and retrieving roles designated for use by the application.
+        /// </summary>
+        internal protected IDesignatedRoleMappingRepository DesignatedRoleMappingRepository { get; }
+
+        private async Task EnsureUserCanMaintainTagAsync(ulong guildId, string name, ulong currentUserId)
+        {
+            var currentUser = await UserService.GetGuildUserAsync(guildId, currentUserId);
+            var currentOwner = await TagRepository.GetOwnerAsync(guildId, name);
+
+            if (!await CanTriviallyMaintainTagAsync(currentUser))
+            {
+                if (currentOwner.User is null
+                    && !await CanUserMaintainTagOwnedByRoleAsync(currentUser, currentOwner))
+                {
+                    throw new InvalidOperationException("User rank insufficient to transfer the tag.");
+                }
+                else if (currentUserId != currentOwner.User.Id)
+                {
+                    throw new InvalidOperationException("User does not own the tag.");
+                }
+            }
+        }
+
+        private async Task<bool> CanUserMaintainTagOwnedByRoleAsync(IGuildUser currentUser, TagOwnerSummary currentOwner)
+        {
+            Debug.Assert(!(currentOwner.Role is null));
+
+            var rankRoles = await GetRankRolesAsync(currentUser.GuildId);
+
+            // If the owner role is no longer ranked, everything outranks it.
+            if (!rankRoles.Any(x => x.Id == currentOwner.Role.Id))
+                return true;
+
+            var currentUserRankRoles = rankRoles.Where(r => currentUser.RoleIds.Contains(r.Id));
+
+            var currentUserMaxRank = currentUserRankRoles.Any()
+                ? currentUserRankRoles.Select(x => x.Position).Max()
+                : int.MinValue;
+
+            // Only allow transfer if the user outranks the owner role.
+            return currentUserMaxRank > currentOwner.Role.Position;
+        }
+
+        private async Task<bool> CanTriviallyMaintainTagAsync(IGuildUser currentUser)
+        {
+            // The guild owner can always transfer tags.
+            if (currentUser.Guild.OwnerId == currentUser.Id)
+                return true;
+
+            // Administrators can always transfer tags.
+            if (currentUser.GuildPermissions.Administrator)
+                return true;
+
+            // Users with the MaintainOtherUserTag claim can always transfer tags.
+            if (await AuthorizationService.HasClaimsAsync(currentUser, AuthorizationClaim.MaintainOtherUserTag))
+                return true;
+
+            return false;
+        }
+
+        private async Task<IEnumerable<GuildRoleBrief>> GetRankRolesAsync(ulong guildId)
+            => (await DesignatedRoleMappingRepository
+                .SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria
+                {
+                    GuildId = guildId,
+                    Type = DesignatedRoleType.Rank,
+                    IsDeleted = false,
+                }))
+                .Select(r => r.Role);
     }
 }

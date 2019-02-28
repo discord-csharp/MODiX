@@ -62,6 +62,8 @@ namespace Modix.Data
 
         internal DbSet<TagActionEntity> TagActions { get; set; }
 
+        internal DbSet<TagOwnerEntity> TagOwners { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             var onModelCreatingMethods = Assembly.GetExecutingAssembly()

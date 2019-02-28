@@ -107,6 +107,64 @@ namespace Modix.Data.Repositories
         /// containing a flag indicating whether the operation succeeded.
         /// </returns>
         Task<bool> TryDeleteAsync(ulong guildId, string name, ulong deletedByUserId);
+
+        /// <summary>
+        /// Sets the owner of a tag to the supplied user.
+        /// </summary>
+        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tag belongs.</param>
+        /// <param name="name">The name of the tag within the guild.</param>
+        /// <param name="userId">The Discord snowflake ID of the user who will own the tag.</param>
+        /// <exception cref="ArgumentException">Throws for <paramref name="name"/>.</exception>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation is complete.
+        /// </returns>
+        Task SetOwnerUserAsync(ulong guildId, string name, ulong userId);
+
+        /// <summary>
+        /// Sets the owner of a tag to the supplied role.
+        /// </summary>
+        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tag belongs.</param>
+        /// <param name="name">The name of the tag within the guild.</param>
+        /// <param name="roleId">The Discord snowflake ID of the role that will own the tag.</param>
+        /// <exception cref="ArgumentException">Throws for <paramref name="name"/>.</exception>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation is complete.
+        /// </returns>
+        Task SetOwnerRoleAsync(ulong guildId, string name, ulong roleId);
+
+        /// <summary>
+        /// Gets the user or role that currently owns the supplied tag.
+        /// </summary>
+        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tag belongs.</param>
+        /// <param name="name">The name of the tag within the guild.</param>
+        /// <exception cref="ArgumentException">Throws for <paramref name="name"/>.</exception>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing a summary view of the tag's owner.
+        /// </returns>
+        Task<TagOwnerSummary> GetOwnerAsync(ulong guildId, string name);
+
+        /// <summary>
+        /// Gets all tags owned by the supplied user.
+        /// </summary>
+        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tag belongs.</param>
+        /// <param name="userId">The Discord snowflake ID of the user who owns the tag.</param>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing a collection of all tags owned by the supplied user.
+        /// </returns>
+        Task<IReadOnlyCollection<TagSummary>> GetTagsOwnedByUserAsync(ulong guildId, ulong userId);
+
+        /// <summary>
+        /// Gets all tags owned by the supplied role.
+        /// </summary>
+        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tag belongs.</param>
+        /// <param name="roleId">The Discord snowflake ID of the role that owns the tag.</param>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing a collection of all tags owned by the supplied role.
+        /// </returns>
+        Task<IReadOnlyCollection<TagSummary>> GetTagsOwnedByRoleAsync(ulong guildId, ulong roleId);
     }
 
     /// <inheritdoc />
@@ -139,6 +197,16 @@ namespace Modix.Data.Repositories
             await ModixContext.SaveChangesAsync();
 
             entity.CreateAction.NewTagId = entity.Id;
+            await ModixContext.SaveChangesAsync();
+
+            var tagOwner = new TagOwnerEntity()
+            {
+                GuildId = data.GuildId,
+                UserId = data.CreatedById,
+                TagName = data.Name,
+            };
+
+            await ModixContext.TagOwners.AddAsync(tagOwner);
             await ModixContext.SaveChangesAsync();
 
             return entity.Id;
@@ -272,6 +340,127 @@ namespace Modix.Data.Repositories
             await ModixContext.SaveChangesAsync();
 
             return true;
+        }
+
+        /// <inheritdoc />
+        public async Task SetOwnerUserAsync(ulong guildId, string name, ulong userId)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("The supplied name cannot be null or whitespace.", nameof(name));
+
+            var existingOwner = await ModixContext.TagOwners
+                .FirstOrDefaultAsync(x
+                    => x.GuildId == guildId
+                    && x.TagName == name.ToLower());
+
+            if (existingOwner is null)
+            {
+                var newOwner = new TagOwnerEntity()
+                {
+                    GuildId = guildId,
+                    TagName = name,
+                    UserId = userId,
+                };
+
+                await ModixContext.TagOwners.AddAsync(newOwner);
+            }
+            else
+            {
+                existingOwner.UserId = userId;
+                existingOwner.RoleId = null;
+
+                ModixContext.TagOwners.Update(existingOwner);
+
+                await ModixContext.SaveChangesAsync();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task SetOwnerRoleAsync(ulong guildId, string name, ulong roleId)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("The supplied name cannot be null or whitespace.", nameof(name));
+
+            var existingOwner = await ModixContext.TagOwners
+                .FirstOrDefaultAsync(x
+                    => x.GuildId == guildId
+                    && x.TagName == name.ToLower());
+
+            if (existingOwner is null)
+            {
+                var newOwner = new TagOwnerEntity()
+                {
+                    GuildId = guildId,
+                    TagName = name,
+                    RoleId = roleId,
+                };
+
+                await ModixContext.TagOwners.AddAsync(newOwner);
+            }
+            else
+            {
+                existingOwner.UserId = null;
+                existingOwner.RoleId = roleId;
+
+                ModixContext.TagOwners.Update(existingOwner);
+
+                await ModixContext.SaveChangesAsync();
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task<TagOwnerSummary> GetOwnerAsync(ulong guildId, string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("The supplied name cannot be null or whitespace.", nameof(name));
+
+            return await ModixContext.TagOwners.AsNoTracking()
+                .Where(x
+                    => x.GuildId == guildId
+                    && x.TagName == name.ToLower())
+                .AsExpandable()
+                .Select(TagOwnerSummary.FromEntityProjection)
+                .FirstOrDefaultAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<TagSummary>> GetTagsOwnedByUserAsync(ulong guildId, ulong userId)
+        {
+            var tagOwners = ModixContext.TagOwners.AsNoTracking()
+                .Where(x
+                    => x.GuildId == guildId
+                    && x.UserId == userId);
+
+            return await GetTagsFromOwnerRecordsAsync(tagOwners, guildId);
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<TagSummary>> GetTagsOwnedByRoleAsync(ulong guildId, ulong roleId)
+        {
+            var tagOwners = ModixContext.TagOwners.AsNoTracking()
+                .Where(x
+                    => x.GuildId == guildId
+                    && x.RoleId == roleId);
+
+            return await GetTagsFromOwnerRecordsAsync(tagOwners, guildId);
+        }
+
+        private async Task<IReadOnlyCollection<TagSummary>> GetTagsFromOwnerRecordsAsync(IQueryable<TagOwnerEntity> tagOwnerRecords, ulong guildId)
+        {
+            var tags = ModixContext.Tags.AsNoTracking()
+                .Where(x
+                    => x.GuildId == guildId
+                    && x.DeleteActionId == null);
+
+            return await tagOwnerRecords
+                .Join(tags,
+                    x => x.TagName,
+                    x => x.Name,
+                    (tagOwner, tag) => tag)
+                .OrderBy(x => x.Name)
+                .AsExpandable()
+                .Select(TagSummary.FromEntityProjection)
+                .ToArrayAsync();
         }
 
         private static readonly RepositoryTransactionFactory _maintainTransactionFactory
