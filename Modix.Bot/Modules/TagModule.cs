@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
+
 using Modix.Bot.Extensions;
 using Modix.Data.Models.Tags;
 using Modix.Services.AutoCodePaste;
@@ -92,6 +93,19 @@ namespace Modix.Bot.Modules
             await ReplyAsync(embed: embed);
         }
 
+        [Command("list")]
+        [Summary("Lists all tags owned by the supplied role.")]
+        public async Task ListAsync(
+            [Summary("The role whose tags are to be retrieved.")]
+                IRole role)
+        {
+            var tags = await TagService.GetTagsOwnedByRoleAsync(Context.Guild.Id, role.Id);
+
+            var embed = await BuildEmbedAsync(tags, ownerRole: role);
+
+            await ReplyAsync(embed: embed);
+        }
+
         [Command("all")]
         [Alias("list all")]
         [Summary("Lists all tags available in the current guild.")]
@@ -115,7 +129,20 @@ namespace Modix.Bot.Modules
             [Summary("The user to whom the tag should be transferred.")]
                 DiscordUserEntity target)
         {
-            await TagService.TransferToUserAsync(Context.Guild.Id, name, )
+            await TagService.TransferToUserAsync(Context.Guild.Id, name, Context.User.Id, target.Id);
+            await Context.AddConfirmation();
+        }
+
+        [Command("transfer")]
+        [Summary("Transfers ownership of a tag to the supplied role.")]
+        public async Task TransferToRoleAsync(
+            [Summary("The name of the tag to be transferred.")]
+                string name,
+            [Summary("The role to which the tag should be transferred.")]
+                IRole target)
+        {
+            await TagService.TransferToRoleAsync(Context.Guild.Id, name, Context.User.Id, target.Id);
+            await Context.AddConfirmation();
         }
 
         protected CodePasteService CodePasteService { get; }
@@ -124,12 +151,16 @@ namespace Modix.Bot.Modules
 
         protected IUserService UserService { get; }
 
-        private async Task<Embed> BuildEmbedAsync(IReadOnlyCollection<TagSummary> tags, IUser ownerUser = null, IGuild ownerGuild = null)
+        private async Task<Embed> BuildEmbedAsync(IReadOnlyCollection<TagSummary> tags, IUser ownerUser = null, IGuild ownerGuild = null, IRole ownerRole = null)
         {
             var orderedTags = tags.OrderBy(x => x.Name);
 
-            var ownerName = ownerUser?.Username ?? ownerGuild?.Name;
-            var ownerImage = ownerUser?.GetAvatarUrl() ?? ownerGuild?.IconUrl;
+            var ownerName = ownerUser?.Username
+                ?? ownerGuild?.Name
+                ?? ownerRole?.Name;
+
+            var ownerImage = ownerUser?.GetAvatarUrl()
+                ?? ownerGuild?.IconUrl;
 
             var builder = new EmbedBuilder();
 

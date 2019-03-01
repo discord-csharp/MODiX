@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Discord.WebSocket;
@@ -24,12 +25,21 @@ namespace Modix.Controllers
         [HttpGet]
         public async Task<IActionResult> GetTagsAsync()
         {
-            var results = await TagService.GetSummariesAsync(new TagSearchCriteria
+            var summaries = await TagService.GetSummariesAsync(new TagSearchCriteria
             {
                 GuildId = UserGuild.Id,
             });
 
-            return Ok(results);
+            var data = summaries.Select(x => new Models.Tags.TagData()
+            {
+                Content = x.Content,
+                Created = x.CreateAction.Created,
+                IsOwnedByRole = !(x.OwnerRole is null),
+                Name = x.Name,
+                OwnerName = x.OwnerUser?.DisplayName ?? x.OwnerRole?.Name,
+            });
+
+            return Ok(summaries);
         }
 
         [HttpPut("{name}")]
@@ -63,7 +73,7 @@ namespace Modix.Controllers
         }
 
         [HttpDelete("{name}")]
-        public async Task<IActionResult> DeleteInfractionAsync([FromRoute] string name)
+        public async Task<IActionResult> DeleteTagAsync([FromRoute] string name)
         {
             try
             {

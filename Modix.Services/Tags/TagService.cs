@@ -128,6 +128,18 @@ namespace Modix.Services.Tags
         /// A <see cref="Task"/> which will complete when the operation is complete.
         /// </returns>
         Task TransferToRoleAsync(ulong guildId, string name, ulong currentUserId, ulong roleId);
+
+        /// <summary>
+        /// Determines whether the supplied user can maintain the supplied tag.
+        /// </summary>
+        /// <param name="tag">The tag to be maintained.</param>
+        /// <param name="userId">The Discord snowflake ID of the user who is attempting to maintain the tag.</param>
+        /// <exception cref="ArgumentNullException">Throws for <paramref name="tag"/>.</exception>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation is complete,
+        /// containing a flag indicating whether the user can maintain the tag.
+        /// </returns>
+        Task<bool> CanUserMaintainTagAsync(TagSummary tag, ulong userId);
     }
 
     /// <inheritdoc />
@@ -238,7 +250,7 @@ namespace Modix.Services.Tags
                 if (tag is null)
                     throw new InvalidOperationException($"The tag '{name}' does not exist.");
 
-                await EnsureUserCanMaintainTagAsync(guildId, name, modifierId);
+                await EnsureUserCanMaintainTagAsync(tag, modifierId);
 
                 await TagRepository.TryModifyAsync(guildId, name, modifierId, x => x.Content = newContent);
 
@@ -261,7 +273,7 @@ namespace Modix.Services.Tags
                 if (tag is null)
                     throw new InvalidOperationException($"The tag '{name}' does not exist.");
 
-                await EnsureUserCanMaintainTagAsync(guildId, name, deleterId);
+                await EnsureUserCanMaintainTagAsync(tag, deleterId);
 
                 await TagRepository.TryDeleteAsync(guildId, name, deleterId);
 
@@ -280,11 +292,19 @@ namespace Modix.Services.Tags
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<TagSummary>> GetTagsOwnedByUserAsync(ulong guildId, ulong userId)
-            => await TagRepository.GetTagsOwnedByUserAsync(guildId, userId);
+            => await TagRepository.SearchSummariesAsync(new TagSearchCriteria()
+            {
+                GuildId = guildId,
+                OwnerUserId = userId,
+            });
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<TagSummary>> GetTagsOwnedByRoleAsync(ulong guildId, ulong roleId)
-            => await TagRepository.GetTagsOwnedByRoleAsync(guildId, roleId);
+            => await TagRepository.SearchSummariesAsync(new TagSearchCriteria()
+            {
+                GuildId = guildId,
+                OwnerRoleId = roleId,
+            });
 
         /// <inheritdoc />
         public async Task TransferToUserAsync(ulong guildId, string name, ulong currentUserId, ulong userId)
@@ -301,9 +321,16 @@ namespace Modix.Services.Tags
                 if (tag is null)
                     throw new InvalidOperationException($"The tag '{name}' does not exist.");
 
-                await EnsureUserCanMaintainTagAsync(guildId, name, currentUserId);
+                await EnsureUserCanMaintainTagAsync(tag, currentUserId);
 
-                await TagRepository.SetOwnerUserAsync(guildId, name, userId);
+                await TagRepository.TryModifyAsync(tag.GuildId, tag.Name, currentUserId,
+                    x =>
+                    {
+                        x.OwnerRoleId = null;
+                        x.OwnerUserId = userId;
+                    });
+
+                transaction.Commit();
             }
         }
 
@@ -322,10 +349,41 @@ namespace Modix.Services.Tags
                 if (tag is null)
                     throw new InvalidOperationException($"The tag '{name}' does not exist.");
 
-                await EnsureUserCanMaintainTagAsync(guildId, name, currentUserId);
+                await EnsureUserCanMaintainTagAsync(tag, currentUserId);
 
-                await TagRepository.SetOwnerRoleAsync(guildId, name, roleId);
+                await TagRepository.TryModifyAsync(tag.GuildId, tag.Name, currentUserId,
+                    x =>
+                    {
+                        x.OwnerRoleId = roleId;
+                        x.OwnerUserId = null;
+                    });
+
+                transaction.Commit();
             }
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> CanUserMaintainTagAsync(TagSummary tag, ulong userId)
+        {
+            if (tag is null)
+                throw new ArgumentNullException(nameof(tag));
+
+            var currentUser = await UserService.GetGuildUserAsync(tag.GuildId, userId);
+
+            if (!await CanTriviallyMaintainTagAsync(currentUser))
+            {
+                if (tag.OwnerUser is null
+                    && !await CanUserMaintainTagOwnedByRoleAsync(currentUser, tag.OwnerRole))
+                {
+                    return false;
+                }
+                else if (userId != tag.OwnerUser.Id)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -353,33 +411,32 @@ namespace Modix.Services.Tags
         /// </summary>
         internal protected IDesignatedRoleMappingRepository DesignatedRoleMappingRepository { get; }
 
-        private async Task EnsureUserCanMaintainTagAsync(ulong guildId, string name, ulong currentUserId)
+        private async Task EnsureUserCanMaintainTagAsync(TagSummary tag, ulong currentUserId)
         {
-            var currentUser = await UserService.GetGuildUserAsync(guildId, currentUserId);
-            var currentOwner = await TagRepository.GetOwnerAsync(guildId, name);
+            var currentUser = await UserService.GetGuildUserAsync(tag.GuildId, currentUserId);
 
             if (!await CanTriviallyMaintainTagAsync(currentUser))
             {
-                if (currentOwner.User is null
-                    && !await CanUserMaintainTagOwnedByRoleAsync(currentUser, currentOwner))
+                if (tag.OwnerUser is null
+                    && !await CanUserMaintainTagOwnedByRoleAsync(currentUser, tag.OwnerRole))
                 {
                     throw new InvalidOperationException("User rank insufficient to transfer the tag.");
                 }
-                else if (currentUserId != currentOwner.User.Id)
+                else if (currentUserId != tag.OwnerUser.Id)
                 {
                     throw new InvalidOperationException("User does not own the tag.");
                 }
             }
         }
 
-        private async Task<bool> CanUserMaintainTagOwnedByRoleAsync(IGuildUser currentUser, TagOwnerSummary currentOwner)
+        private async Task<bool> CanUserMaintainTagOwnedByRoleAsync(IGuildUser currentUser, GuildRoleBrief ownerRole)
         {
-            Debug.Assert(!(currentOwner.Role is null));
+            Debug.Assert(!(ownerRole is null));
 
             var rankRoles = await GetRankRolesAsync(currentUser.GuildId);
 
             // If the owner role is no longer ranked, everything outranks it.
-            if (!rankRoles.Any(x => x.Id == currentOwner.Role.Id))
+            if (!rankRoles.Any(x => x.Id == ownerRole.Id))
                 return true;
 
             var currentUserRankRoles = rankRoles.Where(r => currentUser.RoleIds.Contains(r.Id));
@@ -388,21 +445,21 @@ namespace Modix.Services.Tags
                 ? currentUserRankRoles.Select(x => x.Position).Max()
                 : int.MinValue;
 
-            // Only allow transfer if the user outranks the owner role.
-            return currentUserMaxRank > currentOwner.Role.Position;
+            // Only allow maintenance if the user has sufficient rank.
+            return currentUserMaxRank >= ownerRole.Position;
         }
 
         private async Task<bool> CanTriviallyMaintainTagAsync(IGuildUser currentUser)
         {
-            // The guild owner can always transfer tags.
+            // The guild owner can always maintain tags.
             if (currentUser.Guild.OwnerId == currentUser.Id)
                 return true;
 
-            // Administrators can always transfer tags.
+            // Administrators can always maintain tags.
             if (currentUser.GuildPermissions.Administrator)
                 return true;
 
-            // Users with the MaintainOtherUserTag claim can always transfer tags.
+            // Users with the MaintainOtherUserTag claim can always maintain tags.
             if (await AuthorizationService.HasClaimsAsync(currentUser, AuthorizationClaim.MaintainOtherUserTag))
                 return true;
 

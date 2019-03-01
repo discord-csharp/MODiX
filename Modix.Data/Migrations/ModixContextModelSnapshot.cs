@@ -3,7 +3,6 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Modix.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Modix.Data.Migrations
@@ -523,6 +522,10 @@ namespace Modix.Data.Migrations
                     b.Property<string>("Name")
                         .IsRequired();
 
+                    b.Property<long?>("OwnerRoleId");
+
+                    b.Property<long?>("OwnerUserId");
+
                     b.Property<long>("Uses");
 
                     b.HasKey("Id");
@@ -537,37 +540,13 @@ namespace Modix.Data.Migrations
 
                     b.HasIndex("Name");
 
+                    b.HasIndex("OwnerRoleId");
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.HasIndex("GuildId", "OwnerUserId");
+
                     b.ToTable("Tags");
-                });
-
-            modelBuilder.Entity("Modix.Data.Models.Tags.TagOwnerEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<long>("GuildId");
-
-                    b.Property<long?>("RoleId");
-
-                    b.Property<string>("TagName")
-                        .IsRequired();
-
-                    b.Property<long?>("UserId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GuildId");
-
-                    b.HasIndex("RoleId");
-
-                    b.HasIndex("TagName")
-                        .IsUnique();
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("GuildId", "UserId");
-
-                    b.ToTable("TagOwners");
                 });
 
             modelBuilder.Entity("Modix.Data.Models.Core.ClaimMappingEntity", b =>
@@ -799,17 +778,14 @@ namespace Modix.Data.Migrations
                     b.HasOne("Modix.Data.Models.Tags.TagActionEntity", "DeleteAction")
                         .WithOne()
                         .HasForeignKey("Modix.Data.Models.Tags.TagEntity", "DeleteActionId");
-                });
 
-            modelBuilder.Entity("Modix.Data.Models.Tags.TagOwnerEntity", b =>
-                {
-                    b.HasOne("Modix.Data.Models.Core.GuildRoleEntity", "Role")
+                    b.HasOne("Modix.Data.Models.Core.GuildRoleEntity", "OwnerRole")
                         .WithMany()
-                        .HasForeignKey("RoleId");
+                        .HasForeignKey("OwnerRoleId");
 
-                    b.HasOne("Modix.Data.Models.Core.GuildUserEntity", "User")
+                    b.HasOne("Modix.Data.Models.Core.GuildUserEntity", "OwnerUser")
                         .WithMany()
-                        .HasForeignKey("GuildId", "UserId");
+                        .HasForeignKey("GuildId", "OwnerUserId");
                 });
 #pragma warning restore 612, 618
         }

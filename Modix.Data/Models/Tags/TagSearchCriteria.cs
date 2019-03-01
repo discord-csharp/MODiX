@@ -20,9 +20,14 @@ namespace Modix.Data.Models.Tags
         public string Name { get; set; }
 
         /// <summary>
-        /// The Discord snowflake ID of the creator of the tags to filter on.
+        /// The Discord snowflake ID of the owner user of the tags to filter on.
         /// </summary>
-        public ulong? CreatedById { get; set; }
+        public ulong? OwnerUserId { get; set; }
+
+        /// <summary>
+        /// The Discord snowflake ID of the owner role of the tags to filter on.
+        /// </summary>
+        public ulong? OwnerRoleId { get; set; }
     }
 
     internal static class TagSearchCriteriaExtensions
@@ -36,7 +41,14 @@ namespace Modix.Data.Models.Tags
                     x => x.Name.Contains(criteria.Name.ToLower()),
                     !(criteria.Name is null))
                 .FilterBy(
-                    x => x.CreateAction.CreatedById == criteria.CreatedById.Value,
-                    !(criteria.CreatedById is null));
+                    x => x.OwnerUserId == null
+                        ? false
+                        : x.OwnerUserId == criteria.OwnerUserId.Value,
+                    !(criteria.OwnerUserId is null))
+                .FilterBy(
+                    x => x.OwnerRoleId == null
+                        ? false
+                        : x.OwnerRoleId == criteria.OwnerRoleId.Value,
+                    !(criteria.OwnerRoleId is null));
     }
 }

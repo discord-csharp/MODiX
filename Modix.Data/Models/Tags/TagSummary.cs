@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 
 using Modix.Data.ExpandableQueries;
+using Modix.Data.Models.Core;
 
 namespace Modix.Data.Models.Tags
 {
@@ -45,6 +46,16 @@ namespace Modix.Data.Models.Tags
         /// </summary>
         public uint Uses { get; set; }
 
+        /// <summary>
+        /// See <see cref="TagEntity.OwnerUser"/>.
+        /// </summary>
+        public GuildUserBrief OwnerUser { get; set; }
+
+        /// <summary>
+        /// See <see cref="TagEntity.OwnerRole"/>.
+        /// </summary>
+        public GuildRoleBrief OwnerRole { get; set; }
+
         [ExpansionExpression]
         internal static readonly Expression<Func<TagEntity, TagSummary>> FromEntityProjection
             = entity => new TagSummary()
@@ -58,6 +69,12 @@ namespace Modix.Data.Models.Tags
                 Name = entity.Name,
                 Content = entity.Content,
                 Uses = entity.Uses,
+                OwnerUser = (entity.OwnerUserId == null)
+                    ? null
+                    : entity.OwnerUser.Project(GuildUserBrief.FromEntityProjection),
+                OwnerRole = (entity.OwnerRoleId == null)
+                    ? null
+                    : entity.OwnerRole.Project(GuildRoleBrief.FromEntityProjection),
             };
     }
 }

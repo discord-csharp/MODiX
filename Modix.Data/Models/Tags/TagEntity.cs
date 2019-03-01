@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
 
+using Modix.Data.Models.Core;
 using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Tags
@@ -68,12 +69,42 @@ namespace Modix.Data.Models.Tags
         [Required]
         public uint Uses { get; set; }
 
+        /// <summary>
+        /// The Discord snowflake ID of the user to whom the tag belongs, if any.
+        /// </summary>
+        public ulong? OwnerUserId { get; set; }
+
+        /// <summary>
+        /// The user to whom the tag belongs, if any.
+        /// </summary>
+        public virtual GuildUserEntity OwnerUser { get; set; }
+
+        /// <summary>
+        /// The Discord snowflake ID of the role to which the tag belongs, if any.
+        /// </summary>
+        public ulong? OwnerRoleId { get; set; }
+
+        /// <summary>
+        /// The role to which the tag belongs, if any.
+        /// </summary>
+        public virtual GuildRoleEntity OwnerRole { get; set; }
+
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .Entity<TagEntity>()
                 .Property(x => x.GuildId)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<TagEntity>()
+                .Property(x => x.OwnerUserId)
+                .HasConversion<long>();
+
+            modelBuilder
+                .Entity<TagEntity>()
+                .Property(x => x.OwnerRoleId)
                 .HasConversion<long>();
 
             modelBuilder
@@ -90,11 +121,31 @@ namespace Modix.Data.Models.Tags
 
             modelBuilder
                 .Entity<TagEntity>()
+                .HasOne(x => x.OwnerUser)
+                .WithMany()
+                .HasForeignKey(x => new { x.GuildId, x.OwnerUserId });
+
+            modelBuilder
+                .Entity<TagEntity>()
+                .HasOne(x => x.OwnerRole)
+                .WithMany()
+                .HasForeignKey(x => x.OwnerRoleId);
+
+            modelBuilder
+                .Entity<TagEntity>()
                 .HasIndex(x => x.GuildId);
 
             modelBuilder
                 .Entity<TagEntity>()
                 .HasIndex(x => x.Name);
+
+            modelBuilder
+                .Entity<TagEntity>()
+                .HasIndex(x => x.OwnerUserId);
+
+            modelBuilder
+                .Entity<TagEntity>()
+                .HasIndex(x => x.OwnerRoleId);
         }
     }
 }
