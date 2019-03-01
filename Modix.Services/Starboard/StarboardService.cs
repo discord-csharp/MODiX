@@ -180,7 +180,7 @@ namespace Modix.Services.Starboard
             }
 
             messageEntity.StarboardEntryId = starEntry.Id;
-            _messageRepository.UpdateStarboardColumn(messageEntity);
+            await _messageRepository.UpdateStarboardColumn(messageEntity);
         }
 
         /// <inheritdoc />
