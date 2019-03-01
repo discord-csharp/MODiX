@@ -24,7 +24,7 @@ namespace Modix.Data.Repositories
 
         Task<MessageEntity> GetMessage(ulong messageId);
 
-        void UpdateStarboardColumn(MessageEntity message);
+        Task UpdateStarboardColumn(MessageEntity message);
     }
 
     public class MessageRepository : RepositoryBase, IMessageRepository
