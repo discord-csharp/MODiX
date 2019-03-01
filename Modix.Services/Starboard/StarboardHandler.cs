@@ -52,7 +52,7 @@ namespace Modix.Services.Starboard
 
             bool starboardExists = await _designatedChannelService
                 .AnyDesignatedChannelAsync(channel.GuildId, DesignatedChannelType.Starboard);
-            if (isUnmoderated|| !starboardExists)
+            if (isUnmoderated || !starboardExists)
             {
                 return;
             }
