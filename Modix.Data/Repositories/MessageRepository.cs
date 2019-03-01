@@ -151,10 +151,10 @@ namespace Modix.Data.Repositories
             return await ModixContext.Messages.FindAsync(messageId);
         }
 
-        public void UpdateStarboardColumn(MessageEntity message)
+        public async Task UpdateStarboardColumn(MessageEntity message)
         {
             ModixContext.Messages.Update(message);
-            ModixContext.SaveChanges();
+            await ModixContext.SaveChangesAsync();
         }
     }
 }
