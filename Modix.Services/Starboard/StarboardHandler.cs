@@ -47,10 +47,12 @@ namespace Modix.Services.Starboard
                 return;
             }
 
-            if(await _designatedChannelService
-                .ChannelHasDesignationAsync(channel.Guild, channel, DesignatedChannelType.Unmoderated)
-                || !await _designatedChannelService
-                .AnyDesignatedChannelAsync(channel.GuildId, DesignatedChannelType.Starboard))
+            bool isUnmoderated = await _designatedChannelService
+                .ChannelHasDesignationAsync(channel.Guild, channel, DesignatedChannelType.Unmoderated);
+
+            bool starboardExists = await _designatedChannelService
+                .AnyDesignatedChannelAsync(channel.GuildId, DesignatedChannelType.Starboard);
+            if (isUnmoderated|| !starboardExists)
             {
                 return;
             }
