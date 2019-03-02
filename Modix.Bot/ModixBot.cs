@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,6 +57,9 @@ namespace Modix
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-us");
+            Thread.CurrentThread.CurrentUICulture = Thread.CurrentThread.CurrentCulture;
+
             Log.LogInformation("Starting bot background service.");
 
             IServiceScope scope = null;
