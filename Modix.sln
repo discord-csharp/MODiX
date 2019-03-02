@@ -1,7 +1,6 @@
-
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26430.16
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28621.142
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Bot", "Modix.Bot\Modix.Bot.csproj", "{9BBC702D-F919-4482-BF6C-0FC8EA2740C4}"
 EndProject
@@ -16,16 +15,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Data.Test", "Modix.Da
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{23DA774D-7AE9-48C1-A261-F27D15A07858}"
 	ProjectSection(SolutionItems) = preProject
-		Dockerfile = Dockerfile
 		.editorconfig = .editorconfig
-		global.json = global.json
+		Dockerfile = Dockerfile
 		NuGet.config = NuGet.config
 		readme.md = readme.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix", "Modix\Modix.csproj", "{C4BE4089-0983-464F-9D76-EE9BD2B708DD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modix.Services.Test", "Modix.Services.Test\Modix.Services.Test.csproj", "{D9BFC7C7-10B2-4D61-99EA-79805074CCD7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Services.Test", "Modix.Services.Test\Modix.Services.Test.csproj", "{D9BFC7C7-10B2-4D61-99EA-79805074CCD7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
