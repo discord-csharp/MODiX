@@ -23,18 +23,15 @@ namespace Modix.Modules
         private readonly CodePasteService _pasteService;
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
         private readonly IHttpClientFactory _httpClientFactory;
-        private readonly ModixConfig _config;
 
         public IlModule(
             CodePasteService pasteService,
             IAutoRemoveMessageService autoRemoveMessageService,
-            IHttpClientFactory httpClientFactory,
-            IOptions<ModixConfig> config)
+            IHttpClientFactory httpClientFactory)
         {
             _pasteService = pasteService;
             _autoRemoveMessageService = autoRemoveMessageService;
             _httpClientFactory = httpClientFactory;
-            _config = config.Value;
         }
 
         [Command("il", RunMode = RunMode.Sync), Summary("Compile & return the resulting IL of C# code")]
@@ -60,18 +57,11 @@ namespace Modix.Modules
             HttpResponseMessage res;
             try
             {
-                var client = _httpClientFactory.CreateClient("ReplClient");
+                var client = _httpClientFactory.CreateClient(nameof(ReplModule));
 
                 using (var tokenSrc = new CancellationTokenSource(30000))
                 {
-                    var req = new HttpRequestMessage(HttpMethod.Post, ReplRemoteUrl)
-                    {
-                        Content = content
-                    };
-
-                    req.Headers.Authorization = new AuthenticationHeaderValue("Token", _config.ReplToken);
-
-                    res = await client.SendAsync(req);
+                    res = await client.PostAsync(ReplRemoteUrl, content, tokenSrc.Token);
                 }
             }
             catch (TaskCanceledException)

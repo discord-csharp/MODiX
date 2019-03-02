@@ -27,8 +27,6 @@ namespace Modix
                 .AddJsonFile("developmentSettings.json", optional: true, reloadOnChange: false)
                 .Build();
 
-
-
             Log.Logger = loggerConfig.CreateLogger();
 
             try

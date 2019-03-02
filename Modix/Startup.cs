@@ -48,7 +48,7 @@ namespace Modix
                     options.ExpireTimeSpan = new TimeSpan(7, 0, 0, 0);
 
                 })
-                .AddModixAuth();
+                .AddModixAuth(_configuration);
 
             services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
             services.AddResponseCompression();
@@ -58,10 +58,12 @@ namespace Modix
 
             services.AddDbContext<ModixContext>(options =>
             {
-                options.UseNpgsql(_configuration.GetValue<string>("DbConnection"));
+                options.UseNpgsql(_configuration.GetValue<string>(nameof(ModixConfig.DbConnection)));
             });
 
-            services.AddModix();
+            services
+                .AddModixHttpClients()
+                .AddModix();
 
             services.AddMvc()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
@@ -75,8 +77,6 @@ namespace Modix
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, CodePasteService codePasteService)
         {
-            PerformInitialSetup(codePasteService);
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -119,42 +119,6 @@ namespace Modix
             //Defer to MVC for anything that doesn't match (and ostensibly
             //starts with /api)
             app.UseMvcWithDefaultRoute();
-        }
-
-        public static void PerformInitialSetup(CodePasteService codePasteService)
-        {
-            var loggerConfig = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                .MinimumLevel.Override("Modix.DiscordSerilogAdapter", LogEventLevel.Information)
-                .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .WriteTo.RollingFile(@"logs\{Date}", restrictedToMinimumLevel: LogEventLevel.Debug);
-
-            var webhookId = Environment.GetEnvironmentVariable("log_webhook_id");
-            var webhookToken = Environment.GetEnvironmentVariable("log_webhook_token");
-            var sentryToken = Environment.GetEnvironmentVariable("SentryToken");
-
-            if (!string.IsNullOrWhiteSpace(webhookToken) &&
-                ulong.TryParse(webhookId, out var id))
-            {
-                loggerConfig.WriteTo.DiscordWebhookSink(id, webhookToken, LogEventLevel.Error, codePasteService);
-            }
-            else
-            {
-                Log.Information("The webhook token and/or ID were not set. Logging to Discord has been disabled.");
-            }
-
-            if (!string.IsNullOrWhiteSpace(sentryToken))
-            {
-                loggerConfig.WriteTo.Sentry(sentryToken, restrictedToMinimumLevel: LogEventLevel.Warning);
-            }
-            else
-            {
-                Log.Information("The Sentry token was not set. Logging to Sentry has been disabled.");
-            }
-
-            Log.Logger = loggerConfig.CreateLogger();
         }
     }
 }

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Modix.Data.Models.Core;
@@ -11,7 +12,7 @@ namespace Modix.Auth
 {
     public static class ModixAuthenticationExtensions
     {
-        public static AuthenticationBuilder AddModixAuth(this AuthenticationBuilder builder)
+        public static AuthenticationBuilder AddModixAuth(this AuthenticationBuilder builder, IConfiguration config)
         {
             return builder.AddOAuth<DiscordAuthenticationOptions, ModixAuthenticationHandler>(DiscordAuthenticationDefaults.AuthenticationScheme, options =>
             {
@@ -35,6 +36,9 @@ namespace Modix.Auth
 
                     return Task.CompletedTask;
                 };
+
+                options.ClientId = config.GetValue<string>(nameof(ModixConfig.DiscordClientId));
+                options.ClientSecret = config.GetValue<string>(nameof(ModixConfig.DiscordClientSecret));
             });
         }
     }
