@@ -22,6 +22,8 @@ namespace Modix.Data.Models.Core
         [Required]
         public DateTimeOffset Timestamp { get; set; }
 
+        public ulong? StarboardEntryId { get; set; }
+
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -42,6 +44,10 @@ namespace Modix.Data.Models.Core
 
             modelBuilder.Entity<MessageEntity>()
                 .Property(x => x.AuthorId)
+                .HasColumnType("numeric(20)");
+
+            modelBuilder.Entity<MessageEntity>()
+                .Property(x => x.StarboardEntryId)
                 .HasColumnType("numeric(20)");
 
             modelBuilder.Entity<MessageEntity>()

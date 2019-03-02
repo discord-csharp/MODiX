@@ -21,6 +21,10 @@ namespace Modix.Data.Repositories
         Task CreateAsync(MessageEntity message);
 
         Task DeleteAsync(ulong messageId);
+
+        Task<MessageEntity> GetMessage(ulong messageId);
+
+        Task UpdateStarboardColumn(MessageEntity message);
     }
 
     public class MessageRepository : RepositoryBase, IMessageRepository
@@ -36,7 +40,7 @@ namespace Modix.Data.Repositories
 
         public async Task DeleteAsync(ulong messageId)
         {
-            if (await ModixContext.Messages.FindAsync(messageId) is MessageEntity message)
+            if (await GetMessage(messageId) is MessageEntity message)
             {
                 ModixContext.Messages.Remove(message);
                 await ModixContext.SaveChangesAsync();
@@ -140,6 +144,17 @@ namespace Modix.Data.Repositories
 
             return ModixContext.Messages.AsNoTracking()
                 .Where(x => x.GuildId == guildId && x.AuthorId == userId && x.Timestamp >= earliestDateTime);
+        }
+
+        public async Task<MessageEntity> GetMessage(ulong messageId)
+        {
+            return await ModixContext.Messages.FindAsync(messageId);
+        }
+
+        public async Task UpdateStarboardColumn(MessageEntity message)
+        {
+            ModixContext.Messages.Update(message);
+            await ModixContext.SaveChangesAsync();
         }
     }
 }

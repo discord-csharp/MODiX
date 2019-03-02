@@ -29,6 +29,7 @@ using Modix.Services.NotificationDispatch;
 using Modix.Services.PopularityContest;
 using Modix.Services.Promotions;
 using Modix.Services.Quote;
+using Modix.Services.Starboard;
 using Modix.Services.StackExchange;
 using Modix.Services.Tags;
 using Modix.Services.Wikipedia;
@@ -106,6 +107,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddMentions()
                 .AddModixTags()
                 .AddNotificationDispatch()
+                .AddStarboard()
                 .AddAutoRemoveMessage();
 
             services.AddSingleton<IBehavior, DiscordAdapter>();

@@ -98,6 +98,7 @@ namespace Modix.Modules
                 { DesignatedChannelType.PromotionLog,           "Promotion Log" },
                 { DesignatedChannelType.PromotionNotifications, "Promotion Notifications" },
                 { DesignatedChannelType.Unmoderated,            "Unmoderated" },
+                { DesignatedChannelType.Starboard,              "Starboard" }
             };
     }
 }

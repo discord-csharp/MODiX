@@ -1,7 +1,7 @@
 ﻿namespace Modix.Data.Models.Core
 {
     /// <summary>
-    /// Defines the possible types designations that may be assigned to roles.
+    /// Defines the possible types designations that may be assigned to channels.
     /// </summary>
     public enum DesignatedChannelType
     {
@@ -24,6 +24,10 @@
         /// <summary>
         /// Defines a channel that is not subject to auto-moderation behaviors of the moderation feature.
         /// </summary>
-        Unmoderated
+        Unmoderated,
+        /// <summary>
+        /// Defines a channel to which starred messages are sent.
+        /// </summary>
+        Starboard
     }
 }
