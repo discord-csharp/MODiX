@@ -131,7 +131,7 @@ namespace Modix.Services.Starboard
             {
                 await channel.DeleteMessageAsync(messageEntity.StarboardEntryId.Value);
                 messageEntity.StarboardEntryId = null;
-                _messageRepository.UpdateStarboardColumn(messageEntity);
+                await _messageRepository.UpdateStarboardColumn(messageEntity);
             }
         }
 
