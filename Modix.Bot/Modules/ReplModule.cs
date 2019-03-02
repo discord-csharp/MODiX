@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.Options;
+using Modix.Data.Models.Core;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.Utilities;
@@ -32,9 +34,7 @@ namespace Modix.Modules
     {
         private const string ReplRemoteUrl = "http://csdiscord-repl-service:31337/Eval";
         private readonly CodePasteService _pasteService;
-
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
-
         private readonly IHttpClientFactory _httpClientFactory;
 
         public ReplModule(
@@ -45,6 +45,7 @@ namespace Modix.Modules
             _pasteService = pasteService;
             _autoRemoveMessageService = autoRemoveMessageService;
             _httpClientFactory = httpClientFactory;
+            _pasteService = pasteService;
         }
 
         [Command("exec", RunMode = RunMode.Sync), Alias("eval"), Summary("Executes the given C# code and returns the result")]
@@ -70,9 +71,12 @@ namespace Modix.Modules
             HttpResponseMessage res;
             try
             {
-                var client = _httpClientFactory.CreateClient("ReplClient");
-                var tokenSrc = new CancellationTokenSource(30000);
-                res = await client.PostAsync(ReplRemoteUrl, content, tokenSrc.Token);
+                var client = _httpClientFactory.CreateClient(nameof(ReplModule));
+
+                using (var tokenSrc = new CancellationTokenSource(30000))
+                {
+                    res = await _httpClientFactory.CreateClient().PostAsync(ReplRemoteUrl, content, tokenSrc.Token);
+                }
             }
             catch (TaskCanceledException)
             {

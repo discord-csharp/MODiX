@@ -2,9 +2,11 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Data.Models.Core;
 using Serilog;
+using Serilog.Events;
 
 namespace Modix
 {
@@ -12,9 +14,24 @@ namespace Modix
     {
         public static int Main(string[] args)
         {
+            var loggerConfig = new LoggerConfiguration()
+                .MinimumLevel.Verbose()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .MinimumLevel.Override("Modix.DiscordSerilogAdapter", LogEventLevel.Information)
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .WriteTo.RollingFile(@"logs\{Date}", restrictedToMinimumLevel: LogEventLevel.Debug);
+
+            var config = new ConfigurationBuilder()
+                .AddEnvironmentVariables("MODIX_")
+                .AddJsonFile("developmentSettings.json", optional: true, reloadOnChange: false)
+                .Build();
+
+            Log.Logger = loggerConfig.CreateLogger();
+
             try
             {
-                CreateWebHostBuilder(args).Build().Run();
+                CreateWebHostBuilder(args, config).Build().Run();
 
                 return 0;
             }
@@ -37,60 +54,10 @@ namespace Modix
             }
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+        public static IWebHostBuilder CreateWebHostBuilder(string[] args, IConfiguration config) =>
             WebHost.CreateDefaultBuilder(args)
+                .UseConfiguration(config)
                 .UseSerilog()
-                .ConfigureServices(services => services.AddSingleton(LoadConfig()))
                 .UseStartup<Startup>();
-
-        private static ModixConfig LoadConfig()
-        {
-            var config = new ModixConfig
-            {
-                DiscordToken = Environment.GetEnvironmentVariable("DiscordToken"),
-                ReplToken = Environment.GetEnvironmentVariable("ReplToken"),
-                StackoverflowToken = Environment.GetEnvironmentVariable("StackoverflowToken"),
-                PostgreConnectionString = Environment.GetEnvironmentVariable("MODIX_DB_CONNECTION"),
-                DiscordClientId = Environment.GetEnvironmentVariable("DiscordClientId"),
-                DiscordClientSecret = Environment.GetEnvironmentVariable("DiscordClientSecret")
-            };
-
-            if (string.IsNullOrWhiteSpace(config.DiscordToken))
-            {
-                Log.Fatal("The discord token was not set - this is fatal! Check your envvars.");
-            }
-
-            if (string.IsNullOrWhiteSpace(config.DiscordClientId) || string.IsNullOrWhiteSpace(config.DiscordClientSecret))
-            {
-                Log.Warning("The discord client id and/or client secret were not set. These are required for Web API functionality - " +
-                    "if you need that, set your envvars, and make sure to configure redirect URIs");
-            }
-
-            if (int.TryParse(Environment.GetEnvironmentVariable("DiscordMessageCacheSize"), out var cacheSize))
-            {
-                config.MessageCacheSize = cacheSize;
-            }
-            else
-            {
-                config.MessageCacheSize = 0;
-                Log.Information("The message cache size was not set. Defaulting to 0.");
-            }
-
-            var id = Environment.GetEnvironmentVariable("log_webhook_id");
-
-            if (!string.IsNullOrWhiteSpace(id))
-            {
-                config.WebhookId = ulong.Parse(id);
-                config.WebhookToken = Environment.GetEnvironmentVariable("log_webhook_token");
-            }
-
-            var sentryToken = Environment.GetEnvironmentVariable("SentryToken");
-            if (!string.IsNullOrWhiteSpace(sentryToken))
-            {
-                config.SentryToken = sentryToken;
-            }
-
-            return config;
-        }
     }
 }

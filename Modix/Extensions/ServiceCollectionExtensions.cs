@@ -7,6 +7,7 @@ using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 using MediatR;
+using Microsoft.Extensions.Options;
 using Modix;
 using Modix.Behaviors;
 using Modix.Data.Messages;
@@ -33,40 +34,49 @@ using Modix.Services.Starboard;
 using Modix.Services.StackExchange;
 using Modix.Services.Tags;
 using Modix.Services.Wikipedia;
+using Modix.Modules;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     internal static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddModix(this IServiceCollection services)
+        public static IServiceCollection AddModixHttpClients(this IServiceCollection services)
         {
             services.AddHttpClient();
 
-            services.AddHttpClient("ReplClient")
+            services.AddHttpClient(nameof(ReplModule))
                 .ConfigureHttpClient((serviceProvider, client) =>
                 {
-                    var config = serviceProvider.GetRequiredService<ModixConfig>();
+                    var config = serviceProvider.GetRequiredService<IOptions<ModixConfig>>().Value;
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", config.ReplToken);
                 });
 
-            services.AddHttpClient("CodePasteClient")
+            services.AddHttpClient(nameof(CodePasteService))
                 .ConfigureHttpClient(client =>
                 {
                     client.Timeout = TimeSpan.FromSeconds(5);
                 });
 
-            services.AddHttpClient("StackExchangeClient")
+            services.AddHttpClient(nameof(StackExchangeService))
                 .ConfigurePrimaryHttpMessageHandler(() =>
                 new HttpClientHandler()
                 {
                     AutomaticDecompression = DecompressionMethods.GZip,
                 });
 
+            return services;
+        }
+
+        public static IServiceCollection AddModix(this IServiceCollection services)
+        {
             services.AddSingleton(
                 provider => new DiscordSocketClient(config: new DiscordSocketConfig
                 {
                     LogLevel = LogSeverity.Debug,
-                    MessageCacheSize = provider.GetRequiredService<ModixConfig>().MessageCacheSize //needed to log deletions
+                    MessageCacheSize = provider
+                        .GetRequiredService<IOptions<ModixConfig>>()
+                        .Value
+                        .MessageCacheSize //needed to log deletions
                 }));
 
             services.AddSingleton<IDiscordClient>(provider => provider.GetRequiredService<DiscordSocketClient>());

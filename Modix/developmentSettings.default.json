@@ -1,0 +1,11 @@
+﻿{
+    "DbConnection": "",
+    "DiscordClientId": "",
+    "DiscordClientSecret": "",
+    "LogWebhookId": "",
+    "LogWebhookToken": "",
+    "DiscordToken": "",
+    "ReplToken": "",
+    "StackoverflowToken": "",
+    "MessageCacheSize": ""
+}

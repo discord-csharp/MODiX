@@ -6,20 +6,21 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Modix.Data.Models.Core;
+using Microsoft.Extensions.Options;
 
 namespace Modix.Modules
 {
     [Name("Stack Exchange"), Summary("Query any site from Stack Exchange.")]
     public class StackExchangeModule : ModuleBase
     {
-        private readonly ModixConfig _config;
+        private readonly string _stackOverflowToken;
 
         public StackExchangeModule(
-            ModixConfig config,
+            IOptions<ModixConfig> config,
             StackExchangeService stackExchangeService)
         {
-            _config = config;
             StackExchangeService = stackExchangeService;
+            _stackOverflowToken = config.Value.StackoverflowToken;
         }
 
         [Command("stack"), Summary("Returns top results from a Stack Exchange site."), Remarks("Usage: `!stack how do i parse json with c#? [site=stackoverflow tags=c#,json]`")]
@@ -61,7 +62,7 @@ namespace Modix.Modules
                 tags = "c#";
             }
 
-            var response = await StackExchangeService.GetStackExchangeResultsAsync(_config.StackoverflowToken, phrase, site, tags);
+            var response = await StackExchangeService.GetStackExchangeResultsAsync(_stackOverflowToken, phrase, site, tags);
             var filteredRes = response.Items.Where(x => x.Tags.Contains(tags));
             foreach (var res in filteredRes.Take(3))
             {

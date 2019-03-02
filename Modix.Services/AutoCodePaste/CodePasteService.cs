@@ -39,7 +39,7 @@ namespace Modix.Services.AutoCodePaste
             var content = FormatUtilities.BuildContent(code);
             HttpResponseMessage response;
 
-            var client = _httpClientFactory.CreateClient("CodePasteClient");
+            var client = _httpClientFactory.CreateClient(nameof(CodePasteService));
 
             try
             {
