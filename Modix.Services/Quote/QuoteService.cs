@@ -71,7 +71,7 @@ namespace Modix.Services.Quote
             embed = message.Embeds
                     .First()
                     .ToEmbedBuilder()
-                    .AddField("Quoted by", executingUser.Mention, true);
+                    .AddField("Quoted by", $"{executingUser.Mention} from **[#{message.Channel.Name}]({message.GetJumpUrl()})**", true);
 
             if (firstEmbed.Color == null)
             {
@@ -118,7 +118,7 @@ namespace Modix.Services.Quote
                 .WithAuthor(message.Author)
                 .WithFooter(GetPostedMeta(message))
                 .WithColor(new Color(95, 186, 125))
-                .AddField("Quoted by", executingUser.Mention, true);
+                .AddField("Quoted by", $"{executingUser.Mention} from **[#{message.Channel.Name}]({message.GetJumpUrl()})**", true);
         }
 
         private static string GetPostedMeta(IMessage message)
