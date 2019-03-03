@@ -7,6 +7,7 @@ using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Modix.Services.AutoRemoveMessage;
 
 namespace Modix.Services.Quote
 {
@@ -58,9 +59,17 @@ namespace Modix.Services.Quote
                 {
                     try
                     {
-                        if (await IsQuote(channelId, messageId)) { return; }
+                        var channel = DiscordClient.GetChannel(channelId);
 
-                        await SendQuoteEmbedAsync(channelId, messageId, guildUser, userMessage.Channel);
+                        if (channel is IGuildChannel &&
+                            channel is ISocketMessageChannel messageChannel)
+                        {
+                            var msg = await messageChannel.GetMessageAsync(messageId);
+                            if (msg == null || await IsQuote(msg))
+                                return;
+
+                            await SendQuoteEmbedAsync(msg, guildUser, userMessage.Channel);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -70,33 +79,29 @@ namespace Modix.Services.Quote
             }
         }
 
-        private async Task SendQuoteEmbedAsync(ulong originalChannelId, ulong messageId, SocketGuildUser quoter, ISocketMessageChannel targetChannel)
+        private async Task SendQuoteEmbedAsync(IMessage message, SocketGuildUser quoter, ISocketMessageChannel targetChannel)
         {
-            var channel = DiscordClient.GetChannel(originalChannelId);
-
-            if (channel is IGuildChannel &&
-                channel is ISocketMessageChannel messageChannel)
+            await SelfExecuteRequest<IQuoteService>(async quoteService =>
             {
-                var msg = await messageChannel.GetMessageAsync(messageId);
-                if (msg == null) { return; }
+                var embed = quoteService.BuildQuoteEmbed(message, quoter);
+                if (embed == null) return;
 
-                await SelfExecuteRequest<IQuoteService>(async quoteService =>
-                {
-                    var embed = quoteService.BuildQuoteEmbed(msg, quoter)?.Build();
-                    if (embed == null) { return; }
+                embed.Fields.First(d => d.Name == "Quoted by")
+                .Value += $" from **[#{message.Channel.Name}]({message.GetJumpUrl()})**";
 
-                    await targetChannel.SendMessageAsync(string.Empty, embed: embed);
-                });
-            }
+                embed.WithFooter("React with ❌ to remove this embed.");
+                embed.WithTimestamp(message.Timestamp);
+
+                var removableMessage = await targetChannel.SendMessageAsync(string.Empty, embed: embed.Build());
+                await SelfExecuteRequest<IAutoRemoveMessageService>(async messageRemoveService
+                    => await messageRemoveService.RegisterRemovableMessageAsync(removableMessage, quoter));
+            });
         }
 
-        private async Task<bool> IsQuote(ulong channelId, ulong messageId)
+        private async Task<bool> IsQuote(IMessage message)
         {
-            var foundMessage = await (DiscordClient.GetChannel(channelId) as ISocketMessageChannel)
-                .GetMessageAsync(messageId);
-
             var hasQuoteField =
-                foundMessage
+                message
                 .Embeds?
                 .SelectMany(d=>d.Fields)
                 .Any(d => d.Name == "Quoted by");
