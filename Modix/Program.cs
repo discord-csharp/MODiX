@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Data.Models.Core;
+using Modix.Services.AutoCodePaste;
+using Modix.Services.Utilities;
 using Serilog;
 using Serilog.Events;
 
@@ -14,6 +16,11 @@ namespace Modix
     {
         public static int Main(string[] args)
         {
+            var config = new ConfigurationBuilder()
+                .AddEnvironmentVariables("MODIX_")
+                .AddJsonFile("developmentSettings.json", optional: true, reloadOnChange: false)
+                .Build();
+
             var loggerConfig = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
@@ -22,17 +29,22 @@ namespace Modix
                 .WriteTo.Console()
                 .WriteTo.RollingFile(@"logs\{Date}", restrictedToMinimumLevel: LogEventLevel.Debug);
 
-            var config = new ConfigurationBuilder()
-                .AddEnvironmentVariables("MODIX_")
-                .AddJsonFile("developmentSettings.json", optional: true, reloadOnChange: false)
-                .Build();
+            var webhookId = config.GetValue<ulong>(nameof(ModixConfig.LogWebhookId));
+            var webhookToken = config.GetValue<string>(nameof(ModixConfig.LogWebhookToken));
+
+            var webHost = CreateWebHostBuilder(args, config).Build();
+
+            if (webhookId != default && string.IsNullOrWhiteSpace(webhookToken) == false)
+            {
+                loggerConfig = loggerConfig
+                    .WriteTo.DiscordWebhookSink(webhookId, webhookToken, LogEventLevel.Error, webHost.Services.GetRequiredService<CodePasteService>());
+            }
 
             Log.Logger = loggerConfig.CreateLogger();
 
             try
             {
-                CreateWebHostBuilder(args, config).Build().Run();
-
+                webHost.Run();
                 return 0;
             }
             catch (Exception ex)
