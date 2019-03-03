@@ -48,7 +48,7 @@ namespace Modix.Modules
             _pasteService = pasteService;
         }
 
-        [Command("exec", RunMode = RunMode.Sync), Alias("eval"), Summary("Executes the given C# code and returns the result")]
+        [Command("exec"), Alias("eval"), Summary("Executes the given C# code and returns the result")]
         public async Task ReplInvoke([Remainder] string code)
         {
             if (!(Context.Channel is SocketGuildChannel))
