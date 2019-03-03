@@ -65,7 +65,7 @@ namespace Modix.Services.Quote
                             channel is ISocketMessageChannel messageChannel)
                         {
                             var msg = await messageChannel.GetMessageAsync(messageId);
-                            if (msg == null || await IsQuote(msg))
+                            if (msg == null || IsQuote(msg))
                                 return;
 
                             await SendQuoteEmbedAsync(msg, guildUser, userMessage.Channel);
@@ -86,9 +86,6 @@ namespace Modix.Services.Quote
                 var embed = quoteService.BuildQuoteEmbed(message, quoter);
                 if (embed == null) return;
 
-                embed.Fields.First(d => d.Name == "Quoted by")
-                .Value += $" from **[#{message.Channel.Name}]({message.GetJumpUrl()})**";
-
                 embed.WithFooter("React with ❌ to remove this embed.");
                 embed.WithTimestamp(message.Timestamp);
 
@@ -98,7 +95,7 @@ namespace Modix.Services.Quote
             });
         }
 
-        private async Task<bool> IsQuote(IMessage message)
+        private bool IsQuote(IMessage message)
         {
             var hasQuoteField =
                 message
