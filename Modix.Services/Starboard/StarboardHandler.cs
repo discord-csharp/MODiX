@@ -99,7 +99,7 @@ namespace Modix.Services.Starboard
                 builder.Description = null;
                 builder.AddField("Message", $"{message.Content}");
             }
-            builder.AddField("\u200B", $"_Posted in [**#{message.Channel.Name}**]({message.GetJumpUrl()})_");
+            builder.AddField("\u200B", $"_Posted in **[#{message.Channel.Name}]({message.GetJumpUrl()})**_");
             //------------------^ zero-width character
             return builder.Build();
         }
