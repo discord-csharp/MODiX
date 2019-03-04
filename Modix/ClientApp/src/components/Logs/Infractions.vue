@@ -188,6 +188,7 @@
 
 <script lang="ts">
 import * as _ from 'lodash';
+import { resolveMentions } from '@/app/Util';
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import HeroHeader from '@/components/HeroHeader.vue';
 import TinyUserView from '@/components/TinyUserView.vue';
@@ -206,8 +207,6 @@ import InfractionCreationData from '@/models/infractions/InfractionCreationData'
 import RecordsPage from '@/models/RecordsPage';
 import TableParameters from '@/models/TableParameters';
 import { SortDirection } from '@/models/SortDirection';
-
-const messageResolvingRegex = /<#(\d+)>/gm;
 
 function getSortDirection(direction: string): SortDirection
 {
@@ -393,24 +392,7 @@ export default class Infractions extends Vue
 
     resolveMentions(description: string)
     {
-        let replaced = description;
-
-        if (this.channelCache)
-        {
-            replaced = description.replace(messageResolvingRegex, (sub, args: string) =>
-            {
-                if (this.channelCache == null || this.channelCache[args] == null)
-                {
-                    return args;
-                }
-
-                let found = (this.channelCache[args] ? this.channelCache[args].name : args);
-
-                return `<span class='channel'>#${found}</span>`;
-            });
-        }
-
-        return `<span class='pre'>${replaced}</span>`;
+        return resolveMentions(this.channelCache, description);
     }
 
     fileChange(input: HTMLInputElement)

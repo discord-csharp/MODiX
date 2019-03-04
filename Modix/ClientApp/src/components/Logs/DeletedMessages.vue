@@ -27,6 +27,7 @@
 
 <script lang="ts">
 import * as _ from 'lodash';
+import { resolveMentions } from '@/app/Util';
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import store from "@/app/Store";
 import { VueGoodTable } from 'vue-good-table';
@@ -76,24 +77,7 @@ export default class DeletedMessages extends Vue
 
     resolveMentions(description: string): string
     {
-        let replaced = description;
-
-        if (this.channelCache)
-        {
-            replaced = description.replace(messageResolvingRegex, (sub, args: string) =>
-            {
-                let found = this.channelCache![args].name;
-
-                if (!found)
-                {
-                    found = args;
-                }
-
-                return `<span class='channel'>#${found}</span>`;
-            });
-        }
-
-        return `<span class='pre'>${replaced}</span>`;
+        return resolveMentions(this.channelCache ,description);
     }
 
     staticFilters: { [field: string]: string } = { channel: "", author: "", createdBy: "", content: "", reason: "", batchId: "" };

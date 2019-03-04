@@ -127,6 +127,7 @@
 
 <script lang="ts">
 import * as _ from 'lodash';
+import { resolveMentions } from '@/app/Util';
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import HeroHeader from '@/components/HeroHeader.vue';
 import TinyUserView from '@/components/TinyUserView.vue';
@@ -212,24 +213,7 @@ export default class Tags extends Vue
 
     resolveMentions(description: string)
     {
-        let replaced = description;
-
-        if (this.channelCache)
-        {
-            replaced = description.replace(messageResolvingRegex, (sub, args: string) =>
-            {
-                if (this.channelCache == null || this.channelCache[args] == null)
-                {
-                    return args;
-                }
-
-                let found = (this.channelCache[args] ? this.channelCache[args].name : args);
-
-                return `<span class='channel'>#${found}</span>`;
-            });
-        }
-
-        return `<span class='pre'>${replaced}</span>`;
+        return resolveMentions(this.channelCache, description);
     }
 
     staticFilters: {[field: string]: string} = {name: "", creator: "", content: ""};
