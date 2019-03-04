@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.Options;
-using Modix.Data.Models.Core;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.Utilities;
@@ -71,7 +69,7 @@ namespace Modix.Modules
             HttpResponseMessage res;
             try
             {
-                var client = _httpClientFactory.CreateClient(nameof(ReplModule));
+                var client = _httpClientFactory.CreateClient();
 
                 using (var tokenSrc = new CancellationTokenSource(30000))
                 {
