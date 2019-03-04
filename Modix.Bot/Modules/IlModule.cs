@@ -34,7 +34,7 @@ namespace Modix.Modules
             _httpClientFactory = httpClientFactory;
         }
 
-        [Command("il", RunMode = RunMode.Sync), Summary("Compile & return the resulting IL of C# code")]
+        [Command("il"), Summary("Compile & return the resulting IL of C# code")]
         public async Task ReplInvoke([Remainder] string code)
         {
             if (!(Context.Channel is SocketGuildChannel))

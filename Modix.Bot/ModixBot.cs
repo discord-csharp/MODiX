@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -31,7 +32,9 @@ namespace Modix
         private readonly ModixConfig _config;
         private readonly DiscordSerilogAdapter _serilogAdapter;
         private readonly IApplicationLifetime _applicationLifetime;
+        private readonly CommandErrorHandler _commandErrorHandler;
         private IServiceScope _scope;
+        private readonly ConcurrentDictionary<ICommandContext, IServiceScope> _commandScopes = new ConcurrentDictionary<ICommandContext, IServiceScope>();
 
         public ModixBot(
             DiscordSocketClient discordClient,
@@ -41,7 +44,8 @@ namespace Modix
             DiscordSerilogAdapter serilogAdapter,
             IApplicationLifetime applicationLifetime,
             IServiceProvider serviceProvider,
-            ILogger<ModixBot> logger)
+            ILogger<ModixBot> logger,
+            CommandErrorHandler commandErrorHandler)
         {
             _client = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
@@ -51,10 +55,10 @@ namespace Modix
             _serilogAdapter = serilogAdapter ?? throw new ArgumentNullException(nameof(serilogAdapter));
             _applicationLifetime = applicationLifetime ?? throw new ArgumentNullException(nameof(applicationLifetime));
             Log = logger ?? throw new ArgumentNullException(nameof(logger));
+            _commandErrorHandler = commandErrorHandler;
         }
 
         private ILogger<ModixBot> Log { get; }
-        private DiscordSerilogAdapter SerilogAdapter { get; }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
@@ -77,6 +81,8 @@ namespace Modix
                 _client.Log += _serilogAdapter.HandleLog;
                 _restClient.Log += _serilogAdapter.HandleLog;
                 _commands.Log += _serilogAdapter.HandleLog;
+
+                _commands.CommandExecuted += HandleCommandResultAsync;
 
                 // Register with the cancellation token so we can stop listening to client events if the service is
                 // shutting down or being disposed.
@@ -145,8 +151,15 @@ namespace Modix
 
                 _client.Log -= _serilogAdapter.HandleLog;
                 _commands.Log -= _serilogAdapter.HandleLog;
-
                 _restClient.Log -= _serilogAdapter.HandleLog;
+
+                _commands.CommandExecuted -= HandleCommandResultAsync;
+
+                foreach (var context in _commandScopes.Keys)
+                {
+                    _commandScopes.TryRemove(context, out var commandScope);
+                    commandScope?.Dispose();
+                }
             }
         }
 
@@ -224,14 +237,25 @@ namespace Modix
 
             var context = new CommandContext(_client, message);
 
-            using (var scope = _scope.ServiceProvider.CreateScope())
+            var commandScope = _scope.ServiceProvider.CreateScope();
+            _commandScopes[context] = commandScope;
+
+            await commandScope.ServiceProvider
+                .GetRequiredService<IAuthorizationService>()
+                .OnAuthenticatedAsync(context.User as IGuildUser);
+
+            await _commands.ExecuteAsync(context, argPos, commandScope.ServiceProvider);
+
+            stopwatch.Stop();
+            Log.LogInformation($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
+        }
+
+        private async Task HandleCommandResultAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
+        {
+            _commandScopes.TryRemove(context, out var commandScope);
+
+            using (commandScope)
             {
-                await scope.ServiceProvider
-                    .GetRequiredService<IAuthorizationService>()
-                    .OnAuthenticatedAsync(context.User as IGuildUser);
-
-                var result = await _commands.ExecuteAsync(context, argPos, scope.ServiceProvider);
-
                 if (!result.IsSuccess)
                 {
                     var error = $"{result.Error}: {result.ErrorReason}";
@@ -247,8 +271,7 @@ namespace Modix
 
                     if (result.Error != CommandError.Exception)
                     {
-                        var handler = scope.ServiceProvider.GetRequiredService<CommandErrorHandler>();
-                        await handler.AssociateError(message, error);
+                        await _commandErrorHandler.AssociateError(context.Message, error);
                     }
                     else
                     {
@@ -256,9 +279,6 @@ namespace Modix
                     }
                 }
             }
-
-            stopwatch.Stop();
-            Log.LogInformation($"Took {stopwatch.ElapsedMilliseconds}ms to process: {message}");
         }
     }
 }

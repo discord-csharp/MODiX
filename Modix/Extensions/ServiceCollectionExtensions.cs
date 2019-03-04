@@ -94,7 +94,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         new CommandServiceConfig
                         {
                             LogLevel = LogSeverity.Debug,
-                            DefaultRunMode = RunMode.Sync,
+                            DefaultRunMode = RunMode.Async,
                             CaseSensitiveCommands = false,
                             SeparatorChar = ' '
                         });
