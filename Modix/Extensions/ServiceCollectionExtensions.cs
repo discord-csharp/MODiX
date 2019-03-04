@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using Discord;
 using Discord.Commands;
 using Discord.Rest;
@@ -30,11 +29,10 @@ using Modix.Services.NotificationDispatch;
 using Modix.Services.PopularityContest;
 using Modix.Services.Promotions;
 using Modix.Services.Quote;
-using Modix.Services.Starboard;
 using Modix.Services.StackExchange;
+using Modix.Services.Starboard;
 using Modix.Services.Tags;
 using Modix.Services.Wikipedia;
-using Modix.Modules;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -43,13 +41,6 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddModixHttpClients(this IServiceCollection services)
         {
             services.AddHttpClient();
-
-            services.AddHttpClient(nameof(ReplModule))
-                .ConfigureHttpClient((serviceProvider, client) =>
-                {
-                    var config = serviceProvider.GetRequiredService<IOptions<ModixConfig>>().Value;
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Token", config.ReplToken);
-                });
 
             services.AddHttpClient(nameof(CodePasteService))
                 .ConfigureHttpClient(client =>

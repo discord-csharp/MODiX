@@ -10,9 +10,6 @@ using Modix.Services.AutoCodePaste;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.Utilities;
 using Serilog;
-using Microsoft.Extensions.Options;
-using Modix.Data.Models.Core;
-using System.Net.Http.Headers;
 
 namespace Modix.Modules
 {
@@ -57,7 +54,7 @@ namespace Modix.Modules
             HttpResponseMessage res;
             try
             {
-                var client = _httpClientFactory.CreateClient(nameof(ReplModule));
+                var client = _httpClientFactory.CreateClient();
 
                 using (var tokenSrc = new CancellationTokenSource(30000))
                 {
