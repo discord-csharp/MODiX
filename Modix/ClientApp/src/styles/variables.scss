@@ -9,28 +9,9 @@ $box-shadow: 0 2px 3px rgba($black, 0.1), 0 0 0 1px rgba($black, 0.1) !default;
     opacity: 1;
 }
 
-@mixin fullwidth-desktop()
-{
-    @include widescreen-only
-    {
-        width: 96vw;
-
-        margin-left: calc(-96vw / 2 + 1152px / 2);
-        margin-right: calc(-96vw / 2 + 1152px / 2);
-    }
-
-    @include fullhd
-    {
-        width: 96vw;
-
-        margin-left: calc(-96vw / 2 + 1344px / 2);
-        margin-right: calc(-96vw / 2 + 1344px / 2);
-    }
-}
-
 @mixin tiny()
 {
-    @media screen and (max-width: 450px)
+    @media screen and (max-width: 550px)
     {
         @content
     }
@@ -97,7 +78,7 @@ a.is-disabled
 
     vertical-align: top;
     position: relative;
-    top: 10px;
+    top: 0.66em;
 }
 
 @keyframes fadeIn

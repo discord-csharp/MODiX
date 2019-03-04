@@ -8,6 +8,6 @@ export default class User
 
     get avatarUrl(): string
     {
-        return `https://cdn.discordapp.com/avatars/${this.userId}/${this.avatarHash}`;
+        return this.avatarHash;
     }
 }

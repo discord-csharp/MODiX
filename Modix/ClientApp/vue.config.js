@@ -19,6 +19,11 @@ module.exports = {
         extract: false
     },
 
+    configureWebpack:
+    {
+        devtool: 'source-map'
+    },
+
     chainWebpack: config =>
     {
         config.resolve

@@ -57,6 +57,7 @@ namespace Modix.Controllers
             //Do it again here to assign claims (this is very lazy of us)
             ModixUser = ModixUser.FromClaimsPrincipal(HttpContext.User);
             ModixUser.SelectedGuild = SocketUser.Guild.Id;
+            ModixUser.AvatarHash = SocketUser.GetAvatarUrl() ?? SocketUser.GetDefaultAvatarUrl();
 
             await next();
         }

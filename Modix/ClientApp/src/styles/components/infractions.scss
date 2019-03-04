@@ -16,9 +16,9 @@
     }
 }
 
-.vgt-responsive
+.vgt-wrap
 {
-    @include fullwidth-desktop();
+    width: 100%;
 }
 
 .vgt-input, .vgt-select
