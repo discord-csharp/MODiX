@@ -154,6 +154,12 @@ namespace Modix
                 _restClient.Log -= _serilogAdapter.HandleLog;
 
                 _commands.CommandExecuted -= HandleCommandResultAsync;
+
+                foreach (var context in _commandScopes.Keys)
+                {
+                    _commandScopes.TryRemove(context, out var commandScope);
+                    commandScope?.Dispose();
+                }
             }
         }
 
@@ -246,7 +252,9 @@ namespace Modix
 
         private async Task HandleCommandResultAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
         {
-            using (var commandScope = _commandScopes[context])
+            _commandScopes.TryRemove(context, out var commandScope);
+
+            using (commandScope)
             {
                 if (!result.IsSuccess)
                 {
