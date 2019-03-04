@@ -6,6 +6,7 @@ using Modix.Services.Messages.Discord;
 using Modix.Services.Core;
 using Modix.Data.Models.Core;
 using Modix.Services.Quote;
+using System.Text;
 
 namespace Modix.Services.Starboard
 {
@@ -84,24 +85,23 @@ namespace Modix.Services.Starboard
         private Embed GetStarEmbed(IUserMessage message)
         {
             var author = message.Author as IGuildUser;
-            var builder = _quoteService.BuildQuoteEmbed(message, author)
+            var embed = _quoteService.BuildQuoteEmbed(message, author)
                 .WithTimestamp(message.Timestamp)
                 .WithColor(new Color(255, 234, 174))
                 .WithAuthor(
                     author.Nickname ?? author.Username,
                     author.GetAvatarUrl() ?? author.GetDefaultAvatarUrl());
 
-            builder.Fields.RemoveAt(builder.Fields.Count-1); //Remove the "Quoted by" field
-            builder.Footer = null;
+            embed.Description = new StringBuilder()
+                .AppendLine($"_Posted in **[#{message.Channel.Name}]({message.GetJumpUrl()})**_")
+                .AppendLine()
+                .AppendLine("**Message**")
+                .AppendLine(embed.Description)
+                .ToString();
 
-            if (message.Embeds.Count == 0)
-            {
-                builder.Description = null;
-                builder.AddField("Message", $"{message.Content}");
-            }
-            builder.AddField("\u200B", $"_Posted in **[#{message.Channel.Name}]({message.GetJumpUrl()})**_");
-            //------------------^ zero-width character
-            return builder.Build();
+            embed.Fields.RemoveAt(embed.Fields.Count-1); //Remove the "Quoted by" field
+            embed.Footer = null;
+            return embed.Build();
         }
     }
 }
