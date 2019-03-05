@@ -4,17 +4,17 @@ using Discord.WebSocket;
 
 namespace Modix.Modules
 {
-    public class PingModule : ModuleBase
+    public sealed class PingModule : ModuleBase
     {
         public PingModule(DiscordSocketClient discordClient)
         {
-            DiscordClient = discordClient;
+            _discordClient = discordClient;
         }
 
         [Command("ping")]
         public Task Ping() =>
-            ReplyAsync($"Pong! ({DiscordClient.Latency} ms)");
+            ReplyAsync($"Pong! ({_discordClient.Latency} ms)");
 
-        protected DiscordSocketClient DiscordClient { get; }
+        private DiscordSocketClient _discordClient;
     }
 }
