@@ -170,7 +170,6 @@ namespace Modix.Data.Repositories
                 .Where(x => x.DeleteActionId == null)
                 .FilterBy(searchCriteria)
                 .OrderBy(x => x.Name)
-                .Take(20)
                 .AsExpandable()
                 .Select(TagSummary.FromEntityProjection)
                 .ToArrayAsync();
