@@ -98,6 +98,8 @@ namespace Modix.Modules
 
             var embed = await BuildEmbed(guildUser, parsedResult);
 
+            await _autoRemoveMessageService.RegisterRemovableMessageAsync(message, Context.User, embed);
+
             await message.ModifyAsync(a =>
             {
                 a.Content = string.Empty;
@@ -105,8 +107,6 @@ namespace Modix.Modules
             });
 
             await Context.Message.DeleteAsync();
-
-            await _autoRemoveMessageService.RegisterRemovableMessageAsync(message, Context.User);
         }
 
         private async Task<EmbedBuilder> BuildEmbed(SocketGuildUser guildUser, Result parsedResult)
@@ -119,8 +119,7 @@ namespace Modix.Modules
                 .WithDescription(string.IsNullOrEmpty(parsedResult.Exception) ? "Successful" : "Failed")
                 .WithColor(string.IsNullOrEmpty(parsedResult.Exception) ? new Color(0, 255, 0) : new Color(255, 0, 0))
                 .WithAuthor(a => a.WithIconUrl(Context.User.GetAvatarUrl()).WithName(guildUser?.Nickname ?? Context.User.Username))
-                .WithFooter(a => a.WithText($"Compile: {parsedResult.CompileTime.TotalMilliseconds:F}ms | Execution: {parsedResult.ExecutionTime.TotalMilliseconds:F}ms"
-                    + " | React with ❌ to remove this embed."));
+                .WithFooter(a => a.WithText($"Compile: {parsedResult.CompileTime.TotalMilliseconds:F}ms | Execution: {parsedResult.ExecutionTime.TotalMilliseconds:F}ms"));
 
             embed.AddField(a => a.WithName("Code").WithValue(Format.Code(parsedResult.Code, "cs")));
 

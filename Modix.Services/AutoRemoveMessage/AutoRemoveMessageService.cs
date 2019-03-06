@@ -18,7 +18,7 @@ namespace Modix.Services.AutoRemoveMessage
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation completes.
         /// </returns>
-        Task RegisterRemovableMessageAsync(IMessage message, IUser user);
+        Task<EmbedBuilder> RegisterRemovableMessageAsync(IMessage message, IUser user, EmbedBuilder embed);
 
         /// <summary>
         /// Unregisters a removable message from the service.
@@ -33,18 +33,32 @@ namespace Modix.Services.AutoRemoveMessage
     /// <inheritdoc />
     internal class AutoRemoveMessageService : IAutoRemoveMessageService
     {
+        private const string _footerReactMessage = "React with ❌ to remove this embed.";
+
         public AutoRemoveMessageService(INotificationDispatchService notificationDispatchService)
         {
             NotificationDispatchService = notificationDispatchService;
         }
 
         /// <inheritdoc />
-        public async Task RegisterRemovableMessageAsync(IMessage message, IUser user)
-            => await NotificationDispatchService.PublishScopedAsync(new RemovableMessageSent()
+        public async Task<EmbedBuilder> RegisterRemovableMessageAsync(IMessage message, IUser user, EmbedBuilder embed)
+        {
+            await NotificationDispatchService.PublishScopedAsync(new RemovableMessageSent()
             {
                 Message = message,
                 User = user,
             });
+
+            if(embed.Footer != null)
+            {
+                embed.Footer.Text += $" | {_footerReactMessage}";
+            }
+            else
+            {
+                embed.WithFooter(_footerReactMessage);
+            }
+            return embed;
+        }
 
         /// <inheritdoc />
         public async Task UnregisterRemovableMessageAsync(IMessage message)

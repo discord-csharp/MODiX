@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Discord;
 using Humanizer.Bytes;
-using static System.FormattableString;
+using Modix.Services.AutoRemoveMessage;
 
 namespace Modix.Services.Quote
 {
@@ -14,37 +15,64 @@ namespace Modix.Services.Quote
         /// <param name="message">The message to quote</param>
         /// <param name="executingUser">The user that is doing the quoting</param>
         EmbedBuilder BuildQuoteEmbed(IMessage message, IUser executingUser);
+
+        Task BuildRemovableEmbed(IMessage message, IUser executingUser, Func<EmbedBuilder, Task<IUserMessage>> callback);
     }
 
     public class QuoteService : IQuoteService
     {
+        private readonly IAutoRemoveMessageService _autoRemoveMessageService;
+
+        public QuoteService(IAutoRemoveMessageService autoRemoveMessageService)
+        {
+            _autoRemoveMessageService = autoRemoveMessageService;
+        }
+
         /// <inheritdoc />
         public EmbedBuilder BuildQuoteEmbed(IMessage message, IUser executingUser)
         {
-            var embed = new EmbedBuilder();
+            if (IsQuote(message))
+            {
+                return null;
+            }
 
+            var embed = new EmbedBuilder();
             if (TryAddRichEmbed(message, executingUser, ref embed))
             {
                 return embed;
             }
 
-            if (TryAddImageAttachment(message, executingUser, ref embed) == false)
+            if (!TryAddImageAttachment(message, ref embed))
             {
-                TryAddOtherAttachment(message, executingUser, ref embed);
+                TryAddOtherAttachment(message, ref embed);
             }
 
-            AddContent(message, executingUser, ref embed);
-            AddOtherEmbed(message, executingUser, ref embed);
-            AddActivity(message, executingUser, ref embed);
+            AddContent(message, ref embed);
+            AddOtherEmbed(message, ref embed);
+            AddActivity(message, ref embed);
             AddMeta(message, executingUser, ref embed);
 
             return embed;
         }
 
-        private bool TryAddImageAttachment(IMessage message, IUser executingUser, ref EmbedBuilder embed)
+        public async Task BuildRemovableEmbed(IMessage message, IUser executingUser, Func<EmbedBuilder, Task<IUserMessage>> callback)
+        {
+            var embed = BuildQuoteEmbed(message, executingUser);
+
+            if(callback == null || embed == null)
+            {
+                return;
+            }
+
+            var msg = await callback.Invoke(embed);
+            await _autoRemoveMessageService.RegisterRemovableMessageAsync(msg, executingUser, embed);
+        }
+
+        private bool TryAddImageAttachment(IMessage message, ref EmbedBuilder embed)
         {
             var firstAttachment = message.Attachments.FirstOrDefault();
-            if (firstAttachment == null || firstAttachment.Height == null) { return false; }
+            if (firstAttachment == null || firstAttachment.Height == null)
+                return false;
 
             embed = embed
                 .WithImageUrl(firstAttachment.Url);
@@ -52,10 +80,10 @@ namespace Modix.Services.Quote
             return true;
         }
 
-        private bool TryAddOtherAttachment(IMessage message, IUser executingUser, ref EmbedBuilder embed)
+        private bool TryAddOtherAttachment(IMessage message, ref EmbedBuilder embed)
         {
             var firstAttachment = message.Attachments.FirstOrDefault();
-            if (firstAttachment == null) { return false; }
+            if (firstAttachment == null) return false;
 
             embed = embed
                 .AddField($"Attachment (Size: {new ByteSize(firstAttachment.Size)})", firstAttachment.Url);
@@ -81,7 +109,7 @@ namespace Modix.Services.Quote
             return true;
         }
 
-        private void AddActivity(IMessage message, IUser executingUser, ref EmbedBuilder embed)
+        private void AddActivity(IMessage message, ref EmbedBuilder embed)
         {
             if (message.Activity == null) { return; }
 
@@ -90,57 +118,36 @@ namespace Modix.Services.Quote
                 .AddField("Party Id", message.Activity.PartyId);
         }
 
-        private void AddOtherEmbed(IMessage message, IUser executingUser, ref EmbedBuilder embed)
+        private void AddOtherEmbed(IMessage message, ref EmbedBuilder embed)
         {
-            if (!message.Embeds.Any()) { return; }
+            if (message.Embeds.Count == 0) return;
 
             embed = embed
                 .AddField("Embed Type", message.Embeds.First().Type);
         }
 
-        private void AddContent(IMessage message, IUser executingUser, ref EmbedBuilder embed)
+        private void AddContent(IMessage message, ref EmbedBuilder embed)
         {
-            if (string.IsNullOrWhiteSpace(message.Content)) { return; }
+            if (string.IsNullOrWhiteSpace(message.Content)) return;
 
-            string messageUrl = null;
-            if (message.Channel is IGuildChannel guildChannel && guildChannel.Guild is IGuild guild)
-            {
-                messageUrl = Invariant($"https://discordapp.com/channels/{guild.Id}/{guildChannel.Id}/{message.Id}");
-            }
-
-            embed = embed
-                .WithDescription(message.Content);
+            embed = embed.WithDescription(message.Content);
         }
 
         private void AddMeta(IMessage message, IUser executingUser, ref EmbedBuilder embed)
         {
             embed = embed
                 .WithAuthor(message.Author)
-                .WithFooter(GetPostedMeta(message))
+                .WithTimestamp(message.Timestamp)
                 .WithColor(new Color(95, 186, 125))
                 .AddField("Quoted by", $"{executingUser.Mention} from **[#{message.Channel.Name}]({message.GetJumpUrl()})**", true);
         }
 
-        private static string GetPostedMeta(IMessage message)
-            => string.Format("{0:dddd, dd}{1} {0:MMMM yyyy} at {0:HH:mm}, in #{2}", message.Timestamp, GetDaySuffix(message.Timestamp.Day), message.Channel.Name);
-
-        private static string GetDaySuffix(int day)
+        private bool IsQuote(IMessage message)
         {
-            switch (day)
-            {
-                case 1:
-                case 21:
-                case 31:
-                    return "st";
-                case 2:
-                case 22:
-                    return "nd";
-                case 3:
-                case 23:
-                    return "rd";
-                default:
-                    return "th";
-            }
+            return message
+                .Embeds?
+                .SelectMany(d => d.Fields)
+                .Any(d => d.Name == "Quoted by") == true;
         }
     }
 }

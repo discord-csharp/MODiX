@@ -64,9 +64,8 @@ namespace Modix.Modules
         {
             if (message != null)
             {
-                var quoteEmbed = _quoteService.BuildQuoteEmbed(message, Context.User);
-
-                await ReplyAsync(string.Empty, false, quoteEmbed.Build());
+                await _quoteService.BuildRemovableEmbed(message, Context.User,
+                    async (embed) => await ReplyAsync(embed: embed?.Build()));
             }
             else
             {

@@ -83,6 +83,8 @@ namespace Modix.Modules
 
             var embed = await BuildEmbed(guildUser, code, parsedResult);
 
+            await _autoRemoveMessageService.RegisterRemovableMessageAsync(message, Context.User, embed);
+
             await message.ModifyAsync(a =>
             {
                 a.Content = string.Empty;
@@ -90,8 +92,6 @@ namespace Modix.Modules
             });
 
             await Context.Message.DeleteAsync();
-
-            await _autoRemoveMessageService.RegisterRemovableMessageAsync(message, Context.User);
         }
 
         private async Task<EmbedBuilder> BuildEmbed(SocketGuildUser guildUser, string code, string result)
@@ -110,8 +110,6 @@ namespace Modix.Modules
                  .WithValue(Format.Code(result.TruncateTo(990), "asm")));
 
             await embed.UploadToServiceIfBiggerThan(result, "asm", 990, _pasteService);
-
-            embed.WithFooter("React with ❌ to remove this embed.");
 
             return embed;
         }
