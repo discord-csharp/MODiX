@@ -47,6 +47,8 @@ namespace Modix.Data.Migrations
                 principalTable: "GuildUsers",
                 principalColumns: new[] { "GuildId", "UserId" },
                 onDelete: ReferentialAction.Restrict);
+
+            migrationBuilder.Sql(@"update ""Tags"" set ""OwnerUserId"" = (select ""TagActions"".""CreatedById"" from ""TagActions"" where ""TagActions"".""Id"" = ""Tags"".""CreateActionId"")");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
