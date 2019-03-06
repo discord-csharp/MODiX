@@ -1,4 +1,5 @@
 ﻿using System;
+using Modix.Data.Models.Tags;
 
 namespace Modix.Models.Tags
 {
@@ -19,5 +20,7 @@ namespace Modix.Models.Tags
         public uint Uses { get; set; }
 
         public bool CanMaintain { get; set; }
+
+        internal TagSummary TagSummary { get; set; }
     }
 }

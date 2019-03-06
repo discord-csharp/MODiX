@@ -372,10 +372,10 @@ namespace Modix.Services.Tags
 
             if (!await CanTriviallyMaintainTagAsync(currentUser))
             {
-                if (tag.OwnerUser is null
-                    && !await CanUserMaintainTagOwnedByRoleAsync(currentUser, tag.OwnerRole))
+                if (tag.OwnerUser is null)
                 {
-                    return false;
+                    if (!await CanUserMaintainTagOwnedByRoleAsync(currentUser, tag.OwnerRole))
+                        return false;
                 }
                 else if (userId != tag.OwnerUser.Id)
                 {
@@ -417,10 +417,10 @@ namespace Modix.Services.Tags
 
             if (!await CanTriviallyMaintainTagAsync(currentUser))
             {
-                if (tag.OwnerUser is null
-                    && !await CanUserMaintainTagOwnedByRoleAsync(currentUser, tag.OwnerRole))
+                if (tag.OwnerUser is null)
                 {
-                    throw new InvalidOperationException("User rank insufficient to transfer the tag.");
+                    if (!await CanUserMaintainTagOwnedByRoleAsync(currentUser, tag.OwnerRole))
+                        throw new InvalidOperationException("User rank insufficient to transfer the tag.");
                 }
                 else if (currentUserId != tag.OwnerUser.Id)
                 {

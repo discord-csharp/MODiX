@@ -1,12 +1,11 @@
-import TagAction from '@/models/Tags/TagAction';
-
 export default interface TagSummary
 {
-    guildId: string;
-    name: string;
     content: string;
+    created: Date;
+    isOwnedByRole: boolean;
+    name: string;
+    ownerName: string;
+    ownerColor: string;
     uses: number;
-
-    createAction: TagAction;
-    deleteAction: TagAction;
+    canMaintain: boolean;
 }

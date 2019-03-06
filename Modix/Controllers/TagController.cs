@@ -37,9 +37,24 @@ namespace Modix.Controllers
                 IsOwnedByRole = !(x.OwnerRole is null),
                 Name = x.Name,
                 OwnerName = x.OwnerUser?.DisplayName ?? x.OwnerRole?.Name,
-            });
+                OwnerColor = "#000000",
+                Uses = x.Uses,
+                TagSummary = x,
+            })
+            .ToArray();
 
-            return Ok(summaries);
+            foreach (var tag in data)
+            {
+                if (tag.IsOwnedByRole)
+                {
+                    var role = UserGuild.GetRole(tag.TagSummary.OwnerRole.Id);
+                    tag.OwnerColor = role.Color.ToString();
+                }
+
+                tag.CanMaintain = await TagService.CanUserMaintainTagAsync(tag.TagSummary, SocketUser.Id);
+            }
+
+            return Ok(data);
         }
 
         [HttpPut("{name}")]
