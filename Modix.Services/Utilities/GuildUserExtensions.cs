@@ -8,9 +8,10 @@ namespace Modix.Services.Utilities
         public static string GetDisplayName(this IGuildUser user)
             => user.Nickname ?? user.Username;
 
+        public static string GetDisplayNameWithDiscriminator(this IGuildUser user)
+            => $"{user.Nickname ?? user.Username}#{user.Discriminator}";
+
         public static bool HasRole(this IGuildUser user, ulong roleId)
-        {
-            return user.RoleIds.Contains(roleId);
-        }
+            => user.RoleIds.Contains(roleId);
     }
 }

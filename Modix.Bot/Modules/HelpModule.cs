@@ -38,7 +38,10 @@ namespace Modix.Modules
         }
 
         [Command("help"), Summary("Prints a neat list of all commands.")]
-        public async Task HelpAsync([Remainder]string moduleName)
+        public async Task HelpAsync(
+            [Remainder]
+            [Summary("The name of the module for which to list commands.")]
+                string moduleName)
         {
             var eb = new EmbedBuilder();
             var userDm = await Context.User.GetOrCreateDMChannelAsync();

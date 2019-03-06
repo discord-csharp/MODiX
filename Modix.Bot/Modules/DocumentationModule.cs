@@ -6,7 +6,7 @@ using Modix.Services.Csharp;
 
 namespace Modix.Modules
 {
-    [Name("Documentation"), Summary("Search for information within the .NET docs")]
+    [Name("Documentation"), Summary("Search for information within the .NET docs.")]
     public class DocumentationModule : ModuleBase
     {
         public DocumentationModule(DocumentationService documentationService)
@@ -14,8 +14,11 @@ namespace Modix.Modules
             DocumentationService = documentationService;
         }
 
-        [Command("docs"), Summary("Shows class/method reference from the new unified .NET reference")]
-        public async Task GetDocumentationAsync([Remainder]string term)
+        [Command("docs"), Summary("Shows class/method reference from the new unified .NET reference.")]
+        public async Task GetDocumentationAsync(
+            [Remainder]
+            [Summary("The term to search for in the documentation.")]
+                string term)
         {
             var response = await DocumentationService.GetDocumentationResultsAsync(term);
 
@@ -45,7 +48,7 @@ namespace Modix.Modules
                     builder.Footer.Build();
                 }
 
-                await ReplyAsync("", embed: builder.Build());
+                await ReplyAsync(embed: builder.Build());
             }
         }
 

@@ -7,7 +7,7 @@ using Serilog;
 
 namespace Modix.Modules
 {
-    [Name("Quoting"), Summary("Quote a message from the Guild with its ID")]
+    [Name("Quoting"), Summary("Quote a message from the guild with its ID.")]
     public class QuoteModule : ModuleBase
     {
         private readonly IQuoteService _quoteService;
@@ -17,8 +17,10 @@ namespace Modix.Modules
             _quoteService = quoteService;
         }
 
-        [Command("quote"), Summary("Quote the given message")]
-        public async Task Run(ulong messageId)
+        [Command("quote"), Summary("Quote the given message.")]
+        public async Task RunAsync(
+            [Summary("The ID of the message to quote.")]
+                ulong messageId)
         {
             IMessage message = null;
 
@@ -35,11 +37,15 @@ namespace Modix.Modules
                     Context.User.Mention, messageId);
             }
 
-            await ProcessRetrievedMessage(message);
+            await ProcessRetrievedMessageAsync(message);
         }
 
-        [Command("quote"), Summary("Quote the given message from the given channel")]
-        public async Task Run(ITextChannel channel, ulong messageId)
+        [Command("quote"), Summary("Quote the given message from the given channel.")]
+        public async Task RunAsync(
+            [Summary("The channel in which the message resides.")]
+                ITextChannel channel,
+            [Summary("The ID of the message to quote.")]
+                ulong messageId)
         {
             IMessage message = null;
 
@@ -53,14 +59,18 @@ namespace Modix.Modules
                     Context.User.Mention, messageId, channel.Name);
             }
 
-            await ProcessRetrievedMessage(message);
+            await ProcessRetrievedMessageAsync(message);
         }
 
-        [Command("quote"), Summary("Quote the given message from the given channel")]
-        public async Task Run(ulong messageId, ITextChannel channel)
-            => await Run(channel, messageId);
+        [Command("quote"), Summary("Quote the given message from the given channel.")]
+        public async Task RunAsync(
+            [Summary("The ID of the message to quote.")]
+                ulong messageId,
+            [Summary("The channel in which the message resides.")]
+                ITextChannel channel)
+            => await RunAsync(channel, messageId);
 
-        private async Task ProcessRetrievedMessage(IMessage message)
+        private async Task ProcessRetrievedMessageAsync(IMessage message)
         {
             if (message != null)
             {

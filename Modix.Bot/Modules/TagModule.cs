@@ -13,6 +13,7 @@ using Modix.Data.Models.Tags;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.Core;
 using Modix.Services.Tags;
+using Modix.Services.Utilities;
 
 namespace Modix.Bot.Modules
 {
@@ -159,7 +160,7 @@ namespace Modix.Bot.Modules
                 ?? ownerGuild?.Name
                 ?? ownerRole?.Name;
 
-            var ownerImage = ownerUser?.GetAvatarUrl()
+            var ownerImage = ownerUser?.GetDefiniteAvatarUrl()
                 ?? ownerGuild?.IconUrl;
 
             var builder = new EmbedBuilder();

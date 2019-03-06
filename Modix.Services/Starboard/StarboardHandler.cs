@@ -1,4 +1,5 @@
 ﻿using Discord;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
@@ -6,7 +7,7 @@ using Modix.Services.Messages.Discord;
 using Modix.Services.Core;
 using Modix.Data.Models.Core;
 using Modix.Services.Quote;
-using System.Text;
+using Modix.Services.Utilities;
 
 namespace Modix.Services.Starboard
 {
@@ -105,7 +106,7 @@ namespace Modix.Services.Starboard
                 .WithColor(color)
                 .WithAuthor(
                     author.Nickname ?? author.Username,
-                    author.GetAvatarUrl() ?? author.GetDefaultAvatarUrl());
+                    author.GetDefiniteAvatarUrl());
 
             embed.Description = new StringBuilder()
                 .AppendLine($"_Posted in **[#{message.Channel.Name}]({message.GetJumpUrl()})**_")

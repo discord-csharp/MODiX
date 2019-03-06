@@ -28,9 +28,9 @@ namespace Modix.Modules
         [Alias("search")]
         [Summary("Display all infractions for a user, that haven't been deleted.")]
         [Priority(10)]
-        public async Task Search(
+        public async Task SearchAsync(
             [Summary("The user whose infractions are to be displayed.")]
-            DiscordUserEntity subjectEntity)
+                DiscordUserEntity subjectEntity)
         {
             var requestor = Context.User.Mention;
             var subject = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, subjectEntity.Id);
@@ -81,7 +81,7 @@ namespace Modix.Modules
             {
                 builder.AddField(
                     $"#{infraction.Id} - {infraction.Type} - Created: {infraction.Created}{(infraction.Rescinded ? " - [RESCINDED]" : "")}",
-                    $"[Reason: {infraction.Reason}](https://mod.gg/infractions/?id={infraction.Id})"
+                    Format.Url($"Reason: {infraction.Reason}", $"https://mod.gg/infractions/?id={infraction.Id}")
                 );
             }
 
@@ -94,8 +94,8 @@ namespace Modix.Modules
         }
 
         [Command("delete")]
-        [Summary("Marks an infraction as deleted, so it no longer appears within infraction search results")]
-        public async Task Delete(
+        [Summary("Marks an infraction as deleted, so it no longer appears within infraction search results.")]
+        public async Task DeleteAsync(
             [Summary("The ID value of the infraction to be deleted.")]
                 long infractionId)
         {
@@ -104,6 +104,6 @@ namespace Modix.Modules
         }
 
         internal protected IModerationService ModerationService { get; }
-        public IUserService UserService { get; }
+        internal protected IUserService UserService { get; }
     }
 }

@@ -7,7 +7,7 @@ using Serilog;
 
 namespace Modix.Modules
 {
-    [Name("Fun"), Summary("A bunch of miscellaneous, fun commands")]
+    [Name("Fun"), Summary("A bunch of miscellaneous, fun commands.")]
     public class FunModule : ModuleBase
     {
         public FunModule(IHttpClientFactory httpClientFactory)
@@ -15,10 +15,12 @@ namespace Modix.Modules
             HttpClientFactory = httpClientFactory;
         }
 
-        [Command("jumbo"), Summary("Jumbofy an emoji")]
-        public async Task Jumbo(string emoji)
+        [Command("jumbo"), Summary("Jumbofy an emoji.")]
+        public async Task JumboAsync(
+            [Summary("The emoji to jumbofy.")]
+                string emoji)
         {
-            string emojiUrl = null;
+            string emojiUrl;
 
             if (Emote.TryParse(emoji, out var found))
             {

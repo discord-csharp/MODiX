@@ -25,7 +25,7 @@ namespace Modix.Modules
 
         [Command]
         [Summary("Lists all of the channels designated for use by the bot")]
-        public async Task List()
+        public async Task ListAsync()
         {
             var channels = await DesignatedChannelService.GetDesignatedChannelsAsync(Context.Guild.Id);
 

@@ -91,7 +91,7 @@ namespace Modix.Services.Core
             //Skip things like embed updates
             if (original.Content == updated.Content) { return; }
 
-            var descriptionText = $"**[Original]({original.GetMessageLink()})**\n```{FormatMessage(original.Content)}```";
+            var descriptionText = $"**[Original]({original.GetJumpUrl()})**\n```{FormatMessage(original.Content)}```";
 
             if (descriptionText.Length <= 2048)
             {

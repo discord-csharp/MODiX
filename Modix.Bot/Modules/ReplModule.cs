@@ -27,7 +27,7 @@ namespace Modix.Modules
         public string ReturnTypeName { get; set; }
     }
 
-    [Name("Repl"), Summary("Execute & demonstrate code snippets")]
+    [Name("Repl"), Summary("Execute & demonstrate code snippets.")]
     public class ReplModule : ModuleBase
     {
         private const string ReplRemoteUrl = "http://csdiscord-repl-service:31337/Eval";
@@ -46,8 +46,11 @@ namespace Modix.Modules
             _pasteService = pasteService;
         }
 
-        [Command("exec"), Alias("eval"), Summary("Executes the given C# code and returns the result")]
-        public async Task ReplInvoke([Remainder] string code)
+        [Command("exec"), Alias("eval"), Summary("Executes the given C# code and returns the result.")]
+        public async Task ReplInvokeAsync(
+            [Remainder]
+            [Summary("The code to execute.")]
+                string code)
         {
             if (!(Context.Channel is SocketGuildChannel))
             {
@@ -96,7 +99,7 @@ namespace Modix.Modules
 
             var parsedResult = JsonConvert.DeserializeObject<Result>(await res.Content.ReadAsStringAsync());
 
-            var embed = await BuildEmbed(guildUser, parsedResult);
+            var embed = await BuildEmbedAsync(guildUser, parsedResult);
 
             await _autoRemoveMessageService.RegisterRemovableMessageAsync(message, Context.User, embed);
 
@@ -109,7 +112,7 @@ namespace Modix.Modules
             await Context.Message.DeleteAsync();
         }
 
-        private async Task<EmbedBuilder> BuildEmbed(SocketGuildUser guildUser, Result parsedResult)
+        private async Task<EmbedBuilder> BuildEmbedAsync(SocketGuildUser guildUser, Result parsedResult)
         {
             var returnValue = parsedResult.ReturnValue?.ToString() ?? " ";
             var consoleOut = parsedResult.ConsoleOut;
@@ -118,7 +121,7 @@ namespace Modix.Modules
                 .WithTitle("Eval Result")
                 .WithDescription(string.IsNullOrEmpty(parsedResult.Exception) ? "Successful" : "Failed")
                 .WithColor(string.IsNullOrEmpty(parsedResult.Exception) ? new Color(0, 255, 0) : new Color(255, 0, 0))
-                .WithAuthor(a => a.WithIconUrl(Context.User.GetAvatarUrl()).WithName(guildUser?.Nickname ?? Context.User.Username))
+                .WithAuthor(a => a.WithIconUrl(Context.User.GetDefiniteAvatarUrl()).WithName(guildUser?.Nickname ?? Context.User.Username))
                 .WithFooter(a => a.WithText($"Compile: {parsedResult.CompileTime.TotalMilliseconds:F}ms | Execution: {parsedResult.ExecutionTime.TotalMilliseconds:F}ms"));
 
             embed.AddField(a => a.WithName("Code").WithValue(Format.Code(parsedResult.Code, "cs")));
