@@ -227,10 +227,10 @@ export default class Promotions extends ModixComponent
     {
         let campaigns = this.$store.state.modix.campaigns as PromotionCampaign[];
 
-        let ordered = _.orderBy(campaigns, campaign =>
+        let ordered = _.orderBy(campaigns,
         [
-            campaign.isActive,
-            campaign.startDate
+            campaign => campaign.isActive,
+            campaign => campaign.startDate
         ], ['desc', 'desc']);
 
         return _.filter(ordered, campaign => (this.showInactive ? true : campaign.isActive));
