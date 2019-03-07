@@ -5,9 +5,4 @@ export default class User
     avatarHash: string = "";
     claims: string[] = [];
     selectedGuild: string = "";
-
-    get avatarUrl(): string
-    {
-        return this.avatarHash;
-    }
 }

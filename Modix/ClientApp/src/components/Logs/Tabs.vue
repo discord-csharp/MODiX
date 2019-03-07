@@ -79,11 +79,6 @@ export default class Tabs extends Vue
 
         return "Required Claims: " + route.requiredClaims.toString();
     }
-
-    mounted()
-    {
-
-    }
 }
 
 </script>
