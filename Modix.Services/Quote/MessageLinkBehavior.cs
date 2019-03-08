@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
@@ -12,7 +11,7 @@ namespace Modix.Services.Quote
     public class MessageLinkBehavior : BehaviorBase
     {
         private static readonly Regex Pattern = new Regex(
-            @"https?://(?:(?:ptb|canary)\.)?discordapp\.com/channels/(?<GuildId>\d+)/(?<ChannelId>\d+)/(?<MessageId>\d+)",
+            @"(?<Prelink>\S+\s+)?https?://(?:(?:ptb|canary)\.)?discordapp\.com/channels/(?<GuildId>\d+)/(?<ChannelId>\d+)/(?<MessageId>\d+)/?(?<Postlink>\s+\S+)?",
             RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         public MessageLinkBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
@@ -67,7 +66,12 @@ namespace Modix.Services.Quote
                             if (msg == null) return;
 
                             var success = await SendQuoteEmbedAsync(msg, guildUser, userMessage.Channel);
-                            if(success) await userMessage.DeleteAsync();
+                            if (success
+                                && string.IsNullOrEmpty(match.Groups["Prelink"].Value)
+                                && string.IsNullOrEmpty(match.Groups["Postlink"].Value))
+                            {
+                                await userMessage.DeleteAsync();
+                            }
                         }
                     }
                     catch (Exception ex)
