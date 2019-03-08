@@ -36,12 +36,11 @@ namespace Modix.Services.Starboard
         bool IsStarEmote(IEmote emote);
 
         /// <summary>
-        /// Checks if an <see cref="IEmote"/>-reaction on a given <see cref="IUserMessage"/> is above the threshold.
+        /// Checks if a reaction count is above the threshold.
         /// </summary>
-        /// <param name="message">The message to examine</param>
-        /// <param name="emote">The emote to evaluate</param>
-        /// <returns>A flag indicating whether reactions of type <paramref name="emote"/> is above the threshold on <paramref name="message"/>.</returns>
-        bool IsAboveReactionThreshold(IUserMessage message, IEmote emote);
+        /// <param name="reactionCount"> The reaction count to evaluate</param>
+        /// <returns>A flag indicating whether the reaction count is above the threshold.</returns>
+        bool IsAboveReactionThreshold(int reactionCount);
 
         /// <summary>
         /// Gets the current amount of reactions of the given <paramref name="emote"/> on the <paramref name="message"/>.
@@ -53,7 +52,6 @@ namespace Modix.Services.Starboard
         /// <summary>
         /// Gets the appropriate star-emote for the given <paramref name="reactionCount"/>.
         /// </summary>
-        /// <param name="reactionCount"></param>
         /// <returns>A star-emote in string format</returns>
         string GetStarEmote(int reactionCount);
 
@@ -63,8 +61,9 @@ namespace Modix.Services.Starboard
         /// <param name="guild">Which guild's starboard to operate on</param>
         /// <param name="message">The message to modify</param>
         /// <param name="content">The content to modify with</param>
+        /// <param name="embedColor">The color to modify the embed with</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task ModifyEntry(IGuild guild, IUserMessage message, string content);
+        Task ModifyEntry(IGuild guild, IUserMessage message, string content, Color embedColor);
 
         /// <summary>
         /// Adds an <see cref="IUserMessage"/> to the starboard
@@ -148,8 +147,8 @@ namespace Modix.Services.Starboard
         }
 
         /// <inheritdoc />
-        public bool IsAboveReactionThreshold(IUserMessage message, IEmote emote)
-            => GetReactionCount(message, emote) >= 2;
+        public bool IsAboveReactionThreshold(int reactionCount)
+            => reactionCount >= 2;
 
         /// <inheritdoc />
         public string GetStarEmote(int reactionCount)
@@ -184,13 +183,20 @@ namespace Modix.Services.Starboard
         }
 
         /// <inheritdoc />
-        public async Task ModifyEntry(IGuild guild, IUserMessage message, string content)
+        public async Task ModifyEntry(IGuild guild, IUserMessage message, string content, Color embedColor)
         {
             var starEntry = await GetStarboardEntry(guild, message);
-
             if (starEntry != default)
             {
-                await starEntry.ModifyAsync(messageProps => messageProps.Content = content);
+                await starEntry.ModifyAsync(messageProps =>
+                {
+                    messageProps.Content = content;
+                    messageProps.Embed = starEntry.Embeds
+                                                  .First()
+                                                  .ToEmbedBuilder()
+                                                  .WithColor(embedColor)
+                                                  .Build();
+                });
             }
             else
             {
