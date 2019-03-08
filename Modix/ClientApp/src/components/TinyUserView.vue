@@ -2,7 +2,7 @@
 
     <div class="tinyUser">
         <figure class="image is-24x24">
-            <img v-if="user.avatarHash" :src="user.avatarUrl" />
+            <img v-if="user.avatarHash" :src="user.avatarHash" />
             <img v-else src="http://via.placeholder.com/32x32" />
         </figure>
         <span class="name">{{user.name}}</span>

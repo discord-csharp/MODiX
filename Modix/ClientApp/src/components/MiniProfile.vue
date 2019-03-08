@@ -4,7 +4,7 @@
 
 
             <v-popover>
-                <img class="avatar-icon" v-if="user.avatarHash" :src="user.avatarUrl">
+                <img class="avatar-icon" v-if="user.avatarHash" :src="user.avatarHash">
 
                 <p class="title is-4">
                     <span class="username">
