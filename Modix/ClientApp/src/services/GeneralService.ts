@@ -129,6 +129,3 @@ export default class GeneralService
         return (await client.get(`infractions/${subjectId}/doesModeratorOutrankUser`)).data;
     }
 }
-
-//For debugging
-(<any>window).service = GeneralService;

@@ -32,16 +32,14 @@
 
                 </div>
 
-                <a v-if="loading" class="button is-loading campaignLoader"></a>
+                <a v-if="loading" class="button is-primary is-loading campaignLoader"></a>
 
                 <p v-else-if="campaigns.length == 0">
                     There's no active campaigns at the moment. You could start one, though!
                 </p>
-                <div v-else>
-                    <PromotionListItem v-for="campaign in campaigns" :campaign="campaign" :key="campaign.id"
-                                       :dialogLoading="currentlyLoadingInfractions == campaign.id" @commentSubmitted="refresh()" @showPanel="showPanel(campaign)"
-                                       v-on:comment-edit-modal-opened="onCommentEditModalOpened" />
-                </div>
+                <PromotionListItem v-for="campaign in campaigns" :campaign="campaign" :key="campaign.id"
+                                   :dialogLoading="currentlyLoadingInfractions == campaign.id" @commentSubmitted="refresh()" @showPanel="showPanel(campaign)"
+                                   v-on:comment-edit-modal-opened="onCommentEditModalOpened" />
             </div>
         </section>
 

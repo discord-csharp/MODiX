@@ -26,6 +26,3 @@ export default class TagService
         await client.delete(`tags/${name}`);
     }
 }
-
-//For debugging
-(<any>window).service = TagService;

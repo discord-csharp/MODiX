@@ -48,7 +48,7 @@ namespace Modix.Controllers
                 : UserGuild.Users
                     .Where(d => d.Username.OrdinalContains(query))
                     .Take(10)
-                    .Select(d => new ModixUser { Name = $"{d.Username}#{d.Discriminator}", UserId = d.Id, AvatarHash = d.AvatarId });
+                    .Select(d => ModixUser.FromSocketGuildUser(d));
 
             return Ok(result);
         }

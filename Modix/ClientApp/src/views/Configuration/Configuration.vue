@@ -67,7 +67,7 @@ export default class Configuration extends Vue
 
     hasClaimsForRoute(route: ModixRoute): boolean
     {
-        return store.userHasClaims(route.routeData.requiredClaims || []);
+        return store.userHasClaims(route.requiredClaims || []);
     }
 
     toTitleCase(input: string)
@@ -82,12 +82,12 @@ export default class Configuration extends Vue
             return "";
         }
 
-        if (!route.routeData.requiredClaims)
+        if (!route.requiredClaims)
         {
             return "Disallowed";
         }
 
-        return "Required Claims: " + route.routeData.requiredClaims.toString();
+        return "Required Claims: " + route.requiredClaims.toString();
     }
 }
 </script>

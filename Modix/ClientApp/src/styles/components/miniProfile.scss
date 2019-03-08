@@ -27,6 +27,13 @@
     {
         margin-bottom: 0;
     }
+
+    .v-popover .trigger
+    {
+        display: flex !important;
+        flex-direction: row;
+        align-items: center;
+    }
 }
 
 .options .option

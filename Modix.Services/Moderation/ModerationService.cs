@@ -536,7 +536,14 @@ namespace Modix.Services.Moderation
                     break;
 
                 case InfractionType.Ban:
-                    await guild.RemoveBanAsync(infraction.Subject.Id);
+
+                    //If the infraction has already been rescinded, we don't need to actually perform the unmute/unban
+                    //Doing so will return a 404 from Discord (trying to remove a nonexistant ban)
+                    if (infraction.RescindAction == null)
+                    {
+                        await guild.RemoveBanAsync(infraction.Subject.Id);
+                    }
+
                     break;
             }
         }

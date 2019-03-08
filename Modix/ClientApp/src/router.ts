@@ -1,4 +1,4 @@
-import ModixRoute, { ModixRouteData } from '@/app/ModixRoute';
+import ModixRoute, { ModixRouteData, RedirectRouteData, RouteType } from '@/app/ModixRoute';
 import store from '@/app/Store';
 import { getCookie } from '@/app/Util';
 import _ from 'lodash';
@@ -13,7 +13,7 @@ const Claims = () => import('./views/Configuration/Claims.vue').then(m => m.defa
 const Configuration = () => import('./views/Configuration/Configuration.vue').then(m => m.default)
 const RoleDesignations = () => import('./views/Configuration/RoleDesignations.vue').then(m => m.default)
 const CreatePromotion = () => import('./views/CreatePromotion.vue').then(m => m.default)
-const Infractions = () => import('./views/Infractions.vue').then(m => m.default)
+const Infractions = () => import('./components/Logs/Infractions.vue').then(m => m.default)
 const Promotions = () => import('./views/Promotions.vue').then(m => m.default)
 const Stats = () => import('./views/Stats.vue').then(m => m.default)
 const Tags = () => import('./views/Tags/Tags.vue').then(m => m.default)
@@ -22,40 +22,45 @@ const DeletedMessages = () => import('./components/Logs/DeletedMessages.vue').th
 
 Vue.use(Router)
 
-let routes: ModixRouteData[] =
+let routes: (ModixRouteData | RedirectRouteData)[] =
 [
     {
         path: '/',
         name: 'home',
         component: Home,
-        showInNavbar: false
+        showInNavbar: false,
+        type: RouteType.Normal
     },
     {
         path: '/stats',
         name: 'stats',
         component: Stats,
         showInNavbar: true,
-        requiresAuth: true
+        requiresAuth: true,
+        type: RouteType.Normal
     },
     {
         path: '/commands',
         name: 'commands',
         component: Commands,
-        showInNavbar: true
+        showInNavbar: true,
+        type: RouteType.Normal
     },
     {
         path: '/tags',
         name: 'tags',
         component: Tags,
         showInNavbar: true,
-        requiresAuth: true
+        requiresAuth: true,
+        type: RouteType.Normal
     },
     {
         path: '/promotions',
         name: 'promotions',
         component: Promotions,
         showInNavbar: true,
-        requiredClaims: ["PromotionsRead"]
+        requiredClaims: ["PromotionsRead"],
+        type: RouteType.Normal
     },
     {
         path: '/promotions/create',
@@ -63,14 +68,13 @@ let routes: ModixRouteData[] =
         title: "Start a Campaign",
         component: CreatePromotion,
         showInNavbar: false,
-        requiredClaims: ["PromotionsCreateCampaign"]
+        requiredClaims: ["PromotionsCreateCampaign"],
+        type: RouteType.Normal
     },
     {
         path: '/infractions',
-        name: 'infractions',
-        component: Infractions,
-        showInNavbar: true,
-        requiredClaims: ["ModerationRead"]
+        redirectTo: 'infractions',
+        type: RouteType.Redirect
     },
     {
         path: '/logs',
@@ -78,42 +82,57 @@ let routes: ModixRouteData[] =
         component: Logs,
         showInNavbar: true,
         requiresAuth: true,
+        type: RouteType.Normal,
         children:
         [
             {
                 path: 'deletedMessages',
                 name: 'deletedMessages',
-                title: 'Deleted Messages',
+                title: 'Deletions',
                 component: DeletedMessages,
+                type: RouteType.Normal,
                 requiredClaims: ["LogViewDeletedMessages"]
+            },
+            {
+                path: 'infractions',
+                name: 'infractions',
+                component: Infractions,
+                showInNavbar: true,
+                type: RouteType.Normal,
+                requiredClaims: ["ModerationRead"]
             }
         ]
     },
     {
         path: '/config',
         name: 'config',
-        title: 'Configuration',
+        title: '🛠',
         component: Configuration,
-        showInNavbar: false,
+        isButton: true,
+        showInNavbar: true,
         requiresAuth: true,
+        type: RouteType.Normal,
         children:
         [
             {
                 path: 'roles',
                 name: 'roles',
                 component: RoleDesignations,
+                type: RouteType.Normal,
                 requiredClaims: ["DesignatedRoleMappingRead"]
             },
             {
                 path: 'channels',
                 name: 'channels',
                 component: ChannelDesignations,
+                type: RouteType.Normal,
                 requiredClaims: ["DesignatedChannelMappingRead"]
             },
             {
                 path: 'claims',
                 name: 'claims',
                 component: Claims,
+                type: RouteType.Normal,
                 requiredClaims: ["AuthorizationConfigure"]
             }
         ]
@@ -122,6 +141,7 @@ let routes: ModixRouteData[] =
         path: '/error',
         name: 'error',
         showInNavbar: false,
+        type: RouteType.Normal,
         beforeEnter: (to, from, next) =>
         {
             let errorCookie = getCookie("Error");
@@ -144,9 +164,13 @@ const router = new Router
 
 router.beforeEach(async (to, from, next) =>
 {
-    if (from.name == null && to.name != "home" && !store.hasTriedAuth())
+    if (from.name == null && !store.hasTriedAuth())
     {
         await store.retrieveUserInfo();
+        if (store.isLoggedIn())
+        {
+            await store.retrieveGuilds();
+        }
     }
 
     let toRoute: ModixRoute = to.meta;
@@ -161,10 +185,10 @@ router.beforeEach(async (to, from, next) =>
         store.pushErrorMessage(`Page not found: <code>${to.fullPath}</code>`);
         next('/');
     }
-    else if (toRoute.routeData.requiredClaims && !store.userHasClaims(toRoute.routeData.requiredClaims))
+    else if (toRoute.requiredClaims && !store.userHasClaims(toRoute.requiredClaims))
     {
         store.pushErrorMessage(`You are not authorized to view <code>${to.fullPath}</code>. Required claims: ` +
-            toRoute.routeData.requiredClaims.join(', '));
+            toRoute.requiredClaims.join(', '));
 
         next('/');
     }

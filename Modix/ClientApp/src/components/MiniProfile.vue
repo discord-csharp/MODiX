@@ -1,9 +1,11 @@
 <template>
     <div class="profile">
         <template v-if="user && user.userId">
-            <img class="avatar-icon" v-if="user.avatarHash" :src="user.avatarUrl">
+
 
             <v-popover>
+                <img class="avatar-icon" v-if="user.avatarHash" :src="user.avatarUrl">
+
                 <p class="title is-4">
                     <span class="username">
                         {{user.name}}

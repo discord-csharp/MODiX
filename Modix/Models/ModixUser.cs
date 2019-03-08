@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
+using Discord;
+using Discord.WebSocket;
 
 namespace Modix.Models
 {
@@ -20,8 +22,19 @@ namespace Modix.Models
             {
                 Name = user.Identity.Name,
                 UserId = ulong.Parse(user.Claims.FirstOrDefault(d => d.Type == ClaimTypes.NameIdentifier).Value),
-                AvatarHash = user.Claims.FirstOrDefault(d=>d.Type == "avatarHash")?.Value ?? "",
                 Claims = user.Claims.Where(d=>d.Type == ClaimTypes.Role).Select(d=>d.Value).ToList()
+            };
+
+            return ret;
+        }
+
+        public static ModixUser FromSocketGuildUser(SocketGuildUser user)
+        {
+            var ret = new ModixUser
+            {
+                Name = $"{user.Username}#{user.Discriminator}",
+                UserId = user.Id,
+                AvatarHash = user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl()
             };
 
             return ret;

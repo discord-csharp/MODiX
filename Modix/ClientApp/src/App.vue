@@ -48,13 +48,6 @@ export default class App extends ModixComponent
 
     async mounted()
     {
-        await store.retrieveUserInfo();
-
-        if (store.isLoggedIn())
-        {
-            await store.retrieveGuilds();
-        }
-
         this.initialLoadingComplete = true;
 
         themeContext("./" + config().theme.toLowerCase() + ".scss");
