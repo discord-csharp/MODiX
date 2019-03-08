@@ -116,7 +116,7 @@ namespace Modix.Controllers
 
             try
             {
-                await ModerationService.CreateInfractionAsync(type, subjectId, creationData.Reason, duration);
+                await ModerationService.CreateInfractionAsync(SocketUser.Guild.Id, SocketUser.Id, type, subjectId, creationData.Reason, duration);
             }
             catch (Exception ex)
             {
