@@ -28,10 +28,11 @@ namespace Modix.Behaviors
         /// <summary>
         /// Constructs a new <see cref="PromotionLoggingHandler"/> object, with injected dependencies.
         /// </summary>
-        public PromotionLoggingHandler(IServiceProvider serviceProvider, IDiscordClient discordClient, IDesignatedChannelService designatedChannelService)
+        public PromotionLoggingHandler(IServiceProvider serviceProvider, IDiscordClient discordClient, IDesignatedChannelService designatedChannelService, IUserService userService)
         {
             DiscordClient = discordClient;
             DesignatedChannelService = designatedChannelService;
+            UserService = userService;
 
             _lazyPromotionsService = new Lazy<IPromotionsService>(() => serviceProvider.GetRequiredService<IPromotionsService>());
         }
@@ -136,7 +137,7 @@ namespace Modix.Behaviors
             }
 
             return embed
-                .WithAuthor(await DiscordClient.GetUserAsync(targetCampaign.Subject.Id))
+                .WithAuthor(await UserService.GetUserInformationAsync(targetCampaign.Subject.Id, data.GuildId))
                 .WithFooter("See more at https://mod.gg/promotions")
                 .Build();
         }
@@ -172,6 +173,11 @@ namespace Modix.Behaviors
         /// An <see cref="IDesignatedChannelService"/> for logging moderation actions.
         /// </summary>
         internal protected IDesignatedChannelService DesignatedChannelService { get; }
+
+        /// <summary>
+        /// An <see cref="IUserService"/> for retrieving user info
+        /// </summary>
+        internal protected IUserService UserService { get; }
 
         /// <summary>
         /// An <see cref="IPromotionsService"/> for performing moderation actions.
