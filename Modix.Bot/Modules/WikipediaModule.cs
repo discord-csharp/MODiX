@@ -17,7 +17,9 @@ namespace Modix.Modules
         }
 
         [Command("wiki"), Summary("Returns a Wikipedia page result matching the search phrase.")]
-        public async Task Run([Remainder] string phrase)
+        public async Task RunAsync(
+            [Summary("The phrase to search on Wikipedia.")]
+                [Remainder] string phrase)
         {
             var response = await WikipediaService.GetWikipediaResultsAsync(phrase);
 

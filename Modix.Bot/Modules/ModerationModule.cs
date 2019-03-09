@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Discord;
@@ -12,7 +11,7 @@ using Modix.Services.Moderation;
 namespace Modix.Modules
 {
     [Name("Moderation")]
-    [Summary("Guild moderation commands")]
+    [Summary("Guild moderation commands.")]
     public class ModerationModule : ModuleBase
     {
         public ModerationModule(IModerationService moderationService)
@@ -22,7 +21,7 @@ namespace Modix.Modules
 
         [Command("note")]
         [Summary("Applies a note to a user's infraction history.")]
-        public async Task Note(
+        public async Task NoteAsync(
             [Summary("The user to which the note is being applied.")]
                 DiscordUserEntity subject,
             [Summary("The reason for the note.")]
@@ -35,7 +34,7 @@ namespace Modix.Modules
 
         [Command("warn")]
         [Summary("Issue a warning to a user.")]
-        public async Task Warn(
+        public async Task WarnAsync(
             [Summary("The user to which the warning is being issued.")]
                 DiscordUserEntity subject,
             [Summary("The reason for the warning.")]
@@ -48,7 +47,7 @@ namespace Modix.Modules
 
         [Command("mute")]
         [Summary("Mute a user.")]
-        public async Task Mute(
+        public async Task MuteAsync(
             [Summary("The user to be muted.")]
                 DiscordUserEntity subject,
             [Summary("The reason for the mute.")]
@@ -61,7 +60,7 @@ namespace Modix.Modules
 
         [Command("tempmute")]
         [Summary("Mute a user, for a temporary amount of time.")]
-        public async Task TempMute(
+        public async Task TempMuteAsync(
             [Summary("The user to be muted.")]
                 DiscordUserEntity subject,
             [Summary("The duration of the mute.")]
@@ -76,7 +75,7 @@ namespace Modix.Modules
 
         [Command("unmute")]
         [Summary("Remove a mute that has been applied to a user.")]
-        public async Task UnMute(
+        public async Task UnMuteAsync(
             [Summary("The user to be un-muted.")]
                 DiscordUserEntity subject)
         {
@@ -86,7 +85,7 @@ namespace Modix.Modules
         [Command("ban")]
         [Alias("forceban")]
         [Summary("Ban a user from the current guild.")]
-        public async Task Ban(
+        public async Task BanAsync(
             [Summary("The user to be banned.")]
                 DiscordUserEntity subject,
             [Summary("The reason for the ban.")]
@@ -99,7 +98,7 @@ namespace Modix.Modules
 
         [Command("unban")]
         [Summary("Remove a ban that has been applied to a user.")]
-        public async Task UnBan(
+        public async Task UnBanAsync(
             [Summary("The user to be un-banned.")]
                 DiscordUserEntity subject)
         {
@@ -109,7 +108,7 @@ namespace Modix.Modules
 
         [Command("clean")]
         [Summary("Mass-deletes a specified number of messages.")]
-        public async Task Clean(
+        public async Task CleanAsync(
             [Summary("The number of messages to delete.")]
                 int count)
             => await ModerationService.DeleteMessagesAsync(
@@ -119,7 +118,7 @@ namespace Modix.Modules
 
         [Command("clean")]
         [Summary("Mass-deletes a specified number of messages.")]
-        public async Task Clean(
+        public async Task CleanAsync(
             [Summary("The number of messages to delete.")]
                 int count,
             [Summary("The channel to clean.")]
@@ -131,7 +130,7 @@ namespace Modix.Modules
 
         [Command("clean")]
         [Summary("Mass-deletes a specified number of messages by the supplied user.")]
-        public async Task Clean(
+        public async Task CleanAsync(
             [Summary("The number of messages to delete.")]
                 int count,
             [Summary("The user whose messages should be deleted.")]

@@ -24,7 +24,10 @@ namespace Modix.Modules
         }
 
         [Command("stack"), Summary("Returns top results from a Stack Exchange site."), Remarks("Usage: `!stack how do i parse json with c#? [site=stackoverflow tags=c#,json]`")]
-        public async Task Run([Remainder] string phrase)
+        public async Task RunAsync(
+            [Remainder]
+            [Summary("The phrase to search Stack Exchange for.")]
+                string phrase)
         {
             var startLocation = phrase.IndexOf("[");
             var endLocation = phrase.IndexOf("]");

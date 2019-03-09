@@ -166,7 +166,7 @@ namespace Modix.Services.PopularityContest
                 }
 
                 embed.AddField($"{emoji} With **{reactionCount}** votes",
-                    $"[{author.Username}#{author.Discriminator}! (`{author.Id}`)]({message.GetMessageLink()})");
+                    $"[{author.Username}#{author.Discriminator}! (`{author.Id}`)]({message.GetJumpUrl()})");
 
                 position++;
             }
@@ -178,7 +178,7 @@ namespace Modix.Services.PopularityContest
 
             var mostAuthor = mostReactionsOverall.Message.Author;
             embed.AddField($"Also, the message with the most reactions overall, with a total of **{mostReactionsOverall.OverallCount}**, is...",
-                $"[{mostAuthor.Username}#{mostAuthor.Discriminator}! (`{mostAuthor.Id}`)]({mostReactionsOverall.Message.GetMessageLink()})");
+                $"[{mostAuthor.Username}#{mostAuthor.Discriminator}! (`{mostAuthor.Id}`)]({mostReactionsOverall.Message.GetJumpUrl()})");
 
             await logMessage.ModifyAsync(prop => prop.Embed = embed.Build());
         }
@@ -186,9 +186,9 @@ namespace Modix.Services.PopularityContest
         private async Task<string> UploadLogAsync(IMessage logMessage, IEmote countedEmote, IEnumerable<IUserMessage> messages)
         {
             messages = messages.Where(message => message.Reactions.ContainsKey(countedEmote));
-            var allEntries = string.Join('\n', messages.Select(d => $"{d.Reactions[countedEmote].ReactionCount} reactions: {d.GetMessageLink()}"));
+            var allEntries = string.Join('\n', messages.Select(d => $"{d.Reactions[countedEmote].ReactionCount} reactions: {d.GetJumpUrl()}"));
 
-            return await _pasteService.UploadCodeAsync($"All entries for contest held on {DateTimeOffset.UtcNow}\nResults here: {logMessage.GetMessageLink()}\n\n{allEntries}");
+            return await _pasteService.UploadCodeAsync($"All entries for contest held on {DateTimeOffset.UtcNow}\nResults here: {logMessage.GetJumpUrl()}\n\n{allEntries}");
         }
 
         private Embed GetProgressEmbed(int progress, IMessage lastMessage, IGuildChannel collectionChannel, bool done = false)
@@ -196,7 +196,7 @@ namespace Modix.Services.PopularityContest
             var messageLink = "";
             if (lastMessage != null)
             {
-                messageLink = lastMessage.GetMessageLink();
+                messageLink = lastMessage.GetJumpUrl();
             }
 
             var embed = new EmbedBuilder()

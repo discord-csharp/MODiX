@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -11,7 +10,7 @@ using Modix.Services.Core;
 namespace Modix.Modules
 {
     [Name("Role Designations")]
-    [Summary("Configures role designations for various bot services")]
+    [Summary("Configures role designations for various bot services.")]
     [Group("role designations")]
     public class DesignatedRoleModule : ModuleBase
     {
@@ -26,7 +25,7 @@ namespace Modix.Modules
 
         [Command]
         [Summary("Lists all of the roles designated for use by the bot")]
-        public async Task List()
+        public async Task ListAsync()
         {
             var roles = await DesignatedRoleService.GetDesignatedRolesAsync(Context.Guild.Id);
 

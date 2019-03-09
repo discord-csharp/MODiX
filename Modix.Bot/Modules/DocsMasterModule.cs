@@ -4,6 +4,7 @@ using Discord;
 using Discord.Commands;
 using Modix.Services.DocsMaster;
 using Modix.Services.DocsMaster.Models;
+using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
@@ -18,7 +19,14 @@ namespace Modix.Modules
         }
 
         [Command("find")]
-        public async Task Find(string manualName, string entryName, string version = "")
+        [Summary("Retrieves documentation from the supplied manual.")]
+        public async Task FindAsync(
+            [Summary("The name of the manual from which to retrieve documentation.")]
+                string manualName,
+            [Summary("The entry for which to retrieve documentation.")]
+                string entryName,
+            [Summary("The version for which to retrieve documentation, if any.")]
+                string version = "")
         {
             ManualEntryModel resultModel;
             if (string.IsNullOrWhiteSpace(version))
@@ -38,15 +46,18 @@ namespace Modix.Modules
 
             var builder = new EmbedBuilder().WithAuthor(new EmbedAuthorBuilder {Name = resultModel.EntryName})
                 .WithThumbnailUrl(
-                    Context.Client.CurrentUser.GetAvatarUrl())
+                    Context.Client.CurrentUser.GetDefiniteAvatarUrl())
                 .AddField("Description:", resultModel.Description)
                 .AddField("Full Reference:", resultModel.FullReferenceLink)
                 .WithColor(Color.Green);
-            await ReplyAsync("", embed: builder.Build());
+            await ReplyAsync(embed: builder.Build());
         }
 
         [Command("versions")]
-        public async Task ListVersions(string manualName)
+        [Summary("Lists the versions available for the supplied manual.")]
+        public async Task ListVersionsAsync(
+            [Summary("The name of the manual for which to retrieve versions.")]
+                string manualName)
         {
             var builder = new EmbedBuilder().WithAuthor("CURRENT SUPPORTED VERSIONS");
             var sb = new StringBuilder();
@@ -57,8 +68,8 @@ namespace Modix.Modules
 
             builder.Description = sb.ToString();
 
-            builder.WithThumbnailUrl(Context.Client.CurrentUser.GetAvatarUrl()).WithColor(Color.Green);
-            await ReplyAsync("", embed: builder.Build());
+            builder.WithThumbnailUrl(Context.Client.CurrentUser.GetDefiniteAvatarUrl()).WithColor(Color.Green);
+            await ReplyAsync(embed: builder.Build());
         }
     }
 }

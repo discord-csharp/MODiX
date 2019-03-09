@@ -8,6 +8,7 @@ using MediatR;
 
 using Modix.Data.Models.Moderation;
 using Modix.Services.Messages.Discord;
+using Modix.Services.Utilities;
 
 namespace Modix.Services.Moderation
 {
@@ -60,7 +61,7 @@ namespace Modix.Services.Moderation
             var banLog = auditLogs.FirstOrDefault(x => x.Data.Target.Id == user.Id);
 
             var reason = string.IsNullOrWhiteSpace(banLog.Entry.Reason)
-                ? $"Banned by {banLog.Entry.User.Username}#{banLog.Entry.User.Discriminator}."
+                ? $"Banned by {banLog.Entry.User.GetDisplayNameWithDiscriminator()}."
                 : banLog.Entry.Reason;
 
             await _moderationService.CreateInfractionAsync(guild.Id, banLog.Entry.User.Id, InfractionType.Ban, user.Id, reason, null);

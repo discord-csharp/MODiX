@@ -52,7 +52,10 @@ namespace Modix.Modules
         private IHttpClientFactory HttpClientFactory { get; }
 
         [Command("info")]
-        public async Task GetUserInfoAsync(DiscordUserEntity user = null)
+        [Summary("Retrieves information about the supplied user, or the current user if one is not provided.")]
+        public async Task GetUserInfoAsync(
+            [Summary("The user to retrieve information about, if any.")]
+                DiscordUserEntity user = null)
         {
             user = user ?? new DiscordUserEntity(Context.User.Id);
 
@@ -110,7 +113,7 @@ namespace Modix.Modules
                 .WithAuthor(userInfo.Username + "#" + userInfo.Discriminator)
                 .WithTimestamp(_utcNow);
 
-            var avatar = userInfo.GetAvatarUrl() ?? userInfo.GetDefaultAvatarUrl();
+            var avatar = userInfo.GetDefiniteAvatarUrl();
 
             embedBuilder.ThumbnailUrl = avatar;
             embedBuilder.Author.IconUrl = avatar;

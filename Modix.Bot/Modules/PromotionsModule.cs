@@ -13,7 +13,7 @@ using Modix.Services.Promotions;
 namespace Modix.Modules
 {
     [Name("Promotions")]
-    [Summary("Manage promotion campaigns")]
+    [Summary("Manage promotion campaigns.")]
     [Group("promotions")]
     public class PromotionsModule : ModuleBase
     {
@@ -24,9 +24,9 @@ namespace Modix.Modules
             PromotionsService = promotionsService;
         }
 
-        [Command("campaigns"), Alias("")]
+        [Command("campaigns"), Alias]
         [Summary("List all active promotion campaigns")]
-        public async Task Campaigns()
+        public async Task CampaignsAsync()
         {
             var campaigns = await PromotionsService.SearchCampaignsAsync(new PromotionCampaignSearchCriteria()
             {
