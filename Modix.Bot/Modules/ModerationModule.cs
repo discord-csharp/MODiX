@@ -29,7 +29,7 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(InfractionType.Notice, subject.Id, reason, null);
+            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Notice, subject.Id, reason, null);
             await Context.AddConfirmation();
         }
 
@@ -42,7 +42,7 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(InfractionType.Warning, subject.Id, reason, null);
+            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Warning, subject.Id, reason, null);
             await Context.AddConfirmation();
         }
 
@@ -55,7 +55,7 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, null);
+            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.Id, reason, null);
             await Context.AddConfirmation();
         }
 
@@ -70,7 +70,7 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(InfractionType.Mute, subject.Id, reason, duration);
+            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.Id, reason, duration);
             await Context.AddConfirmation();
         }
 
@@ -93,7 +93,7 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(InfractionType.Ban, subject.Id, reason, null);
+            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Ban, subject.Id, reason, null);
             await Context.AddConfirmation();
         }
 
