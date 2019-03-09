@@ -17,10 +17,11 @@
                     <template slot="table-row" slot-scope="props">
                         <span v-if="props.column.field == 'actions'">
                             <span class="level">
-                                <button class="button is-primary is-small level-left" v-if="canMaintainTag(props.row.creator)" v-on:click="onTagEdit(props.row.name, props.row.content)">
+                                <button class="button is-link is-small level-left" v-if="props.row.canMaintain" v-on:click="onTagEdit(props.row.name, props.row.content)">
                                     Edit
                                 </button>
-                                <button class="button is-primary is-small level-right" v-if="canMaintainTag(props.row.creator)" v-on:click="onTagDelete(props.row.name)">
+                                &nbsp;
+                                <button class="button is-link is-small level-right" v-if="props.row.canMaintain" v-on:click="onTagDelete(props.row.name)">
                                     Delete
                                 </button>
                             </span>
@@ -157,8 +158,6 @@ const guildUserSort = (x: GuildUserIdentity, y: GuildUserIdentity, col: any, row
     return (x.id < y.id ? -1 : (x.id > y.id ? 1 : 0));
 };
 
-const guildUserFormat = (user: GuildUserIdentity) => user.displayName;
-
 @Component({
     components:
     {
@@ -205,12 +204,6 @@ export default class Tags extends Vue
         return store.userHasClaims(["CreateTag"]);
     }
 
-    canMaintainTag(creator: GuildUserIdentity): boolean
-    {
-        return store.currentUser()!.userId == creator.id.toString()
-            || store.userHasClaims(["MaintainOtherUserTag"]);
-    }
-
     resolveMentions(description: string)
     {
         return resolveMentions(this.channelCache, description);
@@ -239,18 +232,16 @@ export default class Tags extends Vue
                 width: '160px'
             },
             {
-                label: 'Creator',
-                field: 'creator',
-                type: 'date', //Needed to bypass vue-good-table regression
+                label: 'Owner',
+                field: 'owner',
                 sortFn: guildUserSort,
                 filterOptions:
                 {
                      enabled: true,
                      filterFn: guildUserFilter,
-                     filterValue: this.staticFilters["creator"],
+                     filterValue: this.staticFilters["owner"],
                      placeholder: "Filter"
                 },
-                formatFn: guildUserFormat
             },
             {
                 label: 'Content',
@@ -280,10 +271,13 @@ export default class Tags extends Vue
         return _.map(this.tags, tag =>
         ({
             name: tag.name,
-            date: tag.createAction.created,
-            creator: tag.createAction.createdBy,
+            date: tag.created,
+            owner: tag.ownerName,
             content: tag.content,
-            uses: tag.uses
+            uses: tag.uses,
+            isOwnedByRole: tag.isOwnedByRole,
+            ownerColor: tag.ownerColor,
+            canMaintain: tag.canMaintain,
         }));
     }
 

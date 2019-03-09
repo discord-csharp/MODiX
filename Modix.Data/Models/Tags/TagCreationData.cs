@@ -46,6 +46,7 @@ namespace Modix.Data.Models.Tags
                 Name = Name.ToLower(),
                 Content = Content,
                 Uses = Uses,
+                OwnerUserId = CreatedById,
             };
     }
 }

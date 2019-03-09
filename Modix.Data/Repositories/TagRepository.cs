@@ -215,7 +215,7 @@ namespace Modix.Data.Repositories
 
             var action = new TagActionEntity()
             {
-                GuildId = oldTag.GuildId,
+                GuildId = guildId,
                 Type = TagActionType.TagModified,
                 Created = DateTimeOffset.Now,
                 CreatedById = modifiedByUserId,
