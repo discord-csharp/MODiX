@@ -28,7 +28,11 @@ namespace Modix.Behaviors
         /// <summary>
         /// Constructs a new <see cref="PromotionLoggingHandler"/> object, with injected dependencies.
         /// </summary>
-        public PromotionLoggingHandler(IServiceProvider serviceProvider, IDiscordClient discordClient, IDesignatedChannelService designatedChannelService, IUserService userService)
+        public PromotionLoggingHandler(
+            IServiceProvider serviceProvider,
+            IDiscordClient discordClient,
+            IDesignatedChannelService designatedChannelService,
+            IUserService userService)
         {
             DiscordClient = discordClient;
             DesignatedChannelService = designatedChannelService;
@@ -146,8 +150,9 @@ namespace Modix.Behaviors
         private async Task<string> FormatPromotionLogEntry(long promotionActionId, PromotionActionCreationData data)
         {
             var promotionAction = await PromotionsService.GetPromotionActionSummaryAsync(promotionActionId);
+            var key = (promotionAction.Type, promotionAction.NewComment?.Sentiment, promotionAction.Campaign?.Outcome);
 
-            if (!_logRenderTemplates.TryGetValue((promotionAction.Type, promotionAction.NewComment?.Sentiment, promotionAction.Campaign?.Outcome), out var renderTemplate))
+            if (!_logRenderTemplates.TryGetValue(key, out var renderTemplate))
                 return null;
 
             return string.Format(renderTemplate,
