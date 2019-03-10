@@ -11,7 +11,7 @@
             {{commandModule.summary}}
         </h2>
         <ul>
-            <CommandView v-for="(commandGroup, key) in overloads(commandModule.commands)" :key="key" :commandGroup="commandGroup" />
+            <CommandView v-for="(command, key) in commandModule.commands" :key="key" :command="command" />
         </ul>
         <br />
     </div>
@@ -44,11 +44,6 @@ export default class ModuleView extends Vue
     emitClick(module: ModuleHelpData)
     {
         this.$emit('moduleClicked', module);
-    }
-
-    overloads(commands: CommandHelpData[])
-    {
-        return _.groupBy(commands, command => command.name);
     }
 }
 </script>

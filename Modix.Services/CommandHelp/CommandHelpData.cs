@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Discord.Commands;
 
 namespace Modix.Services.CommandHelp
@@ -6,30 +7,24 @@ namespace Modix.Services.CommandHelp
     public class CommandHelpData
     {
         public string Name { get; set; }
-        public string Alias { get; set; }
+
         public string Summary { get; set; }
-        public List<ParameterHelpData> Parameters { get; set; } = new List<ParameterHelpData>();
 
-        public static IEnumerable<CommandHelpData> FromCommandInfo(CommandInfo command)
+        public IReadOnlyCollection<string> Aliases { get; set; }
+
+        public IReadOnlyCollection<ParameterHelpData> Parameters { get; set; }
+
+        public static CommandHelpData FromCommandInfo(CommandInfo command)
         {
-            var ret = new List<CommandHelpData>();
-
-            foreach (var alias in command.Aliases)
+            var ret = new CommandHelpData()
             {
-                var data = new CommandHelpData
-                {
-                    Alias = alias,
-                    Name = command.Name,
-                    Summary = command.Summary
-                };
-
-                foreach (var param in command.Parameters)
-                {
-                    data.Parameters.Add(ParameterHelpData.FromParameterInfo(param));
-                }
-
-                ret.Add(data);
-            }
+                Name = command.Name,
+                Summary = command.Summary,
+                Aliases = command.Aliases,
+                Parameters = command.Parameters
+                    .Select(x => ParameterHelpData.FromParameterInfo(x))
+                    .ToArray(),
+            };
 
             return ret;
         }

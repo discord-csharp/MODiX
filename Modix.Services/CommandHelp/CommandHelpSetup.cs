@@ -1,4 +1,4 @@
-using MediatR;
+﻿using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Services.Messages.Discord;
 
@@ -16,7 +16,7 @@ namespace Modix.Services.CommandHelp
         /// <returns><paramref name="services"/></returns>
         public static IServiceCollection AddCommandHelp(this IServiceCollection services)
             => services
-                .AddSingleton<CommandHelpService>()
+                .AddSingleton<ICommandHelpService, CommandHelpService>()
                 .AddSingleton<CommandErrorHandler>()
                 .AddSingleton<INotificationHandler<ReactionAdded>>(x => x.GetService<CommandErrorHandler>())
                 .AddSingleton<INotificationHandler<ReactionRemoved>>(x => x.GetService<CommandErrorHandler>());
