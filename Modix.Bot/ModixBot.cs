@@ -20,6 +20,7 @@ using Modix.Services;
 using Modix.Services.BehaviourConfiguration;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
+using Modix.Services.Utilities;
 
 namespace Modix
 {
@@ -275,7 +276,8 @@ namespace Modix
                     }
                     else
                     {
-                        await context.Channel.SendMessageAsync("Error: " + error);
+                        var sanitizedReason = FormatUtilities.SanitizeEveryone(result.ErrorReason);
+                        await context.Channel.SendMessageAsync($"Error: {sanitizedReason}");
                     }
                 }
             }

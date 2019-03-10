@@ -5,6 +5,7 @@ using Humanizer;
 using Modix.Data.Models.Moderation;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.Utilities.ColorQuantization;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -115,7 +116,7 @@ namespace Modix.Services.Utilities
             return $"This user has {formatted}";
         }
 
-        public static string Sanitize(string text)
+        public static string SanitizeEveryone(string text)
             => text.Replace("@everyone", "@\x200beveryone")
                    .Replace("@here", "@\x200bhere");
 
