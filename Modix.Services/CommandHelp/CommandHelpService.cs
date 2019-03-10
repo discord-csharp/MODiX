@@ -14,7 +14,7 @@ namespace Modix.Services.CommandHelp
         /// Retrieves help data for all available modules.
         /// </summary>
         /// <returns>
-        /// An readonly collection of data about all available modules.
+        /// A readonly collection of data about all available modules.
         /// </returns>
         IReadOnlyCollection<ModuleHelpData> GetModuleHelpData();
     }

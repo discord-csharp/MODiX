@@ -12,7 +12,7 @@ namespace Modix.Services.CommandHelp
 
         public string Summary { get; set; }
 
-        public IReadOnlyCollection<CommandHelpData> Commands { get; set; } = new List<CommandHelpData>();
+        public IReadOnlyCollection<CommandHelpData> Commands { get; set; }
 
         public static ModuleHelpData FromModuleInfo(ModuleInfo module)
         {

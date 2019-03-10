@@ -121,83 +121,12 @@ namespace Modix.Modules
 
             stringBuilder.AppendLine(Format.Bold("Aliases:"));
 
-            foreach (var alias in CollapsePlurals(aliases))
+            foreach (var alias in FormatUtilities.CollapsePlurals(aliases))
             {
                 stringBuilder.AppendLine($"• {alias}");
             }
 
             return stringBuilder;
-        }
-
-        private IReadOnlyCollection<string> CollapsePlurals(IReadOnlyCollection<string> aliases)
-        {
-            var splitIntoWords = aliases.Select(x => x.Split(" ", StringSplitOptions.RemoveEmptyEntries));
-
-            var withSingulars = splitIntoWords.Select(x =>
-            (
-                Singular: x.Select(y => y.Singularize(false)).ToArray(),
-                Value: x
-            ));
-
-            var groupedBySingulars = withSingulars.GroupBy(x => x.Singular, x => x.Value, new SequenceEqualityComparer<string>());
-
-            var withDistinctParts = new HashSet<string>[groupedBySingulars.Count()][];
-
-            foreach (var (singular, singularIndex) in groupedBySingulars.AsIndexable())
-            {
-                var parts = new HashSet<string>[singular.Key.Count];
-
-                for (var i = 0; i < parts.Length; i++)
-                    parts[i] = new HashSet<string>();
-
-                foreach (var variation in singular)
-                {
-                    foreach (var (part, partIndex) in variation.AsIndexable())
-                    {
-                        parts[partIndex].Add(part);
-                    }
-                }
-
-                withDistinctParts[singularIndex] = parts;
-            }
-
-            var parenthesized = new string[withDistinctParts.Length][];
-
-            foreach (var (alias, aliasIndex) in withDistinctParts.AsIndexable())
-            {
-                parenthesized[aliasIndex] = new string[alias.Length];
-
-                foreach (var (word, wordIndex) in alias.AsIndexable())
-                {
-                    if (word.Count > 1)
-                    {
-                        var (longestForm, shortestForm) = word.First().Length > word.Last().Length
-                            ? (word.First(), word.Last())
-                            : (word.Last(), word.First());
-
-                        var indexOfDifference = word.First()
-                            .ZipOrDefault(word.Last())
-                            .AsIndexable()
-                            .First(x => x.Value.First != x.Value.Second)
-                            .Index;
-
-                        parenthesized[aliasIndex][wordIndex] = $"{longestForm.Substring(0, indexOfDifference)}({longestForm.Substring(indexOfDifference)})";
-                    }
-                    else
-                    {
-                        parenthesized[aliasIndex][wordIndex] = word.Single();
-                    }
-                }
-            }
-
-            var formatted = new string[parenthesized.Length];
-
-            foreach (var (alias, aliasIndex) in parenthesized.AsIndexable())
-            {
-                formatted[aliasIndex] = string.Join(" ", alias);
-            }
-
-            return formatted;
         }
 
         private string GetParams(CommandHelpData info)

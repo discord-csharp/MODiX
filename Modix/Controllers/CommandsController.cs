@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Linq;
+using Microsoft.AspNetCore.Mvc;
 using Modix.Services.CommandHelp;
+using Modix.Services.Utilities;
 
 namespace Modix.Controllers
 {
@@ -16,7 +18,22 @@ namespace Modix.Controllers
         [HttpGet("commands")]
         public IActionResult Commands()
         {
-            return Ok(_commandHelpService.GetModuleHelpData());
+            var modules = _commandHelpService.GetModuleHelpData();
+
+            var mapped = modules.Select(m => new
+            {
+                Name = m.Name,
+                Summary = m.Summary,
+                Commands = m.Commands.Select(c => new
+                {
+                    Name = c.Name,
+                    Summary = c.Summary,
+                    Aliases = FormatUtilities.CollapsePlurals(c.Aliases),
+                    Parameters = c.Parameters,
+                }),
+            });
+
+            return Ok(mapped);
         }
     }
 }
