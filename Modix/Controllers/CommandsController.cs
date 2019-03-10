@@ -6,9 +6,9 @@ namespace Modix.Controllers
     [Route("~/api")]
     public class CommandsController : Controller
     {
-        private readonly CommandHelpService _commandHelpService;
+        private readonly ICommandHelpService _commandHelpService;
 
-        public CommandsController(CommandHelpService commandHelpService)
+        public CommandsController(ICommandHelpService commandHelpService)
         {
             _commandHelpService = commandHelpService;
         }
@@ -16,7 +16,7 @@ namespace Modix.Controllers
         [HttpGet("commands")]
         public IActionResult Commands()
         {
-            return Ok(_commandHelpService.GetData());
+            return Ok(_commandHelpService.GetModuleHelpData());
         }
     }
 }

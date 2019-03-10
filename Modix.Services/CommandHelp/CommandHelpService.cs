@@ -1,37 +1,41 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Discord.Commands;
 
 namespace Modix.Services.CommandHelp
 {
-    public class CommandHelpService
+    /// <summary>
+    /// Provides functionality to retrieve command help information.
+    /// </summary>
+    public interface ICommandHelpService
+    {
+        /// <summary>
+        /// Retrieves help data for all available modules.
+        /// </summary>
+        /// <returns>
+        /// An readonly collection of data about all available modules.
+        /// </returns>
+        IReadOnlyCollection<ModuleHelpData> GetModuleHelpData();
+    }
+
+    /// <inheritdoc />
+    internal class CommandHelpService : ICommandHelpService
     {
         private readonly CommandService _commandService;
-        private List<ModuleHelpData> _cachedHelpData;
+        private IReadOnlyCollection<ModuleHelpData> _cachedHelpData;
 
         public CommandHelpService(CommandService commandService)
         {
             _commandService = commandService;
         }
 
-        public List<ModuleHelpData> GetData()
-        {
-            if (_cachedHelpData == null)
-            {
-                _cachedHelpData = new List<ModuleHelpData>();
-
-                foreach (var module in _commandService.Modules)
-                {
-                    if (module.Attributes.Any(attr => attr is HiddenFromHelpAttribute))
-                    {
-                        continue;
-                    }
-
-                    _cachedHelpData.Add(ModuleHelpData.FromModuleInfo(module));
-                }
-            }
-
-            return _cachedHelpData;
-        }
+        /// <inheritdoc />
+        public IReadOnlyCollection<ModuleHelpData> GetModuleHelpData()
+            => LazyInitializer.EnsureInitialized(ref _cachedHelpData, () =>
+                _commandService.Modules
+                    .Where(x => !x.Attributes.Any(attr => attr is HiddenFromHelpAttribute))
+                    .Select(x => ModuleHelpData.FromModuleInfo(x))
+                    .ToArray());
     }
 }

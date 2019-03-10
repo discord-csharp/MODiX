@@ -1,15 +1,20 @@
-﻿using Discord.Commands;
+﻿using System;
+using System.Collections.Generic;
+using Discord.Commands;
 
 namespace Modix.Services.CommandHelp
 {
     public class ParameterHelpData
     {
         public string Name { get; set; }
+
         public string Summary { get; set; }
+
         public string Type { get; set; }
+
         public bool IsOptional { get; set; }
 
-        public string[] Options { get; set; }
+        public IReadOnlyCollection<string> Options { get; set; }
 
         public static ParameterHelpData FromParameterInfo(ParameterInfo parameter)
         {
@@ -19,7 +24,9 @@ namespace Modix.Services.CommandHelp
                 Summary = parameter.Summary,
                 Type = parameter.Type.Name,
                 IsOptional = parameter.IsOptional,
-                Options = parameter.Type.IsEnum ? parameter.Type.GetEnumNames() : new string[0]
+                Options = parameter.Type.IsEnum
+                    ? parameter.Type.GetEnumNames()
+                    : Array.Empty<string>(),
             };
 
             return ret;
