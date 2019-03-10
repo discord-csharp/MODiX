@@ -136,8 +136,9 @@ namespace Modix.Behaviors
                     return null;
             }
 
+            var subject = await UserService.GetUserInformationAsync(data.GuildId, targetCampaign.Subject.Id);
             return embed
-                .WithAuthor(await UserService.GetUserInformationAsync(data.GuildId, targetCampaign.Subject.Id))
+                .WithAuthor(subject)
                 .WithFooter("See more at https://mod.gg/promotions")
                 .Build();
         }
