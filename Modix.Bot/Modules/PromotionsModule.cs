@@ -24,7 +24,8 @@ namespace Modix.Modules
             PromotionsService = promotionsService;
         }
 
-        [Command("campaigns"), Alias]
+        [Command("campaigns")]
+        [Alias("", "list")]
         [Summary("List all active promotion campaigns")]
         public async Task CampaignsAsync()
         {
