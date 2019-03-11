@@ -1,10 +1,6 @@
-﻿using System;
-using MediatR;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 using Modix.Data.Repositories;
-using Modix.Services.Messages.Discord;
-using Modix.Services.Moderation;
 
 namespace Modix.Services.Core
 {
@@ -38,6 +34,7 @@ namespace Modix.Services.Core
                 .AddScoped<IConfigurationActionRepository, ConfigurationActionRepository>()
                 .AddScoped<IDesignatedChannelMappingRepository, DesignatedChannelMappingRepository>()
                 .AddScoped<IDesignatedRoleMappingRepository, DesignatedRoleMappingRepository>()
-                .AddScoped<IMessageRepository, MessageRepository>();
+                .AddScoped<IMessageRepository, MessageRepository>()
+                .AddScoped<IGuildService, GuildService>();
     }
 }
