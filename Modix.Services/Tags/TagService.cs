@@ -217,7 +217,7 @@ namespace Modix.Services.Tags
                 if (!(channel is IMessageChannel messageChannel))
                     throw new InvalidOperationException($"The channel '{channel.Name}' is not a message channel.");
 
-                var sanitizedContent = FormatUtilities.Sanitize(tag.Content);
+                var sanitizedContent = FormatUtilities.SanitizeEveryone(tag.Content);
 
                 try
                 {
