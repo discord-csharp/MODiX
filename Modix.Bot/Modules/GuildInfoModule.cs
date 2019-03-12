@@ -149,11 +149,12 @@ namespace Modix.Modules
 
             stringBuilder
                 .AppendLine(Format.Bold("\u276F Member Information"))
-                .AppendLine($"Members: {memberCount}")
-                .AppendLine($"Humans: {humans}")
-                .AppendLine($"Bots: {bots}")
-                .AppendLine($"Roles: {roles.Select(x => x.Mention).Humanize()}")
-                .AppendLine();
+                .AppendLine($"Members Online: {memberCount}")
+                .AppendLine($"• Humans: {humans}")
+                .AppendLine($"• Bots: {bots}")
+                .AppendLine()
+                .AppendLine($"**Roles**")
+                .AppendLine(roles.Select(x => x.Mention).Humanize());
         }
     }
 }
