@@ -25,6 +25,10 @@ namespace Modix.Data.Repositories
         Task<MessageEntity> GetMessage(ulong messageId);
 
         Task UpdateStarboardColumn(MessageEntity message);
+
+        Task<int> GetTotalMessageCountAsync(ulong guildId, TimeSpan timespan);
+
+        Task<IReadOnlyDictionary<ulong, int>> GetTotalMessageCountByChannelAsync(ulong guildId, TimeSpan timespan);
     }
 
     public class MessageRepository : RepositoryBase, IMessageRepository
@@ -138,14 +142,6 @@ namespace Modix.Data.Repositories
             return stats;
         }
 
-        private IQueryable<MessageEntity> GetGuildUserMessages(ulong guildId, ulong userId, TimeSpan timespan)
-        {
-            var earliestDateTime = DateTimeOffset.UtcNow - timespan;
-
-            return ModixContext.Messages.AsNoTracking()
-                .Where(x => x.GuildId == guildId && x.AuthorId == userId && x.Timestamp >= earliestDateTime);
-        }
-
         public async Task<MessageEntity> GetMessage(ulong messageId)
         {
             return await ModixContext.Messages.FindAsync(messageId);
@@ -155,6 +151,35 @@ namespace Modix.Data.Repositories
         {
             ModixContext.Messages.Update(message);
             await ModixContext.SaveChangesAsync();
+        }
+
+        public async Task<int> GetTotalMessageCountAsync(ulong guildId, TimeSpan timespan)
+        {
+            var earliestDateTime = DateTimeOffset.UtcNow - timespan;
+
+            return await ModixContext.Messages.AsNoTracking()
+                .Where(x => x.GuildId == guildId
+                    && x.Timestamp >= earliestDateTime)
+                .CountAsync();
+        }
+
+        public async Task<IReadOnlyDictionary<ulong, int>> GetTotalMessageCountByChannelAsync(ulong guildId, TimeSpan timespan)
+        {
+            var earliestDateTime = DateTimeOffset.UtcNow - timespan;
+
+            return await ModixContext.Messages.AsNoTracking()
+                .Where(x => x.GuildId == guildId
+                    && x.Timestamp >= earliestDateTime)
+                .GroupBy(x => x.ChannelId)
+                .ToDictionaryAsync(x => x.Key, x => x.Count());
+        }
+
+        private IQueryable<MessageEntity> GetGuildUserMessages(ulong guildId, ulong userId, TimeSpan timespan)
+        {
+            var earliestDateTime = DateTimeOffset.UtcNow - timespan;
+
+            return ModixContext.Messages.AsNoTracking()
+                .Where(x => x.GuildId == guildId && x.AuthorId == userId && x.Timestamp >= earliestDateTime);
         }
     }
 }

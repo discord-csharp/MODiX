@@ -1,13 +1,6 @@
-﻿using Discord;
-
-using Humanizer;
-
-using Modix.Data.Models.Moderation;
-using Modix.Services.AutoCodePaste;
-using Modix.Services.Utilities.ColorQuantization;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -15,6 +8,15 @@ using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
+using Discord;
+
+using Humanizer;
+using Humanizer.Localisation;
+
+using Modix.Data.Models.Moderation;
+using Modix.Services.AutoCodePaste;
+using Modix.Services.Utilities.ColorQuantization;
 
 namespace Modix.Services.Utilities
 {
@@ -234,6 +236,17 @@ namespace Modix.Services.Utilities
             var formatted = parenthesized.Select(aliasParts => string.Join(" ", aliasParts)).ToArray();
 
             return formatted;
+        }
+
+        public static string FormatTimeAgo(DateTimeOffset now, DateTimeOffset ago)
+        {
+            var span = now - ago;
+
+            var humanizedTimeAgo = span > TimeSpan.FromSeconds(60)
+                ? span.Humanize(maxUnit: TimeUnit.Year, culture: CultureInfo.InvariantCulture)
+                : "a few seconds";
+
+            return $"{humanizedTimeAgo} ago ({ago.UtcDateTime:yyyy-MM-ddTHH:mm:ssK})";
         }
     }
 }
