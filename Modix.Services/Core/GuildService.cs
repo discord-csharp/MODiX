@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
-
+using Discord;
 using Discord.Net;
 using Discord.Rest;
-
+using Discord.WebSocket;
 using Modix.Data.Models.Core;
 
 namespace Modix.Services.Core
@@ -29,31 +29,42 @@ namespace Modix.Services.Core
         /// <summary>
         /// Constructs a new <see cref="GuildService"/> with the given injected dependencies.
         /// </summary>
-        public GuildService(DiscordRestClient discordRestClient)
+        public GuildService(DiscordRestClient discordRestClient, DiscordSocketClient socketClient)
         {
             DiscordRestClient = discordRestClient;
+            DiscordSocketClient = socketClient;
         }
 
         /// <inheritdoc />
         public async Task<GuildResult> GetGuildInformationAsync(ulong guildId)
         {
-            RestGuild restGuild;
+            IGuild guild = DiscordSocketClient.GetGuild(guildId);
+
+            if (guild != null)
+            {
+                return new GuildResult(guild);
+            }
 
             try
             {
-                restGuild = await DiscordRestClient.GetGuildAsync(guildId);
+                guild = await DiscordRestClient.GetGuildAsync(guildId);
             }
             catch (HttpException ex) when (ex.DiscordCode == 50001)
             {
                 return new GuildResult("Sorry, I do not have access to any guilds with that ID.");
             }
 
-            return new GuildResult(restGuild);
+            return new GuildResult(guild);
         }
 
         /// <summary>
         /// A <see cref="DiscordRestClient"/> to be used to interact with the Discord API.
         /// </summary>
         internal DiscordRestClient DiscordRestClient { get; }
+
+        /// <summary>
+        /// A <see cref="DiscordSocketClient"/> to be used to interact with the Discord API.
+        /// </summary>
+        internal DiscordSocketClient DiscordSocketClient { get; }
     }
 }

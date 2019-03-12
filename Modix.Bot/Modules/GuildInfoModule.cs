@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
-
+using Discord.WebSocket;
 using Humanizer;
 
 using Modix.Data.Repositories;
@@ -51,7 +51,7 @@ namespace Modix.Modules
 
             var guildResult = await GuildService.GetGuildInformationAsync(resolvedGuildId);
 
-            if (guildResult.IsError || !(guildResult.Guild is IGuild guild))
+            if (guildResult.IsError)
             {
                 var errorDescription = guildResult.IsError
                     ? guildResult.Error
@@ -68,17 +68,21 @@ namespace Modix.Modules
             }
 
             var embedBuilder = new EmbedBuilder()
-                .WithAuthor(guild.Name, guild.IconUrl)
-                .WithThumbnailUrl(guild.IconUrl)
+                .WithAuthor(guildResult.Guild.Name, guildResult.Guild.IconUrl)
+                .WithThumbnailUrl(guildResult.Guild.IconUrl)
                 .WithTimestamp(_utcNow);
 
-            await WithDominantColorAsync(embedBuilder, guild);
+            await WithDominantColorAsync(embedBuilder, guildResult.Guild);
 
             var stringBuilder = new StringBuilder();
 
-            AppendGuildInformation(stringBuilder, guild);
-            await AppendGuildParticipationAsync(stringBuilder, guild);
-            await AppendMemberInformationAsync(stringBuilder, guild);
+            AppendGuildInformation(stringBuilder, guildResult.Guild);
+
+            if (guildResult.Guild is SocketGuild socketGuild)
+            {
+                await AppendGuildParticipationAsync(stringBuilder, socketGuild);
+                AppendMemberInformation(stringBuilder, socketGuild);
+            }
 
             embedBuilder.WithDescription(stringBuilder.ToString());
 
@@ -114,7 +118,7 @@ namespace Modix.Modules
                 .AppendLine();
         }
 
-        public async Task AppendGuildParticipationAsync(StringBuilder stringBuilder, IGuild guild)
+        public async Task AppendGuildParticipationAsync(StringBuilder stringBuilder, SocketGuild guild)
         {
             var weekTotal = await MessageRepository.GetTotalMessageCountAsync(guild.Id, TimeSpan.FromDays(7));
             var monthTotal = await MessageRepository.GetTotalMessageCountAsync(guild.Id, TimeSpan.FromDays(30));
@@ -126,18 +130,18 @@ namespace Modix.Modules
 
             stringBuilder
                 .AppendLine(Format.Bold("\u276F Guild Participation"))
-                .AppendLine($"Last 7 days: {"message".ToQuantity(weekTotal)}")
-                .AppendLine($"Last 30 days: {"message".ToQuantity(monthTotal)}")
-                .AppendLine($"Avg. per day: {"message".ToQuantity(monthTotal / 30)}")
-                .AppendLine($"Most active channel: {MentionUtils.MentionChannel(mostActiveChannel.Key)} ({"message".ToQuantity(mostActiveChannel.Value)} in 30 days)")
+                .AppendLine($"Last 7 days: {"message".ToQuantity(weekTotal, "n0")}")
+                .AppendLine($"Last 30 days: {"message".ToQuantity(monthTotal, "n0")}")
+                .AppendLine($"Avg. per day: {"message".ToQuantity(monthTotal / 30, "n0")}")
+                .AppendLine($"Most active channel: {MentionUtils.MentionChannel(mostActiveChannel.Key)} ({"message".ToQuantity(mostActiveChannel.Value, "n0")} in 30 days)")
                 .AppendLine();
         }
 
-        public async Task AppendMemberInformationAsync(StringBuilder stringBuilder, IGuild guild)
+        public void AppendMemberInformation(StringBuilder stringBuilder, SocketGuild guild)
         {
-            var members = await guild.GetUsersAsync();
-            var humans = members.Count(x => !x.IsBot);
-            var bots = members.Count(x => x.IsBot);
+            var memberCount = guild.Users.Count;
+            var bots = guild.Users.Count(x => x.IsBot);
+            var humans = memberCount - bots;
 
             var roles = guild.Roles
                 .Where(x => x.Id != guild.EveryoneRole.Id)
@@ -145,7 +149,7 @@ namespace Modix.Modules
 
             stringBuilder
                 .AppendLine(Format.Bold("\u276F Member Information"))
-                .AppendLine($"Members: {members.Count}")
+                .AppendLine($"Members: {memberCount}")
                 .AppendLine($"Humans: {humans}")
                 .AppendLine($"Bots: {bots}")
                 .AppendLine($"Roles: {roles.Select(x => x.Mention).Humanize()}")
