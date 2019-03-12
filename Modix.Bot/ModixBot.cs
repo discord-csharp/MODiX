@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -76,6 +77,7 @@ namespace Modix
 
                 Log.LogTrace("Registering listeners for Discord client events.");
 
+                _client.LatencyUpdated += OnLatencyUpdated;
                 _client.Disconnected += OnDisconnect;
                 _client.MessageReceived += HandleCommand;
 
@@ -148,6 +150,7 @@ namespace Modix
                 Log.LogInformation("Stopping background service.");
 
                 _client.Disconnected -= OnDisconnect;
+                _client.LatencyUpdated -= OnLatencyUpdated;
                 _client.MessageReceived -= HandleCommand;
 
                 _client.Log -= _serilogAdapter.HandleLog;
@@ -162,6 +165,11 @@ namespace Modix
                     commandScope?.Dispose();
                 }
             }
+        }
+
+        private Task OnLatencyUpdated(int arg1, int arg2)
+        {
+            return File.WriteAllTextAsync("healthcheck.txt", DateTimeOffset.UtcNow.ToString("o"));
         }
 
         private Task OnDisconnect(Exception ex)
