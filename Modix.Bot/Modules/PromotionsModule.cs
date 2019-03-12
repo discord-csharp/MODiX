@@ -13,8 +13,9 @@ using Modix.Services.Promotions;
 namespace Modix.Modules
 {
     [Name("Promotions")]
-    [Summary("Manage promotion campaigns")]
+    [Summary("Manage promotion campaigns.")]
     [Group("promotions")]
+    [Alias("promotion")]
     public class PromotionsModule : ModuleBase
     {
         private const string DefaultApprovalMessage = "I approve of this nomination.";
@@ -24,9 +25,10 @@ namespace Modix.Modules
             PromotionsService = promotionsService;
         }
 
-        [Command("campaigns"), Alias("")]
+        [Command("campaigns")]
+        [Alias("", "list")]
         [Summary("List all active promotion campaigns")]
-        public async Task Campaigns()
+        public async Task CampaignsAsync()
         {
             var campaigns = await PromotionsService.SearchCampaignsAsync(new PromotionCampaignSearchCriteria()
             {

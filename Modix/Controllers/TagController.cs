@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Discord.WebSocket;
@@ -24,12 +25,36 @@ namespace Modix.Controllers
         [HttpGet]
         public async Task<IActionResult> GetTagsAsync()
         {
-            var results = await TagService.GetSummariesAsync(new TagSearchCriteria
+            var summaries = await TagService.GetSummariesAsync(new TagSearchCriteria
             {
                 GuildId = UserGuild.Id,
             });
 
-            return Ok(results);
+            var data = summaries.Select(x => new Models.Tags.TagData()
+            {
+                Content = x.Content,
+                Created = x.CreateAction.Created,
+                IsOwnedByRole = !(x.OwnerRole is null),
+                Name = x.Name,
+                OwnerName = x.OwnerUser?.DisplayName ?? x.OwnerRole?.Name,
+                OwnerColor = "#000000",
+                Uses = x.Uses,
+                TagSummary = x,
+            })
+            .ToArray();
+
+            foreach (var tag in data)
+            {
+                if (tag.IsOwnedByRole)
+                {
+                    var role = UserGuild.GetRole(tag.TagSummary.OwnerRole.Id);
+                    tag.OwnerColor = role.Color.ToString();
+                }
+
+                tag.CanMaintain = await TagService.CanUserMaintainTagAsync(tag.TagSummary, SocketUser.Id);
+            }
+
+            return Ok(data);
         }
 
         [HttpPut("{name}")]
@@ -63,7 +88,7 @@ namespace Modix.Controllers
         }
 
         [HttpDelete("{name}")]
-        public async Task<IActionResult> DeleteInfractionAsync([FromRoute] string name)
+        public async Task<IActionResult> DeleteTagAsync([FromRoute] string name)
         {
             try
             {

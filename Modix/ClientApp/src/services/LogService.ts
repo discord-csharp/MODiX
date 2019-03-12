@@ -11,6 +11,3 @@ export default class LogService
         return (await client.put(`logs/deletedMessages`, tableParams)).data;
     }
 }
-
-//For debugging
-(<any>window).service = LogService;

@@ -15,6 +15,10 @@
             </div>
 
             <div class="brand-end is-hidden-desktop">
+                <router-link class="navbar-item link" active-class="is-active"
+                    v-for="route in buttons" :key="route.routeData.name" :to="route.routeData.path" >
+                    {{toTitleCase(route.title)}}
+                </router-link>
                 <MiniProfile class="navbar-item" />
             </div>
         </div>
@@ -25,16 +29,14 @@
                     v-for="route in routes" :key="route.routeData.name" :to="route.routeData.path" >
                     {{toTitleCase(route.title)}}
                 </router-link>
-
-                <router-link class="navbar-item link is-hidden-desktop" to="/config" active-class="is-active">
-                    Configuration
-                </router-link>
             </div>
 
             <div class="navbar-end is-hidden-touch">
-                <router-link class="navbar-item link" to="/config" v-tooltip="'Configuration'" active-class="is-active">
-                    &#128736;
+                <router-link class="navbar-item link" active-class="is-active"
+                    v-for="route in buttons" :key="route.routeData.name" :to="route.routeData.path" >
+                    {{toTitleCase(route.title)}}
                 </router-link>
+
                 <MiniProfile class="navbar-item" />
             </div>
         </div>
@@ -51,7 +53,7 @@ import {toTitleCase} from '@/app/Util';
 import * as _ from 'lodash';
 import store from '@/app/Store';
 import User from '@/models/User';
-import ModixRoute from '@/app/ModixRoute';
+import ModixRoute,{ RouteType } from '@/app/ModixRoute';
 import themeAsset from '@/app/ThemeConfiguration';
 
 @Component({
@@ -79,17 +81,30 @@ export default class NavBar extends Vue
 
     hasClaimsForRoute(route: ModixRoute): boolean
     {
-        return store.userHasClaims(route.routeData.requiredClaims || []);
+        let hasRequired = store.userHasClaims(route.requiredClaims || []);
+        let hasOneOfOptional = route.optionalClaims.length == 0 ? true : _.some(route.optionalClaims, claim => store.userHasClaims([claim]));
+
+        return hasRequired && hasOneOfOptional;
     }
 
-    get routes(): ModixRoute[]
+    get allRoutes(): ModixRoute[]
     {
         let allRoutes = _.map((<any>this.$router).options.routes, route => route.meta as ModixRoute);
-        let showInNav = _.filter(allRoutes, (route: ModixRoute) => route.routeData.showInNavbar);
+        let showInNav = _.filter(allRoutes, (route: ModixRoute) => route && route.routeData.type == RouteType.Normal && route.routeData.showInNavbar);
         let authFilter = _.filter(showInNav, (route: ModixRoute) => (route.requiresAuth ? store.isLoggedIn() : true));
         let claimFilter = _.filter(authFilter, (route: ModixRoute) => this.hasClaimsForRoute(route));
 
         return <any>claimFilter;
+    }
+
+    get routes(): ModixRoute[]
+    {
+        return _.filter(this.allRoutes, route => route.isButton == false);
+    }
+
+    get buttons(): ModixRoute[]
+    {
+        return _.filter(this.allRoutes, route => route.isButton == true);
     }
 
     toTitleCase(input: string)

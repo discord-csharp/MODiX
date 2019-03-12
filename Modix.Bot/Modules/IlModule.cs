@@ -13,14 +13,12 @@ using Serilog;
 
 namespace Modix.Modules
 {
-    [Name("Decompiler"), Summary("Compile code & view the IL")]
+    [Name("Decompiler"), Summary("Compile code & view the IL.")]
     public class IlModule : ModuleBase
     {
         private const string ReplRemoteUrl = "http://csdiscord-repl-service:31337/Il";
         private readonly CodePasteService _pasteService;
-
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
-
         private readonly IHttpClientFactory _httpClientFactory;
 
         public IlModule(
@@ -33,8 +31,11 @@ namespace Modix.Modules
             _httpClientFactory = httpClientFactory;
         }
 
-        [Command("il", RunMode = RunMode.Sync), Summary("Compile & return the resulting IL of C# code")]
-        public async Task ReplInvoke([Remainder] string code)
+        [Command("il"), Summary("Compile & return the resulting IL of C# code.")]
+        public async Task ReplInvokeAsync(
+            [Remainder]
+            [Summary("The code to decompile.")]
+                string code)
         {
             if (!(Context.Channel is SocketGuildChannel))
             {
@@ -56,7 +57,7 @@ namespace Modix.Modules
             HttpResponseMessage res;
             try
             {
-                var client = _httpClientFactory.CreateClient("ReplClient");
+                var client = _httpClientFactory.CreateClient();
 
                 using (var tokenSrc = new CancellationTokenSource(30000))
                 {
@@ -83,7 +84,9 @@ namespace Modix.Modules
 
             var parsedResult = await res.Content.ReadAsStringAsync();
 
-            var embed = await BuildEmbed(guildUser, code, parsedResult);
+            var embed = await BuildEmbedAsync(guildUser, code, parsedResult);
+
+            await _autoRemoveMessageService.RegisterRemovableMessageAsync(message, Context.User, embed);
 
             await message.ModifyAsync(a =>
             {
@@ -92,11 +95,9 @@ namespace Modix.Modules
             });
 
             await Context.Message.DeleteAsync();
-
-            await _autoRemoveMessageService.RegisterRemovableMessageAsync(message, Context.User);
         }
 
-        private async Task<EmbedBuilder> BuildEmbed(SocketGuildUser guildUser, string code, string result)
+        private async Task<EmbedBuilder> BuildEmbedAsync(SocketGuildUser guildUser, string code, string result)
         {
             var failed = result.Contains("Emit Failed");
 
@@ -104,7 +105,7 @@ namespace Modix.Modules
                .WithTitle("Decompile Result")
                .WithDescription(result.Contains("Emit Failed") ? "Failed" : "Successful")
                .WithColor(failed ? new Color(255, 0, 0) : new Color(0, 255, 0))
-               .WithAuthor(a => a.WithIconUrl(Context.User.GetAvatarUrl()).WithName(guildUser?.Nickname ?? Context.User.Username));
+               .WithAuthor(a => a.WithIconUrl(Context.User.GetDefiniteAvatarUrl()).WithName(guildUser?.Nickname ?? Context.User.Username));
 
             embed.AddField(a => a.WithName("Code").WithValue(Format.Code(code, "cs")));
 
@@ -112,8 +113,6 @@ namespace Modix.Modules
                  .WithValue(Format.Code(result.TruncateTo(990), "asm")));
 
             await embed.UploadToServiceIfBiggerThan(result, "asm", 990, _pasteService);
-
-            embed.WithFooter("React with ❌ to remove this embed.");
 
             return embed;
         }

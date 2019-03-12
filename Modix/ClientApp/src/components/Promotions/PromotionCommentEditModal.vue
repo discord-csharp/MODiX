@@ -1,11 +1,11 @@
 ﻿<template>
     <div class="modal" v-bind:class="{'is-active': showUpdateModal}">
-        <div class="modal-background" v-on:click="showUpdateModal = false" />
+        <div class="modal-background" v-on:click="close()" />
         <div class="modal-card">
             <header class="modal-card-head">
                 <p class="modal-card-title">Edit Comment</p>
 
-                <button class="delete" aria-label="close" v-on:click="showUpdateModal = false"></button>
+                <button class="delete" aria-label="close" v-on:click="close()"></button>
             </header>
 
             <section class="modal-card-body control">
@@ -31,7 +31,7 @@
 
             <footer class="modal-card-foot level">
                 <div class="level-left">
-                    <button class="button" v-on:click="showUpdateModal = false">Cancel</button>
+                    <button class="button" v-on:click="close()">Cancel</button>
                 </div>
                 <div class="level-right">
                     <button class="button is-success" v-bind:class="{'is-loading': loadingCommentUpdate}"
@@ -92,6 +92,11 @@ export default class PromotionCommentEditModal extends Vue
     get allowUpdate(): boolean
     {
         return this.newComment.body.length > 3;
+    }
+
+    close()
+    {
+        this.$emit('comment-edit-modal-closed');
     }
 
     async updateComment()

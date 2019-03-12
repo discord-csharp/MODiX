@@ -10,6 +10,7 @@ using Modix.Services.Core;
 
 namespace Modix.Modules
 {
+    [Name("Authorization")]
     [Group("auth")]
     [Summary("Commands for configuring the authorization system.")]
     public class AuthorizationModule : ModuleBase
@@ -21,24 +22,28 @@ namespace Modix.Modules
 
         [Command("claims")]
         [Summary("Lists the currently assigned claims for the current user, or a given user.")]
-        public async Task Claims(IGuildUser guildUser = null)
+        public async Task ClaimsAsync(
+            [Summary("The user for whom to list claims, if any.")]
+                IGuildUser guildUser = null)
         {
             var claims = (guildUser == null)
                     ? AuthorizationService.CurrentClaims
                     : await AuthorizationService.GetGuildUserClaimsAsync(guildUser);
 
-            await ReplyWithClaims(claims);
+            await ReplyWithClaimsAsync(claims);
         }
 
         [Command("claims")]
         [Summary("Lists the currently assigned claims for the given role.")]
-        public async Task Claims(IRole guildRole)
+        public async Task ClaimsAsync(
+            [Summary("The role for which to list claims.")]
+                IRole guildRole)
         {
             var claims = await AuthorizationService.GetGuildRoleClaimsAsync(guildRole);
-            await ReplyWithClaims(claims);
+            await ReplyWithClaimsAsync(claims);
         }
 
-        private async Task ReplyWithClaims(IEnumerable<AuthorizationClaim> claims)
+        private async Task ReplyWithClaimsAsync(IEnumerable<AuthorizationClaim> claims)
         {
             await ReplyAsync(claims.Any()
                  ? Format.Code(string.Join("\r\n", claims.Select(x => x.ToString())))
@@ -50,7 +55,7 @@ namespace Modix.Modules
         public Task AddClaimMapping(
             [Summary("The claim to be added.")]
                 AuthorizationClaim claim,
-            [Summary("The type of claim mapping, E.G. granted or denied.")]
+            [Summary("The type of claim mapping, e.g. granted or denied.")]
                 ClaimMappingType type,
             [Summary("The role to which the claim is to be added.")]
                 IRole role)
@@ -61,7 +66,7 @@ namespace Modix.Modules
         public Task AddClaimMapping(
             [Summary("The claim to be added.")]
                 AuthorizationClaim claim,
-            [Summary("The type of claim mapping, E.G. granted or denied.")]
+            [Summary("The type of claim mapping, e.g. granted or denied.")]
                 ClaimMappingType type,
             [Summary("The user to which the claim is to be added.")]
                 IGuildUser user)
@@ -72,7 +77,7 @@ namespace Modix.Modules
         public Task RemoveClaimMapping(
             [Summary("The claim to be removed.")]
                 AuthorizationClaim claim,
-            [Summary("The type of claim mapping, E.G. granted or denied.")]
+            [Summary("The type of claim mapping, e.g. granted or denied.")]
                 ClaimMappingType type,
             [Summary("The role from which the claim is to be removed.")]
                 IRole role)
@@ -83,7 +88,7 @@ namespace Modix.Modules
         public Task RemoveClaimMapping(
             [Summary("The claim to be removed.")]
                 AuthorizationClaim claim,
-            [Summary("The type of claim mapping, E.G. granted or denied.")]
+            [Summary("The type of claim mapping, e.g. granted or denied.")]
                 ClaimMappingType type,
             [Summary("The user from which the claim is to be removed.")]
                 IGuildUser user)

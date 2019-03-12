@@ -32,16 +32,14 @@
 
                 </div>
 
-                <a v-if="loading" class="button is-loading campaignLoader"></a>
+                <a v-if="loading" class="button is-primary is-loading campaignLoader"></a>
 
                 <p v-else-if="campaigns.length == 0">
                     There's no active campaigns at the moment. You could start one, though!
                 </p>
-                <div v-else>
-                    <PromotionListItem v-for="campaign in campaigns" :campaign="campaign" :key="campaign.id"
-                                       :dialogLoading="currentlyLoadingInfractions == campaign.id" @commentSubmitted="refresh()" @showPanel="showPanel(campaign)"
-                                       v-on:comment-edit-modal-opened="onCommentEditModalOpened" />
-                </div>
+                <PromotionListItem v-for="campaign in campaigns" :campaign="campaign" :key="campaign.id"
+                                   :dialogLoading="currentlyLoadingInfractions == campaign.id" @commentSubmitted="refresh()" @showPanel="showPanel(campaign)"
+                                   v-on:comment-edit-modal-opened="onCommentEditModalOpened" />
             </div>
         </section>
 
@@ -227,10 +225,10 @@ export default class Promotions extends ModixComponent
     {
         let campaigns = this.$store.state.modix.campaigns as PromotionCampaign[];
 
-        let ordered = _.orderBy(campaigns, campaign =>
+        let ordered = _.orderBy(campaigns,
         [
-            campaign.isActive,
-            campaign.startDate
+            campaign => campaign.isActive,
+            campaign => campaign.startDate
         ], ['desc', 'desc']);
 
         return _.filter(ordered, campaign => (this.showInactive ? true : campaign.isActive));

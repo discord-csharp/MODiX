@@ -3,7 +3,6 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Modix.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Modix.Data.Migrations
@@ -16,7 +15,7 @@ namespace Modix.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "2.1.4-rtm-31024")
+                .HasAnnotation("ProductVersion", "2.1.8-servicing-32085")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("Modix.Data.Models.BehaviourConfiguration", b =>
@@ -523,6 +522,10 @@ namespace Modix.Data.Migrations
                     b.Property<string>("Name")
                         .IsRequired();
 
+                    b.Property<long?>("OwnerRoleId");
+
+                    b.Property<long?>("OwnerUserId");
+
                     b.Property<long>("Uses");
 
                     b.HasKey("Id");
@@ -536,6 +539,12 @@ namespace Modix.Data.Migrations
                     b.HasIndex("GuildId");
 
                     b.HasIndex("Name");
+
+                    b.HasIndex("OwnerRoleId");
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.HasIndex("GuildId", "OwnerUserId");
 
                     b.ToTable("Tags");
                 });
@@ -769,6 +778,14 @@ namespace Modix.Data.Migrations
                     b.HasOne("Modix.Data.Models.Tags.TagActionEntity", "DeleteAction")
                         .WithOne()
                         .HasForeignKey("Modix.Data.Models.Tags.TagEntity", "DeleteActionId");
+
+                    b.HasOne("Modix.Data.Models.Core.GuildRoleEntity", "OwnerRole")
+                        .WithMany()
+                        .HasForeignKey("OwnerRoleId");
+
+                    b.HasOne("Modix.Data.Models.Core.GuildUserEntity", "OwnerUser")
+                        .WithMany()
+                        .HasForeignKey("GuildId", "OwnerUserId");
                 });
 #pragma warning restore 612, 618
         }

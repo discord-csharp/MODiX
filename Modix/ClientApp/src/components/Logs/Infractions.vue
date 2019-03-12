@@ -1,59 +1,54 @@
 <template>
-    <div>
-        <section class="section">
-            <div class="container">
-
-                <div class="level is-mobile">
-                    <div class="level-left">
-                        <button class="button" v-if="canCreate" v-on:click="showCreateModal = true">Create</button>
-                        &nbsp;
-                        <button class="button" @click="refresh()" :class="{'is-loading': isLoading}">Refresh</button>
-                        &nbsp;
-                        <button class="button" disabled title="Coming Soon™" @click="showModal = true">Import</button>
-                    </div>
-                    <div class="level-right">
-                        <label>
-                            Show State
-                            <input type="checkbox" v-model="showState">
-                        </label> &nbsp;&nbsp;
-                        <label>
-                            Show Deleted
-                            <input type="checkbox" v-model="showDeleted">
-                        </label>
-                    </div>
-                </div>
-
-                <VueGoodTable :columns="mappedColumns" :rows="mappedRows" :sortOptions="sortOptions"
-                              :paginationOptions="paginationOptions" styleClass="vgt-table condensed bordered striped"
-                              mode="remote" :totalRows="recordsPage.filteredRecordCount" @on-page-change="onPageChange"
-                              @on-sort-change="onSortChange" @on-column-filter="onColumnFilter" @on-per-page-change="onPerPageChange">
-
-                    <template slot="table-row" slot-scope="props">
-                        <span v-if="props.column.field == 'type'">
-                            <span :title="props.formattedRow[props.column.field]" class="typeCell"
-                                  v-html="emojiFor(props.formattedRow[props.column.field]) + ' ' + props.formattedRow[props.column.field]">
-                            </span>
-                        </span>
-                        <span v-else-if="props.column.field == 'reason'" v-html="props.formattedRow[props.column.field]">
-                        </span>
-                        <span v-else-if="props.column.field == 'actions'">
-                            <span class="level">
-                                <button class="button is-link is-small level-left" v-show="props.row.canDelete" v-on:click="onInfractionDelete(props.row.id)">
-                                    Delete
-                                </button>
-                                <button class="button is-link is-small level-right" v-if="props.row.canRescind" v-on:click="onInfractionRescind(props.row.id)">
-                                    Rescind
-                                </button>
-                            </span>
-                        </span>
-                        <span v-else>
-                            {{props.formattedRow[props.column.field]}}
-                        </span>
-                    </template>
-
-                </VueGoodTable>
+    <div class="infractions">
+        <div class="level is-mobile">
+            <div class="level-left">
+                <button class="button" v-if="canCreate" v-on:click="showCreateModal = true">Create</button>
+                &nbsp;
+                <button class="button" @click="refresh()" :class="{'is-loading': isLoading}">Refresh</button>
+                &nbsp;
+                <button class="button" disabled title="Coming Soon™" @click="showModal = true">Import</button>
             </div>
-        </section>
+            <div class="level-right">
+                <label>
+                    Show State
+                    <input type="checkbox" v-model="showState">
+                </label> &nbsp;&nbsp;
+                <label>
+                    Show Deleted
+                    <input type="checkbox" v-model="showDeleted">
+                </label>
+            </div>
+        </div>
+
+        <VueGoodTable :columns="mappedColumns" :rows="mappedRows" :sortOptions="sortOptions"
+                        :paginationOptions="paginationOptions" styleClass="vgt-table condensed bordered striped"
+                        mode="remote" :totalRows="recordsPage.filteredRecordCount" @on-page-change="onPageChange"
+                        @on-sort-change="onSortChange" @on-column-filter="onColumnFilter" @on-per-page-change="onPerPageChange">
+
+            <template slot="table-row" slot-scope="props">
+                <span v-if="props.column.field == 'type'">
+                    <span :title="props.formattedRow[props.column.field]" class="typeCell"
+                            v-html="emojiFor(props.formattedRow[props.column.field]) + ' ' + props.formattedRow[props.column.field]">
+                    </span>
+                </span>
+                <span v-else-if="props.column.field == 'reason'" v-html="props.formattedRow[props.column.field]">
+                </span>
+                <span v-else-if="props.column.field == 'actions'">
+                    <span class="level">
+                        <button class="button is-link is-small level-left" v-show="props.row.canDelete" v-on:click="onInfractionDelete(props.row.id)">
+                            Delete
+                        </button>
+                        <button class="button is-link is-small level-right" v-if="props.row.canRescind" v-on:click="onInfractionRescind(props.row.id)">
+                            Rescind
+                        </button>
+                    </span>
+                </span>
+                <span v-else>
+                    {{props.formattedRow[props.column.field]}}
+                </span>
+            </template>
+
+        </VueGoodTable>
 
         <div class="modal" :class="{'is-active': showModal}">
             <div class="modal-background" @click="showModal = !showModal"></div>
@@ -193,6 +188,7 @@
 
 <script lang="ts">
 import * as _ from 'lodash';
+import { resolveMentions } from '@/app/Util';
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import HeroHeader from '@/components/HeroHeader.vue';
 import TinyUserView from '@/components/TinyUserView.vue';
@@ -211,8 +207,6 @@ import InfractionCreationData from '@/models/infractions/InfractionCreationData'
 import RecordsPage from '@/models/RecordsPage';
 import TableParameters from '@/models/TableParameters';
 import { SortDirection } from '@/models/SortDirection';
-
-const messageResolvingRegex = /<#(\d+)>/gm;
 
 function getSortDirection(direction: string): SortDirection
 {
@@ -398,24 +392,7 @@ export default class Infractions extends Vue
 
     resolveMentions(description: string)
     {
-        let replaced = description;
-
-        if (this.channelCache)
-        {
-            replaced = description.replace(messageResolvingRegex, (sub, args: string) =>
-            {
-                if (this.channelCache == null || this.channelCache[args] == null)
-                {
-                    return args;
-                }
-
-                let found = (this.channelCache[args] ? this.channelCache[args].name : args);
-
-                return `<span class='channel'>#${found}</span>`;
-            });
-        }
-
-        return `<span class='pre'>${replaced}</span>`;
+        return resolveMentions(this.channelCache, description);
     }
 
     fileChange(input: HTMLInputElement)
@@ -461,6 +438,7 @@ export default class Infractions extends Vue
                 field: 'id',
                 sortFn: (x: number, y: number) => (x < y ? -1 : (x > y ? 1 : 0)),
                 type: 'number',
+                width: '10%',
                 filterOptions:
                 {
                     enabled: true,
@@ -471,6 +449,7 @@ export default class Infractions extends Vue
             {
                 label: 'Type',
                 field: 'type',
+                width: '10%',
                 filterOptions:
                 {
                     enabled: true,
@@ -483,9 +462,9 @@ export default class Infractions extends Vue
                 label: 'Created On',
                 field: 'date',
                 type: 'date', //Needed to bypass vue-good-table regression
+                width: '20%',
                 dateInputFormat: 'YYYY-MM-DDTHH:mm:ss',
-                dateOutputFormat: 'MM/DD/YY, h:mm:ss a',
-                width: '160px'
+                dateOutputFormat: 'MM/DD/YY, h:mm:ss a'
             },
             {
                 label: 'Subject',
@@ -514,6 +493,7 @@ export default class Infractions extends Vue
             {
                 label: 'Reason',
                 field: 'reason',
+                width: '50%',
                 formatFn: this.resolveMentions,
                 html: true,
                 sortable: false
@@ -596,13 +576,11 @@ export default class Infractions extends Vue
 
     async refresh()
     {
+        if (this.isLoading) { return; }
+
         this.isLoading = true;
 
         this.recordsPage = await GeneralService.getInfractions(this.tableParams);
-
-        await store.retrieveChannels();
-
-        this.channelCache = _.keyBy(this.$store.state.modix.channels, channel => channel.id);
 
         this.clearNewInfractionData();
 
@@ -643,6 +621,9 @@ export default class Infractions extends Vue
 
         this.showState = config().showInfractionState;
         this.showDeleted = config().showDeletedInfractions;
+
+        await store.retrieveChannels();
+        this.channelCache = _.keyBy(this.$store.state.modix.channels, channel => channel.id);
 
         this.applyFilters();
     }

@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+
 using Discord;
 using Discord.Commands;
+
 using Humanizer;
-using Humanizer.Localisation;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+
 using Modix.Bot.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
@@ -23,8 +24,6 @@ namespace Modix.Modules
 {
     public class UserInfoModule : ModuleBase
     {
-        private const string Format = "{0}: {1} ago ({2:yyyy-MM-ddTHH:mm:ssK})\n";
-
         //optimization: UtcNow is slow and the module is created per-request
         private readonly DateTime _utcNow = DateTime.UtcNow;
 
@@ -52,7 +51,10 @@ namespace Modix.Modules
         private IHttpClientFactory HttpClientFactory { get; }
 
         [Command("info")]
-        public async Task GetUserInfoAsync(DiscordUserEntity user = null)
+        [Summary("Retrieves information about the supplied user, or the current user if one is not provided.")]
+        public async Task GetUserInfoAsync(
+            [Summary("The user to retrieve information about, if any.")]
+                DiscordUserEntity user = null)
         {
             user = user ?? new DiscordUserEntity(Context.User.Id);
 
@@ -92,10 +94,10 @@ namespace Modix.Modules
             }
 
             if (userInfo.FirstSeen is DateTimeOffset firstSeen)
-                builder.Append(FormatTimeAgo("First Seen", firstSeen));
+                builder.AppendLine($"First Seen: {FormatUtilities.FormatTimeAgo(_utcNow, firstSeen)}");
 
             if (userInfo.LastSeen is DateTimeOffset lastSeen)
-                builder.Append(FormatTimeAgo("Last Seen", lastSeen));
+                builder.AppendLine($"Last Seen: {FormatUtilities.FormatTimeAgo(_utcNow, lastSeen)}");
 
             try
             {
@@ -110,7 +112,7 @@ namespace Modix.Modules
                 .WithAuthor(userInfo.Username + "#" + userInfo.Discriminator)
                 .WithTimestamp(_utcNow);
 
-            var avatar = userInfo.GetAvatarUrl() ?? userInfo.GetDefaultAvatarUrl();
+            var avatar = userInfo.GetDefiniteAvatarUrl();
 
             embedBuilder.ThumbnailUrl = avatar;
             embedBuilder.Author.IconUrl = avatar;
@@ -140,11 +142,11 @@ namespace Modix.Modules
                 builder.AppendLine("Nickname: " + member.Nickname);
             }
 
-            builder.Append(FormatTimeAgo("Created", member.CreatedAt));
+            builder.AppendLine($"Created: {FormatUtilities.FormatTimeAgo(_utcNow, member.CreatedAt)}");
 
             if (member.JoinedAt is DateTimeOffset joinedAt)
             {
-                builder.Append(FormatTimeAgo("Joined", joinedAt));
+                builder.AppendLine($"Joined: {FormatUtilities.FormatTimeAgo(_utcNow, joinedAt)}");
             }
 
             if (member.RoleIds?.Count > 0)
@@ -158,7 +160,7 @@ namespace Modix.Modules
                     Array.Sort(roles); // Sort by position: lowest positioned role is first
                     Array.Reverse(roles); // Reverse the sort: highest positioned role is first
 
-                    builder.Append(roles.Length > 1 ? "Roles: " : "Role: ");
+                    builder.Append("Role".ToQuantity(roles.Length, ShowQuantityAs.None));
                     builder.AppendLine(roles.Select(r => r.Mention).Humanize());
                 }
             }
@@ -246,17 +248,6 @@ namespace Modix.Modules
                     Log.LogDebug(ex, "Unable to get the most active channel for {UserId}.", userId);
                 }
             }
-        }
-
-        private string FormatTimeAgo(string prefix, DateTimeOffset ago)
-        {
-            var span = _utcNow - ago;
-
-            var humanizedTimeAgo = span > TimeSpan.FromSeconds(60)
-                ? span.Humanize(maxUnit: TimeUnit.Year, culture: CultureInfo.InvariantCulture)
-                : "a few seconds";
-
-            return string.Format(CultureInfo.InvariantCulture, Format, prefix, humanizedTimeAgo, ago.UtcDateTime);
         }
 
         private string GetParticipationEmoji(GuildUserParticipationStatistics stats)

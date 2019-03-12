@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Modix.Auth;
@@ -23,18 +24,19 @@ namespace Modix
 {
     public class Startup
     {
-        public Startup(ModixConfig configuration)
+        private readonly IConfiguration _configuration;
+
+        public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
-
-            Log.Information("Startup complete");
+            _configuration = configuration;
+            Log.Information("Configuration loaded. ASP.NET Startup is a go.");
         }
-
-        public ModixConfig Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<ModixConfig>(_configuration);
+
             services.AddDataProtection()
                 .PersistKeysToFileSystem(new DirectoryInfo(@"dataprotection"));
 
@@ -46,19 +48,22 @@ namespace Modix
                     options.ExpireTimeSpan = new TimeSpan(7, 0, 0, 0);
 
                 })
-                .AddModix(Configuration);
+                .AddModixAuth(_configuration);
 
             services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
             services.AddResponseCompression();
 
             services.AddTransient<IConfigureOptions<StaticFileOptions>, StaticFilesConfiguration>();
+            services.AddTransient<IStartupFilter, ModixConfigValidator>();
 
             services.AddDbContext<ModixContext>(options =>
             {
-                options.UseNpgsql(Configuration.PostgreConnectionString);
+                options.UseNpgsql(_configuration.GetValue<string>(nameof(ModixConfig.DbConnection)));
             });
 
-            services.AddModix();
+            services
+                .AddModixHttpClients()
+                .AddModix();
 
             services.AddMvc()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
@@ -72,8 +77,6 @@ namespace Modix
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, CodePasteService codePasteService)
         {
-            PerformInitialSetup(codePasteService);
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -116,42 +119,6 @@ namespace Modix
             //Defer to MVC for anything that doesn't match (and ostensibly
             //starts with /api)
             app.UseMvcWithDefaultRoute();
-        }
-
-        public static void PerformInitialSetup(CodePasteService codePasteService)
-        {
-            var loggerConfig = new LoggerConfiguration()
-                .MinimumLevel.Verbose()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-                .MinimumLevel.Override("Modix.DiscordSerilogAdapter", LogEventLevel.Information)
-                .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .WriteTo.RollingFile(@"logs\{Date}", restrictedToMinimumLevel: LogEventLevel.Debug);
-
-            var webhookId = Environment.GetEnvironmentVariable("log_webhook_id");
-            var webhookToken = Environment.GetEnvironmentVariable("log_webhook_token");
-            var sentryToken = Environment.GetEnvironmentVariable("SentryToken");
-
-            if (!string.IsNullOrWhiteSpace(webhookToken) &&
-                ulong.TryParse(webhookId, out var id))
-            {
-                loggerConfig.WriteTo.DiscordWebhookSink(id, webhookToken, LogEventLevel.Error, codePasteService);
-            }
-            else
-            {
-                Log.Information("The webhook token and/or ID were not set. Logging to Discord has been disabled.");
-            }
-
-            if (!string.IsNullOrWhiteSpace(sentryToken))
-            {
-                loggerConfig.WriteTo.Sentry(sentryToken, restrictedToMinimumLevel: LogEventLevel.Warning);
-            }
-            else
-            {
-                Log.Information("The Sentry token was not set. Logging to Sentry has been disabled.");
-            }
-
-            Log.Logger = loggerConfig.CreateLogger();
         }
     }
 }

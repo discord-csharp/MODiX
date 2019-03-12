@@ -25,6 +25,16 @@
         /// </summary>
         public uint Uses { get; set; }
 
+        /// <summary>
+        /// See <see cref="TagEntity.OwnerUserId"/>.
+        /// </summary>
+        public ulong? OwnerUserId { get; set; }
+
+        /// <summary>
+        /// See <see cref="TagEntity.OwnerRoleId"/>.
+        /// </summary>
+        public ulong? OwnerRoleId { get; set; }
+
         internal static TagMutationData FromEntity(TagEntity entity)
             => new TagMutationData()
             {
@@ -32,6 +42,8 @@
                 Name = entity.Name,
                 Content = entity.Content,
                 Uses = entity.Uses,
+                OwnerUserId = entity.OwnerUserId,
+                OwnerRoleId = entity.OwnerRoleId,
             };
 
         internal TagEntity ToEntity()
@@ -41,6 +53,8 @@
                 Name = Name,
                 Content = Content,
                 Uses = Uses,
+                OwnerUserId = OwnerUserId,
+                OwnerRoleId = OwnerRoleId,
             };
     }
 }

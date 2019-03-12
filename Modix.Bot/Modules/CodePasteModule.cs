@@ -16,7 +16,10 @@ namespace Modix.Modules
         }
 
         [Command("paste"), Summary("Paste the rest of your message to the internet, and return the URL.")]
-        public async Task Run([Remainder] string code)
+        public async Task RunAsync(
+            [Remainder]
+            [Summary("The code to paste.")]
+                string code)
         {
             string url;
             string error = null;

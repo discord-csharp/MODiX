@@ -72,16 +72,16 @@ namespace Modix.Data.Models.Moderation
         internal static readonly IDictionary<string, Expression<Func<DeletedMessageSummary, object>>> SortablePropertyMap
             = new Dictionary<string, Expression<Func<DeletedMessageSummary, object>>>()
             {
-                [$"{nameof(Channel)}.{nameof(DeletedMessageSummary.Channel.Name)}"]
+                [nameof(Channel)]
                     = x => x.Channel.Name,
 
-                [$"{nameof(Author)}.{nameof(DeletedMessageSummary.Author.Nickname)}"]
+                [nameof(Author)]
                     = x => x.Author.Nickname,
 
                 [nameof(Created)]
                     = x => x.Created,
 
-                [$"{nameof(CreatedBy)}.{nameof(DeletedMessageSummary.CreatedBy.Nickname)}"]
+                [nameof(CreatedBy)]
                     = x => x.CreatedBy.Nickname,
 
                 [nameof(Content)]

@@ -2,20 +2,19 @@
 
     <div class="campaign box" :class="{'expanded': expanded, 'inactive': campaign.closeAction}" v-if="campaign">
 
-        <div class="columns is-mobile is-multiline" @click="expandWithSentiment('Abstain')">
-            <div class="column is-12-mobile columns is-gapless is-mobile">
+        <div class="columns is-mobile is-multiline titleBar" @click="expandWithSentiment('Abstain')">
+            <div class="column is-12-mobile columns is-gapless is-mobile nameBar">
 
-                <div class="column is-narrow leftSide">
-                    <h1 class="title is-size-4">
-
-                        <span class="statusIcon" v-html="statusIcon" v-tooltip="'Status: ' + (campaign.outcome ? campaign.outcome : 'Active')"></span>
-                        <span class="displayName">{{campaign.subject.displayName}}</span>
-                        <span class="toRole" :style="roleStyle(campaign.targetRole.id)">&#10149; {{campaign.targetRole.name}}</span>
-
-                    </h1>
+                <div class="leftSide">
+                    <span class="statusIcon" v-html="statusIcon" v-tooltip="'Status: ' + (campaign.outcome ? campaign.outcome : 'Active')"></span>
+                    <h2 class="title is-size-4 displayName">
+                        {{campaign.subject.displayName}}
+                    </h2>
                 </div>
 
-                <div class="column">
+                <div class="roleColumn">
+                    <span class="toRole" :style="roleStyle(campaign.targetRole.id)">&#10149; {{campaign.targetRole.name}}</span>
+
                     <span class="mobile-expander">
                         <template v-if="expanded">
                             &#9650;
@@ -30,21 +29,21 @@
 
             <div class="column is-narrow-tablet adminButtons">
                 <a class="button is-primary is-small is-fullwidth" :class="{'is-loading': dialogLoading}"
-                   :disabled="campaign.outcome == 'Accepted'" @click.stop="showPanel()">More…</a>
+                   :disabled="campaign.outcome == 'Accepted'" @click.stop="showPanel()">Info</a>
             </div>
 
             <div class="column is-narrow-tablet ratings">
                 <div class="columns is-mobile">
                     <div class="column rating" @click.stop="expandWithSentiment('Approve')">
-                        <span v-html="sentimentIcon('Approve')"></span> {{campaign.votesFor}}
+                        <span v-html="sentimentIcon('Approve')"></span> {{forCurrentUser ? '?' : campaign.votesFor}}
                     </div>
                     <div class="column rating" @click.stop="expandWithSentiment('Oppose')">
-                        <span v-html="sentimentIcon('Oppose')"></span> {{campaign.votesAgainst}}
+                        <span v-html="sentimentIcon('Oppose')"></span> {{forCurrentUser ? '?' : campaign.votesAgainst}}
                     </div>
                 </div>
 
                 <progress class="progress is-small" :class="sentimentColor(campaign)"
-                    :value="campaign.sentimentRatio" max="1" />
+                    :value="forCurrentUser ? 1 : campaign.sentimentRatio" max="1" />
             </div>
 
             <div class="column is-narrow expander is-hidden-mobile">
@@ -57,14 +56,14 @@
             </div>
         </div>
 
-        <div>
+        <div class="details">
             <small class="date">Campaign started <span class="has-text-weight-bold">{{formatDate(campaign.startDate)}}</span></small>
 
             <div class="commentList">
                 <div v-if="forCurrentUser" class="commentNotification">
                     Sorry, you aren't allowed to see comments on your own campaign.
                 </div>
-                <PromotionCommentView v-for="(comment, index) in comments" :key="comment.promotionCampaignId" :comment="comment" :hidden="!shouldShowEdit(campaign, comment)"
+                <PromotionCommentView v-else v-for="(comment, index) in comments" :key="comment.promotionCampaignId" :comment="comment" :hidden="!shouldShowEdit(campaign, comment)"
                                       :style="{'transition-delay': (index * 33) + 'ms'}" v-on:comment-edit-modal-opened="onCommentEditModalOpened"/>
             </div>
 
@@ -123,7 +122,7 @@ export default class PromotionListItem extends ModixComponent
     expanded: boolean = false;
     error: string = "";
     commentSubmitting: boolean = false;
-    comments: PromotionComment[] = [];
+    comments: PromotionComment[] | null = null;
 
     formatDate(date: Date): string
     {
@@ -156,16 +155,16 @@ export default class PromotionListItem extends ModixComponent
 
     async created()
     {
-        if (!this.forCurrentUser)
-        {
-            this.comments = await PromotionService.getComments(this.campaign.id);
-        }
-
         this.resetNewComment();
     }
 
     sentimentColor(campaign: PromotionCampaign)
     {
+        if (this.forCurrentUser)
+        {
+            return 'is-default';
+        }
+
         if (this.campaign.sentimentRatio > 0.67)
         {
             return 'is-success';
@@ -234,10 +233,25 @@ export default class PromotionListItem extends ModixComponent
         return { color: found.fgColor, borderColor: found.fgColor };
     }
 
-    expandWithSentiment(sentiment: PromotionSentiment)
+    async expandWithSentiment(sentiment: PromotionSentiment)
     {
         this.newComment.sentiment = sentiment;
-        this.expanded = !this.expanded;
+
+        if (!this.expanded && !this.forCurrentUser && this.comments == null)
+        {
+            try
+            {
+                this.comments = await PromotionService.getComments(this.campaign.id);
+            }
+            finally
+            {
+                this.$nextTick(() => this.expanded = true);
+            }
+        }
+        else
+        {
+            this.expanded = !this.expanded;
+        }
     }
 
     onCommentEditModalOpened(comment: PromotionComment)

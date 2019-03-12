@@ -28,7 +28,7 @@ namespace Modix.Services.StackExchange
             tags = Uri.EscapeDataString(tags);
             var query = _apiReferenceUrl += $"&site={site}&tags={tags}&q={phrase}";
 
-            var client = HttpClientFactory.CreateClient("StackExchangeClient");
+            var client = HttpClientFactory.CreateClient(nameof(StackExchangeService));
 
             var response = await client.GetAsync(query);
 

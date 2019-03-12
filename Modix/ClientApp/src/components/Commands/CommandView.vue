@@ -2,23 +2,20 @@
 
     <li class="command box">
 
-        <div :class="{'field is-grouped is-grouped-multiline': overload.parameters.length > 0}" v-for="(overload, index) in commandGroup" :key="index">
-            <span class="commandName" v-if="overload.alias == commandGroup[0].alias || isAlias(overload)">
-                !{{overload.alias.toLowerCase()}}
-            </span>
-            <span class="commandName overload" v-else>
-                or
+        <div :class="{'field is-grouped is-grouped-multiline': command.parameters.length > 0}" v-for="(alias, index) in command.aliases" :key="index">
+            <span class="commandName">
+                !{{alias.toLowerCase()}}
             </span>
 
-            <div class="summary" v-if="!isAlias(overload)">
-                {{overload.summary}}
+            <div class="summary" v-if="alias == command.aliases[0]">
+                {{command.summary}}
             </div>
 
-            <template v-if="!isAlias(overload)">
-                <ParameterView v-for="param in overload.parameters" :key="param.name" :param="param" />
+            <template v-if="alias == command.aliases[0]">
+                <ParameterView v-for="param in command.parameters" :key="param.name" :param="param" />
             </template>
             <template v-else>
-                <div v-if="overload.parameters.length > 0" class="spacer">&nbsp;</div>
+                <div v-if="command.parameters.length > 0" class="spacer">&nbsp;</div>
             </template>
 
         </div>
@@ -40,15 +37,6 @@ import ParameterView from '@/components/Commands/ParameterView.vue';
 })
 export default class CommandView extends Vue
 {
-    @Prop() private commandGroup!: CommandHelpData[];
-
-    isAlias(overload: CommandHelpData)
-    {
-        return (
-            overload.alias != this.commandGroup[0].alias &&
-            overload.alias != this.commandGroup[0].summary &&
-            overload.alias != overload.name
-        );
-    }
+    @Prop() private command!: CommandHelpData;
 }
 </script>

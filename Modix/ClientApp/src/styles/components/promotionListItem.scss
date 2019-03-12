@@ -1,3 +1,5 @@
+$transition: all 0.33s cubic-bezier(0.23, 1, 0.32, 1);
+
 .commentBox
 {
     flex-basis: 100%;
@@ -17,17 +19,11 @@
 {
     position: relative;
     left: 8px;
-
-    @include mobile()
-    {
-        left: 16px;
-        top: -12px;
-    }
 }
 
 .ratings
 {
-    padding: 0.85rem 0.75rem 0em 0.75em;
+    padding: 0.5rem 0.75rem 0em 0.75em;
 
     .rating
     {
@@ -42,19 +38,19 @@
 
     @include mobile()
     {
-        margin-top: 0.5em;
+        margin-top: 0em;
+        margin-right: 0.5em;
     }
 }
 
 .campaign
 {
     position: relative;
-    padding: 1.35em 1.2em 1.2em 1.2em;
+    padding: 1.35em 1.2em 0.5em 1.2em;
 
-    max-height: 70px;
     overflow: hidden;
 
-    transition: box-shadow 0.33s cubic-bezier(0.23, 1, 0.32, 1);
+    transition: $transition;
 
     & > .columns
     {
@@ -64,14 +60,27 @@
     &.expanded
     {
         box-shadow: 0px 0px 24px rgba(0, 0, 0, 0.33);
-        max-height: none;
-
-        //overflow-y: auto;
 
         & .comment
         {
             transform: rotateZ(0deg);
             opacity: 1;
+        }
+
+        .details
+        {
+            max-height: 9999px;
+            overflow: visible;
+        }
+
+        @include mobile()
+        {
+            max-height: 9999px;
+
+            .adminButtons, .ratings
+            {
+                display: block;
+            }
         }
     }
 
@@ -98,6 +107,11 @@
         margin-bottom: -10px;
     }
 
+    .title
+    {
+        margin-bottom: 0;
+    }
+
     .toRole
     {
         font-size: 14px;
@@ -113,16 +127,81 @@
 
         @include mobile()
         {
-            display: table;
-
-            margin-left: 2em;
-            margin-top: -0.6em;
+            display: inline-block;
         }
+    }
+
+    .expander
+    {
+        top: 0px;
+    }
+
+    .nameBar
+    {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        line-height: normal;
+
+        .roleColumn
+        {
+            white-space: nowrap;
+        }
+
+        .leftSide
+        {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+
+            @include mobile()
+            {
+                flex-basis: 50%;
+                flex-grow: 1;
+            }
+        }
+
+        @include mobile()
+        {
+            align-items: flex-start;
+        }
+    }
+
+    .details
+    {
+        transition: $transition;
+        max-height: 0px;
+        overflow: hidden;
+    }
+
+    .titleBar
+    {
+        margin-bottom: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    .commentLoader
+    {
+        display: inline-block;
+        width: 32px;
     }
 
     @include mobile()
     {
-        padding: 1em;
+        padding: 1.25em 0.5em 0.5em 1em;
+        margin: 0;
+
+        .adminButtons, .ratings
+        {
+            transition: $transition;
+            display: none;
+        }
+
+        .nameBar
+        {
+            padding: 12px 12px 0 12px;
+        }
     }
 }
 
@@ -134,6 +213,7 @@
 .statusIcon
 {
     display: inline-block;
+    font-size: 1.5em;
     width: 1.3em;
 }
 
@@ -145,13 +225,13 @@
 .adminButtons
 {
     margin-top: 0.1em;
+    margin-left: 0.75em;
 }
 
 .mobile-expander
 {
-    display: block;
-    float: right;
     margin-right: 0.5em;
+    margin-left: 1.75em;
 
     @include tablet()
     {

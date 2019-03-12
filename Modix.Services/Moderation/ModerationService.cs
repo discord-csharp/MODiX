@@ -52,12 +52,14 @@ namespace Modix.Services.Moderation
         /// <summary>
         /// Creates an infraction upon a specified user, and logs an associated moderation action.
         /// </summary>
+        /// <param name="guildId">The unique Discord snowflake ID of the guild in which the infraction will be created.</param>
+        /// <param name="moderatorId">The unique Discord snowflake ID of the user who is creating the infraction.</param>
         /// <param name="type">The value to user for <see cref="InfractionEntity.Type"/>.<</param>
         /// <param name="subjectId">The value to use for <see cref="InfractionEntity.SubjectId"/>.</param>
         /// <param name="reason">The value to use for <see cref="ModerationActionEntity.Reason"/></param>
         /// <param name="duration">The value to use for <see cref="InfractionEntity.Duration"/>.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
-        Task CreateInfractionAsync(InfractionType type, ulong subjectId, string reason, TimeSpan? duration);
+        Task CreateInfractionAsync(ulong guildId, ulong moderatorId, InfractionType type, ulong subjectId, string reason, TimeSpan? duration);
 
         /// <summary>
         /// Marks an existing, active, infraction of a given type, upon a given user, as rescinded.
@@ -387,21 +389,19 @@ namespace Modix.Services.Moderation
         }
 
         /// <inheritdoc />
-        public async Task CreateInfractionAsync(InfractionType type, ulong subjectId, string reason, TimeSpan? duration)
+        public async Task CreateInfractionAsync(ulong guildId, ulong moderatorId, InfractionType type, ulong subjectId, string reason, TimeSpan? duration)
         {
-            AuthorizationService.RequireAuthenticatedGuild();
-            AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(_createInfractionClaimsByType[type]);
 
-            await RequireSubjectRankLowerThanModeratorRankAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
+            await RequireSubjectRankLowerThanModeratorRankAsync(guildId, moderatorId, subjectId);
 
-            var guild = await DiscordClient.GetGuildAsync(AuthorizationService.CurrentGuildId.Value);
+            var guild = await DiscordClient.GetGuildAsync(guildId);
 
             IGuildUser subject;
 
-            if (!await UserService.GuildUserExistsAsync(guild.Id, subjectId))
+            if (!await UserService.GuildUserExistsAsync(guildId, subjectId))
             {
-                subject = await UserService.GetUserInformationAsync(guild.Id, subjectId);
+                subject = await UserService.GetUserInformationAsync(guildId, subjectId);
 
                 if (subject == null)
                     throw new InvalidOperationException($"The given subject was not valid, ID: {subjectId}");
@@ -410,7 +410,7 @@ namespace Modix.Services.Moderation
             }
             else
             {
-                subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
+                subject = await UserService.GetGuildUserAsync(guildId, subjectId);
             }
 
             if (reason == null)
@@ -429,9 +429,9 @@ namespace Modix.Services.Moderation
                 {
                     if (await InfractionRepository.AnyAsync(new InfractionSearchCriteria()
                     {
-                        GuildId = guild.Id,
+                        GuildId = guildId,
                         Types = new[] { type },
-                        SubjectId = subject.Id,
+                        SubjectId = subjectId,
                         IsRescinded = false,
                         IsDeleted = false
                     }))
@@ -441,12 +441,12 @@ namespace Modix.Services.Moderation
                 await InfractionRepository.CreateAsync(
                     new InfractionCreationData()
                     {
-                        GuildId = guild.Id,
+                        GuildId = guildId,
                         Type = type,
                         SubjectId = subjectId,
                         Reason = reason,
                         Duration = duration,
-                        CreatedById = AuthorizationService.CurrentUserId.Value
+                        CreatedById = moderatorId
                     });
 
                 transaction.Commit();
@@ -512,7 +512,7 @@ namespace Modix.Services.Moderation
             if (infraction == null)
                 throw new InvalidOperationException($"Infraction {infractionId} does not exist");
 
-            await RequireSubjectRankLowerThanModeratorRankAsync(infraction.GuildId, infraction.Subject.Id);
+            await RequireSubjectRankLowerThanModeratorRankAsync(infraction.GuildId, AuthorizationService.CurrentUserId.Value, infraction.Subject.Id);
 
             await InfractionRepository.TryDeleteAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
 
@@ -536,7 +536,14 @@ namespace Modix.Services.Moderation
                     break;
 
                 case InfractionType.Ban:
-                    await guild.RemoveBanAsync(infraction.Subject.Id);
+
+                    //If the infraction has already been rescinded, we don't need to actually perform the unmute/unban
+                    //Doing so will return a 404 from Discord (trying to remove a nonexistant ban)
+                    if (infraction.RescindAction == null)
+                    {
+                        await guild.RemoveBanAsync(infraction.Subject.Id);
+                    }
+
                     break;
             }
         }
@@ -864,7 +871,7 @@ namespace Modix.Services.Moderation
                 throw new InvalidOperationException("Infraction does not exist");
 
             if (!isAutoRescind)
-                await RequireSubjectRankLowerThanModeratorRankAsync(infraction.GuildId, infraction.Subject.Id);
+                await RequireSubjectRankLowerThanModeratorRankAsync(infraction.GuildId, AuthorizationService.CurrentUserId.Value, infraction.Subject.Id);
 
             await InfractionRepository.TryRescindAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
 
@@ -914,9 +921,9 @@ namespace Modix.Services.Moderation
                 }))
                 .Select(r => r.Role);
 
-        private async Task RequireSubjectRankLowerThanModeratorRankAsync(ulong guildId, ulong subjectId)
+        private async Task RequireSubjectRankLowerThanModeratorRankAsync(ulong guildId, ulong moderatorId, ulong subjectId)
         {
-            if (!await DoesModeratorOutrankUserAsync(guildId, AuthorizationService.CurrentUserId.Value, subjectId))
+            if (!await DoesModeratorOutrankUserAsync(guildId, moderatorId, subjectId))
                 throw new InvalidOperationException("Cannot moderate users that have a rank greater than or equal to your own.");
         }
             

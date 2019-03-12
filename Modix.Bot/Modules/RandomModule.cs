@@ -5,7 +5,7 @@
     using Discord;
     using Discord.Commands;
 
-    [Group("random"), Name("Random"), Summary("A bunch of random commands")]
+    [Group("random"), Name("Random"), Summary("A bunch of random commands.")]
     public class RandomModule : ModuleBase
     {
         private static readonly Random _random = new Random();
@@ -18,37 +18,43 @@
                 .Build();
         }
 
-        [Command("number"), Summary("Gets a random number")]
-        public async Task RandomNumber(int min = 0, int max = 10)
+        [Command("number"), Summary("Gets a random number.")]
+        public async Task RandomNumberAsync(
+            [Summary("The inclusive minimum possible number.")]
+                int min = 0,
+            [Summary("The exlusive maximum possible number.")]
+                int max = 10)
         {
             if (min >= max)
             {
-                await Context.Channel.SendMessageAsync("Maximum number must be greater than the minimum number");
+                await Context.Channel.SendMessageAsync("Maximum number must be greater than the minimum number.");
                 return;
             }
 
             var number = _random.Next(min, max);
 
-            await Context.Channel.SendMessageAsync("", embed: GetEmbed(number));
+            await Context.Channel.SendMessageAsync(embed: GetEmbed(number));
         }
 
-        [Command("coin"), Summary("Flips a coin")]
-        public async Task FlipCoin()
+        [Command("coin"), Summary("Flips a coin.")]
+        public async Task FlipCoinAsync()
         {
             var coin = _random.Next(0, 2);
 
             if (coin == 0)
             {
-                await Context.Channel.SendMessageAsync("", embed: GetEmbed("Heads"));
+                await Context.Channel.SendMessageAsync(embed: GetEmbed("Heads"));
             }
             else
             {
-                await Context.Channel.SendMessageAsync("", embed: GetEmbed("Tails"));
+                await Context.Channel.SendMessageAsync(embed: GetEmbed("Tails"));
             }
         }
 
-        [Command("pick"), Summary("Picks from a defined list of inputs")]
-        public async Task Pick(params string[] inputs)
+        [Command("pick"), Summary("Picks from a defined list of inputs.")]
+        public async Task PickAsync(
+            [Summary("The items to choose from.")]
+                params string[] inputs)
         {
             if (inputs.Length <= 1)
             {
@@ -59,7 +65,7 @@
             var random = _random.Next(0, inputs.Length);
             var choice = inputs[random];
 
-            await ReplyAsync("", embed: GetEmbed(choice));
+            await ReplyAsync(embed: GetEmbed(choice));
         }
     }
 }
