@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -35,10 +36,22 @@ namespace Modix.Data.Repositories
         /// Deletes reaction logs within the repository.
         /// </summary>
         /// <param name="criteria">The criteria for the reactions to be deleted.</param>
+        /// <exception cref="ArgumentNullException">Throws for <paramref name="criteria"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete.
         /// </returns>
         Task DeleteAsync(ReactionSearchCriteria criteria);
+
+        /// <summary>
+        /// Returns the number of times reactions matching the specified criteria occurred.
+        /// </summary>
+        /// <param name="criteria">The criteria for the reactions to be counted.</param>
+        /// <exception cref="ArgumentNullException">Throws for <paramref name="criteria"/>.</exception>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing a dictionary of emojis and their counts.
+        /// </returns>
+        Task<IReadOnlyDictionary<EphemeralEmoji, int>> GetCounts(ReactionSearchCriteria criteria);
     }
 
     /// <inheritdoc />
@@ -79,6 +92,25 @@ namespace Modix.Data.Repositories
 
             ModixContext.RemoveRange(entities);
             await ModixContext.SaveChangesAsync();
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyDictionary<EphemeralEmoji, int>> GetCounts(ReactionSearchCriteria criteria)
+        {
+            if (criteria is null)
+                throw new ArgumentNullException(nameof(criteria));
+
+            var reactions = await ModixContext.Reactions.AsNoTracking()
+                .FilterBy(criteria)
+                .GroupBy(x => new { x.EmojiId, x.EmojiName })
+                .ToArrayAsync();
+
+            var counts = reactions.ToDictionary(
+                x => EphemeralEmoji.FromRawData(x.Key.EmojiName, x.Key.EmojiId),
+                x => x.Count(),
+                new EphemeralEmoji.EqualityComparer());
+
+            return counts;
         }
 
         private static readonly RepositoryTransactionFactory _maintainTransactionFactory

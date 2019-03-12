@@ -15,6 +15,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 using Modix.Bot.Extensions;
 using Modix.Data.Models.Core;
+using Modix.Data.Models.Reactions;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
@@ -33,6 +34,7 @@ namespace Modix.Modules
             IModerationService moderationService,
             IAuthorizationService authorizationService,
             IMessageRepository messageRepository,
+            IReactionRepository reactionRepository,
             IHttpClientFactory httpClientFactory)
         {
             Log = logger ?? new NullLogger<UserInfoModule>();
@@ -40,6 +42,7 @@ namespace Modix.Modules
             ModerationService = moderationService;
             AuthorizationService = authorizationService;
             MessageRepository = messageRepository;
+            ReactionRepository = reactionRepository;
             HttpClientFactory = httpClientFactory;
         }
 
@@ -48,6 +51,7 @@ namespace Modix.Modules
         private IModerationService ModerationService { get; }
         private IAuthorizationService AuthorizationService { get; }
         private IMessageRepository MessageRepository { get; }
+        private IReactionRepository ReactionRepository { get; }
         private IHttpClientFactory HttpClientFactory { get; }
 
         [Command("info")]
@@ -160,7 +164,7 @@ namespace Modix.Modules
                     Array.Sort(roles); // Sort by position: lowest positioned role is first
                     Array.Reverse(roles); // Reverse the sort: highest positioned role is first
 
-                    builder.Append("Role".ToQuantity(roles.Length, ShowQuantityAs.None));
+                    builder.Append($"{"Role".ToQuantity(roles.Length, ShowQuantityAs.None)}: ");
                     builder.AppendLine(roles.Select(r => r.Mention).Humanize());
                 }
             }
@@ -239,7 +243,7 @@ namespace Modix.Modules
                         if (channel.IsPublic())
                         {
                             builder.AppendLine($"Most active channel: {MentionUtils.MentionChannel(channel.Id)} ({kvp.Value} messages)");
-                            return;
+                            break;
                         }
                     }
                 }
@@ -247,6 +251,19 @@ namespace Modix.Modules
                 {
                     Log.LogDebug(ex, "Unable to get the most active channel for {UserId}.", userId);
                 }
+            }
+
+            var emojiCounts = await ReactionRepository.GetCounts(new ReactionSearchCriteria()
+            {
+                GuildId = Context.Guild.Id,
+                UserId = userId,
+            });
+
+            if (emojiCounts.Any())
+            {
+                var (favoriteEmoji, emojiCount) = emojiCounts.OrderByDescending(x => x.Value).First();
+
+                builder.AppendLine($"Favorite reaction: {Format.Url($"{favoriteEmoji.ToString()}", favoriteEmoji.Url)} ({"time".ToQuantity(emojiCount)})");
             }
         }
 
