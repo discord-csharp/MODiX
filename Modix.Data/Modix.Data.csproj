@@ -7,12 +7,6 @@
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Migrations\20190228154745_TagOwners.cs" />
-    <Compile Remove="Migrations\20190228154745_TagOwners.Designer.cs" />
-    <Compile Remove="Migrations\20190301162654_TagOwners.cs" />
-    <Compile Remove="Migrations\20190301162654_TagOwners.Designer.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Discord.Net" Version="2.0.1" />
     <PackageReference Include="MediatR" Version="6.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.2.2" />
