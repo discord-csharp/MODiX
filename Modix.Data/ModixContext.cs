@@ -9,6 +9,7 @@ using Modix.Data.Models.Tags;
 using Modix.Data.Utilities;
 
 using Microsoft.EntityFrameworkCore;
+using Modix.Data.Models.Reactions;
 
 namespace Modix.Data
 {
@@ -61,6 +62,8 @@ namespace Modix.Data
         internal DbSet<TagEntity> Tags { get; set; }
 
         internal DbSet<TagActionEntity> TagActions { get; set; }
+
+        internal DbSet<ReactionEntity> Reactions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
