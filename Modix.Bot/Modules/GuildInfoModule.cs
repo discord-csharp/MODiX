@@ -84,6 +84,8 @@ namespace Modix.Modules
                 AppendMemberInformation(stringBuilder, socketGuild);
             }
 
+            AppendRoleInformation(stringBuilder, guildResult.Guild);
+
             embedBuilder.WithDescription(stringBuilder.ToString());
 
             timer.Stop();
@@ -143,18 +145,25 @@ namespace Modix.Modules
             var bots = guild.Users.Count(x => x.IsBot);
             var humans = memberCount - bots;
 
-            var roles = guild.Roles
-                .Where(x => x.Id != guild.EveryoneRole.Id)
-                .OrderByDescending(x => x.Position);
-
             stringBuilder
                 .AppendLine(Format.Bold("\u276F Member Information"))
                 .AppendLine($"Members Online: {memberCount}")
                 .AppendLine($"• Humans: {humans}")
                 .AppendLine($"• Bots: {bots}")
-                .AppendLine()
-                .AppendLine($"**Roles**")
-                .AppendLine(roles.Select(x => x.Mention).Humanize());
+                .AppendLine();
+        }
+
+        public void AppendRoleInformation(StringBuilder stringBuilder, IGuild guild)
+        {
+            var roles = guild.Roles
+                .Where(x => x.Id != guild.EveryoneRole.Id)
+                .OrderByDescending(x => x.IsHoisted)
+                .ThenByDescending(x => x.Position)
+                .ThenByDescending(x => x.Name);
+
+            stringBuilder.AppendLine(Format.Bold("\u276F Guild Roles"))
+                .AppendLine(roles.Select(x => x.Mention).Humanize())
+                .AppendLine();
         }
     }
 }
