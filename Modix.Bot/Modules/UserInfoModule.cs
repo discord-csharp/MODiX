@@ -119,7 +119,8 @@ namespace Modix.Modules
 
             await AddMemberInformationToEmbedAsync(userInfo, builder, embedBuilder);
 
-            if (await AuthorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
+            if (!(Context.Channel as IGuildChannel).IsPublic()
+                && await AuthorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
             {
                 await AddInfractionsToEmbedAsync(user.Id, builder);
             }
