@@ -263,7 +263,7 @@ namespace Modix.Modules
             {
                 var (favoriteEmoji, emojiCount) = emojiCounts.OrderByDescending(x => x.Value).First();
 
-                builder.AppendLine($"Favorite reaction: {Format.Url($"{favoriteEmoji.ToString()}", favoriteEmoji.Url)} ({"time".ToQuantity(emojiCount)})");
+                builder.AppendLine($"Favorite reaction: {Format.Url(favoriteEmoji.ToString(), favoriteEmoji.Url)} ({"time".ToQuantity(emojiCount)})");
             }
         }
 
