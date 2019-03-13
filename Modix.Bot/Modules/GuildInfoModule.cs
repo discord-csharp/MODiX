@@ -10,7 +10,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Humanizer;
-
+using Modix.Data.Models.Reactions;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
@@ -25,16 +25,20 @@ namespace Modix.Modules
         public GuildInfoModule(
             IGuildService guildService,
             IMessageRepository messageRepository,
+            IReactionRepository reactionRepository,
             IHttpClientFactory httpClientFactory)
         {
             GuildService = guildService;
             MessageRepository = messageRepository;
+            ReactionRepository = reactionRepository;
             HttpClientFactory = httpClientFactory;
         }
 
         private IGuildService GuildService { get; }
 
         private IMessageRepository MessageRepository { get; }
+
+        private IReactionRepository ReactionRepository { get; }
 
         private IHttpClientFactory HttpClientFactory { get; }
 
@@ -128,15 +132,27 @@ namespace Modix.Modules
             var channelCounts = await MessageRepository.GetTotalMessageCountByChannelAsync(guild.Id, TimeSpan.FromDays(30));
             var orderedChannelCounts = channelCounts.OrderByDescending(x => x.Value);
             var mostActiveChannel = orderedChannelCounts.First();
-            var leastActiveChannel = orderedChannelCounts.Last();
 
             stringBuilder
                 .AppendLine(Format.Bold("\u276F Guild Participation"))
                 .AppendLine($"Last 7 days: {"message".ToQuantity(weekTotal, "n0")}")
                 .AppendLine($"Last 30 days: {"message".ToQuantity(monthTotal, "n0")}")
                 .AppendLine($"Avg. per day: {"message".ToQuantity(monthTotal / 30, "n0")}")
-                .AppendLine($"Most active channel: {MentionUtils.MentionChannel(mostActiveChannel.Key)} ({"message".ToQuantity(mostActiveChannel.Value, "n0")} in 30 days)")
-                .AppendLine();
+                .AppendLine($"Most active channel: {MentionUtils.MentionChannel(mostActiveChannel.Key)} ({"message".ToQuantity(mostActiveChannel.Value, "n0")} in 30 days)");
+
+            var emojiCounts = await ReactionRepository.GetCounts(new ReactionSearchCriteria()
+            {
+                GuildId = Context.Guild.Id,
+            });
+
+            if (emojiCounts.Any())
+            {
+                var (favoriteEmoji, emojiCount) = emojiCounts.OrderByDescending(x => x.Value).First();
+
+                stringBuilder.AppendLine($"Favorite reaction: {Format.Url(favoriteEmoji.ToString(), favoriteEmoji.Url)} ({"time".ToQuantity(emojiCount)})");
+            }
+
+            stringBuilder.AppendLine();
         }
 
         public void AppendMemberInformation(StringBuilder stringBuilder, SocketGuild guild)
