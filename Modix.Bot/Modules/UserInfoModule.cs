@@ -186,9 +186,16 @@ namespace Modix.Modules
             builder.AppendLine();
             builder.AppendLine($"**\u276F Infractions [See here](https://mod.gg/infractions?subject={userId})**");
 
-            var counts = await ModerationService.GetInfractionCountsForUserAsync(userId);
+            if (!(Context.Channel as IGuildChannel).IsPublic())
+            {
+                var counts = await ModerationService.GetInfractionCountsForUserAsync(userId);
 
-            builder.AppendLine(FormatUtilities.FormatInfractionCounts(counts));
+                builder.AppendLine(FormatUtilities.FormatInfractionCounts(counts));
+            }
+            else
+            {
+                builder.AppendLine("Infractions cannot be listed in public channels.");
+            }
         }
 
         private async Task AddParticipationToEmbedAsync(ulong userId, StringBuilder builder)
