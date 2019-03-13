@@ -46,7 +46,8 @@ namespace Modix.Modules
 
                     sb.Append(codepointHex);
 
-                    if (i+1 < emoji.Length) sb.Append("-");
+                    if (i+1 < emoji.Length)
+                        sb.Append("-");
                 }
 
                 sb.Append(".png");
