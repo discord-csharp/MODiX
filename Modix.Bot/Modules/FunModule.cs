@@ -37,11 +37,11 @@ namespace Modix.Modules
                     var codepoint = char.ConvertToUtf32(emoji, i);
                     var codepointHex = codepoint.ToString("x");
 
-                    //ConvertToUtf32() might have parsed an extra character
-                    //Therefore we make sure to skip the next one
-                    //We still need to increment through the string in a char by char manner though since
-                    //some characters used in emojis sometimes only occupy one character (16 bit) in size.
-                    if (codepoint > 0xFFFF)
+                    //ConvertToUtf32() might have parsed an extra character as some characters are combinations of two 16-bit characters
+                    //Which start at 0x00d800 and end at 0x00dfff (Called surrogate low and surrogate high)
+                    //If the character is in this span, we have already essentially parsed the next index of the string as well.
+                    //Therefore we make sure to skip the next one.
+                    if (char.IsSurrogate(emoji, i))
                         i++;
 
                     sb.Append(codepointHex);
