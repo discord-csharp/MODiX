@@ -1,6 +1,6 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -29,13 +29,12 @@ namespace Modix.Modules
             }
             else
             {
-                var sb = new StringBuilder();
-                sb.Append("https://raw.githubusercontent.com/twitter/twemoji/gh-pages/2/72x72/");
-
+                const string emojiLink = "https://raw.githubusercontent.com/twitter/twemoji/gh-pages/2/72x72/";
+                var hexValues = new List<string>();
                 for(int i = 0; i < emoji.Length; i++)
                 {
                     var codepoint = char.ConvertToUtf32(emoji, i);
-                    var codepointHex = codepoint.ToString("x");
+                    hexValues.Add(codepoint.ToString("x"));
 
                     //ConvertToUtf32() might have parsed an extra character as some characters are combinations of two 16-bit characters
                     //Which start at 0x00d800 and end at 0x00dfff (Called surrogate low and surrogate high)
@@ -43,15 +42,9 @@ namespace Modix.Modules
                     //Therefore we make sure to skip the next one.
                     if (char.IsSurrogate(emoji, i))
                         i++;
-
-                    sb.Append(codepointHex);
-
-                    if (i+1 < emoji.Length)
-                        sb.Append("-");
                 }
 
-                sb.Append(".png");
-                emojiUrl = sb.ToString();
+                emojiUrl = $"{emojiLink}{string.Join('-', hexValues)}.png";
             }
 
             try
