@@ -76,75 +76,21 @@ namespace Modix.Behaviors
 
             var embed = new EmbedBuilder();
 
-            //Because we have comment creation as a separate operation from starting the campaign,
-            //we don't have access to the "initial" comment when a campaign is created. So, we have to
-            //note that a campaign was created, and actually send the log message when the first comment
-            //is created (containing the comment body)
-            switch (promotionAction.Type)
-            {
-                case PromotionActionType.CampaignCreated:
+            if (promotionAction.Type != PromotionActionType.CampaignClosed) { return null; }
+            if (targetCampaign.Outcome != PromotionCampaignOutcome.Accepted) { return null; }
 
-                    _initialCommentQueue.TryAdd(targetCampaign.Id, embed
-                        .WithTitle("A new campaign has been started!")
-                        .AddField("If accepted, their new role will be", MentionUtils.MentionRole(targetCampaign.TargetRole.Id)));
-
-                    return null;
-                case PromotionActionType.CampaignClosed:
-
-                    var fullCampaign = (await PromotionsService.SearchCampaignsAsync(new PromotionCampaignSearchCriteria
-                    {
-                        Id = targetCampaign.Id
-                    }))
-                    .First();
-
-                    embed = embed
-                        .WithTitle("The campaign is over!")
-                        .AddField("Approval Rate", fullCampaign.GetApprovalPercentage().ToString("p"), true);
-
-                    var boldName = $"**{targetCampaign.Subject.Username}#{targetCampaign.Subject.Discriminator}**";
-                    var boldRole = $"**{MentionUtils.MentionRole(targetCampaign.TargetRole.Id)}**";
-
-                    switch (targetCampaign.Outcome)
-                    {
-                        case PromotionCampaignOutcome.Accepted:
-                            embed = embed
-                                .WithDescription($"Staff accepted the campaign, and {boldName} was promoted to {boldRole}! 🎉");
-                            break;
-                        case PromotionCampaignOutcome.Rejected:
-                            embed = embed
-                                .WithDescription($"Staff rejected the campaign to promote {boldName} to {boldRole}");
-                            break;
-                        case PromotionCampaignOutcome.Failed:
-                        default:
-                            embed = embed
-                                .WithDescription("There was an issue while accepting or denying the campaign. Ask staff for details.")
-                                .AddField("Target Role", MentionUtils.MentionRole(targetCampaign.TargetRole.Id), true);
-                            break;
-                    }
-
-                    break;
-                case PromotionActionType.CommentCreated:
-
-                    if (_initialCommentQueue.TryRemove(targetCampaign.Id, out embed))
-                    {
-                        embed.Description = $"👍 {promotionAction.NewComment.Content}";
-                    }
-                    else
-                    {
-                        return null;
-                    }
-
-                    break;
-                case PromotionActionType.CommentModified:
-                default:
-                    return null;
-            }
+            var boldName = $"**{targetCampaign.Subject.Username}#{targetCampaign.Subject.Discriminator}**";
+            var boldRole = $"**{MentionUtils.MentionRole(targetCampaign.TargetRole.Id)}**";
 
             var subject = await UserService.GetUserInformationAsync(data.GuildId, targetCampaign.Subject.Id);
-            return embed
+
+            embed = embed
+                .WithTitle("The campaign is over!")
+                .WithDescription($"Staff accepted the campaign, and {boldName} was promoted to {boldRole}! 🎉")
                 .WithAuthor(subject)
-                .WithFooter("See more at https://mod.gg/promotions")
-                .Build();
+                .WithFooter("See more at https://mod.gg/promotions");
+
+            return embed.Build();
         }
 
         private async Task<string> FormatPromotionLogEntry(long promotionActionId, PromotionActionCreationData data)
