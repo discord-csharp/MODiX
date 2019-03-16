@@ -20,35 +20,10 @@
             </div>
         </div>
 
-        <VueGoodTable :columns="mappedColumns" :rows="mappedRows" :sortOptions="sortOptions"
-                        :paginationOptions="paginationOptions" styleClass="vgt-table condensed bordered striped"
-                        mode="remote" :totalRows="recordsPage.filteredRecordCount" @on-page-change="onPageChange"
-                        @on-sort-change="onSortChange" @on-column-filter="onColumnFilter" @on-per-page-change="onPerPageChange">
-
-            <template slot="table-row" slot-scope="props">
-                <span v-if="props.column.field == 'type'">
-                    <span :title="props.formattedRow[props.column.field]" class="typeCell"
-                            v-html="emojiFor(props.formattedRow[props.column.field]) + ' ' + props.formattedRow[props.column.field]">
-                    </span>
-                </span>
-                <span v-else-if="props.column.field == 'reason'" v-html="props.formattedRow[props.column.field]">
-                </span>
-                <span v-else-if="props.column.field == 'actions'">
-                    <span class="level">
-                        <button class="button is-link is-small level-left" v-show="props.row.canDelete" v-on:click="onInfractionDelete(props.row.id)">
-                            Delete
-                        </button>
-                        <button class="button is-link is-small level-right" v-if="props.row.canRescind" v-on:click="onInfractionRescind(props.row.id)">
-                            Rescind
-                        </button>
-                    </span>
-                </span>
-                <span v-else>
-                    {{props.formattedRow[props.column.field]}}
-                </span>
-            </template>
-
-        </VueGoodTable>
+        <InfractionTable @tableChange="tableChange" @infractionRescind="onInfractionRescind" @infractionDelete="onInfractionDelete"
+            :recordsPage="recordsPage" :showActions="true"
+            :showState="showState" :showDeleted="showDeleted" :staticFilters="staticFilters">
+        </InfractionTable>
 
         <div class="modal" :class="{'is-active': showModal}">
             <div class="modal-background" @click="showModal = !showModal"></div>
@@ -180,23 +155,24 @@
             </div>
         </div>
 
-        <ConfirmationModal v-bind:isShown="showRescindConfirmation" v-on:modal-confirmed="confirmRescind" v-on:modal-cancelled="cancelRescind" />
-        <ConfirmationModal v-bind:isShown="showDeleteConfirmation" v-on:modal-confirmed="confirmDelete" v-on:modal-cancelled="cancelDelete" />
+        <ConfirmationModal v-bind:isShown="showRescindConfirmation" v-on:modal-confirmed="confirmRescind" v-on:modal-cancelled="cancelRescind"
+            :mainText="`Are you sure you want to rescind infraction #${toRescind}?`" />
+        <ConfirmationModal v-bind:isShown="showDeleteConfirmation" v-on:modal-confirmed="confirmDelete" v-on:modal-cancelled="cancelDelete"
+            :mainText="`Are you sure you want to delete infraction #${toDelete}?`" />
 
     </div>
 </template>
 
 <script lang="ts">
 import * as _ from 'lodash';
-import { resolveMentions } from '@/app/Util';
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import HeroHeader from '@/components/HeroHeader.vue';
 import TinyUserView from '@/components/TinyUserView.vue';
 import Autocomplete from '@/components/Autocomplete.vue';
 import ConfirmationModal from '@/components/ConfirmationModal.vue';
+import InfractionTable from '@/components/Logs/InfractionTable.vue';
 import store from "@/app/Store";
 import { VueGoodTable } from 'vue-good-table';
-import { InfractionType } from '@/models/infractions/InfractionType'
 import GuildUserIdentity from '@/models/core/GuildUserIdentity'
 import User from '@/models/User';
 import GeneralService from '@/services/GeneralService';
@@ -207,6 +183,8 @@ import InfractionCreationData from '@/models/infractions/InfractionCreationData'
 import RecordsPage from '@/models/RecordsPage';
 import TableParameters from '@/models/TableParameters';
 import { SortDirection } from '@/models/SortDirection';
+import ModixComponent from '@/components/ModixComponent.vue';
+import { InfractionType } from '@/models/infractions/InfractionType';
 
 function getSortDirection(direction: string): SortDirection
 {
@@ -221,31 +199,18 @@ const guildUserFormat = (subject: GuildUserIdentity) => subject.displayName;
     components:
     {
         HeroHeader,
-        VueGoodTable,
         TinyUserView,
         Autocomplete,
-        ConfirmationModal
+        ConfirmationModal,
+        InfractionTable
     }
 })
-export default class Infractions extends Vue
+export default class Infractions extends ModixComponent
 {
     get infractionTypes(): string[]
     {
         return Object.keys(InfractionType).map(c => InfractionType[<any>c]);
     }
-
-    paginationOptions: any =
-    {
-        enabled: true,
-        perPage: 10,
-        mode: 'pages'
-    };
-
-    sortOptions: any =
-    {
-        enabled: true,
-        initialSortBy: {field: 'created', type: 'desc'}
-    };
 
     showState: boolean = false;
     showDeleted: boolean = false;
@@ -275,10 +240,9 @@ export default class Infractions extends Vue
 
     showRescindConfirmation: boolean = false;
     showDeleteConfirmation: boolean = false;
+
     toRescind: number = 0;
     toDelete: number = 0;
-
-    channelCache: { [channel: string]: DesignatedChannelMapping } | null = null;
 
     recordsPage: RecordsPage<InfractionSummary> = new RecordsPage<InfractionSummary>();
     tableParams: TableParameters = {
@@ -290,6 +254,8 @@ export default class Infractions extends Vue
         },
         filters: []
     };
+
+    staticFilters: { [field: string]: string } = { id: "", type: "", subject: "", creator: "" };
 
     get canNote(): boolean
     {
@@ -336,35 +302,6 @@ export default class Infractions extends Vue
         return this.newInfractionUser != null && this.newInfractionType != null && (!requiresReason || this.newInfractionReason != "") && this.userOutranksSubject;
     }
 
-    async canRescind(type: InfractionType, state: string, subjectId: string): Promise<boolean>
-    {
-        return (type == this.muteType || type == this.banType)
-            && state != "Rescinded"
-            && state != "Deleted"
-            && this.hasRescindPermission
-            && await GeneralService.doesModeratorOutrankUser(subjectId);
-    }
-
-    get hasRescindPermission(): boolean
-    {
-        return store.userHasClaims(["ModerationRescind"]);
-    }
-
-    async canDelete(state: string, subjectId: string): Promise<boolean>
-    {
-        return state != "Deleted"
-            && await GeneralService.doesModeratorOutrankUser(subjectId);
-    }
-
-    get hasDeletePermission(): boolean
-    {
-        return store.userHasClaims(["ModerationDeleteInfraction"]);
-    }
-
-    get canPerformActions(): boolean
-    {
-        return this.hasRescindPermission || this.hasDeletePermission;
-    }
 
     get fileInput(): HTMLInputElement
     {
@@ -388,11 +325,6 @@ export default class Infractions extends Vue
                 this.loadError = err;
             }
         }
-    }
-
-    resolveMentions(description: string)
-    {
-        return resolveMentions(this.channelCache, description);
     }
 
     fileChange(input: HTMLInputElement)
@@ -428,150 +360,15 @@ export default class Infractions extends Vue
         reader.readAsText(files[0]);
     }
 
-    staticFilters: { [field: string]: string } = { id: "", type: "", subject: "", creator: "" };
-
-    get mappedColumns(): Array<any>
-    {
-        return [
-            {
-                label: 'Id',
-                field: 'id',
-                sortFn: (x: number, y: number) => (x < y ? -1 : (x > y ? 1 : 0)),
-                type: 'number',
-                width: '10%',
-                filterOptions:
-                {
-                    enabled: true,
-                    placeholder: "Filter",
-                    filterValue: this.staticFilters["id"]
-                }
-            },
-            {
-                label: 'Type',
-                field: 'type',
-                width: '10%',
-                filterOptions:
-                {
-                    enabled: true,
-                    placeholder: "Filter",
-                    filterDropdownItems: this.infractionTypes,
-                    filterValue: this.staticFilters["type"]
-                }
-            },
-            {
-                label: 'Created On',
-                field: 'date',
-                type: 'date', //Needed to bypass vue-good-table regression
-                width: '20%',
-                dateInputFormat: 'YYYY-MM-DDTHH:mm:ss',
-                dateOutputFormat: 'MM/DD/YY, h:mm:ss a'
-            },
-            {
-                label: 'Subject',
-                field: 'subject',
-                type: 'date', //Needed to bypass vue-good-table regression
-                filterOptions:
-                {
-                    enabled: true,
-                    placeholder: "Filter",
-                    filterValue: this.staticFilters["subject"]
-                },
-                formatFn: guildUserFormat
-            },
-            {
-                label: 'Creator',
-                field: 'creator',
-                type: 'date', //Needed to bypass vue-good-table regression
-                filterOptions:
-                {
-                    enabled: true,
-                    placeholder: "Filter",
-                    filterValue: this.staticFilters["creator"]
-                },
-                formatFn: guildUserFormat
-            },
-            {
-                label: 'Reason',
-                field: 'reason',
-                width: '50%',
-                formatFn: this.resolveMentions,
-                html: true,
-                sortable: false
-            },
-            {
-                label: 'State',
-                field: 'state',
-                hidden: !this.showState,
-                sortable: false
-            },
-            {
-                label: 'Actions',
-                field: 'actions',
-                hidden: !this.canPerformActions,
-                width: '32px',
-                sortable: false
-            }
-        ];
-    }
-
-    get filteredInfractions(): InfractionSummary[]
-    {
-        return _.filter(this.recordsPage.records, (infraction: InfractionSummary) =>
-        {
-            if (infraction.rescindAction != null)
-            {
-                return this.showState;
-            }
-
-            if (infraction.deleteAction != null)
-            {
-                return this.showDeleted;
-            }
-
-            return true;
-        });
-    }
-
-    emojiFor(infractionType: InfractionType): string
-    {
-        switch (infractionType)
-        {
-            case "Notice":
-                return "&#128221;";
-            case "Warning":
-                return "&#9888;";
-            case "Mute":
-                return "&#128263;";
-            case "Ban":
-                return "&#128296;";
-            default:
-                return infractionType;
-        }
-    }
-
     get rowboatDownloadUrl()
     {
         return `https://dashboard.rowboat.party/api/guilds/${this.importGuildId}/infractions`;
     }
 
-    get mappedRows(): any[]
+    async tableChange(object: any)
     {
-        return _.map(this.filteredInfractions, infraction =>
-        ({
-            id: infraction.id,
-            subject: infraction.subject,
-            creator: infraction.createAction.createdBy,
-            date: infraction.createAction.created,
-            type: infraction.type,
-            reason: infraction.reason,
-
-            state: infraction.rescindAction != null ? "Rescinded"
-                : infraction.deleteAction != null ? "Deleted"
-                    : "Active",
-
-            canDelete: infraction.canDelete,
-            canRescind: infraction.canRescind
-        }));
+        Object.assign(this.tableParams, object);
+        await this.refresh();
     }
 
     async refresh()
@@ -599,22 +396,6 @@ export default class Infractions extends Vue
         this.newInfractionSeconds = null;
     }
 
-    applyFilters()
-    {
-        let urlParams = new URLSearchParams(window.location.search);
-
-        for (let i = 0; i < this.mappedColumns.length; i++)
-        {
-            let currentField: string = this.mappedColumns[i].field;
-
-            if (urlParams.has(currentField.toLowerCase()))
-            {
-                this.tableParams.filters.push({ field: currentField, value: urlParams.get(currentField.toLowerCase()) || "" });
-                this.staticFilters[currentField] = urlParams.get(currentField.toLowerCase()) || "";
-            }
-        }
-    }
-
     async created()
     {
         await this.refresh();
@@ -623,45 +404,6 @@ export default class Infractions extends Vue
         this.showDeleted = config().showDeletedInfractions;
 
         await store.retrieveChannels();
-        this.channelCache = _.keyBy(this.$store.state.modix.channels, channel => channel.id);
-
-        this.applyFilters();
-    }
-
-    async onPageChange(params: any): Promise<void>
-    {
-        this.tableParams.page = params.currentPage - 1;
-
-        await this.refresh();
-    }
-
-    async onSortChange(params: any): Promise<void>
-    {
-        this.tableParams.sort.field = params[0].field;
-        this.tableParams.sort.direction = getSortDirection(params[0].type);
-
-        await this.refresh();
-    }
-
-    async onColumnFilter(params: any): Promise<void>
-    {
-        this.tableParams.filters = [];
-
-        for (let prop in params.columnFilters)
-        {
-            this.tableParams.filters.push({ field: prop, value: params.columnFilters[prop] })
-        }
-
-        await this.refresh();
-    }
-
-    async onPerPageChange(params: any): Promise<void>
-    {
-        this.tableParams.perPage = (params.currentPerPage == "all")
-            ? 2147483647
-            : params.currentPerPage;
-
-        await this.refresh();
     }
 
     @Watch('showState')
@@ -707,9 +449,9 @@ export default class Infractions extends Vue
         await this.closeCreateModal();
     }
 
-    onInfractionRescind(id: number): void
+    onInfractionRescind(summary: InfractionSummary): void
     {
-        this.toRescind = id;
+        this.toRescind = summary.id;
         this.showRescindConfirmation = true;
     }
 
@@ -727,9 +469,9 @@ export default class Infractions extends Vue
         this.toRescind = 0;
     }
 
-    onInfractionDelete(id: number): void
+    onInfractionDelete(summary: InfractionSummary): void
     {
-        this.toDelete = id;
+        this.toDelete = summary.id;
         this.showDeleteConfirmation = true;
     }
 
@@ -745,6 +487,11 @@ export default class Infractions extends Vue
     {
         this.showDeleteConfirmation = false;
         this.toDelete = 0;
+    }
+
+    emojiFor(type: InfractionType)
+    {
+        return InfractionType.toEmoji(type);
     }
 }
 </script>

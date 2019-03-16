@@ -1,0 +1,49 @@
+$discordText: #dcddde;
+$discordUrl: #0096cf;
+$discordBackground: #36393f;
+
+$discordCodeBackground: #2f3136;
+$discordCodeBorder: rgba(32,34,37,.3);
+$discordCodeText: #839496;
+
+.markdownPreview
+{
+    color: $discordText;
+    background-color: $discordBackground;
+    font-size: 15px;
+
+    padding: 1em;
+
+    strong
+    {
+        color: $discordText;
+    }
+
+    a
+    {
+        color: $discordUrl;
+    }
+
+    pre
+    {
+        color: $discordCodeText;
+        padding: 0.5em;
+        background: $discordCodeBackground;
+
+        border-radius: 5px;
+        border-style: solid;
+        border-width: 2px;
+        border-color: $discordCodeBorder;
+
+        margin-top: 0.5em;
+        margin-bottom: 1em;
+    }
+}
+
+.tagCreation
+{
+    textarea
+    {
+        font-family: Consolas, monospace;
+    }
+}

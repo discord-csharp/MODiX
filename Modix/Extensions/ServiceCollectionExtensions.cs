@@ -116,6 +116,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IBehavior, MessageLinkBehavior>();
             services.AddSingleton<CodePasteHandler>();
             services.AddSingleton<IBehavior, AttachmentBlacklistBehavior>();
+            services.AddSingleton<IBehavior, TagInlineParserBehavior>();
             services.AddSingleton<CodePasteService>();
             services.AddScoped<DocsMasterRetrievalService>();
             services.AddMemoryCache();

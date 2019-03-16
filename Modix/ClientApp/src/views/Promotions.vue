@@ -67,21 +67,19 @@
                         <button class="delete" aria-label="close" @click="toggleModal()"></button>
                     </header>
                     <section class="modal-card-body">
-                        <h4 class="title is-size-4">Infractions</h4>
+                        <h4 class="title is-size-4">
+                            Infractions
+                            <router-link :to="`/logs/infractions?subject=${modalCampaign.subject.id}`">
+                                (Full View)
+                            </router-link>
+                        </h4>
 
-                        <template v-if="canSeeInfractions">
-                            <ol v-if="modalCampaignInfractions.length > 0">
-                                <li v-for="infraction in modalCampaignInfractions" :key="infraction.id" :value="infraction.id">
-                                    <strong>{{infraction.createAction.createdBy.displayName}}</strong> gave a
-                                    <strong>{{infraction.type}}</strong> on <strong>{{formatDate(infraction.createAction.created)}}</strong> for
-                                    &quot;<strong>{{infraction.reason}}</strong>&quot;
-                                </li>
-                            </ol>
-                            <h6 v-else class="title is-size-6">No active infractions for this user</h6>
-                        </template>
+                        <InfractionTable v-if="canSeeInfractions"
+                            :recordsPage="modalCampaignInfractions" :showActions="false" :minimal="true"
+                            :showState="false" :showDeleted="false" :staticFilters="{}">
+                        </InfractionTable>
+
                         <h6 v-else>You can't see infractions because you're missing the ModerationRead claim.</h6>
-
-
                     </section>
                     <footer class="modal-card-foot level" v-if="canCloseCampaign">
                         <div class="level-left">
@@ -190,9 +188,14 @@ import InfractionSummary from '@/models/infractions/InfractionSummary';
 import GeneralService from '@/services/GeneralService';
 import PromotionComment from '@/models/promotions/PromotionComment';
 import PromotionCommentEditModal from '@/components/Promotions/PromotionCommentEditModal.vue';
+import InfractionTable from '@/components/Logs/InfractionTable.vue';
 
 import {formatDate} from '@/app/Util';
 import ModixComponent from '@/components/ModixComponent.vue';
+import RecordsPage from '@/models/RecordsPage';
+import SortParameter from '@/models/SortParameter';
+import { SortDirection } from '@/models/SortDirection';
+import TableParameters from '@/models/TableParameters';
 
 var Clipboard = require('clipboard');
 
@@ -202,7 +205,8 @@ var Clipboard = require('clipboard');
         HeroHeader,
         PromotionListItem,
         PromotionCommentView,
-        PromotionCommentEditModal
+        PromotionCommentEditModal,
+        InfractionTable
     },
 })
 export default class Promotions extends ModixComponent
@@ -211,7 +215,7 @@ export default class Promotions extends ModixComponent
     showModal: boolean = false;
 
     modalCampaign: PromotionCampaign | null = null;
-    modalCampaignInfractions: InfractionSummary[] = [];
+    modalCampaignInfractions: RecordsPage<InfractionSummary> = new RecordsPage<InfractionSummary>();
     modalForceAccept: boolean = false;
 
     currentlyLoadingInfractions: number | null = null;
@@ -274,16 +278,28 @@ export default class Promotions extends ModixComponent
 
         this.modalCampaign = campaign;
 
-        if (this.state.user && store.userHasClaims(["ModerationRead"]))
-        {
-            this.modalCampaignInfractions = await GeneralService.getInfractionsForUser(this.modalCampaign.subject!.id);
-        }
+        await this.refreshModalCampaignInfractions();
 
         this.modalForceAccept = false;
 
         this.toggleModal();
 
         this.currentlyLoadingInfractions = null;
+    }
+
+    async refreshModalCampaignInfractions()
+    {
+        if (this.state.user && store.userHasClaims(["ModerationRead"]))
+        {
+            this.modalCampaignInfractions = await GeneralService.getInfractions({
+                page: 0,
+                perPage: 9999,
+                sort: { field: "created", direction: SortDirection.Descending },
+                filters: [
+                    { field: "subject", value: this.modalCampaign!.subject!.id.toString() }
+                ]
+            });
+        }
     }
 
     toggleModal()

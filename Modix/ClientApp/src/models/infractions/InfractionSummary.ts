@@ -1,6 +1,6 @@
 import GuildUserIdentity from '@/models/core/GuildUserIdentity';
-import { InfractionType } from '@/models/infractions/InfractionType';
 import ModerationAction from '@/models/core/ModerationAction';
+import { InfractionType } from './InfractionType';
 
 export default interface InfractionSummary
 {

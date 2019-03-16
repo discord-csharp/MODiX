@@ -95,12 +95,6 @@ export default class GeneralService
         return response;
     }
 
-    static async getInfractionsForUser(id: number): Promise<InfractionSummary[]>
-    {
-        let response = (await client.get(`infractions/${id}`)).data;
-        return response;
-    }
-
     static async uploadRowboatJson(data: FormData) : Promise<number>
     {
         console.log(data);

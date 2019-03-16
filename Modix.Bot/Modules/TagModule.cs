@@ -50,7 +50,22 @@ namespace Modix.Bot.Modules
         public async Task UseTagAsync(
             [Summary("The name that will be used to invoke the tag.")]
                 string name)
-            => await TagService.UseTagAsync(Context.Guild.Id, Context.Channel.Id, name);
+        {
+            if (await TagService.TagExistsAsync(Context.Guild.Id, name) == false)
+            {
+                await HandleTagError($"Couldn't find tag \"{name}\" in this guild.");
+                return;
+            }
+
+            try
+            {
+                await TagService.UseTagAsync(Context.Guild.Id, Context.Channel.Id, name);
+            }
+            catch (InvalidOperationException ex)
+            {
+                await HandleTagError(ex.Message);
+            }
+        }
 
         [Command("update")]
         [Alias("edit", "modify")]
@@ -151,6 +166,16 @@ namespace Modix.Bot.Modules
         protected ITagService TagService { get; }
 
         protected IUserService UserService { get; }
+
+        private async Task HandleTagError(string message)
+        {
+            var embed = new EmbedBuilder()
+                        .WithTitle("Error")
+                        .WithColor(Color.Red)
+                        .WithDescription(message);
+
+            await ReplyAsync(embed: embed.Build());
+        }
 
         private async Task<Embed> BuildEmbedAsync(IReadOnlyCollection<TagSummary> tags, IUser ownerUser = null, IGuild ownerGuild = null, IRole ownerRole = null)
         {

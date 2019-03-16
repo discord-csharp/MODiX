@@ -43,6 +43,21 @@ $transition: all 0.33s cubic-bezier(0.23, 1, 0.32, 1);
     }
 }
 
+.toRole
+{
+    font-size: 14px;
+    font-weight: 400 !important;
+    padding: 4px 8px;
+
+    border: 2px solid black;
+    border-radius: 3px;
+
+    @include mobile()
+    {
+        display: inline-block;
+    }
+}
+
 .campaign
 {
     position: relative;
@@ -89,6 +104,13 @@ $transition: all 0.33s cubic-bezier(0.23, 1, 0.32, 1);
         background-color: $light;
     }
 
+    .toRole
+    {
+        position: relative;
+        top: -2px;
+        left: 20px;
+    }
+
     .commentNotification
     {
         text-align: center;
@@ -110,25 +132,6 @@ $transition: all 0.33s cubic-bezier(0.23, 1, 0.32, 1);
     .title
     {
         margin-bottom: 0;
-    }
-
-    .toRole
-    {
-        font-size: 14px;
-        font-weight: 400 !important;
-        padding: 4px 8px;
-
-        border: 2px solid black;
-        border-radius: 3px;
-
-        position: relative;
-        top: -2px;
-        left: 20px;
-
-        @include mobile()
-        {
-            display: inline-block;
-        }
     }
 
     .expander
