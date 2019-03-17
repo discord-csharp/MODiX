@@ -62,8 +62,7 @@ namespace Modix.Services.Core
                     return;
                 }
 
-                await designatedChannelService
-                .SendToDesignatedChannelsAsync(guild, DesignatedChannelType.MessageLog, content, embed);
+                await designatedChannelService.SendToDesignatedChannelsAsync(guild, DesignatedChannelType.MessageLog, content, embed);
             });
         }
 
