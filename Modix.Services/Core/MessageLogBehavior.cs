@@ -53,6 +53,20 @@ namespace Modix.Services.Core
             return input;
         }
 
+        private async Task TryLog(IGuild guild, string content, Embed embed)
+        {
+            await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
+            {
+                if (!await designatedChannelService.AnyDesignatedChannelAsync(guild.Id, DesignatedChannelType.MessageLog))
+                {
+                    return;
+                }
+
+                await designatedChannelService
+                .SendToDesignatedChannelsAsync(guild, DesignatedChannelType.MessageLog, content, embed);
+            });
+        }
+
         /// <summary>
         /// Determines whether or not to skip a message event, based on unmoderated channel designations
         /// </summary>
@@ -95,7 +109,7 @@ namespace Modix.Services.Core
 
             if (descriptionText.Length <= 2048)
             {
-                descriptionText += $"\n**Updated**\n```{FormatMessage(updated.Content)}```"; ;
+                descriptionText += $"\n**Updated**\n```{FormatMessage(updated.Content)}```";
             }
 
             var embed = new EmbedBuilder()
@@ -103,12 +117,10 @@ namespace Modix.Services.Core
                 .WithDescription(descriptionText)
                 .WithCurrentTimestamp();
 
-            await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
-            {
-                await designatedChannelService.SendToDesignatedChannelsAsync(
-                    guild, DesignatedChannelType.MessageLog,
-                    $":pencil:Message Edited in {MentionUtils.MentionChannel(channel.Id)}", embed.Build());
-            });
+            await TryLog(
+                guild,
+                $":pencil:Message Edited in {MentionUtils.MentionChannel(channel.Id)}",
+                embed.Build());
         }
 
         private async Task HandleMessageDelete(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
@@ -155,12 +167,10 @@ namespace Modix.Services.Core
 
             await SelfExecuteRequest<IMessageRepository>(async messages => await messages.DeleteAsync(message.Id));
 
-            await SelfExecuteRequest<IDesignatedChannelService>(async designatedChannelService =>
-            {
-                await designatedChannelService.SendToDesignatedChannelsAsync(
-                    guild, DesignatedChannelType.MessageLog,
-                    $":wastebasket:Message Deleted in {MentionUtils.MentionChannel(channel.Id)} `{message.Id}`", embed.Build());
-            });
+            await TryLog(
+                guild,
+                $":wastebasket:Message Deleted in {MentionUtils.MentionChannel(channel.Id)} `{message.Id}`",
+                embed.Build());
         }
 
         private async Task HandleMessageReceived(SocketMessage message)
