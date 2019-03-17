@@ -2,6 +2,7 @@ $default-easing: cubic-bezier(0.165, 0.84, 0.44, 1);
 $default-transition: 1s $default-easing;
 
 $navbar-background-color: $primary;
+$modal-card-head-background-color: $primary;
 $box-shadow: 0 2px 3px rgba($black, 0.1), 0 0 0 1px rgba($black, 0.1) !default;
 
 #app
@@ -53,6 +54,11 @@ a.is-disabled
     .modal-card-head p.modal-card-title
     {
         margin-bottom: 0;
+
+        strong
+        {
+            color: white;
+        }
     }
 }
 

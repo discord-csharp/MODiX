@@ -11,8 +11,8 @@
                         <ul class="menu-list">
                             <li v-for="route in routes" v-bind:key="route.path">
                                 <router-link v-bind:class="{ 'is-disabled': !hasClaimsForRoute(route) }" v-tooltip.right-end="claimsFor(route)"
-                                            v-bind:key="route.routeData.name" v-bind:to="{ 'name': route.routeData.name }" exact-active-class="is-active"
-                                            v-bind:event="!hasClaimsForRoute(route) ? '' : 'click'">
+                                             v-bind:key="route.routeData.name" v-bind:to="{ 'name': route.routeData.name }" active-class="is-active"
+                                             v-bind:event="!hasClaimsForRoute(route) ? '' : 'click'">
                                     {{toTitleCase(route.title)}}
                                 </router-link>
                             </li>

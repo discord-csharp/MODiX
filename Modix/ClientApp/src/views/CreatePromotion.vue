@@ -37,7 +37,7 @@
 
                     <div class="field">
                         <label class="label is-large">They can be promoted to this rank</label>
-                        <span class="role" :style="roleStyle()">{{nextRank}}</span>
+                        <span class="toRole" :style="roleStyle()">{{nextRank}}</span>
                     </div>
 
                     <div class="field">
@@ -65,23 +65,6 @@
 {
     vertical-align: super;
     margin-left: 0.25em;
-}
-
-.role
-{
-    font-size: 14px;
-    font-weight: 400 !important;
-    color: #607d8b;
-    padding: 4px 8px;
-    border: 2px solid #607d8b;
-    border-radius: 3px;
-    position: relative;
-    top: -2px;
-
-    @include mobile() {
-        display: table;
-        margin-top: -0.6em;
-    }
 }
 
 </style>

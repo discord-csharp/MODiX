@@ -24,6 +24,7 @@ using Modix.Services.Csharp;
 using Modix.Services.DocsMaster;
 using Modix.Services.GuildStats;
 using Modix.Services.Mentions;
+using Modix.Services.Messages.Discord;
 using Modix.Services.Moderation;
 using Modix.Services.NotificationDispatch;
 using Modix.Services.PopularityContest;
@@ -116,6 +117,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IBehavior, MessageLinkBehavior>();
             services.AddSingleton<CodePasteHandler>();
             services.AddSingleton<IBehavior, AttachmentBlacklistBehavior>();
+            services.AddScoped<INotificationHandler<ChatMessageReceived>, TagInlineParsingHandler>();
             services.AddSingleton<CodePasteService>();
             services.AddScoped<DocsMasterRetrievalService>();
             services.AddMemoryCache();
