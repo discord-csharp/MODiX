@@ -92,13 +92,15 @@ namespace Modix.Modules
             }
             catch (IOException ex)
             {
-                await ModifyOrSendErrorEmbed("Recieved an invalid response from the REPL service. This is probably due to container exhaustion - try again later." +
-                                                    $"\nDetails: {ex.Message}", message);
+                await ModifyOrSendErrorEmbed("Recieved an invalid response from the REPL service." +
+                                             $"\n\n{Format.Bold("Details:")}\n{ex.Message}", message);
                 return;
             }
             catch (Exception ex)
             {
-                await ModifyOrSendErrorEmbed(ex.Message, message);
+                await ModifyOrSendErrorEmbed("An error occurred while sending a request to the REPL service. " +
+                                             "This is probably due to container exhaustion - try again later." +
+                                             $"\n\n{Format.Bold("Details:")}\n{ex.Message}", message);
                 return;
             }
 
