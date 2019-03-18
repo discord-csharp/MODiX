@@ -73,6 +73,12 @@ namespace Modix.Services.CommandHelp
 
         public async Task ReactionRemoved(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
         {
+            //Bugfix for NRE?
+            if (reaction is null || reaction.User.Value is null)
+            {
+                return;
+            }
+
             //Don't trigger if the emoji is wrong, or if the user is bot
             if (reaction.User.IsSpecified && reaction.User.Value.IsBot)
             {
