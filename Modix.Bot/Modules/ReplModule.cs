@@ -8,11 +8,12 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.Options;
+using Modix.Data.Models.Core;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.Utilities;
 using Newtonsoft.Json;
-using Serilog;
 
 namespace Modix.Modules
 {
@@ -31,7 +32,8 @@ namespace Modix.Modules
     [Name("Repl"), Summary("Execute & demonstrate code snippets.")]
     public class ReplModule : ModuleBase
     {
-        private const string ReplRemoteUrl = "http://csdiscord-repl-service:31337/Eval";
+        private const string DefaultReplRemoteUrl = "http://csdiscord-repl-service:31337/Eval";
+        private readonly string _replUrl;
         private readonly CodePasteService _pasteService;
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
         private readonly IHttpClientFactory _httpClientFactory;
@@ -39,12 +41,14 @@ namespace Modix.Modules
         public ReplModule(
             CodePasteService pasteService,
             IAutoRemoveMessageService autoRemoveMessageService,
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory,
+            IOptions<ModixConfig> modixConfig)
         {
             _pasteService = pasteService;
             _autoRemoveMessageService = autoRemoveMessageService;
             _httpClientFactory = httpClientFactory;
             _pasteService = pasteService;
+            _replUrl = string.IsNullOrWhiteSpace(modixConfig.Value.ReplUrl) ? DefaultReplRemoteUrl : modixConfig.Value.ReplUrl;
         }
 
         [Command("exec"), Alias("eval"), Summary("Executes the given C# code and returns the result.")]
@@ -82,7 +86,7 @@ namespace Modix.Modules
 
                 using (var tokenSrc = new CancellationTokenSource(30000))
                 {
-                    res = await _httpClientFactory.CreateClient().PostAsync(ReplRemoteUrl, content, tokenSrc.Token);
+                    res = await _httpClientFactory.CreateClient().PostAsync(_replUrl, content, tokenSrc.Token);
                 }
             }
             catch (TaskCanceledException)

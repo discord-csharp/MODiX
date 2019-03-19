@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Microsoft.Extensions.Options;
+using Modix.Data.Models.Core;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.Utilities;
@@ -16,7 +18,8 @@ namespace Modix.Modules
     [Name("Decompiler"), Summary("Compile code & view the IL.")]
     public class IlModule : ModuleBase
     {
-        private const string ReplRemoteUrl = "http://csdiscord-repl-service:31337/Il";
+        private const string DefaultIlRemoteUrl = "http://csdiscord-repl-service:31337/Il";
+        private readonly string _ilUrl;
         private readonly CodePasteService _pasteService;
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
         private readonly IHttpClientFactory _httpClientFactory;
@@ -24,11 +27,13 @@ namespace Modix.Modules
         public IlModule(
             CodePasteService pasteService,
             IAutoRemoveMessageService autoRemoveMessageService,
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory,
+            IOptions<ModixConfig> modixConfig)
         {
             _pasteService = pasteService;
             _autoRemoveMessageService = autoRemoveMessageService;
             _httpClientFactory = httpClientFactory;
+            _ilUrl = string.IsNullOrWhiteSpace(modixConfig.Value.IlUrl) ? DefaultIlRemoteUrl : modixConfig.Value.IlUrl;
         }
 
         [Command("il"), Summary("Compile & return the resulting IL of C# code.")]
@@ -61,7 +66,7 @@ namespace Modix.Modules
 
                 using (var tokenSrc = new CancellationTokenSource(30000))
                 {
-                    res = await client.PostAsync(ReplRemoteUrl, content, tokenSrc.Token);
+                    res = await client.PostAsync(_ilUrl, content, tokenSrc.Token);
                 }
             }
             catch (TaskCanceledException)
