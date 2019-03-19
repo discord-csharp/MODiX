@@ -161,6 +161,7 @@ namespace Modix.Modules
                     Array.Reverse(roles); // Reverse the sort: highest positioned role is first
 
                     builder.Append("Role".ToQuantity(roles.Length, ShowQuantityAs.None));
+                    builder.Append(": ");
                     builder.AppendLine(roles.Select(r => r.Mention).Humanize());
                 }
             }
