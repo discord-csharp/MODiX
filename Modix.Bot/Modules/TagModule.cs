@@ -201,9 +201,7 @@ namespace Modix.Bot.Modules
 
             foreach (var tag in orderedTags.Take(tagsToDisplay))
             {
-                builder.AddField(x => x.WithName(tag.Name)
-                                       .WithValue($"{tag.Uses} uses")
-                                       .WithIsInline(true));
+                builder.AddField(tag.Name, $"{tag.Uses} uses", true);
             }
 
             if (tags.Count > tagsToDisplay)
