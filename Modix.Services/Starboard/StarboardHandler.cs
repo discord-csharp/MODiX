@@ -59,12 +59,12 @@ namespace Modix.Services.Starboard
                 return;
             }
 
-            int reactionCount = _service.GetReactionCount(message, emote);
+            int reactionCount = await _service.GetReactionCount(message, emote);
             if (await _service.ExistsOnStarboard(message))
             {
                 if (_service.IsAboveReactionThreshold(reactionCount))
                 {
-                    await _service.ModifyEntry(channel.Guild, message, FormatContent(message, emote), GetEmbedColor(reactionCount));
+                    await _service.ModifyEntry(channel.Guild, message, FormatContent(reactionCount), GetEmbedColor(reactionCount));
                 }
                 else
                 {
@@ -74,7 +74,7 @@ namespace Modix.Services.Starboard
             else if (_service.IsAboveReactionThreshold(reactionCount))
             {
                 var embed = GetStarEmbed(message, GetEmbedColor(reactionCount));
-                await _service.AddToStarboard(channel.Guild, message, FormatContent(message, emote), embed);
+                await _service.AddToStarboard(channel.Guild, message, FormatContent(reactionCount), embed);
             }
         }
 
@@ -92,9 +92,8 @@ namespace Modix.Services.Starboard
             return new Color(r, g, b);
         }
 
-        private string FormatContent(IUserMessage message, IEmote emote)
+        private string FormatContent(int reactionCount)
         {
-            var reactionCount = _service.GetReactionCount(message, emote);
             return $"**{reactionCount}** {_service.GetStarEmote(reactionCount)}";
         }
 
