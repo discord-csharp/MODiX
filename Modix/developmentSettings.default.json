@@ -6,5 +6,7 @@
   "LogWebhookToken": "",
   "DiscordToken": "",
   "StackoverflowToken": "",
-  "MessageCacheSize": ""
+  "MessageCacheSize": "",
+  "ReplUrl": "",
+  "IlUrl":  ""
 }
