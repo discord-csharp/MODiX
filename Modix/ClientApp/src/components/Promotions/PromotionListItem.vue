@@ -224,7 +224,7 @@ export default class PromotionListItem extends ModixComponent
         let roles = this.$store.state.modix.roles as Role[];
         let found = _.find(roles, (role: Role) => role.id == id) as Role;
 
-        return { color: found.fgColor, borderColor: found.fgColor };
+        return { color: found.fgColor };
     }
 
     async expandWithSentiment(sentiment: PromotionSentiment)

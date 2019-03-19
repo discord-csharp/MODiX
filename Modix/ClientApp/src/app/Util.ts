@@ -2,6 +2,7 @@ import * as dateformat from "dateformat";
 import * as _ from 'lodash';
 import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
 import ModixState from '@/models/ModixState';
+import Role from '@/models/Role';
 
 export const formatDate = (date: Date): string =>
 {
@@ -40,6 +41,19 @@ export const parseDiscordContent = (store: ModixState, content: string): string 
 
             return `<span class='channel'>#${_.escape(foundChannel)}</span>`;
         },
-        user: (user: any) => `<span class='userMention'>@${user.id}</span>`
+        user: (user: any) => `<span class='userMention'>@${user.id}</span>`,
+        role: (role: any) =>
+        {
+            let foundRole = store.roles.find(r => r.id == role.id);
+
+            if (foundRole)
+            {
+                return `<span class='role' style='color: ${foundRole.color};'>@${_.escape(foundRole.name)}</span>`;
+            }
+            else
+            {
+                return `<span class='role'>@${_.escape(role.id)}</span>`;
+            }
+        },
     }});
 };

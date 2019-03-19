@@ -57,7 +57,7 @@ $modal-card-body-background-color: $background;
 //Modix Component Overrides
 
 //A little ugly, but makes role colors readable
-.toRole
+:not(.markdownPreview) .toRole
 {
     background: $color !important;
 }

@@ -123,13 +123,13 @@ namespace Modix.Bot.Modules
         }
 
         [Command("all")]
-        [Alias("list all")]
+        [Alias("list all", "")]
         [Summary("Lists all tags available in the current guild.")]
         public async Task ListAllAsync()
         {
             var tags = await TagService.GetSummariesAsync(new TagSearchCriteria()
             {
-                GuildId = Context.Guild.Id,
+                GuildId = Context.Guild.Id
             });
 
             var embed = await BuildEmbedAsync(tags, ownerGuild: Context.Guild);
@@ -197,47 +197,24 @@ namespace Modix.Bot.Modules
                 .WithTimestamp(DateTimeOffset.Now)
                 .WithTitle("Tags");
 
-            const int tagsToDisplay = 5;
+            const int tagsToDisplay = 6;
 
             foreach (var tag in orderedTags.Take(tagsToDisplay))
             {
                 builder.AddField(x => x.WithName(tag.Name)
-                                       .WithValue($"{tag.Uses} uses"));
+                                       .WithValue($"{tag.Uses} uses")
+                                       .WithIsInline(true));
             }
 
             if (tags.Count > tagsToDisplay)
             {
-                var pasteContent = BuildPaste(orderedTags);
-
                 var fieldName = $"and {tags.Count - tagsToDisplay} more";
 
-                try
-                {
-                    var pasteLink = await CodePasteService.UploadCodeAsync(pasteContent, "txt");
-
-                    builder.AddField(x => x.WithName(fieldName)
-                                           .WithValue($"[View at {pasteLink}]({pasteLink})"));
-                }
-                catch (WebException ex)
-                {
-                    builder.AddField(x => x.WithName(fieldName)
-                                           .WithValue(ex.Message));
-                }
+                builder.AddField(x => x.WithName(fieldName)
+                                       .WithValue($"View at https://mod.gg/tags"));
             }
 
             return builder.Build();
-        }
-
-        private string BuildPaste(IOrderedEnumerable<TagSummary> tags)
-        {
-            var builder = new StringBuilder();
-
-            foreach (var tag in tags)
-            {
-                builder.AppendLine($"{tag.Name} ({tag.Uses} uses)");
-            }
-
-            return builder.ToString();
         }
     }
 }

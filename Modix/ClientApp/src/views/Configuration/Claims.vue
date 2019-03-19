@@ -108,6 +108,7 @@ import TriStateCheckbox from '@/components/TriStateCheckbox.vue';
 import ConfigurationService from '@/services/ConfigurationService';
 import ClaimMapping, { ClaimMappingType, MappingTypeFromBoolean } from '@/models/ClaimMapping';
 import Claim from '@/models/Claim';
+import ModixComponent from '@/components/ModixComponent.vue';
 
 @Component({
     components:
@@ -116,7 +117,7 @@ import Claim from '@/models/Claim';
         TriStateCheckbox
     },
 })
-export default class Claims extends Vue
+export default class Claims extends ModixComponent
 {
     allRoles: Role[] = [];
     selectedRole: Role | null = null;
@@ -169,7 +170,7 @@ export default class Claims extends Vue
     {
         if (role == this.selectedRole)
         {
-            return { color: role.fgColor, borderColor: role.fgColor };
+            return { color: role.fgColor };
         }
 
         return {};
@@ -187,18 +188,19 @@ export default class Claims extends Vue
         return _.filter(this.mappedClaims, (claim: ClaimMapping) => claim.isUserMapping);
     }
 
-    async created()
+    async refresh()
     {
         await store.retrieveClaims();
         await store.retrieveRoles();
         this.mappedClaims = await ConfigurationService.getMappedClaims();
 
-        this.allRoles = _.orderBy(this.$store.state.modix.roles, role => role.name);
+        this.allRoles = _.orderBy(this.state.roles, r => r.name);
+        this.selectedRole = this.allRoles[0];
+    }
 
-        if (this.selectedRole == null)
-        {
-            this.selectedRole = this.allRoles[0];
-        }
+    async mounted()
+    {
+        await this.refresh();
     }
 
     async claimChanged(key: string, newValue: boolean | null)

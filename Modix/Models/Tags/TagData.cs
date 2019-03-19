@@ -1,4 +1,5 @@
 ﻿using System;
+using Modix.Data.Models.Core;
 using Modix.Data.Models.Tags;
 
 namespace Modix.Models.Tags
@@ -11,9 +12,9 @@ namespace Modix.Models.Tags
 
         public bool IsOwnedByRole { get; set; }
 
-        public string OwnerName { get; set; }
+        public GuildUserBrief OwnerUser { get; set; }
 
-        public string OwnerColor { get; set; }
+        public GuildRoleBrief OwnerRole { get; set; }
 
         public string Content { get; set; }
 

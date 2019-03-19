@@ -48,7 +48,8 @@ $transition: all 0.33s cubic-bezier(0.23, 1, 0.32, 1);
     font-weight: 400 !important;
     padding: 4px 8px;
 
-    border: 2px solid black;
+    border: 2px solid currentColor;
+    border-color: currentColor !important;
     border-radius: 3px;
 
     @include mobile()

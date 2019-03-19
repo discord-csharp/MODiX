@@ -19,14 +19,14 @@ export enum CampaignOutcome
     Failed = "Failed"
 }
 
-export const SentimentIcons: {[sentiment in PromotionSentiment]: string} = 
+export const SentimentIcons: {[sentiment in PromotionSentiment]: string} =
 {
     "Approve": "&#128077;",
     "Oppose": "&#128078;",
     "Abstain": "&#128528;"
 }
 
-export const StatusIcons: {[sentiment in CampaignOutcome]: string} = 
+export const StatusIcons: {[sentiment in CampaignOutcome]: string} =
 {
     "Accepted": "&#10004;",
     "Rejected": "&#10060;",
@@ -38,12 +38,12 @@ export default class PromotionCampaign
     id:              number = 0;
     guildId:         string = '';
     subject?:        GuildUserIdentity;
-    targetRole?:     TargetRole;
+    targetRole?:     GuildRoleBrief;
     createAction?:   PromotionAction;
     outcome:         CampaignOutcome = CampaignOutcome.Failed;
     closeAction?:    PromotionAction;
-    
-    commentCounts: {[sentiment in PromotionSentiment]: number} = 
+
+    commentCounts: {[sentiment in PromotionSentiment]: number} =
     {
         "Abstain": 0,
         "Approve": 0,
@@ -90,7 +90,7 @@ export interface PromotionSubject
     displayName:   string;
 }
 
-export interface TargetRole
+export interface GuildRoleBrief
 {
     id:       string;
     name:     string;

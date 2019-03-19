@@ -61,10 +61,11 @@ import TagService from '@/services/TagService';
 import TagCreationData from '../../models/Tags/TagCreationData';
 import TagMutationData from '../../models/Tags/TagMutationData';
 import ModixComponent from '@/components/ModixComponent.vue';
+import { GuildRoleBrief } from '@/models/promotions/PromotionCampaign';
 
-const messageResolvingRegex = /<#(\d+)>/gm;
+type TagOwner = GuildUserIdentity & GuildRoleBrief;
 
-const guildUserFilter = (subject: GuildUserIdentity, filter: string) =>
+const guildUserFilter = (subject: TagOwner, filter: string) =>
 {
     filter = _.lowerCase(filter);
 
@@ -72,7 +73,7 @@ const guildUserFilter = (subject: GuildUserIdentity, filter: string) =>
         _.lowerCase(subject.displayName).indexOf(filter) >= 0;
 };
 
-const guildUserSort = (x: GuildUserIdentity, y: GuildUserIdentity, col: any, rowX: any, rowY: any) =>
+const guildUserSort = (x: TagOwner, y: TagOwner, col: any, rowX: any, rowY: any) =>
 {
     return (x.id < y.id ? -1 : (x.id > y.id ? 1 : 0));
 };
@@ -142,14 +143,17 @@ export default class Tags extends ModixComponent
             {
                 label: 'Owner',
                 field: 'owner',
+                type: 'date',
                 sortFn: guildUserSort,
+                formatFn: this.formatTagOwner,
+                html: true,
                 filterOptions:
                 {
                      enabled: true,
                      filterFn: guildUserFilter,
                      filterValue: this.staticFilters["owner"],
                      placeholder: "Filter"
-                },
+                }
             },
             {
                 label: 'Content',
@@ -182,13 +186,28 @@ export default class Tags extends ModixComponent
         ({
             name: tag.name,
             date: tag.created,
-            owner: tag.ownerName,
+            owner: (tag.ownerRole != null ? tag.ownerRole : tag.ownerUser),
             content: tag.content,
             uses: tag.uses,
             isOwnedByRole: tag.isOwnedByRole,
-            ownerColor: tag.ownerColor,
             canMaintain: tag.canMaintain,
         }));
+    }
+
+    formatTagOwner(owner: TagOwner)
+    {
+        let mention = "";
+
+        if (owner.position != undefined) //is a role
+        {
+            mention = `<@&${owner.id}>`;
+        }
+        else //is a user
+        {
+            mention = `${owner.displayName}`;
+        }
+
+        return this.parseDiscordContent(mention);
     }
 
     async refresh()
@@ -264,6 +283,7 @@ export default class Tags extends ModixComponent
 
     async mounted()
     {
+        await store.retrieveRoles();
         await this.refresh();
     }
 }
