@@ -32,8 +32,13 @@ namespace Modix.Modules
     [Name("Repl"), Summary("Execute & demonstrate code snippets.")]
     public class ReplModule : ModuleBase
     {
+        // 1024 is the maximum field embed size
+        // minus 3 for the start codeblocks
+        // minus 3 for the end codeblocks
+        // THIS LIMIT IS NOT ARBITRARY
+        private const int MaxReplSize = 1_024 - 3 - 3;
+        
         private const string DefaultReplRemoteUrl = "http://csdiscord-repl-service:31337/Eval";
-        private const int MaxReplSize = 5_000;
         private readonly string _replUrl;
         private readonly CodePasteService _pasteService;
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
