@@ -33,6 +33,7 @@ namespace Modix.Modules
     public class ReplModule : ModuleBase
     {
         private const string DefaultReplRemoteUrl = "http://csdiscord-repl-service:31337/Eval";
+        private const int MaxReplSize = 5_000;
         private readonly string _replUrl;
         private readonly CodePasteService _pasteService;
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
@@ -63,9 +64,9 @@ namespace Modix.Modules
                 return;
             }
 
-            if (code.Length > 1000)
+            if (code.Length > MaxReplSize)
             {
-                await ModifyOrSendErrorEmbed("Code to execute cannot be longer than 1000 characters.");
+                await ModifyOrSendErrorEmbed($"Code to execute cannot be longer than {MaxReplSize} characters.");
                 return;
             }
 
