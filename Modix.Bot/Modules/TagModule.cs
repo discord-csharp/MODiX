@@ -92,7 +92,8 @@ namespace Modix.Bot.Modules
             await Context.AddConfirmation();
         }
 
-        [Command("list")]
+        [Command("ownedby")]
+        [Alias("ownedby me")]
         [Summary("Lists all tags owned by the supplied user.")]
         public async Task ListAsync(
             [Summary("The user whose tags are to be retrieved. If left blank, the current user.")]
@@ -109,7 +110,7 @@ namespace Modix.Bot.Modules
             await ReplyAsync(embed: embed);
         }
 
-        [Command("list")]
+        [Command("ownedby")]
         [Summary("Lists all tags owned by the supplied role.")]
         public async Task ListAsync(
             [Summary("The role whose tags are to be retrieved.")]
@@ -123,7 +124,7 @@ namespace Modix.Bot.Modules
         }
 
         [Command("all")]
-        [Alias("list all", "")]
+        [Alias("list", "")]
         [Summary("Lists all tags available in the current guild.")]
         public async Task ListAllAsync()
         {
@@ -179,7 +180,9 @@ namespace Modix.Bot.Modules
 
         private async Task<Embed> BuildEmbedAsync(IReadOnlyCollection<TagSummary> tags, IUser ownerUser = null, IGuild ownerGuild = null, IRole ownerRole = null)
         {
-            var orderedTags = tags.OrderBy(x => x.Name);
+            var orderedTags = tags
+                .OrderByDescending(x => x.Uses)
+                .ThenBy(x => x.Name);
 
             var ownerName = ownerUser?.Username
                 ?? ownerGuild?.Name
@@ -194,7 +197,7 @@ namespace Modix.Bot.Modules
                 .WithAuthor(ownerName, ownerImage)
                 .WithColor(Color.DarkPurple)
                 .WithDescription(tags.Count > 0 ? null : "No tags.")
-                .WithTimestamp(DateTimeOffset.Now)
+                .WithFooter("Use tags with \"!tag name\", or inline with \"$name\"")
                 .WithTitle("Tags");
 
             const int tagsToDisplay = 6;
