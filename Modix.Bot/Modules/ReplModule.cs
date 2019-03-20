@@ -35,8 +35,11 @@ namespace Modix.Modules
         // 1024 is the maximum field embed size
         // minus 3 for the start codeblocks
         // minus 3 for the end codeblocks
+        // minus 1 for the first newline after the ```cs
+        // minus 2 for 'cs'
+        // minus 1 for the next newline after the code
         // THIS LIMIT IS NOT ARBITRARY
-        private const int MaxReplSize = 1_024 - 3 - 3;
+        private const int MaxReplSize = 1_024 - 3 - 3 - 1 - 2 - 1;
         
         private const string DefaultReplRemoteUrl = "http://csdiscord-repl-service:31337/Eval";
         private readonly string _replUrl;
