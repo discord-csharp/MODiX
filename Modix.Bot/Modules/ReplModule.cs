@@ -32,6 +32,12 @@ namespace Modix.Modules
     [Name("Repl"), Summary("Execute & demonstrate code snippets.")]
     public class ReplModule : ModuleBase
     {
+        // 1024 is the maximum field embed size
+        // minus 3 for the start codeblocks
+        // minus 3 for the end codeblocks
+        // THIS LIMIT IS NOT ARBITRARY
+        private const int MaxReplSize = 1_024 - 3 - 3;
+        
         private const string DefaultReplRemoteUrl = "http://csdiscord-repl-service:31337/Eval";
         private readonly string _replUrl;
         private readonly CodePasteService _pasteService;
@@ -63,9 +69,9 @@ namespace Modix.Modules
                 return;
             }
 
-            if (code.Length > 1000)
+            if (code.Length > MaxReplSize)
             {
-                await ModifyOrSendErrorEmbed("Code to execute cannot be longer than 1000 characters.");
+                await ModifyOrSendErrorEmbed($"Code to execute cannot be longer than {MaxReplSize} characters.");
                 return;
             }
 
