@@ -26,7 +26,7 @@ export default class UserSearch extends ModixComponent
     @Watch('userId')
     async computeInputClass(): Promise<void>
     {
-        if (this.userId == null || this.userId.length == 0)
+        if (!this.userId || this.userId.length == 0)
         {
             this.inputClass = 'input';
             return;
@@ -34,7 +34,7 @@ export default class UserSearch extends ModixComponent
 
         let user = await UserService.getUserInformation(this.userId);
 
-        if (!user || user.id <= 0)
+        if (!user)
         {
             this.inputClass = 'input is-danger';
         }
@@ -42,7 +42,6 @@ export default class UserSearch extends ModixComponent
         {
             this.inputClass = 'input is-success';
         }
-
 
         this.$emit('userSelected', user);
     }

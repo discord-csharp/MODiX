@@ -2,39 +2,39 @@ import Role from './Role';
 
 export default class EphemeralUser
 {
-    id: number = 0;
+    id!: string;
 
-    username: string = "";
+    username!: string;
 
-    nickname: string = "";
+    nickname!: string;
 
-    discriminator: string = "";
+    discriminator!: string;
 
-    avatarUrl: string = "";
+    avatarUrl!: string;
 
-    status: string = "";
+    status!: string;
 
-    createdAt: Date = new Date();
+    createdAt!: Date;
 
-    joinedAt: Date = new Date();
+    joinedAt!: Date;
 
-    firstSeen: Date = new Date();
+    firstSeen!: Date;
 
-    lastSeen: Date = new Date();
+    lastSeen!: Date;
 
-    rank: number = 0;
+    rank!: number;
 
-    last7DaysMessages: number = 0;
+    last7DaysMessages!: number;
 
-    last30DaysMessages: number = 0;
+    last30DaysMessages!: number;
 
-    averageMessagesPerDay: number = 0;
+    averageMessagesPerDay!: number;
 
-    percentile: number = 0;
+    percentile!: number;
 
-    roles: Role[] = [];
+    roles!: Role[];
 
-    isBanned: boolean = false;
+    isBanned!: boolean;
 
-    banReason: string = "";
+    banReason!: string;
 }

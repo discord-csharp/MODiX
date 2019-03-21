@@ -50,7 +50,7 @@ namespace Modix.Controllers
 
             var mapped = new
             {
-                Id = userInformation.Id,
+                Id = userInformation.Id.ToString(),
                 Username = userInformation.Username,
                 Nickname = userInformation.Nickname,
                 Discriminator = userInformation.Discriminator,
