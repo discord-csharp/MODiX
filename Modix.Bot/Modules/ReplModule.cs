@@ -35,8 +35,11 @@ namespace Modix.Modules
         // 1024 is the maximum field embed size
         // minus 3 for the start codeblocks
         // minus 3 for the end codeblocks
+        // minus 1 for the first newline after the ```cs
+        // minus 2 for 'cs'
+        // minus 1 for the next newline after the code
         // THIS LIMIT IS NOT ARBITRARY
-        private const int MaxReplSize = 1_024 - 3 - 3;
+        private const int MaxReplSize = 1_024 - 3 - 3 - 1 - 2 - 1;
         
         private const string DefaultReplRemoteUrl = "http://csdiscord-repl-service:31337/Eval";
         private readonly string _replUrl;
@@ -175,23 +178,23 @@ namespace Modix.Modules
             if (parsedResult.ReturnValue != null)
             {
                 embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnTypeName ?? "null"}")
-                                     .WithValue(Format.Code($"{returnValue.TruncateTo(1000)}", "json")));
-                await embed.UploadToServiceIfBiggerThan(returnValue, "json", 1000, _pasteService);
+                                     .WithValue(Format.Code($"{returnValue.TruncateTo(MaxReplSize)}", "json")));
+                await embed.UploadToServiceIfBiggerThan(returnValue, "json", MaxReplSize, _pasteService);
             }
 
             if (!string.IsNullOrWhiteSpace(consoleOut))
             {
                 embed.AddField(a => a.WithName("Console Output")
-                                     .WithValue(Format.Code(consoleOut.TruncateTo(1000), "txt")));
-                await embed.UploadToServiceIfBiggerThan(consoleOut, "txt", 1000, _pasteService);
+                                     .WithValue(Format.Code(consoleOut.TruncateTo(MaxReplSize), "txt")));
+                await embed.UploadToServiceIfBiggerThan(consoleOut, "txt", MaxReplSize, _pasteService);
             }
 
             if (!string.IsNullOrWhiteSpace(parsedResult.Exception))
             {
                 var diffFormatted = Regex.Replace(parsedResult.Exception, "^", "- ", RegexOptions.Multiline);
                 embed.AddField(a => a.WithName($"Exception: {parsedResult.ExceptionType}")
-                                     .WithValue(Format.Code(diffFormatted.TruncateTo(1000), "diff")));
-                await embed.UploadToServiceIfBiggerThan(diffFormatted, "diff", 1000, _pasteService);
+                                     .WithValue(Format.Code(diffFormatted.TruncateTo(MaxReplSize), "diff")));
+                await embed.UploadToServiceIfBiggerThan(diffFormatted, "diff", MaxReplSize, _pasteService);
             }
 
             return embed;
