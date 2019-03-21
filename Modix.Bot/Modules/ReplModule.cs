@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -32,15 +32,11 @@ namespace Modix.Modules
     [Name("Repl"), Summary("Execute & demonstrate code snippets.")]
     public class ReplModule : ModuleBase
     {
-        // 1024 is the maximum field embed size
-        // minus 3 for the start codeblocks
-        // minus 3 for the end codeblocks
-        // minus 1 for the first newline after the ```cs
-        // minus 2 for 'cs'
-        // minus 1 for the next newline after the code
-        // THIS LIMIT IS NOT ARBITRARY
-        private const int MaxReplSize = 1_024 - 3 - 3 - 1 - 2 - 1;
-        
+        // 1000 is the maximum field embed size
+        // THIS LIMIT IS SOMEWHAT ARBITRARY
+        private const int MaxReplSize = 1000;
+        private const int MaxInputCodeSize = MaxReplSize * 2;
+
         private const string DefaultReplRemoteUrl = "http://csdiscord-repl-service:31337/Eval";
         private readonly string _replUrl;
         private readonly CodePasteService _pasteService;
@@ -72,9 +68,9 @@ namespace Modix.Modules
                 return;
             }
 
-            if (code.Length > MaxReplSize)
+            if (code.Length > MaxInputCodeSize)
             {
-                await ModifyOrSendErrorEmbed($"Code to execute cannot be longer than {MaxReplSize} characters.");
+                await ModifyOrSendErrorEmbed($"Code to execute cannot be longer than {MaxInputCodeSize} characters.");
                 return;
             }
 
