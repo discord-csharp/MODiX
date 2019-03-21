@@ -138,7 +138,7 @@ namespace Modix.Services.Promotions
             if (!TryGetNextRankRoleForUser(subjectId, rankRoles, subject, out var nextRankRole, out var message))
                 throw new InvalidOperationException(message);
 
-            await PerformCommonCreateCampaignValidationsAsync(subject.Id, subject, nextRankRole.Id, nextRankRole, rankRoles);
+            await PerformCommonCreateCampaignValidationsAsync(subject, nextRankRole, rankRoles);
 
             var proposedPromotionCampaign = new ProposedPromotionCampaignBrief
             {
@@ -438,19 +438,18 @@ namespace Modix.Services.Promotions
             }
         }
 
-        private async Task PerformCommonCreateCampaignValidationsAsync(
-            ulong subjectId, IGuildUser subject, ulong targetRankRoleId, GuildRoleBrief targetRankRole, IEnumerable<GuildRoleBrief> rankRoles)
+        private async Task PerformCommonCreateCampaignValidationsAsync(IGuildUser subject, GuildRoleBrief targetRankRole, IEnumerable<GuildRoleBrief> rankRoles)
         {
             if (await PromotionCampaignRepository.AnyAsync(new PromotionCampaignSearchCriteria()
             {
                 GuildId = AuthorizationService.CurrentGuildId.Value,
-                SubjectId = subjectId,
-                TargetRoleId = targetRankRoleId,
+                SubjectId = subject.Id,
+                TargetRoleId = targetRankRole.Id,
                 IsClosed = false
             }))
                 throw new InvalidOperationException($"An active campaign already exists for {subject.GetDisplayNameWithDiscriminator()} to be promoted to {targetRankRole.Name}");
 
-            if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value, targetRankRoleId))
+            if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value, targetRankRole.Id))
                 throw new InvalidOperationException($"Creating a promotion campaign requires a rank at least as high as the proposed target rank");
         }
 
