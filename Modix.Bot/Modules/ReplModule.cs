@@ -176,10 +176,11 @@ namespace Modix.Modules
             embed.AddField(a => a.WithName("Code").WithValue(Format.Code(parsedResult.Code, "cs")));
 
             // in the following code, 'size' is - 2 (minus 'cs') and then added with however long the embed type is
+            // TODO: this is a lot of repeated code
             if (parsedResult.ReturnValue != null)
             {
                 const string embedType = "json";
-                var size = MaxReplSize - 2 + embedType.Length;
+                var size = MaxReplSize + 2 - embedType.Length;
                 embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnTypeName ?? "null"}")
                                      .WithValue(Format.Code($"{returnValue.TruncateTo(size)}", embedType)));
                 await embed.UploadToServiceIfBiggerThan(returnValue, embedType, size, _pasteService);
@@ -188,7 +189,7 @@ namespace Modix.Modules
             if (!string.IsNullOrWhiteSpace(consoleOut))
             {
                 const string embedType = "txt";
-                var size = MaxReplSize - 2 + embedType.Length;
+                var size = MaxReplSize + 2 - embedType.Length;
                 embed.AddField(a => a.WithName("Console Output")
                                      .WithValue(Format.Code(consoleOut.TruncateTo(size), embedType)));
                 await embed.UploadToServiceIfBiggerThan(consoleOut, embedType, size, _pasteService);
@@ -197,7 +198,7 @@ namespace Modix.Modules
             if (!string.IsNullOrWhiteSpace(parsedResult.Exception))
             {
                 const string embedType = "diff";
-                var size = MaxReplSize - 2 + embedType.Length;
+                var size = MaxReplSize + 2 - embedType.Length;
                 var diffFormatted = Regex.Replace(parsedResult.Exception, "^", "- ", RegexOptions.Multiline);
                 embed.AddField(a => a.WithName($"Exception: {parsedResult.ExceptionType}")
                                      .WithValue(Format.Code(diffFormatted.TruncateTo(size), embedType)));
