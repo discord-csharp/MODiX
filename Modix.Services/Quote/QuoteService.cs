@@ -64,8 +64,8 @@ namespace Modix.Services.Quote
                 return;
             }
 
-            var msg = await callback.Invoke(embed);
-            await _autoRemoveMessageService.RegisterRemovableMessageAsync(msg, executingUser, embed);
+            await _autoRemoveMessageService.RegisterRemovableMessageAsync(executingUser, embed,
+                async (e) => await callback.Invoke(e));
         }
 
         private bool TryAddImageAttachment(IMessage message, ref EmbedBuilder embed)

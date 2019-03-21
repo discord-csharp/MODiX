@@ -105,7 +105,7 @@ namespace Modix.Bot.Modules
 
             var user = await UserService.GetUserInformationAsync(Context.Guild.Id, userId);
 
-            var embed = await BuildEmbedAsync(tags, ownerUser: user);
+            var embed = BuildEmbed(tags, ownerUser: user);
 
             await ReplyAsync(embed: embed);
         }
@@ -118,7 +118,7 @@ namespace Modix.Bot.Modules
         {
             var tags = await TagService.GetTagsOwnedByRoleAsync(Context.Guild.Id, role.Id);
 
-            var embed = await BuildEmbedAsync(tags, ownerRole: role);
+            var embed = BuildEmbed(tags, ownerRole: role);
 
             await ReplyAsync(embed: embed);
         }
@@ -133,7 +133,7 @@ namespace Modix.Bot.Modules
                 GuildId = Context.Guild.Id
             });
 
-            var embed = await BuildEmbedAsync(tags, ownerGuild: Context.Guild);
+            var embed = BuildEmbed(tags, ownerGuild: Context.Guild);
 
             await ReplyAsync(embed: embed);
         }
@@ -178,7 +178,7 @@ namespace Modix.Bot.Modules
             await ReplyAsync(embed: embed.Build());
         }
 
-        private async Task<Embed> BuildEmbedAsync(IReadOnlyCollection<TagSummary> tags, IUser ownerUser = null, IGuild ownerGuild = null, IRole ownerRole = null)
+        private Embed BuildEmbed(IReadOnlyCollection<TagSummary> tags, IUser ownerUser = null, IGuild ownerGuild = null, IRole ownerRole = null)
         {
             var orderedTags = tags
                 .OrderByDescending(x => x.Uses)

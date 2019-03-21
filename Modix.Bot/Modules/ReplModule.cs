@@ -127,12 +127,14 @@ namespace Modix.Modules
 
             var embed = await BuildEmbedAsync(guildUser, parsedResult);
 
-            await _autoRemoveMessageService.RegisterRemovableMessageAsync(message, Context.User, embed);
-
-            await message.ModifyAsync(a =>
+            await _autoRemoveMessageService.RegisterRemovableMessageAsync(Context.User, embed, async (e) =>
             {
-                a.Content = string.Empty;
-                a.Embed = embed.Build();
+                await message.ModifyAsync(a =>
+                {
+                    a.Content = string.Empty;
+                    a.Embed = e.Build();
+                });
+                return message;
             });
 
             await Context.Message.DeleteAsync();

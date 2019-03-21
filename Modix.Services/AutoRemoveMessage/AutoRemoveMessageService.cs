@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Discord;
 using Modix.Services.Messages.Modix;
 using Modix.Services.NotificationDispatch;
@@ -18,7 +19,7 @@ namespace Modix.Services.AutoRemoveMessage
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation completes.
         /// </returns>
-        Task<EmbedBuilder> RegisterRemovableMessageAsync(IMessage message, IUser user, EmbedBuilder embed);
+        Task RegisterRemovableMessageAsync(IUser user, EmbedBuilder embed, Func<EmbedBuilder, Task<IUserMessage>> callback);
 
         /// <summary>
         /// Unregisters a removable message from the service.
@@ -41,15 +42,9 @@ namespace Modix.Services.AutoRemoveMessage
         }
 
         /// <inheritdoc />
-        public async Task<EmbedBuilder> RegisterRemovableMessageAsync(IMessage message, IUser user, EmbedBuilder embed)
+        public async Task RegisterRemovableMessageAsync(IUser user, EmbedBuilder embed, Func<EmbedBuilder, Task<IUserMessage>> callback)
         {
-            await NotificationDispatchService.PublishScopedAsync(new RemovableMessageSent()
-            {
-                Message = message,
-                User = user,
-            });
-
-            if(embed.Footer != null)
+            if (embed.Footer != null)
             {
                 embed.Footer.Text += $" | {_footerReactMessage}";
             }
@@ -57,7 +52,17 @@ namespace Modix.Services.AutoRemoveMessage
             {
                 embed.WithFooter(_footerReactMessage);
             }
-            return embed;
+
+            if (callback == null)
+                return;
+
+            var msg = await callback.Invoke(embed);
+
+            await NotificationDispatchService.PublishScopedAsync(new RemovableMessageSent()
+            {
+                Message = msg,
+                User = user,
+            });
         }
 
         /// <inheritdoc />
