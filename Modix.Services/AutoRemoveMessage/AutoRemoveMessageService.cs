@@ -44,17 +44,17 @@ namespace Modix.Services.AutoRemoveMessage
         /// <inheritdoc />
         public async Task RegisterRemovableMessageAsync(IUser user, EmbedBuilder embed, Func<EmbedBuilder, Task<IUserMessage>> callback)
         {
-            if (embed.Footer != null)
-            {
-                embed.Footer.Text += $" | {_footerReactMessage}";
-            }
-            else
+            if (callback == null)
+                return;
+
+            if (embed.Footer == null)
             {
                 embed.WithFooter(_footerReactMessage);
             }
-
-            if (callback == null)
-                return;
+            else if (!embed.Footer.Text.Contains(_footerReactMessage))
+            {
+                embed.Footer.Text += $" | {_footerReactMessage}";
+            }
 
             var msg = await callback.Invoke(embed);
 
