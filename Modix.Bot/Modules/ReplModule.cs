@@ -175,7 +175,8 @@ namespace Modix.Modules
 
             embed.AddField(a => a.WithName("Code").WithValue(Format.Code(parsedResult.Code, "cs")));
 
-            // in the following code, 'size' is - 2 (minus 'cs') and then added with however long the embed type is
+            // in the following code, we add 2 to the size to undo the effect of 'cs' in MaxReplSize
+            // and subtract the embedType length so that we don't write anything over that size
             // TODO: this is a lot of repeated code
             if (parsedResult.ReturnValue != null)
             {
