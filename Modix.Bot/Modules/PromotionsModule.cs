@@ -9,6 +9,7 @@ using Modix.Bot.Extensions;
 using Modix.Data.Models.Promotions;
 using Modix.Data.Utilities;
 using Modix.Services.Promotions;
+using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
@@ -74,7 +75,7 @@ namespace Modix.Modules
                 string comment)
             => await PromotionsService.CreateCampaignAsync(subject.Id, comment,
                 c => Context.GetUserConfirmationAsync(
-                    $"You are nominating user {subject.Id} for promotion to rank {c.TargetRankRole.Name}.{Environment.NewLine}"));
+                    $"You are nominating {subject.GetDisplayNameWithDiscriminator()} ({subject.Id}) for promotion to {c.TargetRankRole.Name}.{Environment.NewLine}"));
 
         [Command("comment")]
         [Summary("Comment on an ongoing campaign to promote a user.")]

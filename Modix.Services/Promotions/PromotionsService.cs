@@ -8,8 +8,8 @@ using Discord;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
 using Modix.Data.Repositories;
-
 using Modix.Services.Core;
+using Modix.Services.Utilities;
 
 namespace Modix.Services.Promotions
 {
@@ -138,7 +138,7 @@ namespace Modix.Services.Promotions
             if (!TryGetNextRankRoleForUser(subjectId, rankRoles, subject, out var nextRankRole, out var message))
                 throw new InvalidOperationException(message);
 
-            await PerformCommonCreateCampaignValidationsAsync(subject.Id, nextRankRole.Id, rankRoles);
+            await PerformCommonCreateCampaignValidationsAsync(subject, nextRankRole, rankRoles);
 
             var proposedPromotionCampaign = new ProposedPromotionCampaignBrief
             {
@@ -438,18 +438,18 @@ namespace Modix.Services.Promotions
             }
         }
 
-        private async Task PerformCommonCreateCampaignValidationsAsync(ulong subjectId, ulong targetRankRoleId, IEnumerable<GuildRoleBrief> rankRoles)
+        private async Task PerformCommonCreateCampaignValidationsAsync(IGuildUser subject, GuildRoleBrief targetRankRole, IEnumerable<GuildRoleBrief> rankRoles)
         {
             if (await PromotionCampaignRepository.AnyAsync(new PromotionCampaignSearchCriteria()
             {
                 GuildId = AuthorizationService.CurrentGuildId.Value,
-                SubjectId = subjectId,
-                TargetRoleId = targetRankRoleId,
+                SubjectId = subject.Id,
+                TargetRoleId = targetRankRole.Id,
                 IsClosed = false
             }))
-                throw new InvalidOperationException($"An active campaign already exists for user {subjectId} to be promoted to {targetRankRoleId}");
+                throw new InvalidOperationException($"An active campaign already exists for {subject.GetDisplayNameWithDiscriminator()} to be promoted to {targetRankRole.Name}");
 
-            if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value, targetRankRoleId))
+            if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value, targetRankRole.Id))
                 throw new InvalidOperationException($"Creating a promotion campaign requires a rank at least as high as the proposed target rank");
         }
 
@@ -480,7 +480,7 @@ namespace Modix.Services.Promotions
 
                 if (nextRankRole is null)
                 {
-                    message = $"There are no rank roles available for user {subjectId} to be promoted to.";
+                    message = $"There are no rank roles available for {subject.GetDisplayNameWithDiscriminator()} to be promoted to.";
                     return false;
                 }
                 else
