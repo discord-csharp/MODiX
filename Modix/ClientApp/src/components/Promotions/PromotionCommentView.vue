@@ -5,7 +5,7 @@
         <span class="commentBody">
             {{comment.content}} <span class="date">{{formatDate(comment.createAction.created)}}</span>
         </span>
-        <span class="button is-link edit" :style="{'margin-left': '0.33em'}" v-if="comment.isFromCurrentUser && !hidden" v-on:click="$emit('comment-edit-modal-opened', comment)">Edit</span>
+        <span class="button is-link edit" v-if="comment.isFromCurrentUser && !hidden" v-on:click="$emit('comment-edit-modal-opened', comment)">Edit</span>
 
     </div>
 
