@@ -50,7 +50,7 @@ namespace Modix.Services.AutoRemoveMessage
             if (callback == null)
                 throw new ArgumentNullException(nameof(callback));
 
-            if (embed.Footer == null)
+            if (embed.Footer?.Text == null)
             {
                 embed.WithFooter(_footerReactMessage);
             }
