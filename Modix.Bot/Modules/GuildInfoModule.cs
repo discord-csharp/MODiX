@@ -10,7 +10,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Humanizer;
-using Modix.Data.Models.Reactions;
+using Modix.Data.Models.Emoji;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
@@ -25,7 +25,7 @@ namespace Modix.Modules
         public GuildInfoModule(
             IGuildService guildService,
             IMessageRepository messageRepository,
-            IReactionRepository reactionRepository,
+            IEmojiRepository reactionRepository,
             IHttpClientFactory httpClientFactory)
         {
             GuildService = guildService;
@@ -38,7 +38,7 @@ namespace Modix.Modules
 
         private IMessageRepository MessageRepository { get; }
 
-        private IReactionRepository ReactionRepository { get; }
+        private IEmojiRepository ReactionRepository { get; }
 
         private IHttpClientFactory HttpClientFactory { get; }
 
@@ -140,7 +140,7 @@ namespace Modix.Modules
                 .AppendLine($"Avg. per day: {"message".ToQuantity(monthTotal / 30, "n0")}")
                 .AppendLine($"Most active channel: {MentionUtils.MentionChannel(mostActiveChannel.Key)} ({"message".ToQuantity(mostActiveChannel.Value, "n0")} in 30 days)");
 
-            var emojiCounts = await ReactionRepository.GetCounts(new ReactionSearchCriteria()
+            var emojiCounts = await ReactionRepository.GetCounts(new EmojiSearchCriteria()
             {
                 GuildId = Context.Guild.Id,
             });

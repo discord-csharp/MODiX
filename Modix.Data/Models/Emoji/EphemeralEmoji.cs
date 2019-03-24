@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Discord;
 
-namespace Modix.Data.Models.Reactions
+namespace Modix.Data.Models.Emoji
 {
     public sealed class EphemeralEmoji : ISnowflakeEntity, IEmote
     {
@@ -41,7 +41,7 @@ namespace Modix.Data.Models.Reactions
             }
             else
             {
-                var emoji = new Emoji(name);
+                var emoji = new Discord.Emoji(name);
 
                 return new EphemeralEmoji()
                     .WithEmojiData(emoji);
@@ -54,7 +54,7 @@ namespace Modix.Data.Models.Reactions
             return this;
         }
 
-        public EphemeralEmoji WithEmojiData(Emoji emoji)
+        public EphemeralEmoji WithEmojiData(Discord.Emoji emoji)
         {
             _emoji = emoji;
             return this;
@@ -63,7 +63,7 @@ namespace Modix.Data.Models.Reactions
         private const string UnicodeError = "This operation is unavailable for Unicode emoji.";
 
         private Emote _emote;
-        private Emoji _emoji;
+        private Discord.Emoji _emoji;
 
         public class EqualityComparer : IEqualityComparer<EphemeralEmoji>
         {

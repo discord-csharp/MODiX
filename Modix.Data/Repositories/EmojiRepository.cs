@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Modix.Data.Models.Reactions;
+using Modix.Data.Models.Emoji;
 
 namespace Modix.Data.Repositories
 {
     /// <summary>
-    /// Describes a repository for managing reaction entities within an underlying data storage provider.
+    /// Describes a repository for managing emoji entities within an underlying data storage provider.
     /// </summary>
-    public interface IReactionRepository
+    public interface IEmojiRepository
     {
         /// <summary>
-        /// Begins a new transaction to maintain reactions within the repository.
+        /// Begins a new transaction to maintain emoji within the repository.
         /// </summary>
         /// <returns>
         /// A <see cref="Task"/> that will complete, with the requested transaction object,
@@ -22,46 +22,46 @@ namespace Modix.Data.Repositories
         Task<IRepositoryTransaction> BeginMaintainTransactionAsync();
 
         /// <summary>
-        /// Creates a new reaction log within the repository.
+        /// Creates a new emoji log within the repository.
         /// </summary>
         /// <param name="data">The data for the reaction to be created.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="data"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing the auto-generated identifier value assigned to the new reaction.
+        /// containing the auto-generated identifier value assigned to the new emoji log.
         /// </returns>
-        Task<long> CreateAsync(ReactionCreationData data);
+        Task<long> CreateAsync(EmojiCreationData data);
 
         /// <summary>
-        /// Deletes reaction logs within the repository.
+        /// Deletes emoji logs within the repository.
         /// </summary>
-        /// <param name="criteria">The criteria for the reactions to be deleted.</param>
+        /// <param name="criteria">The criteria for the emoji to be deleted.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="criteria"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete.
         /// </returns>
-        Task DeleteAsync(ReactionSearchCriteria criteria);
+        Task DeleteAsync(EmojiSearchCriteria criteria);
 
         /// <summary>
-        /// Returns the number of times reactions matching the specified criteria occurred.
+        /// Returns the number of times emoji matching the specified criteria occurred.
         /// </summary>
-        /// <param name="criteria">The criteria for the reactions to be counted.</param>
+        /// <param name="criteria">The criteria for the emoji to be counted.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="criteria"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing a dictionary of emojis and their counts.
+        /// containing a dictionary of emoji and their counts.
         /// </returns>
-        Task<IReadOnlyDictionary<EphemeralEmoji, int>> GetCounts(ReactionSearchCriteria criteria);
+        Task<IReadOnlyDictionary<EphemeralEmoji, int>> GetCounts(EmojiSearchCriteria criteria);
     }
 
     /// <inheritdoc />
-    public sealed class ReactionRepository : RepositoryBase, IReactionRepository
+    public sealed class EmojiRepository : RepositoryBase, IEmojiRepository
     {
         /// <summary>
-        /// Creates a new <see cref="ReactionRepository"/> with the injected dependencies
+        /// Creates a new <see cref="EmojiRepository"/> with the injected dependencies
         /// See <see cref="RepositoryBase"/> for details.
         /// </summary>
-        public ReactionRepository(ModixContext modixContext)
+        public EmojiRepository(ModixContext modixContext)
             : base(modixContext) { }
 
         /// <inheritdoc />
@@ -69,38 +69,38 @@ namespace Modix.Data.Repositories
             => _maintainTransactionFactory.BeginTransactionAsync(ModixContext.Database);
 
         /// <inheritdoc />
-        public async Task<long> CreateAsync(ReactionCreationData data)
+        public async Task<long> CreateAsync(EmojiCreationData data)
         {
             if (data is null)
                 throw new ArgumentNullException(nameof(data));
 
             var entity = data.ToEntity();
 
-            await ModixContext.Reactions.AddAsync(entity);
+            await ModixContext.Emoji.AddAsync(entity);
             await ModixContext.SaveChangesAsync();
 
             return entity.Id;
         }
 
         /// <inheritdoc />
-        public async Task DeleteAsync(ReactionSearchCriteria criteria)
+        public async Task DeleteAsync(EmojiSearchCriteria criteria)
         {
             if (criteria is null)
                 throw new ArgumentNullException(nameof(criteria));
 
-            var entities = ModixContext.Reactions.FilterBy(criteria);
+            var entities = ModixContext.Emoji.FilterBy(criteria);
 
             ModixContext.RemoveRange(entities);
             await ModixContext.SaveChangesAsync();
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyDictionary<EphemeralEmoji, int>> GetCounts(ReactionSearchCriteria criteria)
+        public async Task<IReadOnlyDictionary<EphemeralEmoji, int>> GetCounts(EmojiSearchCriteria criteria)
         {
             if (criteria is null)
                 throw new ArgumentNullException(nameof(criteria));
 
-            var reactions = await ModixContext.Reactions.AsNoTracking()
+            var reactions = await ModixContext.Emoji.AsNoTracking()
                 .FilterBy(criteria)
                 .GroupBy(x => new { x.EmojiId, x.EmojiName })
                 .ToArrayAsync();

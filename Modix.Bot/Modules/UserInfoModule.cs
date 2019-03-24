@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 using Modix.Bot.Extensions;
 using Modix.Data.Models.Core;
-using Modix.Data.Models.Reactions;
+using Modix.Data.Models.Emoji;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
@@ -34,7 +34,7 @@ namespace Modix.Modules
             IModerationService moderationService,
             IAuthorizationService authorizationService,
             IMessageRepository messageRepository,
-            IReactionRepository reactionRepository,
+            IEmojiRepository reactionRepository,
             IHttpClientFactory httpClientFactory)
         {
             Log = logger ?? new NullLogger<UserInfoModule>();
@@ -51,7 +51,7 @@ namespace Modix.Modules
         private IModerationService ModerationService { get; }
         private IAuthorizationService AuthorizationService { get; }
         private IMessageRepository MessageRepository { get; }
-        private IReactionRepository ReactionRepository { get; }
+        private IEmojiRepository ReactionRepository { get; }
         private IHttpClientFactory HttpClientFactory { get; }
 
         [Command("info")]
@@ -253,7 +253,7 @@ namespace Modix.Modules
                 }
             }
 
-            var emojiCounts = await ReactionRepository.GetCounts(new ReactionSearchCriteria()
+            var emojiCounts = await ReactionRepository.GetCounts(new EmojiSearchCriteria()
             {
                 GuildId = Context.Guild.Id,
                 UserId = userId,

@@ -4,10 +4,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data.Utilities;
 
-namespace Modix.Data.Models.Reactions
+namespace Modix.Data.Models.Emoji
 {
-    [Table("Reactions")]
-    internal class ReactionEntity
+    [Table("Emoji")]
+    internal class EmojiEntity
     {
         [Key]
         [Required]
@@ -34,46 +34,56 @@ namespace Modix.Data.Models.Reactions
         [Required]
         public DateTimeOffset Timestamp { get; set; }
 
+        [Required]
+        public EmojiUsageType UsageType { get; set; }
+
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<ReactionEntity>()
+            modelBuilder.Entity<EmojiEntity>()
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
 
-            modelBuilder.Entity<ReactionEntity>()
+            modelBuilder.Entity<EmojiEntity>()
                 .Property(x => x.ChannelId)
                 .HasConversion<long>();
 
-            modelBuilder.Entity<ReactionEntity>()
+            modelBuilder.Entity<EmojiEntity>()
                 .Property(x => x.MessageId)
                 .HasConversion<long>();
 
-            modelBuilder.Entity<ReactionEntity>()
+            modelBuilder.Entity<EmojiEntity>()
                 .Property(x => x.UserId)
                 .HasConversion<long>();
 
-            modelBuilder.Entity<ReactionEntity>()
+            modelBuilder.Entity<EmojiEntity>()
                 .Property(x => x.EmojiId)
                 .HasConversion<long>();
 
-            modelBuilder.Entity<ReactionEntity>()
+            modelBuilder.Entity<EmojiEntity>()
+                .Property(x => x.UsageType)
+                .HasConversion<string>();
+
+            modelBuilder.Entity<EmojiEntity>()
                 .HasIndex(x => x.GuildId);
 
-            modelBuilder.Entity<ReactionEntity>()
+            modelBuilder.Entity<EmojiEntity>()
                 .HasIndex(x => x.MessageId);
 
-            modelBuilder.Entity<ReactionEntity>()
+            modelBuilder.Entity<EmojiEntity>()
                 .HasIndex(x => x.UserId);
 
-            modelBuilder.Entity<ReactionEntity>()
+            modelBuilder.Entity<EmojiEntity>()
                 .HasIndex(x => x.EmojiId);
 
-            modelBuilder.Entity<ReactionEntity>()
+            modelBuilder.Entity<EmojiEntity>()
                 .HasIndex(x => x.EmojiName);
 
-            modelBuilder.Entity<ReactionEntity>()
+            modelBuilder.Entity<EmojiEntity>()
                 .HasIndex(x => x.Timestamp);
+
+            modelBuilder.Entity<EmojiEntity>()
+                .HasIndex(x => x.UsageType);
         }
     }
 }

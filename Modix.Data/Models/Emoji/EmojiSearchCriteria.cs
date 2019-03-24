@@ -1,35 +1,35 @@
 ﻿using System.Linq;
 using Modix.Data.Utilities;
 
-namespace Modix.Data.Models.Reactions
+namespace Modix.Data.Models.Emoji
 {
     /// <summary>
-    /// Describes an operation to search for reactions.
+    /// Describes an operation to search for emoji.
     /// </summary>
-    public class ReactionSearchCriteria
+    public class EmojiSearchCriteria
     {
         /// <summary>
-        /// The unique Discord snowflake ID of the guild in which the reaction occurred.
+        /// The unique Discord snowflake ID of the guild in which the emoji was used.
         /// </summary>
         public ulong? GuildId { get; set; }
 
         /// <summary>
-        /// The unique Discord snowflake ID of the channel in which the reaction occurred.
+        /// The unique Discord snowflake ID of the channel in which the emoji was used.
         /// </summary>
         public ulong? ChannelId { get; set; }
 
         /// <summary>
-        /// The Discord ID of the message that was reacted to.
+        /// The Discord ID of the message associated with the emoji.
         /// </summary>
         public ulong? MessageId { get; set; }
 
         /// <summary>
-        /// The unique Discord snowflake ID of the user who reacted.
+        /// The unique Discord snowflake ID of the user who used the emoji.
         /// </summary>
         public ulong? UserId { get; set; }
 
         /// <summary>
-        /// The unique Discord snowflake ID of the emoji that was added as a reaction, if the emoji is a custom emoji.
+        /// The unique Discord snowflake ID of the emoji that was used, if the emoji is a custom emoji.
         /// </summary>
         public ulong? EmojiId { get; set; }
 
@@ -39,14 +39,19 @@ namespace Modix.Data.Models.Reactions
         public string EmojiName { get; set; }
 
         /// <summary>
-        /// A range of dates of when the reaction occurred.
+        /// A range of dates of when the emoji was used.
         /// </summary>
         public DateTimeOffsetRange? TimestampRange { get; set; }
+
+        /// <summary>
+        /// The type of usage associated with the emoji.
+        /// </summary>
+        public EmojiUsageType? UsageType { get; set; }
     }
 
-    internal static class ReactionSearchCriteriaExtensions
+    internal static class EmojiSearchCriteriaExtensions
     {
-        public static IQueryable<ReactionEntity> FilterBy(this IQueryable<ReactionEntity> query, ReactionSearchCriteria criteria)
+        public static IQueryable<EmojiEntity> FilterBy(this IQueryable<EmojiEntity> query, EmojiSearchCriteria criteria)
             => query
                 .FilterBy(
                     x => x.GuildId == criteria.GuildId.Value,
@@ -73,6 +78,9 @@ namespace Modix.Data.Models.Reactions
                 .FilterBy(
                     x => x.Timestamp <= criteria.TimestampRange.Value.To.Value,
                     criteria.TimestampRange != null
-                    && criteria.TimestampRange.Value.To != null);
+                    && criteria.TimestampRange.Value.To != null)
+                .FilterBy(
+                    x => x.UsageType == criteria.UsageType.Value,
+                    criteria.UsageType != null);
     }
 }

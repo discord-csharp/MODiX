@@ -3,13 +3,13 @@ using System.Reflection;
 
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
+using Modix.Data.Models.Emoji;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Models.Promotions;
 using Modix.Data.Models.Tags;
 using Modix.Data.Utilities;
 
 using Microsoft.EntityFrameworkCore;
-using Modix.Data.Models.Reactions;
 
 namespace Modix.Data
 {
@@ -63,7 +63,7 @@ namespace Modix.Data
 
         internal DbSet<TagActionEntity> TagActions { get; set; }
 
-        internal DbSet<ReactionEntity> Reactions { get; set; }
+        internal DbSet<EmojiEntity> Emoji { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

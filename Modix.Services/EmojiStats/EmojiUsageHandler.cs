@@ -3,31 +3,32 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.WebSocket;
+
 using MediatR;
 
-using Modix.Data.Models.Reactions;
+using Modix.Data.Models.Emoji;
 using Modix.Data.Repositories;
 using Modix.Services.Messages.Discord;
 
-namespace Modix.Services.Reactions
+namespace Modix.Services.EmojiStats
 {
     /// <summary>
-    /// Implements a handler that maintains MODiX's record of reactions.
+    /// Implements a handler that maintains MODiX's record of emoji.
     /// </summary>
-    public sealed class ReactionHandler :
+    public sealed class EmojiUsageHandler :
         INotificationHandler<ReactionAdded>,
         INotificationHandler<ReactionRemoved>
     {
-        private readonly IReactionRepository _reactionRepository;
+        private readonly IEmojiRepository _emojiRepository;
 
         /// <summary>
-        /// Constructs a new <see cref="ReactionHandler"/> object with the given injected dependencies.
+        /// Constructs a new <see cref="EmojiUsageHandler"/> object with the given injected dependencies.
         /// </summary>
         /// <param name="discordClient">A client to interact with the Discord API.</param>
-        public ReactionHandler(
-            IReactionRepository reactionRepository)
+        public EmojiUsageHandler(
+            IEmojiRepository emojiRepository)
         {
-            _reactionRepository = reactionRepository;
+            _emojiRepository = emojiRepository;
         }
 
         public async Task Handle(ReactionAdded notification, CancellationToken cancellationToken)
@@ -46,18 +47,18 @@ namespace Modix.Services.Reactions
         /// <summary>
         /// Logs a reaction in the database.
         /// </summary>
-        /// <param name="channel">The channel that the reaction occurred in.</param>
-        /// <param name="message">The message that was reacted to.</param>
-        /// <param name="reaction">The reaction that was added.</param>
-        /// <param name="emote">The emote that was used in the reaction, if any.</param>
+        /// <param name="channel">The channel that the emoji was used in.</param>
+        /// <param name="message">The message associated with the emoji.</param>
+        /// <param name="reaction">The emoji that was used.</param>
+        /// <param name="emote">The emote that was used, if any.</param>
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation completes.
         /// </returns>
         private async Task LogReactionAsync(ITextChannel channel, IUserMessage message, SocketReaction reaction, Emote emote)
         {
-            using (var transaction = await _reactionRepository.BeginMaintainTransactionAsync())
+            using (var transaction = await _emojiRepository.BeginMaintainTransactionAsync())
             {
-                await _reactionRepository.CreateAsync(new ReactionCreationData()
+                await _emojiRepository.CreateAsync(new EmojiCreationData()
                 {
                     GuildId = channel.GuildId,
                     ChannelId = channel.Id,
@@ -65,6 +66,7 @@ namespace Modix.Services.Reactions
                     UserId = reaction.UserId,
                     EmojiId = emote?.Id,
                     EmojiName = reaction.Emote.Name,
+                    UsageType = EmojiUsageType.Reaction,
                 });
 
                 transaction.Commit();
@@ -85,20 +87,20 @@ namespace Modix.Services.Reactions
         }
 
         /// <summary>
-        /// Unlogs a reaction from the database.
+        /// Unlogs an emoji from the database.
         /// </summary>
-        /// <param name="channel">The channel that the reaction occurred in.</param>
-        /// <param name="message">The message that was reacted to.</param>
-        /// <param name="reaction">The reaction that was added.</param>
-        /// <param name="emote">The emote that was used in the reaction, if any.</param>
+        /// <param name="channel">The channel that the emoji was used in.</param>
+        /// <param name="message">The message associated with the emoji.</param>
+        /// <param name="reaction">The emoji that was used.</param>
+        /// <param name="emote">The emote that was used, if any.</param>
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation completes.
         /// </returns>
         private async Task UnlogReactionAsync(ITextChannel channel, IUserMessage message, SocketReaction reaction, Emote emote)
         {
-            using (var transaction = await _reactionRepository.BeginMaintainTransactionAsync())
+            using (var transaction = await _emojiRepository.BeginMaintainTransactionAsync())
             {
-                await _reactionRepository.DeleteAsync(new ReactionSearchCriteria()
+                await _emojiRepository.DeleteAsync(new EmojiSearchCriteria()
                 {
                     GuildId = channel.GuildId,
                     ChannelId = channel.Id,
@@ -108,6 +110,7 @@ namespace Modix.Services.Reactions
                     EmojiName = emote is null
                         ? reaction.Emote.Name
                         : null,
+                    UsageType = EmojiUsageType.Reaction,
                 });
 
                 transaction.Commit();

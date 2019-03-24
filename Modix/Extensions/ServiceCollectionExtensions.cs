@@ -22,6 +22,7 @@ using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.Csharp;
 using Modix.Services.DocsMaster;
+using Modix.Services.EmojiStats;
 using Modix.Services.GuildStats;
 using Modix.Services.Mentions;
 using Modix.Services.Moderation;
@@ -29,7 +30,6 @@ using Modix.Services.NotificationDispatch;
 using Modix.Services.PopularityContest;
 using Modix.Services.Promotions;
 using Modix.Services.Quote;
-using Modix.Services.Reactions;
 using Modix.Services.StackExchange;
 using Modix.Services.Starboard;
 using Modix.Services.Tags;
@@ -111,7 +111,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddNotificationDispatch()
                 .AddStarboard()
                 .AddAutoRemoveMessage()
-                .AddReactions();
+                .AddEmojiStats();
 
             services.AddSingleton<IBehavior, DiscordAdapter>();
             services.AddScoped<IQuoteService, QuoteService>();

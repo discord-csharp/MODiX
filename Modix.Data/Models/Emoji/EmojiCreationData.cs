@@ -1,34 +1,34 @@
 ﻿using System;
 
-namespace Modix.Data.Models.Reactions
+namespace Modix.Data.Models.Emoji
 {
     /// <summary>
-    /// Describes an operation to create a reaction.
+    /// Describes an operation to create an emoji record.
     /// </summary>
-    public class ReactionCreationData
+    public class EmojiCreationData
     {
         /// <summary>
-        /// The unique Discord snowflake ID of the guild in which the reaction occurred.
+        /// The unique Discord snowflake ID of the guild in which the emoji was used.
         /// </summary>
         public ulong GuildId { get; set; }
 
         /// <summary>
-        /// The unique Discord snowflake ID of the channel in which the reaction occurred.
+        /// The unique Discord snowflake ID of the channel in which the emoji was used.
         /// </summary>
         public ulong ChannelId { get; set; }
 
         /// <summary>
-        /// The Discord ID of the message that was reacted to.
+        /// The Discord ID of the message associated with the emoji.
         /// </summary>
         public ulong MessageId { get; set; }
 
         /// <summary>
-        /// The unique Discord snowflake ID of the user who reacted.
+        /// The unique Discord snowflake ID of the user who used the emoji.
         /// </summary>
         public ulong UserId { get; set; }
 
         /// <summary>
-        /// The unique Discord snowflake ID of the emoji that was added as a reaction, if the emoji is a custom emoji.
+        /// The unique Discord snowflake ID of the emoji that was used, if the emoji is a custom emoji.
         /// </summary>
         public ulong? EmojiId { get; set; }
 
@@ -37,8 +37,13 @@ namespace Modix.Data.Models.Reactions
         /// </summary>
         public string EmojiName { get; set; }
 
-        internal ReactionEntity ToEntity()
-            => new ReactionEntity()
+        /// <summary>
+        /// The type of usage associated with the emoji.
+        /// </summary>
+        public EmojiUsageType UsageType { get; set; }
+
+        internal EmojiEntity ToEntity()
+            => new EmojiEntity()
             {
                 GuildId = GuildId,
                 ChannelId = ChannelId,
@@ -46,6 +51,7 @@ namespace Modix.Data.Models.Reactions
                 UserId = UserId,
                 EmojiId = EmojiId,
                 EmojiName = EmojiName,
+                UsageType = UsageType,
                 Timestamp = DateTimeOffset.Now,
             };
     }

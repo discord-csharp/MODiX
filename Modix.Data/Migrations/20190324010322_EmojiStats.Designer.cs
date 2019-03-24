@@ -10,15 +10,15 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    [Migration("20190312173552_Reactions")]
-    partial class Reactions
+    [Migration("20190324010322_EmojiStats")]
+    partial class EmojiStats
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "2.2.2-servicing-10034")
+                .HasAnnotation("ProductVersion", "2.2.3-servicing-35854")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("Modix.Data.Models.BehaviourConfiguration", b =>
@@ -259,6 +259,48 @@ namespace Modix.Data.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Modix.Data.Models.Emoji.EmojiEntity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<long>("ChannelId");
+
+                    b.Property<long?>("EmojiId");
+
+                    b.Property<string>("EmojiName")
+                        .IsRequired();
+
+                    b.Property<long>("GuildId");
+
+                    b.Property<long>("MessageId");
+
+                    b.Property<DateTimeOffset>("Timestamp");
+
+                    b.Property<string>("UsageType")
+                        .IsRequired();
+
+                    b.Property<long>("UserId");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EmojiId");
+
+                    b.HasIndex("EmojiName");
+
+                    b.HasIndex("GuildId");
+
+                    b.HasIndex("MessageId");
+
+                    b.HasIndex("Timestamp");
+
+                    b.HasIndex("UsageType");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Emoji");
+                });
+
             modelBuilder.Entity("Modix.Data.Models.Moderation.DeletedMessageBatchEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -475,43 +517,6 @@ namespace Modix.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("PromotionComments");
-                });
-
-            modelBuilder.Entity("Modix.Data.Models.Reactions.ReactionEntity", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<long>("ChannelId");
-
-                    b.Property<long?>("EmojiId");
-
-                    b.Property<string>("EmojiName")
-                        .IsRequired();
-
-                    b.Property<long>("GuildId");
-
-                    b.Property<long>("MessageId");
-
-                    b.Property<DateTimeOffset>("Timestamp");
-
-                    b.Property<long>("UserId");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EmojiId");
-
-                    b.HasIndex("EmojiName");
-
-                    b.HasIndex("GuildId");
-
-                    b.HasIndex("MessageId");
-
-                    b.HasIndex("Timestamp");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Reactions");
                 });
 
             modelBuilder.Entity("Modix.Data.Models.Tags.TagActionEntity", b =>
