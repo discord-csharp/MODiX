@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    [Migration("20190324010322_EmojiStats")]
-    partial class EmojiStats
+    [Migration("20190324012128_Emojistats")]
+    partial class Emojistats
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
