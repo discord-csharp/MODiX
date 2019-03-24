@@ -133,19 +133,19 @@ namespace Modix.Services.EmojiStats
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            var emoji = _emojiRegex.Matches(notification.Message.Content);
+            var newEmoji = _emojiRegex.Matches(notification.Message.Content);
 
-            if (emoji.Count == 0)
+            if (newEmoji.Count == 0)
                 return;
 
             var channel = notification.Message.Channel as ITextChannel;
             var message = notification.Message as IUserMessage;
 
-            foreach (var e in emoji.Cast<Match>().Select(x => x.Value))
+            foreach (var (emoji, count) in newEmoji.Cast<Match>().GroupBy(x => x.Value).Select(x => (x.Key, x.Count())))
             {
-                var isEmote = Emote.TryParse(e, out var emote);
+                var isEmote = Emote.TryParse(emoji, out var emote);
 
-                await LogMessageEmojiAsync(channel, message, isEmote ? null : e, isEmote ? emote : null);
+                await LogMultipleMessageEmojiAsync(channel, message, isEmote ? emote.Name : emoji, isEmote ? emote : null, count);
             }
         }
 
@@ -154,35 +154,21 @@ namespace Modix.Services.EmojiStats
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            var oldMessage = (await notification.OldMessage.GetOrDownloadAsync()) as IUserMessage;
-            var oldEmoji = _emojiRegex.Matches(oldMessage.Content);
+            var channel = notification.Channel as ITextChannel;
+
+            await UnlogMessageContentEmojiAsync(channel, notification.OldMessage.Id);
 
             var newMessage = notification.NewMessage as IUserMessage;
             var newEmoji = _emojiRegex.Matches(newMessage.Content);
 
-            if (oldEmoji.Count == 0 && newEmoji.Count == 0)
+            if (newEmoji.Count == 0)
                 return;
 
-            var channel = notification.Channel as ITextChannel;
-
-            if (oldEmoji.Count > 0)
+            foreach (var (emoji, count) in newEmoji.Cast<Match>().GroupBy(x => x.Value).Select(x => (x.Key, x.Count())))
             {
-                foreach (var emoji in oldEmoji.Cast<Match>().Select(x => x.Value).Distinct())
-                {
-                    var isEmote = Emote.TryParse(emoji, out var emote);
+                var isEmote = Emote.TryParse(emoji, out var emote);
 
-                    await UnlogMessageEmojiAsync(channel, oldMessage, isEmote ? null : emoji, isEmote ? emote : null);
-                }
-            }
-
-            if (newEmoji.Count > 0)
-            {
-                foreach (var emoji in newEmoji.Cast<Match>().Select(x => x.Value).Distinct())
-                {
-                    var isEmote = Emote.TryParse(emoji, out var emote);
-
-                    await LogMessageEmojiAsync(channel, newMessage, isEmote ? null : emoji, isEmote ? emote : null);
-                }
+                await LogMultipleMessageEmojiAsync(channel, newMessage, isEmote ? emote.Name : emoji, isEmote ? emote : null, count);
             }
         }
 
@@ -191,27 +177,16 @@ namespace Modix.Services.EmojiStats
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            var oldMessage = (await notification.Message.GetOrDownloadAsync()) as IUserMessage;
-            var oldEmoji = _emojiRegex.Matches(oldMessage.Content);
-
-            if (oldEmoji.Count == 0)
-                return;
-
             var channel = notification.Channel as ITextChannel;
 
-            foreach (var emoji in oldEmoji.Cast<Match>().Select(x => x.Value))
-            {
-                var isEmote = Emote.TryParse(emoji, out var emote);
-
-                await UnlogMessageEmojiAsync(channel, oldMessage, isEmote ? null : emoji, isEmote ? emote : null);
-            }
+            await UnlogAllEmojiAsync(channel, notification.Message.Id);
         }
 
-        private async Task LogMessageEmojiAsync(ITextChannel channel, IUserMessage message, string emoji, Emote emote)
+        private async Task LogMultipleMessageEmojiAsync(ITextChannel channel, IUserMessage message, string emoji, Emote emote, int count)
         {
             using (var transaction = await _emojiRepository.BeginMaintainTransactionAsync())
             {
-                await _emojiRepository.CreateAsync(new EmojiCreationData()
+                await _emojiRepository.CreateMultipleAsync(new EmojiCreationData()
                 {
                     GuildId = channel.GuildId,
                     ChannelId = channel.Id,
@@ -220,13 +195,14 @@ namespace Modix.Services.EmojiStats
                     EmojiId = emote?.Id,
                     EmojiName = emoji,
                     UsageType = EmojiUsageType.MessageContent,
-                });
+                },
+                count);
 
                 transaction.Commit();
             }
         }
 
-        private async Task UnlogMessageEmojiAsync(ITextChannel channel, IUserMessage message, string emoji, Emote emote)
+        private async Task UnlogMessageContentEmojiAsync(ITextChannel channel, ulong messageId)
         {
             using (var transaction = await _emojiRepository.BeginMaintainTransactionAsync())
             {
@@ -234,11 +210,23 @@ namespace Modix.Services.EmojiStats
                 {
                     GuildId = channel.GuildId,
                     ChannelId = channel.Id,
-                    MessageId = message.Id,
-                    UserId = message.Author.Id,
-                    EmojiId = emote?.Id,
-                    EmojiName = emoji,
+                    MessageId = messageId,
                     UsageType = EmojiUsageType.MessageContent,
+                });
+
+                transaction.Commit();
+            }
+        }
+
+        private async Task UnlogAllEmojiAsync(ITextChannel channel, ulong messageId)
+        {
+            using (var transaction = await _emojiRepository.BeginMaintainTransactionAsync())
+            {
+                await _emojiRepository.DeleteAsync(new EmojiSearchCriteria()
+                {
+                    GuildId = channel.GuildId,
+                    ChannelId = channel.Id,
+                    MessageId = messageId,
                 });
 
                 transaction.Commit();

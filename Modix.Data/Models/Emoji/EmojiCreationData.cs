@@ -54,5 +54,18 @@ namespace Modix.Data.Models.Emoji
                 UsageType = UsageType,
                 Timestamp = DateTimeOffset.Now,
             };
+
+        internal EmojiEntity ToEntity(DateTimeOffset timestamp)
+            => new EmojiEntity()
+            {
+                GuildId = GuildId,
+                ChannelId = ChannelId,
+                MessageId = MessageId,
+                UserId = UserId,
+                EmojiId = EmojiId,
+                EmojiName = EmojiName,
+                UsageType = UsageType,
+                Timestamp = timestamp,
+            };
     }
 }

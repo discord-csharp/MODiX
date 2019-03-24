@@ -25,13 +25,24 @@ namespace Modix.Data.Repositories
         /// <summary>
         /// Creates a new emoji log within the repository.
         /// </summary>
-        /// <param name="data">The data for the reaction to be created.</param>
+        /// <param name="data">The data for the emoji log to be created.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="data"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing the auto-generated identifier value assigned to the new emoji log.
         /// </returns>
         Task<long> CreateAsync(EmojiCreationData data);
+
+        /// <summary>
+        /// Creates multiple new emoji logs within the repository.
+        /// </summary>
+        /// <param name="data">The data for the emoji logs to be created.</param>
+        /// <param name="count">The number of new logs to be created.</param>
+        /// <exception cref="ArgumentNullException">Throws for <paramref name="data"/>.</exception>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete.
+        /// </returns>
+        Task CreateMultipleAsync(EmojiCreationData data, int count);
 
         /// <summary>
         /// Deletes emoji logs within the repository.
@@ -92,6 +103,22 @@ namespace Modix.Data.Repositories
             await ModixContext.SaveChangesAsync();
 
             return entity.Id;
+        }
+
+        /// <inheritdoc />
+        public async Task CreateMultipleAsync(EmojiCreationData data, int count)
+        {
+            if (data is null)
+                throw new ArgumentNullException(nameof(data));
+
+            if (count <= 0)
+                return;
+
+            var now = DateTimeOffset.Now;
+            var entities = Enumerable.Range(0, count).Select(_ => data.ToEntity(now));
+
+            await ModixContext.Emoji.AddRangeAsync(entities);
+            await ModixContext.SaveChangesAsync();
         }
 
         /// <inheritdoc />
