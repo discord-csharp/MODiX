@@ -32,31 +32,37 @@ namespace Modix.Services.NotificationDispatch
         }
 
         /// <inheritdoc />
-        public async Task PublishScopedAsync(INotification notification)
+        public Task PublishScopedAsync(INotification notification)
         {
-            Log.Debug($"Beginning to publish a {notification.GetType().Name} message");
-
-            try
+            // Fire and forget so we don't block the gateway.
+            _ = Task.Run(async () =>
             {
-                using (var scope = ServiceProvider.CreateScope())
+                Log.Debug($"Beginning to publish a {notification.GetType().Name} message");
+
+                try
                 {
-                    var provider = scope.ServiceProvider;
+                    using (var scope = ServiceProvider.CreateScope())
+                    {
+                        var provider = scope.ServiceProvider;
 
-                    // setup context for handlers
-                    var botUser = provider.GetRequiredService<ISelfUser>();
-                    await provider.GetRequiredService<IAuthorizationService>()
-                        .OnAuthenticatedAsync(botUser);
+                        // setup context for handlers
+                        var botUser = provider.GetRequiredService<ISelfUser>();
+                        await provider.GetRequiredService<IAuthorizationService>()
+                            .OnAuthenticatedAsync(botUser);
 
-                    var mediator = provider.GetRequiredService<IMediator>();
-                    await mediator.Publish(notification);
+                        var mediator = provider.GetRequiredService<IMediator>();
+                        await mediator.Publish(notification);
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "An exception was thrown in the Discord MediatR adapter.");
-            }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "An exception was thrown in the Discord MediatR adapter.");
+                }
 
-            Log.Debug($"Finished invoking {notification.GetType().Name} handlers");
+                Log.Debug($"Finished invoking {notification.GetType().Name} handlers");
+            });
+
+            return Task.CompletedTask;
         }
 
         protected IServiceProvider ServiceProvider { get; }
