@@ -140,7 +140,7 @@ namespace Modix.Modules
                 .AppendLine($"Avg. per day: {"message".ToQuantity(monthTotal / 30, "n0")}")
                 .AppendLine($"Most active channel: {MentionUtils.MentionChannel(mostActiveChannel.Key)} ({"message".ToQuantity(mostActiveChannel.Value, "n0")} in 30 days)");
 
-            var emojiCounts = await ReactionRepository.GetCounts(new EmojiSearchCriteria()
+            var emojiCounts = await ReactionRepository.GetCountsAsync(new EmojiSearchCriteria()
             {
                 GuildId = Context.Guild.Id,
             });

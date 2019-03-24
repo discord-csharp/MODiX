@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Emoji;
 
 namespace Modix.Data.Repositories
@@ -51,7 +52,18 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing a dictionary of emoji and their counts.
         /// </returns>
-        Task<IReadOnlyDictionary<EphemeralEmoji, int>> GetCounts(EmojiSearchCriteria criteria);
+        Task<IReadOnlyDictionary<EphemeralEmoji, int>> GetCountsAsync(EmojiSearchCriteria criteria);
+
+        /// <summary>
+        /// Searches the emoji logs for emoji records matching the supplied criteria.
+        /// </summary>
+        /// <param name="criteria">The criteria with which to filter the emoji returned.</param>
+        /// <exception cref="ArgumentNullException">Throws for <paramref name="criteria"/>.</exception>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing a collection of emoji meeting the supplied criteria.
+        /// </returns>
+        Task<IReadOnlyCollection<EmojiSummary>> SearchSummariesAsync(EmojiSearchCriteria criteria);
     }
 
     /// <inheritdoc />
@@ -95,22 +107,37 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyDictionary<EphemeralEmoji, int>> GetCounts(EmojiSearchCriteria criteria)
+        public async Task<IReadOnlyDictionary<EphemeralEmoji, int>> GetCountsAsync(EmojiSearchCriteria criteria)
         {
             if (criteria is null)
                 throw new ArgumentNullException(nameof(criteria));
 
-            var reactions = await ModixContext.Emoji.AsNoTracking()
+            var emoji = await ModixContext.Emoji.AsNoTracking()
                 .FilterBy(criteria)
                 .GroupBy(x => new { x.EmojiId, x.EmojiName })
                 .ToArrayAsync();
 
-            var counts = reactions.ToDictionary(
+            var counts = emoji.ToDictionary(
                 x => EphemeralEmoji.FromRawData(x.Key.EmojiName, x.Key.EmojiId),
                 x => x.Count(),
                 new EphemeralEmoji.EqualityComparer());
 
             return counts;
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<EmojiSummary>> SearchSummariesAsync(EmojiSearchCriteria criteria)
+        {
+            if (criteria is null)
+                throw new ArgumentNullException(nameof(criteria));
+
+            var emoji = await ModixContext.Emoji.AsNoTracking()
+                .FilterBy(criteria)
+                .AsExpandable()
+                .Select(EmojiSummary.FromEntityProjection)
+                .ToArrayAsync();
+
+            return emoji;
         }
 
         private static readonly RepositoryTransactionFactory _maintainTransactionFactory

@@ -253,7 +253,7 @@ namespace Modix.Modules
                 }
             }
 
-            var emojiCounts = await ReactionRepository.GetCounts(new EmojiSearchCriteria()
+            var emojiCounts = await ReactionRepository.GetCountsAsync(new EmojiSearchCriteria()
             {
                 GuildId = Context.Guild.Id,
                 UserId = userId,
