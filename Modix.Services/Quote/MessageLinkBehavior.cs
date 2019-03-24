@@ -43,6 +43,11 @@ namespace Modix.Services.Quote
 
         private async Task OnMessageUpdatedAsync(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
         {
+            var cachedMessage = await cached.GetOrDownloadAsync();
+
+            if (Pattern.IsMatch(cachedMessage.Content))
+                return;
+
             await OnMessageReceivedAsync(message);
         }
 
