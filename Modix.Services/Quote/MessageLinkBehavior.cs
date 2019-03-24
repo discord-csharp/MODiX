@@ -11,7 +11,7 @@ namespace Modix.Services.Quote
     public class MessageLinkBehavior : BehaviorBase
     {
         private static readonly Regex Pattern = new Regex(
-            @"(?<Prelink>\S+\s+)?https?://(?:(?:ptb|canary)\.)?discordapp\.com/channels/(?<GuildId>\d+)/(?<ChannelId>\d+)/(?<MessageId>\d+)/?(?<Postlink>\s+\S+)?",
+            @"(?<Prelink>\S+\s+\S*)?https?://(?:(?:ptb|canary)\.)?discordapp\.com/channels/(?<GuildId>\d+)/(?<ChannelId>\d+)/(?<MessageId>\d+)/?(?<Postlink>\S*\s+\S+)?",
             RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         public MessageLinkBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
@@ -28,6 +28,7 @@ namespace Modix.Services.Quote
         protected internal override Task OnStartingAsync()
         {
             DiscordClient.MessageReceived += OnMessageReceivedAsync;
+            DiscordClient.MessageUpdated += OnMessageUpdatedAsync;
 
             return Task.CompletedTask;
         }
@@ -35,8 +36,14 @@ namespace Modix.Services.Quote
         protected internal override Task OnStoppedAsync()
         {
             DiscordClient.MessageReceived -= OnMessageReceivedAsync;
+            DiscordClient.MessageUpdated -= OnMessageUpdatedAsync;
 
             return Task.CompletedTask;
+        }
+
+        private async Task OnMessageUpdatedAsync(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
+        {
+            await OnMessageReceivedAsync(message);
         }
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
