@@ -11,11 +11,11 @@ namespace Modix.Services.EmojiStats
 {
     public interface IEmojiStatsService
     {
-        Task<IReadOnlyCollection<EmojiSummary>> GetEmojiSummaries(IEmote emote, ulong guildId, bool monthly);
+        Task<IReadOnlyCollection<EmojiSummary>> GetEmojiSummaries(IEmote emote, ulong guildId, TimeSpan? timeSpan);
 
         IReadOnlyDictionary<EphemeralEmoji, int> GetCountFromSummary(IEnumerable<EmojiSummary> emojiSummaries);
 
-        int AggregateUsage(IEnumerable<KeyValuePair<EphemeralEmoji, int>> emojis);
+        int GetTotalEmojiUseCount(IEnumerable<KeyValuePair<EphemeralEmoji, int>> emojis);
 
         DateTimeOffset GetOldestSummaryTimeStamp(IEnumerable<EmojiSummary> emojiSummaries);
     }
@@ -30,7 +30,7 @@ namespace Modix.Services.EmojiStats
         }
 
 
-        public async Task<IReadOnlyCollection<EmojiSummary>> GetEmojiSummaries(IEmote emote, ulong guildId, bool monthly)
+        public async Task<IReadOnlyCollection<EmojiSummary>> GetEmojiSummaries(IEmote emote, ulong guildId, TimeSpan? timeSpan)
         {
             var criteria = new EmojiSearchCriteria()
             {
@@ -38,11 +38,11 @@ namespace Modix.Services.EmojiStats
                 GuildId = guildId,
             };
 
-            if (monthly)
+            if (timeSpan.HasValue)
             {
                 criteria.TimestampRange = new DateTimeOffsetRange()
                 {
-                    From = DateTimeOffset.UtcNow - TimeSpan.FromDays(30),
+                    From = DateTimeOffset.UtcNow - timeSpan.Value,
                     To = DateTimeOffset.UtcNow
                 };
             }
@@ -53,17 +53,15 @@ namespace Modix.Services.EmojiStats
         public IReadOnlyDictionary<EphemeralEmoji, int> GetCountFromSummary(IEnumerable<EmojiSummary> emojiSummaries)
         {
             return emojiSummaries
-                .GroupBy(x => new { x.Emoji.Id, x.Emoji.Name })
-                .ToDictionary(x => EphemeralEmoji.FromRawData(x.Key.Name, x.Key.Id),
+                .GroupBy(x => new { x.Emoji, x.Emoji.Id, Name = x.Emoji.Id == null ? x.Emoji.Name : null })
+                .ToDictionary(x => x.Key.Emoji,
                               x => x.Count(),
                               new EphemeralEmoji.EqualityComparer());
         }
 
-        public int AggregateUsage(IEnumerable<KeyValuePair<EphemeralEmoji,int>> emojis)
+        public int GetTotalEmojiUseCount(IEnumerable<KeyValuePair<EphemeralEmoji,int>> emojis)
         {
-            return emojis
-                .Select(x => x.Value)
-                .Aggregate((i, j) => i + j);
+            return emojis.Sum(x => x.Value);
         }
 
         public DateTimeOffset GetOldestSummaryTimeStamp(IEnumerable<EmojiSummary> emojiSummaries)

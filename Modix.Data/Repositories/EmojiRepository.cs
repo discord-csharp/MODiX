@@ -141,7 +141,7 @@ namespace Modix.Data.Repositories
 
             var emoji = await ModixContext.Emoji.AsNoTracking()
                 .FilterBy(criteria)
-                .GroupBy(x => new { x.EmojiId, x.EmojiName })
+                .GroupBy(x => new { x.EmojiId, EmojiName = x.EmojiId == null ? x.EmojiName : null })
                 .ToArrayAsync();
 
             var counts = emoji.ToDictionary(

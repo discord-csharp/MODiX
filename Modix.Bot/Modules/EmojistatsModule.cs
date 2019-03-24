@@ -25,38 +25,35 @@ namespace Modix.Modules
         {
             var guildId = Context.Guild.Id;
 
-            var emojiUsageAllTime = await _emojiStatsService.GetEmojiSummaries(emote, guildId, false);
-            var emojiUsage30 = await _emojiStatsService.GetEmojiSummaries(emote, guildId, true);
+            var emojiUsageAllTime = await _emojiStatsService.GetEmojiSummaries(emote, guildId, null);
+            var emojiUsage30 = await _emojiStatsService.GetEmojiSummaries(emote, guildId, TimeSpan.FromDays(30));
 
             var emojiCountsAllTime = _emojiStatsService
                 .GetCountFromSummary(emojiUsageAllTime)
-                .OrderByDescending(x => x.Value);
+                .OrderByDescending(x => x.Value).ToArray();
 
             var emojiCounts30 = _emojiStatsService.GetCountFromSummary(emojiUsage30);
 
             var embed = new EmbedBuilder();
-            var totalEmojiUsage = _emojiStatsService.AggregateUsage(emojiCountsAllTime);
-
+            var totalEmojiUsage = _emojiStatsService.GetTotalEmojiUseCount(emojiCountsAllTime);
             var oldestTimestamp = _emojiStatsService.GetOldestSummaryTimeStamp(emojiUsage30);
 
-            var divider = (DateTime.UtcNow - oldestTimestamp).Days;
-            divider = divider == 0 ? 1 : divider;
+            var numberOfDays = Math.Max((DateTime.UtcNow - oldestTimestamp).Days, 1);
 
-            for (int i = 0; i < emojiCountsAllTime.Count(); i++)
+            for (int i = 0; i < emojiCountsAllTime.Length; i++)
             {
-                var kvp = emojiCountsAllTime.ElementAt(i);
-                var emojiFormatted = Format.Url(kvp.Key.ToString(), kvp.Key.Url);
-                var usage = kvp.Value;
-                var percentUsage = (100 * (double) usage / totalEmojiUsage).ToString("0.00");
+                var (emoji, count) = emojiCountsAllTime[i];
+                var emojiFormatted = Format.Url(emoji.ToString(), emoji.Url);
+                var percentUsage = (100 * (double) count / totalEmojiUsage).ToString("0.00");
 
                 double usageLast30 = 0;
 
-                if (emojiCounts30.TryGetValue(kvp.Key, out var val))
+                if (emojiCounts30.TryGetValue(emoji, out var countLast30))
                 {
-                    usageLast30 = (double)val / divider;
+                    usageLast30 = (double) countLast30 / numberOfDays;
                 }
 
-                embed.Description += $"{i+1}. {emojiFormatted} ({"use".ToQuantity(usage)}) ({percentUsage}%), {usageLast30.ToString("0.00/day")}\n";
+                embed.Description += $"{i+1}. {emojiFormatted} ({"use".ToQuantity(count)}) ({percentUsage}%), {usageLast30.ToString("0.00/day")}{Environment.NewLine}";
             }
 
             await ReplyAsync(embed: embed.Build());
