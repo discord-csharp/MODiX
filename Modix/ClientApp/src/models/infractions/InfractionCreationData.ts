@@ -1,4 +1,4 @@
-import { InfractionType } from '@/models/infractions/InfractionType';
+import { InfractionType } from './InfractionType';
 
 export default class InfractionCreationData
 {

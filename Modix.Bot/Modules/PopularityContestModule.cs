@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
@@ -28,7 +29,17 @@ namespace Modix.Modules
             [Summary("A list of roles that a message author must have at least one of, space separated.")]
                 params IRole[] roles)
         {
-            await _contestService.CollectDataAsync(emoteToCount, collectionChannel, Context.Channel as ISocketMessageChannel, roles);
+            try
+            {
+                await _contestService.CollectDataAsync(emoteToCount, collectionChannel, Context.Channel as ISocketMessageChannel, roles);
+            }
+            catch (InvalidOperationException ex)
+            {
+                await ReplyAsync(embed: new EmbedBuilder()
+                    .WithTitle("Error")
+                    .WithDescription(ex.Message)
+                    .Build());
+            }
         }
     }
 }

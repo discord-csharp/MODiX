@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,6 +35,7 @@ namespace Modix
         private readonly DiscordSerilogAdapter _serilogAdapter;
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly CommandErrorHandler _commandErrorHandler;
+        private readonly IHostingEnvironment _env;
         private IServiceScope _scope;
         private readonly ConcurrentDictionary<ICommandContext, IServiceScope> _commandScopes = new ConcurrentDictionary<ICommandContext, IServiceScope>();
 
@@ -46,7 +48,8 @@ namespace Modix
             IApplicationLifetime applicationLifetime,
             IServiceProvider serviceProvider,
             ILogger<ModixBot> logger,
-            CommandErrorHandler commandErrorHandler)
+            CommandErrorHandler commandErrorHandler,
+            IHostingEnvironment env)
         {
             _client = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
@@ -57,6 +60,7 @@ namespace Modix
             _applicationLifetime = applicationLifetime ?? throw new ArgumentNullException(nameof(applicationLifetime));
             Log = logger ?? throw new ArgumentNullException(nameof(logger));
             _commandErrorHandler = commandErrorHandler;
+            _env = env;
         }
 
         private ILogger<ModixBot> Log { get; }
@@ -76,6 +80,7 @@ namespace Modix
 
                 Log.LogTrace("Registering listeners for Discord client events.");
 
+                _client.LatencyUpdated += OnLatencyUpdated;
                 _client.Disconnected += OnDisconnect;
                 _client.MessageReceived += HandleCommand;
 
@@ -148,6 +153,7 @@ namespace Modix
                 Log.LogInformation("Stopping background service.");
 
                 _client.Disconnected -= OnDisconnect;
+                _client.LatencyUpdated -= OnLatencyUpdated;
                 _client.MessageReceived -= HandleCommand;
 
                 _client.Log -= _serilogAdapter.HandleLog;
@@ -162,6 +168,16 @@ namespace Modix
                     commandScope?.Dispose();
                 }
             }
+        }
+
+        private Task OnLatencyUpdated(int arg1, int arg2)
+        {
+            if (_env.IsProduction())
+            {
+                return File.WriteAllTextAsync("healthcheck.txt", DateTimeOffset.UtcNow.ToString("o"));
+            }
+
+            return Task.CompletedTask;
         }
 
         private Task OnDisconnect(Exception ex)

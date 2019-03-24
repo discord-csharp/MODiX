@@ -27,7 +27,6 @@
 
 <script lang="ts">
 import * as _ from 'lodash';
-import { resolveMentions } from '@/app/Util';
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import store from "@/app/Store";
 import { VueGoodTable } from 'vue-good-table';
@@ -37,6 +36,7 @@ import DeletedMessage from '@/models/logs/DeletedMessage';
 import LogService from '@/services/LogService';
 import TableParameters from '@/models/TableParameters';
 import { SortDirection } from '@/models/SortDirection';
+import ModixComponent from '@/components/ModixComponent.vue';
 
 const messageResolvingRegex = /<#(\d+)>/gm;
 
@@ -53,7 +53,7 @@ function getSortDirection(direction: string): SortDirection
         VueGoodTable
     }
 })
-export default class DeletedMessages extends Vue
+export default class DeletedMessages extends ModixComponent
 {
     paginationOptions: any =
     {
@@ -74,11 +74,6 @@ export default class DeletedMessages extends Vue
     tableParams: TableParameters = new TableParameters();
 
     channelCache: { [channel: string]: DesignatedChannelMapping } | null = null;
-
-    resolveMentions(description: string): string
-    {
-        return resolveMentions(this.channelCache ,description);
-    }
 
     staticFilters: { [field: string]: string } = { channel: "", author: "", createdBy: "", content: "", reason: "", batchId: "" };
 
@@ -130,7 +125,7 @@ export default class DeletedMessages extends Vue
                 label: 'Content',
                 field: 'content',
                 width: '24%',
-                formatFn: this.resolveMentions,
+                formatFn: this.parseDiscordContent,
                 html: true,
                 filterOptions:
                 {
@@ -143,7 +138,7 @@ export default class DeletedMessages extends Vue
                 label: 'Reason',
                 field: 'reason',
                 width: '24%',
-                formatFn: this.resolveMentions,
+                formatFn: this.parseDiscordContent,
                 html: true,
                 filterOptions:
                 {

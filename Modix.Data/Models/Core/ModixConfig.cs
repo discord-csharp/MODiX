@@ -17,5 +17,9 @@
         public string DiscordClientSecret { get; set; }
 
         public int MessageCacheSize { get; set; } = 10;
+
+        public string ReplUrl { get; set; }
+
+        public string IlUrl { get; set; }
     }
 }

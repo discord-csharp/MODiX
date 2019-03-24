@@ -140,6 +140,14 @@ namespace Modix.Services.Tags
         /// containing a flag indicating whether the user can maintain the tag.
         /// </returns>
         Task<bool> CanUserMaintainTagAsync(TagSummary tag, ulong userId);
+
+        /// <summary>
+        /// Determines whether a tag with the given name exists within the given guild.
+        /// </summary>
+        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tag belongs.</param>
+        /// <param name="name">The name that is used to invoke the tag.</param>
+        /// <returns>True if the tag exists, false if not</returns>
+        Task<bool> TagExistsAsync(ulong guildId, string name);
     }
 
     /// <inheritdoc />
@@ -475,5 +483,11 @@ namespace Modix.Services.Tags
                     IsDeleted = false,
                 }))
                 .Select(r => r.Role);
+
+        public async Task<bool> TagExistsAsync(ulong guildId, string name)
+        {
+            var tag = await TagRepository.ReadSummaryAsync(guildId, name);
+            return tag != null;
+        }
     }
 }

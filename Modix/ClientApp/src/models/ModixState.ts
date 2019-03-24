@@ -26,5 +26,5 @@ export default interface ModixState
 
     roles: Role[];
     guilds: Guild[];
-    channels: Channel[];
+    channels: { [key: string]: Channel; };
 }

@@ -50,7 +50,22 @@ namespace Modix.Bot.Modules
         public async Task UseTagAsync(
             [Summary("The name that will be used to invoke the tag.")]
                 string name)
-            => await TagService.UseTagAsync(Context.Guild.Id, Context.Channel.Id, name);
+        {
+            if (await TagService.TagExistsAsync(Context.Guild.Id, name) == false)
+            {
+                await HandleTagError($"Couldn't find tag \"{name}\" in this guild.");
+                return;
+            }
+
+            try
+            {
+                await TagService.UseTagAsync(Context.Guild.Id, Context.Channel.Id, name);
+            }
+            catch (InvalidOperationException ex)
+            {
+                await HandleTagError(ex.Message);
+            }
+        }
 
         [Command("update")]
         [Alias("edit", "modify")]
@@ -77,7 +92,8 @@ namespace Modix.Bot.Modules
             await Context.AddConfirmation();
         }
 
-        [Command("list")]
+        [Command("ownedby")]
+        [Alias("ownedby me")]
         [Summary("Lists all tags owned by the supplied user.")]
         public async Task ListAsync(
             [Summary("The user whose tags are to be retrieved. If left blank, the current user.")]
@@ -94,7 +110,7 @@ namespace Modix.Bot.Modules
             await ReplyAsync(embed: embed);
         }
 
-        [Command("list")]
+        [Command("ownedby")]
         [Summary("Lists all tags owned by the supplied role.")]
         public async Task ListAsync(
             [Summary("The role whose tags are to be retrieved.")]
@@ -108,13 +124,13 @@ namespace Modix.Bot.Modules
         }
 
         [Command("all")]
-        [Alias("list all")]
+        [Alias("list", "")]
         [Summary("Lists all tags available in the current guild.")]
         public async Task ListAllAsync()
         {
             var tags = await TagService.GetSummariesAsync(new TagSearchCriteria()
             {
-                GuildId = Context.Guild.Id,
+                GuildId = Context.Guild.Id
             });
 
             var embed = await BuildEmbedAsync(tags, ownerGuild: Context.Guild);
@@ -152,9 +168,21 @@ namespace Modix.Bot.Modules
 
         protected IUserService UserService { get; }
 
+        private async Task HandleTagError(string message)
+        {
+            var embed = new EmbedBuilder()
+                        .WithTitle("Error")
+                        .WithColor(Color.Red)
+                        .WithDescription(message);
+
+            await ReplyAsync(embed: embed.Build());
+        }
+
         private async Task<Embed> BuildEmbedAsync(IReadOnlyCollection<TagSummary> tags, IUser ownerUser = null, IGuild ownerGuild = null, IRole ownerRole = null)
         {
-            var orderedTags = tags.OrderBy(x => x.Name);
+            var orderedTags = tags
+                .OrderByDescending(x => x.Uses)
+                .ThenBy(x => x.Name);
 
             var ownerName = ownerUser?.Username
                 ?? ownerGuild?.Name
@@ -169,50 +197,25 @@ namespace Modix.Bot.Modules
                 .WithAuthor(ownerName, ownerImage)
                 .WithColor(Color.DarkPurple)
                 .WithDescription(tags.Count > 0 ? null : "No tags.")
-                .WithTimestamp(DateTimeOffset.Now)
+                .WithFooter("Use tags with \"!tag name\", or inline with \"$name\"")
                 .WithTitle("Tags");
 
-            const int tagsToDisplay = 5;
+            const int tagsToDisplay = 6;
 
             foreach (var tag in orderedTags.Take(tagsToDisplay))
             {
-                builder.AddField(x => x.WithName(tag.Name)
-                                       .WithValue($"{tag.Uses} uses"));
+                builder.AddField(tag.Name, $"{tag.Uses} uses", true);
             }
 
             if (tags.Count > tagsToDisplay)
             {
-                var pasteContent = BuildPaste(orderedTags);
-
                 var fieldName = $"and {tags.Count - tagsToDisplay} more";
 
-                try
-                {
-                    var pasteLink = await CodePasteService.UploadCodeAsync(pasteContent, "txt");
-
-                    builder.AddField(x => x.WithName(fieldName)
-                                           .WithValue($"[View at {pasteLink}]({pasteLink})"));
-                }
-                catch (WebException ex)
-                {
-                    builder.AddField(x => x.WithName(fieldName)
-                                           .WithValue(ex.Message));
-                }
+                builder.AddField(x => x.WithName(fieldName)
+                                       .WithValue($"View at https://mod.gg/tags"));
             }
 
             return builder.Build();
-        }
-
-        private string BuildPaste(IOrderedEnumerable<TagSummary> tags)
-        {
-            var builder = new StringBuilder();
-
-            foreach (var tag in tags)
-            {
-                builder.AppendLine($"{tag.Name} ({tag.Uses} uses)");
-            }
-
-            return builder.ToString();
         }
     }
 }

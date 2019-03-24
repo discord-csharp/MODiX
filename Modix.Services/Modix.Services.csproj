@@ -1,8 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AsyncEvent" Version="0.2.0" />
     <PackageReference Include="Discord.Net" Version="2.0.1" />
@@ -17,8 +13,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="BehaviourConfiguration\Behaviours\" />
   </ItemGroup>
 </Project>

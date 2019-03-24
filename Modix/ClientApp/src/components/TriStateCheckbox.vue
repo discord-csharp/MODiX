@@ -122,7 +122,7 @@ export default class TriStateCheckbox extends Vue
 
     innerValue: boolean | null = null;
 
-    @Watch('value')
+    @Watch('value', {immediate: true})
     valueChange()
     {
         this.innerValue = this.value;

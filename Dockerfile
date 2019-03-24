@@ -16,4 +16,6 @@ RUN dotnet publish Modix.sln -c Release -r linux-x64 -o /app
 FROM microsoft/dotnet:2.2-aspnetcore-runtime
 WORKDIR /app
 COPY --from=dotnet-build /app .
+COPY --from=dotnet-build /src/healthcheck.sh .
+
 ENTRYPOINT ["dotnet", "Modix.dll"]

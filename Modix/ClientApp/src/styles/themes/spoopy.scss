@@ -52,11 +52,12 @@ $menu-item-hover-color: lighten($text, 50%);
 
 //Modal
 $modal-background-background-color: darken(transparentize($background, 0.2), 20%);
+$modal-card-body-background-color: $background;
 
 //Modix Component Overrides
 
 //A little ugly, but makes role colors readable
-.toRole
+:not(.markdownPreview) .toRole
 {
     background: $color !important;
 }
@@ -80,6 +81,20 @@ select[multiple]
 .own
 {
     background: darken($primary, 33%) !important;
+}
+
+//Table component is stupid
+.vgt-wrap
+{
+    strong
+    {
+        color: black;
+    }
+}
+
+.checkbox:hover, .radio:hover
+{
+    color: $subtitle-color !important;
 }
 
 //THIS SHOULD BE THE LAST LINE OF THE FILE

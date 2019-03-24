@@ -86,21 +86,6 @@ namespace Modix.Controllers
             });
         }
 
-
-        [HttpGet("{id}")]
-        public async Task<IActionResult> InfractionsForUserAsync(ulong id)
-        {
-            var result = await ModerationService.SearchInfractionsAsync(new InfractionSearchCriteria
-            {
-                IsDeleted = false,
-                IsRescinded = false,
-                SubjectId = id,
-                GuildId = UserGuild.Id
-            });
-
-            return Ok(result);
-        }
-
         [HttpPut("{subjectId}/create")]
         public async Task<IActionResult> CreateInfractionAsync(ulong subjectId, [FromBody] Models.InfractionCreationData creationData)
         {

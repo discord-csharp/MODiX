@@ -33,7 +33,7 @@ const modixState: ModixState =
     channelDesignations: [],
     claims: {},
     roles: [],
-    channels: [],
+    channels: {},
     guilds: [],
     roleMappings: []
 };
@@ -48,7 +48,7 @@ namespace modix
     const setCampaigns = (state: ModixState, campaigns: PromotionCampaign[]) => state.campaigns = campaigns;
     const setRoles = (state: ModixState, roles: Role[]) => state.roles = roles;
     const setGuilds = (state: ModixState, guilds: Guild[]) => state.guilds = guilds;
-    const setChannels = (state: ModixState, channels: Channel[]) => state.channels = channels;
+    const setChannels = (state: ModixState, channels: Channel[]) => state.channels = _.keyBy(channels, channel => channel.id);
 
     const setChannelDesignations = (state: ModixState, mappings: DesignatedChannelMapping[]) => state.channelDesignations = mappings;
     const setRoleDesignations = (state: ModixState, mappings: DesignatedRoleMapping[]) => state.roleMappings = mappings;

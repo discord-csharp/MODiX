@@ -47,7 +47,8 @@ namespace Modix.Services.Starboard
         /// </summary>
         /// <param name="message">The message to examine</param>
         /// <param name="emote">The emote to evaluate</param>
-        int GetReactionCount(IUserMessage message, IEmote emote);
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed, containing the amount of star-reactions on the message, excluding the authors star-reactions.</returns>
+        Task<int> GetReactionCount(IUserMessage message, IEmote emote);
 
         /// <summary>
         /// Gets the appropriate star-emote for the given <paramref name="reactionCount"/>.
@@ -139,11 +140,13 @@ namespace Modix.Services.Starboard
             => emote.Name == _emojis.Values.Last();
 
         /// <inheritdoc />
-        public int GetReactionCount(IUserMessage message, IEmote emote)
+        public async Task<int> GetReactionCount(IUserMessage message, IEmote emote)
         {
-            if (!message.Reactions.TryGetValue(emote, out var metadata))
-                return 0;
-            return metadata.ReactionCount;
+            var reactionUsers = await message
+                .GetReactionUsersAsync(emote, 100)
+                .FlattenAsync();
+            //Ignore author reaction when counting stars
+            return reactionUsers.Count(user => user.Id != message.Author.Id);
         }
 
         /// <inheritdoc />

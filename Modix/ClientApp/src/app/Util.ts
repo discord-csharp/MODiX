@@ -1,6 +1,8 @@
 import * as dateformat from "dateformat";
 import * as _ from 'lodash';
 import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
+import ModixState from '@/models/ModixState';
+import Role from '@/models/Role';
 
 export const formatDate = (date: Date): string =>
 {
@@ -19,42 +21,39 @@ export const getCookie = (name: string) =>
     return (value != null) ? unescape(value[1]) : null;
 }
 
-export const toBool = (input: any): boolean =>
+const { toHTML } = require('discord-markdown');
+
+export const parseDiscordContent = (store: ModixState, content: string): string =>
 {
-    if (!input) { return false; }
-    return input === true || input === "true" || input === "TRUE";
-}
-
-const channelResolvingRegex = /<#(\d+)>/gm;
-const urlResolvingRegex = /<(http.*)>/gm;
-const mentionResolvingRegex = /<@(\d+)>/gm;
-
-export const resolveMentions = (channelCache: { [key: string]: DesignatedChannelMapping; } | null, content: string) =>
-{
-    let replaced = content;
-
-    if (channelCache)
-    {
-        replaced = content.replace(channelResolvingRegex, (sub, args: string) =>
+    return toHTML(content, {discordCallback: {
+        channel: (channel: any) =>
         {
-            if (!channelCache[args])
+            let foundChannel: any = store.channels[channel.id];
+
+            if (foundChannel == undefined)
             {
-                return args;
+                foundChannel = channel.id;
+            }
+            else
+            {
+                foundChannel = foundChannel.name;
             }
 
-            return `<span class='channel'>#${channelCache[args].name}</span>`;
-        });
-    }
+            return `<span class='channel'>#${_.escape(foundChannel)}</span>`;
+        },
+        user: (user: any) => `<span class='userMention'>@${user.id}</span>`,
+        role: (role: any) =>
+        {
+            let foundRole = store.roles.find(r => r.id == role.id);
 
-    replaced = replaced.replace(urlResolvingRegex, (sub, args: string) =>
-    {
-        return `<a target="_blank" href="${_.escape(args)}">${_.escape(args)}</a>`;
-    });
-
-    replaced = replaced.replace(mentionResolvingRegex, (sub, args: string) =>
-    {
-        return `<span class='userMention'>@${_.escape(args)}</span>`;
-    });
-
-    return replaced;
-}
+            if (foundRole)
+            {
+                return `<span class='role' style='color: ${foundRole.color};'>@${_.escape(foundRole.name)}</span>`;
+            }
+            else
+            {
+                return `<span class='role'>@${_.escape(role.id)}</span>`;
+            }
+        },
+    }});
+};

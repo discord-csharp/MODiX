@@ -17,11 +17,11 @@
                     <template slot="table-row" slot-scope="props">
                         <span v-if="props.column.field == 'actions'">
                             <span class="level">
-                                <button class="button is-link is-small level-left" v-if="props.row.canMaintain" v-on:click="onTagEdit(props.row.name, props.row.content)">
+                                <button class="button is-link is-small level-left" v-if="props.row.canMaintain" v-on:click="onTagEdit(props.row)">
                                     Edit
                                 </button>
                                 &nbsp;
-                                <button class="button is-link is-small level-right" v-if="props.row.canMaintain" v-on:click="onTagDelete(props.row.name)">
+                                <button class="button is-link is-small level-right" v-if="props.row.canMaintain" v-on:click="onTagDelete(props.row)">
                                     Delete
                                 </button>
                             </span>
@@ -36,104 +36,22 @@
             </div>
         </section>
 
-        <div class="modal" v-bind:class="{'is-active': showCreateModal}">
-            <div class="modal-background" v-on:click="closeCreateModal"></div>
-            <div class="modal-card">
-                <header class="modal-card-head">
-                    <p class="modal-card-title">
-                        Create Tag
-                    </p>
-                    <button class="delete" aria-label="close" v-on:click="closeCreateModal"></button>
-                </header>
-                <section class="modal-card-body">
+        <TagCreationModal :shown="showCreateModal" :selectedTag="tagToEdit" :allTags="tags" @close="closeCreateModal" @submit="createModalSubmit"></TagCreationModal>
 
-                    <div class="field">
-                        <label class="label">Tag name</label>
-
-                        <div class="control">
-                            <p class="control is-expanded">
-                                <input class="input" type="text" v-model.trim="newTagName" placeholder="Enter the name of the tag"
-                                       v-bind:class="{'is-success': newTagNameIsValid,
-                                                      'is-danger': newTagNameIsError}" />
-                            </p>
-                            <div class="help is-danger" v-if="newTagNameContainsSpaces">Tag names cannot contain spaces.</div>
-                            <div class="help is-danger" v-if="newTagNameAlreadyExists">That tag already exists.</div>
-                        </div>
-                    </div>
-
-                    <div class="field">
-                        <label class="label">Tag content</label>
-
-                        <p class="control is-expanded">
-                            <input class="input" type="text" v-model.trim="newTagContent" placeholder="Enter the content that the tag will display when used"
-                                   v-bind:class="{'is-success': newTagContentIsValid}" />
-                        </p>
-                    </div>
-
-                </section>
-
-                <footer class="modal-card-foot level">
-                    <div class="level-left">
-                        <button class="button is-success" v-bind:disabled="!canCreateNewTag" v-on:click="onTagCreate">Create</button>
-                    </div>
-                    <div class="level-right">
-                        <button class="button is-danger" v-on:click="closeCreateModal">Cancel</button>
-                    </div>
-                </footer>
-            </div>
-        </div>
-
-        <div class="modal" v-bind:class="{'is-active': showEditModal}">
-            <div class="modal-background" v-on:click="closeEditModal"></div>
-            <div class="modal-card">
-                <header class="modal-card-head">
-                    <p class="modal-card-title">
-                        Edit Tag
-                    </p>
-                    <button class="delete" aria-label="close" v-on:click="closeEditModal"></button>
-                </header>
-                <section class="modal-card-body">
-
-                    <div class="field">
-                        <label class="label">Tag name</label>
-                        <div class="input" typeof="text" v-bind:disabled="true">{{toEditName}}</div>
-                    </div>
-
-                    <div class="field">
-                        <label class="label">Tag content</label>
-
-                        <p class="control is-expanded">
-                            <input class="input" type="text" v-model.trim="toEditContent" placeholder="Enter the content that the tag will display when used"
-                                   v-bind:class="{'is-success': toEditContentIsValid}" />
-                        </p>
-                    </div>
-
-                </section>
-
-                <footer class="modal-card-foot level">
-                    <div class="level-left">
-                        <button class="button is-success" v-bind:disabled="!toEditContentIsValid" v-on:click="confirmEdit">Save</button>
-                    </div>
-                    <div class="level-right">
-                        <button class="button is-danger" v-on:click="closeEditModal">Cancel</button>
-                    </div>
-                </footer>
-            </div>
-        </div>
-
-        <ConfirmationModal v-bind:isShown="showDeleteConfirmation" v-on:modal-confirmed="confirmDelete" v-on:modal-cancelled="cancelDelete" />
+        <ConfirmationModal v-bind:isShown="showDeleteConfirmation" v-on:modal-confirmed="confirmDelete" v-on:modal-cancelled="cancelDelete"
+            :mainText="(tagToDelete ? `Are you sure you want to delete tag '${tagToDelete.name}'?` : '')" />
 
     </div>
 </template>
 
 <script lang="ts">
 import * as _ from 'lodash';
-import { resolveMentions } from '@/app/Util';
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import HeroHeader from '@/components/HeroHeader.vue';
 import TinyUserView from '@/components/TinyUserView.vue';
 import Autocomplete from '@/components/Autocomplete.vue';
 import ConfirmationModal from '@/components/ConfirmationModal.vue';
+import TagCreationModal from '@/components/Tags/TagCreationModal.vue';
 import store from "@/app/Store";
 import { VueGoodTable } from 'vue-good-table';
 import GuildUserIdentity from '@/models/core/GuildUserIdentity';
@@ -142,10 +60,12 @@ import TagSummary from '@/models/Tags/TagSummary';
 import TagService from '@/services/TagService';
 import TagCreationData from '../../models/Tags/TagCreationData';
 import TagMutationData from '../../models/Tags/TagMutationData';
+import ModixComponent from '@/components/ModixComponent.vue';
+import { GuildRoleBrief } from '@/models/promotions/PromotionCampaign';
 
-const messageResolvingRegex = /<#(\d+)>/gm;
+type TagOwner = GuildUserIdentity & GuildRoleBrief;
 
-const guildUserFilter = (subject: GuildUserIdentity, filter: string) =>
+const guildUserFilter = (subject: TagOwner, filter: string) =>
 {
     filter = _.lowerCase(filter);
 
@@ -153,7 +73,7 @@ const guildUserFilter = (subject: GuildUserIdentity, filter: string) =>
         _.lowerCase(subject.displayName).indexOf(filter) >= 0;
 };
 
-const guildUserSort = (x: GuildUserIdentity, y: GuildUserIdentity, col: any, rowX: any, rowY: any) =>
+const guildUserSort = (x: TagOwner, y: TagOwner, col: any, rowX: any, rowY: any) =>
 {
     return (x.id < y.id ? -1 : (x.id > y.id ? 1 : 0));
 };
@@ -165,10 +85,11 @@ const guildUserSort = (x: GuildUserIdentity, y: GuildUserIdentity, col: any, row
         VueGoodTable,
         TinyUserView,
         Autocomplete,
-        ConfirmationModal
+        ConfirmationModal,
+        TagCreationModal
     }
 })
-export default class Tags extends Vue
+export default class Tags extends ModixComponent
 {
     paginationOptions: any =
     {
@@ -187,26 +108,14 @@ export default class Tags extends Vue
     tags: TagSummary[] = [];
 
     showCreateModal: boolean = false;
-    newTagName: string = "";
-    newTagContent: string = "";
-
-    showEditModal: boolean = false;
-    toEditName: string = "";
-    toEditContent: string = "";
+    tagToEdit: TagSummary | null = null;
 
     showDeleteConfirmation: boolean = false;
-    toDelete: string = "";
-
-    channelCache: { [channel: string]: DesignatedChannelMapping } | null = null;
+    tagToDelete: TagSummary | null = null;
 
     get canCreate(): boolean
     {
         return store.userHasClaims(["CreateTag"]);
-    }
-
-    resolveMentions(description: string)
-    {
-        return resolveMentions(this.channelCache, description);
     }
 
     staticFilters: {[field: string]: string} = {name: "", creator: "", content: ""};
@@ -224,7 +133,7 @@ export default class Tags extends Vue
                 }
             },
             {
-                label: 'Created On',
+                label: 'Last Modified',
                 field: 'date',
                 type: 'date',
                 dateInputFormat: 'YYYY-MM-DDTHH:mm:ss',
@@ -234,19 +143,22 @@ export default class Tags extends Vue
             {
                 label: 'Owner',
                 field: 'owner',
+                type: 'date',
                 sortFn: guildUserSort,
+                formatFn: this.formatTagOwner,
+                html: true,
                 filterOptions:
                 {
                      enabled: true,
                      filterFn: guildUserFilter,
                      filterValue: this.staticFilters["owner"],
                      placeholder: "Filter"
-                },
+                }
             },
             {
                 label: 'Content',
                 field: 'content',
-                formatFn: this.resolveMentions,
+                formatFn: this.parseDiscordContent,
                 html: true,
                 filterOptions:
                 {
@@ -257,11 +169,13 @@ export default class Tags extends Vue
             {
                 label: 'Uses',
                 field: 'uses',
+                type: 'number'
             },
             {
                 label: 'Actions',
                 field: 'actions',
-                width: '32px'
+                width: '32px',
+                sortable: false
             }
         ];
     }
@@ -272,39 +186,46 @@ export default class Tags extends Vue
         ({
             name: tag.name,
             date: tag.created,
-            owner: tag.ownerName,
+            owner: (tag.ownerRole != null ? tag.ownerRole : tag.ownerUser),
             content: tag.content,
             uses: tag.uses,
             isOwnedByRole: tag.isOwnedByRole,
-            ownerColor: tag.ownerColor,
             canMaintain: tag.canMaintain,
         }));
     }
 
-    async refresh(): Promise<void>
+    formatTagOwner(owner: TagOwner)
+    {
+        let mention = "";
+
+        if (owner.position != undefined) //is a role
+        {
+            mention = `<@&${owner.id}>`;
+        }
+        else //is a user
+        {
+            mention = `${owner.displayName}`;
+        }
+
+        return this.parseDiscordContent(mention);
+    }
+
+    async refresh()
     {
         this.isLoading = true;
 
         this.tags = await TagService.getTags();
         await store.retrieveChannels();
 
-        this.channelCache = _.keyBy(this.$store.state.modix.channels, channel => channel.id);
-
-        this.clearNewTagData();
+        this.clearSelectedTag();
+        this.applyFilters();
 
         this.isLoading = false;
     }
 
-    clearNewTagData(): void
+    clearSelectedTag(): void
     {
-        this.newTagName = "";
-        this.newTagContent = "";
-    }
-
-    clearToEditData(): void
-    {
-        this.toEditName = "";
-        this.toEditContent = "";
+        this.tagToEdit = null;
     }
 
     applyFilters(): void
@@ -322,117 +243,48 @@ export default class Tags extends Vue
         }
     }
 
-    async created(): Promise<void>
-    {
-        await this.refresh();
-        this.applyFilters();
-    }
-
-    get newTagNameContainsSpaces(): boolean
-    {
-        return this.newTagName.indexOf(" ") >= 0;
-    }
-
-    get newTagNameAlreadyExists(): boolean
-    {
-        return _.some(this.tags, (tag: TagSummary) => tag.name == this.newTagName);
-    }
-
-    get newTagNameIsValid(): boolean
-    {
-        return this.newTagName.length > 0
-            && !this.newTagNameContainsSpaces
-            && !this.newTagNameAlreadyExists;
-    }
-
-    get newTagNameIsError(): boolean
-    {
-        return this.newTagNameContainsSpaces
-            || this.newTagNameAlreadyExists;
-    }
-
-    get newTagContentIsValid(): boolean
-    {
-        return this.newTagContent.length > 0;
-    }
-
-    get canCreateNewTag(): boolean
-    {
-        return this.newTagNameIsValid
-            && this.newTagContentIsValid;
-    }
-
     closeCreateModal(): void
     {
-        this.clearNewTagData();
+        this.clearSelectedTag();
         this.showCreateModal = false;
     }
 
-    closeEditModal(): void
+    async createModalSubmit()
     {
-        this.clearToEditData();
-        this.showEditModal = false;
-    }
-
-    async onTagCreate(): Promise<void>
-    {
-        let newTag = new TagCreationData();
-        newTag.content = this.newTagContent;
-
-        await TagService.createTag(this.newTagName, newTag);
-
-        await this.refresh();
         this.closeCreateModal();
-    }
-
-    onTagEdit(name: string, content: string): void
-    {
-        this.toEditName = name;
-        this.toEditContent = content;
-        this.showEditModal = true;
-    }
-
-    get toEditContentIsValid(): boolean
-    {
-        return this.toEditContent.length > 0;
-    }
-
-    async confirmEdit(): Promise<void>
-    {
-        let editedTag = new TagMutationData();
-        editedTag.content = this.toEditContent;
-
-        await TagService.updateTag(this.toEditName, editedTag);
-
         await this.refresh();
-        this.closeEditModal();
     }
 
-    cancelEdit(): void
+    async onTagEdit(tag: TagSummary)
     {
-        this.showEditModal = false;
-        this.toEditName = "";
-        this.toEditContent = "";
+        this.tagToEdit = tag;
+        this.showCreateModal = true;
     }
 
-    onTagDelete(name: string): void
+    onTagDelete(tag: TagSummary)
     {
-        this.toDelete = name;
+        this.tagToDelete = tag;
         this.showDeleteConfirmation = true;
     }
 
     async confirmDelete(): Promise<void>
     {
         this.showDeleteConfirmation = false;
-        await TagService.deleteTag(this.toDelete);
-        this.toDelete = "";
+        await TagService.deleteTag(this.tagToDelete!.name);
+        this.tagToDelete = null;
         await this.refresh();
     }
 
     cancelDelete(): void
     {
         this.showDeleteConfirmation = false;
-        this.toDelete = "";
+        this.tagToDelete = null;
+    }
+
+    async mounted()
+    {
+        await store.retrieveRoles();
+        await this.refresh();
     }
 }
 </script>

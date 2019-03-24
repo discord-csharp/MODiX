@@ -28,8 +28,7 @@
             </div>
 
             <div class="column is-narrow-tablet adminButtons">
-                <a class="button is-primary is-small is-fullwidth" :class="{'is-loading': dialogLoading}"
-                   :disabled="campaign.outcome == 'Accepted'" @click.stop="showPanel()">Info</a>
+                <a class="button is-primary is-small is-fullwidth" :class="{'is-loading': dialogLoading}" @click.stop="showPanel()">Info</a>
             </div>
 
             <div class="column is-narrow-tablet ratings">
@@ -217,11 +216,6 @@ export default class PromotionListItem extends ModixComponent
 
     showPanel()
     {
-        if (this.campaign.outcome == CampaignOutcome.Accepted)
-        {
-            return;
-        }
-
         this.$emit('showPanel');
     }
 
@@ -230,7 +224,7 @@ export default class PromotionListItem extends ModixComponent
         let roles = this.$store.state.modix.roles as Role[];
         let found = _.find(roles, (role: Role) => role.id == id) as Role;
 
-        return { color: found.fgColor, borderColor: found.fgColor };
+        return { color: found.fgColor };
     }
 
     async expandWithSentiment(sentiment: PromotionSentiment)
