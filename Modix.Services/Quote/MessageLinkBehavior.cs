@@ -28,6 +28,7 @@ namespace Modix.Services.Quote
         protected internal override Task OnStartingAsync()
         {
             DiscordClient.MessageReceived += OnMessageReceivedAsync;
+            DiscordClient.MessageUpdated += OnMessageUpdatedAsync;
 
             return Task.CompletedTask;
         }
@@ -35,8 +36,19 @@ namespace Modix.Services.Quote
         protected internal override Task OnStoppedAsync()
         {
             DiscordClient.MessageReceived -= OnMessageReceivedAsync;
+            DiscordClient.MessageUpdated -= OnMessageUpdatedAsync;
 
             return Task.CompletedTask;
+        }
+
+        private async Task OnMessageUpdatedAsync(Cacheable<IMessage, ulong> cached, SocketMessage message, ISocketMessageChannel channel)
+        {
+            var cachedMessage = await cached.GetOrDownloadAsync();
+
+            if (Pattern.IsMatch(cachedMessage.Content))
+                return;
+
+            await OnMessageReceivedAsync(message);
         }
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
