@@ -68,17 +68,19 @@ namespace Modix.Data.Models.Emoji
         public class EqualityComparer : IEqualityComparer<EphemeralEmoji>
         {
             public bool Equals(EphemeralEmoji x, EphemeralEmoji y)
-                => x.Id == y.Id
-                && x.Name == y.Name;
+                => x?.Id == y?.Id
+                && x?.Id is null
+                    ? x?.Name == y?.Name
+                    : true;
 
             public int GetHashCode(EphemeralEmoji obj)
             {
                 var hashCode = new HashCode();
 
-                hashCode.Add(obj.Name);
-
                 if (obj.Id != null)
                     hashCode.Add(obj.Id);
+                else
+                    hashCode.Add(obj.Name);
 
                 return hashCode.ToHashCode();
             }
