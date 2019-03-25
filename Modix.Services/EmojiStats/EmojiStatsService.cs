@@ -15,7 +15,7 @@ namespace Modix.Services.EmojiStats
     public interface IEmojiStatsService
     {
         /// <summary>
-        /// Retireves a collection of emoji log records for the supplied guild, potentially filtered within a given time period.
+        /// Retrieves a collection of emoji log records for the supplied guild, potentially filtered within a given time period.
         /// </summary>
         /// <param name="guildId">The guild for which to search for emoji records.</param>
         /// <param name="timeSpan">The time period for which to search for emoji records.</param>
@@ -124,7 +124,9 @@ namespace Modix.Services.EmojiStats
             if (!emojiSummaries.Any())
                 return DateTimeOffset.Now;
 
-            return emojiSummaries.Min(x => x.Timestamp);
+            return emojiSummaries
+                .Min(x => x.Timestamp)
+                .ToUniversalTime();
         }
     }
 }
