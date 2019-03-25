@@ -77,6 +77,7 @@ namespace Modix.Services.EmojiStats
                     UserId = reaction.UserId,
                     EmojiId = emote?.Id,
                     EmojiName = reaction.Emote.Name,
+                    IsAnimated = emote?.Animated ?? false,
                     UsageType = EmojiUsageType.Reaction,
                 });
 
@@ -194,6 +195,7 @@ namespace Modix.Services.EmojiStats
                     UserId = message.Author.Id,
                     EmojiId = emote?.Id,
                     EmojiName = emoji,
+                    IsAnimated = emote?.Animated ?? false,
                     UsageType = EmojiUsageType.MessageContent,
                 },
                 count);

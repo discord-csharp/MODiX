@@ -10,8 +10,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    [Migration("20190324012128_Emojistats")]
-    partial class Emojistats
+    [Migration("20190325132308_EmojiStats")]
+    partial class EmojiStats
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -272,6 +272,8 @@ namespace Modix.Data.Migrations
                         .IsRequired();
 
                     b.Property<long>("GuildId");
+
+                    b.Property<bool>("IsAnimated");
 
                     b.Property<long>("MessageId");
 

@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Modix.Data.Migrations
 {
-    public partial class Emojistats : Migration
+    public partial class EmojiStats : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -20,6 +20,7 @@ namespace Modix.Data.Migrations
                     UserId = table.Column<long>(nullable: false),
                     EmojiId = table.Column<long>(nullable: true),
                     EmojiName = table.Column<string>(nullable: false),
+                    IsAnimated = table.Column<bool>(nullable: false),
                     Timestamp = table.Column<DateTimeOffset>(nullable: false),
                     UsageType = table.Column<string>(nullable: false)
                 },

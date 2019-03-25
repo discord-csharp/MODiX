@@ -30,9 +30,13 @@ namespace Modix.Data.Models.Emoji
         public override string ToString()
             => _emote?.ToString() ?? _emoji?.ToString();
 
-        public static EphemeralEmoji FromRawData(string name, ulong? id = null)
+        public static EphemeralEmoji FromRawData(string name, ulong? id = null, bool isAnimated = false)
         {
-            var raw = $"<:{name}:{id}>";
+            var animatedPrefix = isAnimated
+                ? "a"
+                : string.Empty;
+
+            var raw = $"<{animatedPrefix}:{name}:{id}>";
 
             if (Emote.TryParse(raw, out var emote))
             {

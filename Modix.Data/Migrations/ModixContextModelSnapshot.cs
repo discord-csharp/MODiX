@@ -271,6 +271,8 @@ namespace Modix.Data.Migrations
 
                     b.Property<long>("GuildId");
 
+                    b.Property<bool>("IsAnimated");
+
                     b.Property<long>("MessageId");
 
                     b.Property<DateTimeOffset>("Timestamp");

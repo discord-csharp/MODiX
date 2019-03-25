@@ -38,6 +38,11 @@ namespace Modix.Data.Models.Emoji
         public string EmojiName { get; set; }
 
         /// <summary>
+        /// Indicates whether an emoji is animated.
+        /// </summary>
+        public bool IsAnimated { get; set; }
+
+        /// <summary>
         /// The type of usage associated with the emoji.
         /// </summary>
         public EmojiUsageType UsageType { get; set; }
@@ -51,6 +56,7 @@ namespace Modix.Data.Models.Emoji
                 UserId = UserId,
                 EmojiId = EmojiId,
                 EmojiName = EmojiName,
+                IsAnimated = IsAnimated,
                 UsageType = UsageType,
                 Timestamp = DateTimeOffset.Now,
             };
@@ -64,6 +70,7 @@ namespace Modix.Data.Models.Emoji
                 UserId = UserId,
                 EmojiId = EmojiId,
                 EmojiName = EmojiName,
+                IsAnimated = IsAnimated,
                 UsageType = UsageType,
                 Timestamp = timestamp,
             };

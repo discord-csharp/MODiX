@@ -32,6 +32,9 @@ namespace Modix.Data.Models.Emoji
         public string EmojiName { get; set; }
 
         [Required]
+        public bool IsAnimated { get; set; }
+
+        [Required]
         public DateTimeOffset Timestamp { get; set; }
 
         [Required]

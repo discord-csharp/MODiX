@@ -45,7 +45,10 @@ namespace Modix.Modules
             {
                 var (emoji, count) = emojiCountsAllTime[i];
                 var emojiFormatted = Format.Url(emoji.ToString(), emoji.Url);
-                var percentUsage = (100 * (double)count / totalEmojiUsage).ToString("0.0");
+
+                var percentUsage = 100 * (double)count / totalEmojiUsage;
+                if (double.IsNaN(percentUsage))
+                    percentUsage = 0;
 
                 double usageLast30 = 0;
 
@@ -57,7 +60,7 @@ namespace Modix.Modules
                 sb.Append($"{i + 1}. ")
                     .Append(emojiFormatted)
                     .Append($" ({"use".ToQuantity(count)})")
-                    .Append($" ({percentUsage}%),")
+                    .Append($" ({percentUsage.ToString("0.0")}%),")
                     .Append($" {usageLast30.ToString("0.0/day")}")
                     .AppendLine();
             }
@@ -81,7 +84,9 @@ namespace Modix.Modules
             [Summary("The emoji to retrieve information about.")]
                 IEmote emoji)
         {
-            var ephemeralEmoji = EphemeralEmoji.FromRawData(emoji.Name, (emoji as Emote)?.Id);
+            var asEmote = emoji as Emote;
+
+            var ephemeralEmoji = EphemeralEmoji.FromRawData(emoji.Name, asEmote?.Id, asEmote?.Animated ?? false);
             var guildId = Context.Guild.Id;
 
             var emojiUsageAllTime = await _emojiStatsService.GetEmojiSummaries(guildId, null);
@@ -104,7 +109,10 @@ namespace Modix.Modules
                     : x.Key.Id == ephemeralEmoji.Id);
 
             var emojiFormatted = Format.Url(ephemeralEmoji.ToString(), ephemeralEmoji.Url);
-            var percentUsage = (100 * (double)count / totalEmojiUsage).ToString("0.0");
+
+            var percentUsage = 100 * (double)count / totalEmojiUsage;
+            if (double.IsNaN(percentUsage))
+                percentUsage = 0;
 
             var usageLast30 = 0d;
 
@@ -129,13 +137,16 @@ namespace Modix.Modules
 
             sb.AppendLine()
                 .AppendLine($"• {"use".ToQuantity(count)}")
-                .AppendLine($"• {percentUsage}% of all emoji uses")
+                .AppendLine($"• {percentUsage.ToString("0.0")}% of all emoji uses")
                 .AppendLine($"• {usageLast30.ToString("0.0/day")}");
 
             if (topUserId != default)
                 sb.AppendLine($"• Top user: {MentionUtils.MentionUser(topUserId)} ({"use".ToQuantity(topUserCount)})");
 
-            var embed = new EmbedBuilder().WithDescription(sb.ToString());
+            var embed = new EmbedBuilder()
+                .WithAuthor(Context.Guild.Name, Context.Guild.IconUrl)
+                .WithColor(Color.Blue)
+                .WithDescription(sb.ToString());
 
             await ReplyAsync(embed: embed.Build());
         }

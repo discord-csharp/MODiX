@@ -39,6 +39,11 @@ namespace Modix.Data.Models.Emoji
         public string EmojiName { get; set; }
 
         /// <summary>
+        /// Indicates whether the emoji is animated.
+        /// </summary>
+        public bool? IsAnimated { get; set; }
+
+        /// <summary>
         /// A range of dates of when the emoji was used.
         /// </summary>
         public DateTimeOffsetRange? TimestampRange { get; set; }
@@ -71,6 +76,9 @@ namespace Modix.Data.Models.Emoji
                 .FilterBy(
                     x => x.EmojiName == criteria.EmojiName,
                     criteria.EmojiName != null)
+                .FilterBy(
+                    x => x.IsAnimated == criteria.IsAnimated,
+                    criteria.IsAnimated != null)
                 .FilterBy(
                     x => x.Timestamp >= criteria.TimestampRange.Value.From.Value,
                     criteria.TimestampRange != null

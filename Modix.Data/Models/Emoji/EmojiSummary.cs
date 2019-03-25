@@ -52,7 +52,7 @@ namespace Modix.Data.Models.Emoji
                 ChannelId = entity.ChannelId,
                 MessageId = entity.MessageId,
                 UserId = entity.UserId,
-                Emoji = EphemeralEmoji.FromRawData(entity.EmojiName, entity.EmojiId),
+                Emoji = EphemeralEmoji.FromRawData(entity.EmojiName, entity.EmojiId, entity.IsAnimated),
                 Timestamp = entity.Timestamp,
                 UsageType = entity.UsageType,
             };
