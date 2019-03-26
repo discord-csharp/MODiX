@@ -22,9 +22,9 @@ using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.Csharp;
 using Modix.Services.DocsMaster;
+using Modix.Services.EmojiStats;
 using Modix.Services.GuildStats;
 using Modix.Services.Mentions;
-using Modix.Services.Messages.Discord;
 using Modix.Services.Moderation;
 using Modix.Services.NotificationDispatch;
 using Modix.Services.PopularityContest;
@@ -110,14 +110,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddModixTags()
                 .AddNotificationDispatch()
                 .AddStarboard()
-                .AddAutoRemoveMessage();
+                .AddAutoRemoveMessage()
+                .AddEmojiStats();
 
             services.AddSingleton<IBehavior, DiscordAdapter>();
             services.AddScoped<IQuoteService, QuoteService>();
             services.AddSingleton<IBehavior, MessageLinkBehavior>();
             services.AddSingleton<CodePasteHandler>();
             services.AddSingleton<IBehavior, AttachmentBlacklistBehavior>();
-            services.AddScoped<INotificationHandler<ChatMessageReceived>, TagInlineParsingHandler>();
             services.AddSingleton<CodePasteService>();
             services.AddScoped<DocsMasterRetrievalService>();
             services.AddMemoryCache();

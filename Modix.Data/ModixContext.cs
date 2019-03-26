@@ -3,6 +3,7 @@ using System.Reflection;
 
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
+using Modix.Data.Models.Emoji;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Models.Promotions;
 using Modix.Data.Models.Tags;
@@ -61,6 +62,8 @@ namespace Modix.Data
         internal DbSet<TagEntity> Tags { get; set; }
 
         internal DbSet<TagActionEntity> TagActions { get; set; }
+
+        internal DbSet<EmojiEntity> Emoji { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

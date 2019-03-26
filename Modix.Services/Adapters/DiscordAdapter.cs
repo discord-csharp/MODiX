@@ -23,6 +23,7 @@ namespace Modix.Services.Adapters
         {
             _discordClient.MessageReceived += OnMessageReceived;
             _discordClient.MessageUpdated += OnMessageUpdated;
+            _discordClient.MessageDeleted += OnMessageDeleted;
             _discordClient.ReactionAdded += OnReactionAdded;
             _discordClient.ReactionRemoved += OnReactionRemoved;
             _discordClient.UserJoined += OnUserJoined;
@@ -44,6 +45,9 @@ namespace Modix.Services.Adapters
 
         private Task OnMessageReceived(SocketMessage message)
             => _notificationDispatchService.PublishScopedAsync(new ChatMessageReceived { Message = message });
+
+        private Task OnMessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
+            => _notificationDispatchService.PublishScopedAsync(new ChatMessageDeleted { Message = message, Channel = channel });
 
         private Task OnUserJoined(SocketGuildUser user)
             => _notificationDispatchService.PublishScopedAsync(new UserJoined { Guild = user.Guild, User = user });
