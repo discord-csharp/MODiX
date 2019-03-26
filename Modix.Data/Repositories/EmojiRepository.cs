@@ -146,8 +146,7 @@ namespace Modix.Data.Repositories
 
             var counts = emoji.ToDictionary(
                 x => EphemeralEmoji.FromRawData(x.Key.EmojiName, x.Key.EmojiId),
-                x => x.Count(),
-                new EphemeralEmoji.EqualityComparer());
+                x => x.Count());
 
             return counts;
         }

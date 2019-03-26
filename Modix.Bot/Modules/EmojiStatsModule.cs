@@ -53,13 +53,25 @@ namespace Modix.Modules
             var ephemeralEmoji = EphemeralEmoji.FromRawData(emoji.Name, asEmote?.Id, asEmote?.Animated ?? false);
             var guildId = Context.Guild.Id;
 
-            var emojiUsageAllTime = await _emojiStatsService.GetEmojiSummaries(guildId, null);
+            var emojiUsageAllTime = await _emojiStatsService.GetEmojiSummaries(guildId, null, ephemeralEmoji);
+
+            if (emojiUsageAllTime.Count == 0)
+            {
+                await ReplyAsync(embed: new EmbedBuilder()
+                    .WithTitle("Unknown Emoji")
+                    .WithDescription($"The emoji \"{ephemeralEmoji.Name}\" has never been used in this server.")
+                    .WithColor(Color.Red)
+                    .Build());
+
+                return;
+            }
+
             var emojiCountsAllTime = _emojiStatsService
                 .GetCountsFromSummaries(emojiUsageAllTime)
                 .OrderByDescending(x => x.Value)
                 .ToArray();
 
-            var emojiUsage30 = await _emojiStatsService.GetEmojiSummaries(guildId, TimeSpan.FromDays(30));
+            var emojiUsage30 = await _emojiStatsService.GetEmojiSummaries(guildId, TimeSpan.FromDays(30), ephemeralEmoji);
             var emojiCounts30 = _emojiStatsService.GetCountsFromSummaries(emojiUsage30);
 
             var totalEmojiUsage = _emojiStatsService.GetTotalEmojiUseCount(emojiCountsAllTime);
@@ -85,10 +97,7 @@ namespace Modix.Modules
                 usageLast30 = (double)countLast30 / numberOfDays;
             }
 
-            var comparer = new EphemeralEmoji.EqualityComparer();
-
             var (topUserId, topUserCount) = emojiUsageAllTime
-                .Where(x => comparer.Equals(x.Emoji, ephemeralEmoji))
                 .GroupBy(x => x.UserId)
                 .Select(x => (UserId: x.Key, Count: x.Count()))
                 .OrderByDescending(x => x.Count)
@@ -138,7 +147,7 @@ namespace Modix.Modules
 
             var distinctEmoji = emojiCountsAllTime
                 .Select(x => x.Key)
-                .Distinct(new EphemeralEmoji.EqualityComparer());
+                .Distinct();
 
             var sb = new StringBuilder();
 

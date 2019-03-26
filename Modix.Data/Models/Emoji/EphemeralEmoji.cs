@@ -4,7 +4,7 @@ using Discord;
 
 namespace Modix.Data.Models.Emoji
 {
-    public sealed class EphemeralEmoji : ISnowflakeEntity, IEmote
+    public sealed class EphemeralEmoji : ISnowflakeEntity, IEmote, IEquatable<EphemeralEmoji>
     {
         public ulong? Id
             => _emote?.Id;
@@ -64,30 +64,26 @@ namespace Modix.Data.Models.Emoji
             return this;
         }
 
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as EphemeralEmoji);
+        }
+
+        public bool Equals(EphemeralEmoji other)
+        {
+            return other != null &&
+                   EqualityComparer<ulong?>.Default.Equals(Id, other.Id) &&
+                   Name == other.Name;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Id, Name);
+        }
+
         private const string UnicodeError = "This operation is unavailable for Unicode emoji.";
 
         private Emote _emote;
         private Discord.Emoji _emoji;
-
-        public class EqualityComparer : IEqualityComparer<EphemeralEmoji>
-        {
-            public bool Equals(EphemeralEmoji x, EphemeralEmoji y)
-                => x?.Id == y?.Id
-                && x?.Id is null
-                    ? x?.Name == y?.Name
-                    : true;
-
-            public int GetHashCode(EphemeralEmoji obj)
-            {
-                var hashCode = new HashCode();
-
-                if (obj.Id != null)
-                    hashCode.Add(obj.Id);
-                else
-                    hashCode.Add(obj.Name);
-
-                return hashCode.ToHashCode();
-            }
-        }
     }
 }

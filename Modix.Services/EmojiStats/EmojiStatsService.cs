@@ -18,11 +18,12 @@ namespace Modix.Services.EmojiStats
         /// </summary>
         /// <param name="guildId">The guild for which to search for emoji records.</param>
         /// <param name="timeSpan">The time period for which to search for emoji records.</param>
+        /// <param name="emojiName">An emoji to filter by - optional.</param>
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation is complete,
         /// containing a collection of emoji log records that match the supplied criteria.
         /// </returns>
-        Task<IReadOnlyCollection<EmojiSummary>> GetEmojiSummaries(ulong guildId, TimeSpan? timeSpan);
+        Task<IReadOnlyCollection<EmojiSummary>> GetEmojiSummaries(ulong guildId, TimeSpan? timeSpan, EphemeralEmoji emoji = null);
 
         /// <summary>
         /// Aggregates the data from a sequence of emoji log records to determine how many times each emoji was used.
@@ -69,7 +70,7 @@ namespace Modix.Services.EmojiStats
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EmojiSummary>> GetEmojiSummaries(ulong guildId, TimeSpan? timeSpan)
+        public async Task<IReadOnlyCollection<EmojiSummary>> GetEmojiSummaries(ulong guildId, TimeSpan? timeSpan, EphemeralEmoji emoji = null)
         {
             var criteria = new EmojiSearchCriteria() { GuildId = guildId };
 
@@ -80,6 +81,18 @@ namespace Modix.Services.EmojiStats
                     From = DateTimeOffset.UtcNow - timeSpan.Value,
                     To = DateTimeOffset.UtcNow
                 };
+            }
+
+            if (emoji != null)
+            {
+                if (emoji.Id != null)
+                {
+                    criteria.EmojiId = emoji.Id;
+                }
+                else
+                {
+                    criteria.EmojiName = emoji.Name;
+                }
             }
 
             return await _emojiRepository.SearchSummariesAsync(criteria);
@@ -101,8 +114,7 @@ namespace Modix.Services.EmojiStats
                 ),
                 x => x)
                 .ToDictionary(x => x.OrderByDescending(y => y.Timestamp).First().Emoji,
-                              x => x.Count(),
-                              new EphemeralEmoji.EqualityComparer());
+                              x => x.Count());
         }
 
         /// <inheritdoc />
