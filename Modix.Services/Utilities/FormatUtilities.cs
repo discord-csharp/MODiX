@@ -122,6 +122,11 @@ namespace Modix.Services.Utilities
             => text.Replace("@everyone", "@\x200beveryone")
                    .Replace("@here", "@\x200bhere");
 
+        public static string SanitizeUserMentions(string text)
+            => _userMentionRegex.Replace(text, "<@\x200b${Id}>");
+
+        private static readonly Regex _userMentionRegex = new Regex("<@!?(?<Id>[0-9]+)>", RegexOptions.Compiled);
+
         /// <summary>
         /// Identifies a dominant color from the provided image.
         /// </summary>
