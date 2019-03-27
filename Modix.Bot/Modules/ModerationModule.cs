@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Discord;
@@ -7,6 +9,7 @@ using Discord.Commands;
 using Modix.Bot.Extensions;
 using Modix.Data.Models.Moderation;
 using Modix.Services.Moderation;
+using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
@@ -29,7 +32,7 @@ namespace Modix.Modules
                 string reason)
         {
             await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Notice, subject.Id, reason, null);
-            await Context.AddConfirmation();
+            await ConfirmAndReplyWithCounts(subject.Id);
         }
 
         [Command("warn")]
@@ -42,7 +45,7 @@ namespace Modix.Modules
                 string reason)
         {
             await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Warning, subject.Id, reason, null);
-            await Context.AddConfirmation();
+            await ConfirmAndReplyWithCounts(subject.Id);
         }
 
         [Command("mute")]
@@ -55,10 +58,11 @@ namespace Modix.Modules
                 string reason)
         {
             await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.Id, reason, null);
-            await Context.AddConfirmation();
+            await ConfirmAndReplyWithCounts(subject.Id);
         }
 
         [Command("tempmute")]
+        [Alias("mute")]
         [Summary("Mute a user, for a temporary amount of time.")]
         public async Task TempMuteAsync(
             [Summary("The user to be muted.")]
@@ -70,7 +74,7 @@ namespace Modix.Modules
                 string reason)
         {
             await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.Id, reason, duration);
-            await Context.AddConfirmation();
+            await ConfirmAndReplyWithCounts(subject.Id);
         }
 
         [Command("unmute")]
@@ -80,6 +84,7 @@ namespace Modix.Modules
                 DiscordUserEntity subject)
         {
             await ModerationService.RescindInfractionAsync(InfractionType.Mute, subject.Id);
+            await ConfirmAndReplyWithCounts(subject.Id);
         }
 
         [Command("ban")]
@@ -93,7 +98,7 @@ namespace Modix.Modules
                 string reason)
         {
             await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Ban, subject.Id, reason, null);
-            await Context.AddConfirmation();
+            await ConfirmAndReplyWithCounts(subject.Id);
         }
 
         [Command("unban")]
@@ -103,7 +108,7 @@ namespace Modix.Modules
                 DiscordUserEntity subject)
         {
             await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.Id);
-            await Context.AddConfirmation();
+            await ConfirmAndReplyWithCounts(subject.Id);
         }
 
         [Command("clean")]
@@ -139,6 +144,23 @@ namespace Modix.Modules
                 Context.Channel as ITextChannel, user, count,
                     () => Context.GetUserConfirmationAsync(
                         $"You are attempting to delete the past {count} messages by {user.Nickname ?? $"{user.Username}#{user.Discriminator}"} in #{Context.Channel.Name}.{Environment.NewLine}"));
+
+        private async Task ConfirmAndReplyWithCounts(ulong userId)
+        {
+            await Context.AddConfirmation();
+
+            var counts = await ModerationService.GetInfractionCountsForUserAsync(userId);
+
+            //TODO: Make this configurable
+            if (counts.Values.Any(count => count >= 3))
+            {
+                await ReplyAsync(embed: new EmbedBuilder()
+                    .WithTitle("Infraction Count Notice")
+                    .WithColor(Color.Orange)
+                    .WithDescription(FormatUtilities.FormatInfractionCounts(counts))
+                    .Build());
+            }
+        }
 
         internal protected IModerationService ModerationService { get; }
     }
