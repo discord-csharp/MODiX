@@ -18,12 +18,21 @@ namespace Modix.Services.CommandHelp
 
         public static ParameterHelpData FromParameterInfo(ParameterInfo parameter)
         {
+            bool isNullable = parameter.Type.IsGenericType && parameter.Type.GetGenericTypeDefinition() == typeof(Nullable<>);
+            var paramType = isNullable ? parameter.Type.GetGenericArguments()[0] : parameter.Type;
+            string typeName = paramType.Name;
+
+            if (paramType.IsInterface && paramType.Name.StartsWith('I'))
+            {
+                typeName = typeName.Substring(1);
+            }
+
             var ret = new ParameterHelpData
             {
                 Name = parameter.Name,
                 Summary = parameter.Summary,
-                Type = parameter.Type.Name,
-                IsOptional = parameter.IsOptional,
+                Type = typeName,
+                IsOptional = isNullable || parameter.IsOptional,
                 Options = parameter.Type.IsEnum
                     ? parameter.Type.GetEnumNames()
                     : Array.Empty<string>(),
