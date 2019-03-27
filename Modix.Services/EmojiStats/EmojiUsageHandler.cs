@@ -155,6 +155,9 @@ namespace Modix.Services.EmojiStats
             if (cancellationToken.IsCancellationRequested)
                 return;
 
+            if (string.IsNullOrWhiteSpace(notification.NewMessage.Content))
+                return;
+
             var channel = notification.Channel as ITextChannel;
 
             await UnlogMessageContentEmojiAsync(channel, notification.OldMessage.Id);
