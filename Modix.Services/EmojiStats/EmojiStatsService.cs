@@ -14,16 +14,18 @@ namespace Modix.Services.EmojiStats
     public interface IEmojiStatsService
     {
         /// <summary>
-        /// Retrieves a collection of emoji log records for the supplied guild, potentially filtered within a given time period.
+        /// Retrieves a collection of emoji statistics for the supplied guild.
         /// </summary>
         /// <param name="guildId">The guild for which to search for emoji records.</param>
-        /// <param name="timeSpan">The time period for which to search for emoji records.</param>
-        /// <param name="emojiName">An emoji to filter by - optional.</param>
+        /// <param name="sortDirection">Indicates whether to retireve statistics from the top (ascending) or bottom (descending).</param>
+        /// <param name="recordCount">The number of statistics records to retrieve.</param>
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation is complete,
-        /// containing a collection of emoji log records that match the supplied criteria.
+        /// containing a collection of emoji statistics for the supplied guild.
         /// </returns>
-        Task<IReadOnlyCollection<EmojiSummary>> GetEmojiSummaries(ulong guildId, TimeSpan? timeSpan, EphemeralEmoji emoji = null);
+        Task<IReadOnlyCollection<EmojiUsageStatistics>> GetEmojiStatsAsync(ulong guildId, SortDirection sortDirection, int recordCount, TimeSpan? dateFilter = null);
+
+        Task<GuildEmojiStats> GetGuildStatsAsync(ulong guildId);
 
         /// <summary>
         /// Aggregates the data from a sequence of emoji log records to determine how many times each emoji was used.
@@ -70,33 +72,11 @@ namespace Modix.Services.EmojiStats
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EmojiSummary>> GetEmojiSummaries(ulong guildId, TimeSpan? timeSpan, EphemeralEmoji emoji = null)
-        {
-            var criteria = new EmojiSearchCriteria() { GuildId = guildId };
+        public async Task<IReadOnlyCollection<EmojiUsageStatistics>> GetEmojiStatsAsync(ulong guildId, SortDirection sortDirection, int recordCount, TimeSpan? dateFilter = null)
+            => await _emojiRepository.GetEmojiStatsAsync(guildId, sortDirection, recordCount, dateFilter);
 
-            if (timeSpan.HasValue)
-            {
-                criteria.TimestampRange = new DateTimeOffsetRange()
-                {
-                    From = DateTimeOffset.UtcNow - timeSpan.Value,
-                    To = DateTimeOffset.UtcNow
-                };
-            }
-
-            if (emoji != null)
-            {
-                if (emoji.Id != null)
-                {
-                    criteria.EmojiId = emoji.Id;
-                }
-                else
-                {
-                    criteria.EmojiName = emoji.Name;
-                }
-            }
-
-            return await _emojiRepository.SearchSummariesAsync(criteria);
-        }
+        public async Task<GuildEmojiStats> GetGuildStatsAsync(ulong guildId)
+            => await _emojiRepository.GetGuildStatsAsync(guildId);
 
         /// <inheritdoc />
         public IReadOnlyDictionary<EphemeralEmoji, int> GetCountsFromSummaries(IEnumerable<EmojiSummary> emojiSummaries)
