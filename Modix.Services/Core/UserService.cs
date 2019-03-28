@@ -145,6 +145,9 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task<EphemeralUser> GetUserInformationAsync(ulong guildId, ulong userId)
         {
+            if (userId == 0)
+                return null;
+
             var guild = await DiscordClient.GetGuildAsync(guildId);
             var guildUser = await guild.GetUserAsync(userId);
 

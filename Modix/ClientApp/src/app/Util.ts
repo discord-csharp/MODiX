@@ -1,8 +1,6 @@
 import * as dateformat from "dateformat";
 import * as _ from 'lodash';
-import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
 import ModixState from '@/models/ModixState';
-import Role from '@/models/Role';
 
 export const formatDate = (date: Date): string =>
 {
@@ -12,6 +10,34 @@ export const formatDate = (date: Date): string =>
 export const toTitleCase = (str: string): string =>
 {
     return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+}
+
+export const ordinalize = (value: number): string =>
+{
+    let rounded = Math.round(value);
+    let asString = rounded.toString();
+
+    if ((Math.floor(rounded / 10) % 10) == 1)
+    {
+        return asString + "th";
+    }
+
+    switch (rounded % 10)
+    {
+        case 1: return asString + "st";
+        case 2: return asString + "nd";
+        case 3: return asString + "rd";
+        default: return asString + "th";
+    }
+}
+
+export const toQuantity = (quantity: number, singular: string, plural: string): string =>
+{
+    let quantityString = quantity.toString();
+
+    return quantity == 1
+        ? quantityString + " " + singular
+        : quantityString + " " + plural;
 }
 
 export const getCookie = (name: string) =>

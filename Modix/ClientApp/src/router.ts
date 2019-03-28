@@ -19,6 +19,7 @@ const Stats = () => import('./views/Stats.vue').then(m => m.default)
 const Tags = () => import('./views/Tags/Tags.vue').then(m => m.default)
 const Logs = () => import('./views/Logs.vue').then(m => m.default)
 const DeletedMessages = () => import('./components/Logs/DeletedMessages.vue').then(m => m.default)
+const UserLookup = () => import('./views/UserLookup.vue').then(m => m.default)
 
 Vue.use(Router)
 
@@ -45,6 +46,15 @@ let routes: (ModixRouteData | RedirectRouteData)[] =
         component: Commands,
         showInNavbar: true,
         type: RouteType.Normal
+    },
+    {
+        path: '/userlookup',
+        name: 'userlookup',
+        title: 'User Lookup',
+        component: UserLookup,
+        showInNavbar: true,
+        requiresAuth: true,
+        type: RouteType.Normal,
     },
     {
         path: '/tags',
