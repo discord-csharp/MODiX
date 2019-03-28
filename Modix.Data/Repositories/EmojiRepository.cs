@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data.ExpandableQueries;
+using Modix.Data.Models;
 using Modix.Data.Models.Emoji;
+using Npgsql;
+using NpgsqlTypes;
 
 namespace Modix.Data.Repositories
 {
@@ -75,6 +79,10 @@ namespace Modix.Data.Repositories
         /// containing a collection of emoji meeting the supplied criteria.
         /// </returns>
         Task<IReadOnlyCollection<EmojiSummary>> SearchSummariesAsync(EmojiSearchCriteria criteria);
+
+        Task<IReadOnlyCollection<EmojiUsageStatistics>> GetEmojiStatsAsync(ulong guildId, SortDirection sortDirection, int recordLimit, TimeSpan? dateFilter = null);
+
+        Task<GuildEmojiStats> GetGuildStatsAsync(ulong guildId);
     }
 
     /// <inheritdoc />
@@ -164,6 +172,72 @@ namespace Modix.Data.Repositories
                 .ToArrayAsync();
 
             return emoji;
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<EmojiUsageStatistics>> GetEmojiStatsAsync(ulong guildId, SortDirection sortDirection, int recordLimit, TimeSpan? dateFilter = null)
+        {
+            var query = GetQuery();
+
+            var stats = await ModixContext.Query<EmojiStatsDto>()
+                .AsNoTracking()
+                .FromSql(query,
+                    new NpgsqlParameter(":GuildId", NpgsqlDbType.Bigint)
+                    {
+                        Value = unchecked((long)guildId)
+                    },
+                    new NpgsqlParameter(":StartTimestamp", NpgsqlDbType.TimestampTz)
+                    {
+                        Value = dateFilter is null
+                            ? DateTimeOffset.MinValue
+                            : DateTimeOffset.Now - dateFilter
+                    })
+                .ToArrayAsync();
+
+            return stats.Select(x => EmojiUsageStatistics.FromDto(x)).ToArray();
+
+            string GetQuery()
+                => $@"
+                    with stats as (
+                        select ""EmojiId"", ""EmojiName"", ""IsAnimated"", count(*) as ""Uses"", row_number() over (order by count(*) desc) as ""Rank""
+                        from ""Emoji""
+                        where ""GuildId"" = :GuildId
+                            and ""Timestamp"" >= :StartTimestamp
+                        group by ""EmojiId"", ""EmojiName"", ""IsAnimated""
+                        order by count(*) {(sortDirection == SortDirection.Ascending ? "asc" : "desc")}
+                        limit {recordLimit}
+                    )
+                    select ""EmojiId"", ""EmojiName"", ""IsAnimated"", ""Uses"", ""Rank""
+                    from stats
+                    order by ""Rank"" asc";
+        }
+
+        /// <inheritdoc />
+        public async Task<GuildEmojiStats> GetGuildStatsAsync(ulong guildId)
+        {
+            var query = GetQuery();
+
+            var stats = await ModixContext.Query<GuildEmojiStats>()
+                .AsNoTracking()
+                .FromSql(query,
+                    new NpgsqlParameter(":GuildId", NpgsqlDbType.Bigint)
+                    {
+                        Value = unchecked((long)guildId)
+                    })
+                .FirstAsync();
+
+            return stats;
+
+            string GetQuery()
+                => $@"
+                    with stats as (
+                        select count(distinct coalesce(cast(""EmojiId"" as text), ""EmojiName"")) as ""UniqueEmojis"", count(*) as ""TotalUses"", min(""Timestamp"") as ""OldestTimestamp""
+                        from ""Emoji""
+                        where ""GuildId"" = :GuildId
+                        limit 1
+                    )
+                    select ""UniqueEmojis"", ""TotalUses"", ""OldestTimestamp""
+                    from stats";
         }
 
         private static readonly RepositoryTransactionFactory _maintainTransactionFactory
