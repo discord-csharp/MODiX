@@ -91,7 +91,7 @@ namespace Modix.Modules
             var guildStats = await _emojiRepository.GetGuildStatsAsync(guildId);
 
             var emojiFormatted = ((SocketSelfUser)Context.Client.CurrentUser).CanAccessEmoji(ephemeralEmoji)
-                    ? Format.Url(ephemeralEmoji.ToString(), ephemeralEmoji.Url)
+                    ? Format.Url(ephemeralEmoji.ToString(), EmojiUtilities.GetUrl(ephemeralEmoji.ToString()))
                     : Format.Url("❔", ephemeralEmoji.Url);
 
             var percentUsage = 100 * (double)emojiStats.Uses / guildStats.TotalUses;
@@ -144,7 +144,7 @@ namespace Modix.Modules
                 var canAccess = ((SocketSelfUser)Context.Client.CurrentUser).CanAccessEmoji(emoji);
 
                 var emojiFormatted = canAccess
-                    ? Format.Url(emoji.ToString(), emoji.Url)
+                    ? Format.Url(emoji.ToString(), EmojiUtilities.GetUrl(emoji.ToString()))
                     : Format.Url("❔", emoji.Url);
 
                 var percentUsage = 100 * (double)emojiStat.Uses / guildStats.TotalUses;
