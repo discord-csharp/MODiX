@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Linq;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
-
 using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Promotions;
 
@@ -40,9 +38,9 @@ namespace Modix.Data.Repositories
         /// <exception cref="ArgumentNullException">Throws for <paramref name="data"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing the auto-generated <see cref="PromotionCampaignEntity.Id"/> value assigned to the new campaign.
+        /// containing the action representing the creation of the campaign.
         /// </returns>
-        Task<long> CreateAsync(PromotionCampaignCreationData data);
+        Task<PromotionActionSummary> CreateAsync(PromotionCampaignCreationData data);
 
         /// <summary>
         /// Checks whether the repository contains any campaigns matching the given search criteria.
@@ -80,20 +78,19 @@ namespace Modix.Data.Repositories
         /// <param name="deletedById">The Discord snowflake ID value of the user that is deleting the infraction.</param>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing a flag indicating whether the operation was successful (I.E. whether the specified campaign could be found).
+        /// containing the action representing the closure of the campaign.
         /// </returns>
-        Task<bool> TryCloseAsync(long campaignId, ulong closedById, PromotionCampaignOutcome outcome);
+        Task<PromotionActionSummary> TryCloseAsync(long campaignId, ulong closedById, PromotionCampaignOutcome outcome);
     }
 
     /// <inheritdoc />
-    public class PromotionCampaignRepository : PromotionActionEventRepositoryBase, IPromotionCampaignRepository
+    public class PromotionCampaignRepository : RepositoryBase, IPromotionCampaignRepository
     {
         /// <summary>
         /// Creates a new <see cref="PromotionCampaignRepository"/>, with the injected dependencies
-        /// See <see cref="PromotionActionEventRepositoryBase"/> for details.
         /// </summary>
-        public PromotionCampaignRepository(ModixContext modixContext, IMediator mediator)
-            : base(modixContext, mediator) { }
+        public PromotionCampaignRepository(ModixContext modixContext)
+            : base(modixContext) { }
 
         /// <inheritdoc />
         public Task<IRepositoryTransaction> BeginCreateTransactionAsync()
@@ -104,7 +101,7 @@ namespace Modix.Data.Repositories
             => _closeTransactionFactory.BeginTransactionAsync(ModixContext.Database);
 
         /// <inheritdoc />
-        public async Task<long> CreateAsync(PromotionCampaignCreationData data)
+        public async Task<PromotionActionSummary> CreateAsync(PromotionCampaignCreationData data)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
@@ -117,9 +114,13 @@ namespace Modix.Data.Repositories
             entity.CreateAction.CampaignId = entity.Id;
             await ModixContext.SaveChangesAsync();
 
-            await RaisePromotionActionCreatedAsync(entity.CreateAction);
+            var action = await ModixContext.PromotionActions.AsNoTracking()
+                .Where(x => x.Id == entity.CreateActionId)
+                .AsExpandable()
+                .Select(PromotionActionSummary.FromEntityProjection)
+                .FirstAsync();
 
-            return entity.Id;
+            return action;
         }
 
         /// <inheritdoc />
@@ -145,14 +146,14 @@ namespace Modix.Data.Repositories
                 .FirstOrDefaultAsync();
 
         /// <inheritdoc />
-        public async Task<bool> TryCloseAsync(long campaignId, ulong closedById, PromotionCampaignOutcome outcome)
+        public async Task<PromotionActionSummary> TryCloseAsync(long campaignId, ulong closedById, PromotionCampaignOutcome outcome)
         {
             var entity = await ModixContext.PromotionCampaigns
                 .Where(x => x.Id == campaignId)
                 .FirstOrDefaultAsync();
 
             if ((entity == null) || (entity.CloseActionId != null))
-                return false;
+                return null;
 
             entity.Outcome = outcome;
             entity.CloseAction = new PromotionActionEntity()
@@ -165,9 +166,13 @@ namespace Modix.Data.Repositories
             };
             await ModixContext.SaveChangesAsync();
 
-            await RaisePromotionActionCreatedAsync(entity.CloseAction);
+            var action = await ModixContext.PromotionActions.AsNoTracking()
+                .Where(x => x.Id == entity.CloseActionId)
+                .AsExpandable()
+                .Select(PromotionActionSummary.FromEntityProjection)
+                .FirstAsync();
 
-            return true;
+            return action;
         }
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory

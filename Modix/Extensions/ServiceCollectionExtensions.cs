@@ -5,11 +5,9 @@ using Discord;
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
-using MediatR;
 using Microsoft.Extensions.Options;
 using Modix;
 using Modix.Behaviors;
-using Modix.Data.Messages;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Services;
@@ -133,7 +131,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
 
             services.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>();
-            services.AddScoped<INotificationHandler<PromotionActionCreated>, PromotionLoggingHandler>();
 
             services.AddHostedService<ModixBot>();
 

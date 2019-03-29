@@ -1,6 +1,7 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
+﻿using MediatR;
+using Microsoft.Extensions.DependencyInjection;
 using Modix.Data.Repositories;
+using Modix.Services.Messages.Modix;
 
 namespace Modix.Services.Promotions
 {
@@ -19,6 +20,7 @@ namespace Modix.Services.Promotions
                 .AddScoped<IPromotionsService, PromotionsService>()
                 .AddScoped<IPromotionActionRepository, PromotionActionRepository>()
                 .AddScoped<IPromotionCampaignRepository, PromotionCampaignRepository>()
-                .AddScoped<IPromotionCommentRepository, PromotionCommentRepository>();
+                .AddScoped<IPromotionCommentRepository, PromotionCommentRepository>()
+                .AddScoped<INotificationHandler<PromotionActionCreated>, PromotionLoggingHandler>();
     }
 }
