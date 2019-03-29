@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -100,22 +99,24 @@ namespace Modix.Data.Repositories
         /// <param name="recordLimit">How many statistical records to retrieve.</param>
         /// <param name="dateFilter">How far in the past to search for statistics.</param>
         /// <param name="userId">The user to retrieve statistics for, if any.</param>
+        /// <param name="emojiIds">The emojis to limit the results to, if any.</param>
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation is complete,
         /// containing a collection of statistical information about the emoji in a guild.
         /// </returns>
         Task<IReadOnlyCollection<EmojiUsageStatistics>> GetEmojiStatsAsync(
-            ulong guildId, SortDirection sortDirection, int recordLimit, TimeSpan? dateFilter = null, ulong? userId = null);
+            ulong guildId, SortDirection sortDirection, int recordLimit, TimeSpan? dateFilter = null, ulong? userId = null, IEnumerable<ulong> emojiIds = null);
 
         /// <summary>
         /// Retrieves statistics about a guild's emoji usage.
         /// </summary>
         /// <param name="guildId">The Discord snowflake ID of the guild to retrieve statistics from.</param>
+        /// <param name="emojiIds">The emojis to limit the results to, if any.</param>
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation completes,
         /// containing statistical information about a guild's emoji usage.
         /// </returns>
-        Task<GuildEmojiStats> GetGuildStatsAsync(ulong guildId);
+        Task<GuildEmojiStats> GetGuildStatsAsync(ulong guildId, IEnumerable<ulong> emojiIds = null);
     }
 
     /// <inheritdoc />
@@ -281,7 +282,7 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<EmojiUsageStatistics>> GetEmojiStatsAsync(
-            ulong guildId, SortDirection sortDirection, int recordLimit, TimeSpan? dateFilter = null, ulong? userId = null)
+            ulong guildId, SortDirection sortDirection, int recordLimit, TimeSpan? dateFilter = null, ulong? userId = null, IEnumerable<ulong> emojiIds = null)
         {
             var parameters = GetParameters();
             var query = GetQuery();
@@ -317,6 +318,14 @@ namespace Modix.Data.Repositories
                     });
                 }
 
+                if (!(emojiIds is null) && emojiIds.Any())
+                {
+                    paramList.Add(new NpgsqlParameter(":EmojiIds", NpgsqlDbType.Array | NpgsqlDbType.Bigint)
+                    {
+                        Value = emojiIds.Select(x => unchecked((long)x)).ToArray(),
+                    });
+                }
+
                 return paramList.ToArray();
             }
 
@@ -328,6 +337,7 @@ namespace Modix.Data.Repositories
                         where ""GuildId"" = :GuildId
                             and ""Timestamp"" >= :StartTimestamp
                             {(userId is null ? string.Empty : @"and ""UserId"" = :UserId")}
+                            {(emojiIds is null || !emojiIds.Any() ? string.Empty : @"and ""EmojiId"" = any(:EmojiIds)")}
                         group by ""EmojiId"", ""EmojiName"", ""IsAnimated""
                         order by ""Rank"" {(sortDirection == SortDirection.Ascending ? "asc" : "desc")}
                         limit {recordLimit}
@@ -338,27 +348,46 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<GuildEmojiStats> GetGuildStatsAsync(ulong guildId)
+        public async Task<GuildEmojiStats> GetGuildStatsAsync(ulong guildId, IEnumerable<ulong> emojiIds = null)
         {
+            var parameters = GetParameters();
             var query = GetQuery();
 
             var stats = await ModixContext.Query<GuildEmojiStats>()
                 .AsNoTracking()
-                .FromSql(query,
-                    new NpgsqlParameter(":GuildId", NpgsqlDbType.Bigint)
-                    {
-                        Value = unchecked((long)guildId),
-                    })
+                .FromSql(query, parameters)
                 .FirstOrDefaultAsync();
 
             return stats;
 
+            NpgsqlParameter[] GetParameters()
+            {
+                var paramList = new List<NpgsqlParameter>(2)
+                {
+                    new NpgsqlParameter(":GuildId", NpgsqlDbType.Bigint)
+                    {
+                        Value = unchecked((long)guildId),
+                    },
+                };
+
+                if (!(emojiIds is null) && emojiIds.Any())
+                {
+                    paramList.Add(new NpgsqlParameter(":EmojiIds", NpgsqlDbType.Array | NpgsqlDbType.Bigint)
+                    {
+                        Value = emojiIds.Select(x => unchecked((long)x)).ToArray(),
+                    });
+                }
+
+                return paramList.ToArray();
+            }
+
             string GetQuery()
                 => $@"
                     with stats as (
-                        select count(distinct coalesce(cast(""EmojiId"" as text), ""EmojiName"")) as ""UniqueEmojis"", count(*) as ""TotalUses"", min(""Timestamp"") as ""OldestTimestamp""
+                        select count(distinct coalesce(cast(""EmojiId"" as text), ""EmojiName"")) as ""UniqueEmojis"", count(*) as ""TotalUses"", coalesce(min(""Timestamp""), now()) as ""OldestTimestamp""
                         from ""Emoji""
                         where ""GuildId"" = :GuildId
+                        {(emojiIds is null || !emojiIds.Any() ? string.Empty : @"and ""EmojiId"" = any(:EmojiIds)")}
                         limit 1
                     )
                     select ""UniqueEmojis"", ""TotalUses"", ""OldestTimestamp""

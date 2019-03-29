@@ -43,6 +43,25 @@ namespace Modix.Modules
             await ReplyAsync(embed: embed.Build());
         }
 
+        [Command("guild top")]
+        [Alias("guild")]
+        [Summary("Gets usage stats for the top 10 emojis in the current guild.")]
+        public async Task TopGuildOnlyEmojiStatsAsync()
+        {
+            var embed = await BuildEmojiStatEmbedAsync(SortDirection.Ascending, guildOnly: true);
+
+            await ReplyAsync(embed: embed.Build());
+        }
+
+        [Command("guild bottom")]
+        [Summary("Gets usage stats for the bottom 10 emojis in the current guild.")]
+        public async Task BottomGuildOnlyEmojiStatsAsync()
+        {
+            var embed = await BuildEmojiStatEmbedAsync(SortDirection.Descending, guildOnly: true);
+
+            await ReplyAsync(embed: embed.Build());
+        }
+
         [Command()]
         [Priority(-10)]
         [Summary("Gets usage stats for a specific emoji.")]
@@ -103,13 +122,17 @@ namespace Modix.Modules
             await ReplyAsync(embed: embed.Build());
         }
 
-        private async Task<EmbedBuilder> BuildEmojiStatEmbedAsync(SortDirection sortDirection)
+        private async Task<EmbedBuilder> BuildEmojiStatEmbedAsync(SortDirection sortDirection, bool guildOnly = false)
         {
             var guildId = Context.Guild.Id;
 
-            var emojiStats = await _emojiRepository.GetEmojiStatsAsync(guildId, sortDirection, 10);
-            var emojiStats30 = await _emojiRepository.GetEmojiStatsAsync(guildId, sortDirection, 10, TimeSpan.FromDays(30));
-            var guildStats = await _emojiRepository.GetGuildStatsAsync(guildId);
+            var emojiFilter = guildOnly
+                ? Context.Guild.Emotes.Select(x => x.Id)
+                : Enumerable.Empty<ulong>();
+
+            var emojiStats = await _emojiRepository.GetEmojiStatsAsync(guildId, sortDirection, 10, emojiIds: emojiFilter);
+            var emojiStats30 = await _emojiRepository.GetEmojiStatsAsync(guildId, sortDirection, 10, TimeSpan.FromDays(30), emojiIds: emojiFilter);
+            var guildStats = await _emojiRepository.GetGuildStatsAsync(guildId, emojiIds: emojiFilter);
 
             var numberOfDays = Math.Clamp((DateTime.Now - guildStats.OldestTimestamp).Days, 1, 30);
 
@@ -118,8 +141,9 @@ namespace Modix.Modules
             foreach (var emojiStat in emojiStats)
             {
                 var emoji = emojiStat.Emoji;
+                var canAccess = ((SocketSelfUser)Context.Client.CurrentUser).CanAccessEmoji(emoji);
 
-                var emojiFormatted = ((SocketSelfUser)Context.Client.CurrentUser).CanAccessEmoji(emoji)
+                var emojiFormatted = canAccess
                     ? Format.Url(emoji.ToString(), emoji.Url)
                     : Format.Url("❔", emoji.Url);
 
@@ -135,7 +159,7 @@ namespace Modix.Modules
                     .Append($" ({"use".ToQuantity(emojiStat.Uses)})")
                     .Append($" ({percentUsage.ToString("0.0")}%),")
                     .Append($" {perDay.ToString("0.0/day")}")
-                    .Append(EmojiUtilities.IsBuiltInEmoji(emoji.Name) ? string.Empty : $" (`:{emoji.Name}:`)")
+                    .Append(canAccess ? string.Empty : $" (`:{emoji.Name}:`)")
                     .AppendLine();
             }
 
