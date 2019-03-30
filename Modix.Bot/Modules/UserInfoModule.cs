@@ -228,7 +228,14 @@ namespace Modix.Modules
                 builder.AppendFormat("Rank: {0} {1}\n", userRank.Rank.Ordinalize(), GetParticipationEmoji(userRank));
             }
 
-            builder.AppendLine("Last 7 days: " + weekTotal + " messages");
+            var weekParticipation = "Last 7 days: " + weekTotal + " messages";
+            if (weekTotal > 0 && monthTotal > 0)
+            {
+                var percentage = (int)((decimal)weekTotal / monthTotal * 100);
+                weekParticipation += string.Format(" ({0}%)", percentage);
+            }
+
+            builder.AppendLine(weekParticipation);
             builder.AppendLine("Last 30 days: " + monthTotal + " messages");
 
             if (monthTotal > 0)
