@@ -1,23 +1,14 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Discord;
-using Discord.WebSocket;
 using MediatR;
-using Microsoft.Extensions.DependencyInjection;
-using Modix.Data.Messages;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
-using Modix.Data.Repositories;
-using Modix.Data.Utilities;
 using Modix.Services.Core;
-using Modix.Services.Promotions;
+using Modix.Services.Messages.Modix;
 
-namespace Modix.Behaviors
+namespace Modix.Services.Promotions
 {
     /// <summary>
     /// Renders moderation actions, as they are created, as messages to each configured moderation log channel.
@@ -29,16 +20,15 @@ namespace Modix.Behaviors
         /// Constructs a new <see cref="PromotionLoggingHandler"/> object, with injected dependencies.
         /// </summary>
         public PromotionLoggingHandler(
-            IServiceProvider serviceProvider,
             IDiscordClient discordClient,
             IDesignatedChannelService designatedChannelService,
-            IUserService userService)
+            IUserService userService,
+            IPromotionsService promotionsService)
         {
             DiscordClient = discordClient;
             DesignatedChannelService = designatedChannelService;
             UserService = userService;
-
-            _lazyPromotionsService = new Lazy<IPromotionsService>(() => serviceProvider.GetRequiredService<IPromotionsService>());
+            PromotionsService = promotionsService;
         }
         
         public Task Handle(PromotionActionCreated notification, CancellationToken cancellationToken)
@@ -48,7 +38,7 @@ namespace Modix.Behaviors
         {
             if (await DesignatedChannelService.AnyDesignatedChannelAsync(data.GuildId, DesignatedChannelType.PromotionLog))
             {
-                var message = await FormatPromotionLogEntry(promotionActionId, data);
+                var message = await FormatPromotionLogEntryAsync(promotionActionId);
 
                 if (message == null)
                     return;
@@ -59,7 +49,7 @@ namespace Modix.Behaviors
 
             if (await DesignatedChannelService.AnyDesignatedChannelAsync(data.GuildId, DesignatedChannelType.PromotionNotifications))
             {
-                var embed = await FormatPromotionNotification(promotionActionId, data);
+                var embed = await FormatPromotionNotificationAsync(promotionActionId, data);
 
                 if (embed == null)
                     return;
@@ -69,7 +59,7 @@ namespace Modix.Behaviors
             }
         }
 
-        private async Task<Embed> FormatPromotionNotification(long promotionActionId, PromotionActionCreationData data)
+        private async Task<Embed> FormatPromotionNotificationAsync(long promotionActionId, PromotionActionCreationData data)
         {
             var promotionAction = await PromotionsService.GetPromotionActionSummaryAsync(promotionActionId);
             var targetCampaign = promotionAction.Campaign ?? promotionAction.NewComment.Campaign;
@@ -93,7 +83,7 @@ namespace Modix.Behaviors
             return embed.Build();
         }
 
-        private async Task<string> FormatPromotionLogEntry(long promotionActionId, PromotionActionCreationData data)
+        private async Task<string> FormatPromotionLogEntryAsync(long promotionActionId)
         {
             var promotionAction = await PromotionsService.GetPromotionActionSummaryAsync(promotionActionId);
             var key = (promotionAction.Type, promotionAction.NewComment?.Sentiment, promotionAction.Campaign?.Outcome);
@@ -134,11 +124,7 @@ namespace Modix.Behaviors
         /// <summary>
         /// An <see cref="IPromotionsService"/> for performing moderation actions.
         /// </summary>
-        internal protected IPromotionsService PromotionsService
-            => _lazyPromotionsService.Value;
-        private readonly Lazy<IPromotionsService> _lazyPromotionsService;
-
-        private static ConcurrentDictionary<long, EmbedBuilder> _initialCommentQueue = new ConcurrentDictionary<long, EmbedBuilder>();
+        internal protected IPromotionsService PromotionsService { get; }
 
         private static readonly Dictionary<(PromotionActionType, PromotionSentiment?, PromotionCampaignOutcome?), string> _logRenderTemplates
             = new Dictionary<(PromotionActionType, PromotionSentiment?, PromotionCampaignOutcome?), string>()

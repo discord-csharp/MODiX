@@ -151,6 +151,9 @@ namespace Modix.Services.Core
             var guild = await DiscordClient.GetGuildAsync(guildId);
             var guildUser = await guild.GetUserAsync(userId);
 
+            if (!(guildUser is null))
+                await TrackUserAsync(guildUser);
+
             var user = await DiscordClient.GetUserAsync(userId);
             var restUser = await DiscordRestClient.GetUserAsync(userId);
             var guildUserSummary = await GetGuildUserSummaryAsync(guildId, userId);

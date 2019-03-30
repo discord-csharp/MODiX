@@ -10,6 +10,8 @@ using Modix.Data.Models.Promotions;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
+using Modix.Services.NotificationDispatch;
+using Modix.Services.Messages.Modix;
 
 namespace Modix.Services.Promotions
 {
@@ -111,7 +113,8 @@ namespace Modix.Services.Promotions
             IDesignatedRoleService designatedRoleService,
             IPromotionActionRepository promotionActionRepository,
             IPromotionCampaignRepository promotionCampaignRepository,
-            IPromotionCommentRepository promotionCommentRepository)
+            IPromotionCommentRepository promotionCommentRepository,
+            INotificationDispatchService notificationDispatchService)
         {
             DiscordClient = discordClient;
             AuthorizationService = authorizationService;
@@ -120,6 +123,7 @@ namespace Modix.Services.Promotions
             PromotionActionRepository = promotionActionRepository;
             PromotionCampaignRepository = promotionCampaignRepository;
             PromotionCommentRepository = promotionCommentRepository;
+            NotificationDispatchService = notificationDispatchService;
         }
 
         private static readonly TimeSpan CampaignAcceptCooldown = TimeSpan.FromHours(48);
@@ -212,9 +216,11 @@ namespace Modix.Services.Promotions
             if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value, campaign.TargetRole.Id))
                 throw new InvalidOperationException($"Commenting on a promotion campaign requires a rank at least as high as the proposed target rank");
 
+            PromotionActionSummary resultAction;
+
             using (var transaction = await PromotionCommentRepository.BeginCreateTransactionAsync())
             {
-                await PromotionCommentRepository.CreateAsync(new PromotionCommentCreationData()
+                resultAction = await PromotionCommentRepository.CreateAsync(new PromotionCommentCreationData()
                 {
                     GuildId = campaign.GuildId,
                     CampaignId = campaignId,
@@ -225,6 +231,8 @@ namespace Modix.Services.Promotions
 
                 transaction.Commit();
             }
+
+            await PublishActionNotificationAsync(resultAction);
         }
 
         /// <inheritdoc />
@@ -235,6 +243,8 @@ namespace Modix.Services.Promotions
 
             ValidateComment(newContent);
 
+            PromotionActionSummary resultAction;
+
             using (var transaction = await PromotionCommentRepository.BeginUpdateTransactionAsync())
             {
                 var oldComment = await PromotionCommentRepository.ReadSummaryAsync(commentId);
@@ -243,7 +253,7 @@ namespace Modix.Services.Promotions
                 if (!(campaign.CloseAction is null))
                     throw new InvalidOperationException($"Campaign {oldComment.Campaign.Id} has already been closed");
 
-                await PromotionCommentRepository.TryUpdateAsync(commentId, AuthorizationService.CurrentUserId.Value,
+                resultAction = await PromotionCommentRepository.TryUpdateAsync(commentId, AuthorizationService.CurrentUserId.Value,
                     x =>
                     {
                         x.Sentiment = newSentiment;
@@ -252,6 +262,8 @@ namespace Modix.Services.Promotions
 
                 transaction.Commit();
             }
+
+            await PublishActionNotificationAsync(resultAction);
         }
 
         /// <inheritdoc />
@@ -259,6 +271,8 @@ namespace Modix.Services.Promotions
         {
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsCloseCampaign);
+
+            PromotionActionSummary resultAction;
 
             using (var transaction = await PromotionCampaignRepository.BeginCloseTransactionAsync())
             {
@@ -295,11 +309,12 @@ namespace Modix.Services.Promotions
                             await subject.RemoveRoleAsync(lowerRole);
                     }
 
-                    await PromotionCampaignRepository.TryCloseAsync(campaignId, AuthorizationService.CurrentUserId.Value, PromotionCampaignOutcome.Accepted);
+                    resultAction = await PromotionCampaignRepository.TryCloseAsync(campaignId, AuthorizationService.CurrentUserId.Value, PromotionCampaignOutcome.Accepted);
                 }
                 catch
                 {
-                    await PromotionCampaignRepository.TryCloseAsync(campaignId, AuthorizationService.CurrentUserId.Value, PromotionCampaignOutcome.Failed);
+                    resultAction = await PromotionCampaignRepository.TryCloseAsync(campaignId, AuthorizationService.CurrentUserId.Value, PromotionCampaignOutcome.Failed);
+                    await PublishActionNotificationAsync(resultAction);
                     throw;
                 }
                 finally
@@ -307,6 +322,8 @@ namespace Modix.Services.Promotions
                     transaction.Commit();
                 }
             }
+
+            await PublishActionNotificationAsync(resultAction);
         }
 
         /// <inheritdoc />
@@ -315,8 +332,10 @@ namespace Modix.Services.Promotions
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsCloseCampaign);
 
-            if (!await PromotionCampaignRepository.TryCloseAsync(campaignId, AuthorizationService.CurrentUserId.Value, PromotionCampaignOutcome.Rejected))
+            if (!(await PromotionCampaignRepository.TryCloseAsync(campaignId, AuthorizationService.CurrentUserId.Value, PromotionCampaignOutcome.Rejected) is PromotionActionSummary resultAction))
                 throw new InvalidOperationException($"Campaign {campaignId} doesn't exist or is already closed");
+
+            await PublishActionNotificationAsync(resultAction);
         }
 
         /// <inheritdoc />
@@ -385,6 +404,8 @@ namespace Modix.Services.Promotions
         /// </summary>
         internal protected IPromotionCommentRepository PromotionCommentRepository { get; }
 
+        internal protected INotificationDispatchService NotificationDispatchService { get; }
+
         private async Task<GuildRoleBrief[]> GetRankRolesAsync(ulong guildId)
             => (await DesignatedRoleService.SearchDesignatedRolesAsync(new DesignatedRoleMappingSearchCriteria()
             {
@@ -411,12 +432,28 @@ namespace Modix.Services.Promotions
                 .Any();
         }
 
+        private async Task PublishActionNotificationAsync(PromotionActionSummary action)
+            => await NotificationDispatchService.PublishScopedAsync(new PromotionActionCreated()
+            {
+                PromotionActionId = action.Id,
+                PromotionActionCreationData = new PromotionActionCreationData
+                {
+                    Created = action.Created,
+                    CreatedById = action.CreatedBy.Id,
+                    GuildId = action.GuildId,
+                    Type = action.Type,
+                },
+            });
+
         private async Task FinalizeCreateCampaignAsync(ulong subjectId, ulong targetRoleId, string comment)
         {
+            PromotionActionSummary campaignResultAction;
+            PromotionActionSummary commentResultAction;
+
             using (var campaignTransaction = await PromotionCampaignRepository.BeginCreateTransactionAsync())
             using (var commentTransaction = await PromotionCommentRepository.BeginCreateTransactionAsync())
             {
-                var campaignId = await PromotionCampaignRepository.CreateAsync(new PromotionCampaignCreationData()
+                campaignResultAction = await PromotionCampaignRepository.CreateAsync(new PromotionCampaignCreationData()
                 {
                     GuildId = AuthorizationService.CurrentGuildId.Value,
                     SubjectId = subjectId,
@@ -424,10 +461,10 @@ namespace Modix.Services.Promotions
                     CreatedById = AuthorizationService.CurrentUserId.Value
                 });
 
-                await PromotionCommentRepository.CreateAsync(new PromotionCommentCreationData()
+                commentResultAction = await PromotionCommentRepository.CreateAsync(new PromotionCommentCreationData()
                 {
                     GuildId = AuthorizationService.CurrentGuildId.Value,
-                    CampaignId = campaignId,
+                    CampaignId = campaignResultAction.Campaign.Id,
                     Sentiment = PromotionSentiment.Approve,
                     Content = comment,
                     CreatedById = AuthorizationService.CurrentUserId.Value
@@ -436,6 +473,9 @@ namespace Modix.Services.Promotions
                 campaignTransaction.Commit();
                 commentTransaction.Commit();
             }
+
+            await PublishActionNotificationAsync(campaignResultAction);
+            await PublishActionNotificationAsync(commentResultAction);
         }
 
         private async Task PerformCommonCreateCampaignValidationsAsync(IGuildUser subject, GuildRoleBrief targetRankRole, IEnumerable<GuildRoleBrief> rankRoles)

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Promotions;
@@ -38,9 +37,9 @@ namespace Modix.Data.Repositories
         /// <exception cref="ArgumentNullException">Throws for <paramref name="data"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing the auto-generated <see cref="PromotionCommentEntity.Id"/> value assigned to the new comment.
+        /// containing the action representing the creation.
         /// </returns>
-        Task<long> CreateAsync(PromotionCommentCreationData data);
+        Task<PromotionActionSummary> CreateAsync(PromotionCommentCreationData data);
         
         /// <summary>
         /// Creates a modified comment within the repository.
@@ -51,9 +50,9 @@ namespace Modix.Data.Repositories
         /// <exception cref="ArgumentNullException">Throws for <paramref name="updateAction"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing the auto-generated <see cref="PromotionCommentEntity.Id"/> value assigned to the new comment.
+        /// containing the action representing the update.
         /// </returns>
-        Task<long> TryUpdateAsync(long commentId, ulong userId, Action<PromotionCommentMutationData> updateAction);
+        Task<PromotionActionSummary> TryUpdateAsync(long commentId, ulong userId, Action<PromotionCommentMutationData> updateAction);
 
         /// <summary>
         /// Retrieves information about a promotion comment based on its ID.
@@ -77,14 +76,13 @@ namespace Modix.Data.Repositories
     }
 
     /// <inheritdoc />
-    public class PromotionCommentRepository : PromotionActionEventRepositoryBase, IPromotionCommentRepository
+    public class PromotionCommentRepository : RepositoryBase, IPromotionCommentRepository
     {
         /// <summary>
-        /// Creates a new <see cref="PromotionCommentRepository"/>, with the injected dependencies
-        /// See <see cref="PromotionActionEventRepositoryBase"/> for details.
+        /// Creates a new <see cref="PromotionCommentRepository"/>, with the injected dependencies.
         /// </summary>
-        public PromotionCommentRepository(ModixContext modixContext, IMediator mediator)
-            : base(modixContext, mediator) { }
+        public PromotionCommentRepository(ModixContext modixContext)
+            : base(modixContext) { }
 
         /// <inheritdoc />
         public Task<IRepositoryTransaction> BeginCreateTransactionAsync()
@@ -95,7 +93,7 @@ namespace Modix.Data.Repositories
             => _updateTransactionFactory.BeginTransactionAsync(ModixContext.Database);
 
         /// <inheritdoc />
-        public async Task<long> CreateAsync(PromotionCommentCreationData data)
+        public async Task<PromotionActionSummary> CreateAsync(PromotionCommentCreationData data)
         {
             if (data is null)
                 throw new ArgumentNullException(nameof(data));
@@ -108,13 +106,17 @@ namespace Modix.Data.Repositories
             entity.CreateAction.NewCommentId = entity.Id;
             await ModixContext.SaveChangesAsync();
 
-            await RaisePromotionActionCreatedAsync(entity.CreateAction);
+            var action = await ModixContext.PromotionActions.AsNoTracking()
+                .Where(x => x.Id == entity.CreateActionId)
+                .AsExpandable()
+                .Select(PromotionActionSummary.FromEntityProjection)
+                .FirstAsync();
 
-            return entity.Id;
+            return action;
         }
 
         /// <inheritdoc />
-        public async Task<long> TryUpdateAsync(long commentId, ulong userId, Action<PromotionCommentMutationData> updateAction)
+        public async Task<PromotionActionSummary> TryUpdateAsync(long commentId, ulong userId, Action<PromotionCommentMutationData> updateAction)
         {
             if (updateAction is null)
                 throw new ArgumentNullException(nameof(updateAction));
@@ -150,9 +152,13 @@ namespace Modix.Data.Repositories
             newComment.CreateActionId = modifyAction.Id;
             await ModixContext.SaveChangesAsync();
 
-            await RaisePromotionActionCreatedAsync(modifyAction);
+            var actionSummary = await ModixContext.PromotionActions.AsNoTracking()
+                .Where(x => x.Id == modifyAction.Id)
+                .AsExpandable()
+                .Select(PromotionActionSummary.FromEntityProjection)
+                .FirstAsync();
 
-            return newComment.Id;
+            return actionSummary;
         }
 
         /// <inheritdoc />
