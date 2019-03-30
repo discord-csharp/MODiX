@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -91,7 +91,7 @@ namespace Modix.Modules
 
                 using (var tokenSrc = new CancellationTokenSource(30000))
                 {
-                    res = await _httpClientFactory.CreateClient().PostAsync(_replUrl, content, tokenSrc.Token);
+                    res = await client.PostAsync(_replUrl, content, tokenSrc.Token);
                 }
             }
             catch (TaskCanceledException)
