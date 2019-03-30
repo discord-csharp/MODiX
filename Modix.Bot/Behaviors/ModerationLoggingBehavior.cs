@@ -93,17 +93,17 @@ namespace Modix.Behaviors
         private static readonly Dictionary<(ModerationActionType, InfractionType?), string> _renderTemplates
             = new Dictionary<(ModerationActionType, InfractionType?), string>()
             {
-                { (ModerationActionType.InfractionCreated,   InfractionType.Notice),  "`[{0}]` **{1}** recorded the following note for **{3}** (`{4}`) ```{5}```" },
-                { (ModerationActionType.InfractionCreated,   InfractionType.Warning), "`[{0}]` **{1}** recorded the following warning for **{3}** (`{4}`) ```{5}```" },
-                { (ModerationActionType.InfractionCreated,   InfractionType.Mute),    "`[{0}]` **{1}** muted **{3}** (`{4}`) for reason ```{5}```" },
-                { (ModerationActionType.InfractionCreated,   InfractionType.Ban),     "`[{0}]` **{1}** banned **{3}** (`{4}`) for reason ```{5}```" },
+                { (ModerationActionType.InfractionCreated,   InfractionType.Notice),  "`[{0}]` **{1}** recorded the following note for **{3}** (`{4}`) ```\n{5}```" },
+                { (ModerationActionType.InfractionCreated,   InfractionType.Warning), "`[{0}]` **{1}** recorded the following warning for **{3}** (`{4}`) ```\n{5}```" },
+                { (ModerationActionType.InfractionCreated,   InfractionType.Mute),    "`[{0}]` **{1}** muted **{3}** (`{4}`) for reason ```\n{5}```" },
+                { (ModerationActionType.InfractionCreated,   InfractionType.Ban),     "`[{0}]` **{1}** banned **{3}** (`{4}`) for reason ```\n{5}```" },
                 { (ModerationActionType.InfractionRescinded, InfractionType.Mute),    "`[{0}]` **{1}** un-muted ** {3}** (`{4}`)" },
                 { (ModerationActionType.InfractionRescinded, InfractionType.Ban),     "`[{0}]` **{1}** un-banned **{3}** (`(4}`)" },
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Notice),  "`[{0}]` **{1}** deleted a notice (`{2}`) for **{3}** (`{4}`)" },
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Warning), "`[{0}]` **{1}** deleted a warning (`{2}`) for **{3}** (`{4}`)" },
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Mute),    "`[{0}]` **{1}** deleted a mute (`{2}`) for **{3}** (`{4}`)" },
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Ban),     "`[{0}]` **{1}** deleted a ban (`{2}`) for **{3}** (`{4}`)" },
-                { (ModerationActionType.MessageDeleted,      null),                   "`[{0}]` **{1}** deleted the following message (`{6}`) from **{7}** (`{8}`) in **#{9}** ```{12}``` for reason ```{11}```" },
+                { (ModerationActionType.MessageDeleted,      null),                   "`[{0}]` **{1}** deleted the following message (`{6}`) from **{7}** (`{8}`) in **#{9}** ```\n{12}``` for reason ```\n{11}```" },
                 { (ModerationActionType.MessageBatchDeleted, null),                   "`[{0}]` **{1}** deleted **{13}** messages in **#{9}** (<https://mod.gg/logs/deletedMessages?batchId={14}>)" },
             };
     }
