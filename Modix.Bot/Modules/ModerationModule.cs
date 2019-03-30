@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 using Discord;
@@ -31,8 +32,10 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Notice, subject.Id, reason, null);
-            await ConfirmAndReplyWithCounts(subject.Id);
+            var reasonWithUrls = AppendUrlsFromMessage(reason);
+
+            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Notice, subject.Id, reasonWithUrls, null);
+            await ConfirmAndReplyWithCountsAsync(subject.Id);
         }
 
         [Command("warn")]
@@ -44,8 +47,10 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Warning, subject.Id, reason, null);
-            await ConfirmAndReplyWithCounts(subject.Id);
+            var reasonWithUrls = AppendUrlsFromMessage(reason);
+
+            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Warning, subject.Id, reasonWithUrls, null);
+            await ConfirmAndReplyWithCountsAsync(subject.Id);
         }
 
         [Command("mute")]
@@ -57,8 +62,10 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.Id, reason, null);
-            await ConfirmAndReplyWithCounts(subject.Id);
+            var reasonWithUrls = AppendUrlsFromMessage(reason);
+
+            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.Id, reasonWithUrls, null);
+            await ConfirmAndReplyWithCountsAsync(subject.Id);
         }
 
         [Command("tempmute")]
@@ -73,8 +80,10 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.Id, reason, duration);
-            await ConfirmAndReplyWithCounts(subject.Id);
+            var reasonWithUrls = AppendUrlsFromMessage(reason);
+
+            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.Id, reasonWithUrls, duration);
+            await ConfirmAndReplyWithCountsAsync(subject.Id);
         }
 
         [Command("unmute")]
@@ -84,7 +93,7 @@ namespace Modix.Modules
                 DiscordUserEntity subject)
         {
             await ModerationService.RescindInfractionAsync(InfractionType.Mute, subject.Id);
-            await ConfirmAndReplyWithCounts(subject.Id);
+            await ConfirmAndReplyWithCountsAsync(subject.Id);
         }
 
         [Command("ban")]
@@ -97,8 +106,10 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
-            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Ban, subject.Id, reason, null);
-            await ConfirmAndReplyWithCounts(subject.Id);
+            var reasonWithUrls = AppendUrlsFromMessage(reason);
+
+            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Ban, subject.Id, reasonWithUrls, null);
+            await ConfirmAndReplyWithCountsAsync(subject.Id);
         }
 
         [Command("unban")]
@@ -108,7 +119,7 @@ namespace Modix.Modules
                 DiscordUserEntity subject)
         {
             await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.Id);
-            await ConfirmAndReplyWithCounts(subject.Id);
+            await ConfirmAndReplyWithCountsAsync(subject.Id);
         }
 
         [Command("clean")]
@@ -145,7 +156,7 @@ namespace Modix.Modules
                     () => Context.GetUserConfirmationAsync(
                         $"You are attempting to delete the past {count} messages by {user.Nickname ?? $"{user.Username}#{user.Discriminator}"} in #{Context.Channel.Name}.{Environment.NewLine}"));
 
-        private async Task ConfirmAndReplyWithCounts(ulong userId)
+        private async Task ConfirmAndReplyWithCountsAsync(ulong userId)
         {
             await Context.AddConfirmation();
 
@@ -160,6 +171,22 @@ namespace Modix.Modules
                     .WithDescription(FormatUtilities.FormatInfractionCounts(counts))
                     .Build());
             }
+        }
+
+        private string AppendUrlsFromMessage(string reason)
+        {
+            var urls = Context.Message.Attachments
+                .Select(x => x.Url)
+                .Where(x => !string.IsNullOrWhiteSpace(x));
+
+            if (!urls.Any())
+                return reason;
+
+            return new StringBuilder(reason)
+                .AppendLine()
+                .AppendLine()
+                .AppendJoin(Environment.NewLine, urls)
+                .ToString();
         }
 
         internal protected IModerationService ModerationService { get; }
