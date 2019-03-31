@@ -41,17 +41,11 @@ export default class UserSearch extends ModixComponent
     @Watch('selectedUser')
     async userChanged()
     {
-        let ephemeralUser = null;
         if (this.selectedUser && this.selectedUser.userId)
         {
-            ephemeralUser = await UserService.getUserInformation(this.selectedUser.userId);
+            let ephemeralUser = await UserService.getUserInformation(this.selectedUser.userId);
+            this.$emit('userSelected', ephemeralUser);
         }
-        else
-        {
-            ephemeralUser = this.selectedUser;
-        }
-
-        this.$emit('userSelected', ephemeralUser);
     }
 
     get userServiceCall()
