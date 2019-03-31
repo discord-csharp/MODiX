@@ -28,7 +28,7 @@ namespace Modix.Models
             return ret;
         }
 
-        public static ModixUser FromSocketGuildUser(SocketGuildUser user)
+        public static ModixUser FromIUser(IUser user)
         {
             var ret = new ModixUser
             {
