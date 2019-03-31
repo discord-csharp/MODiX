@@ -24,7 +24,7 @@ namespace Modix
                 return TypeReaderResult.FromSuccess(DiscordUserEntity.FromIUser(baseResult.BestMatch as IUser));
             }
 
-            if (ulong.TryParse(input, out var uid))
+            if (ulong.TryParse(input, out var uid) || MentionUtils.TryParseUser(input, out uid))
             {
                 //Any ulong is technically a valid snowflake, but we try to do some basic validation
                 //by parsing the timestamp (in ms) part out of it - we consider it to be an invalid snowflake if:
