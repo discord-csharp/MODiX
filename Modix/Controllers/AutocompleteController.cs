@@ -46,9 +46,9 @@ namespace Modix.Controllers
             var result = UserGuild.Users is null
                 ? Enumerable.Empty<ModixUser>()
                 : UserGuild.Users
-                    .Where(d => d.Username.OrdinalContains(query))
+                    .Where(d => d.Username.OrdinalContains(query) || d.Id.ToString() == query)
                     .Take(10)
-                    .Select(d => ModixUser.FromSocketGuildUser(d));
+                    .Select(ModixUser.FromSocketGuildUser);
 
             return Ok(result);
         }

@@ -28,7 +28,6 @@
 <script lang="ts">
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import TinyUserView from '@/components/TinyUserView.vue';
-import User from '@/models/User';
 import * as _ from 'lodash';
 
 @Component({

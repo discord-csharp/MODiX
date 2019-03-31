@@ -2,10 +2,16 @@
     <section class="section">
         <div class="message-narrow">
             <div class="field">
-                <label class="label">User ID</label>
+                <label class="label is-large">Tell us their username or ID</label>
                 <div class="control">
-                    <input :class="inputClass" type="text" placeholder="Enter a User ID..." v-model="userId" />
+                    <Autocomplete @select="selectedUser = $event"
+                                  :serviceCall="userServiceCall" placeholder="Enter a username or an ID">
+                        <template slot-scope="{entry}">
+                            <TinyUserView :user="entry" />
+                        </template>
+                    </Autocomplete>
                 </div>
+                <p class="help is-danger"></p>
             </div>
         </div>
     </section>
@@ -15,35 +21,42 @@
 import { Component, Watch } from 'vue-property-decorator';
 import ModixComponent from '@/components/ModixComponent.vue';
 import UserService from '@/services/UserService';
+import GeneralService from '@/services/GeneralService';
+import TinyUserView from '@/components/TinyUserView.vue';
+import Autocomplete from '@/components/Autocomplete.vue';
+import User from '@/models/User';
 
-@Component({})
+@Component(
+{
+    components:
+    {
+        TinyUserView,
+        Autocomplete
+    }
+})
 export default class UserSearch extends ModixComponent
 {
-    userId: string | null = null;
+    selectedUser: User = new User();
 
-    inputClass: any = 'input';
-
-    @Watch('userId')
-    async computeInputClass(): Promise<void>
+    @Watch('selectedUser')
+    async userChanged()
     {
-        if (!this.userId || this.userId.length == 0)
+        let ephemeralUser = null;
+        if (this.selectedUser && this.selectedUser.userId)
         {
-            this.inputClass = 'input';
-            return;
-        }
-
-        let user = await UserService.getUserInformation(this.userId);
-
-        if (!user)
-        {
-            this.inputClass = 'input is-danger';
+            ephemeralUser = await UserService.getUserInformation(this.selectedUser.userId);
         }
         else
         {
-            this.inputClass = 'input is-success';
+            ephemeralUser = this.selectedUser;
         }
 
-        this.$emit('userSelected', user);
+        this.$emit('userSelected', ephemeralUser);
+    }
+
+    get userServiceCall()
+    {
+        return GeneralService.getUserAutocomplete;
     }
 }
 </script>
