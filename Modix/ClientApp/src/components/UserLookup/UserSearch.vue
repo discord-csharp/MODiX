@@ -11,7 +11,6 @@
                         </template>
                     </Autocomplete>
                 </div>
-                <p class="help is-danger"></p>
             </div>
         </div>
     </section>
