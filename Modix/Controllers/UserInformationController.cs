@@ -61,8 +61,8 @@ namespace Modix.Controllers
                 FirstSeen = userInformation.FirstSeen,
                 LastSeen = userInformation.LastSeen,
                 Rank = userRank.Rank,
-                Last7DaysMessages = messages7.Count,
-                Last30DaysMessages = messages30.Count,
+                Last7DaysMessages = messages7.Sum(x => x.Value),
+                Last30DaysMessages = messages30.Sum(x => x.Value),
                 AverageMessagesPerDay = userRank.AveragePerDay,
                 Percentile = userRank.Percentile,
                 Roles = roles
