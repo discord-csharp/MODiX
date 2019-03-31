@@ -92,19 +92,17 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task<IUser> GetUserAsync(ulong userId)
         {
-            var restUser = await DiscordRestClient.GetUserAsync(userId);
             var user = (AuthorizationService.CurrentGuildId == null)
                 ? await DiscordClient.GetUserAsync(userId)
                 : await (await DiscordClient.GetGuildAsync(AuthorizationService.CurrentGuildId.Value))
                     .GetUserAsync(userId);
 
-            if (user == null && restUser == null)
-                throw new InvalidOperationException($"Discord user {userId} does not exist");
-
             if (user is IGuildUser guildUser)
                 await TrackUserAsync(guildUser);
 
-            return user ?? restUser;
+            return user
+                ?? await DiscordRestClient.GetUserAsync(userId)
+                ?? throw new InvalidOperationException($"Discord user {userId} does not exist");
         }
 
         /// <inheritdoc />
