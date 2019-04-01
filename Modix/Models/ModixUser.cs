@@ -28,7 +28,7 @@ namespace Modix.Models
             return ret;
         }
 
-        public static ModixUser FromIUser(IUser user)
+        public static ModixUser FromIGuildUser(IGuildUser user)
         {
             var ret = new ModixUser
             {

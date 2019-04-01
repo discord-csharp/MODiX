@@ -50,12 +50,14 @@ namespace Modix.Controllers
                 : UserGuild.Users
                     .Where(d => d.Username.OrdinalContains(query) || d.Id.ToString() == query)
                     .Take(10)
-                    .Select(ModixUser.FromIUser);
+                    .Select(ModixUser.FromIGuildUser);
 
             if (!result.Any() && ulong.TryParse(query, out var userId))
             {
-                var user = await _userService.GetUserAsync(userId);
-                result = result.Append(ModixUser.FromIUser(user));
+                var user = await _userService.GetUserInformationAsync(UserGuild.Id, userId);
+
+                if(user != null)
+                    result = result.Append(ModixUser.FromIGuildUser(user));
             }
             return Ok(result);
         }
