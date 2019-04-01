@@ -9,7 +9,7 @@
 
         <template v-else>
             <input class="input" type="text" :class="{'is-danger': error}" :placeholder="placeholder"
-                v-model="searchQuery" @input="debouncedAutocomplete()" @blur="blur()" ref="inputBox">
+                v-model="searchQuery" @input="debouncedAutocomplete()" @blur="blur()" @keydown="keyDown($event)" ref="inputBox">
 
             <div class="autocomplete" v-show="entries.length > 0">
 
@@ -35,10 +35,17 @@ import * as _ from 'lodash';
 })
 export default class Autocomplete extends Vue
 {
-    @Prop({default: (query: string) => Promise}) private serviceCall!: Function;
-    @Prop({default: "We have a fancy autocomplete!"}) private placeholder!: string;
-    @Prop({default: false}) private error!: boolean;
-    @Prop({default: 2}) private minimumChars!: number;
+    @Prop({default: (query: string) => Promise})
+    private serviceCall!: Function;
+
+    @Prop({default: "We have a fancy autocomplete!"})
+    private placeholder!: string;
+
+    @Prop({default: false})
+    private error!: boolean;
+
+    @Prop({default: 2})
+    private minimumChars!: number;
 
     debouncedAutocomplete: Function = () => null;
 
@@ -99,7 +106,6 @@ export default class Autocomplete extends Vue
 
     mounted()
     {
-        this.inputBox.addEventListener('keydown', this.keyDown);
         this.selectedIndex = -1;
     }
 

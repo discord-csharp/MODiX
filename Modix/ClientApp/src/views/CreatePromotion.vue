@@ -105,6 +105,8 @@ export default class CreatePromotion extends Vue
     @Watch('selectedUser')
     async userChanged()
     {
+        if (!this.selectedUser) { return; }
+
         this.creationData.userId = this.selectedUser.userId;
 
         if (this.selectedUser && this.selectedUser.userId)
