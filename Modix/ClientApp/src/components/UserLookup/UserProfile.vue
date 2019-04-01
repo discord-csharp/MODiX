@@ -7,7 +7,7 @@
                 </h1>
             </div>
             <div class="message-body">
-                <img v-if="user.avatarUrl" :src="user.avatarUrl" style="float: right; padding-top: 1em; padding-right: 1em;" />
+                <img v-if="user.avatarUrl" :src="user.avatarUrl" style="height: 128px; width: 128px; float: right; padding-top: 1em; padding-right: 1em;" />
 
                 <div class="box">
                     <UserProfileSectionTitle :title="'User Information'" />

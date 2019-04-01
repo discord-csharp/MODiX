@@ -16,16 +16,6 @@ namespace Modix.Services.Core
     public interface IUserService
     {
         /// <summary>
-        /// Retrieves the user, if any, associated with the given Discord ID value.
-        /// </summary>
-        /// <param name="userId">The <see cref="IEntity{T}.Id" /> of the user to be retrieved.</param>
-        /// <returns>
-        /// The <see cref="IUser"/>, if any, retrieved from Discord.NET.
-        /// This user may also be an <see cref="IGuildUser"/>, if the current request is associated with a particular guild.
-        /// </returns>
-        Task<IUser> GetUserAsync(ulong userId);
-
-        /// <summary>
         /// Checks if a user exists that is associated with the given Discord ID value that also belongs to a specified guild.
         /// </summary>
         /// <param name="guildId">The <see cref="IEntity{T}.Id" /> of the guild to be checked for the user.</param>
@@ -87,23 +77,6 @@ namespace Modix.Services.Core
             DiscordRestClient = discordRestClient;
             AuthorizationService = authorizationService;
             GuildUserRepository = guildUserRepository;
-        }
-
-        /// <inheritdoc />
-        public async Task<IUser> GetUserAsync(ulong userId)
-        {
-            var user = (AuthorizationService.CurrentGuildId == null)
-                ? await DiscordClient.GetUserAsync(userId)
-                : await (await DiscordClient.GetGuildAsync(AuthorizationService.CurrentGuildId.Value))
-                    .GetUserAsync(userId);
-
-            if (user == null)
-                throw new InvalidOperationException($"Discord user {userId} does not exist");
-
-            if (user is IGuildUser guildUser)
-                await TrackUserAsync(guildUser);
-
-            return user;
         }
 
         /// <inheritdoc />

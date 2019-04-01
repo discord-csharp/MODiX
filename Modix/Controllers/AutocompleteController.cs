@@ -15,10 +15,12 @@ namespace Modix.Controllers
     public class AutocompleteController : ModixController
     {
         private IDesignatedRoleService RoleService { get; }
+        private readonly IUserService _userService;
 
-        public AutocompleteController(DiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedRoleService roleService) : base(client, modixAuth)
+        public AutocompleteController(DiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedRoleService roleService, IUserService userService) : base(client, modixAuth)
         {
             RoleService = roleService;
+            _userService = userService;
         }
 
         [HttpGet("channels")]
@@ -46,10 +48,17 @@ namespace Modix.Controllers
             var result = UserGuild.Users is null
                 ? Enumerable.Empty<ModixUser>()
                 : UserGuild.Users
-                    .Where(d => d.Username.OrdinalContains(query))
+                    .Where(d => d.Username.OrdinalContains(query) || d.Id.ToString() == query)
                     .Take(10)
-                    .Select(d => ModixUser.FromSocketGuildUser(d));
+                    .Select(ModixUser.FromIGuildUser);
 
+            if (!result.Any() && ulong.TryParse(query, out var userId))
+            {
+                var user = await _userService.GetUserInformationAsync(UserGuild.Id, userId);
+
+                if(user != null)
+                    result = result.Append(ModixUser.FromIGuildUser(user));
+            }
             return Ok(result);
         }
 
