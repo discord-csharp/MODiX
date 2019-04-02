@@ -24,17 +24,13 @@ namespace Modix.Controllers
         public async Task<IActionResult> Get()
         {
             var roleCounts = await _statService.GetGuildMemberDistributionAsync(UserGuild);
-            var messageCounts = await _statService.GetTopMessageCounts(UserGuild);
+            var messageCounts = await _statService.GetTopMessageCounts(UserGuild, ModixUser.UserId);
 
             return Ok(new GuildStatApiData
             {
                 GuildName = UserGuild.Name,
                 GuildRoleCounts = roleCounts,
-                TopUserMessageCounts = messageCounts.ToDictionary
-                (
-                    d => $"{d.Key.User.Username}#{d.Key.User.Discriminator}",
-                    d => d.Value
-                )
+                TopUserMessageCounts = messageCounts,
             });
         }
     }

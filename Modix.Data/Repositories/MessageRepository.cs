@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data.Models.Core;
 using Npgsql;
+using NpgsqlTypes;
 
 namespace Modix.Data.Repositories
 {
@@ -14,7 +15,7 @@ namespace Modix.Data.Repositories
 
         Task<IReadOnlyDictionary<ulong, int>> GetGuildUserMessageCountByChannel(ulong guildId, ulong userId, TimeSpan timespan);
 
-        Task<IReadOnlyDictionary<GuildUserEntity, int>> GetPerUserMessageCounts(ulong guildId, TimeSpan timespan, int userCount = 10);
+        Task<IReadOnlyCollection<PerUserMessageCount>> GetPerUserMessageCounts(ulong guildId, ulong userId, TimeSpan timespan, int userCount = 10);
 
         Task<GuildUserParticipationStatistics> GetGuildUserParticipationStatistics(ulong guildId, ulong userId);
 
@@ -74,27 +75,58 @@ namespace Modix.Data.Repositories
                 .ToDictionaryAsync(x => x.Key, x => x.Count());
         }
 
-        public async Task<IReadOnlyDictionary<GuildUserEntity, int>> GetPerUserMessageCounts(ulong guildId, TimeSpan timespan, int userCount = 10)
+        public async Task<IReadOnlyCollection<PerUserMessageCount>> GetPerUserMessageCounts(ulong guildId, ulong userId, TimeSpan timespan, int userCount = 10)
         {
             var earliestDateTime = DateTimeOffset.UtcNow - timespan;
+            var query = GetQuery();
 
-            var result = await ModixContext.Messages.AsNoTracking()
-                .Where(x => x.GuildId == guildId && x.Timestamp >= earliestDateTime)
-                .GroupBy(x => x.AuthorId)
-                .OrderByDescending(x => x.Count())
-                .Take(userCount)
-                .ToListAsync();
-
-            var userIds = result.Select(d => d.Key).ToArray();
-
-            var userQuery = await ModixContext.GuildUsers
-                .Where(x => x.GuildId == guildId)
-                .Where(x => userIds.Contains(x.UserId))
-                .Include(x => x.User)
+            var counts = await ModixContext.Query<PerUserMessageCount>()
                 .AsNoTracking()
-                .ToDictionaryAsync(x => x.UserId, x => x);
+                .FromSql(query,
+                    new NpgsqlParameter(":GuildId", NpgsqlDbType.Bigint) { Value = unchecked((long)guildId) },
+                    new NpgsqlParameter(":UserId", NpgsqlDbType.Bigint) { Value = unchecked((long)userId) },
+                    new NpgsqlParameter(":StartTimestamp", NpgsqlDbType.TimestampTz) { Value = earliestDateTime })
+                .ToArrayAsync();
 
-            return result.ToDictionary(x => userQuery[x.Key], x => x.Count());
+            return counts;
+
+            string GetQuery()
+                => $@"
+                    with guildCounts as (
+                        select ""AuthorId"" as ""UserId"",
+                            row_number() over (order by count(*) desc) as ""Rank"",
+                            count(*) as ""MessageCount"",
+                            ""AuthorId"" = :UserId as ""IsCurrentUser""
+                        from ""Messages""
+                        where ""GuildId"" = :GuildId
+                            and ""Timestamp"" >= :StartTimestamp
+                        group by ""AuthorId"", ""GuildId""
+                    ),
+                    currentUserCount as (
+                        select ""UserId"", ""Rank"", ""MessageCount"", ""IsCurrentUser""
+                        from guildCounts
+                        where ""UserId"" = :UserId
+                    ),
+                    guildCountsLimited as (
+                        select ""UserId"", ""Rank"", ""MessageCount"", ""IsCurrentUser""
+                        from guildCounts
+                        limit {userCount}
+                    ),
+                    unioned as (
+                        select ""UserId"", ""Rank"", ""MessageCount"", ""IsCurrentUser""
+                        from guildCountsLimited
+                        union select ""UserId"", ""Rank"", ""MessageCount"", ""IsCurrentUser""
+                        from currentUserCount
+                    ),
+                    joined as (
+                        select ""Username"", ""Discriminator"", ""Rank"", ""MessageCount"", ""IsCurrentUser""
+                        from unioned
+                        inner join ""Users""
+                            on ""Id"" = ""UserId""
+                    )
+                    select ""Username"", ""Discriminator"", ""Rank"", ""MessageCount"", ""IsCurrentUser""
+                    from joined
+                    order by ""Rank"" asc";
         }
 
         public async Task<GuildUserParticipationStatistics> GetGuildUserParticipationStatistics(ulong guildId, ulong userId)
