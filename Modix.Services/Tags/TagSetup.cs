@@ -1,8 +1,9 @@
-﻿using MediatR;
+﻿using Discord;
+
 using Microsoft.Extensions.DependencyInjection;
 
+using Modix.Common.Messaging;
 using Modix.Data.Repositories;
-using Modix.Services.Messages.Discord;
 
 namespace Modix.Services.Tags
 {
@@ -20,6 +21,6 @@ namespace Modix.Services.Tags
             => services
                 .AddScoped<ITagService, TagService>()
                 .AddScoped<ITagRepository, TagRepository>()
-                .AddScoped<INotificationHandler<ChatMessageReceived>, TagInlineParsingHandler>();
+                .AddScoped<INotificationHandler<MessageReceivedNotification>, TagInlineParsingHandler>();
     }
 }
