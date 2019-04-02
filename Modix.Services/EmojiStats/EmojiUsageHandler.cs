@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 
-using MediatR;
-
 using Modix.Data.Models.Emoji;
 using Modix.Data.Repositories;
 using Modix.Services.Messages.Discord;
@@ -19,11 +17,11 @@ namespace Modix.Services.EmojiStats
     /// Implements a handler that maintains MODiX's record of emoji.
     /// </summary>
     public sealed class EmojiUsageHandler :
-        INotificationHandler<ReactionAdded>,
-        INotificationHandler<ReactionRemoved>,
-        INotificationHandler<ChatMessageReceived>,
-        INotificationHandler<ChatMessageUpdated>,
-        INotificationHandler<ChatMessageDeleted>
+        MediatR.INotificationHandler<ReactionAdded>,
+        MediatR.INotificationHandler<ReactionRemoved>,
+        Common.Messaging.INotificationHandler<MessageReceivedNotification>,
+        Common.Messaging.INotificationHandler<MessageUpdatedNotification>,
+        MediatR.INotificationHandler<ChatMessageDeleted>
     {
         private readonly IEmojiRepository _emojiRepository;
 
@@ -126,7 +124,7 @@ namespace Modix.Services.EmojiStats
             }
         }
 
-        public async Task Handle(ChatMessageReceived notification, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(MessageReceivedNotification notification, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;
@@ -147,7 +145,7 @@ namespace Modix.Services.EmojiStats
             }
         }
 
-        public async Task Handle(ChatMessageUpdated notification, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(MessageUpdatedNotification notification, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;

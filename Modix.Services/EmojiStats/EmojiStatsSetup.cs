@@ -1,5 +1,7 @@
-﻿using MediatR;
+﻿using Discord;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using Modix.Data.Repositories;
 using Modix.Services.Messages.Discord;
 
@@ -18,10 +20,10 @@ namespace Modix.Services.EmojiStats
         public static IServiceCollection AddEmojiStats(this IServiceCollection services)
             => services
                 .AddScoped<IEmojiRepository, EmojiRepository>()
-                .AddScoped<INotificationHandler<ReactionAdded>, EmojiUsageHandler>()
-                .AddScoped<INotificationHandler<ReactionRemoved>, EmojiUsageHandler>()
-                .AddScoped<INotificationHandler<ChatMessageReceived>, EmojiUsageHandler>()
-                .AddScoped<INotificationHandler<ChatMessageUpdated>, EmojiUsageHandler>()
-                .AddScoped<INotificationHandler<ChatMessageDeleted>, EmojiUsageHandler>();
+                .AddScoped<MediatR.INotificationHandler<ReactionAdded>, EmojiUsageHandler>()
+                .AddScoped<MediatR.INotificationHandler<ReactionRemoved>, EmojiUsageHandler>()
+                .AddScoped<Common.Messaging.INotificationHandler<MessageReceivedNotification>, EmojiUsageHandler>()
+                .AddScoped<Common.Messaging.INotificationHandler<MessageUpdatedNotification>, EmojiUsageHandler>()
+                .AddScoped<MediatR.INotificationHandler<ChatMessageDeleted>, EmojiUsageHandler>();
     }
 }
