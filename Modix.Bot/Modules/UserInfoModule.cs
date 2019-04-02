@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
-
+using Discord.WebSocket;
 using Humanizer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 using Modix.Bot.Extensions;
+using Modix.Data.Models;
 using Modix.Data.Models.Core;
-using Modix.Data.Models.Emoji;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
@@ -34,7 +34,7 @@ namespace Modix.Modules
             IModerationService moderationService,
             IAuthorizationService authorizationService,
             IMessageRepository messageRepository,
-            IEmojiRepository reactionRepository,
+            IEmojiRepository emojiRepository,
             IHttpClientFactory httpClientFactory)
         {
             Log = logger ?? new NullLogger<UserInfoModule>();
@@ -42,7 +42,7 @@ namespace Modix.Modules
             ModerationService = moderationService;
             AuthorizationService = authorizationService;
             MessageRepository = messageRepository;
-            ReactionRepository = reactionRepository;
+            EmojiRepository = emojiRepository;
             HttpClientFactory = httpClientFactory;
         }
 
@@ -51,7 +51,7 @@ namespace Modix.Modules
         private IModerationService ModerationService { get; }
         private IAuthorizationService AuthorizationService { get; }
         private IMessageRepository MessageRepository { get; }
-        private IEmojiRepository ReactionRepository { get; }
+        private IEmojiRepository EmojiRepository { get; }
         private IHttpClientFactory HttpClientFactory { get; }
 
         [Command("info")]
@@ -266,17 +266,17 @@ namespace Modix.Modules
                 }
             }
 
-            var emojiCounts = await ReactionRepository.GetCountsAsync(new EmojiSearchCriteria()
-            {
-                GuildId = Context.Guild.Id,
-                UserId = userId,
-            });
+            var emojiCounts = await EmojiRepository.GetEmojiStatsAsync(Context.Guild.Id, SortDirection.Ascending, 1, userId: userId);
 
             if (emojiCounts.Any())
             {
-                var (favoriteEmoji, emojiCount) = emojiCounts.OrderByDescending(x => x.Value).First();
+                var favoriteEmoji = emojiCounts.First();
 
-                builder.AppendLine($"Favorite reaction: {Format.Url(favoriteEmoji.ToString(), favoriteEmoji.Url)} ({"time".ToQuantity(emojiCount)})");
+                var emojiFormatted = ((SocketSelfUser)Context.Client.CurrentUser).CanAccessEmoji(favoriteEmoji.Emoji)
+                    ? Format.Url(favoriteEmoji.Emoji.ToString(), favoriteEmoji.Emoji.Url)
+                    : $"{Format.Url("❔", favoriteEmoji.Emoji.Url)} (`{favoriteEmoji.Emoji.Name}`)";
+
+                builder.AppendLine($"Favorite reaction: {emojiFormatted} ({"time".ToQuantity(favoriteEmoji.Uses)})");
             }
         }
 

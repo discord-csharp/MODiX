@@ -10,7 +10,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Humanizer;
-using Modix.Data.Models.Emoji;
+using Modix.Data.Models;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
@@ -25,12 +25,12 @@ namespace Modix.Modules
         public GuildInfoModule(
             IGuildService guildService,
             IMessageRepository messageRepository,
-            IEmojiRepository reactionRepository,
+            IEmojiRepository emojiRepository,
             IHttpClientFactory httpClientFactory)
         {
             GuildService = guildService;
             MessageRepository = messageRepository;
-            ReactionRepository = reactionRepository;
+            EmojiRepository = emojiRepository;
             HttpClientFactory = httpClientFactory;
         }
 
@@ -38,7 +38,7 @@ namespace Modix.Modules
 
         private IMessageRepository MessageRepository { get; }
 
-        private IEmojiRepository ReactionRepository { get; }
+        private IEmojiRepository EmojiRepository { get; }
 
         private IHttpClientFactory HttpClientFactory { get; }
 
@@ -140,16 +140,17 @@ namespace Modix.Modules
                 .AppendLine($"Avg. per day: {"message".ToQuantity(monthTotal / 30, "n0")}")
                 .AppendLine($"Most active channel: {MentionUtils.MentionChannel(mostActiveChannel.Key)} ({"message".ToQuantity(mostActiveChannel.Value, "n0")} in 30 days)");
 
-            var emojiCounts = await ReactionRepository.GetCountsAsync(new EmojiSearchCriteria()
-            {
-                GuildId = Context.Guild.Id,
-            });
+            var emojiCounts = await EmojiRepository.GetEmojiStatsAsync(guild.Id, SortDirection.Ascending, 1);
 
             if (emojiCounts.Any())
             {
-                var (favoriteEmoji, emojiCount) = emojiCounts.OrderByDescending(x => x.Value).First();
+                var favoriteEmoji = emojiCounts.First();
 
-                stringBuilder.AppendLine($"Favorite reaction: {Format.Url(favoriteEmoji.ToString(), favoriteEmoji.Url)} ({"time".ToQuantity(emojiCount)})");
+                var emojiFormatted = ((SocketSelfUser)Context.Client.CurrentUser).CanAccessEmoji(favoriteEmoji.Emoji)
+                    ? Format.Url(favoriteEmoji.Emoji.ToString(), favoriteEmoji.Emoji.Url)
+                    : $"{Format.Url("❔", favoriteEmoji.Emoji.Url)} (`{favoriteEmoji.Emoji.Name}`)";
+
+                stringBuilder.AppendLine($"Favorite reaction: {emojiFormatted} ({"time".ToQuantity(favoriteEmoji.Uses)})");
             }
 
             stringBuilder.AppendLine();

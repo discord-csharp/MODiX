@@ -76,6 +76,9 @@ namespace Modix.Data
                 method.Invoke(null, new [] { modelBuilder });
 
             modelBuilder.Query<GuildUserParticipationStatistics>();
+            modelBuilder.Query<SingleEmojiStatsDto>();
+            modelBuilder.Query<EmojiStatsDto>();
+            modelBuilder.Query<GuildEmojiStats>();
         }
     }
 }

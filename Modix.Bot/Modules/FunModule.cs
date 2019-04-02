@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Modix.Services.Utilities;
 using Serilog;
 
 namespace Modix.Modules
@@ -21,31 +22,7 @@ namespace Modix.Modules
             [Summary("The emoji to jumbofy.")]
                 string emoji)
         {
-            string emojiUrl;
-
-            if (Emote.TryParse(emoji, out var found))
-            {
-                emojiUrl = found.Url;
-            }
-            else
-            {
-                const string emojiLink = "https://raw.githubusercontent.com/twitter/twemoji/gh-pages/2/72x72/";
-                var hexValues = new List<string>();
-                for(int i = 0; i < emoji.Length; i++)
-                {
-                    var codepoint = char.ConvertToUtf32(emoji, i);
-                    hexValues.Add(codepoint.ToString("x"));
-
-                    //ConvertToUtf32() might have parsed an extra character as some characters are combinations of two 16-bit characters
-                    //Which start at 0x00d800 and end at 0x00dfff (Called surrogate low and surrogate high)
-                    //If the character is in this span, we have already essentially parsed the next index of the string as well.
-                    //Therefore we make sure to skip the next one.
-                    if (char.IsSurrogate(emoji, i))
-                        i++;
-                }
-
-                emojiUrl = $"{emojiLink}{string.Join('-', hexValues)}.png";
-            }
+            var emojiUrl = EmojiUtilities.GetUrl(emoji);
 
             try
             {
