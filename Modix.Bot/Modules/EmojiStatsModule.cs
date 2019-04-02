@@ -24,8 +24,8 @@ namespace Modix.Modules
             _emojiRepository = emojiRepository;
         }
 
-        [Command("top")]
-        [Alias("")]
+        [Command("all top")]
+        [Alias("all")]
         [Summary("Gets usage stats for the top 10 emojis in the current guild.")]
         public async Task TopEmojiStatsAsync()
         {
@@ -34,7 +34,7 @@ namespace Modix.Modules
             await ReplyAsync(embed: embed.Build());
         }
 
-        [Command("bottom")]
+        [Command("all bottom")]
         [Summary("Gets usage stats for the bottom 10 emojis in the current guild.")]
         public async Task BottomEmojiStatsAsync()
         {
@@ -43,8 +43,8 @@ namespace Modix.Modules
             await ReplyAsync(embed: embed.Build());
         }
 
-        [Command("guild top")]
-        [Alias("guild")]
+        [Command("top")]
+        [Alias("")]
         [Summary("Gets usage stats for the top 10 emojis in the current guild.")]
         public async Task TopGuildOnlyEmojiStatsAsync()
         {
@@ -53,7 +53,7 @@ namespace Modix.Modules
             await ReplyAsync(embed: embed.Build());
         }
 
-        [Command("guild bottom")]
+        [Command("bottom")]
         [Summary("Gets usage stats for the bottom 10 emojis in the current guild.")]
         public async Task BottomGuildOnlyEmojiStatsAsync()
         {
@@ -91,8 +91,8 @@ namespace Modix.Modules
             var guildStats = await _emojiRepository.GetGuildStatsAsync(guildId);
 
             var emojiFormatted = ((SocketSelfUser)Context.Client.CurrentUser).CanAccessEmoji(ephemeralEmoji)
-                    ? Format.Url(ephemeralEmoji.ToString(), EmojiUtilities.GetUrl(ephemeralEmoji.ToString()))
-                    : Format.Url("❔", ephemeralEmoji.Url);
+                    ? ephemeralEmoji.ToString()
+                    : "❔";
 
             var percentUsage = 100 * (double)emojiStats.Uses / guildStats.TotalUses;
             if (double.IsNaN(percentUsage))
@@ -144,8 +144,8 @@ namespace Modix.Modules
                 var canAccess = ((SocketSelfUser)Context.Client.CurrentUser).CanAccessEmoji(emoji);
 
                 var emojiFormatted = canAccess
-                    ? Format.Url(emoji.ToString(), EmojiUtilities.GetUrl(emoji.ToString()))
-                    : Format.Url("❔", emoji.Url);
+                    ? emoji.ToString()
+                    : "❔";
 
                 var percentUsage = 100 * (double)emojiStat.Uses / guildStats.TotalUses;
                 if (double.IsNaN(percentUsage))
