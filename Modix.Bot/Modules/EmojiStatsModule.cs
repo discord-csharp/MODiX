@@ -159,7 +159,7 @@ namespace Modix.Modules
                     .Append($" ({"use".ToQuantity(emojiStat.Uses)})")
                     .Append($" ({percentUsage.ToString("0.0")}%),")
                     .Append($" {perDay.ToString("0.0/day")}")
-                    .Append(canAccess ? string.Empty : $" (`:{emoji.Name}:`)")
+                    .Append(canAccess ? string.Empty : $" ({Format.Url($":{emoji.Name}:", emoji.Url)})")
                     .AppendLine();
             }
 
