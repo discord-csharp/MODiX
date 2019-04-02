@@ -59,6 +59,7 @@ namespace Modix.Services.Adapters
         {
             _discordClient.MessageReceived -= OnMessageReceived;
             _discordClient.MessageUpdated -= OnMessageUpdated;
+            _discordClient.MessageDeleted -= OnMessageDeleted;
             _discordClient.ReactionAdded -= OnReactionAdded;
             _discordClient.ReactionRemoved -= OnReactionRemoved;
             _discordClient.UserJoined -= OnUserJoined;
