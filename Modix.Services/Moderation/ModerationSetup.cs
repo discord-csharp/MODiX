@@ -2,9 +2,9 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
+using Modix.Common.Messaging;
 using Modix.Data.Repositories;
 using Modix.Services.RowboatImporter;
-using Modix.Services.Messages.Discord;
 
 namespace Modix.Services.Moderation
 {
@@ -32,9 +32,9 @@ namespace Modix.Services.Moderation
                 .AddScoped<IInfractionRepository, InfractionRepository>()
                 .AddScoped<IDeletedMessageRepository, DeletedMessageRepository>()
                 .AddScoped<IDeletedMessageBatchRepository, DeletedMessageBatchRepository>()
-                .AddScoped<Common.Messaging.INotificationHandler<MessageReceivedNotification>, InvitePurgingBehavior>()
-                .AddScoped<Common.Messaging.INotificationHandler<MessageUpdatedNotification>, InvitePurgingBehavior>()
-                .AddScoped<MediatR.INotificationHandler<UserJoined>, MutePersistingHandler>()
-                .AddScoped<Common.Messaging.INotificationHandler<UserBannedNotification>, InfractionSyncingHandler>();
+                .AddScoped<INotificationHandler<MessageReceivedNotification>, InvitePurgingBehavior>()
+                .AddScoped<INotificationHandler<MessageUpdatedNotification>, InvitePurgingBehavior>()
+                .AddScoped<INotificationHandler<UserJoinedNotification>, MutePersistingHandler>()
+                .AddScoped<INotificationHandler<UserBannedNotification>, InfractionSyncingHandler>();
     }
 }

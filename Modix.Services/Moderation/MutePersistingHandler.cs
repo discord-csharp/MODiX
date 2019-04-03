@@ -2,11 +2,10 @@
 using System.Threading.Tasks;
 
 using Discord;
+using Discord.WebSocket;
 
-using MediatR;
-
+using Modix.Common.Messaging;
 using Modix.Data.Models.Moderation;
-using Modix.Services.Messages.Discord;
 
 using Serilog;
 
@@ -16,7 +15,7 @@ namespace Modix.Services.Moderation
     /// Implements a handler that persists mutes for users who leave and rejoin a guild.
     /// </summary>
     public class MutePersistingHandler :
-        INotificationHandler<UserJoined>
+        INotificationHandler<UserJoinedNotification>
     {
         private readonly IModerationService _moderationService;
         private readonly ISelfUser _botUser;
@@ -34,8 +33,8 @@ namespace Modix.Services.Moderation
             _botUser = botUser;
         }
 
-        public Task Handle(UserJoined notification, CancellationToken cancellationToken)
-            => TryMuteUserAsync(notification.Guild, notification.User);
+        public Task HandleNotificationAsync(UserJoinedNotification notification, CancellationToken cancellationToken)
+            => TryMuteUserAsync(notification.GuildUser);
 
         /// <summary>
         /// Mutes the user if they have an active mute infraction in the guild.
@@ -45,28 +44,28 @@ namespace Modix.Services.Moderation
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation completes.
         /// </returns>
-        private async Task TryMuteUserAsync(IGuild guild, IGuildUser user)
+        private async Task TryMuteUserAsync(ISocketGuildUser guildUser)
         {
             var userHasActiveMuteInfraction = await _moderationService.AnyInfractionsAsync(new InfractionSearchCriteria()
             {
-                GuildId = guild.Id,
+                GuildId = guildUser.GuildId,
                 IsDeleted = false,
                 IsRescinded = false,
-                SubjectId = user.Id,
+                SubjectId = guildUser.Id,
                 Types = new[] { InfractionType.Mute },
             });
 
             if (!userHasActiveMuteInfraction)
             {
-                Log.Debug("User {0} was not muted, because they do not have any active mute infractions.", user.Id);
+                Log.Debug("User {0} was not muted, because they do not have any active mute infractions.", guildUser.Id);
                 return;
             }
 
-            var muteRole = await _moderationService.GetOrCreateDesignatedMuteRoleAsync(guild, _botUser.Id);
+            var muteRole = await _moderationService.GetOrCreateDesignatedMuteRoleAsync(guildUser.Guild, _botUser.Id);
 
-            Log.Debug("User {0} was muted, because they have an active mute infraction.", user.Id);
+            Log.Debug("User {0} was muted, because they have an active mute infraction.", guildUser.Id);
 
-            await user.AddRoleAsync(muteRole);
+            await guildUser.AddRoleAsync(muteRole);
         }
     }
 }

@@ -1,5 +1,7 @@
-﻿using MediatR;
+﻿using Discord;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using Modix.Services.Messages.Discord;
 
 namespace Modix.Services.GuildStats
@@ -9,7 +11,7 @@ namespace Modix.Services.GuildStats
         public static IServiceCollection AddGuildStats(this IServiceCollection services)
             => services
                 .AddScoped<IGuildStatService, GuildStatService>()
-                .AddScoped<INotificationHandler<UserJoined>, GuildStatService>()
-                .AddScoped<INotificationHandler<UserLeft>, GuildStatService>();
+                .AddScoped<Common.Messaging.INotificationHandler<UserJoinedNotification>, GuildStatService>()
+                .AddScoped<MediatR.INotificationHandler<UserLeft>, GuildStatService>();
     }
 }

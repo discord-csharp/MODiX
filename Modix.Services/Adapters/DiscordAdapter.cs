@@ -21,16 +21,11 @@ namespace Modix.Services.Adapters
 
         public Task StartAsync()
         {
-            _discordClient.UserJoined += OnUserJoined;
             return Task.CompletedTask;
         }
 
-        private Task OnUserJoined(SocketGuildUser user)
-            => _notificationDispatchService.PublishScopedAsync(new UserJoined { Guild = user.Guild, User = user });
-
         public Task StopAsync()
         {
-            _discordClient.UserJoined -= OnUserJoined;
             return Task.CompletedTask;
         }
     }
