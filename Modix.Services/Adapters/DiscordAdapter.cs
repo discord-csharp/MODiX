@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
-using Modix.Services.Messages.Discord;
 using Modix.Services.NotificationDispatch;
 
 namespace Modix.Services.Adapters

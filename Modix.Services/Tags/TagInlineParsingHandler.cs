@@ -9,7 +9,6 @@ using Discord.WebSocket;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Services.Core;
-using Modix.Services.Messages.Discord;
 
 namespace Modix.Services.Tags
 {

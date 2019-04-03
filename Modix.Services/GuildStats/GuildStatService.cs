@@ -8,9 +8,9 @@ using Discord;
 
 using Microsoft.Extensions.Caching.Memory;
 
+using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
-using Modix.Services.Messages.Discord;
 
 namespace Modix.Services.GuildStats
 {
@@ -32,8 +32,8 @@ namespace Modix.Services.GuildStats
     }
 
     public class GuildStatService :
-        Common.Messaging.INotificationHandler<UserJoinedNotification>,
-        MediatR.INotificationHandler<UserLeft>,
+        INotificationHandler<UserJoinedNotification>,
+        INotificationHandler<UserLeftNotification>,
         IGuildStatService
     {
         private readonly IMemoryCache _cache;
@@ -75,9 +75,9 @@ namespace Modix.Services.GuildStats
             return Task.CompletedTask;
         }
 
-        public Task Handle(UserLeft notification, CancellationToken cancellationToken)
+        public Task HandleNotificationAsync(UserLeftNotification notification, CancellationToken cancellationToken)
         {
-            ClearCacheEntry(notification.Guild);
+            ClearCacheEntry(notification.GuildUser.Guild);
             return Task.CompletedTask;
         }
 

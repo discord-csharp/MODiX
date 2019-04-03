@@ -2,7 +2,6 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-using Modix.Services.Messages.Discord;
 using Modix.Services.Messages.Modix;
 
 namespace Modix.Services.AutoRemoveMessage

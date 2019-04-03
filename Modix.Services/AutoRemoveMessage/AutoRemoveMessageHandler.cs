@@ -6,7 +6,6 @@ using Discord;
 
 using Microsoft.Extensions.Caching.Memory;
 
-using Modix.Services.Messages.Discord;
 using Modix.Services.Messages.Modix;
 
 namespace Modix.Services.AutoRemoveMessage

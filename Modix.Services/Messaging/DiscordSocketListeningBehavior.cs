@@ -32,6 +32,7 @@ namespace Modix.Services.Messaging
             DiscordSocketClient.ReactionRemoved += OnReactionRemovedAsync;
             DiscordSocketClient.UserBanned += OnUserBannedAsync;
             DiscordSocketClient.UserJoined += OnUserJoinedAsync;
+            DiscordSocketClient.UserLeft += OnUserLeftAsync;
 
             return Task.CompletedTask;
         }
@@ -46,6 +47,7 @@ namespace Modix.Services.Messaging
             DiscordSocketClient.ReactionRemoved -= OnReactionRemovedAsync;
             DiscordSocketClient.UserBanned -= OnUserBannedAsync;
             DiscordSocketClient.UserJoined -= OnUserJoinedAsync;
+            DiscordSocketClient.UserLeft -= OnUserLeftAsync;
 
             return Task.CompletedTask;
         }
@@ -105,6 +107,13 @@ namespace Modix.Services.Messaging
         private Task OnUserJoinedAsync(ISocketGuildUser guildUser)
         {
             MessageDispatcher.Dispatch(new UserJoinedNotification(guildUser));
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnUserLeftAsync(ISocketGuildUser guildUser)
+        {
+            MessageDispatcher.Dispatch(new UserLeftNotification(guildUser));
 
             return Task.CompletedTask;
         }
