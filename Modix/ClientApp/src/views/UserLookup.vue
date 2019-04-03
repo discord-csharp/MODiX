@@ -1,12 +1,13 @@
 <template>
-    <div>
+    <section class="section">
+        <h1 class="title">User Lookup</h1>
         <div>
-            <UserSearch @userSelected="onUserSelected" />
+            <UserSearch @userSelected="selectedUser = $event" />
         </div>
         <div>
             <UserProfile :user="selectedUser" />
         </div>
-    </div>
+    </section>
 </template>
 
 <script lang="ts">
@@ -28,17 +29,11 @@ import UserService from '@/services/UserService';
 })
 export default class UserLookup extends ModixComponent
 {
-    @Prop()
-    selectedUser!: EphemeralUser | null;
+    selectedUser: EphemeralUser | null = null;
 
     async mounted()
     {
         this.selectedUser = (await UserService.getUserInformation(this.$store.state.modix.user.userId))!;
-    }
-
-    onUserSelected(user: EphemeralUser | null): void
-    {
-        this.selectedUser = user;
     }
 }
 </script>

@@ -84,6 +84,9 @@ namespace Modix.Data.Models.Moderation
                 [nameof(CreatedBy)]
                     = x => x.CreatedBy.Nickname,
 
+                [nameof(MessageId)]
+                    = x => x.MessageId,
+
                 [nameof(Content)]
                     = x => x.Content,
 

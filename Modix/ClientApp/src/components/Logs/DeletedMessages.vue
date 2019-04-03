@@ -16,12 +16,38 @@
                 <span v-else-if="props.column.field == 'channel'">
                     #{{props.formattedRow[props.column.field]}}
                 </span>
+                <span v-else-if="props.column.field == 'actions'">
+                    <span class="level">
+                        <button class="button is-link is-small level-left" :class="{'is-loading': isLoadingBatch}" v-on:click="showModalForBatch(props.row.batchId)">
+                            Context
+                        </button>
+                    </span>
+                </span>
                 <span v-else>
                     {{props.formattedRow[props.column.field]}}
                 </span>
             </template>
 
         </VueGoodTable>
+
+        <div class="modal" :class="{'is-active': showBatchModal}">
+            <div class="modal-background" @click="showBatchModal = !showBatchModal"></div>
+            <div class="modal-card wide">
+                <header class="modal-card-head">
+                    <p class="modal-card-title">
+                        Batch Deletion Context
+                    </p>
+
+                    <button class="delete" aria-label="close" @click="showBatchModal = false"></button>
+                </header>
+                <section class="modal-card-body">
+                    <BatchDeleteContext :deletedMessages="contextDeletedMessages"></BatchDeleteContext>
+                </section>
+                <footer class="modal-card-foot level">
+
+                </footer>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -36,7 +62,11 @@ import DeletedMessage from '@/models/logs/DeletedMessage';
 import LogService from '@/services/LogService';
 import TableParameters from '@/models/TableParameters';
 import { SortDirection } from '@/models/SortDirection';
+import GeneralService from '@/services/GeneralService';
+import BatchDeleteContext from '@/components/Logs/BatchDeleteContext.vue';
+import DeletedMessageAbstraction from '@/models/logs/DeletedMessageAbstraction';
 import ModixComponent from '@/components/ModixComponent.vue';
+import { AxiosError } from 'axios';
 
 const messageResolvingRegex = /<#(\d+)>/gm;
 
@@ -50,7 +80,8 @@ function getSortDirection(direction: string): SortDirection
 @Component({
     components:
     {
-        VueGoodTable
+        VueGoodTable,
+        BatchDeleteContext
     }
 })
 export default class DeletedMessages extends ModixComponent
@@ -69,6 +100,10 @@ export default class DeletedMessages extends ModixComponent
     };
 
     isLoading: boolean = false;
+
+    isLoadingBatch: boolean = false;
+    contextDeletedMessages: DeletedMessageAbstraction[] = [];
+    showBatchModal: boolean = false;
 
     recordsPage: RecordsPage<DeletedMessage> = new RecordsPage<DeletedMessage>();
     tableParams: TableParameters = new TableParameters();
@@ -158,6 +193,13 @@ export default class DeletedMessages extends ModixComponent
                     placeholder: "#",
                     filterValue: this.staticFilters["batchId"]
                 }
+            },
+            {
+                label: 'Actions',
+                field: 'actions',
+                //hidden: !this.canPerformActions,
+                width: '32px',
+                sortable: false
             }
         ];
     }
@@ -232,6 +274,26 @@ export default class DeletedMessages extends ModixComponent
             : params.currentPerPage;
 
         await this.refresh();
+    }
+
+    async showModalForBatch(batchId: number)
+    {
+        this.isLoadingBatch = true;
+
+        try
+        {
+            this.contextDeletedMessages = await LogService.getDeletionContext(batchId);
+            this.showBatchModal = true;
+        }
+        catch (err)
+        {
+            let error = err as AxiosError;
+            store.pushErrorMessage(error.response!.data);
+        }
+        finally
+        {
+            this.isLoadingBatch = false;
+        }
     }
 }
 </script>
