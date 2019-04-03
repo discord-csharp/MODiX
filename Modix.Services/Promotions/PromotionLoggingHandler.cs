@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Discord;
-using MediatR;
+
+using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
 using Modix.Services.Core;
-using Modix.Services.Messages.Modix;
 
 namespace Modix.Services.Promotions
 {
@@ -14,7 +15,7 @@ namespace Modix.Services.Promotions
     /// Renders moderation actions, as they are created, as messages to each configured moderation log channel.
     /// </summary>
     public class PromotionLoggingHandler :
-        INotificationHandler<PromotionActionCreated>
+        INotificationHandler<PromotionActionCreatedNotification>
     {
         /// <summary>
         /// Constructs a new <see cref="PromotionLoggingHandler"/> object, with injected dependencies.
@@ -31,31 +32,28 @@ namespace Modix.Services.Promotions
             PromotionsService = promotionsService;
         }
         
-        public Task Handle(PromotionActionCreated notification, CancellationToken cancellationToken)
-            => OnPromotionActionCreatedAsync(notification.PromotionActionId, notification.PromotionActionCreationData);
-
-        public async Task OnPromotionActionCreatedAsync(long promotionActionId, PromotionActionCreationData data)
+        public async Task HandleNotificationAsync(PromotionActionCreatedNotification notification, CancellationToken cancellationToken)
         {
-            if (await DesignatedChannelService.AnyDesignatedChannelAsync(data.GuildId, DesignatedChannelType.PromotionLog))
+            if (await DesignatedChannelService.AnyDesignatedChannelAsync(notification.Data.GuildId, DesignatedChannelType.PromotionLog))
             {
-                var message = await FormatPromotionLogEntryAsync(promotionActionId);
+                var message = await FormatPromotionLogEntryAsync(notification.Id);
 
                 if (message == null)
                     return;
 
                 await DesignatedChannelService.SendToDesignatedChannelsAsync(
-                    await DiscordClient.GetGuildAsync(data.GuildId), DesignatedChannelType.PromotionLog, message);
+                    await DiscordClient.GetGuildAsync(notification.Data.GuildId), DesignatedChannelType.PromotionLog, message);
             }
 
-            if (await DesignatedChannelService.AnyDesignatedChannelAsync(data.GuildId, DesignatedChannelType.PromotionNotifications))
+            if (await DesignatedChannelService.AnyDesignatedChannelAsync(notification.Data.GuildId, DesignatedChannelType.PromotionNotifications))
             {
-                var embed = await FormatPromotionNotificationAsync(promotionActionId, data);
+                var embed = await FormatPromotionNotificationAsync(notification.Id, notification.Data);
 
                 if (embed == null)
                     return;
 
                 await DesignatedChannelService.SendToDesignatedChannelsAsync(
-                    await DiscordClient.GetGuildAsync(data.GuildId), DesignatedChannelType.PromotionNotifications, "", embed);
+                    await DiscordClient.GetGuildAsync(notification.Data.GuildId), DesignatedChannelType.PromotionNotifications, "", embed);
             }
         }
 

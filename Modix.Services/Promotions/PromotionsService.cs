@@ -5,13 +5,12 @@ using System.Threading.Tasks;
 
 using Discord;
 
+using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
-using Modix.Services.NotificationDispatch;
-using Modix.Services.Messages.Modix;
 
 namespace Modix.Services.Promotions
 {
@@ -114,7 +113,7 @@ namespace Modix.Services.Promotions
             IPromotionActionRepository promotionActionRepository,
             IPromotionCampaignRepository promotionCampaignRepository,
             IPromotionCommentRepository promotionCommentRepository,
-            INotificationDispatchService notificationDispatchService)
+            IMessageDispatcher messageDispatcher)
         {
             DiscordClient = discordClient;
             AuthorizationService = authorizationService;
@@ -123,7 +122,7 @@ namespace Modix.Services.Promotions
             PromotionActionRepository = promotionActionRepository;
             PromotionCampaignRepository = promotionCampaignRepository;
             PromotionCommentRepository = promotionCommentRepository;
-            NotificationDispatchService = notificationDispatchService;
+            MessageDispatcher = messageDispatcher;
         }
 
         private static readonly TimeSpan CampaignAcceptCooldown = TimeSpan.FromHours(48);
@@ -232,7 +231,7 @@ namespace Modix.Services.Promotions
                 transaction.Commit();
             }
 
-            await PublishActionNotificationAsync(resultAction);
+            PublishActionNotificationAsync(resultAction);
         }
 
         /// <inheritdoc />
@@ -263,7 +262,7 @@ namespace Modix.Services.Promotions
                 transaction.Commit();
             }
 
-            await PublishActionNotificationAsync(resultAction);
+            PublishActionNotificationAsync(resultAction);
         }
 
         /// <inheritdoc />
@@ -314,7 +313,7 @@ namespace Modix.Services.Promotions
                 catch
                 {
                     resultAction = await PromotionCampaignRepository.TryCloseAsync(campaignId, AuthorizationService.CurrentUserId.Value, PromotionCampaignOutcome.Failed);
-                    await PublishActionNotificationAsync(resultAction);
+                    PublishActionNotificationAsync(resultAction);
                     throw;
                 }
                 finally
@@ -323,7 +322,7 @@ namespace Modix.Services.Promotions
                 }
             }
 
-            await PublishActionNotificationAsync(resultAction);
+            PublishActionNotificationAsync(resultAction);
         }
 
         /// <inheritdoc />
@@ -335,7 +334,7 @@ namespace Modix.Services.Promotions
             if (!(await PromotionCampaignRepository.TryCloseAsync(campaignId, AuthorizationService.CurrentUserId.Value, PromotionCampaignOutcome.Rejected) is PromotionActionSummary resultAction))
                 throw new InvalidOperationException($"Campaign {campaignId} doesn't exist or is already closed");
 
-            await PublishActionNotificationAsync(resultAction);
+            PublishActionNotificationAsync(resultAction);
         }
 
         /// <inheritdoc />
@@ -404,7 +403,10 @@ namespace Modix.Services.Promotions
         /// </summary>
         internal protected IPromotionCommentRepository PromotionCommentRepository { get; }
 
-        internal protected INotificationDispatchService NotificationDispatchService { get; }
+        /// <summary>
+        /// An <see cref="IMessageDispatcher"/> for dispatching notifications throughout the application.
+        /// </summary>
+        internal protected IMessageDispatcher MessageDispatcher { get; }
 
         private async Task<GuildRoleBrief[]> GetRankRolesAsync(ulong guildId)
             => (await DesignatedRoleService.SearchDesignatedRolesAsync(new DesignatedRoleMappingSearchCriteria()
@@ -432,18 +434,16 @@ namespace Modix.Services.Promotions
                 .Any();
         }
 
-        private async Task PublishActionNotificationAsync(PromotionActionSummary action)
-            => await NotificationDispatchService.PublishScopedAsync(new PromotionActionCreated()
-            {
-                PromotionActionId = action.Id,
-                PromotionActionCreationData = new PromotionActionCreationData
+        private void PublishActionNotificationAsync(PromotionActionSummary action)
+            => MessageDispatcher.Dispatch(new PromotionActionCreatedNotification(
+                action.Id,
+                new PromotionActionCreationData
                 {
                     Created = action.Created,
                     CreatedById = action.CreatedBy.Id,
                     GuildId = action.GuildId,
                     Type = action.Type,
-                },
-            });
+                }));
 
         private async Task FinalizeCreateCampaignAsync(ulong subjectId, ulong targetRoleId, string comment)
         {
@@ -474,8 +474,8 @@ namespace Modix.Services.Promotions
                 commentTransaction.Commit();
             }
 
-            await PublishActionNotificationAsync(campaignResultAction);
-            await PublishActionNotificationAsync(commentResultAction);
+            PublishActionNotificationAsync(campaignResultAction);
+            PublishActionNotificationAsync(commentResultAction);
         }
 
         private async Task PerformCommonCreateCampaignValidationsAsync(IGuildUser subject, GuildRoleBrief targetRankRole, IEnumerable<GuildRoleBrief> rankRoles)
