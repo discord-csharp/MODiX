@@ -20,7 +20,7 @@
                 <span class="username">{{msg.username}}</span>
             </span>
             <span class="content">
-                <template v-if="msg.content">{{msg.content}}</template>
+                <span v-if="msg.content" v-html="parseDiscordContent(msg.content)"></span>
                 <template v-else>
                     <em class="noContent">No Content</em>
                 </template>
@@ -36,6 +36,7 @@ import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import store from "@/app/Store";
 import LogService from '@/services/LogService';
 import DeletedMessageAbstraction from '@/models/logs/DeletedMessageAbstraction';
+import ModixComponent from '../ModixComponent.vue';
 
 @Component({
     components:
@@ -43,7 +44,7 @@ import DeletedMessageAbstraction from '@/models/logs/DeletedMessageAbstraction';
 
     }
 })
-export default class BatchDeleteContext extends Vue
+export default class BatchDeleteContext extends ModixComponent
 {
     @Prop({required: true, default: []})
     deletedMessages!: DeletedMessageAbstraction [];
