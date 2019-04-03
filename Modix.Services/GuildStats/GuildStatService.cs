@@ -57,7 +57,7 @@ namespace Modix.Services.GuildStats
         /// <summary>
         /// Create a unique key object for the cache
         /// </summary>
-        private object GetKeyForMsgCounts(IGuild guild) => new { guild, Target = "MessageCounts" };
+        private object GetKeyForMsgCounts(IGuild guild, ulong userId) => new { guild, userId, Target = "MessageCounts" };
 
         /// <summary>
         /// Clear the cache entry for the given guild
@@ -82,7 +82,7 @@ namespace Modix.Services.GuildStats
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<PerUserMessageCount>> GetTopMessageCounts(IGuild guild, ulong userId)
         {
-            var key = GetKeyForMsgCounts(guild);
+            var key = GetKeyForMsgCounts(guild, userId);
 
             if (!_cache.TryGetValue(key, out IReadOnlyCollection<PerUserMessageCount> ret))
             {
