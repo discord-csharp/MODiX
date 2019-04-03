@@ -25,6 +25,7 @@ namespace Modix.Services.Messaging
         /// <inheritdoc />
         public Task StartAsync()
         {
+            DiscordSocketClient.MessageDeleted += OnMessageDeletedAsync;
             DiscordSocketClient.MessageReceived += OnMessageReceivedAsync;
             DiscordSocketClient.MessageUpdated += OnMessageUpdatedAsync;
             DiscordSocketClient.ReactionAdded += OnReactionAddedAsync;
@@ -36,6 +37,7 @@ namespace Modix.Services.Messaging
         /// <inheritdoc />
         public Task StopAsync()
         {
+            DiscordSocketClient.MessageDeleted -= OnMessageDeletedAsync;
             DiscordSocketClient.MessageReceived -= OnMessageReceivedAsync;
             DiscordSocketClient.MessageUpdated -= OnMessageUpdatedAsync;
             DiscordSocketClient.ReactionAdded -= OnReactionAddedAsync;
@@ -53,6 +55,13 @@ namespace Modix.Services.Messaging
         /// A <see cref="IMessageDispatcher"/> used to dispatch discord notifications to the rest of the application.
         /// </summary>
         internal protected IMessageDispatcher MessageDispatcher { get; }
+
+        private Task OnMessageDeletedAsync(ICacheable<IMessage, ulong> message, IISocketMessageChannel channel)
+        {
+            MessageDispatcher.Dispatch(new MessageDeletedNotification(message, channel));
+
+            return Task.CompletedTask;
+        }
 
         private Task OnMessageReceivedAsync(ISocketMessage message)
         {

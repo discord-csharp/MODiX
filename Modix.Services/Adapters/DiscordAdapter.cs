@@ -21,14 +21,10 @@ namespace Modix.Services.Adapters
 
         public Task StartAsync()
         {
-            _discordClient.MessageDeleted += OnMessageDeleted;
             _discordClient.UserJoined += OnUserJoined;
             _discordClient.UserBanned += OnUserBanned;
             return Task.CompletedTask;
         }
-
-        private Task OnMessageDeleted(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
-            => _notificationDispatchService.PublishScopedAsync(new ChatMessageDeleted { Message = message, Channel = channel });
 
         private Task OnUserJoined(SocketGuildUser user)
             => _notificationDispatchService.PublishScopedAsync(new UserJoined { Guild = user.Guild, User = user });
@@ -38,7 +34,6 @@ namespace Modix.Services.Adapters
 
         public Task StopAsync()
         {
-            _discordClient.MessageDeleted -= OnMessageDeleted;
             _discordClient.UserJoined -= OnUserJoined;
             _discordClient.UserBanned -= OnUserBanned;
             return Task.CompletedTask;
