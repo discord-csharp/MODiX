@@ -2,7 +2,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-using Modix.Services.Messages.Modix;
+using Modix.Common.Messaging;
 
 namespace Modix.Services.AutoRemoveMessage
 {
@@ -19,8 +19,8 @@ namespace Modix.Services.AutoRemoveMessage
         public static IServiceCollection AddAutoRemoveMessage(this IServiceCollection services)
             => services
                 .AddScoped<IAutoRemoveMessageService, AutoRemoveMessageService>()
-                .AddScoped<MediatR.INotificationHandler<RemovableMessageSent>, AutoRemoveMessageHandler>()
-                .AddScoped<Common.Messaging.INotificationHandler<ReactionAddedNotification>, AutoRemoveMessageHandler>()
-                .AddScoped<MediatR.INotificationHandler<RemovableMessageRemoved>, AutoRemoveMessageHandler>();
+                .AddScoped<INotificationHandler<ReactionAddedNotification>, AutoRemoveMessageHandler>()
+                .AddScoped<INotificationHandler<RemovableMessageRemovedNotification>, AutoRemoveMessageHandler>()
+                .AddScoped<INotificationHandler<RemovableMessageSentNotification>, AutoRemoveMessageHandler>();
     }
 }

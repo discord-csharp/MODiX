@@ -6,14 +6,14 @@ using Discord;
 
 using Microsoft.Extensions.Caching.Memory;
 
-using Modix.Services.Messages.Modix;
+using Modix.Common.Messaging;
 
 namespace Modix.Services.AutoRemoveMessage
 {
     public class AutoRemoveMessageHandler :
-        MediatR.INotificationHandler<RemovableMessageSent>,
-        Common.Messaging.INotificationHandler<ReactionAddedNotification>,
-        MediatR.INotificationHandler<RemovableMessageRemoved>
+        INotificationHandler<ReactionAddedNotification>,
+        INotificationHandler<RemovableMessageRemovedNotification>,
+        INotificationHandler<RemovableMessageSentNotification>
     {
         public AutoRemoveMessageHandler(
             IMemoryCache cache,
@@ -23,7 +23,7 @@ namespace Modix.Services.AutoRemoveMessage
             AutoRemoveMessageService = autoRemoveMessageService;
         }
 
-        public Task Handle(RemovableMessageSent notification, CancellationToken cancellationToken)
+        public Task HandleNotificationAsync(RemovableMessageSentNotification notification, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
                 return Task.CompletedTask;
@@ -54,10 +54,10 @@ namespace Modix.Services.AutoRemoveMessage
 
             await cachedMessage.Message.DeleteAsync();
 
-            await AutoRemoveMessageService.UnregisterRemovableMessageAsync(cachedMessage.Message);
+            AutoRemoveMessageService.UnregisterRemovableMessage(cachedMessage.Message);
         }
 
-        public Task Handle(RemovableMessageRemoved notification, CancellationToken cancellationToken)
+        public Task HandleNotificationAsync(RemovableMessageRemovedNotification notification, CancellationToken cancellationToken)
         {
             var key = GetKey(notification.Message.Id);
 
