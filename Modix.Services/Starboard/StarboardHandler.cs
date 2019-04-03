@@ -1,19 +1,20 @@
 ﻿using Discord;
+
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
-using Modix.Services.Messages.Discord;
-using Modix.Services.Core;
+
+using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
+using Modix.Services.Core;
 using Modix.Services.Quote;
 using Modix.Services.Utilities;
 
 namespace Modix.Services.Starboard
 {
     public class StarboardHandler :
-        INotificationHandler<ReactionAdded>,
-        INotificationHandler<ReactionRemoved>
+        INotificationHandler<ReactionAddedNotification>,
+        INotificationHandler<ReactionRemovedNotification>
     {
         private readonly IStarboardService _service;
         private readonly IDesignatedChannelService _designatedChannelService;
@@ -29,13 +30,13 @@ namespace Modix.Services.Starboard
             _quoteService = quoteService;
         }
 
-        public Task Handle(ReactionAdded notification, CancellationToken cancellationToken)
-            => HandleReaction(notification.Message, notification.Reaction);
+        public Task HandleNotificationAsync(ReactionAddedNotification notification, CancellationToken cancellationToken)
+            => HandleReactionAsync(notification.Message, notification.Reaction);
 
-        public Task Handle(ReactionRemoved notification, CancellationToken cancellationToken)
-            => HandleReaction(notification.Message, notification.Reaction);
+        public Task HandleNotificationAsync(ReactionRemovedNotification notification, CancellationToken cancellationToken)
+            => HandleReactionAsync(notification.Message, notification.Reaction);
 
-        private async Task HandleReaction(Cacheable<IUserMessage, ulong> cachedMessage, IReaction reaction)
+        private async Task HandleReactionAsync(ICacheable<IUserMessage, ulong> cachedMessage, IReaction reaction)
         {
             var emote = reaction.Emote;
             if (!_service.IsStarEmote(emote))

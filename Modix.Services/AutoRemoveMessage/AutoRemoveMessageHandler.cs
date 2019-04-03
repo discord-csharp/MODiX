@@ -1,17 +1,20 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using MediatR;
+
+using Discord;
+
 using Microsoft.Extensions.Caching.Memory;
+
 using Modix.Services.Messages.Discord;
 using Modix.Services.Messages.Modix;
 
 namespace Modix.Services.AutoRemoveMessage
 {
     public class AutoRemoveMessageHandler :
-        INotificationHandler<RemovableMessageSent>,
-        INotificationHandler<ReactionAdded>,
-        INotificationHandler<RemovableMessageRemoved>
+        MediatR.INotificationHandler<RemovableMessageSent>,
+        Common.Messaging.INotificationHandler<ReactionAddedNotification>,
+        MediatR.INotificationHandler<RemovableMessageRemoved>
     {
         public AutoRemoveMessageHandler(
             IMemoryCache cache,
@@ -38,7 +41,7 @@ namespace Modix.Services.AutoRemoveMessage
             return Task.CompletedTask;
         }
 
-        public async Task Handle(ReactionAdded notification, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(ReactionAddedNotification notification, CancellationToken cancellationToken)
         {
             var key = GetKey(notification.Message.Id);
 

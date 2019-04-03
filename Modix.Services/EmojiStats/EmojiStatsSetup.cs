@@ -20,8 +20,8 @@ namespace Modix.Services.EmojiStats
         public static IServiceCollection AddEmojiStats(this IServiceCollection services)
             => services
                 .AddScoped<IEmojiRepository, EmojiRepository>()
-                .AddScoped<MediatR.INotificationHandler<ReactionAdded>, EmojiUsageHandler>()
-                .AddScoped<MediatR.INotificationHandler<ReactionRemoved>, EmojiUsageHandler>()
+                .AddScoped<Common.Messaging.INotificationHandler<ReactionAddedNotification>, EmojiUsageHandler>()
+                .AddScoped<Common.Messaging.INotificationHandler<ReactionRemovedNotification>, EmojiUsageHandler>()
                 .AddScoped<Common.Messaging.INotificationHandler<MessageReceivedNotification>, EmojiUsageHandler>()
                 .AddScoped<Common.Messaging.INotificationHandler<MessageUpdatedNotification>, EmojiUsageHandler>()
                 .AddScoped<MediatR.INotificationHandler<ChatMessageDeleted>, EmojiUsageHandler>();

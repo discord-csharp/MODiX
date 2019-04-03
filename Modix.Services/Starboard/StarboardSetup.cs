@@ -1,6 +1,8 @@
-﻿using MediatR;
+﻿using Discord;
+
 using Microsoft.Extensions.DependencyInjection;
-using Modix.Services.Messages.Discord;
+
+using Modix.Common.Messaging;
 
 namespace Modix.Services.Starboard
 {
@@ -9,7 +11,7 @@ namespace Modix.Services.Starboard
         public static IServiceCollection AddStarboard(this IServiceCollection services)
             => services
                 .AddScoped<IStarboardService, StarboardService>()
-                .AddScoped<INotificationHandler<ReactionAdded>, StarboardHandler>()
-                .AddScoped<INotificationHandler<ReactionRemoved>, StarboardHandler>();
+                .AddScoped<INotificationHandler<ReactionAddedNotification>, StarboardHandler>()
+                .AddScoped<INotificationHandler<ReactionRemovedNotification>, StarboardHandler>();
     }
 }

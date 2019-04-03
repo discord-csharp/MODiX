@@ -17,8 +17,8 @@ namespace Modix.Services.EmojiStats
     /// Implements a handler that maintains MODiX's record of emoji.
     /// </summary>
     public sealed class EmojiUsageHandler :
-        MediatR.INotificationHandler<ReactionAdded>,
-        MediatR.INotificationHandler<ReactionRemoved>,
+        Common.Messaging.INotificationHandler<ReactionAddedNotification>,
+        Common.Messaging.INotificationHandler<ReactionRemovedNotification>,
         Common.Messaging.INotificationHandler<MessageReceivedNotification>,
         Common.Messaging.INotificationHandler<MessageUpdatedNotification>,
         MediatR.INotificationHandler<ChatMessageDeleted>
@@ -37,7 +37,7 @@ namespace Modix.Services.EmojiStats
             _emojiRepository = emojiRepository;
         }
 
-        public async Task Handle(ReactionAdded notification, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(ReactionAddedNotification notification, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;
@@ -60,7 +60,7 @@ namespace Modix.Services.EmojiStats
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation completes.
         /// </returns>
-        private async Task LogReactionAsync(ITextChannel channel, IUserMessage message, SocketReaction reaction, Emote emote)
+        private async Task LogReactionAsync(ITextChannel channel, IUserMessage message, ISocketReaction reaction, Emote emote)
         {
             using (var transaction = await _emojiRepository.BeginMaintainTransactionAsync())
             {
@@ -80,7 +80,7 @@ namespace Modix.Services.EmojiStats
             }
         }
 
-        public async Task Handle(ReactionRemoved notification, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(ReactionRemovedNotification notification, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;
@@ -103,7 +103,7 @@ namespace Modix.Services.EmojiStats
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation completes.
         /// </returns>
-        private async Task UnlogReactionAsync(ITextChannel channel, IUserMessage message, SocketReaction reaction, Emote emote)
+        private async Task UnlogReactionAsync(ITextChannel channel, IUserMessage message, ISocketReaction reaction, Emote emote)
         {
             using (var transaction = await _emojiRepository.BeginMaintainTransactionAsync())
             {

@@ -1,5 +1,7 @@
-﻿using MediatR;
+﻿using Discord;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using Modix.Services.Messages.Discord;
 using Modix.Services.Messages.Modix;
 
@@ -18,8 +20,8 @@ namespace Modix.Services.AutoRemoveMessage
         public static IServiceCollection AddAutoRemoveMessage(this IServiceCollection services)
             => services
                 .AddScoped<IAutoRemoveMessageService, AutoRemoveMessageService>()
-                .AddScoped<INotificationHandler<RemovableMessageSent>, AutoRemoveMessageHandler>()
-                .AddScoped<INotificationHandler<ReactionAdded>, AutoRemoveMessageHandler>()
-                .AddScoped<INotificationHandler<RemovableMessageRemoved>, AutoRemoveMessageHandler>();
+                .AddScoped<MediatR.INotificationHandler<RemovableMessageSent>, AutoRemoveMessageHandler>()
+                .AddScoped<Common.Messaging.INotificationHandler<ReactionAddedNotification>, AutoRemoveMessageHandler>()
+                .AddScoped<MediatR.INotificationHandler<RemovableMessageRemoved>, AutoRemoveMessageHandler>();
     }
 }
