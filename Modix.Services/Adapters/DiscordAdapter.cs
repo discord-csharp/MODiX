@@ -22,20 +22,15 @@ namespace Modix.Services.Adapters
         public Task StartAsync()
         {
             _discordClient.UserJoined += OnUserJoined;
-            _discordClient.UserBanned += OnUserBanned;
             return Task.CompletedTask;
         }
 
         private Task OnUserJoined(SocketGuildUser user)
             => _notificationDispatchService.PublishScopedAsync(new UserJoined { Guild = user.Guild, User = user });
 
-        private Task OnUserBanned(SocketUser bannedUser, SocketGuild bannedFromGuild)
-            => _notificationDispatchService.PublishScopedAsync(new UserBanned { BannedUser = bannedUser, Guild = bannedFromGuild });
-
         public Task StopAsync()
         {
             _discordClient.UserJoined -= OnUserJoined;
-            _discordClient.UserBanned -= OnUserBanned;
             return Task.CompletedTask;
         }
     }

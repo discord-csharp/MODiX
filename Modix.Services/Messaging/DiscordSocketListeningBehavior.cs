@@ -30,6 +30,7 @@ namespace Modix.Services.Messaging
             DiscordSocketClient.MessageUpdated += OnMessageUpdatedAsync;
             DiscordSocketClient.ReactionAdded += OnReactionAddedAsync;
             DiscordSocketClient.ReactionRemoved += OnReactionRemovedAsync;
+            DiscordSocketClient.UserBanned += OnUserBannedAsync;
 
             return Task.CompletedTask;
         }
@@ -42,6 +43,7 @@ namespace Modix.Services.Messaging
             DiscordSocketClient.MessageUpdated -= OnMessageUpdatedAsync;
             DiscordSocketClient.ReactionAdded -= OnReactionAddedAsync;
             DiscordSocketClient.ReactionRemoved -= OnReactionRemovedAsync;
+            DiscordSocketClient.UserBanned -= OnUserBannedAsync;
 
             return Task.CompletedTask;
         }
@@ -87,6 +89,13 @@ namespace Modix.Services.Messaging
         private Task OnReactionRemovedAsync(ICacheable<IUserMessage, ulong> message, IISocketMessageChannel channel, ISocketReaction reaction)
         {
             MessageDispatcher.Dispatch(new ReactionRemovedNotification(message, channel, reaction));
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnUserBannedAsync(ISocketUser user, ISocketGuild guild)
+        {
+            MessageDispatcher.Dispatch(new UserBannedNotification(user, guild));
 
             return Task.CompletedTask;
         }

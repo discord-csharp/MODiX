@@ -35,6 +35,6 @@ namespace Modix.Services.Moderation
                 .AddScoped<Common.Messaging.INotificationHandler<MessageReceivedNotification>, InvitePurgingBehavior>()
                 .AddScoped<Common.Messaging.INotificationHandler<MessageUpdatedNotification>, InvitePurgingBehavior>()
                 .AddScoped<MediatR.INotificationHandler<UserJoined>, MutePersistingHandler>()
-                .AddScoped<MediatR.INotificationHandler<UserBanned>, InfractionSyncingHandler>();
+                .AddScoped<Common.Messaging.INotificationHandler<UserBannedNotification>, InfractionSyncingHandler>();
     }
 }
