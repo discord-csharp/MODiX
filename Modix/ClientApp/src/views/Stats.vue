@@ -22,19 +22,20 @@
                     of the last 30 days
                 </HeroHeader>
                 <section class="section userList">
-                    <div class="first">
-                        🥇 <strong>{{entryAt(0).name}}</strong><small>{{entryAt(0).count}} messages</small>
-                    </div>
-                    <div class="second">
-                        🥈 <strong>{{entryAt(1).name}}</strong><small>{{entryAt(1).count}} messages</small>
-                    </div>
-                    <div class="third">
-                        🥉 <strong>{{entryAt(2).name}}</strong><small>{{entryAt(2).count}} messages</small>
-                    </div>
-
-                    <ol class="remaining" start="4">
-                        <li v-for="entry in entriesStartingAt(3)" v-bind:key="entry.name">
-                            {{entry.name}}&nbsp;<small>{{entry.count}} messages</small>
+                    <ol style="list-style-type: none">
+                        <li v-for="entry in stats.topUserMessageCounts" :key="entry.rank">
+                            <div class="first" v-if="entry.rank == 1">
+                                🥇 <strong>{{getEntryName(entry)}}</strong><small>{{entry.messageCount}} messages</small>
+                            </div>
+                            <div class="second" v-else-if="entry.rank == 2">
+                                🥈 <strong>{{getEntryName(entry)}}</strong><small>{{entry.messageCount}} messages</small>
+                            </div>
+                            <div class="third" v-else-if="entry.rank == 3">
+                                🥉 <strong>{{getEntryName(entry)}}</strong><small>{{entry.messageCount}} messages</small>
+                            </div>
+                            <div class="remaining" v-else>
+                                {{entry.rank}}.&nbsp;{{getEntryName(entry)}}&nbsp;<small>{{entry.messageCount}} messages</small>
+                            </div>
                         </li>
                     </ol>
                 </section>
@@ -72,6 +73,11 @@
         font-size: 1.1em;
     }
 
+    .third
+    {
+        margin-bottom: 0.5em;
+    }
+
     strong
     {
         margin-right: 0.33em;
@@ -94,8 +100,7 @@
 .remaining
 {
     font-size: 0.8em;
-    margin-left: 1.5em;
-    margin-top: 0.5em;
+    margin-left: 0.5em;
 }
 
 </style>
@@ -106,7 +111,7 @@ import { Component, Vue, Watch } from 'vue-property-decorator';
 import PieChart from '@/components/PieChart.vue';
 import store from "@/app/Store";
 import HeroHeader from "../components/HeroHeader.vue";
-import GuildStatApiData from '@/models/GuildStatApiData';
+import GuildStatApiData, { PerUserMessageCount } from '@/models/GuildStatApiData';
 import GeneralService from '@/services/GeneralService';
 import ModixComponent from '@/components/ModixComponent.vue';
 import * as _ from 'lodash';
@@ -121,7 +126,6 @@ import * as _ from 'lodash';
 export default class Stats extends ModixComponent
 {
     private stats: GuildStatApiData | null = null;
-    private index: number = 1;
 
     get guildName(): string
     {
@@ -135,31 +139,9 @@ export default class Stats extends ModixComponent
         return "Unknown Guild";
     }
 
-    private entryAt(index: number): {name: string, count: number}
+    getEntryName(entry: PerUserMessageCount): string
     {
-        if (!this.stats) { return { name: "", count: 0} };
-
-        var keys = Object.keys( this.stats.topUserMessageCounts );
-        let name = keys[index];
-        let count = this.stats.topUserMessageCounts[name];
-
-        return { name, count }
-    }
-
-    private entriesStartingAt(index: number): {name: string, count: number}[]
-    {
-        if (!this.stats) { return [] };
-
-        var keys = Object.keys( this.stats.topUserMessageCounts );
-
-        if (index >= keys.length) { return [] };
-
-        keys = keys.slice(index, keys.length);
-
-        return _.map(keys, key => {
-            let count = this.stats!.topUserMessageCounts[key];
-            return { name: key, count };
-        });
+        return entry.username + "#" + entry.discriminator;
     }
 
     async mounted()

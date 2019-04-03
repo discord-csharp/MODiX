@@ -75,6 +75,7 @@ namespace Modix.Data
             foreach(var method in onModelCreatingMethods)
                 method.Invoke(null, new [] { modelBuilder });
 
+            modelBuilder.Query<PerUserMessageCount>();
             modelBuilder.Query<GuildUserParticipationStatistics>();
             modelBuilder.Query<SingleEmojiStatsDto>();
             modelBuilder.Query<EmojiStatsDto>();

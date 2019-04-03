@@ -17,15 +17,16 @@ namespace Modix.Services.GuildStats
         /// <summary>
         /// Gets a list of GuildInfoResult objects representing the role distribution for the given guild.
         /// </summary>
-        /// <param name="guild">The guild to retrieve roles/counts from</param>
-        /// <returns>A list of GuildInfoResult(s), each representing a role in the guild</returns>
+        /// <param name="guild">The guild to retrieve roles/counts from.</param>
+        /// <returns>A list of GuildInfoResult(s), each representing a role in the guild.</returns>
         Task<List<GuildRoleCount>> GetGuildMemberDistributionAsync(IGuild guild);
 
         /// <summary>
-        /// Returns a mapping of <see cref="GuildUserEntity"/> to a count of the messages they've sent
+        /// Returns a mapping of <see cref="GuildUserEntity"/> to a count of the messages they've sent.
         /// </summary>
-        /// <param name="guildId">The guild to count messages for</param>
-        Task<IReadOnlyDictionary<GuildUserEntity, int>> GetTopMessageCounts(IGuild guild);
+        /// <param name="guild">The guild to count messages for.</param>
+        /// <param name="userId">The Discord snowflake ID of the user who is querying for message counts.</param>
+        Task<IReadOnlyCollection<PerUserMessageCount>> GetTopMessageCounts(IGuild guild, ulong userId);
     }
 
     public class GuildStatService :
@@ -56,7 +57,7 @@ namespace Modix.Services.GuildStats
         /// <summary>
         /// Create a unique key object for the cache
         /// </summary>
-        private object GetKeyForMsgCounts(IGuild guild) => new { guild, Target = "MessageCounts" };
+        private object GetKeyForMsgCounts(IGuild guild, ulong userId) => new { guild, userId, Target = "MessageCounts" };
 
         /// <summary>
         /// Clear the cache entry for the given guild
@@ -79,13 +80,13 @@ namespace Modix.Services.GuildStats
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyDictionary<GuildUserEntity, int>> GetTopMessageCounts(IGuild guild)
+        public async Task<IReadOnlyCollection<PerUserMessageCount>> GetTopMessageCounts(IGuild guild, ulong userId)
         {
-            var key = GetKeyForMsgCounts(guild);
+            var key = GetKeyForMsgCounts(guild, userId);
 
-            if (!_cache.TryGetValue(key, out IReadOnlyDictionary<GuildUserEntity, int> ret))
+            if (!_cache.TryGetValue(key, out IReadOnlyCollection<PerUserMessageCount> ret))
             {
-                ret = await _messageRepository.GetPerUserMessageCounts(guild.Id, TimeSpan.FromDays(30));
+                ret = await _messageRepository.GetPerUserMessageCounts(guild.Id, userId, TimeSpan.FromDays(30));
                 _cache.Set(key, ret, _msgCountCacheEntryOptions);
             }
 
