@@ -99,7 +99,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddScoped<Modix.Common.Messaging.INotificationHandler<MessageReceivedNotification>, CommandListeningBehavior>();
 
             services.AddSingleton<DiscordSerilogAdapter>();
-            services.AddMediator();
 
             services
                 .AddModixCore()
