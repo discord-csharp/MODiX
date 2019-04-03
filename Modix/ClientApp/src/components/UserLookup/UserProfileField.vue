@@ -1,7 +1,8 @@
 <template>
     <div class="profileField">
         <label class="label">{{fieldName}}</label>
-        <div class="value" v-html="display"></div>
+        <div class="value" v-if="allowHtml" v-html="display"></div>
+        <div class="value" v-else>{{display}}</div>
     </div>
 </template>
 
@@ -38,6 +39,9 @@ export default class UserProfile extends ModixComponent
 
     @Prop({default: ''})
     default!: string;
+
+    @Prop({default: false})
+    allowHtml!: boolean;
 
     get display()
     {

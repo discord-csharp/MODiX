@@ -14,7 +14,7 @@
             <div class="autocomplete" v-show="entries.length > 0">
 
                 <div class="entry" v-for="(entry, index) in entries" :key="entry.id" :class="{'hovered': hovered == entry}"
-                    @click="select(entry)" @mouseover.stop="hoveredChanged(index)">
+                    @mousedown.stop="select(entry)" @mouseover.stop="hoveredChanged(index)">
 
                     <slot v-bind:entry="entry" />
                 </div>
