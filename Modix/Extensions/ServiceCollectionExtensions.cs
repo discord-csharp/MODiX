@@ -26,7 +26,6 @@ using Modix.Services.GuildStats;
 using Modix.Services.Mentions;
 using Modix.Services.Messaging;
 using Modix.Services.Moderation;
-using Modix.Services.NotificationDispatch;
 using Modix.Services.PopularityContest;
 using Modix.Services.Promotions;
 using Modix.Services.Quote;
@@ -112,7 +111,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddGuildStats()
                 .AddMentions()
                 .AddModixTags()
-                .AddNotificationDispatch()
                 .AddStarboard()
                 .AddAutoRemoveMessage()
                 .AddEmojiStats();
