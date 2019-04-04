@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Discord.WebSocket;
+
 namespace Discord.Rest
 {
     /// <inheritdoc cref="DiscordRestClient" />
@@ -198,6 +200,8 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="discordRestClient"/>.</exception>
         /// <returns>An <see cref="IDiscordRestClient"/> that abstracts <paramref name="discordRestClient"/>.</returns>
         public static IDiscordRestClient Abstract(this DiscordRestClient discordRestClient)
-            => new DiscordRestClientAbstraction(discordRestClient);
+            => (discordRestClient is null) ? throw new ArgumentNullException(nameof(discordRestClient))
+                : (discordRestClient is DiscordSocketRestClient discordRestSocketClient) ? discordRestSocketClient.Abstract() as IDiscordRestClient
+                : new DiscordRestClientAbstraction(discordRestClient) as IDiscordRestClient;
     }
 }

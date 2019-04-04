@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Discord.Audio;
@@ -42,6 +43,10 @@ namespace Discord.Rest
             => (RestVoiceChannel as IVoiceChannel).ConnectAsync(selfDeaf, selfMute, external);
 
         /// <inheritdoc />
+        public Task<IInviteMetadata> CreateInviteAsync(int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
+            => RestVoiceChannel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, options);
+
+        /// <inheritdoc />
         public Task DisconnectAsync()
             => (RestVoiceChannel as IVoiceChannel).DisconnectAsync();
 
@@ -52,6 +57,10 @@ namespace Discord.Rest
         /// <inheritdoc />
         public Task<ICategoryChannel> GetCategoryAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (RestVoiceChannel as IVoiceChannel).GetCategoryAsync(mode, options);
+
+        /// <inheritdoc />
+        public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions options = null)
+            => RestVoiceChannel.GetInvitesAsync(options);
 
         /// <inheritdoc />
         public Task ModifyAsync(Action<VoiceChannelProperties> func, RequestOptions options = null)

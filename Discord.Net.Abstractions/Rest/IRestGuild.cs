@@ -26,8 +26,8 @@ namespace Discord.Rest
         /// <inheritdoc cref="RestGuild.AddGuildUserAsync(ulong, string, Action{AddGuildUserProperties}, RequestOptions)" />
         new Task<IRestGuildUser> AddGuildUserAsync(ulong id, string accessToken, Action<AddGuildUserProperties> func = null, RequestOptions options = null);
 
-        /// <inheritdoc cref="RestGuild.CreateCategoryChannelAsync(string, RequestOptions)" />
-        Task<IRestCategoryChannel> CreateCategoryChannelAsync(string name, RequestOptions options = null);
+        /// <inheritdoc cref="RestGuild.CreateCategoryChannelAsync(string, Action{GuildChannelProperties}, RequestOptions)" />
+        Task<IRestCategoryChannel> CreateCategoryChannelAsync(string name, Action<GuildChannelProperties> func = null, RequestOptions options = null);
 
         /// <inheritdoc cref="RestGuild.CreateEmoteAsync(string, Image, Optional{IEnumerable{IRole}}, RequestOptions)" />
         new Task<IGuildEmote> CreateEmoteAsync(string name, Image image, Optional<IEnumerable<IRole>> roles = default, RequestOptions options = null);
@@ -286,13 +286,13 @@ namespace Discord.Rest
             => (RestGuild as IGuild).AddGuildUserAsync(userId, accessToken, func, options);
 
         /// <inheritdoc />
-        public async Task<IRestCategoryChannel> CreateCategoryChannelAsync(string name, RequestOptions options = null)
-            => (await RestGuild.CreateCategoryChannelAsync(name, options))
+        public async Task<IRestCategoryChannel> CreateCategoryChannelAsync(string name, Action<GuildChannelProperties> func = null, RequestOptions options = null)
+            => (await RestGuild.CreateCategoryChannelAsync(name, func, options))
                 .Abstract();
 
         /// <inheritdoc />
-        public Task<ICategoryChannel> CreateCategoryAsync(string name, RequestOptions options = null)
-            => (RestGuild as IGuild).CreateCategoryAsync(name, options);
+        public Task<ICategoryChannel> CreateCategoryAsync(string name, Action<GuildChannelProperties> func = null, RequestOptions options = null)
+            => (RestGuild as IGuild).CreateCategoryAsync(name, func, options);
 
         /// <inheritdoc />
         public async Task<IGuildEmote> CreateEmoteAsync(string name, Image image, Optional<IEnumerable<IRole>> roles = default, RequestOptions options = null)
