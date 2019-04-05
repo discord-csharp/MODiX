@@ -86,6 +86,10 @@ namespace Discord.Rest
             => RestTextChannel.Topic;
 
         /// <inheritdoc />
+        public Task<IInviteMetadata> CreateInviteAsync(int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
+            => RestTextChannel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, options);
+
+        /// <inheritdoc />
         public async Task<IRestWebhook> CreateWebhookAsync(string name, Stream avatar = null, RequestOptions options = null)
             => (await RestTextChannel.CreateWebhookAsync(name, avatar, options))
                 .Abstract();
@@ -121,6 +125,10 @@ namespace Discord.Rest
         /// <inheritdoc />
         public Task<ICategoryChannel> GetCategoryAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (RestTextChannel as INestedChannel).GetCategoryAsync(mode, options);
+
+        /// <inheritdoc />
+        public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions options = null)
+            => RestTextChannel.GetInvitesAsync(options);
 
         /// <inheritdoc />
         public async Task<IRestMessage> GetMessageAsync(ulong id, RequestOptions options = null)

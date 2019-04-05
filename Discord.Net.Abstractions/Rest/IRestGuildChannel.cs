@@ -6,14 +6,7 @@ using System.Threading.Tasks;
 namespace Discord.Rest
 {
     /// <inheritdoc cref="RestGuildChannel" />
-    public interface IRestGuildChannel : IRestChannel, IGuildChannel
-    {
-        /// <inheritdoc cref="RestGuildChannel.CreateInviteAsync(int?, int?, bool, bool, RequestOptions)" />
-        new Task<IRestInviteMetadata> CreateInviteAsync(int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null);
-
-        /// <inheritdoc cref="RestGuildChannel.GetInvitesAsync(RequestOptions)" />
-        new Task<IReadOnlyCollection<IRestInviteMetadata>> GetInvitesAsync(RequestOptions options = null);
-    }
+    public interface IRestGuildChannel : IRestChannel, IGuildChannel { }
 
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestGuildChannel"/>, through the <see cref="IRestGuildChannel"/> interface.
@@ -53,27 +46,8 @@ namespace Discord.Rest
             => RestGuildChannel.AddPermissionOverwriteAsync(user, permissions, options);
 
         /// <inheritdoc />
-        public async Task<IRestInviteMetadata> CreateInviteAsync(int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
-            => (await RestGuildChannel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, options))
-                .Abstract();
-
-        /// <inheritdoc />
-        Task<IInviteMetadata> IGuildChannel.CreateInviteAsync(int? maxAge, int? maxUses, bool isTemporary, bool isUnique, RequestOptions options)
-            => (RestGuildChannel as IGuildChannel).CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, options);
-
-        /// <inheritdoc />
         public Task DeleteAsync(RequestOptions options = null)
             => RestGuildChannel.DeleteAsync(options);
-
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<IRestInviteMetadata>> GetInvitesAsync(RequestOptions options = null)
-            => (await RestGuildChannel.GetInvitesAsync(options))
-                .Select(RestInviteMetadataAbstractionExtensions.Abstract)
-                .ToArray();
-
-        /// <inheritdoc />
-        Task<IReadOnlyCollection<IInviteMetadata>> IGuildChannel.GetInvitesAsync(RequestOptions options)
-            => (RestGuildChannel as IGuildChannel).GetInvitesAsync(options);
 
         /// <inheritdoc />
         public Task ModifyAsync(Action<GuildChannelProperties> func, RequestOptions options = null)

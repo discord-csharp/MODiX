@@ -16,12 +16,6 @@ namespace Discord.WebSocket
         /// <inheritdoc cref="SocketGuildChannel.Guild" />
         new ISocketGuild Guild { get; }
 
-        /// <inheritdoc cref="SocketGuildChannel.CreateInviteAsync(int?, int?, bool, bool, RequestOptions)" />
-        new Task<IRestInviteMetadata> CreateInviteAsync(int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null);
-
-        /// <inheritdoc cref="SocketGuildChannel.GetInvitesAsync(RequestOptions)" />
-        new Task<IReadOnlyCollection<IRestInviteMetadata>> GetInvitesAsync(RequestOptions options = null);
-
         /// <inheritdoc cref="SocketGuildChannel.GetUser(ulong)" />
         new ISocketGuildUser GetUser(ulong id);
     }
@@ -74,26 +68,8 @@ namespace Discord.WebSocket
             => SocketGuildChannel.AddPermissionOverwriteAsync(user, permissions, options);
 
         /// <inheritdoc />
-        public async Task<IRestInviteMetadata> CreateInviteAsync(int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
-            => (await SocketGuildChannel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, options)).Abstract();
-
-        /// <inheritdoc />
-        Task<IInviteMetadata> IGuildChannel.CreateInviteAsync(int? maxAge, int? maxUses, bool isTemporary, bool isUnique, RequestOptions options)
-            => (SocketGuildChannel as IGuildChannel).CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, options);
-
-        /// <inheritdoc />
         public Task DeleteAsync(RequestOptions options = null)
             => SocketGuildChannel.DeleteAsync(options);
-
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<IRestInviteMetadata>> GetInvitesAsync(RequestOptions options = null)
-            => (await SocketGuildChannel.GetInvitesAsync(options))
-                .Select(RestInviteMetadataAbstractionExtensions.Abstract)
-                .ToArray();
-
-        /// <inheritdoc />
-        Task<IReadOnlyCollection<IInviteMetadata>> IGuildChannel.GetInvitesAsync(RequestOptions options)
-            => (SocketGuildChannel as IGuildChannel).GetInvitesAsync(options);
 
         /// <inheritdoc />
         public OverwritePermissions? GetPermissionOverwrite(IRole role)

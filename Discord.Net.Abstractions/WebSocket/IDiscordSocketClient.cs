@@ -14,6 +14,9 @@ namespace Discord.WebSocket
         /// <inheritdoc cref="DiscordSocketClient.DMChannels" />
         IReadOnlyCollection<ISocketDMChannel> DMChannels { get; }
 
+        /// <inheritdoc cref="DiscordSocketClient.Rest" />
+        IDiscordSocketRestClient Rest { get; }
+
         /// <inheritdoc cref="DiscordSocketClient.ShardId" />
         int ShardId { get; }
 
@@ -54,6 +57,10 @@ namespace Discord.WebSocket
             => DiscordSocketClient.GroupChannels
                 .Select(SocketGroupChannelAbstractionExtensions.Abstract)
                 .ToArray();
+
+        /// <inheritdoc />
+        public IDiscordSocketRestClient Rest
+            => DiscordSocketClient.Rest.Abstract();
 
         /// <inheritdoc />
         public int ShardId

@@ -79,6 +79,10 @@ namespace Discord.WebSocket
             => SocketTextChannel.Topic;
 
         /// <inheritdoc />
+        public Task<IInviteMetadata> CreateInviteAsync(int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
+            => SocketTextChannel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, options);
+
+        /// <inheritdoc />
         public async Task<IRestWebhook> CreateWebhookAsync(string name, Stream avatar = null, RequestOptions options = null)
             => (await SocketTextChannel.CreateWebhookAsync(name, avatar, options))
                 .Abstract();
@@ -133,6 +137,10 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public Task<ICategoryChannel> GetCategoryAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (SocketTextChannel as INestedChannel).GetCategoryAsync(mode, options);
+
+        /// <inheritdoc />
+        public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions options = null)
+            => SocketTextChannel.GetInvitesAsync(options);
 
         /// <inheritdoc />
         public Task<IMessage> GetMessageAsync(ulong id, RequestOptions options = null)

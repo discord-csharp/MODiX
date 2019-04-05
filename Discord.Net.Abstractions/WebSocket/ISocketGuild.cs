@@ -8,7 +8,7 @@ using Discord.Rest;
 namespace Discord.WebSocket
 {
     /// <inheritdoc cref="SocketGuild" />
-    public interface ISocketGuild : IGuild
+    public interface ISocketGuild : IGuild, IDisposable
     {
         /// <inheritdoc cref="SocketGuild.Roles" />
         new IReadOnlyCollection<ISocketRole> Roles { get; }
@@ -76,8 +76,8 @@ namespace Discord.WebSocket
         /// <inheritdoc cref="SocketGuild.AddGuildUserAsync(ulong, string, Action{AddGuildUserProperties}, RequestOptions)" />
         new Task<IRestGuildUser> AddGuildUserAsync(ulong id, string accessToken, Action<AddGuildUserProperties> func = null, RequestOptions options = null);
 
-        /// <inheritdoc cref="SocketGuild.CreateCategoryChannelAsync(string, RequestOptions)" />
-        Task<IRestCategoryChannel> CreateCategoryChannelAsync(string name, RequestOptions options = null);
+        /// <inheritdoc cref="SocketGuild.CreateCategoryChannelAsync(string, Action{GuildChannelProperties}, RequestOptions)" />
+        Task<IRestCategoryChannel> CreateCategoryChannelAsync(string name, Action<GuildChannelProperties> func = null, RequestOptions options = null);
 
         /// <inheritdoc cref="SocketGuild.CreateEmoteAsync(string, Image, Optional{IEnumerable{IRole}}, RequestOptions)" />
         new Task<IGuildEmote> CreateEmoteAsync(string name, Image image, Optional<IEnumerable<IRole>> roles = default, RequestOptions options = null);
@@ -391,13 +391,13 @@ namespace Discord.WebSocket
             => (SocketGuild as IGuild).AddGuildUserAsync(userId, accessToken, func, options);
 
         /// <inheritdoc />
-        public async Task<IRestCategoryChannel> CreateCategoryChannelAsync(string name, RequestOptions options = null)
-            => (await SocketGuild.CreateCategoryChannelAsync(name, options))
+        public async Task<IRestCategoryChannel> CreateCategoryChannelAsync(string name, Action<GuildChannelProperties> func = null, RequestOptions options = null)
+            => (await SocketGuild.CreateCategoryChannelAsync(name, func, options))
                 .Abstract();
 
         /// <inheritdoc />
-        public Task<ICategoryChannel> CreateCategoryAsync(string name, RequestOptions options = null)
-            => (SocketGuild as IGuild).CreateCategoryAsync(name, options);
+        public Task<ICategoryChannel> CreateCategoryAsync(string name, Action<GuildChannelProperties> func = null, RequestOptions options = null)
+            => (SocketGuild as IGuild).CreateCategoryAsync(name, func, options);
 
         /// <inheritdoc />
         public async Task<IGuildEmote> CreateEmoteAsync(string name, Image image, Optional<IEnumerable<IRole>> roles = default, RequestOptions options = null)
@@ -455,6 +455,10 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public Task DeleteEmoteAsync(GuildEmote emote, RequestOptions options = null)
             => SocketGuild.DeleteEmoteAsync(emote);
+
+        /// <inheritdoc />
+        void IDisposable.Dispose()
+            => (SocketGuild as IDisposable).Dispose();
 
         /// <inheritdoc />
         public Task DownloadUsersAsync()

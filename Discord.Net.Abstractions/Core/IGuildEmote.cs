@@ -14,6 +14,9 @@ namespace Discord
 
         /// <inheritdoc cref="GuildEmote.RoleIds" />
         IReadOnlyList<ulong> RoleIds { get; }
+
+        /// <inheritdoc cref="GuildEmote.CreatorId" />
+        ulong? CreatorId { get; }
     }
 
     /// <summary>
@@ -40,6 +43,10 @@ namespace Discord
         /// <inheritdoc />
         public IReadOnlyList<ulong> RoleIds
             => GuildEmote.RoleIds;
+
+        /// <inheritdoc />
+        public ulong? CreatorId
+            => GuildEmote.CreatorId;
 
         /// <inheritdoc cref="GuildEmote.ToString" />
         public override string ToString()
