@@ -170,7 +170,7 @@ namespace Modix.Modules
                 .WithAuthor(Context.Guild.Name, Context.Guild.IconUrl)
                 .WithColor(Color.Blue)
                 .WithDescription(sb.ToString())
-                .WithFooter($"{"unique emoji".ToQuantity(guildStats.UniqueEmojis)} used {"time".ToQuantity(guildStats.TotalUses)} ({totalEmojiUsesPerDay.ToString("0.0")}/day) since {guildStats.OldestTimestamp.ToString("d")}");
+                .WithFooter($"{"unique emoji".ToQuantity(guildStats.UniqueEmojis)} used {"time".ToQuantity(guildStats.TotalUses)} ({totalEmojiUsesPerDay.ToString("0.0")}/day) since {guildStats.OldestTimestamp.ToString("yyyy-MM-dd")}");
         }
     }
 }
