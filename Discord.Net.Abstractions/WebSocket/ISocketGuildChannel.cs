@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using Discord.Rest;
-
 namespace Discord.WebSocket
 {
     /// <inheritdoc cref="SocketGuildChannel" />

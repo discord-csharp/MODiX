@@ -1,8 +1,6 @@
 ﻿using Discord;
-using Modix.Data.Models.Core;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Modix.Data.Models.Core

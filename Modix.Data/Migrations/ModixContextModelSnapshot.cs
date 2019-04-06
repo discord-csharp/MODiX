@@ -3,7 +3,6 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Modix.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Modix.Data.Migrations

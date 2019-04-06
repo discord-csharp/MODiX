@@ -15,10 +15,8 @@ using Modix.Configuration;
 using Modix.Data;
 using Modix.Data.Models.Core;
 using Modix.Services.AutoCodePaste;
-using Modix.Services.Utilities;
 using Newtonsoft.Json.Converters;
 using Serilog;
-using Serilog.Events;
 
 namespace Modix
 {
