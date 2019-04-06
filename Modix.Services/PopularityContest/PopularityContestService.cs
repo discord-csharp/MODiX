@@ -4,11 +4,9 @@ using Humanizer;
 using Modix.Data.Models.Core;
 using Modix.Services.AutoCodePaste;
 using Modix.Services.Core;
-using Modix.Services.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Modix.Services.PopularityContest

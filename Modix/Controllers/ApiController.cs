@@ -2,9 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Modix.Models;
 using Modix.Services.Core;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Modix.Controllers
 {

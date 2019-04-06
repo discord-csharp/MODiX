@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Security.Claims;
 using Discord;
-using Discord.WebSocket;
 
 namespace Modix.Models
 {

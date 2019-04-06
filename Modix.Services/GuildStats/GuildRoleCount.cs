@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Modix.Services.GuildStats
+﻿namespace Modix.Services.GuildStats
 {
     public class GuildRoleCount
     {

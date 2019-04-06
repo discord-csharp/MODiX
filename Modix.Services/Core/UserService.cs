@@ -6,7 +6,6 @@ using Discord;
 using Discord.Rest;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
-using Modix.Services.Moderation;
 
 namespace Modix.Services.Core
 {
