@@ -81,6 +81,17 @@ namespace Modix.Data.Repositories
         /// containing the action representing the closure of the campaign.
         /// </returns>
         Task<PromotionActionSummary> TryCloseAsync(long campaignId, ulong closedById, PromotionCampaignOutcome outcome);
+
+        /// <summary>
+        /// Retireves the promotion progression for the supplied user.
+        /// </summary>
+        /// <param name="guildId">The unique Discord snowflake ID of the guild in which the desired promotions took place.</param>
+        /// <param name="userId">The unique Discord snowflake ID of the user for whom to retrieve promotions.</param>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing a collection representing the promotion progression for the supplied user.
+        /// </returns>
+        Task<IReadOnlyCollection<PromotionCampaignSummary>> GetPromotionsForUserAsync(ulong guildId, ulong userId);
     }
 
     /// <inheritdoc />
@@ -174,6 +185,16 @@ namespace Modix.Data.Repositories
 
             return action;
         }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<PromotionCampaignSummary>> GetPromotionsForUserAsync(ulong guildId, ulong userId)
+            => await ModixContext.PromotionCampaigns.AsNoTracking()
+                .Where(x => x.GuildId == guildId
+                    && x.SubjectId == userId
+                    && x.Outcome == PromotionCampaignOutcome.Accepted)
+                .AsExpandable()
+                .Select(PromotionCampaignSummary.FromEntityProjection)
+                .ToArrayAsync();
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
             = new RepositoryTransactionFactory();

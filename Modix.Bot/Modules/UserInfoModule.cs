@@ -19,6 +19,7 @@ using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
+using Modix.Services.Promotions;
 using Modix.Services.Utilities;
 
 namespace Modix.Modules
@@ -35,7 +36,8 @@ namespace Modix.Modules
             IAuthorizationService authorizationService,
             IMessageRepository messageRepository,
             IEmojiRepository emojiRepository,
-            IHttpClientFactory httpClientFactory)
+            IHttpClientFactory httpClientFactory,
+            IPromotionsService promotionsService)
         {
             Log = logger ?? new NullLogger<UserInfoModule>();
             UserService = userService;
@@ -44,6 +46,7 @@ namespace Modix.Modules
             MessageRepository = messageRepository;
             EmojiRepository = emojiRepository;
             HttpClientFactory = httpClientFactory;
+            PromotionsService = promotionsService;
         }
 
         private ILogger<UserInfoModule> Log { get; }
@@ -53,6 +56,7 @@ namespace Modix.Modules
         private IMessageRepository MessageRepository { get; }
         private IEmojiRepository EmojiRepository { get; }
         private IHttpClientFactory HttpClientFactory { get; }
+        private IPromotionsService PromotionsService { get; }
 
         [Command("info")]
         [Summary("Retrieves information about the supplied user, or the current user if one is not provided.")]
@@ -122,6 +126,7 @@ namespace Modix.Modules
             embedBuilder.Author.IconUrl = avatar;
 
             await AddMemberInformationToEmbedAsync(userInfo, builder, embedBuilder);
+            await AddPromotionsToEmbedAsync(user.Id, builder);
 
             if (await AuthorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
             {
@@ -300,6 +305,22 @@ namespace Modix.Modules
             }
 
             return string.Empty;
+        }
+
+        private async Task AddPromotionsToEmbedAsync(ulong userId, StringBuilder builder)
+        {
+            var promotions = await PromotionsService.GetPromotionsForUserAsync(Context.Guild.Id, userId);
+
+            if (promotions.Count == 0)
+                return;
+
+            builder.AppendLine();
+            builder.AppendLine(Format.Bold("\u276F Promotion History"));
+
+            foreach (var promotion in promotions.OrderByDescending(x => x.CloseAction.Id).Take(5))
+            {
+                builder.AppendLine($"• {MentionUtils.MentionRole(promotion.TargetRole.Id)} {FormatUtilities.FormatTimeAgo(_utcNow, promotion.CloseAction.Created)}");
+            }
         }
     }
 }
