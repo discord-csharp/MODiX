@@ -1,5 +1,5 @@
 ﻿using Discord.Commands;
-using Modix.Services.AutoCodePaste;
+using Modix.Services.CodePaste;
 using System.Net;
 using System.Threading.Tasks;
 

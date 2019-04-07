@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Discord;
-using MediatR;
+
+using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
 using Modix.Services.Core;
-using Modix.Services.Messages.Modix;
 
 namespace Modix.Services.Promotions
 {
@@ -14,48 +15,53 @@ namespace Modix.Services.Promotions
     /// Renders moderation actions, as they are created, as messages to each configured moderation log channel.
     /// </summary>
     public class PromotionLoggingHandler :
-        INotificationHandler<PromotionActionCreated>
+        INotificationHandler<PromotionActionCreatedNotification>
     {
         /// <summary>
         /// Constructs a new <see cref="PromotionLoggingHandler"/> object, with injected dependencies.
         /// </summary>
         public PromotionLoggingHandler(
+            IAuthorizationService authorizationService,
             IDiscordClient discordClient,
             IDesignatedChannelService designatedChannelService,
             IUserService userService,
-            IPromotionsService promotionsService)
+            IPromotionsService promotionsService,
+            ISelfUser selfUser)
         {
+            AuthorizationService = authorizationService;
             DiscordClient = discordClient;
             DesignatedChannelService = designatedChannelService;
             UserService = userService;
             PromotionsService = promotionsService;
+            SelfUser = selfUser;
         }
         
-        public Task Handle(PromotionActionCreated notification, CancellationToken cancellationToken)
-            => OnPromotionActionCreatedAsync(notification.PromotionActionId, notification.PromotionActionCreationData);
-
-        public async Task OnPromotionActionCreatedAsync(long promotionActionId, PromotionActionCreationData data)
+        public async Task HandleNotificationAsync(PromotionActionCreatedNotification notification, CancellationToken cancellationToken)
         {
-            if (await DesignatedChannelService.AnyDesignatedChannelAsync(data.GuildId, DesignatedChannelType.PromotionLog))
+            // TODO: Temporary workaround, remove as part of auth rework.
+            if (AuthorizationService.CurrentUserId is null)
+                await AuthorizationService.OnAuthenticatedAsync(SelfUser);
+
+            if (await DesignatedChannelService.AnyDesignatedChannelAsync(notification.Data.GuildId, DesignatedChannelType.PromotionLog))
             {
-                var message = await FormatPromotionLogEntryAsync(promotionActionId);
+                var message = await FormatPromotionLogEntryAsync(notification.Id);
 
                 if (message == null)
                     return;
 
                 await DesignatedChannelService.SendToDesignatedChannelsAsync(
-                    await DiscordClient.GetGuildAsync(data.GuildId), DesignatedChannelType.PromotionLog, message);
+                    await DiscordClient.GetGuildAsync(notification.Data.GuildId), DesignatedChannelType.PromotionLog, message);
             }
 
-            if (await DesignatedChannelService.AnyDesignatedChannelAsync(data.GuildId, DesignatedChannelType.PromotionNotifications))
+            if (await DesignatedChannelService.AnyDesignatedChannelAsync(notification.Data.GuildId, DesignatedChannelType.PromotionNotifications))
             {
-                var embed = await FormatPromotionNotificationAsync(promotionActionId, data);
+                var embed = await FormatPromotionNotificationAsync(notification.Id, notification.Data);
 
                 if (embed == null)
                     return;
 
                 await DesignatedChannelService.SendToDesignatedChannelsAsync(
-                    await DiscordClient.GetGuildAsync(data.GuildId), DesignatedChannelType.PromotionNotifications, "", embed);
+                    await DiscordClient.GetGuildAsync(notification.Data.GuildId), DesignatedChannelType.PromotionNotifications, "", embed);
             }
         }
 
@@ -107,6 +113,11 @@ namespace Modix.Services.Promotions
         }
 
         /// <summary>
+        /// An <see cref="IAuthorizationService"/> for performing self-authentication.
+        /// </summary>
+        internal protected IAuthorizationService AuthorizationService { get; }
+
+        /// <summary>
         /// An <see cref="IDiscordClient"/> for interacting with the Discord API.
         /// </summary>
         internal protected IDiscordClient DiscordClient { get; }
@@ -125,6 +136,11 @@ namespace Modix.Services.Promotions
         /// An <see cref="IPromotionsService"/> for performing moderation actions.
         /// </summary>
         internal protected IPromotionsService PromotionsService { get; }
+
+        /// <summary>
+        /// The <see cref="ISelfUser"/> representing the bot, within the Discord API.
+        /// </summary>
+        internal protected ISelfUser SelfUser { get; }
 
         private static readonly Dictionary<(PromotionActionType, PromotionSentiment?, PromotionCampaignOutcome?), string> _logRenderTemplates
             = new Dictionary<(PromotionActionType, PromotionSentiment?, PromotionCampaignOutcome?), string>()

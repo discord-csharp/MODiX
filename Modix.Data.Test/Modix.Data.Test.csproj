@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Modix.Common.Test\Modix.Common.Test.csproj" />
     <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
   </ItemGroup>
 

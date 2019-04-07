@@ -4,7 +4,6 @@
     <PackageReference Include="Discord.Net" Version="2.0.1" />
     <PackageReference Include="Humanizer.Core" Version="2.5.16" />
     <PackageReference Include="Kitsu" Version="1.4.1" />
-    <PackageReference Include="MediatR" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
@@ -12,6 +11,8 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0006" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Discord.Net.Abstractions\Discord.Net.Abstractions.csproj" />
+    <ProjectReference Include="..\Modix.Common\Modix.Common.csproj" />
     <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
   </ItemGroup>
 </Project>

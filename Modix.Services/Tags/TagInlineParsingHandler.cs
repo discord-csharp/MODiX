@@ -2,16 +2,17 @@
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Discord;
 using Discord.WebSocket;
-using MediatR;
+
+using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Services.Core;
-using Modix.Services.Messages.Discord;
 
 namespace Modix.Services.Tags
 {
-    public class TagInlineParsingHandler : INotificationHandler<ChatMessageReceived>
+    public class TagInlineParsingHandler : INotificationHandler<MessageReceivedNotification>
     {
         private static readonly Regex _inlineTagRegex = new Regex(@"\$(\S+)\s?");
 
@@ -26,7 +27,7 @@ namespace Modix.Services.Tags
             TagService = tagService;
         }
 
-        public async Task Handle(ChatMessageReceived notification, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(MessageReceivedNotification notification, CancellationToken cancellationToken)
         {
             var message = notification.Message;
 

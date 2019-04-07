@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
+
 using Discord;
-using Modix.Services.Messages.Modix;
-using Modix.Services.NotificationDispatch;
+
+using Modix.Common.Messaging;
 
 namespace Modix.Services.AutoRemoveMessage
 {
@@ -28,10 +29,7 @@ namespace Modix.Services.AutoRemoveMessage
         /// Unregisters a removable message from the service.
         /// </summary>
         /// <param name="message">The removable message.</param>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation completes.
-        /// </returns>
-        Task UnregisterRemovableMessageAsync(IMessage message);
+        void UnregisterRemovableMessage(IMessage message);
     }
 
     /// <inheritdoc />
@@ -39,9 +37,9 @@ namespace Modix.Services.AutoRemoveMessage
     {
         private const string _footerReactMessage = "React with ❌ to remove this embed.";
 
-        public AutoRemoveMessageService(INotificationDispatchService notificationDispatchService)
+        public AutoRemoveMessageService(IMessageDispatcher messageDispatcher)
         {
-            NotificationDispatchService = notificationDispatchService;
+            MessageDispatcher = messageDispatcher;
         }
 
         /// <inheritdoc />
@@ -60,20 +58,13 @@ namespace Modix.Services.AutoRemoveMessage
             }
 
             var msg = await callback.Invoke(embed);
-            await NotificationDispatchService.PublishScopedAsync(new RemovableMessageSent()
-            {
-                Message = msg,
-                User = user,
-            });
+            MessageDispatcher.Dispatch(new RemovableMessageSentNotification(msg, user));
         }
 
         /// <inheritdoc />
-        public async Task UnregisterRemovableMessageAsync(IMessage message)
-            => await NotificationDispatchService.PublishScopedAsync(new RemovableMessageRemoved()
-            {
-                Message = message,
-            });
+        public void UnregisterRemovableMessage(IMessage message)
+            => MessageDispatcher.Dispatch(new RemovableMessageRemovedNotification(message));
 
-        protected INotificationDispatchService NotificationDispatchService { get; }
+        internal protected IMessageDispatcher MessageDispatcher { get; }
     }
 }

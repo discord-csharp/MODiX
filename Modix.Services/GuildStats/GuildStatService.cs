@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Discord;
-using MediatR;
+
 using Microsoft.Extensions.Caching.Memory;
+
+using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
-using Modix.Services.Messages.Discord;
 
 namespace Modix.Services.GuildStats
 {
@@ -30,8 +32,8 @@ namespace Modix.Services.GuildStats
     }
 
     public class GuildStatService :
-        INotificationHandler<UserJoined>,
-        INotificationHandler<UserLeft>,
+        INotificationHandler<UserJoinedNotification>,
+        INotificationHandler<UserLeftNotification>,
         IGuildStatService
     {
         private readonly IMemoryCache _cache;
@@ -67,15 +69,15 @@ namespace Modix.Services.GuildStats
             _cache.Remove(GetKeyForGuild(guild));
         }
 
-        public Task Handle(UserJoined notification, CancellationToken cancellationToken)
+        public Task HandleNotificationAsync(UserJoinedNotification notification, CancellationToken cancellationToken)
         {
-            ClearCacheEntry(notification.Guild);
+            ClearCacheEntry(notification.GuildUser.Guild);
             return Task.CompletedTask;
         }
 
-        public Task Handle(UserLeft notification, CancellationToken cancellationToken)
+        public Task HandleNotificationAsync(UserLeftNotification notification, CancellationToken cancellationToken)
         {
-            ClearCacheEntry(notification.Guild);
+            ClearCacheEntry(notification.GuildUser.Guild);
             return Task.CompletedTask;
         }
 

@@ -4,10 +4,10 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Rest;
-using MediatR;
+using Discord.WebSocket;
 
+using Modix.Common.Messaging;
 using Modix.Data.Models.Moderation;
-using Modix.Services.Messages.Discord;
 using Modix.Services.Utilities;
 
 namespace Modix.Services.Moderation
@@ -16,7 +16,7 @@ namespace Modix.Services.Moderation
     /// Implements a handler that synchronizes infractions when applied manually through the Discord UI instead of through MODiX.
     /// </summary>
     public class InfractionSyncingHandler :
-        INotificationHandler<UserBanned>
+        INotificationHandler<UserBannedNotification>
     {
         private readonly IModerationService _moderationService;
         private readonly DiscordRestClient _restClient;
@@ -34,8 +34,8 @@ namespace Modix.Services.Moderation
             _restClient = restClient;
         }
 
-        public Task Handle(UserBanned notification, CancellationToken cancellationToken)
-            => TryCreateBanInfractionAsync(notification.Guild, notification.BannedUser);
+        public Task HandleNotificationAsync(UserBannedNotification notification, CancellationToken cancellationToken)
+            => TryCreateBanInfractionAsync(notification.User, notification.Guild);
 
         /// <summary>
         /// Creates a ban infraction for the user if they do not already have one.
@@ -45,7 +45,7 @@ namespace Modix.Services.Moderation
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation completes.
         /// </returns>
-        private async Task TryCreateBanInfractionAsync(IGuild guild, IUser user)
+        private async Task TryCreateBanInfractionAsync(ISocketUser user, ISocketGuild guild)
         {
             if (await _moderationService.AnyInfractionsAsync(GetBanSearchCriteria(guild, user)))
             {

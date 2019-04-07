@@ -6,11 +6,9 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 
-using MediatR;
-
+using Modix.Common.Messaging;
 using Modix.Data.Models.Emoji;
 using Modix.Data.Repositories;
-using Modix.Services.Messages.Discord;
 using Modix.Services.Utilities;
 
 namespace Modix.Services.EmojiStats
@@ -19,11 +17,11 @@ namespace Modix.Services.EmojiStats
     /// Implements a handler that maintains MODiX's record of emoji.
     /// </summary>
     public sealed class EmojiUsageHandler :
-        INotificationHandler<ReactionAdded>,
-        INotificationHandler<ReactionRemoved>,
-        INotificationHandler<ChatMessageReceived>,
-        INotificationHandler<ChatMessageUpdated>,
-        INotificationHandler<ChatMessageDeleted>
+        INotificationHandler<ReactionAddedNotification>,
+        INotificationHandler<ReactionRemovedNotification>,
+        INotificationHandler<MessageReceivedNotification>,
+        INotificationHandler<MessageUpdatedNotification>,
+        INotificationHandler<MessageDeletedNotification>
     {
         private readonly IEmojiRepository _emojiRepository;
 
@@ -39,7 +37,7 @@ namespace Modix.Services.EmojiStats
             _emojiRepository = emojiRepository;
         }
 
-        public async Task Handle(ReactionAdded notification, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(ReactionAddedNotification notification, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;
@@ -62,7 +60,7 @@ namespace Modix.Services.EmojiStats
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation completes.
         /// </returns>
-        private async Task LogReactionAsync(ITextChannel channel, IUserMessage message, SocketReaction reaction, Emote emote)
+        private async Task LogReactionAsync(ITextChannel channel, IUserMessage message, ISocketReaction reaction, Emote emote)
         {
             using (var transaction = await _emojiRepository.BeginMaintainTransactionAsync())
             {
@@ -82,7 +80,7 @@ namespace Modix.Services.EmojiStats
             }
         }
 
-        public async Task Handle(ReactionRemoved notification, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(ReactionRemovedNotification notification, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;
@@ -105,7 +103,7 @@ namespace Modix.Services.EmojiStats
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation completes.
         /// </returns>
-        private async Task UnlogReactionAsync(ITextChannel channel, IUserMessage message, SocketReaction reaction, Emote emote)
+        private async Task UnlogReactionAsync(ITextChannel channel, IUserMessage message, ISocketReaction reaction, Emote emote)
         {
             using (var transaction = await _emojiRepository.BeginMaintainTransactionAsync())
             {
@@ -126,7 +124,7 @@ namespace Modix.Services.EmojiStats
             }
         }
 
-        public async Task Handle(ChatMessageReceived notification, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(MessageReceivedNotification notification, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;
@@ -147,7 +145,7 @@ namespace Modix.Services.EmojiStats
             }
         }
 
-        public async Task Handle(ChatMessageUpdated notification, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(MessageUpdatedNotification notification, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;
@@ -173,7 +171,7 @@ namespace Modix.Services.EmojiStats
             }
         }
 
-        public async Task Handle(ChatMessageDeleted notification, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(MessageDeletedNotification notification, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;

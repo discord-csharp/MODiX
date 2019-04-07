@@ -96,7 +96,7 @@ namespace Modix.Services.Moderation
 
                 await SelfExecuteRequest<IModerationService>(async moderationService =>
                 {
-                    await moderationService.DeleteMessageAsync(message, $"Message had suspicious files attached: {attachments}");
+                    await moderationService.DeleteMessageAsync(message, $"Message had suspicious files attached: {attachments}", DiscordClient.CurrentUser.Id);
                 });
 
                 var reply = GetReplyToUser(message);

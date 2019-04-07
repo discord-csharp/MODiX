@@ -6,13 +6,14 @@ using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Options;
+
 using Modix;
 using Modix.Behaviors;
+using Modix.Bot.Behaviors;
+using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Services;
-using Modix.Services.Adapters;
-using Modix.Services.AutoCodePaste;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.BehaviourConfiguration;
 using Modix.Services.CodePaste;
@@ -23,8 +24,8 @@ using Modix.Services.DocsMaster;
 using Modix.Services.EmojiStats;
 using Modix.Services.GuildStats;
 using Modix.Services.Mentions;
+using Modix.Services.Messaging;
 using Modix.Services.Moderation;
-using Modix.Services.NotificationDispatch;
 using Modix.Services.PopularityContest;
 using Modix.Services.Promotions;
 using Modix.Services.Quote;
@@ -69,6 +70,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         .MessageCacheSize //needed to log deletions
                 }));
 
+            services.AddSingleton<IDiscordSocketClient>(provider => provider.GetRequiredService<DiscordSocketClient>().Abstract());
             services.AddSingleton<IDiscordClient>(provider => provider.GetRequiredService<DiscordSocketClient>());
             services.AddScoped<ISelfUser>(p => p.GetRequiredService<DiscordSocketClient>().CurrentUser);
 
@@ -84,7 +86,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         new CommandServiceConfig
                         {
                             LogLevel = LogSeverity.Debug,
-                            DefaultRunMode = RunMode.Async,
+                            DefaultRunMode = RunMode.Sync,
                             CaseSensitiveCommands = false,
                             SeparatorChar = ' '
                         });
@@ -93,34 +95,31 @@ namespace Microsoft.Extensions.DependencyInjection
                     service.AddTypeReader<DiscordUserEntity>(new UserEntityTypeReader());
 
                     return service;
-                });
+                })
+                .AddScoped<Modix.Common.Messaging.INotificationHandler<MessageReceivedNotification>, CommandListeningBehavior>();
 
             services.AddSingleton<DiscordSerilogAdapter>();
-            services.AddMediator();
 
-            services.AddModixCore()
+            services
+                .AddModixCore()
+                .AddModixMessaging()
                 .AddModixModeration()
                 .AddModixPromotions()
-                .AddAutoCodePaste()
+                .AddCodePaste()
                 .AddCommandHelp()
                 .AddGuildStats()
                 .AddMentions()
                 .AddModixTags()
-                .AddNotificationDispatch()
                 .AddStarboard()
                 .AddAutoRemoveMessage()
                 .AddEmojiStats();
 
-            services.AddSingleton<IBehavior, DiscordAdapter>();
             services.AddScoped<IQuoteService, QuoteService>();
             services.AddSingleton<IBehavior, MessageLinkBehavior>();
-            services.AddSingleton<CodePasteHandler>();
             services.AddSingleton<IBehavior, AttachmentBlacklistBehavior>();
-            services.AddSingleton<CodePasteService>();
             services.AddScoped<DocsMasterRetrievalService>();
             services.AddMemoryCache();
 
-            services.AddSingleton<ICodePasteRepository, MemoryCodePasteRepository>();
             services.AddScoped<IPopularityContestService, PopularityContestService>();
             services.AddScoped<WikipediaService>();
             services.AddScoped<StackExchangeService>();
@@ -130,6 +129,10 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
             services.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
 
+            services
+                .AddScoped<AutoCodePasteBehavior>()
+                .AddScoped<INotificationHandler<ReactionAddedNotification>>(p => p.GetRequiredService<AutoCodePasteBehavior>())
+                .AddScoped<INotificationHandler<ReactionRemovedNotification>>(p => p.GetRequiredService<AutoCodePasteBehavior>());
             services.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>();
 
             services.AddHostedService<ModixBot>();
