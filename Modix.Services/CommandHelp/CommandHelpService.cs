@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Discord.Commands;
@@ -17,6 +18,15 @@ namespace Modix.Services.CommandHelp
         /// A readonly collection of data about all available modules.
         /// </returns>
         IReadOnlyCollection<ModuleHelpData> GetModuleHelpData();
+
+        /// <summary>
+        /// Retrieves help data for the supplied query.
+        /// </summary>
+        /// <param name="query">A query to use to search for an applicable help module.</param>
+        /// <returns>
+        /// Help information for the supplied query, or <see langword="null"/> if no information could be found for the supplied query.
+        /// </returns>
+        ModuleHelpData GetModuleHelpData(string query);
     }
 
     /// <inheritdoc />
@@ -37,5 +47,29 @@ namespace Modix.Services.CommandHelp
                     .Where(x => !x.Attributes.Any(attr => attr is HiddenFromHelpAttribute))
                     .Select(x => ModuleHelpData.FromModuleInfo(x))
                     .ToArray());
+
+        /// <inheritdoc />
+        public ModuleHelpData GetModuleHelpData(string query)
+        {
+            var allHelpData = GetModuleHelpData();
+
+            var byNameExact = allHelpData.FirstOrDefault(x => x.Name.Equals(query, StringComparison.OrdinalIgnoreCase));
+            if (byNameExact != null)
+                return byNameExact;
+
+            var byTagsExact = allHelpData.FirstOrDefault(x => x.HelpTags.Any(y => y.Equals(query, StringComparison.OrdinalIgnoreCase)));
+            if (byTagsExact != null)
+                return byTagsExact;
+
+            var byNameContains = allHelpData.FirstOrDefault(x => x.Name.Contains(query, StringComparison.OrdinalIgnoreCase));
+            if (byNameContains != null)
+                return byNameContains;
+
+            var byTagsContains = allHelpData.FirstOrDefault(x => x.HelpTags.Any(y => y.Contains(query, StringComparison.OrdinalIgnoreCase)));
+            if (byTagsContains != null)
+                return byTagsContains;
+
+            return null;
+        }
     }
 }

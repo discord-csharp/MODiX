@@ -5,18 +5,17 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Humanizer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-
 using Modix.Bot.Extensions;
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
+using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
 using Modix.Services.Promotions;
@@ -24,6 +23,9 @@ using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
+    [Name("User Information")]
+    [Summary("Retrieves information and statistics about the supplied user.")]
+    [HelpTags("userinfo", "info")]
     public class UserInfoModule : ModuleBase
     {
         //optimization: UtcNow is slow and the module is created per-request

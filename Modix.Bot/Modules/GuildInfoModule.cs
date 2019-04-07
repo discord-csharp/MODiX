@@ -5,18 +5,21 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Humanizer;
 using Modix.Data.Models;
 using Modix.Data.Repositories;
+using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
+    [Name("Guild Information")]
+    [Summary("Retrieves information and statistics about the supplied guild.")]
+    [HelpTags("guildinfo")]
     public sealed class GuildInfoModule : ModuleBase
     {
         //optimization: UtcNow is slow and the module is created per-request

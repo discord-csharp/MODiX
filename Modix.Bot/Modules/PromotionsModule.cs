@@ -8,6 +8,7 @@ using Discord.Commands;
 using Modix.Bot.Extensions;
 using Modix.Data.Models.Promotions;
 using Modix.Data.Utilities;
+using Modix.Services.CommandHelp;
 using Modix.Services.Promotions;
 using Modix.Services.Utilities;
 
@@ -17,6 +18,7 @@ namespace Modix.Modules
     [Summary("Manage promotion campaigns.")]
     [Group("promotions")]
     [Alias("promotion", "campaign", "campaigns")]
+    [HelpTags("campaigns", "nominate", "nomination", "nominating")]
     public class PromotionsModule : ModuleBase
     {
         private const string DefaultApprovalMessage = "I approve of this nomination.";

@@ -71,21 +71,24 @@ namespace Modix.Modules
         }
 
         [Command("help")]
-        [Summary("Prints a neat list of all commands in the supplied module.")]
+        [Summary("Prints a neat list of all commands based on the supplied query.")]
         [Priority(-10)]
-        public async Task HelpAsync([Remainder]string moduleName)
+        public async Task HelpAsync(
+            [Remainder]
+            [Summary("The module name or related query to use to search for the help module.")]
+                string query)
         {
-            var foundModule = _commandHelpService.GetModuleHelpData().FirstOrDefault(d => d.Name.IndexOf(moduleName, StringComparison.OrdinalIgnoreCase) >= 0);
+            var foundModule = _commandHelpService.GetModuleHelpData(query);
 
             if (foundModule is null)
             {
-                await ReplyAsync($"Sorry, I couldn't find the \"{moduleName}\" module.");
+                await ReplyAsync($"Sorry, I couldn't find help related to \"{query}\".");
                 return;
             }
 
             var embed = GetEmbedForModule(foundModule);
 
-            await ReplyAsync($"Results for \"{moduleName}\":", embed: embed.Build());
+            await ReplyAsync($"Results for \"{query}\":", embed: embed.Build());
 
         }
 

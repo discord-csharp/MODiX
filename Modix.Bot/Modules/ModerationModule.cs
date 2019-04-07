@@ -8,6 +8,7 @@ using Discord.Commands;
 
 using Modix.Bot.Extensions;
 using Modix.Data.Models.Moderation;
+using Modix.Services.CommandHelp;
 using Modix.Services.Moderation;
 using Modix.Services.Utilities;
 
@@ -15,6 +16,7 @@ namespace Modix.Modules
 {
     [Name("Moderation")]
     [Summary("Guild moderation commands.")]
+    [HelpTags("note", "warn", "mute", "tempmute", "unmute", "ban", "forceban", "unban", "clean")]
     public class ModerationModule : ModuleBase
     {
         public ModerationModule(IModerationService moderationService)
