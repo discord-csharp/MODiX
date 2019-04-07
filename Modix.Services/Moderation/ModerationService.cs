@@ -730,8 +730,6 @@ namespace Modix.Services.Moderation
 
         public async Task<bool> AnyInfractionsAsync(InfractionSearchCriteria criteria)
         {
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
-
             if (criteria is null)
                 throw new ArgumentNullException(nameof(criteria));
 
