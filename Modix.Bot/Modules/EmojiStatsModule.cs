@@ -82,7 +82,7 @@ namespace Modix.Modules
 
             var oldestTimestamp = userTotalUses
                 .Select(x => x.Timestamp)
-                .OrderByDescending(x => x)
+                .OrderBy(x => x)
                 .First();
 
             var numberOfDays = Math.Max((DateTime.Now - oldestTimestamp).Days, 1);
@@ -94,13 +94,14 @@ namespace Modix.Modules
 
             var distinctEmojis = userTotalUses
                 .Select(x => x.Emoji)
-                .Distinct();
+                .Distinct()
+                .Count();
 
             await ReplyAsync(embed: new EmbedBuilder()
                 .WithAuthor($"{user.GetDisplayNameWithDiscriminator()} - Emoji statistics", user.GetDefiniteAvatarUrl())
                 .WithColor(Color.Blue)
                 .WithDescription(sb.ToString())
-                .WithFooter($"{"unique emoji".ToQuantity(distinctEmojis.Count())} used {"time".ToQuantity(userTotalUses.Count)} ({totalEmojiUsesPerDay.ToString("0.0")}/day) since {oldestTimestamp.ToString("yyyy-MM-dd")}")
+                .WithFooter($"{"unique emoji".ToQuantity(distinctEmojis)} used {"time".ToQuantity(userTotalUses.Count)} ({totalEmojiUsesPerDay.ToString("0.0")}/day) since {oldestTimestamp.ToString("yyyy-MM-dd")}")
                 .Build());
         }
 
