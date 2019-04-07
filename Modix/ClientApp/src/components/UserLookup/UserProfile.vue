@@ -36,7 +36,7 @@
                         <UserProfileField fieldName="Nickname" :fieldValue="user.nickname" default="No Nickname" />
                         <UserProfileField fieldName="Created" :fieldValue="formatDate(user.createdAt)" />
                         <UserProfileField fieldName="Joined" :fieldValue="formatDate(user.joinedAt)" default="Never" />
-                        <UserProfileField fieldName="Roles" :fieldValue="roles" v-if="user.nickname" allowHtml="true" />
+                        <UserProfileField fieldName="Roles" :fieldValue="roles" allowHtml="true" />
                     </div>
                 </template>
 

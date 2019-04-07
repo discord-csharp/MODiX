@@ -1,5 +1,5 @@
 <template>
-    <section class="section">
+    <section class="container section">
         <h1 class="title">User Lookup</h1>
         <div>
             <UserSearch @userSelected="selectedUser = $event" />

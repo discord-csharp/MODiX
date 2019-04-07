@@ -1,8 +1,7 @@
 <template>
     <div class="profileField">
         <label class="label">{{fieldName}}</label>
-        <div class="value" v-if="allowHtml" v-html="display"></div>
-        <div class="value" v-else>{{display}}</div>
+        <div class="value" v-html="display"></div>
     </div>
 </template>
 
@@ -27,6 +26,7 @@
 <script lang="ts">
 import { Component, Prop } from 'vue-property-decorator';
 import ModixComponent from '@/components/ModixComponent.vue';
+import * as _ from 'lodash';
 
 @Component({})
 export default class UserProfile extends ModixComponent
@@ -45,7 +45,11 @@ export default class UserProfile extends ModixComponent
 
     get display()
     {
-        return this.fieldValue ? this.fieldValue : `<em>${this.default}</em>`;
+        return this.fieldValue
+            ? this.allowHtml
+                ? this.fieldValue
+                : _.escape(this.fieldValue)
+            : `<em>${_.escape(this.default)}</em>`;
     }
 }
 </script>
