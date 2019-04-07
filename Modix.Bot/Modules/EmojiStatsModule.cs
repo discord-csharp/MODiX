@@ -74,34 +74,20 @@ namespace Modix.Modules
             var guildId = Context.Guild.Id;
 
             var emojiStats = await _emojiRepository.GetEmojiStatsAsync(guildId, SortDirection.Ascending, 10, userId: userId);
-            var userTotalUses = await _emojiRepository.SearchSummariesAsync(new EmojiSearchCriteria()
-            {
-                UserId = userId,
-                GuildId = guildId
-            });
+            var userTotalUses = await _emojiRepository.GetGuildStatsAsync(guildId, userId);
 
-            var oldestTimestamp = userTotalUses
-                .Select(x => x.Timestamp)
-                .OrderBy(x => x)
-                .First();
-
-            var numberOfDays = Math.Max((DateTime.Now - oldestTimestamp).Days, 1);
+            var numberOfDays = Math.Max((DateTime.Now - userTotalUses.OldestTimestamp).Days, 1);
 
             var sb = new StringBuilder();
-            BuildEmojiStatString(sb, userTotalUses.Count, emojiStats, (emoji) => (double)emoji.Uses / numberOfDays);
+            BuildEmojiStatString(sb, userTotalUses.TotalUses, emojiStats, (emoji) => (double)emoji.Uses / numberOfDays);
 
-            var totalEmojiUsesPerDay = (double)userTotalUses.Count / numberOfDays;
-
-            var distinctEmojis = userTotalUses
-                .Select(x => x.Emoji)
-                .Distinct()
-                .Count();
+            var totalEmojiUsesPerDay = (double)userTotalUses.TotalUses / numberOfDays;
 
             await ReplyAsync(embed: new EmbedBuilder()
                 .WithAuthor($"{user.GetDisplayNameWithDiscriminator()} - Emoji statistics", user.GetDefiniteAvatarUrl())
                 .WithColor(Color.Blue)
                 .WithDescription(sb.ToString())
-                .WithFooter($"{"unique emoji".ToQuantity(distinctEmojis)} used {"time".ToQuantity(userTotalUses.Count)} ({totalEmojiUsesPerDay.ToString("0.0")}/day) since {oldestTimestamp.ToString("yyyy-MM-dd")}")
+                .WithFooter($"{"unique emoji".ToQuantity(userTotalUses.UniqueEmojis)} used {"time".ToQuantity(userTotalUses.TotalUses)} ({totalEmojiUsesPerDay.ToString("0.0")}/day) since {userTotalUses.OldestTimestamp.ToString("yyyy-MM-dd")}")
                 .Build());
         }
 
