@@ -97,7 +97,7 @@ namespace Modix.Modules
                 .Distinct();
 
             await ReplyAsync(embed: new EmbedBuilder()
-                .WithAuthor(Context.Guild.Name, Context.Guild.IconUrl)
+                .WithAuthor($"{user.GetDisplayNameWithDiscriminator()} - Emoji statistics", user.GetDefiniteAvatarUrl())
                 .WithColor(Color.Blue)
                 .WithDescription(sb.ToString())
                 .WithFooter($"{"unique emoji".ToQuantity(distinctEmojis.Count())} used {"time".ToQuantity(userTotalUses.Count)} ({totalEmojiUsesPerDay.ToString("0.0")}/day) since {oldestTimestamp.ToString("yyyy-MM-dd")}")
