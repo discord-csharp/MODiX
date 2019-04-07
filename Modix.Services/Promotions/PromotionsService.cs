@@ -101,6 +101,17 @@ namespace Modix.Services.Promotions
         /// containing the requested action information.
         /// </returns>
         Task<PromotionActionSummary> GetPromotionActionSummaryAsync(long promotionActionId);
+
+        /// <summary>
+        /// Retrieves the promotion progression for the supplied user.
+        /// </summary>
+        /// <param name="guildId">The unique Discord snowflake ID of the guild in which the desired promotions took place.</param>
+        /// <param name="userId">The unique Discord snowflake ID of the user for whom to retrieve promotions.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation is complete,
+        /// containing a collection representing the promotion progression for the supplied user.
+        /// </returns>
+        Task<IReadOnlyCollection<PromotionCampaignSummary>> GetPromotionsForUserAsync(ulong guildId, ulong userId);
     }
 
     /// <inheritdoc />
@@ -368,6 +379,10 @@ namespace Modix.Services.Promotions
 
             return await PromotionActionRepository.ReadSummaryAsync(promotionActionId);
         }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<PromotionCampaignSummary>> GetPromotionsForUserAsync(ulong guildId, ulong userId)
+            => await PromotionCampaignRepository.GetPromotionsForUserAsync(guildId, userId);
 
         /// <summary>
         /// An <see cref="IDiscordClient"/> for interacting with the Discord API.
