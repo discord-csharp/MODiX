@@ -113,7 +113,10 @@ namespace Modix.Modules
             }
 
             var totalEmojiUsesPerDay = (double)userTotalUses.Count / numberOfDays;
-            var distinctEmojis = userTotalUses.Select(x => x.Emoji).Distinct();
+
+            var distinctEmojis = userTotalUses
+                .Select(x => x.Emoji)
+                .Distinct();
 
             await ReplyAsync(embed: new EmbedBuilder()
                 .WithAuthor(Context.Guild.Name, Context.Guild.IconUrl)
