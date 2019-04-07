@@ -176,12 +176,11 @@ namespace Modix.Modules
             var emojiStats30 = await _emojiRepository.GetEmojiStatsAsync(guildId, sortDirection, 10, TimeSpan.FromDays(30), emojiIds: emojiFilter);
             var guildStats = await _emojiRepository.GetGuildStatsAsync(guildId, emojiIds: emojiFilter);
 
-            var numberOfDays = Math.Clamp((DateTime.Now - guildStats.OldestTimestamp).Days, 1, 30);
-
             var sb = new StringBuilder();
 
             BuildEmojiStatString(sb, guildStats.TotalUses, emojiStats, (emoji) =>
             {
+                var numberOfDays = Math.Clamp((DateTime.Now - guildStats.OldestTimestamp).Days, 1, 30);
                 var uses30 = emojiStats30.First(x => x.Emoji.Equals(emoji.Emoji)).Uses;
                 return (double)uses30 / numberOfDays;
             });
