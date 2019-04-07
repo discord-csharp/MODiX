@@ -32,6 +32,7 @@ namespace Modix.Services.Tags
             var message = notification.Message;
 
             if (!(message is ISocketUserMessage userMessage) || userMessage.Author.IsBot) { return; }
+            //TODO: Make this pattern match against ISocketGuildUser, when it works
             if (!(userMessage.Author is SocketGuildUser guildUser)) { return; }
 
             //TODO: Refactor when we have a configurable prefix
