@@ -87,8 +87,6 @@ namespace Modix
                 _restClient.Log += _serilogAdapter.HandleLog;
                 _commands.Log += _serilogAdapter.HandleLog;
 
-                _commands.CommandExecuted += HandleCommandResultAsync;
-
                 // Register with the cancellation token so we can stop listening to client events if the service is
                 // shutting down or being disposed.
                 stoppingToken.Register(OnStopping);
@@ -158,8 +156,6 @@ namespace Modix
                 _commands.Log -= _serilogAdapter.HandleLog;
                 _restClient.Log -= _serilogAdapter.HandleLog;
 
-                _commands.CommandExecuted -= HandleCommandResultAsync;
-
                 foreach (var context in _commandScopes.Keys)
                 {
                     _commandScopes.TryRemove(context, out var commandScope);
@@ -226,38 +222,6 @@ namespace Modix
                 Log.LogTrace("Discord client is ready. Setting game status.");
                 _client.Ready -= OnClientReady;
                 await _client.SetGameAsync("https://mod.gg/");
-            }
-        }
-
-        private async Task HandleCommandResultAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
-        {
-            _commandScopes.TryRemove(context, out var commandScope);
-
-            using (commandScope)
-            {
-                if (!result.IsSuccess)
-                {
-                    var error = $"{result.Error}: {result.ErrorReason}";
-
-                    if (!string.Equals(result.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
-                    {
-                        Log.LogWarning(error);
-                    }
-                    else
-                    {
-                        Log.LogError(error);
-                    }
-
-                    if (result.Error != CommandError.Exception)
-                    {
-                        await _commandErrorHandler.AssociateError(context.Message, error);
-                    }
-                    else
-                    {
-                        var sanitizedReason = FormatUtilities.SanitizeEveryone(result.ErrorReason);
-                        await context.Channel.SendMessageAsync($"Error: {sanitizedReason}");
-                    }
-                }
             }
         }
     }
