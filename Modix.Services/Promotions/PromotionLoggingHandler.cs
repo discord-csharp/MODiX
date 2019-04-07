@@ -21,19 +21,27 @@ namespace Modix.Services.Promotions
         /// Constructs a new <see cref="PromotionLoggingHandler"/> object, with injected dependencies.
         /// </summary>
         public PromotionLoggingHandler(
+            IAuthorizationService authorizationService,
             IDiscordClient discordClient,
             IDesignatedChannelService designatedChannelService,
             IUserService userService,
-            IPromotionsService promotionsService)
+            IPromotionsService promotionsService,
+            ISelfUser selfUser)
         {
+            AuthorizationService = authorizationService;
             DiscordClient = discordClient;
             DesignatedChannelService = designatedChannelService;
             UserService = userService;
             PromotionsService = promotionsService;
+            SelfUser = selfUser;
         }
         
         public async Task HandleNotificationAsync(PromotionActionCreatedNotification notification, CancellationToken cancellationToken)
         {
+            // TODO: Temporary workaround, remove as part of auth rework.
+            if (AuthorizationService.CurrentUserId is null)
+                await AuthorizationService.OnAuthenticatedAsync(SelfUser);
+
             if (await DesignatedChannelService.AnyDesignatedChannelAsync(notification.Data.GuildId, DesignatedChannelType.PromotionLog))
             {
                 var message = await FormatPromotionLogEntryAsync(notification.Id);
@@ -105,6 +113,11 @@ namespace Modix.Services.Promotions
         }
 
         /// <summary>
+        /// An <see cref="IAuthorizationService"/> for performing self-authentication.
+        /// </summary>
+        internal protected IAuthorizationService AuthorizationService { get; }
+
+        /// <summary>
         /// An <see cref="IDiscordClient"/> for interacting with the Discord API.
         /// </summary>
         internal protected IDiscordClient DiscordClient { get; }
@@ -123,6 +136,11 @@ namespace Modix.Services.Promotions
         /// An <see cref="IPromotionsService"/> for performing moderation actions.
         /// </summary>
         internal protected IPromotionsService PromotionsService { get; }
+
+        /// <summary>
+        /// The <see cref="ISelfUser"/> representing the bot, within the Discord API.
+        /// </summary>
+        internal protected ISelfUser SelfUser { get; }
 
         private static readonly Dictionary<(PromotionActionType, PromotionSentiment?, PromotionCampaignOutcome?), string> _logRenderTemplates
             = new Dictionary<(PromotionActionType, PromotionSentiment?, PromotionCampaignOutcome?), string>()
