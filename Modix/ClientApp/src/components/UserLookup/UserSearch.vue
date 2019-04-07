@@ -1,20 +1,27 @@
 <template>
-    <section class="section">
-        <div class="message-narrow">
-            <div class="field">
-                <label class="label is-large">Tell us their username or ID</label>
-                <div class="control">
-                    <Autocomplete @select="selectedUser = $event"
-                                  :serviceCall="userServiceCall" placeholder="Enter a username or an ID">
-                        <template slot-scope="{entry}">
-                            <TinyUserView :user="entry" />
-                        </template>
-                    </Autocomplete>
-                </div>
-            </div>
+    <div class="message-narrow">
+        <div class="control">
+            <Autocomplete @select="selectedUser = $event" :serviceCall="userServiceCall"
+                          placeholder="Username or ID">
+                <template slot-scope="{entry}">
+                    <TinyUserView :user="entry" />
+                </template>
+            </Autocomplete>
         </div>
-    </section>
+    </div>
 </template>
+
+<style lang="scss">
+.message-narrow
+{
+    margin-bottom: 1em;
+
+    .control input
+    {
+        font-size: 1.5em;
+    }
+}
+</style>
 
 <script lang="ts">
 import { Component, Watch } from 'vue-property-decorator';

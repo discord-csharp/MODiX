@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Discord;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
 using Modix.Data.Repositories;
@@ -54,7 +55,7 @@ namespace Modix.Controllers
                 Username = userInformation.Username,
                 Nickname = userInformation.Nickname,
                 Discriminator = userInformation.Discriminator,
-                AvatarUrl = userInformation.GetDefiniteAvatarUrl(),
+                AvatarUrl = userInformation.AvatarId != null ? userInformation.GetAvatarUrl(ImageFormat.Auto, 256) : userInformation.GetDefaultAvatarUrl(),
                 Status = userInformation.Status.ToString(),
                 CreatedAt = userInformation.CreatedAt,
                 JoinedAt = userInformation.JoinedAt,
@@ -75,6 +76,7 @@ namespace Modix.Controllers
                     }),
                 IsBanned = userInformation.IsBanned,
                 BanReason = userInformation.BanReason,
+                IsGuildMember = userInformation.GuildId != default
             };
 
             return Ok(mapped);

@@ -34,6 +34,24 @@
         flex-direction: row;
         align-items: center;
     }
+
+    .username
+    {
+        margin-right: 0.2em;
+        cursor: pointer;
+
+        small
+        {
+            font-size: 0.6em;
+            position: relative;
+            top: -3px;
+        }
+
+        @include tiny()
+        {
+            display: none;
+        }
+    }
 }
 
 .options .option
@@ -80,20 +98,3 @@ img.avatar-icon, img.dropdown-icon
     max-height: 32px;
 }
 
-.username
-{
-    margin-right: 0.2em;
-    cursor: pointer;
-
-    small
-    {
-        font-size: 0.6em;
-        position: relative;
-        top: -3px;
-    }
-
-    @include tiny()
-    {
-        display: none;
-    }
-}

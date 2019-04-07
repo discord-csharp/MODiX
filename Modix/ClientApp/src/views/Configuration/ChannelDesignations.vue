@@ -27,7 +27,7 @@
             Assign Channel
         </a>
 
-        <div class="modal" :class="{'is-active': showModal}">
+        <div class="modal" v-if="showModal" :class="{'is-active': showModal}">
             <div class="modal-background" @click="cancel()"></div>
             <div class="modal-card">
                 <header class="modal-card-head">
@@ -185,6 +185,8 @@ export default class ChannelDesignations extends Vue
     cancel()
     {
         this.designationCreationData.channelDesignations = [];
+        this.designationCreationData.channelId = '';
+
         this.showModal = false;
     }
 

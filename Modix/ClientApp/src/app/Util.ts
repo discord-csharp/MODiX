@@ -4,6 +4,11 @@ import ModixState from '@/models/ModixState';
 
 export const formatDate = (date: Date): string =>
 {
+    if (!date)
+    {
+        return '';
+    }
+
     return dateformat(date, "mm/dd/yy, h:MM:ss TT");
 }
 

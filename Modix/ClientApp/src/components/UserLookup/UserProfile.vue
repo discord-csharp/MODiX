@@ -1,5 +1,5 @@
 <template>
-    <div class="message-narrow" v-if="user">
+    <div class="message-narrow userProfile" v-if="user">
         <div class="message">
             <div class="message-header">
                 <h1 class="message-title">
@@ -7,32 +7,38 @@
                 </h1>
             </div>
             <div class="message-body">
-                <img v-if="user.avatarUrl" :src="user.avatarUrl" style="height: 128px; width: 128px; float: right; padding-top: 1em; padding-right: 1em;" />
 
-                <div class="box">
-                    <UserProfileSectionTitle :title="'User Information'" />
-                    <UserProfileField :fieldName="'ID'" :fieldValue="user.id" />
-                    <UserProfileField :fieldName="'Status'" :fieldValue="user.status" />
-                    <UserProfileField :fieldName="'First seen'" :fieldValue="formatDate(user.firstSeen)" />
-                    <UserProfileField :fieldName="'Last seen'" :fieldValue="formatDate(user.lastSeen)" />
+                <div class="section-title">User Information</div>
+                <div class="userInfoSection">
+                    <div class="box info">
+                        <UserProfileField fieldName="ID" :fieldValue="user.id" />
+                        <UserProfileField fieldName="Status" :fieldValue="user.status" />
+                        <UserProfileField fieldName="First seen" :fieldValue="formatDate(user.firstSeen)" default="Never" />
+                        <UserProfileField fieldName="Last seen" :fieldValue="formatDate(user.lastSeen)" default="Never" />
+                    </div>
+                    <div class="box avatar" v-if="user.avatarUrl">
+                        <img :src="user.avatarUrl" />
+                    </div>
                 </div>
 
-                <div class="box">
-                    <UserProfileSectionTitle :title="'Guild Participation'" />
-                    <UserProfileField :fieldName="'Rank'" :fieldValue="ordinalize(user.rank)" />
-                    <UserProfileField :fieldName="'Last 7 days'" :fieldValue="toQuantity(user.last7DaysMessages, 'message', 'messages')" />
-                    <UserProfileField :fieldName="'Last 30 days'" :fieldValue="toQuantity(user.last30DaysMessages, ' message', ' messages')" />
-                    <UserProfileField :fieldName="'Average per day'" :fieldValue="toQuantity(Math.round(user.averageMessagesPerDay), ' message', ' messages')" />
-                    <UserProfileField :fieldName="'Percentile'" :fieldValue="ordinalize(user.percentile)" />
-                </div>
+                <template v-if="user.isGuildMember">
+                    <div class="section-title">Guild Participation</div>
+                    <div class="box">
+                        <UserProfileField fieldName="Rank" :fieldValue="ordinalize(user.rank)" />
+                        <UserProfileField fieldName="Last 7 days" :fieldValue="toQuantity(user.last7DaysMessages, 'message', 'messages')" />
+                        <UserProfileField fieldName="Last 30 days" :fieldValue="toQuantity(user.last30DaysMessages, ' message', ' messages')" />
+                        <UserProfileField fieldName="Average per day" :fieldValue="toQuantity(Math.round(user.averageMessagesPerDay), ' message', ' messages')" />
+                        <UserProfileField fieldName="Percentile" :fieldValue="ordinalize(user.percentile)" />
+                    </div>
 
-                <div class="box">
-                    <UserProfileSectionTitle :title="'Member Information'" />
-                    <UserProfileField :fieldName="'Nickname'" :fieldValue="user.nickname" v-if="user.nickname && user.nickname.length > 0" />
-                    <UserProfileField :fieldName="'Created'" :fieldValue="formatDate(user.createdAt)" />
-                    <UserProfileField :fieldName="'Joined'" :fieldValue="formatDate(user.joinedAt)" />
-                    <UserProfileField :fieldName="'Roles'" :fieldValue="roles" />
-                </div>
+                    <div class="section-title">Member Information</div>
+                    <div class="box">
+                        <UserProfileField fieldName="Nickname" :fieldValue="user.nickname" default="No Nickname" />
+                        <UserProfileField fieldName="Created" :fieldValue="formatDate(user.createdAt)" />
+                        <UserProfileField fieldName="Joined" :fieldValue="formatDate(user.joinedAt)" default="Never" />
+                        <UserProfileField fieldName="Roles" :fieldValue="roles" allowHtml="true" />
+                    </div>
+                </template>
 
             </div>
         </div>
@@ -53,7 +59,6 @@ import store from "@/app/Store";
 @Component({
     components:
     {
-        UserProfileSectionTitle,
         UserProfileField,
     },
     methods:
@@ -61,7 +66,7 @@ import store from "@/app/Store";
         formatDate,
         ordinalize,
         toQuantity,
-    },
+    }
 })
 export default class UserProfile extends ModixComponent
 {
@@ -70,7 +75,12 @@ export default class UserProfile extends ModixComponent
 
     get roles(): string
     {
-        return _.map(this.user!.roles, (role: Role): string => this.parseDiscordContent(`<@&${role.id}>`))
+        if (this.user == null || this.user.roles.length == 0)
+        {
+            return "<em>No roles assigned</em>";
+        }
+
+        return _.map(this.user.roles, (role: Role): string => this.parseDiscordContent(`<@&${role.id}>`))
                 .join(", ");
     }
 

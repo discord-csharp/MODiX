@@ -1,6 +1,6 @@
 <template>
 
-    <div class="autocomplete-container">
+    <div class="autocomplete-container" :class="{'committed': committed}">
 
         <div v-if="committed">
             <slot v-if="committed" v-bind:entry="committed" />
@@ -9,12 +9,12 @@
 
         <template v-else>
             <input class="input" type="text" :class="{'is-danger': error}" :placeholder="placeholder"
-                v-model="searchQuery" @input="debouncedAutocomplete()" @blur="blur()" @keydown="keyDown($event)" ref="inputBox">
+                v-model="searchQuery" @input="debouncedAutocomplete()" @blur="blur()" @keydown="keyDown($event)">
 
             <div class="autocomplete" v-show="entries.length > 0">
 
-                <div class="entry" v-for="entry in entries" :key="entry.id" :class="{'hovered': hovered == entry}"
-                    @click="select(entry)" @mouseover="hovered = entry" @mouseout="mouseOut(entry)">
+                <div class="entry" v-for="(entry, index) in entries" :key="entry.id" :class="{'hovered': hovered == entry}"
+                    @mousedown.stop="select(entry)" @mouseover.stop="hoveredChanged(index)">
 
                     <slot v-bind:entry="entry" />
                 </div>
@@ -63,37 +63,36 @@ export default class Autocomplete extends Vue
         this.$emit('select', this.committed);
     }
 
-    @Watch('entries')
-    entriesChanged()
+    @Watch('entries', { immediate: true })
+    entriesChanged(entries: any[], oldEntries: any[])
     {
-        console.log("Entries changed, resetting selection");
-        this.selectedIndex = -1;
-        this.hovered = null;
+        if (entries.length > 0)
+        {
+            this.selectedIndex = 0;
+            this.indexChanged();
+        }
+        else
+        {
+            this.selectedIndex = -1;
+        }
     }
 
     @Watch('selectedIndex')
     indexChanged()
     {
-        console.log("Index changed, reselecting");
-        this.hovered = this.entries[this.selectedIndex];
-    }
-
-    get inputBox(): HTMLInputElement
-    {
-        return <HTMLInputElement>this.$refs.inputBox;
-    }
-
-    mouseOut(entry: any)
-    {
-        if (this.hovered == entry)
+        if (this.selectedIndex < 0)
         {
             this.hovered = null;
         }
+        else
+        {
+            this.hovered = this.entries[this.selectedIndex];
+        }
     }
 
-    blur()
+    hoveredChanged(index: number)
     {
-
+        this.selectedIndex = index;
     }
 
     select(entry: any)
@@ -115,8 +114,6 @@ export default class Autocomplete extends Vue
         {
             args.preventDefault();
 
-            console.log("Arrow Up!");
-
             if (this.selectedIndex <= 0)
             {
                 this.selectedIndex = this.entries.length - 1;
@@ -125,15 +122,11 @@ export default class Autocomplete extends Vue
             {
                 this.selectedIndex--;
             }
-
-            console.log("New Index: " + this.selectedIndex);
         }
 
         if (args.key == "ArrowDown")
         {
             args.preventDefault();
-
-            console.log("Arrow Down!");
 
             if (this.entries.length == 0)
             {
@@ -148,8 +141,6 @@ export default class Autocomplete extends Vue
             {
                 this.selectedIndex++;
             }
-
-            console.log("New Index: " + this.selectedIndex);
         }
 
         if (args.key == "Enter")
@@ -160,14 +151,15 @@ export default class Autocomplete extends Vue
         }
     }
 
-    beforeDestroy()
-    {
-        this.inputBox.removeEventListener('keydown', this.keyDown);
-    }
-
     created()
     {
         this.debouncedAutocomplete = _.debounce(this.makeServiceCall, 350);
+    }
+
+    blur()
+    {
+        this.entries = [];
+        this.selectedIndex = -1;
     }
 
     async makeServiceCall()

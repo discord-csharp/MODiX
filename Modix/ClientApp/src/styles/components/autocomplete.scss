@@ -1,6 +1,6 @@
 .autocomplete
 {
-    position: fixed;
+    position: absolute;
     z-index: 999;
 
     background: $white;
@@ -28,6 +28,7 @@
 
 .autocomplete-container
 {
+    position: relative;
     button.delete
     {
         margin-left: 8px;
