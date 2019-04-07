@@ -62,7 +62,7 @@ namespace Modix.Modules
         [Summary("Retrieves information about the supplied user, or the current user if one is not provided.")]
         public async Task GetUserInfoAsync(
             [Summary("The user to retrieve information about, if any.")]
-                DiscordUserEntity user = null)
+                [Remainder] DiscordUserEntity user = null)
         {
             user = user ?? new DiscordUserEntity(Context.User.Id);
 

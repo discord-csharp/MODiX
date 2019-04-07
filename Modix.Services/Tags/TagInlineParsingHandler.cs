@@ -31,7 +31,7 @@ namespace Modix.Services.Tags
         {
             var message = notification.Message;
 
-            if (!(message is SocketUserMessage userMessage) || userMessage.Author.IsBot) { return; }
+            if (!(message is ISocketUserMessage userMessage) || userMessage.Author.IsBot) { return; }
             if (!(userMessage.Author is SocketGuildUser guildUser)) { return; }
 
             //TODO: Refactor when we have a configurable prefix
@@ -48,6 +48,7 @@ namespace Modix.Services.Tags
 
             try
             {
+                await AuthorizationService.OnAuthenticatedAsync(guildUser);
                 await TagService.UseTagAsync(guildUser.Guild.Id, userMessage.Channel.Id, tagName);
             }
             catch (InvalidOperationException ex)
