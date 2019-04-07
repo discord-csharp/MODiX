@@ -16,7 +16,7 @@ namespace Modix.Modules
     [Name("Promotions")]
     [Summary("Manage promotion campaigns.")]
     [Group("promotions")]
-    [Alias("promotion")]
+    [Alias("promotion", "campaign", "campaigns")]
     public class PromotionsModule : ModuleBase
     {
         private const string DefaultApprovalMessage = "I approve of this nomination.";
