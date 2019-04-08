@@ -43,8 +43,6 @@ namespace Modix.Controllers
         [HttpGet("users")]
         public async Task<IActionResult> AutocompleteUsers(string query)
         {
-            await UserGuild.DownloadUsersAsync();
-
             var result = UserGuild.Users is null
                 ? Enumerable.Empty<ModixUser>()
                 : UserGuild.Users
