@@ -158,13 +158,14 @@ namespace Modix.Modules
 
         public void AppendMemberInformation(StringBuilder stringBuilder, SocketGuild guild)
         {
-            var memberCount = guild.Users.Count;
+            var onlineMembers = guild.Users.Count(x => x.Status != UserStatus.Offline);
+            var members = guild.Users.Count;
             var bots = guild.Users.Count(x => x.IsBot);
-            var humans = memberCount - bots;
+            var humans = members - bots;
 
             stringBuilder
                 .AppendLine(Format.Bold("\u276F Member Information"))
-                .AppendLine($"Members Online: {memberCount}")
+                .AppendLine($"Total member count: {members} ({onlineMembers} online)")
                 .AppendLine($"• Humans: {humans}")
                 .AppendLine($"• Bots: {bots}")
                 .AppendLine();
