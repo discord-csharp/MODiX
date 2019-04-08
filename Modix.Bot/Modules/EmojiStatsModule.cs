@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -60,6 +61,34 @@ namespace Modix.Modules
             var embed = await BuildEmojiStatEmbedAsync(SortDirection.Descending, guildOnly: true);
 
             await ReplyAsync(embed: embed.Build());
+        }
+
+        [Command()]
+        [Priority(-10)]
+        [Summary("Gets the usage stats for a specific user.")]
+        public async Task UserEmojiStatsAsync(
+            [Summary("The user to retrieve stats for.")]
+                IUser user)
+        {
+            var userId = user.Id;
+            var guildId = Context.Guild.Id;
+
+            var emojiStats = await _emojiRepository.GetEmojiStatsAsync(guildId, SortDirection.Ascending, 10, userId: userId);
+            var userTotalUses = await _emojiRepository.GetGuildStatsAsync(guildId, userId);
+
+            var numberOfDays = Math.Max((DateTime.Now - userTotalUses.OldestTimestamp).Days, 1);
+
+            var sb = new StringBuilder();
+            BuildEmojiStatString(sb, userTotalUses.TotalUses, emojiStats, (emoji) => (double)emoji.Uses / numberOfDays);
+
+            var totalEmojiUsesPerDay = (double)userTotalUses.TotalUses / numberOfDays;
+
+            await ReplyAsync(embed: new EmbedBuilder()
+                .WithAuthor($"{user.GetDisplayNameWithDiscriminator()} - Emoji statistics", user.GetDefiniteAvatarUrl())
+                .WithColor(Color.Blue)
+                .WithDescription(sb.ToString())
+                .WithFooter($"{"unique emoji".ToQuantity(userTotalUses.UniqueEmojis)} used {"time".ToQuantity(userTotalUses.TotalUses)} ({totalEmojiUsesPerDay.ToString("0.0")}/day) since {userTotalUses.OldestTimestamp.ToString("yyyy-MM-dd")}")
+                .Build());
         }
 
         [Command()]
@@ -134,34 +163,14 @@ namespace Modix.Modules
             var emojiStats30 = await _emojiRepository.GetEmojiStatsAsync(guildId, sortDirection, 10, TimeSpan.FromDays(30), emojiIds: emojiFilter);
             var guildStats = await _emojiRepository.GetGuildStatsAsync(guildId, emojiIds: emojiFilter);
 
-            var numberOfDays = Math.Clamp((DateTime.Now - guildStats.OldestTimestamp).Days, 1, 30);
-
             var sb = new StringBuilder();
 
-            foreach (var emojiStat in emojiStats)
+            BuildEmojiStatString(sb, guildStats.TotalUses, emojiStats, (emoji) =>
             {
-                var emoji = emojiStat.Emoji;
-                var canAccess = ((SocketSelfUser)Context.Client.CurrentUser).CanAccessEmoji(emoji);
-
-                var emojiFormatted = canAccess
-                    ? emoji.ToString()
-                    : "❔";
-
-                var percentUsage = 100 * (double)emojiStat.Uses / guildStats.TotalUses;
-                if (double.IsNaN(percentUsage))
-                    percentUsage = 0;
-
-                var uses30 = emojiStats30.First(x => x.Emoji.Equals(emoji)).Uses;
-                var perDay = (double)uses30 / numberOfDays;
-
-                sb.Append($"{emojiStat.Rank}.")
-                    .Append($" {emojiFormatted}")
-                    .Append($" ({"use".ToQuantity(emojiStat.Uses)})")
-                    .Append($" ({percentUsage.ToString("0.0")}%),")
-                    .Append($" {perDay.ToString("0.0/day")}")
-                    .Append(canAccess ? string.Empty : $" ({Format.Url($":{emoji.Name}:", emoji.Url)})")
-                    .AppendLine();
-            }
+                var numberOfDays = Math.Clamp((DateTime.Now - guildStats.OldestTimestamp).Days, 1, 30);
+                var uses30 = emojiStats30.First(x => x.Emoji.Equals(emoji.Emoji)).Uses;
+                return (double)uses30 / numberOfDays;
+            });
 
             var daysSinceOldestEmojiUse = Math.Max((DateTime.Now - guildStats.OldestTimestamp).Days, 1);
             var totalEmojiUsesPerDay = (double)guildStats.TotalUses / daysSinceOldestEmojiUse;
@@ -172,5 +181,38 @@ namespace Modix.Modules
                 .WithDescription(sb.ToString())
                 .WithFooter($"{"unique emoji".ToQuantity(guildStats.UniqueEmojis)} used {"time".ToQuantity(guildStats.TotalUses)} ({totalEmojiUsesPerDay.ToString("0.0")}/day) since {guildStats.OldestTimestamp.ToString("yyyy-MM-dd")}");
         }
+
+        private void BuildEmojiStatString(
+            StringBuilder builder,
+            int totalUses,
+            IReadOnlyCollection<EmojiUsageStatistics> emojiStats,
+            Func<EmojiUsageStatistics, double> perDayStat)
+        {
+            foreach (var emojiStat in emojiStats)
+            {
+                var emoji = emojiStat.Emoji;
+                var canAccess = ((SocketSelfUser)Context.Client.CurrentUser).CanAccessEmoji(emoji);
+
+                var emojiFormatted = canAccess
+                    ? emoji.ToString()
+                    : "❔";
+
+                var percentUsage = 100 * (double)emojiStat.Uses / totalUses;
+                if (double.IsNaN(percentUsage))
+                    percentUsage = 0;
+
+                var perDay = perDayStat(emojiStat);
+
+                builder.Append($"{emojiStat.Rank}.")
+                    .Append($" {emojiFormatted}")
+                    .Append($" ({"use".ToQuantity(emojiStat.Uses)})")
+                    .Append($" ({percentUsage.ToString("0.0")}%),")
+                    .Append($" {perDay.ToString("0.0/day")}")
+                    .Append(canAccess ? string.Empty : $" ({Format.Url($":{emoji.Name}:", emoji.Url)})")
+                    .AppendLine();
+            }
+        }
+
+
     }
 }

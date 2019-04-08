@@ -116,7 +116,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> that will complete when the operation completes,
         /// containing statistical information about a guild's emoji usage.
         /// </returns>
-        Task<GuildEmojiStats> GetGuildStatsAsync(ulong guildId, IEnumerable<ulong> emojiIds = null);
+        Task<GuildEmojiStats> GetGuildStatsAsync(ulong guildId, ulong? userId = null, IEnumerable<ulong> emojiIds = null);
     }
 
     /// <inheritdoc />
@@ -348,7 +348,7 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<GuildEmojiStats> GetGuildStatsAsync(ulong guildId, IEnumerable<ulong> emojiIds = null)
+        public async Task<GuildEmojiStats> GetGuildStatsAsync(ulong guildId, ulong? userId = null, IEnumerable<ulong> emojiIds = null)
         {
             var parameters = GetParameters();
             var query = GetQuery();
@@ -362,7 +362,7 @@ namespace Modix.Data.Repositories
 
             NpgsqlParameter[] GetParameters()
             {
-                var paramList = new List<NpgsqlParameter>(2)
+                var paramList = new List<NpgsqlParameter>(3)
                 {
                     new NpgsqlParameter(":GuildId", NpgsqlDbType.Bigint)
                     {
@@ -378,6 +378,14 @@ namespace Modix.Data.Repositories
                     });
                 }
 
+                if(userId.HasValue)
+                {
+                    paramList.Add(new NpgsqlParameter(":UserId", NpgsqlDbType.Bigint)
+                    {
+                        Value = unchecked((long)userId),
+                    });
+                }
+
                 return paramList.ToArray();
             }
 
@@ -387,6 +395,7 @@ namespace Modix.Data.Repositories
                         select count(distinct coalesce(cast(""EmojiId"" as text), ""EmojiName"")) as ""UniqueEmojis"", count(*) as ""TotalUses"", coalesce(min(""Timestamp""), now()) as ""OldestTimestamp""
                         from ""Emoji""
                         where ""GuildId"" = :GuildId
+                        {(userId.HasValue ? @"and ""UserId"" = :UserId" : string.Empty)}
                         {(emojiIds is null || !emojiIds.Any() ? string.Empty : @"and ""EmojiId"" = any(:EmojiIds)")}
                         limit 1
                     )
