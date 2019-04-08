@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using Modix.Data.Models.Core;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.CodePaste;
+using Modix.Services.CommandHelp;
 using Modix.Services.Utilities;
 using Newtonsoft.Json;
 
@@ -29,7 +30,9 @@ namespace Modix.Modules
         public string ReturnTypeName { get; set; }
     }
 
-    [Name("Repl"), Summary("Execute & demonstrate code snippets.")]
+    [Name("Repl")]
+    [Summary("Execute & demonstrate code snippets.")]
+    [HelpTags("eval", "exec")]
     public class ReplModule : ModuleBase
     {
         // 1000 is the maximum field embed size

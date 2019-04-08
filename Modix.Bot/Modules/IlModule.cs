@@ -9,13 +9,16 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Options;
 using Modix.Data.Models.Core;
 using Modix.Services.AutoRemoveMessage;
+using Modix.Services.CommandHelp;
 using Modix.Services.CodePaste;
 using Modix.Services.Utilities;
 using Serilog;
 
 namespace Modix.Modules
 {
-    [Name("Decompiler"), Summary("Compile code & view the IL.")]
+    [Name("Decompiler")]
+    [Summary("Compile code & view the IL.")]
+    [HelpTags("il")]
     public class IlModule : ModuleBase
     {
         private const string DefaultIlRemoteUrl = "http://csdiscord-repl-service:31337/Il";

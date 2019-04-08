@@ -14,6 +14,7 @@ using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
+    [Name("EmojiStats")]
     [Group("emojistats")]
     [Summary("Commands related to generating statistics on emojis.")]
     public class EmojiStatsModule : ModuleBase

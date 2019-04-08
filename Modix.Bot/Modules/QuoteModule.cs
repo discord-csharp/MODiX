@@ -4,10 +4,13 @@ using System.Threading.Tasks;
 using Discord;
 using Modix.Services.Quote;
 using Serilog;
+using Modix.Services.CommandHelp;
 
 namespace Modix.Modules
 {
-    [Name("Quoting"), Summary("Quote a message from the guild with its ID.")]
+    [Name("Quoting")]
+    [Summary("Quote a message from the guild with its ID.")]
+    [HelpTags("quotes")]
     public class QuoteModule : ModuleBase
     {
         private readonly IQuoteService _quoteService;

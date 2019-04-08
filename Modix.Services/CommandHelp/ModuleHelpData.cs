@@ -14,6 +14,8 @@ namespace Modix.Services.CommandHelp
 
         public IReadOnlyCollection<CommandHelpData> Commands { get; set; }
 
+        public IReadOnlyCollection<string> HelpTags { get; set; }
+
         public static ModuleHelpData FromModuleInfo(ModuleInfo module)
         {
             var moduleName = module.Name;
@@ -34,6 +36,11 @@ namespace Modix.Services.CommandHelp
                     .Where(x => !ShouldBeHidden(x))
                     .Select(x => CommandHelpData.FromCommandInfo(x))
                     .ToArray(),
+                HelpTags = module.Attributes
+                    .OfType<HelpTagsAttribute>()
+                    .SingleOrDefault()
+                    ?.Tags
+                    ?? Array.Empty<string>(),
             };
 
             return ret;

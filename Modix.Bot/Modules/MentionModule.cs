@@ -2,13 +2,14 @@
 
 using Discord;
 using Discord.Commands;
-
+using Modix.Services.CommandHelp;
 using Modix.Services.Mentions;
 
 namespace Modix.Bot.Modules
 {
     [Name("Mentioning")]
     [Summary("Commands related to mentioning roles.")]
+    [HelpTags("mentions", "@")]
     public class MentionModule : ModuleBase
     {
         public MentionModule(IMentionService mentionService)

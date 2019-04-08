@@ -2,11 +2,14 @@
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Modix.Services.CommandHelp;
 using Modix.Services.Csharp;
 
 namespace Modix.Modules
 {
-    [Name("Documentation"), Summary("Search for information within the .NET docs.")]
+    [Name("Documentation")]
+    [Summary("Search for information within the .NET docs.")]
+    [HelpTags("docs")]
     public class DocumentationModule : ModuleBase
     {
         public DocumentationModule(DocumentationService documentationService)

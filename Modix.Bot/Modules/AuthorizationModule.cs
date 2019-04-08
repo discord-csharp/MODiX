@@ -6,6 +6,7 @@ using Discord;
 using Discord.Commands;
 
 using Modix.Data.Models.Core;
+using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 
 namespace Modix.Modules
@@ -13,6 +14,7 @@ namespace Modix.Modules
     [Name("Authorization")]
     [Group("auth")]
     [Summary("Commands for configuring the authorization system.")]
+    [HelpTags("claims")]
     public class AuthorizationModule : ModuleBase
     {
         public AuthorizationModule(IAuthorizationService authorizationService)

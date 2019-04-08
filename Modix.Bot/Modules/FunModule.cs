@@ -2,12 +2,15 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Discord.Commands;
+using Modix.Services.CommandHelp;
 using Modix.Services.Utilities;
 using Serilog;
 
 namespace Modix.Modules
 {
-    [Name("Fun"), Summary("A bunch of miscellaneous, fun commands.")]
+    [Name("Fun")]
+    [Summary("A bunch of miscellaneous, fun commands.")]
+    [HelpTags("jumbo")]
     public class FunModule : ModuleBase
     {
         public FunModule(IHttpClientFactory httpClientFactory)
