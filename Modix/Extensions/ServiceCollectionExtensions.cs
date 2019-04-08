@@ -63,6 +63,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton(
                 provider => new DiscordSocketClient(config: new DiscordSocketConfig
                 {
+                    AlwaysDownloadUsers = true,
                     LogLevel = LogSeverity.Debug,
                     MessageCacheSize = provider
                         .GetRequiredService<IOptions<ModixConfig>>()
