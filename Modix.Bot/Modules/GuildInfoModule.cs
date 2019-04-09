@@ -179,8 +179,7 @@ namespace Modix.Modules
             var roles = guild.Roles
                 .Where(x => x.Id != guild.EveryoneRole.Id)
                 .OrderByDescending(x => x.Position)
-                .ThenByDescending(x => x.IsHoisted)
-                .ThenByDescending(x => x.Name);
+                .ThenByDescending(x => x.IsHoisted);
 
             stringBuilder.AppendLine(Format.Bold("\u276F Guild Roles"))
                 .AppendLine(roles.Select(x => x.Mention).Humanize())
