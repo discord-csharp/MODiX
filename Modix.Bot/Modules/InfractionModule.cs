@@ -68,7 +68,7 @@ namespace Modix.Modules
                 Rescinded = infraction.RescindAction != null
             }).OrderBy(s => s.Type);
 
-            var counts = await ModerationService.GetInfractionCountsForUserAsync(subjectEntity.Id);
+            var counts = await ModerationService.GetInfractionCountsForUserAsync(Context.Guild.Id, subjectEntity.Id);
 
             var builder = new EmbedBuilder()
                 .WithTitle($"Infractions for user: {subject.GetFullUsername()}")

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -56,7 +57,8 @@ namespace Modix
 
             services.AddDbContext<ModixContext>(options =>
             {
-                options.UseNpgsql(_configuration.GetValue<string>(nameof(ModixConfig.DbConnection)));
+                options.UseNpgsql(_configuration.GetValue<string>(nameof(ModixConfig.DbConnection)))
+                    .ConfigureWarnings(warnings => warnings.Log(RelationalEventId.QueryClientEvaluationWarning));
             });
 
             services

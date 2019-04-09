@@ -161,10 +161,10 @@ namespace Modix.Modules
         {
             await Context.AddConfirmation();
 
-            var counts = await ModerationService.GetInfractionCountsForUserAsync(userId);
+            var counts = await ModerationService.GetInfractionCountsForUserAsync(Context.Guild.Id, userId);
 
             //TODO: Make this configurable
-            if (counts.Values.Any(count => count >= 3))
+            if (counts.Any(x => x.Count >= 3))
             {
                 await ReplyAsync(embed: new EmbedBuilder()
                     .WithTitle("Infraction Count Notice")

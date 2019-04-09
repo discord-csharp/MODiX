@@ -58,17 +58,6 @@ namespace Modix.Data.Repositories
         Task DeleteAsync(EmojiSearchCriteria criteria);
 
         /// <summary>
-        /// Returns the number of times emoji matching the specified criteria occurred.
-        /// </summary>
-        /// <param name="criteria">The criteria for the emoji to be counted.</param>
-        /// <exception cref="ArgumentNullException">Throws for <paramref name="criteria"/>.</exception>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing a dictionary of emoji and their counts.
-        /// </returns>
-        Task<IReadOnlyDictionary<EphemeralEmoji, int>> GetCountsAsync(EmojiSearchCriteria criteria);
-
-        /// <summary>
         /// Searches the emoji logs for emoji records matching the supplied criteria.
         /// </summary>
         /// <param name="criteria">The criteria with which to filter the emoji returned.</param>
@@ -176,35 +165,6 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyDictionary<EphemeralEmoji, int>> GetCountsAsync(EmojiSearchCriteria criteria)
-        {
-            if (criteria is null)
-                throw new ArgumentNullException(nameof(criteria));
-
-            var emoji = await ModixContext.Emoji.AsNoTracking()
-                .FilterBy(criteria)
-                .GroupBy(x => new
-                {
-                    x.EmojiId,
-                    EmojiName = x.EmojiId == null
-                        ? x.EmojiName
-                        : null
-                },
-                x => new { x.EmojiId, x.EmojiName, x.IsAnimated, x.Timestamp })
-                .ToArrayAsync();
-
-            var counts = emoji.ToDictionary(
-                x =>
-                {
-                    var mostRecentEmoji = x.OrderByDescending(y => y.Timestamp).First();
-                    return EphemeralEmoji.FromRawData(mostRecentEmoji.EmojiName, mostRecentEmoji.EmojiId, mostRecentEmoji.IsAnimated);
-                },
-                x => x.Count());
-
-            return counts;
-        }
-
-        /// <inheritdoc />
         public async Task<IReadOnlyCollection<EmojiSummary>> SearchSummariesAsync(EmojiSearchCriteria criteria)
         {
             if (criteria is null)
@@ -232,8 +192,9 @@ namespace Modix.Data.Repositories
 
             return SingleEmojiUsageStatistics.FromDto(stats ?? new SingleEmojiStatsDto());
 
-            NpgsqlParameter[] GetParameters() =>
-                new[]
+            NpgsqlParameter[] GetParameters()
+            {
+                var paramList = new List<NpgsqlParameter>(3)
                 {
                     new NpgsqlParameter(":GuildId", NpgsqlDbType.Bigint)
                     {
@@ -248,22 +209,36 @@ namespace Modix.Data.Repositories
                         {
                             Value = unchecked((long)emoji.Id.Value),
                         },
-                    new NpgsqlParameter(":StartTimestamp", NpgsqlDbType.TimestampTz)
-                    {
-                        Value = dateFilter is null
-                            ? DateTimeOffset.MinValue
-                            : DateTimeOffset.Now - dateFilter
-                    }
                 };
 
+                if (dateFilter.HasValue)
+                {
+                    paramList.Add(new NpgsqlParameter(":StartTimestamp", NpgsqlDbType.TimestampTz)
+                    {
+                        Value = DateTimeOffset.Now - dateFilter,
+                    });
+                }
+
+                return paramList.ToArray();
+            }
+
             string GetQuery()
-                => $@"
+            {
+                var dateClause = dateFilter.HasValue
+                    ? @"and ""Timestamp"" >= :StartTimestamp"
+                    : string.Empty;
+
+                var emojiClause = emoji.Id is null
+                    ? @"""EmojiName"" = :EmojiName"
+                    : @"""EmojiId"" = :EmojiId";
+
+                return $@"
                     with user_stats as (
                         select ""UserId"" as ""TopUserId"", count(*) as ""TopUserUses""
                         from ""Emoji""
                         where ""GuildId"" = :GuildId
-                            and ""Timestamp"" >= :StartTimestamp
-                            and { (emoji.Id is null ? @"""EmojiName"" = :EmojiName" : @"""EmojiId"" = :EmojiId") }
+                            {dateClause}
+                            and {emojiClause}
                         group by ""UserId""
                         order by count(*) desc
                         limit 1
@@ -272,12 +247,13 @@ namespace Modix.Data.Repositories
                         select ""EmojiId"", ""EmojiName"", ""IsAnimated"", count(*) as ""Uses"", row_number() over (order by count(*) desc) as ""Rank""
                         from ""Emoji""
                         where ""GuildId"" = :GuildId
-                            and ""Timestamp"" >= :StartTimestamp
+                            {dateClause}
                         group by ""EmojiId"", ""EmojiName"", ""IsAnimated""
                     )
                     select ""EmojiId"", ""EmojiName"", ""IsAnimated"", ""Uses"", ""Rank"", ""TopUserId"", ""TopUserUses""
                     from stats, user_stats
-                    where { (emoji.Id is null ? @"""EmojiName"" = :EmojiName" : @"""EmojiId"" = :EmojiId") }";
+                    where {emojiClause}";
+            }
         }
 
         /// <inheritdoc />
@@ -296,21 +272,23 @@ namespace Modix.Data.Repositories
 
             NpgsqlParameter[] GetParameters()
             {
-                var paramList = new List<NpgsqlParameter>(3)
+                var paramList = new List<NpgsqlParameter>(4)
                 {
                     new NpgsqlParameter(":GuildId", NpgsqlDbType.Bigint)
                     {
                         Value = unchecked((long)guildId),
                     },
-                    new NpgsqlParameter(":StartTimestamp", NpgsqlDbType.TimestampTz)
-                    {
-                        Value = dateFilter is null
-                            ? DateTimeOffset.MinValue
-                            : DateTimeOffset.Now - dateFilter
-                    }
                 };
 
-                if (!(userId is null))
+                if (dateFilter.HasValue)
+                {
+                    paramList.Add(new NpgsqlParameter(":StartTimestamp", NpgsqlDbType.TimestampTz)
+                    {
+                        Value = DateTimeOffset.Now - dateFilter,
+                    });
+                }
+
+                if (userId.HasValue)
                 {
                     paramList.Add(new NpgsqlParameter(":UserId", NpgsqlDbType.Bigint)
                     {
@@ -330,21 +308,39 @@ namespace Modix.Data.Repositories
             }
 
             string GetQuery()
-                => $@"
+            {
+                var dateClause = dateFilter.HasValue
+                    ? @"and ""Timestamp"" >= :StartTimestamp"
+                    : string.Empty;
+
+                var userClause = userId.HasValue
+                    ? @"and ""UserId"" = :UserId"
+                    : string.Empty;
+
+                var emojiClause = emojiIds is null || !emojiIds.Any()
+                    ? string.Empty
+                    : @"and ""EmojiId"" = any(:EmojiIds)";
+
+                var sortClause = sortDirection == SortDirection.Ascending
+                    ? "asc"
+                    : "desc";
+
+                return $@"
                     with stats as (
                         select ""EmojiId"", ""EmojiName"", ""IsAnimated"", count(*) as ""Uses"", row_number() over (order by count(*) desc) as ""Rank""
                         from ""Emoji""
                         where ""GuildId"" = :GuildId
-                            and ""Timestamp"" >= :StartTimestamp
-                            {(userId is null ? string.Empty : @"and ""UserId"" = :UserId")}
-                            {(emojiIds is null || !emojiIds.Any() ? string.Empty : @"and ""EmojiId"" = any(:EmojiIds)")}
+                            {dateClause}
+                            {userClause}
+                            {emojiClause}
                         group by ""EmojiId"", ""EmojiName"", ""IsAnimated""
-                        order by ""Rank"" {(sortDirection == SortDirection.Ascending ? "asc" : "desc")}
+                        order by ""Rank"" {sortClause}
                         limit {recordLimit}
                     )
                     select ""EmojiId"", ""EmojiName"", ""IsAnimated"", ""Uses"", ""Rank""
                     from stats
                     order by ""Rank"" asc";
+            }
         }
 
         /// <inheritdoc />
@@ -390,17 +386,27 @@ namespace Modix.Data.Repositories
             }
 
             string GetQuery()
-                => $@"
+            {
+                var userClause = userId.HasValue
+                    ? @"and ""UserId"" = :UserId"
+                    : string.Empty;
+
+                var emojiClause = emojiIds is null || !emojiIds.Any()
+                    ? string.Empty
+                    : @"and ""EmojiId"" = any(:EmojiIds)";
+
+                return $@"
                     with stats as (
                         select count(distinct coalesce(cast(""EmojiId"" as text), ""EmojiName"")) as ""UniqueEmojis"", count(*) as ""TotalUses"", coalesce(min(""Timestamp""), now()) as ""OldestTimestamp""
                         from ""Emoji""
                         where ""GuildId"" = :GuildId
-                        {(userId.HasValue ? @"and ""UserId"" = :UserId" : string.Empty)}
-                        {(emojiIds is null || !emojiIds.Any() ? string.Empty : @"and ""EmojiId"" = any(:EmojiIds)")}
+                            {userClause}
+                            {emojiClause}
                         limit 1
                     )
                     select ""UniqueEmojis"", ""TotalUses"", ""OldestTimestamp""
                     from stats";
+            }
         }
 
         private static readonly RepositoryTransactionFactory _maintainTransactionFactory

@@ -98,20 +98,20 @@ namespace Modix.Services.Utilities
             }
         }
 
-        public static string FormatInfractionCounts(IDictionary<InfractionType, int> counts)
+        public static string FormatInfractionCounts(IReadOnlyCollection<InfractionCount> counts)
         {
-            if (counts.Values.Sum() == 0)
+            if (counts.Sum(x => x.Count) == 0)
             {
                 return "This user is clean - no active infractions!";
             }
 
             var formatted = 
-                counts.Select(d =>
-                    {
-                        var formattedKey = d.Key.Humanize().ToLower();
-                        return $"{d.Value} {(d.Value == 1 ? formattedKey : formattedKey.Pluralize())}";
-                    })
-                    .Humanize();
+                counts.OrderBy(x => x.Type).Select(d =>
+                {
+                    var formattedKey = d.Type.Humanize().ToLower();
+                    return formattedKey.ToQuantity(d.Count);
+                })
+                .Humanize();
 
             return $"This user has {formatted}";
         }

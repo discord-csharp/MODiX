@@ -204,7 +204,7 @@ namespace Modix.Modules
 
             if (!(Context.Channel as IGuildChannel).IsPublic())
             {
-                var counts = await _moderationService.GetInfractionCountsForUserAsync(userId);
+                var counts = await _moderationService.GetInfractionCountsForUserAsync(Context.Guild.Id, userId);
                 builder.AppendLine(FormatUtilities.FormatInfractionCounts(counts));
             }
             else
@@ -313,7 +313,7 @@ namespace Modix.Modules
             return string.Empty;
         }
 
-        private void AddPromotionsToEmbed(StringBuilder builder, IReadOnlyCollection<PromotionCampaignSummary> promotions)
+        private void AddPromotionsToEmbed(StringBuilder builder, IReadOnlyCollection<PromotionCampaignResultBrief> promotions)
         {
             if (promotions.Count == 0)
                 return;
@@ -321,9 +321,9 @@ namespace Modix.Modules
             builder.AppendLine();
             builder.AppendLine(Format.Bold("\u276F Promotion History"));
 
-            foreach (var promotion in promotions.OrderByDescending(x => x.CloseAction.Id).Take(5))
+            foreach (var promotion in promotions.OrderByDescending(x => x.Closed).Take(5))
             {
-                builder.AppendLine($"• {MentionUtils.MentionRole(promotion.TargetRole.Id)} {FormatUtilities.FormatTimeAgo(_utcNow, promotion.CloseAction.Created)}");
+                builder.AppendLine($"• {MentionUtils.MentionRole(promotion.TargetRoleId)} {FormatUtilities.FormatTimeAgo(_utcNow, promotion.Closed)}");
             }
         }
     }

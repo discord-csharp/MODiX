@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
-
+using Humanizer;
 using Modix.Bot.Extensions;
 using Modix.Data.Models.Promotions;
 using Modix.Data.Utilities;
@@ -50,16 +50,21 @@ namespace Modix.Modules
 
             foreach (var campaign in campaigns)
             {
-                var idLabel = $"#{campaign.Id}";
-                var votesLabel = (campaign.GetTotalVotes() == 1) ? "Vote" : "Votes";
+                var sentimentCounts = await PromotionsService.GetSentimentCounts(campaign.Id);
 
-                var percentage = Math.Round(campaign.GetApprovalPercentage() * 100);
+                var idLabel = $"#{campaign.Id}";
+                var votesLabel = "Vote".ToQuantity(sentimentCounts.Sum(x => x.Count));
+
+                var approvals = sentimentCounts.Count(x => x.Sentiment == PromotionSentiment.Approve);
+                var total = sentimentCounts.Count(x => x.Sentiment == PromotionSentiment.Approve || x.Sentiment == PromotionSentiment.Oppose);
+                var percentage = Math.Round(approvals / total * 100d);
+
                 var approvalLabel = Format.Italics($"{percentage}% approval");
 
                 embed.AddField(new EmbedFieldBuilder()
                 {
                     Name = $"{Format.Bold(idLabel)}: For {Format.Bold(campaign.Subject.GetFullUsername())} to {Format.Bold(campaign.TargetRole.Name)}",
-                    Value = $"{campaign.GetTotalVotes()} {votesLabel} ({approvalLabel})",
+                    Value = $"{votesLabel} ({approvalLabel})",
                     IsInline = false
                 });
             }

@@ -48,12 +48,6 @@ namespace Modix.Data.Models.Promotions
         /// </summary>
         public PromotionActionBrief CloseAction { get; set; }
 
-        /// <summary>
-        /// A summarization of <see cref="PromotionCampaignEntity.Comments"/>,
-        /// summarizing the total number of comments, grouped by <see cref="PromotionCommentEntity.Sentiment"/>.
-        /// </summary>
-        public IReadOnlyDictionary<PromotionSentiment, int> CommentCounts { get; set; }
-
         [ExpansionExpression]
         internal static Expression<Func<PromotionCampaignEntity, PromotionCampaignSummary>> FromEntityProjection
             = entity => new PromotionCampaignSummary()
@@ -67,11 +61,6 @@ namespace Modix.Data.Models.Promotions
                 CloseAction = (entity.CloseAction == null)
                     ? null
                     : entity.CloseAction.Project(PromotionActionBrief.FromEntityProjection),
-                CommentCounts = entity.Comments
-                    .Where(x => x.ModifyActionId == null)
-                    .GroupBy(x => x.Sentiment)
-                    .Select(x => new { x.Key, Count = x.Count() })
-                    .ToDictionary(x => x.Key, x => x.Count)
             };
     }
 }

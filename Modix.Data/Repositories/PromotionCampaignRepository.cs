@@ -83,7 +83,7 @@ namespace Modix.Data.Repositories
         Task<PromotionActionSummary> TryCloseAsync(long campaignId, ulong closedById, PromotionCampaignOutcome outcome);
 
         /// <summary>
-        /// Retireves the promotion progression for the supplied user.
+        /// Retrieves the promotion progression for the supplied user.
         /// </summary>
         /// <param name="guildId">The unique Discord snowflake ID of the guild in which the desired promotions took place.</param>
         /// <param name="userId">The unique Discord snowflake ID of the user for whom to retrieve promotions.</param>
@@ -91,7 +91,17 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing a collection representing the promotion progression for the supplied user.
         /// </returns>
-        Task<IReadOnlyCollection<PromotionCampaignSummary>> GetPromotionsForUserAsync(ulong guildId, ulong userId);
+        Task<IReadOnlyCollection<PromotionCampaignResultBrief>> GetPromotionsForUserAsync(ulong guildId, ulong userId);
+
+        /// <summary>
+        /// Retrieves sentiment counts for the supplied campaign.
+        /// </summary>
+        /// <param name="campaignId">The unique ID of the campaign for which to retrieve sentiment counts.</param>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing a collection of all possible sentiments and their counts.
+        /// </returns>
+        Task<IReadOnlyCollection<PromotionSentimentCount>> GetSentimentCountsAsync(long campaignId);
     }
 
     /// <inheritdoc />
@@ -187,14 +197,42 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<PromotionCampaignSummary>> GetPromotionsForUserAsync(ulong guildId, ulong userId)
-            => await ModixContext.PromotionCampaigns.AsNoTracking()
-                .Where(x => x.GuildId == guildId
-                    && x.SubjectId == userId
-                    && x.Outcome == PromotionCampaignOutcome.Accepted)
-                .AsExpandable()
-                .Select(PromotionCampaignSummary.FromEntityProjection)
+        public async Task<IReadOnlyCollection<PromotionCampaignResultBrief>> GetPromotionsForUserAsync(ulong guildId, ulong userId)
+        {
+            var results = await ModixContext.Query<PromotionCampaignResultBrief>()
+                .AsNoTracking()
+                .FromSql($@"
+                    select ""PromotionCampaigns"".""GuildId"",
+                        ""PromotionCampaigns"".""SubjectId"",
+                        ""PromotionCampaigns"".""TargetRoleId"",
+                        ""CloseAction"".""Created"" as ""Closed"",
+                        ""PromotionCampaigns"".""Outcome""
+                    from ""PromotionCampaigns""
+                        inner join ""PromotionActions"" ""CloseAction""
+                        on ""CloseAction"".""Id"" = ""PromotionCampaigns"".""CloseActionId""
+                    where ""PromotionCampaigns"".""GuildId"" = {guildId}
+                        and ""PromotionCampaigns"".""SubjectId"" = {userId}
+                        and ""PromotionCampaigns"".""Outcome"" = 'Accepted'")
                 .ToArrayAsync();
+
+            return results;
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<PromotionSentimentCount>> GetSentimentCountsAsync(long campaignId)
+        {
+            var results = await ModixContext.Query<PromotionSentimentCount>()
+                .AsNoTracking()
+                .FromSql($@"
+                    select ""Sentiment"", count(*) as ""Count""
+                    from ""PromotionComments""
+                    where ""CampaignId"" = {campaignId}
+                        and ""ModifyActionId"" is null
+                    group by ""Sentiment""")
+                .ToArrayAsync();
+
+            return results;
+        }
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
             = new RepositoryTransactionFactory();

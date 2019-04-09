@@ -110,7 +110,17 @@ namespace Modix.Services.Promotions
         /// A <see cref="Task"/> that will complete when the operation is complete,
         /// containing a collection representing the promotion progression for the supplied user.
         /// </returns>
-        Task<IReadOnlyCollection<PromotionCampaignSummary>> GetPromotionsForUserAsync(ulong guildId, ulong userId);
+        Task<IReadOnlyCollection<PromotionCampaignResultBrief>> GetPromotionsForUserAsync(ulong guildId, ulong userId);
+
+        /// <summary>
+        /// Retrieves sentiment counts for the supplied campaign.
+        /// </summary>
+        /// <param name="campaignId">The unique ID of the campaign for which to retrieve sentiment counts.</param>
+        /// <returns>
+        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing a collection of all possible sentiments and their counts.
+        /// </returns>
+        Task<IReadOnlyCollection<PromotionSentimentCount>> GetSentimentCounts(long campaignId);
     }
 
     /// <inheritdoc />
@@ -380,7 +390,15 @@ namespace Modix.Services.Promotions
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<PromotionCampaignSummary>> GetPromotionsForUserAsync(ulong guildId, ulong userId)
+        public async Task<IReadOnlyCollection<PromotionSentimentCount>> GetSentimentCounts(long campaignId)
+        {
+            AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsRead);
+
+            return await PromotionCampaignRepository.GetSentimentCountsAsync(campaignId);
+        }
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<PromotionCampaignResultBrief>> GetPromotionsForUserAsync(ulong guildId, ulong userId)
             => await PromotionCampaignRepository.GetPromotionsForUserAsync(guildId, userId);
 
         /// <summary>

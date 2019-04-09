@@ -75,11 +75,16 @@ namespace Modix.Data
             foreach(var method in onModelCreatingMethods)
                 method.Invoke(null, new [] { modelBuilder });
 
+            modelBuilder.Query<PerChannelMessageCount>();
+            modelBuilder.Query<PerDateMessageCount>();
             modelBuilder.Query<PerUserMessageCount>();
             modelBuilder.Query<GuildUserParticipationStatistics>();
             modelBuilder.Query<SingleEmojiStatsDto>();
             modelBuilder.Query<EmojiStatsDto>();
             modelBuilder.Query<GuildEmojiStats>();
+            modelBuilder.Query<InfractionCount>();
+            modelBuilder.Query<PromotionCampaignResultBrief>();
+            modelBuilder.Query<PromotionSentimentCount>();
         }
     }
 }

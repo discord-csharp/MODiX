@@ -176,17 +176,35 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<IReadOnlyDictionary<DateTime, int>> GetGuildUserMessageCountByDate(ulong guildId, ulong userId, TimeSpan timespan)
         {
-            return await GetGuildUserMessages(guildId, userId, timespan)
-                .GroupBy(x => x.Timestamp.Date)
-                .ToDictionaryAsync(x => x.Key, x => x.Count());
+            var earliestDateTime = DateTimeOffset.UtcNow - timespan;
+
+            return await ModixContext.Query<PerDateMessageCount>()
+                .AsNoTracking()
+                .FromSql($@"
+                    select date_trunc('day', ""Timestamp"") as ""Date"", count(*) as ""Count""
+                    from ""Messages""
+                    where ""GuildId"" = {guildId}
+                        and ""AuthorId"" = {userId}
+                        and ""Timestamp"" >= {earliestDateTime}
+                    group by date_trunc('day', ""Timestamp"")")
+                .ToDictionaryAsync(x => x.Date, x => x.Count);
         }
 
         /// <inheritdoc />
         public async Task<IReadOnlyDictionary<ulong, int>> GetGuildUserMessageCountByChannel(ulong guildId, ulong userId, TimeSpan timespan)
         {
-            return await GetGuildUserMessages(guildId, userId, timespan)
-                .GroupBy(x => x.ChannelId)
-                .ToDictionaryAsync(x => x.Key, x => x.Count());
+            var earliestDateTime = DateTimeOffset.UtcNow - timespan;
+
+            return await ModixContext.Query<PerChannelMessageCount>()
+                .AsNoTracking()
+                .FromSql($@"
+                    select ""ChannelId"", count(*) as ""Count""
+                    from ""Messages""
+                    where ""GuildId"" = {guildId}
+                        and ""AuthorId"" = {userId}
+                        and ""Timestamp"" >= {earliestDateTime}
+                    group by ""ChannelId""")
+                .ToDictionaryAsync(x => x.ChannelId, x => x.Count);
         }
 
         /// <inheritdoc />
@@ -247,7 +265,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<GuildUserParticipationStatistics> GetGuildUserParticipationStatistics(ulong guildId, ulong userId)
         {
-            var stats = await ModixContext.Query<GuildUserParticipationStatistics>()
+            var result = await ModixContext.Query<GuildUserParticipationStatistics>()
                 .AsNoTracking()
                 .FromSql(
                     @"with msgs as (
@@ -280,11 +298,14 @@ namespace Modix.Data.Repositories
                     )
                     select ""AveragePerDay"", ""Percentile"", ""Rank"", ""GuildId"", ""UserId""
                     from ranked_users
-                    where ""UserId"" = cast(:UserId as numeric(20))",
+                    where ""UserId"" = cast(:UserId as numeric(20))
+                    order by ""AveragePerDay"" desc
+                    limit 1",
                     new NpgsqlParameter(":GuildId", guildId.ToString()),
                     new NpgsqlParameter(":UserId", userId.ToString()))
-                .OrderByDescending(x => x.AveragePerDay)
-                .FirstOrDefaultAsync() ?? new GuildUserParticipationStatistics();
+                .ToArrayAsync();
+
+            var stats = result.SingleOrDefault() ?? new GuildUserParticipationStatistics();
 
             stats.GuildId = guildId;
             stats.UserId = userId;
@@ -331,20 +352,15 @@ namespace Modix.Data.Repositories
         {
             var earliestDateTime = DateTimeOffset.UtcNow - timespan;
 
-            return await ModixContext.Messages
+            return await ModixContext.Query<PerChannelMessageCount>()
                 .AsNoTracking()
-                .Where(x => x.GuildId == guildId && x.Timestamp >= earliestDateTime)
-                .GroupBy(x => x.ChannelId)
-                .ToDictionaryAsync(x => x.Key, x => x.Count());
-        }
-
-        private IQueryable<MessageEntity> GetGuildUserMessages(ulong guildId, ulong userId, TimeSpan timespan)
-        {
-            var earliestDateTime = DateTimeOffset.UtcNow - timespan;
-
-            return ModixContext.Messages
-                .AsNoTracking()
-                .Where(x => x.GuildId == guildId && x.AuthorId == userId && x.Timestamp >= earliestDateTime);
+                .FromSql($@"
+                    select ""ChannelId"", count(*) as ""Count""
+                    from ""Messages""
+                    where ""GuildId"" = {guildId}
+                        and ""Timestamp"" >= {earliestDateTime}
+                    group by ""ChannelId""")
+                .ToDictionaryAsync(x => x.ChannelId, x => x.Count);
         }
     }
 }

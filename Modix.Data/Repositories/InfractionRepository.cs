@@ -9,6 +9,8 @@ using Modix.Data.ExpandableQueries;
 using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Utilities;
+using Npgsql;
+using NpgsqlTypes;
 
 namespace Modix.Data.Repositories
 {
@@ -86,9 +88,10 @@ namespace Modix.Data.Repositories
         /// <summary>
         /// Searches the repository for infraction information, based on an arbitrary set of criteria, and returns the counts of those infractions grouped by type.
         /// </summary>
-        /// <param name="searchCriteria">The criteria for selecting <see cref="InfractionSummary"/> records to be returned.</param>
+        /// <param name="guildId">The unique Discord snowflake ID of the guild in which infraction counts are being retrieved.</param>
+        /// <param name="subjectId">The unique Discord snowflake ID of the user for whom infraction counts are being retrieved.</param>
         /// <returns>A <see cref="Task"/> which will complete when the matching records have been retrieved.</returns>
-        Task<IDictionary<InfractionType, int>> GetInfractionCountsAsync(InfractionSearchCriteria searchCriteria);
+        Task<IReadOnlyCollection<InfractionCount>> GetInfractionCountsAsync(ulong guildId, ulong subjectId);
 
         /// <summary>
         /// Searches the repository for infraction information, based on an arbitrary set of criteria, and pages the results.
@@ -199,23 +202,54 @@ namespace Modix.Data.Repositories
                 .ToArrayAsync();
 
         /// <inheritdoc />
-        public async Task<IDictionary<InfractionType, int>> GetInfractionCountsAsync(InfractionSearchCriteria searchCriteria)
+        public async Task<IReadOnlyCollection<InfractionCount>> GetInfractionCountsAsync(ulong guildId, ulong subjectId)
         {
-            var result = await ModixContext.Infractions.AsNoTracking()
-                .FilterBy(searchCriteria)
-                .GroupBy(x => x.Type)
+            var query = GetQuery();
+            var parameters = GetParameters();
+
+            var counts = await ModixContext.Query<InfractionCount>()
+                .AsNoTracking()
+                .FromSql(query, parameters)
                 .ToArrayAsync();
 
-            //Initialize the returned dictionary so we always have all infraction types present
-            var ret = Enum.GetValues(typeof(InfractionType)).Cast<InfractionType>()
-                .ToDictionary(x => x, _ => 0);
+            return counts;
 
-            foreach (var group in result)
+            string GetQuery()
             {
-                ret[group.Key] = group.Count();
+                var infractionNames = Enum.GetNames(typeof(InfractionType));
+                var allInfractionTypes = string.Join(" union ", infractionNames.Select(x => $@"select '{x}' as ""Type"""));
+
+                return $@"
+                    with infractionTypes as (
+                        {allInfractionTypes}
+                    ),
+                    userInfractions as (
+	                    select ""Type"", count(*) as ""Count""
+                        from ""Infractions""
+                        where ""GuildId"" = :GuildId
+                            and ""SubjectId"" = :SubjectId
+                        group by ""Type""
+                    )
+                    select infractionTypes.""Type"", coalesce(userInfractions.""Count"", 0) as ""Count""
+                    from userInfractions
+                        right join infractionTypes
+                        on infractionTypes.""Type"" = userInfractions.""Type""";
             }
 
-            return ret;
+            NpgsqlParameter[] GetParameters()
+            {
+                return new[]
+                {
+                    new NpgsqlParameter(":GuildId", NpgsqlDbType.Bigint)
+                    {
+                        Value = unchecked((long)guildId),
+                    },
+                    new NpgsqlParameter(":SubjectId", NpgsqlDbType.Bigint)
+                    {
+                        Value = unchecked((long)subjectId),
+                    },
+                };
+            }
         }
 
         /// <inheritdoc />

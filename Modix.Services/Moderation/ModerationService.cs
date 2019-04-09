@@ -148,9 +148,10 @@ namespace Modix.Services.Moderation
         /// <summary>
         /// Retrieves a count of the types of infractions the given user has recieved.
         /// </summary>
-        /// <param name="subjectId">The ID of the user to retrieve counts for</param>
-        /// <returns>A <see cref="Task"/> which results in a Dictionary of infraction type to counts. Will return zeroes for types for which there are no infractions.</returns>
-        Task<IDictionary<InfractionType, int>> GetInfractionCountsForUserAsync(ulong subjectId);
+        /// <param name="guildId">The ID of the guild to retrieve infraction counts for.</param>
+        /// <param name="subjectId">The ID of the user to retrieve counts for.</param>
+        /// <returns>A <see cref="Task"/> which results in a collection of infraction type counts. Will return zeroes for types for which there are no infractions.</returns>
+        Task<IReadOnlyCollection<InfractionCount>> GetInfractionCountsForUserAsync(ulong guildId, ulong subjectId);
 
         /// <summary>
         /// Retrieves a moderation action, based on its ID.
@@ -655,16 +656,12 @@ namespace Modix.Services.Moderation
             return InfractionRepository.SearchSummariesPagedAsync(searchCriteria, sortingCriteria, pagingCriteria);
         }
 
-        public async Task<IDictionary<InfractionType, int>> GetInfractionCountsForUserAsync(ulong subjectId)
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<InfractionCount>> GetInfractionCountsForUserAsync(ulong guildId, ulong subjectId)
         {
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
 
-            return await InfractionRepository.GetInfractionCountsAsync(new InfractionSearchCriteria
-            {
-                GuildId = AuthorizationService.CurrentGuildId,
-                SubjectId = subjectId,
-                IsDeleted = false
-            });
+            return await InfractionRepository.GetInfractionCountsAsync(guildId, subjectId);
         }
 
         /// <inheritdoc />
