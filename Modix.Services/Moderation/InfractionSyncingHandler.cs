@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,6 +8,7 @@ using Discord.WebSocket;
 
 using Modix.Common.Messaging;
 using Modix.Data.Models.Moderation;
+using Modix.Services.Core;
 using Modix.Services.Utilities;
 
 namespace Modix.Services.Moderation
@@ -20,6 +21,7 @@ namespace Modix.Services.Moderation
     {
         private readonly IModerationService _moderationService;
         private readonly DiscordRestClient _restClient;
+        private readonly IAuthorizationService _authorizationService;
 
         /// <summary>
         /// Constructs a new <see cref="InfractionSyncingHandler"/> object with the given injected dependencies.
@@ -28,10 +30,12 @@ namespace Modix.Services.Moderation
         /// <param name="restClient">A REST client to interact with the Discord API.</param>
         public InfractionSyncingHandler(
             IModerationService moderationService,
+            IAuthorizationService authorizationService,
             DiscordRestClient restClient)
         {
             _moderationService = moderationService;
             _restClient = restClient;
+            _authorizationService = authorizationService;
         }
 
         public Task HandleNotificationAsync(UserBannedNotification notification, CancellationToken cancellationToken)
@@ -55,7 +59,7 @@ namespace Modix.Services.Moderation
             var restGuild = await _restClient.GetGuildAsync(guild.Id);
             var auditLogs = (await restGuild.GetAuditLogsAsync(10)
                 .FlattenAsync())
-                .Where(x => x.Action == ActionType.Ban)
+                .Where(x => x.Action == ActionType.Ban && x.Data is BanAuditLogData)
                 .Select(x => (Entry: x, Data: (BanAuditLogData)x.Data));
 
             var banLog = auditLogs.FirstOrDefault(x => x.Data.Target.Id == user.Id);
@@ -64,6 +68,9 @@ namespace Modix.Services.Moderation
                 ? $"Banned by {banLog.Entry.User.GetDisplayNameWithDiscriminator()}."
                 : banLog.Entry.Reason;
 
+            var guildUser = guild.GetUser(banLog.Entry.User.Id);
+
+            await _authorizationService.OnAuthenticatedAsync(guildUser);
             await _moderationService.CreateInfractionAsync(guild.Id, banLog.Entry.User.Id, InfractionType.Ban, user.Id, reason, null);
         }
 
