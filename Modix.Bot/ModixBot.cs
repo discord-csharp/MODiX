@@ -120,7 +120,7 @@ namespace Modix
 
                 Log.LogInformation("Discord client started successfully.");
 
-                await Task.Delay(-1);
+                await Task.Delay(-1, stoppingToken);
             }
             catch (Exception ex)
             {
@@ -171,11 +171,30 @@ namespace Modix
             return Task.CompletedTask;
         }
 
-        private Task OnDisconnect(Exception ex)
+        private async Task OnDisconnect(Exception ex)
         {
             Log.LogInformation(ex, "The bot disconnected unexpectedly. Stopping the application.");
+
+            _ = _client.LogoutAsync();
+            _ = _restClient.LogoutAsync();
+            var stopTask = _client.StopAsync();
+            var timeoutTask = Task.Delay(5000);
+
+            var resultTask = await Task.WhenAny(stopTask, timeoutTask);
+
+            if (resultTask != stopTask)
+            {
+                _client.Dispose();
+                _restClient.Dispose();
+
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(10000);
+                    Environment.Exit(-1);
+                });
+            }
+
             _applicationLifetime.StopApplication();
-            return Task.CompletedTask;
         }
 
         public override void Dispose()
