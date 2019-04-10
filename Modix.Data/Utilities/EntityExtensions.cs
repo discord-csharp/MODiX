@@ -24,6 +24,8 @@ namespace Modix.Data.Utilities
                 .Where(x => x.Key == PromotionSentiment.Approve)
                 .Sum(x => x.Value);
 
+            if (totalApprovals < 1) return 0;
+
             double totalVotes = GetTotalVotes(campaign);
 
             return totalApprovals / totalVotes;
