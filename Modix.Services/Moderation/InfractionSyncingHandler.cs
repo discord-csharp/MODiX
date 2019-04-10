@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -65,7 +65,7 @@ namespace Modix.Services.Moderation
             var banLog = auditLogs.FirstOrDefault(x => x.Data.Target.Id == user.Id);
 
             var reason = string.IsNullOrWhiteSpace(banLog.Entry.Reason)
-                ? $"Banned by {banLog.Entry.User.GetDisplayNameWithDiscriminator()}."
+                ? $"Banned by {banLog.Entry.User.GetFullUsername()}."
                 : banLog.Entry.Reason;
 
             var guildUser = guild.GetUser(banLog.Entry.User.Id);

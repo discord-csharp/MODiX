@@ -8,6 +8,7 @@ using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
 using Modix.Services.Core;
+using Modix.Services.Utilities;
 
 namespace Modix.Services.Promotions
 {
@@ -75,7 +76,7 @@ namespace Modix.Services.Promotions
             if (promotionAction.Type != PromotionActionType.CampaignClosed) { return null; }
             if (targetCampaign.Outcome != PromotionCampaignOutcome.Accepted) { return null; }
 
-            var boldName = $"**{targetCampaign.Subject.Username}#{targetCampaign.Subject.Discriminator}**";
+            var boldName = $"**{targetCampaign.Subject.GetFullUsername()}**";
             var boldRole = $"**{MentionUtils.MentionRole(targetCampaign.TargetRole.Id)}**";
 
             var subject = await UserService.GetUserInformationAsync(data.GuildId, targetCampaign.Subject.Id);

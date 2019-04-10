@@ -119,7 +119,7 @@ namespace Modix.Modules
             }
 
             var embedBuilder = new EmbedBuilder()
-                .WithAuthor(userInfo.Username + "#" + userInfo.Discriminator)
+                .WithAuthor(userInfo.GetFullUsername())
                 .WithTimestamp(_utcNow);
 
             var avatar = userInfo.GetDefiniteAvatarUrl();

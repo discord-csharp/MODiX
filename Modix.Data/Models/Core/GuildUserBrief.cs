@@ -34,7 +34,13 @@ namespace Modix.Data.Models.Core
         /// The name to display for this user.
         /// </summary>
         public string DisplayName
-            => Nickname ?? $"{Username}#{Discriminator}";
+            => Nickname ?? FullUsername;
+
+        /// <summary>
+        /// The full username of the user, in <see cref="UserEntity.Username"/>#<see cref="UserEntity.Discriminator"/> format.
+        /// </summary>
+        public string FullUsername
+            => $"{Username}#{Discriminator}";
 
         [ExpansionExpression]
         internal static readonly Expression<Func<GuildUserEntity, GuildUserBrief>> FromEntityProjection

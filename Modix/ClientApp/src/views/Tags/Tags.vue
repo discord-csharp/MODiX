@@ -70,7 +70,7 @@ const guildUserFilter = (subject: TagOwner, filter: string) =>
     filter = _.lowerCase(filter);
 
     return subject.id.toString().startsWith(filter) ||
-        _.lowerCase(subject.displayName).indexOf(filter) >= 0;
+        _.lowerCase(subject.fullUsername).indexOf(filter) >= 0;
 };
 
 const guildUserSort = (x: TagOwner, y: TagOwner, col: any, rowX: any, rowY: any) =>
@@ -204,7 +204,7 @@ export default class Tags extends ModixComponent
         }
         else //is a user
         {
-            mention = `${owner.displayName}`;
+            mention = `${owner.fullUsername}`;
         }
 
         return this.parseDiscordContent(mention);

@@ -4,6 +4,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Modix.Services.CommandHelp;
+using Modix.Services.Utilities;
 using Serilog;
 
 namespace Modix.Modules
@@ -42,7 +43,7 @@ namespace Modix.Modules
                 builder.AddField("Reason", reason, true);
             }
 
-            var mover = $"@{(Context.User as SocketGuildUser)?.Nickname ?? Context.User.Username}";
+            var mover = $"{Context.User.GetFullUsername()}";
             builder.WithFooter($"Message copied from #{message.Channel.Name} by {mover}");
 
             await channel.SendMessageAsync("", embed: builder.Build());

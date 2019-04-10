@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Discord;
 using Humanizer.Bytes;
 using Modix.Data.Models.Moderation;
+using Modix.Services.Utilities;
 
 namespace Modix.Models
 {
@@ -32,16 +33,14 @@ namespace Modix.Models
                 }
             }
 
-            var ret = new DeletedMessageAbstraction
+            return new DeletedMessageAbstraction
             {
                 MessageId = msg.Id,
-                Username = $"{msg.Author.Username}#{msg.Author.Discriminator}",
-                Content = msg.Content,
+                Username = msg.Author.GetFullUsername(),
+                Content = content,
                 SentTime = msg.CreatedAt,
                 Url = msg.GetJumpUrl()
             };
-
-            return ret;
         }
 
         public static DeletedMessageAbstraction FromSummary(DeletedMessageSummary msg)
@@ -49,7 +48,7 @@ namespace Modix.Models
             var ret = new DeletedMessageAbstraction
             {
                 MessageId = msg.MessageId,
-                Username = $"{msg.Author.Username}#{msg.Author.Discriminator}",
+                Username = msg.Author.FullUsername,
                 Content = msg.Content,
                 SentTime = null,
                 Url = null

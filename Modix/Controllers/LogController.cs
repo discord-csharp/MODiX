@@ -110,9 +110,9 @@ namespace Modix.Controllers
                     x => new
                     {
                         Channel = x.Channel.Name,
-                        Author = x.Author.DisplayName,
+                        Author = x.Author.FullUsername,
                         x.Created,
-                        CreatedBy = x.CreatedBy.DisplayName,
+                        CreatedBy = x.CreatedBy.FullUsername,
                         x.Content,
                         x.Reason,
                         x.BatchId,

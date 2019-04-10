@@ -71,7 +71,7 @@ namespace Modix.Modules
             var counts = await ModerationService.GetInfractionCountsForUserAsync(subjectEntity.Id);
 
             var builder = new EmbedBuilder()
-                .WithTitle($"Infractions for user: {subject.Username}#{subject.Discriminator}")
+                .WithTitle($"Infractions for user: {subject.GetFullUsername()}")
                 .WithDescription(FormatUtilities.FormatInfractionCounts(counts))
                 .WithUrl($"https://mod.gg/infractions/?subject={subject.UserId}")
                 .WithColor(new Color(0xA3BF0B))

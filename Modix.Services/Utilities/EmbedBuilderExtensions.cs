@@ -7,7 +7,7 @@ namespace Modix.Services.Utilities
         public static EmbedBuilder WithVerboseAuthor(this EmbedBuilder builder, IUser user)
         {
             return builder
-                .WithAuthor($"{user.Username}#{user.Discriminator} ({user.Id})", user.GetDefiniteAvatarUrl());
+                .WithAuthor($"{user.GetFullUsername()} ({user.Id})", user.GetDefiniteAvatarUrl());
         }
     }
 }
