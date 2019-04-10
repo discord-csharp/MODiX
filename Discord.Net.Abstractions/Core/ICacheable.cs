@@ -50,15 +50,28 @@ namespace Discord
 
         /// <inheritdoc />
         public TEntity Value
-            => _cacheable.Value;
+            => (TEntity)AbstractEntity(_cacheable.Value);
 
         /// <inheritdoc />
-        public Task<TEntity> DownloadAsync()
-            => _cacheable.DownloadAsync();
+        public async Task<TEntity> DownloadAsync()
+            => (TEntity)AbstractEntity(await _cacheable.DownloadAsync());
 
         /// <inheritdoc />
-        public Task<TEntity> GetOrDownloadAsync()
-           => _cacheable.GetOrDownloadAsync();
+        public async Task<TEntity> GetOrDownloadAsync()
+           => (TEntity)AbstractEntity(await _cacheable.GetOrDownloadAsync());
+
+        private static object AbstractEntity(object entity)
+            => entity switch
+            {
+                IUserMessage userMessage
+                    => userMessage.Abstract() as object,
+                IMessage message
+                    => message.Abstract() as object,
+                IGuild guild
+                    => guild.Abstract() as object,
+                _
+                    => throw new NotSupportedException($"Caching is not supported for Discord type {entity.GetType().FullName}")
+            };
 
         private readonly Cacheable<TEntity, TId> _cacheable;
     }

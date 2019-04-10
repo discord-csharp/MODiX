@@ -242,7 +242,7 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public IReadOnlyCollection<IRestVoiceRegion> VoiceRegions
             => BaseSocketClient.VoiceRegions
-                .Select(RestVoiceRegionAbsractionExtension.Abstract)
+                .Select(RestVoiceRegionAbstractionExtensions.Abstract)
                 .ToArray();
 
         /// <inheritdoc />
@@ -337,8 +337,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         new public async Task<IRestGuild> CreateGuildAsync(string name, IVoiceRegion region, Stream jpegIcon, RequestOptions options)
-            => (await BaseSocketClient.CreateGuildAsync(name, region, jpegIcon, options))
-                .Abstract();
+            => RestGuildAbstractionExtensions.Abstract(
+                await BaseSocketClient.CreateGuildAsync(name, region, jpegIcon, options));
 
         /// <inheritdoc />
         public Task DownloadUsersAsync(IEnumerable<IGuild> guilds)
@@ -346,8 +346,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         new public async Task<IRestApplication> GetApplicationInfoAsync(RequestOptions options)
-            => (await BaseSocketClient.GetApplicationInfoAsync(options))
-                .Abstract();
+            => RestApplicationAbstractionExtensions.Abstract(
+                await BaseSocketClient.GetApplicationInfoAsync(options));
 
         /// <inheritdoc />
         public ISocketChannel GetChannel(ulong id)
@@ -361,8 +361,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         new public async Task<IRestInviteMetadata> GetInviteAsync(string inviteId, RequestOptions options)
-            => (await BaseSocketClient.GetInviteAsync(inviteId, options))
-                .Abstract();
+            => RestInviteMetadataAbstractionExtensions.Abstract(
+                await BaseSocketClient.GetInviteAsync(inviteId, options));
 
         /// <inheritdoc />
         public ISocketUser GetUser(ulong id)
@@ -376,8 +376,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public IRestVoiceRegion GetVoiceRegion(string id)
-            => BaseSocketClient.GetVoiceRegion(id)
-                .Abstract();
+            => RestVoiceRegionAbstractionExtensions.Abstract(
+                BaseSocketClient.GetVoiceRegion(id));
 
         /// <inheritdoc />
         public Task SetActivityAsync(IActivity activity)

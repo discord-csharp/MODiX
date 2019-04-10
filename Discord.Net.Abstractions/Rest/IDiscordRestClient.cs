@@ -173,7 +173,7 @@ namespace Discord.Rest
         /// <inheritdoc />
         new public async Task<IReadOnlyCollection<IRestVoiceRegion>> GetVoiceRegionsAsync(RequestOptions options)
             => (await DiscordRestClient.GetVoiceRegionsAsync(options))
-                .Select(RestVoiceRegionAbsractionExtension.Abstract)
+                .Select(RestVoiceRegionAbstractionExtensions.Abstract)
                 .ToArray();
 
         /// <inheritdoc />

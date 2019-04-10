@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Discord.Rest
@@ -35,12 +36,16 @@ namespace Discord.Rest
             => RestChannel.Id;
 
         /// <inheritdoc />
-        public Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestChannel as IChannel).GetUserAsync(id, mode, options);
+        public async Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestChannel as IChannel).GetUserAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestChannel as IChannel).GetUsersAsync(mode, options);
+            => (RestChannel as IChannel).GetUsersAsync(mode, options)
+                .Select(x => x
+                    .Select(UserAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public Task UpdateAsync(RequestOptions options = null)

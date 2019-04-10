@@ -40,7 +40,10 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null)
-            => RestUserMessage.GetReactionUsersAsync(emoji, limit, options);
+            => RestUserMessage.GetReactionUsersAsync(emoji, limit, options)
+                .Select(x => x
+                    .Select(UserAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public Task ModifyAsync(Action<MessageProperties> func, RequestOptions options = null)

@@ -57,7 +57,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestVoiceRegion"/> objects.
     /// </summary>
-    public static class RestVoiceRegionAbsractionExtension
+    public static class RestVoiceRegionAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestVoiceRegion"/> to an abstracted <see cref="IRestVoiceRegion"/> value.

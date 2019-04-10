@@ -33,7 +33,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         IUser IInviteMetadata.Inviter
-            => (RestInviteMetadata as IInviteMetadata).Inviter;
+            => (RestInviteMetadata as IInviteMetadata).Inviter
+                .Abstract();
 
         /// <inheritdoc />
         public bool IsRevoked

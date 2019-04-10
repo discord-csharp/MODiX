@@ -23,7 +23,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IChannel Channel
-            => (RestInvite as IInvite).Channel;
+            => (RestInvite as IInvite).Channel
+                .Abstract();
 
         /// <inheritdoc />
         public ulong ChannelId
@@ -43,7 +44,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IGuild Guild
-            => (RestInvite as IInvite).Guild;
+            => (RestInvite as IInvite).Guild
+                .Abstract();
 
         /// <inheritdoc />
         public ulong? GuildId

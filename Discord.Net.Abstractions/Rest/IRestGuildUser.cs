@@ -22,7 +22,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IGuild Guild
-            => (RestGuildUser as IGuildUser).Guild;
+            => (RestGuildUser as IGuildUser).Guild
+                .Abstract();
 
         /// <inheritdoc />
         public ulong GuildId
@@ -66,7 +67,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IVoiceChannel VoiceChannel
-            => (RestGuildUser as IVoiceState).VoiceChannel;
+            => (RestGuildUser as IVoiceState).VoiceChannel
+                .Abstract();
 
         /// <inheritdoc />
         public string VoiceSessionId

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Discord.Rest
@@ -22,7 +23,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IGuild Guild
-            => (RestGuildChannel as IGuildChannel).Guild;
+            => (RestGuildChannel as IGuildChannel).Guild
+                .Abstract();
 
         /// <inheritdoc />
         public ulong GuildId
@@ -61,12 +63,16 @@ namespace Discord.Rest
             => RestGuildChannel.GetPermissionOverwrite(user);
 
         /// <inheritdoc />
-        Task<IGuildUser> IGuildChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)
-            => (RestGuildChannel as IGuildChannel).GetUserAsync(id, mode, options);
+        async Task<IGuildUser> IGuildChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)
+            => (await (RestGuildChannel as IGuildChannel).GetUserAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         IAsyncEnumerable<IReadOnlyCollection<IGuildUser>> IGuildChannel.GetUsersAsync(CacheMode mode, RequestOptions options)
-            => (RestGuildChannel as IGuildChannel).GetUsersAsync(mode, options);
+            => (RestGuildChannel as IGuildChannel).GetUsersAsync(mode, options)
+                .Select(x => x
+                    .Select(GuildUserAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public Task RemovePermissionOverwriteAsync(IRole role, RequestOptions options = null)

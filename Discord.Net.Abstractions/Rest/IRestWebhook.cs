@@ -27,7 +27,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public ITextChannel Channel
-            => (RestWebhook as IWebhook).Channel;
+            => (RestWebhook as IWebhook).Channel
+                .Abstract();
 
         /// <inheritdoc />
         public ulong ChannelId
@@ -39,11 +40,13 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IUser Creator
-            => RestWebhook.Creator;
+            => RestWebhook.Creator
+                .Abstract();
 
         /// <inheritdoc />
         public IGuild Guild
-            => (RestWebhook as IWebhook).Guild;
+            => (RestWebhook as IWebhook).Guild
+                .Abstract();
 
         /// <inheritdoc />
         public ulong? GuildId

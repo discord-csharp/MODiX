@@ -31,7 +31,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         IGuild IGuildUser.Guild
-            => (SocketWebhookUser as IGuildUser).Guild;
+            => (SocketWebhookUser as IGuildUser).Guild
+                .Abstract();
 
         /// <inheritdoc />
         public ulong GuildId
@@ -75,7 +76,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public IVoiceChannel VoiceChannel
-            => (SocketWebhookUser as IVoiceState).VoiceChannel;
+            => (SocketWebhookUser as IVoiceState).VoiceChannel
+                .Abstract();
 
         /// <inheritdoc />
         public string VoiceSessionId

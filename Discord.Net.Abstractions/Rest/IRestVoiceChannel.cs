@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Discord.Audio;
@@ -43,24 +44,29 @@ namespace Discord.Rest
             => (RestVoiceChannel as IVoiceChannel).ConnectAsync(selfDeaf, selfMute, external);
 
         /// <inheritdoc />
-        public Task<IInviteMetadata> CreateInviteAsync(int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
-            => RestVoiceChannel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, options);
+        public async Task<IInviteMetadata> CreateInviteAsync(int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
+            => (await RestVoiceChannel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, options))
+                .Abstract();
 
         /// <inheritdoc />
         public Task DisconnectAsync()
             => (RestVoiceChannel as IVoiceChannel).DisconnectAsync();
 
         /// <inheritdoc />
-        public Task<ICategoryChannel> GetCategoryAsync(RequestOptions options = null)
-            => RestVoiceChannel.GetCategoryAsync(options);
+        public async Task<ICategoryChannel> GetCategoryAsync(RequestOptions options = null)
+            => (await RestVoiceChannel.GetCategoryAsync(options))
+                .Abstract();
 
         /// <inheritdoc />
-        public Task<ICategoryChannel> GetCategoryAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestVoiceChannel as IVoiceChannel).GetCategoryAsync(mode, options);
+        public async Task<ICategoryChannel> GetCategoryAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestVoiceChannel as IVoiceChannel).GetCategoryAsync(mode, options))
+                .Abstract();
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions options = null)
-            => RestVoiceChannel.GetInvitesAsync(options);
+        public async Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions options = null)
+            => (await RestVoiceChannel.GetInvitesAsync(options))
+                .Select(InviteMetadataAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public Task ModifyAsync(Action<VoiceChannelProperties> func, RequestOptions options = null)

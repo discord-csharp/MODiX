@@ -40,7 +40,10 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null)
-            => SocketUserMessage.GetReactionUsersAsync(emoji, limit, options);
+            => SocketUserMessage.GetReactionUsersAsync(emoji, limit, options)
+                .Select(x => x
+                    .Select(UserAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public Task ModifyAsync(Action<MessageProperties> func, RequestOptions options = null)

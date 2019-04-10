@@ -42,7 +42,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IUser User
-            => RestAuditLogEntry.User;
+            => RestAuditLogEntry.User
+                .Abstract();
 
         /// <summary>
         /// The existing <see cref="Rest.RestAuditLogEntry"/> being abstracted.

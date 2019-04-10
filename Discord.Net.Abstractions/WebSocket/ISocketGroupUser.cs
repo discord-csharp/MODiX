@@ -49,7 +49,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public IVoiceChannel VoiceChannel
-            => (SocketGroupUser as IGroupUser).VoiceChannel;
+            => (SocketGroupUser as IGroupUser).VoiceChannel
+                .Abstract();
 
         /// <inheritdoc />
         public string VoiceSessionId

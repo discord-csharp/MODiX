@@ -72,7 +72,9 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         IReadOnlyCollection<IUser> IPrivateChannel.Recipients
-            => (RestGroupChannel as IPrivateChannel).Recipients;
+            => (RestGroupChannel as IPrivateChannel).Recipients
+                .Select(UserAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public IReadOnlyCollection<IRestGroupUser> Users
@@ -106,8 +108,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        public Task<IMessage> GetMessageAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGroupChannel as IMessageChannel).GetMessageAsync(id, mode, options);
+        public async Task<IMessage> GetMessageAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestGroupChannel as IMessageChannel).GetMessageAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IRestMessage>> GetMessagesAsync(int limit = 100, RequestOptions options = null)
@@ -118,7 +121,10 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGroupChannel as IMessageChannel).GetMessagesAsync(limit, mode, options);
+            => (RestGroupChannel as IMessageChannel).GetMessagesAsync(limit, mode, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IRestMessage>> GetMessagesAsync(ulong fromMessageId, Direction dir, int limit = 100, RequestOptions options = null)
@@ -129,7 +135,10 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(ulong fromMessageId, Direction dir, int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGroupChannel as IMessageChannel).GetMessagesAsync(fromMessageId, dir, limit, mode, options);
+            => (RestGroupChannel as IMessageChannel).GetMessagesAsync(fromMessageId, dir, limit, mode, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IRestMessage>> GetMessagesAsync(IMessage fromMessage, Direction dir, int limit = 100, RequestOptions options = null)
@@ -140,7 +149,10 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(IMessage fromMessage, Direction dir, int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGroupChannel as IMessageChannel).GetMessagesAsync(fromMessage, dir, limit, mode, options);
+            => (RestGroupChannel as IMessageChannel).GetMessagesAsync(fromMessage, dir, limit, mode, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestMessage>> GetPinnedMessagesAsync(RequestOptions options = null)
@@ -149,8 +161,10 @@ namespace Discord.Rest
                 .ToArray();
 
         /// <inheritdoc />
-        Task<IReadOnlyCollection<IMessage>> IMessageChannel.GetPinnedMessagesAsync(RequestOptions options)
-            => (RestGroupChannel as IMessageChannel).GetPinnedMessagesAsync(options);
+        async Task<IReadOnlyCollection<IMessage>> IMessageChannel.GetPinnedMessagesAsync(RequestOptions options)
+            => (await (RestGroupChannel as IMessageChannel).GetPinnedMessagesAsync(options))
+                .Select(MessageAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public IRestUser GetUser(ulong id)
@@ -167,8 +181,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options)
-            => (RestGroupChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options);
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options)
+            => (await (RestGroupChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null)
@@ -176,8 +191,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options)
-            => (RestGroupChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options);
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options)
+            => (await (RestGroupChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
@@ -185,8 +201,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options)
-            => (RestGroupChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options);
+        async Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options)
+            => (await (RestGroupChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options))
+                .Abstract();
 
         /// <inheritdoc />
         public Task TriggerTypingAsync(RequestOptions options = null)

@@ -86,8 +86,9 @@ namespace Discord.WebSocket
             => SocketUser.GetDefaultAvatarUrl();
 
         /// <inheritdoc />
-        public Task<IDMChannel> GetOrCreateDMChannelAsync(RequestOptions options = null)
-            => SocketUser.GetOrCreateDMChannelAsync(options);
+        public async Task<IDMChannel> GetOrCreateDMChannelAsync(RequestOptions options = null)
+            => (await SocketUser.GetOrCreateDMChannelAsync(options))
+                .Abstract();
 
         /// <inheritdoc cref="SocketUser.ToString" />
         public override string ToString()

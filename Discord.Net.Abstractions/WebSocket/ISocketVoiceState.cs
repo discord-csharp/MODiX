@@ -22,17 +22,17 @@ namespace Discord.WebSocket
         public SocketVoiceStateAbstraction(SocketVoiceState socketVoiceState)
         {
             _socketVoiceState = socketVoiceState;
-
-            VoiceChannel = _socketVoiceState.VoiceChannel
-                .Abstract();
         }
 
         /// <inheritdoc />
-        public ISocketVoiceChannel VoiceChannel { get; }
+        public ISocketVoiceChannel VoiceChannel
+            => _socketVoiceState.VoiceChannel
+                .Abstract();
 
         /// <inheritdoc />
         IVoiceChannel IVoiceState.VoiceChannel
-            => _socketVoiceState.VoiceChannel;
+            => _socketVoiceState.VoiceChannel
+                .Abstract();
 
         /// <inheritdoc />
         public string VoiceSessionId

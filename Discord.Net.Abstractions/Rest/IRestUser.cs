@@ -79,11 +79,13 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public async Task<IRestDMChannel> GetOrCreateDMChannelAsync(RequestOptions options = null)
-            => (await RestUser.GetOrCreateDMChannelAsync(options)).Abstract();
+            => (await RestUser.GetOrCreateDMChannelAsync(options))
+                .Abstract();
 
         /// <inheritdoc />
-        Task<IDMChannel> IUser.GetOrCreateDMChannelAsync(RequestOptions options)
-            => (RestUser as IUser).GetOrCreateDMChannelAsync(options);
+        async Task<IDMChannel> IUser.GetOrCreateDMChannelAsync(RequestOptions options)
+            => (await (RestUser as IUser).GetOrCreateDMChannelAsync(options))
+                .Abstract();
 
         /// <inheritdoc />
         public Task UpdateAsync(RequestOptions options = null)

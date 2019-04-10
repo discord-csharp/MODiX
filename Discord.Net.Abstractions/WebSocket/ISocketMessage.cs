@@ -41,7 +41,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public IMessageActivity Activity
-            => SocketMessage.Activity.Abstract();
+            => SocketMessage.Activity
+                .Abstract();
 
         /// <inheritdoc />
         MessageActivity IMessage.Activity
@@ -49,7 +50,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public IMessageApplication Application
-            => SocketMessage.Application.Abstract();
+            => SocketMessage.Application
+                .Abstract();
 
         /// <inheritdoc />
         MessageApplication IMessage.Application
@@ -62,12 +64,14 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         //TODO: Abstract this to an ISocketGuildUser
         public IUser Author
-            => (SocketMessage as IMessage).Author;
+            => (SocketMessage as IMessage).Author
+                .Abstract();
 
         /// <inheritdoc />
         //TODO: Abstract this to an ISocketMessageChannel
         public IMessageChannel Channel
-            => (SocketMessage as IMessage).Channel;
+            => (SocketMessage as IMessage).Channel
+                .Abstract();
 
         /// <inheritdoc />
         public string Content

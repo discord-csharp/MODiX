@@ -35,7 +35,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IGuild Guild
-            => (RestRole as IRole).Guild;
+            => (RestRole as IRole).Guild
+                .Abstract();
 
         /// <inheritdoc />
         public ulong Id

@@ -40,7 +40,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IVoiceChannel VoiceChannel
-            => (RestGroupUser as IVoiceState).VoiceChannel;
+            => (RestGroupUser as IVoiceState).VoiceChannel
+                .Abstract();
 
         /// <inheritdoc />
         public string VoiceSessionId

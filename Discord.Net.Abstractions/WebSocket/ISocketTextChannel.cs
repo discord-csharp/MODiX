@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Discord.Rest;
 
 namespace Discord.WebSocket
@@ -56,7 +57,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public ICategoryChannel Category
-            => SocketTextChannel.Category;
+            => SocketTextChannel.Category
+                .Abstract();
 
         /// <inheritdoc />
         public ulong? CategoryId
@@ -79,17 +81,19 @@ namespace Discord.WebSocket
             => SocketTextChannel.Topic;
 
         /// <inheritdoc />
-        public Task<IInviteMetadata> CreateInviteAsync(int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
-            => SocketTextChannel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, options);
-
-        /// <inheritdoc />
-        public async Task<IRestWebhook> CreateWebhookAsync(string name, Stream avatar = null, RequestOptions options = null)
-            => (await SocketTextChannel.CreateWebhookAsync(name, avatar, options))
+        public async Task<IInviteMetadata> CreateInviteAsync(int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
+            => (await SocketTextChannel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, options))
                 .Abstract();
 
         /// <inheritdoc />
-        Task<IWebhook> ITextChannel.CreateWebhookAsync(string name, Stream avatar, RequestOptions options)
-            => (SocketTextChannel as ITextChannel).CreateWebhookAsync(name, avatar, options);
+        public async Task<IRestWebhook> CreateWebhookAsync(string name, Stream avatar = null, RequestOptions options = null)
+            => RestWebhookAbstractionExtensions.Abstract(
+                await SocketTextChannel.CreateWebhookAsync(name, avatar, options));
+
+        /// <inheritdoc />
+        async Task<IWebhook> ITextChannel.CreateWebhookAsync(string name, Stream avatar, RequestOptions options)
+            => (await (SocketTextChannel as ITextChannel).CreateWebhookAsync(name, avatar, options))
+                .Abstract();
 
         /// <inheritdoc />
         public Task DeleteMessageAsync(ulong messageId, RequestOptions options = null)
@@ -135,44 +139,67 @@ namespace Discord.WebSocket
                 .ToArray();
 
         /// <inheritdoc />
-        public Task<ICategoryChannel> GetCategoryAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (SocketTextChannel as INestedChannel).GetCategoryAsync(mode, options);
+        public async Task<ICategoryChannel> GetCategoryAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (SocketTextChannel as INestedChannel).GetCategoryAsync(mode, options))
+                .Abstract();
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions options = null)
-            => SocketTextChannel.GetInvitesAsync(options);
+        public async Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions options = null)
+            => (await SocketTextChannel.GetInvitesAsync(options))
+                .Select(InviteMetadataAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
-        public Task<IMessage> GetMessageAsync(ulong id, RequestOptions options = null)
-            => SocketTextChannel.GetMessageAsync(id, options);
+        public async Task<IMessage> GetMessageAsync(ulong id, RequestOptions options = null)
+            => (await SocketTextChannel.GetMessageAsync(id, options))
+                .Abstract();
 
         /// <inheritdoc />
-        public Task<IMessage> GetMessageAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (SocketTextChannel as IMessageChannel).GetMessageAsync(id, mode, options);
+        public async Task<IMessage> GetMessageAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (SocketTextChannel as IMessageChannel).GetMessageAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(int limit = 100, RequestOptions options = null)
-            => SocketTextChannel.GetMessagesAsync(limit, options);
+            => SocketTextChannel.GetMessagesAsync(limit, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (SocketTextChannel as IMessageChannel).GetMessagesAsync(limit, mode, options);
+            => (SocketTextChannel as IMessageChannel).GetMessagesAsync(limit, mode, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(ulong fromMessageId, Direction dir, int limit = 100, RequestOptions options = null)
-            => SocketTextChannel.GetMessagesAsync(fromMessageId, dir, limit, options);
+            => SocketTextChannel.GetMessagesAsync(fromMessageId, dir, limit, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(ulong fromMessageId, Direction dir, int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (SocketTextChannel as IMessageChannel).GetMessagesAsync(fromMessageId, dir, limit, mode, options);
+            => (SocketTextChannel as IMessageChannel).GetMessagesAsync(fromMessageId, dir, limit, mode, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(IMessage fromMessage, Direction dir, int limit = 100, RequestOptions options = null)
-            => SocketTextChannel.GetMessagesAsync(fromMessage, dir, limit, options);
+            => SocketTextChannel.GetMessagesAsync(fromMessage, dir, limit, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(IMessage fromMessage, Direction dir, int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (SocketTextChannel as IMessageChannel).GetMessagesAsync(fromMessage, dir, limit, mode, options);
+            => (SocketTextChannel as IMessageChannel).GetMessagesAsync(fromMessage, dir, limit, mode, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestMessage>> GetPinnedMessagesAsync(RequestOptions options = null)
@@ -181,17 +208,20 @@ namespace Discord.WebSocket
                 .ToArray();
 
         /// <inheritdoc />
-        Task<IReadOnlyCollection<IMessage>> IMessageChannel.GetPinnedMessagesAsync(RequestOptions options)
-            => (SocketTextChannel as IMessageChannel).GetPinnedMessagesAsync(options);
+        async Task<IReadOnlyCollection<IMessage>> IMessageChannel.GetPinnedMessagesAsync(RequestOptions options)
+            => (await (SocketTextChannel as IMessageChannel).GetPinnedMessagesAsync(options))
+                .Select(MessageAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public async Task<IRestWebhook> GetWebhookAsync(ulong id, RequestOptions options = null)
-            => (await SocketTextChannel.GetWebhookAsync(id, options))
-                .Abstract();
+            => RestWebhookAbstractionExtensions.Abstract(
+                await SocketTextChannel.GetWebhookAsync(id, options));
 
         /// <inheritdoc />
-        Task<IWebhook> ITextChannel.GetWebhookAsync(ulong id, RequestOptions options)
-            => (SocketTextChannel as ITextChannel).GetWebhookAsync(id, options);
+        async Task<IWebhook> ITextChannel.GetWebhookAsync(ulong id, RequestOptions options)
+            => (await (SocketTextChannel as ITextChannel).GetWebhookAsync(id, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestWebhook>> GetWebhooksAsync(RequestOptions options = null)
@@ -200,8 +230,10 @@ namespace Discord.WebSocket
                 .ToArray();
 
         /// <inheritdoc />
-        Task<IReadOnlyCollection<IWebhook>> ITextChannel.GetWebhooksAsync(RequestOptions options)
-            => (SocketTextChannel as ITextChannel).GetWebhooksAsync(options);
+        async Task<IReadOnlyCollection<IWebhook>> ITextChannel.GetWebhooksAsync(RequestOptions options)
+            => (await (SocketTextChannel as ITextChannel).GetWebhooksAsync(options))
+                .Select(WebhookAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public Task ModifyAsync(Action<TextChannelProperties> func, RequestOptions options = null)
@@ -209,30 +241,33 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public async Task<IRestUserMessage> SendFileAsync(string filePath, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
-            => (await SocketTextChannel.SendFileAsync(filePath, text, isTTS, embed, options))
-                .Abstract();
+            => RestUserMessageAbstractionExtensions.Abstract(
+                await SocketTextChannel.SendFileAsync(filePath, text, isTTS, embed, options));
 
         /// <inheritdoc />
-        Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options)
-            => (SocketTextChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options);
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options)
+            => (await (SocketTextChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
-            => (await SocketTextChannel.SendFileAsync(stream, filename, text, isTTS, embed, options))
-                .Abstract();
+            => RestUserMessageAbstractionExtensions.Abstract(
+                await SocketTextChannel.SendFileAsync(stream, filename, text, isTTS, embed, options));
 
         /// <inheritdoc />
-        Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options)
-            => (SocketTextChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options);
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options)
+            => (await (SocketTextChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
-            => (await SocketTextChannel.SendMessageAsync(text, isTTS, embed, options))
-                .Abstract();
+            => RestUserMessageAbstractionExtensions.Abstract(
+                await SocketTextChannel.SendMessageAsync(text, isTTS, embed, options));
 
         /// <inheritdoc />
-        Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options)
-            => (SocketTextChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options);
+        async Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options)
+            => (await (SocketTextChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options))
+                .Abstract();
 
         /// <inheritdoc />
         public Task SyncPermissionsAsync(RequestOptions options = null)

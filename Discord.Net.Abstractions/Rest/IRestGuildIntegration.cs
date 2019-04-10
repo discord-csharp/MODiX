@@ -68,7 +68,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IGuild Guild
-            => (RestGuildIntegration as IGuildIntegration).Guild;
+            => (RestGuildIntegration as IGuildIntegration).Guild
+                .Abstract();
 
         /// <inheritdoc />
         public ulong GuildId
@@ -97,7 +98,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         IUser IGuildIntegration.User
-            => (RestGuildIntegration as IGuildIntegration).User;
+            => (RestGuildIntegration as IGuildIntegration).User
+                .Abstract();
 
         /// <inheritdoc />
         public Task DeleteAsync()

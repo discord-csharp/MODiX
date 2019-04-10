@@ -51,14 +51,17 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public Optional<ISocketUserMessage> Message
-            => (SocketReaction.Message.IsSpecified)
+            => SocketReaction.Message.IsSpecified
                 ? new Optional<ISocketUserMessage>(SocketReaction.Message.Value
-                        .Abstract())
+                    .Abstract())
                 : Optional<ISocketUserMessage>.Unspecified;
 
         /// <inheritdoc />
         public Optional<IUser> User
-            => SocketReaction.User;
+            => SocketReaction.User.IsSpecified
+                ? new Optional<IUser>(SocketReaction.User.Value
+                    .Abstract())
+                : Optional<IUser>.Unspecified;
 
         /// <inheritdoc />
         public ulong UserId

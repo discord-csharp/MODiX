@@ -60,7 +60,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public IDiscordSocketRestClient Rest
-            => DiscordSocketClient.Rest.Abstract();
+            => DiscordSocketClient.Rest
+                .Abstract();
 
         /// <inheritdoc />
         public int ShardId

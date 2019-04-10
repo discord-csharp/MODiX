@@ -73,7 +73,9 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         IReadOnlyCollection<IUser> IPrivateChannel.Recipients
-            => (SocketGroupChannel as IPrivateChannel).Recipients;
+            => (SocketGroupChannel as IPrivateChannel).Recipients
+                .Select(UserAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         new public IReadOnlyCollection<ISocketGroupUser> Users
@@ -129,36 +131,56 @@ namespace Discord.WebSocket
                 .ToArray();
 
         /// <inheritdoc />
-        public Task<IMessage> GetMessageAsync(ulong id, RequestOptions options = null)
-            => SocketGroupChannel.GetMessageAsync(id, options);
+        public async Task<IMessage> GetMessageAsync(ulong id, RequestOptions options = null)
+            => (await SocketGroupChannel.GetMessageAsync(id, options))
+                .Abstract();
 
         /// <inheritdoc />
-        public Task<IMessage> GetMessageAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (SocketGroupChannel as IMessageChannel).GetMessageAsync(id, mode, options);
+        public async Task<IMessage> GetMessageAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (SocketGroupChannel as IMessageChannel).GetMessageAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(int limit = 100, RequestOptions options = null)
-            => SocketGroupChannel.GetMessagesAsync(limit, options);
+            => SocketGroupChannel.GetMessagesAsync(limit, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (SocketGroupChannel as IMessageChannel).GetMessagesAsync(limit, mode, options);
+            => (SocketGroupChannel as IMessageChannel).GetMessagesAsync(limit, mode, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(ulong fromMessageId, Direction dir, int limit = 100, RequestOptions options = null)
-            => SocketGroupChannel.GetMessagesAsync(fromMessageId, dir, limit, options);
+            => SocketGroupChannel.GetMessagesAsync(fromMessageId, dir, limit, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(ulong fromMessageId, Direction dir, int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (SocketGroupChannel as IMessageChannel).GetMessagesAsync(fromMessageId, dir, limit, mode, options);
+            => (SocketGroupChannel as IMessageChannel).GetMessagesAsync(fromMessageId, dir, limit, mode, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(IMessage fromMessage, Direction dir, int limit = 100, RequestOptions options = null)
-            => SocketGroupChannel.GetMessagesAsync(fromMessage, dir, limit, options);
+            => SocketGroupChannel.GetMessagesAsync(fromMessage, dir, limit, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(IMessage fromMessage, Direction dir, int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (SocketGroupChannel as IMessageChannel).GetMessagesAsync(fromMessage, dir, limit, mode, options);
+            => (SocketGroupChannel as IMessageChannel).GetMessagesAsync(fromMessage, dir, limit, mode, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestMessage>> GetPinnedMessagesAsync(RequestOptions options = null)
@@ -167,8 +189,10 @@ namespace Discord.WebSocket
                 .ToArray();
 
         /// <inheritdoc />
-        Task<IReadOnlyCollection<IMessage>> IMessageChannel.GetPinnedMessagesAsync(RequestOptions options)
-            => (SocketGroupChannel as IMessageChannel).GetPinnedMessagesAsync(options);
+        async Task<IReadOnlyCollection<IMessage>> IMessageChannel.GetPinnedMessagesAsync(RequestOptions options)
+            => (await (SocketGroupChannel as IMessageChannel).GetPinnedMessagesAsync(options))
+                .Select(MessageAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         new public ISocketGroupUser GetUser(ulong id)
@@ -181,30 +205,33 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public async Task<IRestUserMessage> SendFileAsync(string filePath, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
-            => (await SocketGroupChannel.SendFileAsync(filePath, text, isTTS, embed, options))
-                .Abstract();
+            => RestUserMessageAbstractionExtensions.Abstract(
+                await SocketGroupChannel.SendFileAsync(filePath, text, isTTS, embed, options));
 
         /// <inheritdoc />
-        Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options)
-            => (SocketGroupChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options);
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options)
+            => (await (SocketGroupChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
-            => (await SocketGroupChannel.SendFileAsync(stream, filename, text, isTTS, embed, options))
-                .Abstract();
+            => RestUserMessageAbstractionExtensions.Abstract(
+                await SocketGroupChannel.SendFileAsync(stream, filename, text, isTTS, embed, options));
 
         /// <inheritdoc />
-        Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options)
-            => (SocketGroupChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options);
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options)
+            => (await (SocketGroupChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
-            => (await SocketGroupChannel.SendMessageAsync(text, isTTS, embed, options))
-                .Abstract();
+            => RestUserMessageAbstractionExtensions.Abstract(
+                await SocketGroupChannel.SendMessageAsync(text, isTTS, embed, options));
 
         /// <inheritdoc />
-        Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options)
-            => (SocketGroupChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options);
+        async Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options)
+            => (await (SocketGroupChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options))
+                .Abstract();
 
         /// <inheritdoc />
         public Task TriggerTypingAsync(RequestOptions options = null)

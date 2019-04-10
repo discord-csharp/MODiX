@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Discord.Audio;
@@ -32,7 +33,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public ICategoryChannel Category
-            => SocketVoiceChannel.Category;
+            => SocketVoiceChannel.Category
+                .Abstract();
 
         /// <inheritdoc />
         public ulong? CategoryId
@@ -47,20 +49,24 @@ namespace Discord.WebSocket
             => SocketVoiceChannel.ConnectAsync(selfDeaf, selfMute, external);
 
         /// <inheritdoc />
-        public Task<IInviteMetadata> CreateInviteAsync(int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
-            => SocketVoiceChannel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, options);
+        public async Task<IInviteMetadata> CreateInviteAsync(int? maxAge = 86400, int? maxUses = null, bool isTemporary = false, bool isUnique = false, RequestOptions options = null)
+            => (await SocketVoiceChannel.CreateInviteAsync(maxAge, maxUses, isTemporary, isUnique, options))
+                .Abstract();
 
         /// <inheritdoc />
         public Task DisconnectAsync()
             => SocketVoiceChannel.DisconnectAsync();
 
         /// <inheritdoc />
-        Task<ICategoryChannel> INestedChannel.GetCategoryAsync(CacheMode mode, RequestOptions options)
-            => (SocketVoiceChannel as INestedChannel).GetCategoryAsync(mode, options);
+        async Task<ICategoryChannel> INestedChannel.GetCategoryAsync(CacheMode mode, RequestOptions options)
+            => (await (SocketVoiceChannel as INestedChannel).GetCategoryAsync(mode, options))
+                .Abstract();
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions options = null)
-            => SocketVoiceChannel.GetInvitesAsync(options);
+        public async Task<IReadOnlyCollection<IInviteMetadata>> GetInvitesAsync(RequestOptions options = null)
+            => (await SocketVoiceChannel.GetInvitesAsync(options))
+                .Select(InviteMetadataAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public Task ModifyAsync(Action<VoiceChannelProperties> func, RequestOptions options = null)

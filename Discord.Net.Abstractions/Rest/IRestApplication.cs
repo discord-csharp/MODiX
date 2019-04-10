@@ -51,7 +51,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IUser Owner
-            => RestApplication.Owner;
+            => RestApplication.Owner
+                .Abstract();
 
         /// <inheritdoc />
         public string[] RPCOrigins

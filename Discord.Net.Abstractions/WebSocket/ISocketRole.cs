@@ -48,7 +48,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         IGuild IRole.Guild
-            => (SocketRole as IRole).Guild;
+            => (SocketRole as IRole).Guild
+                .Abstract();
 
         /// <inheritdoc />
         public ulong Id

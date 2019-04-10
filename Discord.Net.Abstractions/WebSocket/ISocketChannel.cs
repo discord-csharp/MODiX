@@ -54,12 +54,16 @@ namespace Discord.WebSocket
                 .Abstract();
 
         /// <inheritdoc />
-        public Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (SocketChannel as IChannel).GetUserAsync(id, mode, options);
+        public async Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (SocketChannel as IChannel).GetUserAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (SocketChannel as IChannel).GetUsersAsync(mode, options);
+            => (SocketChannel as IChannel).GetUsersAsync(mode, options)
+                .Select(x => x
+                    .Select(UserAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <summary>
         /// The existing <see cref="WebSocket.SocketChannel"/> being abstracted.

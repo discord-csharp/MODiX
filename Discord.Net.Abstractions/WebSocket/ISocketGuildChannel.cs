@@ -39,11 +39,13 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public ISocketGuild Guild
-            => SocketGuildChannel.Guild.Abstract();
+            => SocketGuildChannel.Guild
+                .Abstract();
 
         /// <inheritdoc />
         IGuild IGuildChannel.Guild
-            => (SocketGuildChannel as IGuildChannel).Guild;
+            => (SocketGuildChannel as IGuildChannel).Guild
+                .Abstract();
 
         /// <inheritdoc />
         public ulong GuildId
@@ -79,15 +81,20 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         new public ISocketGuildUser GetUser(ulong id)
-            => SocketGuildChannel.GetUser(id).Abstract();
+            => SocketGuildChannel.GetUser(id)
+                .Abstract();
 
         /// <inheritdoc />
-        Task<IGuildUser> IGuildChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)
-            => (SocketGuildChannel as IGuildChannel).GetUserAsync(id, mode, options);
+        async Task<IGuildUser> IGuildChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)
+            => (await (SocketGuildChannel as IGuildChannel).GetUserAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         IAsyncEnumerable<IReadOnlyCollection<IGuildUser>> IGuildChannel.GetUsersAsync(CacheMode mode, RequestOptions options)
-            => (SocketGuildChannel as IGuildChannel).GetUsersAsync(mode, options);
+            => (SocketGuildChannel as IGuildChannel).GetUsersAsync(mode, options)
+                .Select(x => x
+                    .Select(GuildUserAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public Task ModifyAsync(Action<GuildChannelProperties> func, RequestOptions options = null)
