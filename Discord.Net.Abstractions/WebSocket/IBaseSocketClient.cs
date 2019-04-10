@@ -187,10 +187,7 @@ namespace Discord.WebSocket
             baseSocketClient.JoinedGuild += x => JoinedGuild?.InvokeAsync(x.Abstract()) ?? Task.CompletedTask;
             baseSocketClient.LeftGuild += x => LeftGuild?.InvokeAsync(x.Abstract()) ?? Task.CompletedTask;
             baseSocketClient.MessageReceived += x => MessageReceived?.InvokeAsync(x.Abstract()) ?? Task.CompletedTask;
-            // TODO: Workaround for https://github.com/RogueException/Discord.Net/issues/1208
-            baseSocketClient.MessageUpdated += (x, y, z) => !(y is null)
-                ? (MessageUpdated?.InvokeAsync(x.Abstract(), y.Abstract(), z.Abstract()) ?? Task.CompletedTask)
-                : Task.CompletedTask;
+            baseSocketClient.MessageUpdated += (x, y, z) => MessageUpdated?.InvokeAsync(x.Abstract(), y.Abstract(), z.Abstract()) ?? Task.CompletedTask;
             baseSocketClient.MessageDeleted += (x, y) => MessageDeleted?.InvokeAsync(x.Abstract(), y.Abstract()) ?? Task.CompletedTask;
             baseSocketClient.ReactionAdded += (x, y, z) => ReactionAdded?.InvokeAsync(x.Abstract(), y.Abstract(), z.Abstract()) ?? Task.CompletedTask;
             baseSocketClient.ReactionRemoved += (x, y, z) => ReactionRemoved?.InvokeAsync(x.Abstract(), y.Abstract(), z.Abstract()) ?? Task.CompletedTask;

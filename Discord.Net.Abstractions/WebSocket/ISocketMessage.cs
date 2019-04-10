@@ -62,13 +62,11 @@ namespace Discord.WebSocket
             => SocketMessage.Attachments;
 
         /// <inheritdoc />
-        //TODO: Abstract this to an ISocketGuildUser
         public IUser Author
             => (SocketMessage as IMessage).Author
                 .Abstract();
 
         /// <inheritdoc />
-        //TODO: Abstract this to an ISocketMessageChannel
         public IMessageChannel Channel
             => (SocketMessage as IMessage).Channel
                 .Abstract();
