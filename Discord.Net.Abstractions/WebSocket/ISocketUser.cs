@@ -112,12 +112,22 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="socketUser"/>.</exception>
         /// <returns>An <see cref="ISocketUser"/> that abstracts <paramref name="socketUser"/>.</returns>
         public static ISocketUser Abstract(this SocketUser socketUser)
-            => (socketUser is null) ? throw new ArgumentNullException(nameof(socketUser))
-                : (socketUser is SocketGroupUser socketGroupUser) ? socketGroupUser.Abstract() as ISocketUser
-                : (socketUser is SocketGuildUser socketGuildUser) ? socketGuildUser.Abstract() as ISocketUser
-                : (socketUser is SocketSelfUser socketSelfUser) ? socketSelfUser.Abstract() as ISocketUser
-                : (socketUser is SocketUnknownUser socketUnknownUser) ? socketUnknownUser.Abstract() as ISocketUser
-                : (socketUser is SocketWebhookUser socketWebhookUser) ? socketWebhookUser.Abstract() as ISocketUser
-                : new SocketUserAbstraction(socketUser) as ISocketUser; // for internal type SocketGuildUser
+            => socketUser switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(socketUser)),
+                SocketGroupUser socketGroupUser
+                    => socketGroupUser.Abstract() as ISocketUser,
+                SocketGuildUser socketGuildUser
+                    => socketGuildUser.Abstract() as ISocketUser,
+                SocketSelfUser socketSelfUser
+                    => socketSelfUser.Abstract() as ISocketUser,
+                SocketUnknownUser socketUnknownUser
+                    => socketUnknownUser.Abstract() as ISocketUser,
+                SocketWebhookUser socketWebhookUser
+                    => socketWebhookUser.Abstract() as ISocketUser,
+                _
+                    => new SocketUserAbstraction(socketUser) as ISocketUser // for internal type SocketGlobalUser
+            };
     }
 }

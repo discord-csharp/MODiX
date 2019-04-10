@@ -113,11 +113,20 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restUser"/>.</exception>
         /// <returns>An <see cref="IRestUser"/> that abstracts <paramref name="restUser"/>.</returns>
         public static IRestUser Abstract(this RestUser restUser)
-            => (restUser is null) ? throw new ArgumentNullException(nameof(restUser))
-                : (restUser is RestGroupUser restGroupUser) ? restGroupUser.Abstract()
-                : (restUser is RestGuildUser restGuildUser) ? restGuildUser.Abstract()
-                : (restUser is RestSelfUser restSelfUser) ? restSelfUser.Abstract()
-                : (restUser is RestWebhookUser restWebhookUser) ? restWebhookUser.Abstract()
-                : new RestUserAbstraction(restUser) as IRestUser;
+            => restUser switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(restUser)),
+                RestGroupUser restGroupUser
+                    => restGroupUser.Abstract(),
+                RestGuildUser restGuildUser
+                    => restGuildUser.Abstract(),
+                RestSelfUser restSelfUser
+                    => restSelfUser.Abstract(),
+                RestWebhookUser restWebhookUser
+                    => restWebhookUser.Abstract(),
+                _
+                    => new RestUserAbstraction(restUser) as IRestUser
+            };
     }
 }

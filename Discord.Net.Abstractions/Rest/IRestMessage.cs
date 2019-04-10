@@ -163,9 +163,16 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restMessage"/>.</exception>
         /// <returns>An <see cref="IRestMessage"/> that abstracts <paramref name="restMessage"/>.</returns>
         public static IRestMessage Abstract(this RestMessage restMessage)
-            => (restMessage is null) ? throw new ArgumentNullException(nameof(restMessage))
-                : (restMessage is RestSystemMessage restSystemMessage) ? restSystemMessage.Abstract() as IRestMessage
-                : (restMessage is RestUserMessage restUserMessage) ? restUserMessage.Abstract() as IRestMessage
-                : throw new NotSupportedException($"Unable to abstract {nameof(RestMessage)} type {restMessage.GetType().Name}");
+            => restMessage switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(restMessage)),
+                RestSystemMessage restSystemMessage
+                    => restSystemMessage.Abstract() as IRestMessage,
+                RestUserMessage restUserMessage
+                    => restUserMessage.Abstract() as IRestMessage,
+                _
+                    => throw new NotSupportedException($"Unable to abstract {nameof(RestMessage)} type {restMessage.GetType().Name}")
+            };
     }
 }

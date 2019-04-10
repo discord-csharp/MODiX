@@ -45,10 +45,18 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="iRestMessageChannel"/>.</exception>
         /// <returns>An <see cref="IIRestMessageChannel"/> that abstracts <paramref name="iRestMessageChannel"/>.</returns>
         public static IIRestMessageChannel Abstract(this IRestMessageChannel iRestMessageChannel)
-            => (iRestMessageChannel is null) ? throw new ArgumentNullException(nameof(iRestMessageChannel))
-                : (iRestMessageChannel is RestDMChannel restDMChannel) ? restDMChannel.Abstract() as IIRestMessageChannel
-                : (iRestMessageChannel is RestGroupChannel restGroupChannel) ? restGroupChannel.Abstract() as IIRestMessageChannel
-                : (iRestMessageChannel is RestTextChannel restTextChannel) ? restTextChannel.Abstract() as IIRestMessageChannel
-                : throw new NotSupportedException($"{nameof(IRestMessageChannel)} type {iRestMessageChannel.GetType().FullName} is not supported");
+            => iRestMessageChannel switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(iRestMessageChannel)),
+                RestDMChannel restDMChannel
+                    => restDMChannel.Abstract() as IIRestMessageChannel,
+                RestGroupChannel restGroupChannel
+                    => restGroupChannel.Abstract() as IIRestMessageChannel,
+                RestTextChannel restTextChannel
+                    => restTextChannel.Abstract() as IIRestMessageChannel,
+                _
+                    => throw new NotSupportedException($"{nameof(IRestMessageChannel)} type {iRestMessageChannel.GetType().FullName} is not supported")
+            };
     }
 }

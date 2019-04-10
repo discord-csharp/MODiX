@@ -80,8 +80,14 @@ namespace Discord
         /// <exception cref="ArgumentNullException">Throws for <paramref name="guildEmote"/>.</exception>
         /// <returns>The <see cref="GuildEmote"/> being abstracted by <paramref name="guildEmote"/>.</returns>
         internal static GuildEmote Unabstract(this IGuildEmote guildEmote)
-            => (guildEmote is null) ? throw new ArgumentNullException(nameof(guildEmote))
-                : (guildEmote is GuildEmoteAbstraction guildEmoteAbstraction) ? guildEmoteAbstraction.GuildEmote
-                : throw new NotSupportedException($"Unable to extract {nameof(GuildEmote)} object from {nameof(IGuildEmote)} type {guildEmote.GetType().Name}");
+            => guildEmote switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(guildEmote)),
+                GuildEmoteAbstraction guildEmoteAbstraction
+                    => guildEmoteAbstraction.GuildEmote,
+                _
+                    => throw new NotSupportedException($"Unable to extract {nameof(GuildEmote)} object from {nameof(IGuildEmote)} type {guildEmote.GetType().Name}")
+            };
     }
 }

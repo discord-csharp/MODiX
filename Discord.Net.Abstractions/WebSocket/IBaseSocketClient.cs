@@ -410,9 +410,16 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="baseSocketClient"/>.</exception>
         /// <returns>An <see cref="IBaseSocketClient"/> that abstracts <paramref name="baseSocketClient"/>.</returns>
         public static IBaseSocketClient Abstract(this BaseSocketClient baseSocketClient)
-            => (baseSocketClient is null) ? throw new ArgumentNullException(nameof(baseSocketClient))
-                : (baseSocketClient is DiscordSocketClient discordSocketClient) ? discordSocketClient.Abstract() as IBaseSocketClient
-                : (baseSocketClient is DiscordShardedClient discordShardedClient) ? discordShardedClient.Abstract() as IBaseSocketClient
-                : throw new NotSupportedException($"Unable to abstract {nameof(BaseSocketClient)} type {baseSocketClient.GetType().Name}");
+            => baseSocketClient switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(baseSocketClient)),
+                DiscordSocketClient discordSocketClient
+                    => discordSocketClient.Abstract() as IBaseSocketClient,
+                DiscordShardedClient discordShardedClient
+                    => discordShardedClient.Abstract() as IBaseSocketClient,
+                _
+                    => throw new NotSupportedException($"Unable to abstract {nameof(BaseSocketClient)} type {baseSocketClient.GetType().Name}")
+            };
     }
 }

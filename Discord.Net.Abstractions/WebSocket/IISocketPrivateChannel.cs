@@ -22,9 +22,16 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="iSocketPrivateChannel"/>.</exception>
         /// <returns>An <see cref="IISocketPrivateChannel"/> that abstracts <paramref name="iSocketPrivateChannel"/>.</returns>
         public static IISocketPrivateChannel Abstract(this ISocketPrivateChannel iSocketPrivateChannel)
-            => (iSocketPrivateChannel is null) ? throw new ArgumentNullException(nameof(iSocketPrivateChannel))
-                : (iSocketPrivateChannel is SocketDMChannel socketDMChannel) ? socketDMChannel.Abstract() as IISocketPrivateChannel
-                : (iSocketPrivateChannel is SocketGroupChannel socketGroupChannel) ? socketGroupChannel.Abstract() as IISocketPrivateChannel
-                : throw new NotSupportedException($"{nameof(ISocketPrivateChannel)} type {iSocketPrivateChannel.GetType().FullName} is not supported");
+            => iSocketPrivateChannel switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(iSocketPrivateChannel)),
+                SocketDMChannel socketDMChannel
+                    => socketDMChannel.Abstract() as IISocketPrivateChannel,
+                SocketGroupChannel socketGroupChannel
+                    => socketGroupChannel.Abstract() as IISocketPrivateChannel,
+                _
+                    => throw new NotSupportedException($"{nameof(ISocketPrivateChannel)} type {iSocketPrivateChannel.GetType().FullName} is not supported")
+            };
     }
 }

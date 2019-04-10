@@ -202,9 +202,16 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="baseDiscordClient"/>.</exception>
         /// <returns>An <see cref="IBaseDiscordClient"/> that abstracts <paramref name="baseDiscordClient"/>.</returns>
         public static IBaseDiscordClient Abstract(this BaseDiscordClient baseDiscordClient)
-            => (baseDiscordClient is null) ? throw new ArgumentNullException(nameof(baseDiscordClient))
-                : (baseDiscordClient is DiscordRestClient discordRestClient) ? discordRestClient.Abstract() as IBaseDiscordClient
-                : (baseDiscordClient is BaseSocketClient baseSocketClient) ? baseSocketClient.Abstract() as IBaseDiscordClient
-                : throw new NotSupportedException($"Unable to abstract {nameof(BaseDiscordClient)} type {baseDiscordClient.GetType().Name}");
+            => baseDiscordClient switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(baseDiscordClient)),
+                DiscordRestClient discordRestClient
+                    => discordRestClient.Abstract() as IBaseDiscordClient,
+                BaseSocketClient baseSocketClient
+                    => baseSocketClient.Abstract() as IBaseDiscordClient,
+                _
+                    => throw new NotSupportedException($"Unable to abstract {nameof(BaseDiscordClient)} type {baseDiscordClient.GetType().Name}")
+            };
     }
 }

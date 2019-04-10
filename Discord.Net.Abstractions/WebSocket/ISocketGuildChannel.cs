@@ -131,10 +131,18 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="socketGuildChannel"/>.</exception>
         /// <returns>An <see cref="ISocketGuildChannel"/> that abstracts <paramref name="socketGuildChannel"/>.</returns>
         public static ISocketGuildChannel Abstract(this SocketGuildChannel socketGuildChannel)
-            => (socketGuildChannel is null) ? throw new ArgumentNullException(nameof(socketGuildChannel))
-                : (socketGuildChannel is SocketCategoryChannel socketCategoryChannel) ? socketCategoryChannel.Abstract()
-                : (socketGuildChannel is SocketTextChannel socketTextChannel) ? socketTextChannel.Abstract()
-                : (socketGuildChannel is SocketVoiceChannel socketVoiceChannel) ? socketVoiceChannel.Abstract()
-                : new SocketGuildChannelAbstraction(socketGuildChannel) as ISocketGuildChannel;
+            => socketGuildChannel switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(socketGuildChannel)),
+                SocketCategoryChannel socketCategoryChannel
+                    => socketCategoryChannel.Abstract(),
+                SocketTextChannel socketTextChannel
+                    => socketTextChannel.Abstract(),
+                SocketVoiceChannel socketVoiceChannel
+                    => socketVoiceChannel.Abstract(),
+                _
+                    => new SocketGuildChannelAbstraction(socketGuildChannel) as ISocketGuildChannel
+            };
     }
 }

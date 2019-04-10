@@ -69,10 +69,18 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restChannel"/>.</exception>
         /// <returns>An <see cref="IRestChannel"/> that abstracts <paramref name="restChannel"/>.</returns>
         public static IRestChannel Abstract(this RestChannel restChannel)
-            => (restChannel is null) ? throw new ArgumentNullException(nameof(restChannel))
-                : (restChannel is RestDMChannel restDMChannel) ? restDMChannel.Abstract()
-                : (restChannel is RestGroupChannel restGroupChannel) ? restGroupChannel.Abstract()
-                : (restChannel is RestGuildChannel restGuildChannel) ? restGuildChannel.Abstract()
-                : new RestChannelAbstraction(restChannel) as IRestChannel;
+            => restChannel switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(restChannel)),
+                RestDMChannel restDMChannel
+                    => restDMChannel.Abstract(),
+                RestGroupChannel restGroupChannel
+                    => restGroupChannel.Abstract(),
+                RestGuildChannel restGuildChannel
+                    => restGuildChannel.Abstract(),
+                _
+                    => new RestChannelAbstraction(restChannel) as IRestChannel
+            };
     }
 }

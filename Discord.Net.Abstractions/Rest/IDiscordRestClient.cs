@@ -200,8 +200,14 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="discordRestClient"/>.</exception>
         /// <returns>An <see cref="IDiscordRestClient"/> that abstracts <paramref name="discordRestClient"/>.</returns>
         public static IDiscordRestClient Abstract(this DiscordRestClient discordRestClient)
-            => (discordRestClient is null) ? throw new ArgumentNullException(nameof(discordRestClient))
-                : (discordRestClient is DiscordSocketRestClient discordRestSocketClient) ? discordRestSocketClient.Abstract() as IDiscordRestClient
-                : new DiscordRestClientAbstraction(discordRestClient) as IDiscordRestClient;
+            => discordRestClient switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(discordRestClient)),
+                DiscordSocketRestClient discordRestSocketClient
+                    => discordRestSocketClient.Abstract() as IDiscordRestClient,
+                _
+                    => new DiscordRestClientAbstraction(discordRestClient) as IDiscordRestClient
+            };
     }
 }

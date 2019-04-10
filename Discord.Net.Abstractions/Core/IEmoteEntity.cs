@@ -77,8 +77,14 @@ namespace Discord
         /// <exception cref="ArgumentNullException">Throws for <paramref name="emote"/>.</exception>
         /// <returns>An <see cref="IEmoteEntity"/> that abstracts <paramref name="emote"/>.</returns>
         public static IEmoteEntity Abstract(this Emote emote)
-            => (emote is null) ? throw new ArgumentNullException(nameof(emote))
-                : (emote is GuildEmote guildEmote) ? guildEmote.Abstract()
-                : new EmoteAbstraction(emote) as IEmoteEntity;
+            => emote switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(emote)),
+                GuildEmote guildEmote
+                    => guildEmote.Abstract(),
+                _
+                    => new EmoteAbstraction(emote) as IEmoteEntity
+            };
     }
 }

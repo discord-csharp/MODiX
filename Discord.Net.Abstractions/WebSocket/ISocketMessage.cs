@@ -173,9 +173,16 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="socketMessage"/>.</exception>
         /// <returns>An <see cref="ISocketMessage"/> that abstracts <paramref name="socketMessage"/>.</returns>
         public static ISocketMessage Abstract(this SocketMessage socketMessage)
-            => (socketMessage is null) ? throw new ArgumentNullException(nameof(SocketMessage))
-                : (socketMessage is SocketUserMessage socketUserMessage) ? socketUserMessage.Abstract() as ISocketMessage
-                : (socketMessage is SocketSystemMessage socketSystemMessage) ? socketSystemMessage.Abstract() as ISocketMessage
-                : throw new NotSupportedException($"Unable to abstract {nameof(SocketMessage)} type {socketMessage.GetType().Name}");
+            => socketMessage switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(SocketMessage)),
+                SocketUserMessage socketUserMessage
+                    => socketUserMessage.Abstract() as ISocketMessage,
+                SocketSystemMessage socketSystemMessage
+                    => socketSystemMessage.Abstract() as ISocketMessage,
+                _
+                    => throw new NotSupportedException($"Unable to abstract {nameof(SocketMessage)} type {socketMessage.GetType().Name}")
+            };
     }
 }

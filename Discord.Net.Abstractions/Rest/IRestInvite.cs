@@ -101,8 +101,14 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restInvite"/>.</exception>
         /// <returns>An <see cref="IRestInvite"/> that abstracts <paramref name="restInvite"/>.</returns>
         public static IRestInvite Abstract(this RestInvite restInvite)
-            => (restInvite is null) ? throw new ArgumentNullException(nameof(restInvite))
-                : (restInvite is RestInviteMetadata restInviteMetadata) ? restInviteMetadata.Abstract() as IRestInvite
-                : new RestInviteAbstraction(restInvite) as IRestInvite;
+            => restInvite switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(restInvite)),
+                RestInviteMetadata restInviteMetadata
+                    => restInviteMetadata.Abstract() as IRestInvite,
+                _
+                    => new RestInviteAbstraction(restInvite) as IRestInvite
+            };
     }
 }
