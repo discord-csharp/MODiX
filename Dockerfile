@@ -1,7 +1,7 @@
 FROM microsoft/dotnet:2.2-sdk-stretch as dotnet-test
 WORKDIR /src
 COPY . .
-RUN dotnet test Modix.Data.Test
+RUN dotnet test Modix.sln
 
 FROM microsoft/dotnet:2.2-sdk-stretch as dotnet-build
 WORKDIR /src
