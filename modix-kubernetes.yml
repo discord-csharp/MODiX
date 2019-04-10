@@ -38,18 +38,13 @@ spec:
   - ReadWriteOnce
   capacity:
     storage: 40Gi
-  claimRef:
-    apiVersion: v1
-    kind: PersistentVolumeClaim
-    name: modix-db-pv
-    namespace: csharp
   nfs:
     path: /nfsfileshare/modix-db-pv
     server: 172.16.100.13
   persistentVolumeReclaimPolicy: Retain
 
---- 
-#db-persistent-volume-claimName
+---
+#db-persistent-volume-claim
 
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -67,6 +62,46 @@ spec:
     matchLabels:
       name: modix-db-pv
   volumeName: modix-db-pv
+
+--- 
+#db-admin-persistent-volume
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations: {}
+  labels:
+    name: modix-db-admin-pv
+  name: modix-db-admin-pv
+spec:
+  accessModes:
+  - ReadWriteOnce
+  capacity:
+    storage: 40Gi
+  nfs:
+    path: /nfsfileshare/modix-db-admin-pv
+    server: 172.16.100.13
+  persistentVolumeReclaimPolicy: Retain
+
+--- 
+#db-admin-persistent-volume-claim
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations: {}
+  name: modix-db-admin-pvc
+  namespace: csharp
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 40Gi
+  selector:
+    matchLabels:
+      name: modix-db-admin-pv
+  volumeName: modix-db-admin-pv
   
 --- 
 #db-service
