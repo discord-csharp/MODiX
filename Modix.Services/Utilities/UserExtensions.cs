@@ -6,9 +6,6 @@ namespace Modix.Services.Utilities
 {
     public static class UserExtensions
     {
-        public static string GetDisplayName(this IGuildUser user)
-            => user.Nickname ?? GetFullUsername(user);
-
         public static string GetFullUsername(this IUser user)
             => $"{user.Username}#{user.Discriminator}";
 

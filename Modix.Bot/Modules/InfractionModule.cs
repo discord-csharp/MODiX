@@ -63,7 +63,7 @@ namespace Modix.Modules
                 Created = infraction.CreateAction.Created.ToUniversalTime().ToString("yyyy MMM dd"),
                 Type = infraction.Type.ToString(),
                 Subject = infraction.Subject.Username,
-                Creator = infraction.CreateAction.CreatedBy.DisplayName,
+                Creator = infraction.CreateAction.CreatedBy.GetFullUsername(),
                 Reason = infraction.Reason,
                 Rescinded = infraction.RescindAction != null
             }).OrderBy(s => s.Type);

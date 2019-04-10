@@ -58,7 +58,7 @@ namespace Modix.Modules
 
                 embed.AddField(new EmbedFieldBuilder()
                 {
-                    Name = $"{Format.Bold(idLabel)}: For {Format.Bold(campaign.Subject.DisplayName)} to {Format.Bold(campaign.TargetRole.Name)}",
+                    Name = $"{Format.Bold(idLabel)}: For {Format.Bold(campaign.Subject.GetFullUsername())} to {Format.Bold(campaign.TargetRole.Name)}",
                     Value = $"{campaign.GetTotalVotes()} {votesLabel} ({approvalLabel})",
                     IsInline = false
                 });

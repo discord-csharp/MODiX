@@ -105,7 +105,7 @@ namespace Modix.Services.Starboard
                 .WithTimestamp(message.Timestamp)
                 .WithColor(color)
                 .WithAuthor(
-                    author.Nickname ?? author.Username,
+                    author.GetFullUsername(),
                     author.GetDefiniteAvatarUrl());
 
             embed.Description = new StringBuilder()

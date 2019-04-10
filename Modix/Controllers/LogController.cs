@@ -13,6 +13,7 @@ using Modix.Data.Models.Moderation;
 using Modix.Models;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
+using Modix.Services.Utilities;
 using Newtonsoft.Json;
 
 namespace Modix.Controllers
@@ -110,9 +111,9 @@ namespace Modix.Controllers
                     x => new
                     {
                         Channel = x.Channel.Name,
-                        Author = x.Author.FullUsername,
+                        Author = x.Author.GetFullUsername(),
                         x.Created,
-                        CreatedBy = x.CreatedBy.FullUsername,
+                        CreatedBy = x.CreatedBy.GetFullUsername(),
                         x.Content,
                         x.Reason,
                         x.BatchId,

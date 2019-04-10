@@ -302,7 +302,7 @@ namespace Modix.Services.Promotions
                 {
                     var subject = await UserService.GetGuildUserAsync(campaign.GuildId, campaign.Subject.Id);
                     if (subject.RoleIds.Contains(campaign.TargetRole.Id))
-                        throw new InvalidOperationException($"User {campaign.Subject.DisplayName} is already a member of role {campaign.TargetRole.Name}");
+                        throw new InvalidOperationException($"User {campaign.Subject.GetFullUsername()} is already a member of role {campaign.TargetRole.Name}");
 
                     var guild = await DiscordClient.GetGuildAsync(campaign.GuildId);
                     var targetRole = guild.GetRole(campaign.TargetRole.Id);

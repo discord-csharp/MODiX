@@ -45,16 +45,14 @@ namespace Modix.Models
 
         public static DeletedMessageAbstraction FromSummary(DeletedMessageSummary msg)
         {
-            var ret = new DeletedMessageAbstraction
+            return new DeletedMessageAbstraction
             {
                 MessageId = msg.MessageId,
-                Username = msg.Author.FullUsername,
+                Username = msg.Author.GetFullUsername(),
                 Content = msg.Content,
                 SentTime = null,
                 Url = null
             };
-
-            return ret;
         }
     }
 }

@@ -127,12 +127,14 @@ namespace Modix.Data.Models.Moderation
                 .FilterBy(
                     x => x.AuthorId == criteria.AuthorId,
                     criteria?.AuthorId != null)
+                //TODO: Refactor this to a separate method
                 .FilterBy(
                     x => (x.Author.Nickname ?? $"{x.Author.User.Username}#{x.Author.User.Discriminator}").OrdinalContains(criteria.Author),
                     !string.IsNullOrWhiteSpace(criteria?.Author))
                 .FilterBy(
                     x => x.CreateAction.CreatedById == criteria.CreatedById,
                     criteria?.CreatedById != null)
+                //TODO: Refactor this to a separate method
                 .FilterBy(
                     x => (x.CreateAction.CreatedBy.Nickname ?? $"{x.CreateAction.CreatedBy.User.Username}#{x.Author.User.Discriminator}").OrdinalContains(criteria.CreatedBy),
                     !string.IsNullOrWhiteSpace(criteria?.CreatedBy))

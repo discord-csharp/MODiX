@@ -12,6 +12,7 @@ using Modix.Data.Models.Moderation;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
+using Modix.Services.Utilities;
 
 namespace Modix.Behaviors
 {
@@ -49,13 +50,13 @@ namespace Modix.Behaviors
 
                 var message = string.Format(renderTemplate,
                     moderationAction.Created.UtcDateTime.ToString("HH:mm:ss"),
-                    moderationAction.CreatedBy.DisplayName,
+                    moderationAction.CreatedBy.GetFullUsername(),
                     moderationAction.Infraction?.Id,
-                    moderationAction.Infraction?.Subject.DisplayName,
+                    moderationAction.Infraction?.Subject.GetFullUsername(),
                     moderationAction.Infraction?.Subject.Id,
                     moderationAction.Infraction?.Reason,
                     moderationAction.DeletedMessage?.Id,
-                    moderationAction.DeletedMessage?.Author.DisplayName,
+                    moderationAction.DeletedMessage?.Author.GetFullUsername(),
                     moderationAction.DeletedMessage?.Author.Id,
                     moderationAction.DeletedMessage?.Channel.Name ?? moderationAction.DeletedMessages?.First().Channel.Name,
                     moderationAction.DeletedMessage?.Channel.Id,
