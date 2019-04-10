@@ -32,7 +32,7 @@
     "@types/node": "^10.12.12",
     "@types/webpack-env": "^1.13.6",
     "@vue/cli-plugin-typescript": "^3.5.1",
-    "@vue/cli-service": "^3.5.1",
+    "@vue/cli-service": "^3.5.3",
     "node-sass": "^4.11.0",
     "sass-loader": "^7.1.0",
     "typescript": "^3.3.3333",
