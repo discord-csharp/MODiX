@@ -8,7 +8,7 @@ namespace Discord
     /// <summary>
     /// Contains extension methods for abstracting <see cref="ICategoryChannel"/> objects.
     /// </summary>
-    public static class CategoryChannelAbstractionExtensions
+    internal static class CategoryChannelAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="ICategoryChannel"/> to an abstracted <see cref="ICategoryChannel"/> value.

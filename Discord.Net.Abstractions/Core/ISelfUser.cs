@@ -8,7 +8,7 @@ namespace Discord
     /// <summary>
     /// Contains extension methods for abstracting <see cref="ISelfUser"/> objects.
     /// </summary>
-    public static class SelfUserAbstractionExtensions
+    internal static class SelfUserAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="ISelfUser"/> to an abstracted <see cref="ISelfUser"/> value.

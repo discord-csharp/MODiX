@@ -24,7 +24,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="WebSocket.SocketReaction"/>, through the <see cref="ISocketReaction"/> interface.
     /// </summary>
-    public class SocketReactionAbstraction : ISocketReaction
+    internal class SocketReactionAbstraction : ISocketReaction
     {
         /// <summary>
         /// Constructs a new <see cref="SocketReactionAbstraction"/> around an existing <see cref="WebSocket.SocketReaction"/>.
@@ -84,7 +84,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="SocketReaction"/> objects.
     /// </summary>
-    public static class SocketReactionAbstractionExtensions
+    internal static class SocketReactionAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="SocketReaction"/> to an abstracted <see cref="ISocketReaction"/> value.

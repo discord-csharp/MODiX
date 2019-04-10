@@ -12,7 +12,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestInviteMetadata"/>, through the <see cref="IRestInviteMetadata"/> interface.
     /// </summary>
-    public class RestInviteMetadataAbstraction : RestInviteAbstraction, IRestInviteMetadata
+    internal class RestInviteMetadataAbstraction : RestInviteAbstraction, IRestInviteMetadata
     {
         /// <summary>
         /// Constructs a new <see cref="RestInviteMetadataAbstraction"/> around an existing <see cref="Rest.RestInviteMetadata"/>.
@@ -66,7 +66,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestInviteMetadata"/> objects.
     /// </summary>
-    public static class RestInviteMetadataAbstractionExtensions
+    internal static class RestInviteMetadataAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestInviteMetadata"/> to an abstracted <see cref="IRestInviteMetadata"/> value.

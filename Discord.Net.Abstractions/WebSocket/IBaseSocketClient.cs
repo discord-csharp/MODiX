@@ -165,7 +165,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="WebSocket.BaseSocketClient"/>, through the <see cref="IBaseSocketClient"/> interface.
     /// </summary>
-    public abstract class BaseSocketClientAbstraction : BaseDiscordClientAbstraction, IBaseSocketClient
+    internal abstract class BaseSocketClientAbstraction : BaseDiscordClientAbstraction, IBaseSocketClient
     {
         /// <summary>
         /// Constructs a new <see cref="BaseSocketClientAbstraction"/> around an existing <see cref="WebSocket.BaseSocketClient"/>.
@@ -398,7 +398,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="BaseSocketClient"/> objects.
     /// </summary>
-    public static class BaseSocketClientAbstractionExtensions
+    internal static class BaseSocketClientAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="BaseSocketClient"/> to an abstracted <see cref="IBaseSocketClient"/> value.

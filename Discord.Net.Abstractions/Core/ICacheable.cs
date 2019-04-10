@@ -27,7 +27,7 @@ namespace Discord
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Discord.Cacheable{TEntity, TId}"/>, through the <see cref="ICacheable{TEntity, TId}"/> interface.
     /// </summary>
-    public struct CacheableAbstraction<TEntity, TId> : ICacheable<TEntity, TId>
+    internal struct CacheableAbstraction<TEntity, TId> : ICacheable<TEntity, TId>
         where TEntity : IEntity<TId>
         where TId : IEquatable<TId>
     {
@@ -79,7 +79,7 @@ namespace Discord
     /// <summary>
     /// Contains extension methods for abstracting <see cref="Cacheable{TEntity, TId}"/> objects.
     /// </summary>
-    public static class CacheableAsbtractionExtensions
+    internal static class CacheableAsbtractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="Cacheable{TEntity, TId}"/> to an abstracted <see cref="ICacheable{TEntity, TId}"/> value.

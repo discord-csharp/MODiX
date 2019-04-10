@@ -8,7 +8,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="RestVoiceRegion"/>, through the <see cref="IRestVoiceRegion"/> interface.
     /// </summary>
-    public class RestVoiceRegionAbstraction : IRestVoiceRegion
+    internal class RestVoiceRegionAbstraction : IRestVoiceRegion
     {
         /// <summary>
         /// Constructs a new <see cref="RestVoiceRegionAbstraction"/> around an existing <see cref="Rest.RestVoiceRegion"/>.
@@ -57,7 +57,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestVoiceRegion"/> objects.
     /// </summary>
-    public static class RestVoiceRegionAbstractionExtensions
+    internal static class RestVoiceRegionAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestVoiceRegion"/> to an abstracted <see cref="IRestVoiceRegion"/> value.

@@ -152,7 +152,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="WebSocket.SocketGuild"/>, through the <see cref="ISocketGuild"/> interface.
     /// </summary>
-    public class SocketGuildAbstraction : ISocketGuild
+    internal class SocketGuildAbstraction : ISocketGuild
     {
         /// <summary>
         /// Constructs a new <see cref="SocketGuildAbstraction"/> around an existing <see cref="WebSocket.SocketGuild"/>.
@@ -739,7 +739,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="SocketGuild"/> objects.
     /// </summary>
-    public static class SocketGuildAbstractionExtensions
+    internal static class SocketGuildAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="SocketGuild"/> to an abstracted <see cref="ISocketGuild"/> value.

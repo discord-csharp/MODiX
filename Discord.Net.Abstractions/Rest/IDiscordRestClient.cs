@@ -72,7 +72,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.DiscordRestClient"/>, through the <see cref="IDiscordRestClient"/> interface.
     /// </summary>
-    public class DiscordRestClientAbstraction : BaseDiscordClientAbstraction, IDiscordRestClient
+    internal class DiscordRestClientAbstraction : BaseDiscordClientAbstraction, IDiscordRestClient
     {
         /// <summary>
         /// Constructs a new <see cref="DiscordRestClientAbstraction"/> around an existing <see cref="Rest.DiscordRestClient"/>.

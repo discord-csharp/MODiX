@@ -7,7 +7,7 @@ namespace Discord
     /// <summary>
     /// Contains extension methods for abstracting <see cref="IApplication"/> objects.
     /// </summary>
-    public static class ApplicationAbstractionExtensions
+    internal static class ApplicationAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="IApplication"/> to an abstracted <see cref="IApplication"/> value.

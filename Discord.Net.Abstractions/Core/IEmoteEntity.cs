@@ -15,7 +15,7 @@ namespace Discord
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Discord.Emote"/>, through the <see cref="IEmoteEntity"/> interface.
     /// </summary>
-    public class EmoteAbstraction : IEmoteEntity
+    internal class EmoteAbstraction : IEmoteEntity
     {
         /// <summary>
         /// Constructs a new <see cref="EmoteAbstraction"/> around an existing <see cref="Discord.Emote"/>.

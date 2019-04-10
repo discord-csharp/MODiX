@@ -13,7 +13,7 @@
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="RestGuildEmbed"/>, through the <see cref="IRestGuildEmbed"/> interface.
     /// </summary>
-    public struct RestGuildEmbedAbstraction : IRestGuildEmbed
+    internal struct RestGuildEmbedAbstraction : IRestGuildEmbed
     {
         /// <summary>
         /// Constructs a new <see cref="RestGuildEmbedAbstraction"/> around an existing <see cref="RestGuildEmbed"/>.
@@ -42,7 +42,7 @@
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestGuildEmbed"/> data.
     /// </summary>
-    public static class RestGuildEmbedAbstractionExtensions
+    internal static class RestGuildEmbedAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestGuildEmbed"/> to an abstracted <see cref="IRestGuildEmbed"/> value.

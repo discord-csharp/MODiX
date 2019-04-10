@@ -7,7 +7,7 @@ namespace Discord
     /// <summary>
     /// Contains extension methods for abstracting <see cref="IVoiceRegion"/> objects.
     /// </summary>
-    public static class VoiceRegionAbstractionExtensions
+    internal static class VoiceRegionAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="IVoiceRegion"/> to an abstracted <see cref="IVoiceRegion"/> value.

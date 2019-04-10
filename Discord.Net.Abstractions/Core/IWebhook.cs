@@ -7,7 +7,7 @@ namespace Discord
     /// <summary>
     /// Contains extension methods for abstracting <see cref="IWebhook"/> objects.
     /// </summary>
-    public static class WebhookAbstractionExtensions
+    internal static class WebhookAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="IWebhook"/> to an abstracted <see cref="IWebhook"/> value.

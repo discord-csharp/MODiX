@@ -8,7 +8,7 @@ namespace Discord
     /// <summary>
     /// Contains extension methods for abstracting <see cref="IRole"/> objects.
     /// </summary>
-    public static class RoleAbstractionExtensions
+    internal static class RoleAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="IRole"/> to an abstracted <see cref="IRole"/> value.

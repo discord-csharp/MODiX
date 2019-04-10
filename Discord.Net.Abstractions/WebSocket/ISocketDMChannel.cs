@@ -63,7 +63,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="WebSocket.SocketDMChannel"/>, through the <see cref="ISocketDMChannel"/> interface.
     /// </summary>
-    public class SocketDMChannelAbstraction : SocketChannelAbstraction, ISocketDMChannel
+    internal class SocketDMChannelAbstraction : SocketChannelAbstraction, ISocketDMChannel
     {
         /// <summary>
         /// Constructs a new <see cref="SocketDMChannelAbstraction"/> around an existing <see cref="WebSocket.SocketDMChannel"/>.
@@ -252,7 +252,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="SocketDMChannel"/> objects.
     /// </summary>
-    public static class SocketDMChannelAbstractionExtensions
+    internal static class SocketDMChannelAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="SocketDMChannel"/> to an abstracted <see cref="ISocketDMChannel"/> value.

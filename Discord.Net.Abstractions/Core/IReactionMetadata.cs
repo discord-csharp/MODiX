@@ -13,7 +13,7 @@
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="ReactionMetadata"/>, through the <see cref="IReactionMetadata"/> interface.
     /// </summary>
-    public struct ReactionMetadataAbstraction : IReactionMetadata
+    internal struct ReactionMetadataAbstraction : IReactionMetadata
     {
         /// <summary>
         /// Constructs a new <see cref="ReactionMetadataAbstraction"/> around an existing <see cref="ReactionMetadata"/>.
@@ -38,7 +38,7 @@
     /// <summary>
     /// Contains extension methods for abstracting <see cref="ReactionMetadata"/> data.
     /// </summary>
-    public static class ReactionMetadataAbstractionExtensions
+    internal static class ReactionMetadataAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="ReactionMetadata"/> to an abstracted <see cref="IReactionMetadata"/> value.

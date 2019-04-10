@@ -8,7 +8,7 @@ namespace Discord
     /// <summary>
     /// Contains extension methods for abstracting <see cref="IMessage"/> objects.
     /// </summary>
-    public static class MessageAbstractionExtensions
+    internal static class MessageAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="IMessage"/> to an abstracted <see cref="IMessage"/> value.

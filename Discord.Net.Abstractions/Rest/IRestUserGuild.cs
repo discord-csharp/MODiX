@@ -13,7 +13,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestUserGuild"/>, through the <see cref="IRestUserGuild"/> interface.
     /// </summary>
-    public class RestUserGuildAbstraction : IRestUserGuild
+    internal class RestUserGuildAbstraction : IRestUserGuild
     {
         /// <summary>
         /// Constructs a new <see cref="RestUserGuildAbstraction"/> around an existing <see cref="Rest.RestUserGuild"/>.
@@ -70,7 +70,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestUserGuild"/> objects.
     /// </summary>
-    public static class RestUserGuildAbstractionExtensions
+    internal static class RestUserGuildAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestUserGuild"/> to an abstracted <see cref="IRestUserGuild"/> value.

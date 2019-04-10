@@ -13,7 +13,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestRole"/>, through the <see cref="IRestRole"/> interface.
     /// </summary>
-    public class RestRoleAbstraction : IRestRole
+    internal class RestRoleAbstraction : IRestRole
     {
         /// <summary>
         /// Constructs a new <see cref="RestRoleAbstraction"/> around an existing <see cref="Rest.RestRole"/>.
@@ -99,7 +99,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestRole"/> objects.
     /// </summary>
-    public static class RestRoleAbstractionExtensions
+    internal static class RestRoleAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestRole"/> to an abstracted <see cref="IRestRole"/> value.

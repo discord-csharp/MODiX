@@ -55,7 +55,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestTextChannel"/>, through the <see cref="IRestTextChannel"/> interface.
     /// </summary>
-    public class RestTextChannelAbstraction : RestGuildChannelAbstraction, IRestTextChannel
+    internal class RestTextChannelAbstraction : RestGuildChannelAbstraction, IRestTextChannel
     {
         /// <summary>
         /// Constructs a new <see cref="RestTextChannelAbstraction"/> around an existing <see cref="Rest.RestTextChannel"/>.
@@ -286,7 +286,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestTextChannel"/> objects.
     /// </summary>
-    public static class RestTextChannelAbstractionExtensions
+    internal static class RestTextChannelAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestTextChannel"/> to an abstracted <see cref="IRestTextChannel"/> value.

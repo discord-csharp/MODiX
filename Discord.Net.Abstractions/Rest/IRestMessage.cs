@@ -27,7 +27,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestMessage"/>, through the <see cref="IRestMessage"/> interface.
     /// </summary>
-    public abstract class RestMessageAbstraction : IRestMessage
+    internal abstract class RestMessageAbstraction : IRestMessage
     {
         /// <summary>
         /// Constructs a new <see cref="RestMessageAbstraction"/> around an existing <see cref="Rest.RestMessage"/>.
@@ -154,7 +154,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestMessage"/> objects.
     /// </summary>
-    public static class RestMessageAbstractionExtensions
+    internal static class RestMessageAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestMessage"/> to an abstracted <see cref="IRestMessage"/> value.

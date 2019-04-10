@@ -9,7 +9,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestSelfUser"/>, through the <see cref="IRestSelfUser"/> interface.
     /// </summary>
-    public class RestSelfUserAbstraction : RestUserAbstraction, IRestSelfUser
+    internal class RestSelfUserAbstraction : RestUserAbstraction, IRestSelfUser
     {
         /// <summary>
         /// Constructs a new <see cref="RestSelfUserAbstraction"/> around an existing <see cref="Rest.RestSelfUser"/>.
@@ -45,7 +45,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestSelfUser"/> objects.
     /// </summary>
-    public static class RestSelfUserAbstractionExtensions
+    internal static class RestSelfUserAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestSelfUser"/> to an abstracted <see cref="IRestSelfUser"/> value.

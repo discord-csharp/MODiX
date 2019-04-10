@@ -7,7 +7,7 @@ namespace Discord
     /// <summary>
     /// Contains extension methods for abstracting <see cref="IAuditLogEntry"/> objects.
     /// </summary>
-    public static class AuditLogEntryAbstractionExtensions
+    internal static class AuditLogEntryAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="IAuditLogEntry"/> to an abstracted <see cref="IAuditLogEntry"/> value.

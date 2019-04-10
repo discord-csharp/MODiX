@@ -13,7 +13,7 @@
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Discord.IntegrationAccount"/>, through the <see cref="IIntegrationAccount"/> interface.
     /// </summary>
-    public struct IntegrationAccountAbstraction : IIntegrationAccount
+    internal struct IntegrationAccountAbstraction : IIntegrationAccount
     {
         /// <summary>
         /// Constructs a new <see cref="IntegrationAccountAbstraction"/> around an existing <see cref="Discord.IntegrationAccount"/>.
@@ -46,7 +46,7 @@
     /// <summary>
     /// Contains extension methods for abstracting <see cref="IntegrationAccount"/> objects.
     /// </summary>
-    public static class IntegrationAccountAbstractionExtensions
+    internal static class IntegrationAccountAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="IntegrationAccount"/> to an abstracted <see cref="IIntegrationAccount"/> value.

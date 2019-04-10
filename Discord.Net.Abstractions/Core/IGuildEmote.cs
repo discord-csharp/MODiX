@@ -22,7 +22,7 @@ namespace Discord
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Discord.GuildEmote"/>, through the <see cref="IGuildEmote"/> interface.
     /// </summary>
-    public class GuildEmoteAbstraction : EmoteAbstraction, IGuildEmote
+    internal class GuildEmoteAbstraction : EmoteAbstraction, IGuildEmote
     {
         /// <summary>
         /// Constructs a new <see cref="GuildEmoteAbstraction"/> around an existing <see cref="Discord.GuildEmote"/>.
@@ -62,7 +62,7 @@ namespace Discord
     /// <summary>
     /// Contains extension methods for abstracting <see cref="GuildEmote"/> objects.
     /// </summary>
-    public static class GuildEmoteAbstractionExtensions
+    internal static class GuildEmoteAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="GuildEmote"/> to an abstracted <see cref="IGuildEmote"/> value.

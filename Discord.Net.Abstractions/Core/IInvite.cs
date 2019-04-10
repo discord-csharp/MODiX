@@ -7,7 +7,7 @@ namespace Discord
     /// <summary>
     /// Contains extension methods for abstracting <see cref="IInvite"/> objects.
     /// </summary>
-    public static class InviteAbstractionExtensions
+    internal static class InviteAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="IInvite"/> to an abstracted <see cref="IInvite"/> value.

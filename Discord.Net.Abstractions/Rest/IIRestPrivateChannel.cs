@@ -13,7 +13,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="IRestPrivateChannel"/> objects.
     /// </summary>
-    public static class IRestPrivateChannelAbstractionExtensions
+    internal static class IRestPrivateChannelAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="IRestPrivateChannel"/> to an abstracted <see cref="IIRestPrivateChannel"/> value.

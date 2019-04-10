@@ -41,7 +41,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="ISocketMessageChannel"/> objects.
     /// </summary>
-    public static class ISocketMessageChannelAbstractionExtensions
+    internal static class ISocketMessageChannelAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="ISocketMessageChannel"/> to an abstracted <see cref="IISocketMessageChannel"/> value.

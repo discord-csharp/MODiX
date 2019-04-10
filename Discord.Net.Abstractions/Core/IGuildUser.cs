@@ -8,7 +8,7 @@ namespace Discord
     /// <summary>
     /// Contains extension methods for abstracting <see cref="IGuildUser"/> objects.
     /// </summary>
-    public static class GuildUserAbstractionExtensions
+    internal static class GuildUserAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="IGuildUser"/> to an abstracted <see cref="IGuildUser"/> value.

@@ -21,7 +21,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="WebSocket.SocketRole"/>, through the <see cref="ISocketRole"/> interface.
     /// </summary>
-    public class SocketRoleAbstraction : ISocketRole
+    internal class SocketRoleAbstraction : ISocketRole
     {
         /// <summary>
         /// Constructs a new <see cref="SocketRoleAbstraction"/> around an existing <see cref="WebSocket.SocketRole"/>.
@@ -114,7 +114,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="SocketRole"/> objects.
     /// </summary>
-    public static class SocketRoleAbstractionExtensions
+    internal static class SocketRoleAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="SocketRole"/> to an abstracted <see cref="ISocketRole"/> value.
