@@ -104,9 +104,7 @@ namespace Modix.Services.Starboard
             var embed = _quoteService.BuildQuoteEmbed(message, author)
                 .WithTimestamp(message.Timestamp)
                 .WithColor(color)
-                .WithAuthor(
-                    author.GetFullUsername(),
-                    author.GetDefiniteAvatarUrl());
+                .WithUserAsAuthor(author);
 
             embed.Description = new StringBuilder()
                 .AppendLine($"_Posted in **[#{message.Channel.Name}]({message.GetJumpUrl()})**_")

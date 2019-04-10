@@ -115,7 +115,7 @@ namespace Modix.Modules
                .WithTitle("Decompile Result")
                .WithDescription(result.Contains("Emit Failed") ? "Failed" : "Successful")
                .WithColor(failed ? new Color(255, 0, 0) : new Color(0, 255, 0))
-               .WithAuthor(guildUser);
+               .WithUserAsAuthor(guildUser);
 
             embed.AddField(a => a.WithName("Code").WithValue(Format.Code(code, "cs")));
 

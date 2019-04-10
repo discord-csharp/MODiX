@@ -84,7 +84,7 @@ namespace Modix.Services.Promotions
             embed = embed
                 .WithTitle("The campaign is over!")
                 .WithDescription($"Staff accepted the campaign, and {boldName} was promoted to {boldRole}! 🎉")
-                .WithAuthor(subject)
+                .WithUserAsAuthor(subject)
                 .WithFooter("See more at https://mod.gg/promotions");
 
             return embed.Build();

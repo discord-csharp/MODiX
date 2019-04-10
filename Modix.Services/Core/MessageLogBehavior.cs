@@ -112,7 +112,7 @@ namespace Modix.Services.Core
             }
 
             var embed = new EmbedBuilder()
-                .WithVerboseAuthor(original.Author)
+                .WithUserAsAuthor(original.Author, original.Id.ToString())
                 .WithDescription(descriptionText)
                 .WithCurrentTimestamp();
 
@@ -147,7 +147,7 @@ namespace Modix.Services.Core
                 descriptionContent = $"**Content**\n```{FormatMessage(cached.Content)}```";
 
                 embed = embed
-                    .WithVerboseAuthor(cached.Author);
+                    .WithUserAsAuthor(cached.Author, cached.Author.Id.ToString());
 
                 if (cached.Attachments.Any())
                 {

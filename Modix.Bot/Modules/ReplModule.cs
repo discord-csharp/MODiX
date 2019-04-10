@@ -80,7 +80,7 @@ namespace Modix.Modules
             var message = await Context.Channel
                 .SendMessageAsync(embed: new EmbedBuilder()
                     .WithTitle("REPL Executing")
-                    .WithAuthor(Context.User)
+                    .WithUserAsAuthor(Context.User)
                     .WithColor(Color.LightOrange)
                     .WithDescription($"Compiling and Executing [your code]({Context.Message.GetJumpUrl()})...")
                     .Build());
@@ -143,7 +143,7 @@ namespace Modix.Modules
         {
             var embed = new EmbedBuilder()
                 .WithTitle("REPL Error")
-                .WithAuthor(Context.User)
+                .WithUserAsAuthor(Context.User)
                 .WithColor(Color.Red)
                 .AddField("Tried to execute", $"[this code]({Context.Message.GetJumpUrl()})")
                 .WithDescription(error);
@@ -171,7 +171,7 @@ namespace Modix.Modules
                 .WithTitle("REPL Result")
                 .WithDescription(string.IsNullOrEmpty(parsedResult.Exception) ? "Success" : "Failure")
                 .WithColor(string.IsNullOrEmpty(parsedResult.Exception) ? Color.Green : Color.Red)
-                .WithAuthor(guildUser)
+                .WithUserAsAuthor(guildUser)
                 .WithFooter(a => a.WithText($"Compile: {parsedResult.CompileTime.TotalMilliseconds:F}ms | Execution: {parsedResult.ExecutionTime.TotalMilliseconds:F}ms"));
 
             embed.AddField(a => a.WithName("Code").WithValue(Format.Code(parsedResult.Code, "cs")));
