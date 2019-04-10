@@ -177,7 +177,7 @@ namespace Modix.Modules
         public void AppendRoleInformation(StringBuilder stringBuilder, IGuild guild)
         {
             var roles = guild.Roles
-                .Where(x => x.Id != guild.EveryoneRole.Id)
+                .Where(x => x.Id != guild.EveryoneRole.Id && x.Color != Color.Default)
                 .OrderByDescending(x => x.Position)
                 .ThenByDescending(x => x.IsHoisted);
 
