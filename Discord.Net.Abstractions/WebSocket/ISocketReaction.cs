@@ -43,7 +43,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public IEmote Emote
-            => SocketReaction.Emote;
+            => SocketReaction.Emote
+                .Abstract();
 
         /// <inheritdoc />
         public ulong MessageId

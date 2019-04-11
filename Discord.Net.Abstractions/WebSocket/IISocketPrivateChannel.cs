@@ -27,9 +27,9 @@ namespace Discord.WebSocket
                 null
                     => throw new ArgumentNullException(nameof(iSocketPrivateChannel)),
                 SocketDMChannel socketDMChannel
-                    => socketDMChannel.Abstract() as IISocketPrivateChannel,
+                    => SocketDMChannelAbstractionExtensions.Abstract(socketDMChannel) as IISocketPrivateChannel,
                 SocketGroupChannel socketGroupChannel
-                    => socketGroupChannel.Abstract() as IISocketPrivateChannel,
+                    => SocketGroupChannelAbstractionExtensions.Abstract(socketGroupChannel) as IISocketPrivateChannel,
                 _
                     => throw new NotSupportedException($"{nameof(ISocketPrivateChannel)} type {iSocketPrivateChannel.GetType().FullName} is not supported")
             };

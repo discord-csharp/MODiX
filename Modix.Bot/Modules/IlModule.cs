@@ -45,7 +45,7 @@ namespace Modix.Modules
             [Summary("The code to decompile.")]
                 string code)
         {
-            if (!(Context.Channel is SocketGuildChannel))
+            if (!(Context.Channel is IGuildChannel))
             {
                 await ReplyAsync("il can only be executed in public guild channels.");
                 return;
@@ -57,7 +57,7 @@ namespace Modix.Modules
                 return;
             }
 
-            var guildUser = Context.User as SocketGuildUser;
+            var guildUser = Context.User as IGuildUser;
             var message = await Context.Channel.SendMessageAsync("Working...");
 
             var content = FormatUtilities.BuildContent(code);
@@ -107,7 +107,7 @@ namespace Modix.Modules
             await Context.Message.DeleteAsync();
         }
 
-        private async Task<EmbedBuilder> BuildEmbedAsync(SocketGuildUser guildUser, string code, string result)
+        private async Task<EmbedBuilder> BuildEmbedAsync(IGuildUser guildUser, string code, string result)
         {
             var failed = result.Contains("Emit Failed");
 

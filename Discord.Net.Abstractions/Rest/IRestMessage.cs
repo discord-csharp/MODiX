@@ -168,9 +168,9 @@ namespace Discord.Rest
                 null
                     => throw new ArgumentNullException(nameof(restMessage)),
                 RestSystemMessage restSystemMessage
-                    => restSystemMessage.Abstract() as IRestMessage,
+                    => RestSystemMessageAbstractionExtensions.Abstract(restSystemMessage) as IRestMessage,
                 RestUserMessage restUserMessage
-                    => restUserMessage.Abstract() as IRestMessage,
+                    => RestUserMessageAbstractionExtensions.Abstract(restUserMessage) as IRestMessage,
                 _
                     => throw new NotSupportedException($"Unable to abstract {nameof(RestMessage)} type {restMessage.GetType().Name}")
             };

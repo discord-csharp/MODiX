@@ -45,7 +45,7 @@ namespace Modix.Services.EmojiStats
             var channel = notification.Channel as ITextChannel;
             var message = await notification.Message.GetOrDownloadAsync();
             var reaction = notification.Reaction;
-            var emote = reaction.Emote as Emote;
+            var emote = reaction.Emote as IEmoteEntity;
 
             await LogReactionAsync(channel, message, reaction, emote);
         }
@@ -60,7 +60,7 @@ namespace Modix.Services.EmojiStats
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation completes.
         /// </returns>
-        private async Task LogReactionAsync(ITextChannel channel, IUserMessage message, ISocketReaction reaction, Emote emote)
+        private async Task LogReactionAsync(ITextChannel channel, IUserMessage message, ISocketReaction reaction, IEmoteEntity emote)
         {
             using (var transaction = await _emojiRepository.BeginMaintainTransactionAsync())
             {
@@ -88,7 +88,7 @@ namespace Modix.Services.EmojiStats
             var channel = notification.Channel as ITextChannel;
             var message = await notification.Message.GetOrDownloadAsync();
             var reaction = notification.Reaction;
-            var emote = reaction.Emote as Emote;
+            var emote = reaction.Emote as IEmoteEntity;
 
             await UnlogReactionAsync(channel, message, reaction, emote);
         }
@@ -103,7 +103,7 @@ namespace Modix.Services.EmojiStats
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation completes.
         /// </returns>
-        private async Task UnlogReactionAsync(ITextChannel channel, IUserMessage message, ISocketReaction reaction, Emote emote)
+        private async Task UnlogReactionAsync(ITextChannel channel, IUserMessage message, ISocketReaction reaction, IEmoteEntity emote)
         {
             using (var transaction = await _emojiRepository.BeginMaintainTransactionAsync())
             {

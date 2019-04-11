@@ -88,11 +88,11 @@ namespace Discord.WebSocket
                 null
                     => throw new ArgumentNullException(nameof(socketChannel)),
                 SocketDMChannel socketDMChannel
-                    => socketDMChannel.Abstract() as ISocketChannel,
+                    => SocketDMChannelAbstractionExtensions.Abstract(socketDMChannel) as ISocketChannel,
                 SocketGroupChannel socketGroupChannel
-                    => socketGroupChannel.Abstract() as ISocketChannel,
+                    => SocketGroupChannelAbstractionExtensions.Abstract(socketGroupChannel) as ISocketChannel,
                 SocketGuildChannel socketGuildChannel
-                    => socketGuildChannel.Abstract() as ISocketChannel,
+                    => SocketGuildChannelAbstractionExtensions.Abstract(socketGuildChannel) as ISocketChannel,
                 _
                     => throw new NotSupportedException($"Unable to abstract {nameof(SocketChannel)} type {socketChannel.GetType().Name}")
             };

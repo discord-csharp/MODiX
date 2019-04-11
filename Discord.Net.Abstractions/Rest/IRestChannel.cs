@@ -74,11 +74,11 @@ namespace Discord.Rest
                 null
                     => throw new ArgumentNullException(nameof(restChannel)),
                 RestDMChannel restDMChannel
-                    => restDMChannel.Abstract(),
+                    => RestDMChannelAbstractionExtensions.Abstract(restDMChannel),
                 RestGroupChannel restGroupChannel
-                    => restGroupChannel.Abstract(),
+                    => RestGroupChannelAbstractionExtensions.Abstract(restGroupChannel),
                 RestGuildChannel restGuildChannel
-                    => restGuildChannel.Abstract(),
+                    => RestGuildChannelAbstractionExtensions.Abstract(restGuildChannel),
                 _
                     => new RestChannelAbstraction(restChannel) as IRestChannel
             };

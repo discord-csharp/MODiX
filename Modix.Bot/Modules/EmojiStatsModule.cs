@@ -99,6 +99,7 @@ namespace Modix.Modules
             [Summary("The emoji to retrieve information about.")]
                 IEmote emoji)
         {
+            // TODO: Abstract this as IEmoteEntity instead (actually not entirely sure how this would work, as it comes out of the commands module)
             var asEmote = emoji as Emote;
 
             var ephemeralEmoji = EphemeralEmoji.FromRawData(emoji.Name, asEmote?.Id, asEmote?.Animated ?? false);

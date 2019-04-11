@@ -176,9 +176,9 @@ namespace Discord.WebSocket
                 null
                     => throw new ArgumentNullException(nameof(SocketMessage)),
                 SocketUserMessage socketUserMessage
-                    => socketUserMessage.Abstract() as ISocketMessage,
+                    => SocketUserMessageAbstractionExtensions.Abstract(socketUserMessage) as ISocketMessage,
                 SocketSystemMessage socketSystemMessage
-                    => socketSystemMessage.Abstract() as ISocketMessage,
+                    => SocketSystemMessageAbstractionExtensions.Abstract(socketSystemMessage) as ISocketMessage,
                 _
                     => throw new NotSupportedException($"Unable to abstract {nameof(SocketMessage)} type {socketMessage.GetType().Name}")
             };

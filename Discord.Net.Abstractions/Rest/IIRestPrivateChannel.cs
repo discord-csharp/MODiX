@@ -27,9 +27,9 @@ namespace Discord.Rest
                 null
                     => throw new ArgumentNullException(nameof(iRestPrivateChannel)),
                 RestDMChannel restDMChannel
-                    => restDMChannel.Abstract() as IIRestPrivateChannel,
+                    => RestDMChannelAbstractionExtensions.Abstract(restDMChannel) as IIRestPrivateChannel,
                 RestGroupChannel restGroupChannel
-                    => restGroupChannel.Abstract() as IIRestPrivateChannel,
+                    => RestGroupChannelAbstractionExtensions.Abstract(restGroupChannel) as IIRestPrivateChannel,
                 _
                     => throw new NotSupportedException($"{nameof(IRestPrivateChannel)} type {iRestPrivateChannel.GetType().FullName} is not supported")
             };
