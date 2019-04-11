@@ -87,18 +87,12 @@ namespace Modix.Modules
         }
 
         [Command("delete")]
-        public async Task DeleteRole(string targetRoleName)
+        public async Task DeleteRole(IRole role)
         {
-            if (!(Context.Guild.Roles.FirstOrDefault(x => string.Equals(x.Name, targetRoleName, StringComparison.OrdinalIgnoreCase)) is IRole targetRole))
-            {
-                await ReplyAsync($"Couldn't find role {Format.Bold(targetRoleName)}");
-                return;
-            }
+            await _designatedRoleService.RemoveDesignatedRoleAsync(Context.Guild.Id, role.Id, DesignatedRoleType.Pingable);
 
-            await _designatedRoleService.RemoveDesignatedRoleAsync(Context.Guild.Id, targetRole.Id, DesignatedRoleType.Pingable);
-
-            await targetRole.DeleteAsync();
-            await ReplyAsync($"Deleted role {Format.Bold(targetRole.Name)}.");
+            await role.DeleteAsync();
+            await ReplyAsync($"Deleted role {Format.Bold(role.Name)}.");
         }
     }
 }

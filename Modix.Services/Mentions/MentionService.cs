@@ -41,8 +41,7 @@ namespace Modix.Services.Mentions
                 return;
             }
 
-            if (!role.IsMentionable
-                || await DesignatedRoleService.RoleHasDesignationAsync(role.Guild.Id, role.Id, DesignatedRoleType.RestrictedMentionability))
+            if (await DesignatedRoleService.RoleHasDesignationAsync(role.Guild.Id, role.Id, DesignatedRoleType.RestrictedMentionability))
             {
                 AuthorizationService.RequireClaims(AuthorizationClaim.MentionRestrictedRole);
             }

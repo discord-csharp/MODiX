@@ -107,7 +107,7 @@ namespace Modix.Services.Core
         public async Task RemoveDesignatedRoleAsync(ulong guildId, ulong roleId, DesignatedRoleType type)
         {
             AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
+            AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingDelete);
 
             using (var transaction = await DesignatedRoleMappingRepository.BeginDeleteTransactionAsync())
             {
