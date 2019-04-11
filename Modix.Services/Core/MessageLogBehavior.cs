@@ -84,12 +84,12 @@ namespace Modix.Services.Core
             return result;
         }
 
-        private async Task HandleMessageEdit(Cacheable<IMessage, ulong> cachedOriginal, SocketMessage updated, ISocketMessageChannel channel)
+        private async Task HandleMessageEdit(Cacheable<IMessage, ulong> cachedOriginal, IMessage updated, ISocketMessageChannel channel)
         {
             //Don't log when Modix edits its own messages
             if (updated.Author.Id == _discordClient.CurrentUser.Id) { return; }
 
-            var guild = (channel as SocketGuildChannel)?.Guild;
+            var guild = (channel as IGuildChannel)?.Guild;
 
             if (guild == null)
             {
@@ -124,7 +124,7 @@ namespace Modix.Services.Core
 
         private async Task HandleMessageDelete(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
-            var guild = (channel as SocketGuildChannel)?.Guild;
+            var guild = (channel as IGuildChannel)?.Guild;
 
             if (guild == null)
             {
@@ -172,14 +172,14 @@ namespace Modix.Services.Core
                 embed.Build());
         }
 
-        private async Task HandleMessageReceived(SocketMessage message)
+        private async Task HandleMessageReceived(IMessage message)
         {
             Log.LogDebug("Handling message received event for message #{MessageId}.", message.Id);
 
             if (!message.Content.StartsWith('!') &&
                 message.Channel is IGuildChannel channel &&
                 message.Author is IGuildUser author &&
-                author.Guild is SocketGuild guild &&
+                author.Guild is IGuild guild &&
                 !author.IsBot && !author.IsWebhook)
             {
                 await SelfExecuteRequest<IMessageRepository>(
