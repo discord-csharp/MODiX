@@ -70,7 +70,7 @@ namespace Modix.Modules
         }
 
         [Command("create")]
-        public async Task CreateRole(string targetRoleName)
+        public async Task CreateRole([Remainder] string targetRoleName)
         {
             if (Context.Guild.Roles.FirstOrDefault(x => string.Equals(x.Name, targetRoleName, StringComparison.OrdinalIgnoreCase)) is IRole)
             {
