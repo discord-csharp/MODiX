@@ -8,7 +8,7 @@
                 <div class="leftSide">
                     <span class="statusIcon" v-html="statusIcon" v-tooltip="'Status: ' + (campaign.outcome ? campaign.outcome : 'Active')"></span>
                     <h2 class="title is-size-4 displayName">
-                        {{campaign.subject.fullUsername}}
+                        {{getFullUsername(campaign.subject)}}
                     </h2>
                 </div>
 
@@ -107,10 +107,12 @@ import store from '@/app/Store';
 import PromotionCommentData from '@/models/promotions/PromotionCommentData';
 import PromotionService from '@/services/PromotionService';
 import ModixComponent from '@/components/ModixComponent.vue';
+import { getFullUsername } from '@/models/core/GuildUserIdentity';
 
 
 @Component({
-    components: {PromotionCommentView}
+    components: {PromotionCommentView},
+    methods: { getFullUsername }
 })
 export default class PromotionListItem extends ModixComponent
 {

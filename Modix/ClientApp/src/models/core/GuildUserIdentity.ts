@@ -5,6 +5,9 @@ export default interface GuildUserIdentity
     username: string;
     discriminator: string;
     nickname: string;
-    displayName: string;
-    fullUsername: string;
+}
+
+export const getFullUsername = (user: GuildUserIdentity) =>
+{
+    return `${user.username}#${user.discriminator}`;
 }

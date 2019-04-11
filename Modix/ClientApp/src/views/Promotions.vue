@@ -49,7 +49,7 @@
                 <template v-if="modalCampaign">
                     <header class="modal-card-head">
                         <p class="modal-card-title">
-                            <strong>{{modalCampaign.subject.fullUsername}}</strong>'s Campaign
+                            <strong>{{getFullUsername(modalCampaign.subject)}}</strong>'s Campaign
                         </p>
 
                         <div class="field has-addons is-hidden-mobile">
@@ -196,6 +196,7 @@ import RecordsPage from '@/models/RecordsPage';
 import SortParameter from '@/models/SortParameter';
 import { SortDirection } from '@/models/SortDirection';
 import TableParameters from '@/models/TableParameters';
+import { getFullUsername } from '@/models/core/GuildUserIdentity';
 
 var Clipboard = require('clipboard');
 
@@ -208,6 +209,7 @@ var Clipboard = require('clipboard');
         PromotionCommentEditModal,
         InfractionTable
     },
+    methods: { getFullUsername }
 })
 export default class Promotions extends ModixComponent
 {
