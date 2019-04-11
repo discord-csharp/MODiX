@@ -136,11 +136,11 @@ namespace Discord.WebSocket
                 null
                     => throw new ArgumentNullException(nameof(socketGuildChannel)),
                 SocketCategoryChannel socketCategoryChannel
-                    => socketCategoryChannel.Abstract(),
+                    => SocketCategoryChannelAbstractionExtensions.Abstract(socketCategoryChannel),
                 SocketTextChannel socketTextChannel
-                    => socketTextChannel.Abstract(),
+                    => SocketTextChannelAbstractionExtensions.Abstract(socketTextChannel),
                 SocketVoiceChannel socketVoiceChannel
-                    => socketVoiceChannel.Abstract(),
+                    => SocketVoiceChannelAbstractionExtensions.Abstract(socketVoiceChannel),
                 _
                     => new SocketGuildChannelAbstraction(socketGuildChannel) as ISocketGuildChannel
             };

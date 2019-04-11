@@ -106,7 +106,7 @@ namespace Discord.Rest
                 null
                     => throw new ArgumentNullException(nameof(restInvite)),
                 RestInviteMetadata restInviteMetadata
-                    => restInviteMetadata.Abstract() as IRestInvite,
+                    => RestInviteMetadataAbstractionExtensions.Abstract(restInviteMetadata) as IRestInvite,
                 _
                     => new RestInviteAbstraction(restInvite) as IRestInvite
             };

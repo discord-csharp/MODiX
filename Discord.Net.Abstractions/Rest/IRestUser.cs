@@ -118,13 +118,13 @@ namespace Discord.Rest
                 null
                     => throw new ArgumentNullException(nameof(restUser)),
                 RestGroupUser restGroupUser
-                    => restGroupUser.Abstract(),
+                    => RestGroupUserAbstractionExtensions.Abstract(restGroupUser),
                 RestGuildUser restGuildUser
-                    => restGuildUser.Abstract(),
+                    => RestGuildUserAbstractionExtensions.Abstract(restGuildUser),
                 RestSelfUser restSelfUser
-                    => restSelfUser.Abstract(),
+                    => RestSelfUserAbstractionExtensions.Abstract(restSelfUser),
                 RestWebhookUser restWebhookUser
-                    => restWebhookUser.Abstract(),
+                    => RestWebhookUserAbstractionExtensions.Abstract(restWebhookUser),
                 _
                     => new RestUserAbstraction(restUser) as IRestUser
             };

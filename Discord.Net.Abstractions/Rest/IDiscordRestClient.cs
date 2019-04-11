@@ -204,8 +204,8 @@ namespace Discord.Rest
             {
                 null
                     => throw new ArgumentNullException(nameof(discordRestClient)),
-                DiscordSocketRestClient discordRestSocketClient
-                    => discordRestSocketClient.Abstract() as IDiscordRestClient,
+                DiscordSocketRestClient discordSocketRestClient
+                    => DiscordSocketRestClientAbstractionExtensions.Abstract(discordSocketRestClient) as IDiscordRestClient,
                 _
                     => new DiscordRestClientAbstraction(discordRestClient) as IDiscordRestClient
             };

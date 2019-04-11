@@ -22,7 +22,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="SocketUnknownUser"/> objects.
     /// </summary>
-    internal static class SocketUknownUserAbstractionExtensions
+    internal static class SocketUnknownUserAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="SocketUnknownUser"/> to an abstracted <see cref="ISocketUnknownUser"/> value.

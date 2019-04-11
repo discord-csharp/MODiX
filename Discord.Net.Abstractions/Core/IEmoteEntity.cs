@@ -68,7 +68,7 @@ namespace Discord
     /// <summary>
     /// Contains extension methods for abstracting <see cref="Emote"/> objects.
     /// </summary>
-    public static class EmoteAbstractionExtensions
+    public static class EmoteEntityAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="Emote"/> to an abstracted <see cref="IEmoteEntity"/> value.
@@ -82,7 +82,7 @@ namespace Discord
                 null
                     => throw new ArgumentNullException(nameof(emote)),
                 GuildEmote guildEmote
-                    => guildEmote.Abstract(),
+                    => GuildEmoteAbstractionExtensions.Abstract(guildEmote),
                 _
                     => new EmoteAbstraction(emote) as IEmoteEntity
             };

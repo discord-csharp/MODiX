@@ -117,15 +117,15 @@ namespace Discord.WebSocket
                 null
                     => throw new ArgumentNullException(nameof(socketUser)),
                 SocketGroupUser socketGroupUser
-                    => socketGroupUser.Abstract() as ISocketUser,
+                    => SocketGroupUserAbstractionExtensions.Abstract(socketGroupUser) as ISocketUser,
                 SocketGuildUser socketGuildUser
-                    => socketGuildUser.Abstract() as ISocketUser,
+                    => SocketGuildUserAbstractionExtensions.Abstract(socketGuildUser) as ISocketUser,
                 SocketSelfUser socketSelfUser
-                    => socketSelfUser.Abstract() as ISocketUser,
+                    => SocketSelfUserAbstractionExtensions.Abstract(socketSelfUser) as ISocketUser,
                 SocketUnknownUser socketUnknownUser
-                    => socketUnknownUser.Abstract() as ISocketUser,
+                    => SocketUnknownUserAbstractionExtensions.Abstract(socketUnknownUser) as ISocketUser,
                 SocketWebhookUser socketWebhookUser
-                    => socketWebhookUser.Abstract() as ISocketUser,
+                    => SocketWebhookUserAbstractionExtensions.Abstract(socketWebhookUser) as ISocketUser,
                 _
                     => new SocketUserAbstraction(socketUser) as ISocketUser // for internal type SocketGlobalUser
             };

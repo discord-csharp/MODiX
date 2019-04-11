@@ -207,9 +207,9 @@ namespace Discord.Rest
                 null
                     => throw new ArgumentNullException(nameof(baseDiscordClient)),
                 DiscordRestClient discordRestClient
-                    => discordRestClient.Abstract() as IBaseDiscordClient,
+                    => DiscordRestClientAbstractionExtensions.Abstract(discordRestClient) as IBaseDiscordClient,
                 BaseSocketClient baseSocketClient
-                    => baseSocketClient.Abstract() as IBaseDiscordClient,
+                    => BaseSocketClientAbstractionExtensions.Abstract(baseSocketClient) as IBaseDiscordClient,
                 _
                     => throw new NotSupportedException($"Unable to abstract {nameof(BaseDiscordClient)} type {baseDiscordClient.GetType().Name}")
             };

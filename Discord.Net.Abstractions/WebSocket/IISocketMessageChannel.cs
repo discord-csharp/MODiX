@@ -55,11 +55,11 @@ namespace Discord.WebSocket
                 null
                     => throw new ArgumentNullException(nameof(iSocketMessageChannel)),
                 SocketDMChannel socketDMChannel
-                    => socketDMChannel.Abstract() as IISocketMessageChannel,
+                    => SocketDMChannelAbstractionExtensions.Abstract(socketDMChannel) as IISocketMessageChannel,
                 SocketGroupChannel socketGroupChannel
-                    => socketGroupChannel.Abstract() as IISocketMessageChannel,
+                    => SocketGroupChannelAbstractionExtensions.Abstract(socketGroupChannel) as IISocketMessageChannel,
                 SocketTextChannel socketTextChannel
-                    => socketTextChannel.Abstract() as IISocketMessageChannel,
+                    => SocketTextChannelAbstractionExtensions.Abstract(socketTextChannel) as IISocketMessageChannel,
                 _
                     => throw new NotSupportedException($"{nameof(ISocketMessageChannel)} type {iSocketMessageChannel.GetType().FullName} is not supported")
             };

@@ -412,9 +412,9 @@ namespace Discord.WebSocket
                 null
                     => throw new ArgumentNullException(nameof(baseSocketClient)),
                 DiscordSocketClient discordSocketClient
-                    => discordSocketClient.Abstract() as IBaseSocketClient,
+                    => DiscordSocketClientAbstractionExtensions.Abstract(discordSocketClient) as IBaseSocketClient,
                 DiscordShardedClient discordShardedClient
-                    => discordShardedClient.Abstract() as IBaseSocketClient,
+                    => DiscordShardedClientAbstractionExtensions.Abstract(discordShardedClient) as IBaseSocketClient,
                 _
                     => throw new NotSupportedException($"Unable to abstract {nameof(BaseSocketClient)} type {baseSocketClient.GetType().Name}")
             };

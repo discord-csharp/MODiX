@@ -50,11 +50,11 @@ namespace Discord.Rest
                 null
                     => throw new ArgumentNullException(nameof(iRestMessageChannel)),
                 RestDMChannel restDMChannel
-                    => restDMChannel.Abstract() as IIRestMessageChannel,
+                    => RestDMChannelAbstractionExtensions.Abstract(restDMChannel) as IIRestMessageChannel,
                 RestGroupChannel restGroupChannel
-                    => restGroupChannel.Abstract() as IIRestMessageChannel,
+                    => RestGroupChannelAbstractionExtensions.Abstract(restGroupChannel) as IIRestMessageChannel,
                 RestTextChannel restTextChannel
-                    => restTextChannel.Abstract() as IIRestMessageChannel,
+                    => RestTextChannelAbstractionExtensions.Abstract(restTextChannel) as IIRestMessageChannel,
                 _
                     => throw new NotSupportedException($"{nameof(IRestMessageChannel)} type {iRestMessageChannel.GetType().FullName} is not supported")
             };
