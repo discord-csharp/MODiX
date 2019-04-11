@@ -173,7 +173,7 @@ import ConfirmationModal from '@/components/ConfirmationModal.vue';
 import InfractionTable from '@/components/Logs/InfractionTable.vue';
 import store from "@/app/Store";
 import { VueGoodTable } from 'vue-good-table';
-import GuildUserIdentity from '@/models/core/GuildUserIdentity'
+import GuildUserIdentity, { getFullUsername } from '@/models/core/GuildUserIdentity'
 import User from '@/models/User';
 import GeneralService from '@/services/GeneralService';
 import InfractionSummary from '@/models/infractions/InfractionSummary';
@@ -193,7 +193,7 @@ function getSortDirection(direction: string): SortDirection
         : SortDirection.Descending;
 }
 
-const guildUserFormat = (subject: GuildUserIdentity) => subject.fullUsername;
+const guildUserFormat = (subject: GuildUserIdentity) => getFullUsername(subject);
 
 @Component({
     components:

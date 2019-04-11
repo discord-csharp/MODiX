@@ -54,7 +54,7 @@ import ConfirmationModal from '@/components/ConfirmationModal.vue';
 import TagCreationModal from '@/components/Tags/TagCreationModal.vue';
 import store from "@/app/Store";
 import { VueGoodTable } from 'vue-good-table';
-import GuildUserIdentity from '@/models/core/GuildUserIdentity';
+import GuildUserIdentity, { getFullUsername } from '@/models/core/GuildUserIdentity';
 import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
 import TagSummary from '@/models/Tags/TagSummary';
 import TagService from '@/services/TagService';
@@ -70,7 +70,7 @@ const guildUserFilter = (subject: TagOwner, filter: string) =>
     filter = _.lowerCase(filter);
 
     return subject.id.toString().startsWith(filter) ||
-        _.lowerCase(subject.fullUsername).indexOf(filter) >= 0;
+        _.lowerCase(getFullUsername(subject)).indexOf(filter) >= 0;
 };
 
 const guildUserSort = (x: TagOwner, y: TagOwner, col: any, rowX: any, rowY: any) =>
@@ -204,7 +204,7 @@ export default class Tags extends ModixComponent
         }
         else //is a user
         {
-            mention = `${owner.fullUsername}`;
+            mention = `${getFullUsername(owner)}`;
         }
 
         return this.parseDiscordContent(mention);
