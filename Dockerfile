@@ -9,7 +9,7 @@ COPY . .
 
 RUN sh build/build.sh
 
-FROM mcr.microsoft.com/dotnet/core/aspnet:2.2
+FROM mcr.microsoft.com/dotnet/core/aspnet:2.2.2
 WORKDIR /app
 COPY --from=dotnet-build /app .
 COPY --from=dotnet-build /src/healthcheck.sh .
