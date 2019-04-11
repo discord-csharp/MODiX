@@ -78,15 +78,7 @@ namespace Modix.Services.Core
         public async Task AddDesignatedRoleAsync(ulong guildId, ulong roleId, DesignatedRoleType type)
         {
             AuthorizationService.RequireAuthenticatedUser();
-
-            if(type == DesignatedRoleType.Pingable)
-            {
-                AuthorizationService.RequireClaims(AuthorizationClaim.PingableRoleMappingCreate);
-            }
-            else
-            {
-                AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
-            }
+            AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
 
             using (var transaction = await DesignatedRoleMappingRepository.BeginCreateTransactionAsync())
             {
@@ -115,15 +107,7 @@ namespace Modix.Services.Core
         public async Task RemoveDesignatedRoleAsync(ulong guildId, ulong roleId, DesignatedRoleType type)
         {
             AuthorizationService.RequireAuthenticatedUser();
-
-            if (type == DesignatedRoleType.Pingable)
-            {
-                AuthorizationService.RequireClaims(AuthorizationClaim.PingableRoleMappingCreate);
-            }
-            else
-            {
-                AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
-            }
+            AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
 
             using (var transaction = await DesignatedRoleMappingRepository.BeginDeleteTransactionAsync())
             {

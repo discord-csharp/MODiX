@@ -95,19 +95,6 @@ namespace Modix.Modules
                 return;
             }
 
-            if (!(await _designatedRoleService.SearchDesignatedRolesAsync(new DesignatedRoleMappingSearchCriteria()
-            {
-                CreatedById = Context.User.Id,
-                GuildId = Context.Guild.Id,
-                IsDeleted = false,
-                Type = DesignatedRoleType.Pingable
-            }))
-            .Any(x => x.Role.Id == targetRole.Id))
-            {
-                await ReplyAsync("Can't delete a role you didn't create, sorry.");
-                return;
-            }
-
             await _designatedRoleService.RemoveDesignatedRoleAsync(Context.Guild.Id, targetRole.Id, DesignatedRoleType.Pingable);
 
             await targetRole.DeleteAsync();

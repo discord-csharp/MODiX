@@ -104,21 +104,6 @@ namespace Modix.Data.Models.Core
         [ClaimInfo(DesignatedRoles, "Authorizes a request to delete a designated role mapping.")]
         DesignatedRoleMappingDelete,
         /// <summary>
-        /// Authorizes a request to create a pingable role mapping.
-        /// </summary>
-        [ClaimInfo(DesignatedRoles, "Authorizes a request to create a pingable role mapping.")]
-        PingableRoleMappingCreate,
-        /// <summary>
-        /// Authorizes a request to read pingable role mappings.
-        /// </summary>
-        [ClaimInfo(DesignatedRoles, "Authorizes a request to read pingable role mappings.")]
-        PingableRoleMappingRead,
-        /// <summary>
-        /// Authorizes a request to delete a pingable role mapping.
-        /// </summary>
-        [ClaimInfo(DesignatedRoles, "Authorizes a request to delete a pingable role mapping.")]
-        PingableRoleMappingDelete,
-        /// <summary>
         /// Authorizes a request to create a promotion campaign for a user.
         /// </summary>
         [ClaimInfo(PromotionActions, "Authorizes a request to create a promotion campaign for a user.")]
