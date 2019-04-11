@@ -5,7 +5,7 @@ using Discord.WebSocket;
 
 using Modix.Common.Messaging;
 
-namespace Modix.Services.Messaging
+namespace Modix.Services.Core
 {
     /// <summary>
     /// Listens for events from <see cref="DiscordSocketClient"/> and dispatches them to the rest of the application,

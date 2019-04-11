@@ -24,7 +24,6 @@ using Modix.Services.DocsMaster;
 using Modix.Services.EmojiStats;
 using Modix.Services.GuildStats;
 using Modix.Services.Mentions;
-using Modix.Services.Messaging;
 using Modix.Services.Moderation;
 using Modix.Services.PopularityContest;
 using Modix.Services.Promotions;
