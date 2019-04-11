@@ -193,7 +193,7 @@ function getSortDirection(direction: string): SortDirection
         : SortDirection.Descending;
 }
 
-const guildUserFormat = (subject: GuildUserIdentity) => subject.displayName;
+const guildUserFormat = (subject: GuildUserIdentity) => subject.fullUsername;
 
 @Component({
     components:

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Security.Claims;
 using Discord;
+using Modix.Services.Utilities;
 
 namespace Modix.Models
 {
@@ -31,7 +32,7 @@ namespace Modix.Models
         {
             var ret = new ModixUser
             {
-                Name = $"{user.Username}#{user.Discriminator}",
+                Name = user.GetFullUsername(),
                 UserId = user.Id,
                 AvatarHash = user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl()
             };

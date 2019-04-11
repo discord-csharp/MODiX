@@ -8,7 +8,7 @@
                 <div class="leftSide">
                     <span class="statusIcon" v-html="statusIcon" v-tooltip="'Status: ' + (campaign.outcome ? campaign.outcome : 'Active')"></span>
                     <h2 class="title is-size-4 displayName">
-                        {{campaign.subject.displayName}}
+                        {{campaign.subject.fullUsername}}
                     </h2>
                 </div>
 

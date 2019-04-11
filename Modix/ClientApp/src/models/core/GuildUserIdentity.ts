@@ -6,4 +6,5 @@ export default interface GuildUserIdentity
     discriminator: string;
     nickname: string;
     displayName: string;
+    fullUsername: string;
 }

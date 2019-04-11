@@ -4,6 +4,7 @@ using Humanizer;
 using Modix.Data.Models.Core;
 using Modix.Services.CodePaste;
 using Modix.Services.Core;
+using Modix.Services.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -164,7 +165,7 @@ namespace Modix.Services.PopularityContest
                 }
 
                 embed.AddField($"{emoji} With **{reactionCount}** votes",
-                    $"[{author.Username}#{author.Discriminator}! (`{author.Id}`)]({message.GetJumpUrl()})");
+                    $"[{author.GetFullUsername()}! (`{author.Id}`)]({message.GetJumpUrl()})");
 
                 position++;
             }
@@ -176,7 +177,7 @@ namespace Modix.Services.PopularityContest
 
             var mostAuthor = mostReactionsOverall.Message.Author;
             embed.AddField($"Also, the message with the most reactions overall, with a total of **{mostReactionsOverall.OverallCount}**, is...",
-                $"[{mostAuthor.Username}#{mostAuthor.Discriminator}! (`{mostAuthor.Id}`)]({mostReactionsOverall.Message.GetJumpUrl()})");
+                $"[{mostAuthor.GetFullUsername()}! (`{mostAuthor.Id}`)]({mostReactionsOverall.Message.GetJumpUrl()})");
 
             await logMessage.ModifyAsync(prop => prop.Embed = embed.Build());
         }

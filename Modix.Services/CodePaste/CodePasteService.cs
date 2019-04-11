@@ -86,7 +86,7 @@ namespace Modix.Services.CodePaste
 
             return new EmbedBuilder()
                 .WithTitle("Your message was re-uploaded")
-                .WithAuthor(user)
+                .WithUserAsAuthor(user)
                 .WithDescription(cleanCode.Trim().Truncate(200, 6))
                 .AddField("Auto-Paste", url, true)
                 .WithColor(new Color(95, 186, 125))

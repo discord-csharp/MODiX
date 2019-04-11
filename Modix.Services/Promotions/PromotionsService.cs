@@ -302,7 +302,7 @@ namespace Modix.Services.Promotions
                 {
                     var subject = await UserService.GetGuildUserAsync(campaign.GuildId, campaign.Subject.Id);
                     if (subject.RoleIds.Contains(campaign.TargetRole.Id))
-                        throw new InvalidOperationException($"User {campaign.Subject.DisplayName} is already a member of role {campaign.TargetRole.Name}");
+                        throw new InvalidOperationException($"User {campaign.Subject.GetFullUsername()} is already a member of role {campaign.TargetRole.Name}");
 
                     var guild = await DiscordClient.GetGuildAsync(campaign.GuildId);
                     var targetRole = guild.GetRole(campaign.TargetRole.Id);
@@ -502,7 +502,7 @@ namespace Modix.Services.Promotions
                 TargetRoleId = targetRankRole.Id,
                 IsClosed = false
             }))
-                throw new InvalidOperationException($"An active campaign already exists for {subject.GetDisplayNameWithDiscriminator()} to be promoted to {targetRankRole.Name}");
+                throw new InvalidOperationException($"An active campaign already exists for {subject.GetFullUsername()} to be promoted to {targetRankRole.Name}");
 
             if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value, targetRankRole.Id))
                 throw new InvalidOperationException($"Creating a promotion campaign requires a rank at least as high as the proposed target rank");
@@ -535,7 +535,7 @@ namespace Modix.Services.Promotions
 
                 if (nextRankRole is null)
                 {
-                    message = $"There are no rank roles available for {subject.GetDisplayNameWithDiscriminator()} to be promoted to.";
+                    message = $"There are no rank roles available for {subject.GetFullUsername()} to be promoted to.";
                     return false;
                 }
                 else

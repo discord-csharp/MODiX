@@ -8,6 +8,7 @@ using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
 using Modix.Services.Core;
+using Modix.Services.Utilities;
 
 namespace Modix.Services.Promotions
 {
@@ -75,7 +76,7 @@ namespace Modix.Services.Promotions
             if (promotionAction.Type != PromotionActionType.CampaignClosed) { return null; }
             if (targetCampaign.Outcome != PromotionCampaignOutcome.Accepted) { return null; }
 
-            var boldName = $"**{targetCampaign.Subject.Username}#{targetCampaign.Subject.Discriminator}**";
+            var boldName = $"**{targetCampaign.Subject.GetFullUsername()}**";
             var boldRole = $"**{MentionUtils.MentionRole(targetCampaign.TargetRole.Id)}**";
 
             var subject = await UserService.GetUserInformationAsync(data.GuildId, targetCampaign.Subject.Id);
@@ -83,7 +84,7 @@ namespace Modix.Services.Promotions
             embed = embed
                 .WithTitle("The campaign is over!")
                 .WithDescription($"Staff accepted the campaign, and {boldName} was promoted to {boldRole}! 🎉")
-                .WithAuthor(subject)
+                .WithUserAsAuthor(subject)
                 .WithFooter("See more at https://mod.gg/promotions");
 
             return embed.Build();
@@ -100,12 +101,12 @@ namespace Modix.Services.Promotions
             return string.Format(renderTemplate,
                    promotionAction.Created.UtcDateTime.ToString("HH:mm:ss"),
                    promotionAction.Campaign?.Id,
-                   promotionAction.Campaign?.Subject.DisplayName,
+                   promotionAction.Campaign?.Subject.GetFullUsername(),
                    promotionAction.Campaign?.Subject.Id,
                    promotionAction.Campaign?.TargetRole.Name,
                    promotionAction.Campaign?.TargetRole.Id,
                    promotionAction.NewComment?.Campaign.Id,
-                   promotionAction.NewComment?.Campaign.Subject.DisplayName,
+                   promotionAction.NewComment?.Campaign.Subject.GetFullUsername(),
                    promotionAction.NewComment?.Campaign.Subject.Id,
                    promotionAction.NewComment?.Campaign.TargetRole.Name,
                    promotionAction.NewComment?.Campaign.TargetRole.Id,

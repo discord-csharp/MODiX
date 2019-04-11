@@ -155,7 +155,7 @@ namespace Modix.Modules
             => await ModerationService.DeleteMessagesAsync(
                 Context.Channel as ITextChannel, user, count,
                     () => Context.GetUserConfirmationAsync(
-                        $"You are attempting to delete the past {count} messages by {user.Nickname ?? $"{user.Username}#{user.Discriminator}"} in #{Context.Channel.Name}.{Environment.NewLine}"));
+                        $"You are attempting to delete the past {count} messages by {user.GetFullUsername()} in #{Context.Channel.Name}.{Environment.NewLine}"));
 
         private async Task ConfirmAndReplyWithCountsAsync(ulong userId)
         {

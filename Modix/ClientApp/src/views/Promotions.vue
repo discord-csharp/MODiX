@@ -49,7 +49,7 @@
                 <template v-if="modalCampaign">
                     <header class="modal-card-head">
                         <p class="modal-card-title">
-                            <strong>{{modalCampaign.subject.displayName}}</strong>'s Campaign
+                            <strong>{{modalCampaign.subject.fullUsername}}</strong>'s Campaign
                         </p>
 
                         <div class="field has-addons is-hidden-mobile">

@@ -85,7 +85,7 @@ namespace Modix.Modules
             var totalEmojiUsesPerDay = (double)userTotalUses.TotalUses / numberOfDays;
 
             await ReplyAsync(embed: new EmbedBuilder()
-                .WithAuthor($"{user.GetDisplayNameWithDiscriminator()} - Emoji statistics", user.GetDefiniteAvatarUrl())
+                .WithAuthor($"{user.GetFullUsername()} - Emoji statistics", user.GetDefiniteAvatarUrl())
                 .WithColor(Color.Blue)
                 .WithDescription(sb.ToString())
                 .WithFooter($"{"unique emoji".ToQuantity(userTotalUses.UniqueEmojis)} used {"time".ToQuantity(userTotalUses.TotalUses)} ({totalEmojiUsesPerDay.ToString("0.0")}/day) since {userTotalUses.OldestTimestamp.ToString("yyyy-MM-dd")}")

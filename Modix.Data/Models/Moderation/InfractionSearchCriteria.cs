@@ -89,7 +89,7 @@ namespace Modix.Data.Models.Moderation
                     x => criteria.Types.Contains(x.Type),
                     criteria?.Types?.Any() ?? false)
                 .FilterBy(
-                    x => x.Subject.Nickname.ToUpper().Contains(criteria.Subject.ToUpper()) || x.Subject.User.Username.ToUpper().Contains(criteria.Subject.ToUpper()),
+                    x => (x.Subject.Nickname ?? $"{x.Subject.User.Username}#{x.Subject.User.Discriminator}").OrdinalContains(criteria.Subject),
                     !string.IsNullOrWhiteSpace(criteria?.Subject))
                 .FilterBy(
                     x => x.SubjectId == criteria.SubjectId,
@@ -101,7 +101,7 @@ namespace Modix.Data.Models.Moderation
                     x => x.CreateAction.Created <= criteria.CreatedRange.Value.To,
                     criteria?.CreatedRange?.To != null)
                 .FilterBy(
-                    x => x.CreateAction.CreatedBy.Nickname.ToUpper().Contains(criteria.Creator.ToUpper()) || x.CreateAction.CreatedBy.User.Username.ToUpper().Contains(criteria.Creator.ToUpper()),
+                    x => (x.CreateAction.CreatedBy.Nickname ?? $"{x.CreateAction.CreatedBy.User.Username}#{x.CreateAction.CreatedBy.User.Discriminator}").OrdinalContains(criteria.Creator),
                     !string.IsNullOrWhiteSpace(criteria?.Creator))
                 .FilterBy(
                     x => x.CreateAction.CreatedById == criteria.CreatedById,

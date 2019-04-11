@@ -30,12 +30,6 @@ namespace Modix.Data.Models.Core
         /// </summary>
         public string Nickname { get; set; }
 
-        /// <summary>
-        /// The name to display for this user.
-        /// </summary>
-        public string DisplayName
-            => Nickname ?? $"{Username}#{Discriminator}";
-
         [ExpansionExpression]
         internal static readonly Expression<Func<GuildUserEntity, GuildUserBrief>> FromEntityProjection
             = entity => new GuildUserBrief()

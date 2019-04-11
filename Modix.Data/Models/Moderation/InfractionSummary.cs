@@ -89,7 +89,7 @@ namespace Modix.Data.Models.Moderation
                 },
                 {
                     "Subject",
-                    x => x.Subject.DisplayName
+                    x => x.Subject.Username
                 },
                 {
                     "Created",

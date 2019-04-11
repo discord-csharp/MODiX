@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Discord;
 using Humanizer.Bytes;
 using Modix.Services.AutoRemoveMessage;
+using Modix.Services.Utilities;
 
 namespace Modix.Services.Quote
 {
@@ -136,7 +137,7 @@ namespace Modix.Services.Quote
         private void AddMeta(IMessage message, IUser executingUser, ref EmbedBuilder embed)
         {
             embed = embed
-                .WithAuthor(message.Author)
+                .WithUserAsAuthor(message.Author)
                 .WithTimestamp(message.Timestamp)
                 .WithColor(new Color(95, 186, 125))
                 .AddField("Quoted by", $"{executingUser.Mention} from **[#{message.Channel.Name}]({message.GetJumpUrl()})**", true);
