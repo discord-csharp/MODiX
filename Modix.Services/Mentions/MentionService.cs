@@ -41,12 +41,10 @@ namespace Modix.Services.Mentions
                 return;
             }
 
-            if (await DesignatedRoleService.RoleHasDesignationAsync(role.Guild.Id, role.Id, DesignatedRoleType.RestrictedMentionability))
+            if (!role.IsMentionable
+                || await DesignatedRoleService.RoleHasDesignationAsync(role.Guild.Id, role.Id, DesignatedRoleType.RestrictedMentionability))
             {
                 AuthorizationService.RequireClaims(AuthorizationClaim.MentionRestrictedRole);
-
-                await channel.SendMessageAsync($"Sorry, **{role.Name}** hasn't been designated as mentionable.");
-                return;
             }
 
             //Set the role to mentionable, immediately mention it, then set it
