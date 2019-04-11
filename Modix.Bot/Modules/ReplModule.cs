@@ -65,7 +65,7 @@ namespace Modix.Modules
             [Summary("The code to execute.")]
                 string code)
         {
-            if (!(Context.Channel is SocketGuildChannel) || !(Context.User is SocketGuildUser guildUser))
+            if (!(Context.Channel is IGuildChannel))
             {
                 await ModifyOrSendErrorEmbed("The REPL can only be executed in public guild channels.");
                 return;
@@ -124,7 +124,7 @@ namespace Modix.Modules
 
             var parsedResult = JsonConvert.DeserializeObject<Result>(await res.Content.ReadAsStringAsync());
 
-            var embed = await BuildEmbedAsync(guildUser, parsedResult);
+            var embed = await BuildEmbedAsync(Context.User as IGuildUser, parsedResult);
 
             await _autoRemoveMessageService.RegisterRemovableMessageAsync(Context.User, embed, async (e) =>
             {
@@ -162,7 +162,7 @@ namespace Modix.Modules
             }
         }
 
-        private async Task<EmbedBuilder> BuildEmbedAsync(SocketGuildUser guildUser, Result parsedResult)
+        private async Task<EmbedBuilder> BuildEmbedAsync(IGuildUser guildUser, Result parsedResult)
         {
             var returnValue = parsedResult.ReturnValue?.ToString() ?? " ";
             var consoleOut = parsedResult.ConsoleOut;
