@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Discord;
 using Discord.WebSocket;
-
+using Microsoft.Extensions.Caching.Memory;
 using Modix.Common.Messaging;
 
 namespace Modix.Services.CommandHelp
@@ -13,12 +14,27 @@ namespace Modix.Services.CommandHelp
         INotificationHandler<ReactionAddedNotification>,
         INotificationHandler<ReactionRemovedNotification>
     {
+        private const string AssociatedErrorsKey = nameof(CommandErrorHandler) + ".AssociatedErrors";
+        private const string ErrorRepliesKey = nameof(CommandErrorHandler) + ".ErrorReplies";
+
         //This relates user messages with errors
-        private readonly Dictionary<ulong, string> _associatedErrors = new Dictionary<ulong, string>();
+        private ConcurrentDictionary<ulong, string> AssociatedErrors =>
+            _memoryCache.GetOrCreate(AssociatedErrorsKey, _ => new ConcurrentDictionary<ulong, string>());
+
         //This relates user messages to modix messages containing errors
-        private readonly Dictionary<ulong, ulong> _errorReplies = new Dictionary<ulong, ulong>();
+        private ConcurrentDictionary<ulong, ulong> ErrorReplies =>
+            _memoryCache.GetOrCreate(ErrorRepliesKey, _ => new ConcurrentDictionary<ulong, ulong>());
 
         private const string _emoji = "⚠";
+        private readonly IEmote _emote = new Emoji(_emoji);
+        private readonly ISelfUser _botUser;
+        private readonly IMemoryCache _memoryCache;
+
+        public CommandErrorHandler(ISelfUser botUser, IMemoryCache memoryCache)
+        {
+            _botUser = botUser;
+            _memoryCache = memoryCache;
+        }
 
         /// <summary>
         /// Associates a user message with an error
@@ -28,8 +44,10 @@ namespace Modix.Services.CommandHelp
         /// <returns></returns>
         public async Task AssociateError(IUserMessage message, string error)
         {
-            await message.AddReactionAsync(new Emoji(_emoji));
-            _associatedErrors.Add(message.Id, error);
+            if (AssociatedErrors.TryAdd(message.Id, error))
+            {
+                await message.AddReactionAsync(new Emoji(_emoji));
+            }
         }
 
         public Task HandleNotificationAsync(ReactionAddedNotification notification, CancellationToken cancellationToken)
@@ -45,14 +63,14 @@ namespace Modix.Services.CommandHelp
                 return;
             }
 
-            if (reaction.Emote.Name != _emoji || _errorReplies.ContainsKey(cachedMessage.Id))
+            if (reaction.Emote.Name != _emoji || ErrorReplies.ContainsKey(cachedMessage.Id))
             {
                 return;
             }
 
             //If the message that was reacted to has an associated error, reply in the same channel
             //with the error message then add that to the replies collection
-            if (_associatedErrors.TryGetValue(cachedMessage.Id, out var value))
+            if (AssociatedErrors.TryGetValue(cachedMessage.Id, out var value))
             {
                 var msg = await channel.SendMessageAsync("", false, new EmbedBuilder()
                 {
@@ -65,7 +83,10 @@ namespace Modix.Services.CommandHelp
                     Footer = new EmbedFooterBuilder { Text = "Remove your reaction to delete this message" }
                 }.Build());
 
-                _errorReplies.Add(cachedMessage.Id, msg.Id);
+                if (ErrorReplies.TryAdd(cachedMessage.Id, msg.Id) == false)
+                {
+                    await msg.DeleteAsync();
+                }
             }
         }
 
@@ -93,17 +114,28 @@ namespace Modix.Services.CommandHelp
 
             //If there's an error reply when the reaction is removed, delete that reply,
             //remove the cached error, remove it from the cached replies, and remove
-            //all reactions from the original messages
-            if (_errorReplies.TryGetValue(cachedMessage.Id, out var botReplyId))
+            //the reactions from the original message
+            if (ErrorReplies.TryGetValue(cachedMessage.Id, out var botReplyId) == false) { return; }
+
+            await channel.DeleteMessageAsync(botReplyId);
+
+            if
+            (
+                AssociatedErrors.TryRemove(cachedMessage.Id, out _) &&
+                ErrorReplies.TryRemove(cachedMessage.Id, out _)
+            )
             {
-                var msg = await channel.GetMessageAsync(botReplyId);
-                await msg.DeleteAsync();
-
-                _associatedErrors.Remove(cachedMessage.Id);
-                _errorReplies.Remove(cachedMessage.Id);
-
                 var originalMessage = await cachedMessage.GetOrDownloadAsync();
-                await originalMessage.RemoveAllReactionsAsync();
+
+                //If we know what user added the reaction, remove their and our reaction
+                //Otherwise just remove ours
+
+                if (reaction.User.IsSpecified)
+                {
+                    await originalMessage.RemoveReactionAsync(_emote, reaction.User.Value);
+                }
+
+                await originalMessage.RemoveReactionAsync(_emote, _botUser);
             }
         }
     }

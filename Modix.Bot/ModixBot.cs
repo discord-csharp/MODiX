@@ -34,7 +34,6 @@ namespace Modix
         private readonly ModixConfig _config;
         private readonly DiscordSerilogAdapter _serilogAdapter;
         private readonly IApplicationLifetime _applicationLifetime;
-        private readonly CommandErrorHandler _commandErrorHandler;
         private readonly IHostingEnvironment _env;
         private IServiceScope _scope;
         private readonly ConcurrentDictionary<ICommandContext, IServiceScope> _commandScopes = new ConcurrentDictionary<ICommandContext, IServiceScope>();
@@ -48,7 +47,6 @@ namespace Modix
             IApplicationLifetime applicationLifetime,
             IServiceProvider serviceProvider,
             ILogger<ModixBot> logger,
-            CommandErrorHandler commandErrorHandler,
             IHostingEnvironment env)
         {
             _client = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
@@ -59,7 +57,6 @@ namespace Modix
             _serilogAdapter = serilogAdapter ?? throw new ArgumentNullException(nameof(serilogAdapter));
             _applicationLifetime = applicationLifetime ?? throw new ArgumentNullException(nameof(applicationLifetime));
             Log = logger ?? throw new ArgumentNullException(nameof(logger));
-            _commandErrorHandler = commandErrorHandler;
             _env = env;
         }
 
