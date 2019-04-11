@@ -21,6 +21,7 @@ namespace Modix.Services.Core
                 .AddSingleton<IBehavior, RoleTrackingBehavior>()
                 .AddSingleton<IBehavior, UserTrackingBehavior>()
                 .AddSingleton<IBehavior, MessageLogBehavior>()
+                .AddSingleton<IBehavior, DiscordSocketListeningBehavior>()
                 .AddScoped<IAuthorizationService, AuthorizationService>()
                 .AddScoped<IChannelService, ChannelService>()
                 .AddScoped<IRoleService, RoleService>()
