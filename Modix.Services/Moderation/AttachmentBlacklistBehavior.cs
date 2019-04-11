@@ -78,7 +78,7 @@ namespace Modix.Services.Moderation
             if (!message.Attachments.Any())
                 return;
 
-            if (!(message is SocketUserMessage userMessage) || !(userMessage.Author is SocketGuildUser || userMessage.Author.IsBot))
+            if (!(message is IUserMessage userMessage) || !(userMessage.Author is IGuildUser || userMessage.Author.IsBot))
                 return;
 
             // Check if the attachment's file name ends in anything suspicious first
