@@ -51,10 +51,10 @@ namespace Modix.Services.Quote
             await OnMessageReceivedAsync(message);
         }
 
-        private async Task OnMessageReceivedAsync(SocketMessage message)
+        private async Task OnMessageReceivedAsync(IMessage message)
         {
-            if (!(message is SocketUserMessage userMessage)
-                || !(userMessage.Author is SocketGuildUser guildUser)
+            if (!(message is IUserMessage userMessage)
+                || !(userMessage.Author is IGuildUser guildUser)
                 || guildUser.IsBot
                 || guildUser.IsWebhook)
             {
@@ -94,7 +94,7 @@ namespace Modix.Services.Quote
             }
         }
 
-        private async Task<bool> SendQuoteEmbedAsync(IMessage message, SocketGuildUser quoter, ISocketMessageChannel targetChannel)
+        private async Task<bool> SendQuoteEmbedAsync(IMessage message, IGuildUser quoter, IMessageChannel targetChannel)
         {
             bool success = false;
             await SelfExecuteRequest<IQuoteService>(async quoteService =>
