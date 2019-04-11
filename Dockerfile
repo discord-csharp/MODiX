@@ -3,7 +3,7 @@ WORKDIR /src
 COPY . .
 RUN sh build/test.sh
 
-FROM microsoft/dotnet:2.2-sdk-stretch as dotnet-build
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2 as dotnet-build
 WORKDIR /src
 COPY . .
 
