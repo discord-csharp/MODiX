@@ -1,9 +1,9 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2 as dotnet-test
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2.100 as dotnet-test
 WORKDIR /src
 COPY . .
 RUN sh build/test.sh
 
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2 as dotnet-build
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2.100 as dotnet-build
 WORKDIR /src
 COPY . .
 
