@@ -35,7 +35,6 @@ namespace Modix.Modules
                 return;
             }
 
-
             if (!await _designatedRoleService.RoleHasDesignationAsync(Context.Guild.Id, targetRole.Id, DesignatedRoleType.Pingable))
             {
                 await ReplyAsync("Can't register to a role that isn't pingable.");
