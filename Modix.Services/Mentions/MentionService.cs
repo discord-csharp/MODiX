@@ -50,7 +50,7 @@ namespace Modix.Services.Mentions
             }
 
             //Set the role to mentionable, immediately mention it, then set it
-            //to unmentionable again
+            //to unmentionable again (if it isn't a pingable role)
 
             await role.ModifyAsync(x => x.Mentionable = true);
 
