@@ -8,7 +8,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="WebSocket.SocketSystemMessage"/>, through the <see cref="ISocketSystemMessage"/> interface.
     /// </summary>
-    public class SocketSystemMessageAbstraction : SocketMessageAbstraction, ISocketSystemMessage
+    internal class SocketSystemMessageAbstraction : SocketMessageAbstraction, ISocketSystemMessage
     {
         /// <summary>
         /// Constructs a new <see cref="SocketSystemMessageAbstraction"/> around an existing <see cref="WebSocket.SocketSystemMessage"/>.
@@ -28,7 +28,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="SocketSystemMessage"/> objects.
     /// </summary>
-    public static class SocketSystemMessageAbstractionExtensions
+    internal static class SocketSystemMessageAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="SocketSystemMessage"/> to an abstracted <see cref="ISocketSystemMessage"/> value.

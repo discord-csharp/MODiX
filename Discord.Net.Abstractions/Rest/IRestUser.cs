@@ -13,7 +13,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestUser"/>, through the <see cref="IRestUser"/> interface.
     /// </summary>
-    public class RestUserAbstraction : IRestUser
+    internal class RestUserAbstraction : IRestUser
     {
         /// <summary>
         /// Constructs a new <see cref="RestUserAbstraction"/> around an existing <see cref="Rest.RestUser"/>.
@@ -79,11 +79,13 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public async Task<IRestDMChannel> GetOrCreateDMChannelAsync(RequestOptions options = null)
-            => (await RestUser.GetOrCreateDMChannelAsync(options)).Abstract();
+            => (await RestUser.GetOrCreateDMChannelAsync(options))
+                .Abstract();
 
         /// <inheritdoc />
-        Task<IDMChannel> IUser.GetOrCreateDMChannelAsync(RequestOptions options)
-            => (RestUser as IUser).GetOrCreateDMChannelAsync(options);
+        async Task<IDMChannel> IUser.GetOrCreateDMChannelAsync(RequestOptions options)
+            => (await (RestUser as IUser).GetOrCreateDMChannelAsync(options))
+                .Abstract();
 
         /// <inheritdoc />
         public Task UpdateAsync(RequestOptions options = null)
@@ -102,7 +104,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestUser"/> objects.
     /// </summary>
-    public static class RestUserAbstractionExtensions
+    internal static class RestUserAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestUser"/> to an abstracted <see cref="IRestUser"/> value.
@@ -111,11 +113,20 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restUser"/>.</exception>
         /// <returns>An <see cref="IRestUser"/> that abstracts <paramref name="restUser"/>.</returns>
         public static IRestUser Abstract(this RestUser restUser)
-            => (restUser is null) ? throw new ArgumentNullException(nameof(restUser))
-                : (restUser is RestGroupUser restGroupUser) ? restGroupUser.Abstract()
-                : (restUser is RestGuildUser restGuildUser) ? restGuildUser.Abstract()
-                : (restUser is RestSelfUser restSelfUser) ? restSelfUser.Abstract()
-                : (restUser is RestWebhookUser restWebhookUser) ? restWebhookUser.Abstract()
-                : new RestUserAbstraction(restUser) as IRestUser;
+            => restUser switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(restUser)),
+                RestGroupUser restGroupUser
+                    => restGroupUser.Abstract(),
+                RestGuildUser restGuildUser
+                    => restGuildUser.Abstract(),
+                RestSelfUser restSelfUser
+                    => restSelfUser.Abstract(),
+                RestWebhookUser restWebhookUser
+                    => restWebhookUser.Abstract(),
+                _
+                    => new RestUserAbstraction(restUser) as IRestUser
+            };
     }
 }

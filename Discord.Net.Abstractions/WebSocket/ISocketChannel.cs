@@ -18,7 +18,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="WebSocket.SocketChannel"/>, through the <see cref="ISocketChannel"/> interface.
     /// </summary>
-    public abstract class SocketChannelAbstraction : ISocketChannel
+    internal abstract class SocketChannelAbstraction : ISocketChannel
     {
         /// <summary>
         /// Constructs a new <see cref="SocketChannelAbstraction"/> around an existing <see cref="WebSocket.SocketChannel"/>.
@@ -54,12 +54,16 @@ namespace Discord.WebSocket
                 .Abstract();
 
         /// <inheritdoc />
-        public Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (SocketChannel as IChannel).GetUserAsync(id, mode, options);
+        public async Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (SocketChannel as IChannel).GetUserAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (SocketChannel as IChannel).GetUsersAsync(mode, options);
+            => (SocketChannel as IChannel).GetUsersAsync(mode, options)
+                .Select(x => x
+                    .Select(UserAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <summary>
         /// The existing <see cref="WebSocket.SocketChannel"/> being abstracted.
@@ -70,7 +74,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="SocketChannel"/> objects.
     /// </summary>
-    public static class SocketChannelAbstractionExtensions
+    internal static class SocketChannelAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="SocketChannel"/> to an abstracted <see cref="ISocketChannel"/> value.
@@ -79,10 +83,18 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="socketChannel"/>.</exception>
         /// <returns>An <see cref="ISocketChannel"/> that abstracts <paramref name="socketChannel"/>.</returns>
         public static ISocketChannel Abstract(this SocketChannel socketChannel)
-            => (socketChannel is null) ? throw new ArgumentNullException(nameof(socketChannel))
-                : (socketChannel is SocketDMChannel socketDMChannel) ? socketDMChannel.Abstract() as ISocketChannel
-                : (socketChannel is SocketGroupChannel socketGroupChannel) ? socketGroupChannel.Abstract() as ISocketChannel
-                : (socketChannel is SocketGuildChannel socketGuildChannel) ? socketGuildChannel.Abstract() as ISocketChannel
-                : throw new NotSupportedException($"Unable to abstract {nameof(SocketChannel)} type {socketChannel.GetType().Name}");
+            => socketChannel switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(socketChannel)),
+                SocketDMChannel socketDMChannel
+                    => socketDMChannel.Abstract() as ISocketChannel,
+                SocketGroupChannel socketGroupChannel
+                    => socketGroupChannel.Abstract() as ISocketChannel,
+                SocketGuildChannel socketGuildChannel
+                    => socketGuildChannel.Abstract() as ISocketChannel,
+                _
+                    => throw new NotSupportedException($"Unable to abstract {nameof(SocketChannel)} type {socketChannel.GetType().Name}")
+            };
     }
 }

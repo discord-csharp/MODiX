@@ -52,7 +52,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestDMChannel"/>, through the <see cref="IRestDMChannel"/> interface.
     /// </summary>
-    public class RestDMChannelAbstraction : RestChannelAbstraction, IRestDMChannel
+    internal class RestDMChannelAbstraction : RestChannelAbstraction, IRestDMChannel
     {
         /// <summary>
         /// Constructs a new <see cref="RestDMChannelAbstraction"/> around an existing <see cref="Rest.RestDMChannel"/>.
@@ -84,7 +84,9 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         IReadOnlyCollection<IUser> IPrivateChannel.Recipients
-            => (RestDMChannel as IPrivateChannel).Recipients;
+            => (RestDMChannel as IPrivateChannel).Recipients
+                .Select(UserAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public IReadOnlyCollection<IRestUser> Users
@@ -110,11 +112,13 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public async Task<IRestMessage> GetMessageAsync(ulong id, RequestOptions options = null)
-            => (await RestDMChannel.GetMessageAsync(id, options)).Abstract();
+            => (await RestDMChannel.GetMessageAsync(id, options))
+                .Abstract();
 
         /// <inheritdoc />
-        public Task<IMessage> GetMessageAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestDMChannel as IMessageChannel).GetMessageAsync(id, mode, options);
+        public async Task<IMessage> GetMessageAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestDMChannel as IMessageChannel).GetMessageAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IRestMessage>> GetMessagesAsync(int limit = 100, RequestOptions options = null)
@@ -139,15 +143,24 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestDMChannel as IMessageChannel).GetMessagesAsync(limit, mode, options);
+            => (RestDMChannel as IMessageChannel).GetMessagesAsync(limit, mode, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(ulong fromMessageId, Direction dir, int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestDMChannel as IMessageChannel).GetMessagesAsync(fromMessageId, dir, limit, mode, options);
+            => (RestDMChannel as IMessageChannel).GetMessagesAsync(fromMessageId, dir, limit, mode, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(IMessage fromMessage, Direction dir, int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestDMChannel as IMessageChannel).GetMessagesAsync(fromMessage, dir, limit, mode, options);
+            => (RestDMChannel as IMessageChannel).GetMessagesAsync(fromMessage, dir, limit, mode, options)
+                .Select(x => x
+                    .Select(MessageAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestMessage>> GetPinnedMessagesAsync(RequestOptions options = null)
@@ -156,36 +169,45 @@ namespace Discord.Rest
                 .ToArray();
 
         /// <inheritdoc />
-        Task<IReadOnlyCollection<IMessage>> IMessageChannel.GetPinnedMessagesAsync(RequestOptions options)
-            => (RestDMChannel as IMessageChannel).GetPinnedMessagesAsync(options);
+        async Task<IReadOnlyCollection<IMessage>> IMessageChannel.GetPinnedMessagesAsync(RequestOptions options)
+            => (await (RestDMChannel as IMessageChannel).GetPinnedMessagesAsync(options))
+                .Select(MessageAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public IRestUser GetUser(ulong id)
-            => RestDMChannel.GetUser(id).Abstract();
+            => RestDMChannel.GetUser(id)
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null)
-            => (await RestDMChannel.SendFileAsync(filePath, text, isTTS, embed, options)).Abstract();
+            => (await RestDMChannel.SendFileAsync(filePath, text, isTTS, embed, options))
+                .Abstract();
 
         /// <inheritdoc />
-        Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options)
-            => (RestDMChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options);
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options)
+            => (await (RestDMChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null)
-            => (await RestDMChannel.SendFileAsync(stream, filename, text, isTTS, embed, options)).Abstract();
+            => (await RestDMChannel.SendFileAsync(stream, filename, text, isTTS, embed, options))
+                .Abstract();
 
         /// <inheritdoc />
-        Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options)
-            => (RestDMChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options);
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options)
+            => (await (RestDMChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
-            => (await RestDMChannel.SendMessageAsync(text, isTTS, embed, options)).Abstract();
+            => (await RestDMChannel.SendMessageAsync(text, isTTS, embed, options))
+                .Abstract();
 
         /// <inheritdoc />
-        Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options)
-            => (RestDMChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options);
+        async Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options)
+            => (await (RestDMChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options))
+                .Abstract();
 
         /// <inheritdoc />
         public Task TriggerTypingAsync(RequestOptions options = null)
@@ -205,7 +227,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestDMChannel"/> objects.
     /// </summary>
-    public static class RestDMChannelAbstractionExtensions
+    internal static class RestDMChannelAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestDMChannel"/> to an abstracted <see cref="IRestDMChannel"/> value.

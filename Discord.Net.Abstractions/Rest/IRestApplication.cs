@@ -13,7 +13,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestApplication"/>, through the <see cref="IRestApplication"/> interface.
     /// </summary>
-    public class RestApplicationAbstraction : IRestApplication
+    internal class RestApplicationAbstraction : IRestApplication
     {
         /// <summary>
         /// Constructs a new <see cref="RestApplicationAbstraction"/> around an existing <see cref="Rest.RestApplication"/>.
@@ -51,7 +51,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IUser Owner
-            => RestApplication.Owner;
+            => RestApplication.Owner
+                .Abstract();
 
         /// <inheritdoc />
         public string[] RPCOrigins
@@ -74,7 +75,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestApplication"/> objects.
     /// </summary>
-    public static class RestApplicationAbstractionExtensions
+    internal static class RestApplicationAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestApplication"/> to an abstracted <see cref="IRestApplication"/> value.

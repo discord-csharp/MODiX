@@ -27,7 +27,7 @@ namespace Discord
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Discord.MessageApplication"/>, through the <see cref="IMessageApplication"/> interface.
     /// </summary>
-    public class MessageApplicationAbstraction : IMessageApplication
+    internal class MessageApplicationAbstraction : IMessageApplication
     {
         /// <summary>
         /// Constructs a new <see cref="MessageApplicationAbstraction"/> around an existing <see cref="Discord.MessageApplication"/>.

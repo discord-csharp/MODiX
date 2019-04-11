@@ -165,7 +165,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="WebSocket.BaseSocketClient"/>, through the <see cref="IBaseSocketClient"/> interface.
     /// </summary>
-    public abstract class BaseSocketClientAbstraction : BaseDiscordClientAbstraction, IBaseSocketClient
+    internal abstract class BaseSocketClientAbstraction : BaseDiscordClientAbstraction, IBaseSocketClient
     {
         /// <summary>
         /// Constructs a new <see cref="BaseSocketClientAbstraction"/> around an existing <see cref="WebSocket.BaseSocketClient"/>.
@@ -187,10 +187,7 @@ namespace Discord.WebSocket
             baseSocketClient.JoinedGuild += x => JoinedGuild?.InvokeAsync(x.Abstract()) ?? Task.CompletedTask;
             baseSocketClient.LeftGuild += x => LeftGuild?.InvokeAsync(x.Abstract()) ?? Task.CompletedTask;
             baseSocketClient.MessageReceived += x => MessageReceived?.InvokeAsync(x.Abstract()) ?? Task.CompletedTask;
-            // TODO: Workaround for https://github.com/RogueException/Discord.Net/issues/1208
-            baseSocketClient.MessageUpdated += (x, y, z) => !(y is null)
-                ? (MessageUpdated?.InvokeAsync(x.Abstract(), y.Abstract(), z.Abstract()) ?? Task.CompletedTask)
-                : Task.CompletedTask;
+            baseSocketClient.MessageUpdated += (x, y, z) => MessageUpdated?.InvokeAsync(x.Abstract(), y.Abstract(), z.Abstract()) ?? Task.CompletedTask;
             baseSocketClient.MessageDeleted += (x, y) => MessageDeleted?.InvokeAsync(x.Abstract(), y.Abstract()) ?? Task.CompletedTask;
             baseSocketClient.ReactionAdded += (x, y, z) => ReactionAdded?.InvokeAsync(x.Abstract(), y.Abstract(), z.Abstract()) ?? Task.CompletedTask;
             baseSocketClient.ReactionRemoved += (x, y, z) => ReactionRemoved?.InvokeAsync(x.Abstract(), y.Abstract(), z.Abstract()) ?? Task.CompletedTask;
@@ -242,7 +239,7 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public IReadOnlyCollection<IRestVoiceRegion> VoiceRegions
             => BaseSocketClient.VoiceRegions
-                .Select(RestVoiceRegionAbsractionExtension.Abstract)
+                .Select(RestVoiceRegionAbstractionExtensions.Abstract)
                 .ToArray();
 
         /// <inheritdoc />
@@ -337,8 +334,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         new public async Task<IRestGuild> CreateGuildAsync(string name, IVoiceRegion region, Stream jpegIcon, RequestOptions options)
-            => (await BaseSocketClient.CreateGuildAsync(name, region, jpegIcon, options))
-                .Abstract();
+            => RestGuildAbstractionExtensions.Abstract(
+                await BaseSocketClient.CreateGuildAsync(name, region, jpegIcon, options));
 
         /// <inheritdoc />
         public Task DownloadUsersAsync(IEnumerable<IGuild> guilds)
@@ -346,8 +343,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         new public async Task<IRestApplication> GetApplicationInfoAsync(RequestOptions options)
-            => (await BaseSocketClient.GetApplicationInfoAsync(options))
-                .Abstract();
+            => RestApplicationAbstractionExtensions.Abstract(
+                await BaseSocketClient.GetApplicationInfoAsync(options));
 
         /// <inheritdoc />
         public ISocketChannel GetChannel(ulong id)
@@ -361,8 +358,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         new public async Task<IRestInviteMetadata> GetInviteAsync(string inviteId, RequestOptions options)
-            => (await BaseSocketClient.GetInviteAsync(inviteId, options))
-                .Abstract();
+            => RestInviteMetadataAbstractionExtensions.Abstract(
+                await BaseSocketClient.GetInviteAsync(inviteId, options));
 
         /// <inheritdoc />
         public ISocketUser GetUser(ulong id)
@@ -376,8 +373,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public IRestVoiceRegion GetVoiceRegion(string id)
-            => BaseSocketClient.GetVoiceRegion(id)
-                .Abstract();
+            => RestVoiceRegionAbstractionExtensions.Abstract(
+                BaseSocketClient.GetVoiceRegion(id));
 
         /// <inheritdoc />
         public Task SetActivityAsync(IActivity activity)
@@ -401,7 +398,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="BaseSocketClient"/> objects.
     /// </summary>
-    public static class BaseSocketClientAbstractionExtensions
+    internal static class BaseSocketClientAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="BaseSocketClient"/> to an abstracted <see cref="IBaseSocketClient"/> value.
@@ -410,9 +407,16 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="baseSocketClient"/>.</exception>
         /// <returns>An <see cref="IBaseSocketClient"/> that abstracts <paramref name="baseSocketClient"/>.</returns>
         public static IBaseSocketClient Abstract(this BaseSocketClient baseSocketClient)
-            => (baseSocketClient is null) ? throw new ArgumentNullException(nameof(baseSocketClient))
-                : (baseSocketClient is DiscordSocketClient discordSocketClient) ? discordSocketClient.Abstract() as IBaseSocketClient
-                : (baseSocketClient is DiscordShardedClient discordShardedClient) ? discordShardedClient.Abstract() as IBaseSocketClient
-                : throw new NotSupportedException($"Unable to abstract {nameof(BaseSocketClient)} type {baseSocketClient.GetType().Name}");
+            => baseSocketClient switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(baseSocketClient)),
+                DiscordSocketClient discordSocketClient
+                    => discordSocketClient.Abstract() as IBaseSocketClient,
+                DiscordShardedClient discordShardedClient
+                    => discordShardedClient.Abstract() as IBaseSocketClient,
+                _
+                    => throw new NotSupportedException($"Unable to abstract {nameof(BaseSocketClient)} type {baseSocketClient.GetType().Name}")
+            };
     }
 }

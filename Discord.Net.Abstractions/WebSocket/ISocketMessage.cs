@@ -27,7 +27,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="WebSocket.SocketMessage"/>, through the <see cref="ISocketMessage"/> interface.
     /// </summary>
-    public abstract class SocketMessageAbstraction : ISocketMessage
+    internal abstract class SocketMessageAbstraction : ISocketMessage
     {
         /// <summary>
         /// Constructs a new <see cref="SocketMessageAbstraction"/> around an existing <see cref="WebSocket.SocketMessage"/>.
@@ -41,7 +41,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public IMessageActivity Activity
-            => SocketMessage.Activity.Abstract();
+            => SocketMessage.Activity
+                .Abstract();
 
         /// <inheritdoc />
         MessageActivity IMessage.Activity
@@ -49,7 +50,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public IMessageApplication Application
-            => SocketMessage.Application.Abstract();
+            => SocketMessage.Application
+                .Abstract();
 
         /// <inheritdoc />
         MessageApplication IMessage.Application
@@ -60,14 +62,14 @@ namespace Discord.WebSocket
             => SocketMessage.Attachments;
 
         /// <inheritdoc />
-        //TODO: Abstract this to an ISocketGuildUser
         public IUser Author
-            => (SocketMessage as IMessage).Author;
+            => (SocketMessage as IMessage).Author
+                .Abstract();
 
         /// <inheritdoc />
-        //TODO: Abstract this to an ISocketMessageChannel
         public IMessageChannel Channel
-            => (SocketMessage as IMessage).Channel;
+            => (SocketMessage as IMessage).Channel
+                .Abstract();
 
         /// <inheritdoc />
         public string Content
@@ -160,7 +162,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="SocketMessage"/> objects.
     /// </summary>
-    public static class SocketMessageAbstractionExtensions
+    internal static class SocketMessageAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="SocketMessage"/> to an abstracted <see cref="ISocketMessage"/> value.
@@ -169,9 +171,16 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="socketMessage"/>.</exception>
         /// <returns>An <see cref="ISocketMessage"/> that abstracts <paramref name="socketMessage"/>.</returns>
         public static ISocketMessage Abstract(this SocketMessage socketMessage)
-            => (socketMessage is null) ? throw new ArgumentNullException(nameof(SocketMessage))
-                : (socketMessage is SocketUserMessage socketUserMessage) ? socketUserMessage.Abstract() as ISocketMessage
-                : (socketMessage is SocketSystemMessage socketSystemMessage) ? socketSystemMessage.Abstract() as ISocketMessage
-                : throw new NotSupportedException($"Unable to abstract {nameof(SocketMessage)} type {socketMessage.GetType().Name}");
+            => socketMessage switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(SocketMessage)),
+                SocketUserMessage socketUserMessage
+                    => socketUserMessage.Abstract() as ISocketMessage,
+                SocketSystemMessage socketSystemMessage
+                    => socketSystemMessage.Abstract() as ISocketMessage,
+                _
+                    => throw new NotSupportedException($"Unable to abstract {nameof(SocketMessage)} type {socketMessage.GetType().Name}")
+            };
     }
 }

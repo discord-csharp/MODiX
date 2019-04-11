@@ -41,7 +41,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="ISocketMessageChannel"/> objects.
     /// </summary>
-    public static class ISocketMessageChannelAbstractionExtensions
+    internal static class ISocketMessageChannelAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="ISocketMessageChannel"/> to an abstracted <see cref="IISocketMessageChannel"/> value.
@@ -50,10 +50,18 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="iSocketMessageChannel"/>.</exception>
         /// <returns>An <see cref="IISocketMessageChannel"/> that abstracts <paramref name="iSocketMessageChannel"/>.</returns>
         public static IISocketMessageChannel Abstract(this ISocketMessageChannel iSocketMessageChannel)
-            => (iSocketMessageChannel is null) ? throw new ArgumentNullException(nameof(iSocketMessageChannel))
-                : (iSocketMessageChannel is SocketDMChannel socketDMChannel) ? socketDMChannel.Abstract() as IISocketMessageChannel
-                : (iSocketMessageChannel is SocketGroupChannel socketGroupChannel) ? socketGroupChannel.Abstract() as IISocketMessageChannel
-                : (iSocketMessageChannel is SocketTextChannel socketTextChannel) ? socketTextChannel.Abstract() as IISocketMessageChannel
-                : throw new NotSupportedException($"{nameof(ISocketMessageChannel)} type {iSocketMessageChannel.GetType().FullName} is not supported");
+            => iSocketMessageChannel switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(iSocketMessageChannel)),
+                SocketDMChannel socketDMChannel
+                    => socketDMChannel.Abstract() as IISocketMessageChannel,
+                SocketGroupChannel socketGroupChannel
+                    => socketGroupChannel.Abstract() as IISocketMessageChannel,
+                SocketTextChannel socketTextChannel
+                    => socketTextChannel.Abstract() as IISocketMessageChannel,
+                _
+                    => throw new NotSupportedException($"{nameof(ISocketMessageChannel)} type {iSocketMessageChannel.GetType().FullName} is not supported")
+            };
     }
 }

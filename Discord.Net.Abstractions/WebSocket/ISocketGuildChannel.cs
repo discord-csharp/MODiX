@@ -21,7 +21,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="WebSocket.SocketGuildChannel"/>, through the <see cref="ISocketGuildChannel"/> interface.
     /// </summary>
-    public class SocketGuildChannelAbstraction : SocketChannelAbstraction, ISocketGuildChannel
+    internal class SocketGuildChannelAbstraction : SocketChannelAbstraction, ISocketGuildChannel
     {
         /// <summary>
         /// Constructs a new <see cref="SocketGuildChannelAbstraction"/> around an existing <see cref="WebSocket.SocketGuildChannel"/>.
@@ -39,11 +39,13 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public ISocketGuild Guild
-            => SocketGuildChannel.Guild.Abstract();
+            => SocketGuildChannel.Guild
+                .Abstract();
 
         /// <inheritdoc />
         IGuild IGuildChannel.Guild
-            => (SocketGuildChannel as IGuildChannel).Guild;
+            => (SocketGuildChannel as IGuildChannel).Guild
+                .Abstract();
 
         /// <inheritdoc />
         public ulong GuildId
@@ -79,15 +81,20 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         new public ISocketGuildUser GetUser(ulong id)
-            => SocketGuildChannel.GetUser(id).Abstract();
+            => SocketGuildChannel.GetUser(id)
+                .Abstract();
 
         /// <inheritdoc />
-        Task<IGuildUser> IGuildChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)
-            => (SocketGuildChannel as IGuildChannel).GetUserAsync(id, mode, options);
+        async Task<IGuildUser> IGuildChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)
+            => (await (SocketGuildChannel as IGuildChannel).GetUserAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         IAsyncEnumerable<IReadOnlyCollection<IGuildUser>> IGuildChannel.GetUsersAsync(CacheMode mode, RequestOptions options)
-            => (SocketGuildChannel as IGuildChannel).GetUsersAsync(mode, options);
+            => (SocketGuildChannel as IGuildChannel).GetUsersAsync(mode, options)
+                .Select(x => x
+                    .Select(GuildUserAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public Task ModifyAsync(Action<GuildChannelProperties> func, RequestOptions options = null)
@@ -115,7 +122,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="SocketGuildChannel"/> objects.
     /// </summary>
-    public static class SocketGuildChannelAbstractionExtensions
+    internal static class SocketGuildChannelAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="SocketGuildChannel"/> to an abstracted <see cref="ISocketGuildChannel"/> value.
@@ -124,10 +131,18 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="socketGuildChannel"/>.</exception>
         /// <returns>An <see cref="ISocketGuildChannel"/> that abstracts <paramref name="socketGuildChannel"/>.</returns>
         public static ISocketGuildChannel Abstract(this SocketGuildChannel socketGuildChannel)
-            => (socketGuildChannel is null) ? throw new ArgumentNullException(nameof(socketGuildChannel))
-                : (socketGuildChannel is SocketCategoryChannel socketCategoryChannel) ? socketCategoryChannel.Abstract()
-                : (socketGuildChannel is SocketTextChannel socketTextChannel) ? socketTextChannel.Abstract()
-                : (socketGuildChannel is SocketVoiceChannel socketVoiceChannel) ? socketVoiceChannel.Abstract()
-                : new SocketGuildChannelAbstraction(socketGuildChannel) as ISocketGuildChannel;
+            => socketGuildChannel switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(socketGuildChannel)),
+                SocketCategoryChannel socketCategoryChannel
+                    => socketCategoryChannel.Abstract(),
+                SocketTextChannel socketTextChannel
+                    => socketTextChannel.Abstract(),
+                SocketVoiceChannel socketVoiceChannel
+                    => socketVoiceChannel.Abstract(),
+                _
+                    => new SocketGuildChannelAbstraction(socketGuildChannel) as ISocketGuildChannel
+            };
     }
 }

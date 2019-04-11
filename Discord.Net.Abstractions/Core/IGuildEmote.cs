@@ -22,7 +22,7 @@ namespace Discord
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Discord.GuildEmote"/>, through the <see cref="IGuildEmote"/> interface.
     /// </summary>
-    public class GuildEmoteAbstraction : EmoteAbstraction, IGuildEmote
+    internal class GuildEmoteAbstraction : EmoteAbstraction, IGuildEmote
     {
         /// <summary>
         /// Constructs a new <see cref="GuildEmoteAbstraction"/> around an existing <see cref="Discord.GuildEmote"/>.
@@ -62,7 +62,7 @@ namespace Discord
     /// <summary>
     /// Contains extension methods for abstracting <see cref="GuildEmote"/> objects.
     /// </summary>
-    public static class GuildEmoteAbstractionExtensions
+    internal static class GuildEmoteAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="GuildEmote"/> to an abstracted <see cref="IGuildEmote"/> value.
@@ -80,8 +80,14 @@ namespace Discord
         /// <exception cref="ArgumentNullException">Throws for <paramref name="guildEmote"/>.</exception>
         /// <returns>The <see cref="GuildEmote"/> being abstracted by <paramref name="guildEmote"/>.</returns>
         internal static GuildEmote Unabstract(this IGuildEmote guildEmote)
-            => (guildEmote is null) ? throw new ArgumentNullException(nameof(guildEmote))
-                : (guildEmote is GuildEmoteAbstraction guildEmoteAbstraction) ? guildEmoteAbstraction.GuildEmote
-                : throw new NotSupportedException($"Unable to extract {nameof(GuildEmote)} object from {nameof(IGuildEmote)} type {guildEmote.GetType().Name}");
+            => guildEmote switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(guildEmote)),
+                GuildEmoteAbstraction guildEmoteAbstraction
+                    => guildEmoteAbstraction.GuildEmote,
+                _
+                    => throw new NotSupportedException($"Unable to extract {nameof(GuildEmote)} object from {nameof(IGuildEmote)} type {guildEmote.GetType().Name}")
+            };
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Discord.Rest
@@ -10,7 +11,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestGuildChannel"/>, through the <see cref="IRestGuildChannel"/> interface.
     /// </summary>
-    public class RestGuildChannelAbstraction : RestChannelAbstraction, IRestGuildChannel
+    internal class RestGuildChannelAbstraction : RestChannelAbstraction, IRestGuildChannel
     {
         /// <summary>
         /// Constructs a new <see cref="RestGuildChannelAbstraction"/> around an existing <see cref="Rest.RestGuildChannel"/>.
@@ -22,7 +23,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IGuild Guild
-            => (RestGuildChannel as IGuildChannel).Guild;
+            => (RestGuildChannel as IGuildChannel).Guild
+                .Abstract();
 
         /// <inheritdoc />
         public ulong GuildId
@@ -61,12 +63,16 @@ namespace Discord.Rest
             => RestGuildChannel.GetPermissionOverwrite(user);
 
         /// <inheritdoc />
-        Task<IGuildUser> IGuildChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)
-            => (RestGuildChannel as IGuildChannel).GetUserAsync(id, mode, options);
+        async Task<IGuildUser> IGuildChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)
+            => (await (RestGuildChannel as IGuildChannel).GetUserAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         IAsyncEnumerable<IReadOnlyCollection<IGuildUser>> IGuildChannel.GetUsersAsync(CacheMode mode, RequestOptions options)
-            => (RestGuildChannel as IGuildChannel).GetUsersAsync(mode, options);
+            => (RestGuildChannel as IGuildChannel).GetUsersAsync(mode, options)
+                .Select(x => x
+                    .Select(GuildUserAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public Task RemovePermissionOverwriteAsync(IRole role, RequestOptions options = null)
@@ -90,7 +96,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestGuildChannel"/> objects.
     /// </summary>
-    public static class RestGuildChannelAbstractionExtensions
+    internal static class RestGuildChannelAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestGuildChannel"/> to an abstracted <see cref="IRestGuildChannel"/> value.
@@ -99,10 +105,18 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restGuildChannel"/>.</exception>
         /// <returns>An <see cref="IRestGuildChannel"/> that abstracts <paramref name="restGuildChannel"/>.</returns>
         public static IRestGuildChannel Abstract(this RestGuildChannel restGuildChannel)
-            => (restGuildChannel is null) ? throw new ArgumentNullException(nameof(restGuildChannel))
-                : (restGuildChannel is RestCategoryChannel restCategoryChannel) ? restCategoryChannel.Abstract()
-                : (restGuildChannel is RestTextChannel restTextChannel) ? restTextChannel.Abstract()
-                : (restGuildChannel is RestVoiceChannel restVoiceChannel) ? restVoiceChannel.Abstract()
-                : new RestGuildChannelAbstraction(restGuildChannel) as IRestGuildChannel;
+            => restGuildChannel switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(restGuildChannel)),
+                RestCategoryChannel restCategoryChannel
+                    => restCategoryChannel.Abstract(),
+                RestTextChannel restTextChannel
+                    => restTextChannel.Abstract(),
+                RestVoiceChannel restVoiceChannel
+                    => restVoiceChannel.Abstract(),
+                _
+                    => new RestGuildChannelAbstraction(restGuildChannel) as IRestGuildChannel
+            };
     }
 }

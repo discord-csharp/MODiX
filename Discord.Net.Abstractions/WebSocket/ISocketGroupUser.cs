@@ -12,7 +12,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="WebSocket.SocketGroupUser"/>, through the <see cref="ISocketGroupUser"/> interface.
     /// </summary>
-    public class SocketGroupUserAbstraction : SocketUserAbstraction, ISocketGroupUser
+    internal class SocketGroupUserAbstraction : SocketUserAbstraction, ISocketGroupUser
     {
         /// <summary>
         /// Constructs a new <see cref="SocketGroupUserAbstraction"/> around an existing <see cref="WebSocket.SocketGroupUser"/>.
@@ -49,7 +49,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public IVoiceChannel VoiceChannel
-            => (SocketGroupUser as IGroupUser).VoiceChannel;
+            => (SocketGroupUser as IGroupUser).VoiceChannel
+                .Abstract();
 
         /// <inheritdoc />
         public string VoiceSessionId
@@ -65,7 +66,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="SocketGroupUser"/> objects.
     /// </summary>
-    public static class SocketGroupUserAbstractionExtensions
+    internal static class SocketGroupUserAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="SocketGroupUser"/> to an abstracted <see cref="ISocketGroupUser"/> value.

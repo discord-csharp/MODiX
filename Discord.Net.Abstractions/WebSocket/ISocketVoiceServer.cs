@@ -18,7 +18,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="WebSocket.SocketVoiceServer"/>, through the <see cref="ISocketVoiceServer"/> interface.
     /// </summary>
-    public class SocketVoiceServerAbstraction : ISocketVoiceServer
+    internal class SocketVoiceServerAbstraction : ISocketVoiceServer
     {
         /// <summary>
         /// Constructs a new <see cref="SocketVoiceServerAbstraction"/> around an existing <see cref="WebSocket.SocketVoiceServer"/>.
@@ -52,7 +52,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="SocketVoiceServer"/> objects.
     /// </summary>
-    public static class SocketVoiceServerAbstractionExtensions
+    internal static class SocketVoiceServerAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="SocketVoiceServer"/> to an abstracted <see cref="ISocketVoiceServer"/> value.

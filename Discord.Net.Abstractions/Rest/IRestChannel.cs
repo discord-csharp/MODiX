@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Discord.Rest
@@ -10,7 +11,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestChannel"/>, through the <see cref="IRestChannel"/> interface.
     /// </summary>
-    public class RestChannelAbstraction : IRestChannel
+    internal class RestChannelAbstraction : IRestChannel
     {
         /// <summary>
         /// Constructs a new <see cref="RestChannelAbstraction"/> around an existing <see cref="Rest.RestChannel"/>.
@@ -35,12 +36,16 @@ namespace Discord.Rest
             => RestChannel.Id;
 
         /// <inheritdoc />
-        public Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestChannel as IChannel).GetUserAsync(id, mode, options);
+        public async Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestChannel as IChannel).GetUserAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestChannel as IChannel).GetUsersAsync(mode, options);
+            => (RestChannel as IChannel).GetUsersAsync(mode, options)
+                .Select(x => x
+                    .Select(UserAbstractionExtensions.Abstract)
+                    .ToArray());
 
         /// <inheritdoc />
         public Task UpdateAsync(RequestOptions options = null)
@@ -55,7 +60,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestChannel"/> objects.
     /// </summary>
-    public static class RestChannelAbstractionExtensions
+    internal static class RestChannelAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestChannel"/> to an abstracted <see cref="IRestChannel"/> value.
@@ -64,10 +69,18 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restChannel"/>.</exception>
         /// <returns>An <see cref="IRestChannel"/> that abstracts <paramref name="restChannel"/>.</returns>
         public static IRestChannel Abstract(this RestChannel restChannel)
-            => (restChannel is null) ? throw new ArgumentNullException(nameof(restChannel))
-                : (restChannel is RestDMChannel restDMChannel) ? restDMChannel.Abstract()
-                : (restChannel is RestGroupChannel restGroupChannel) ? restGroupChannel.Abstract()
-                : (restChannel is RestGuildChannel restGuildChannel) ? restGuildChannel.Abstract()
-                : new RestChannelAbstraction(restChannel) as IRestChannel;
+            => restChannel switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(restChannel)),
+                RestDMChannel restDMChannel
+                    => restDMChannel.Abstract(),
+                RestGroupChannel restGroupChannel
+                    => restGroupChannel.Abstract(),
+                RestGuildChannel restGuildChannel
+                    => restGuildChannel.Abstract(),
+                _
+                    => new RestChannelAbstraction(restChannel) as IRestChannel
+            };
     }
 }

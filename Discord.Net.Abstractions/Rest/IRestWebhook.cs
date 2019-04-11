@@ -9,7 +9,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="RestWebhook"/>, through the <see cref="IRestWebhook"/> interface.
     /// </summary>
-    public class RestWebhookAbstraction : IRestWebhook
+    internal class RestWebhookAbstraction : IRestWebhook
     {
         /// <summary>
         /// Constructs a new <see cref="RestWebhookAbstraction"/> around an existing <see cref="Rest.RestWebhook"/>.
@@ -27,7 +27,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public ITextChannel Channel
-            => (RestWebhook as IWebhook).Channel;
+            => (RestWebhook as IWebhook).Channel
+                .Abstract();
 
         /// <inheritdoc />
         public ulong ChannelId
@@ -39,11 +40,13 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IUser Creator
-            => RestWebhook.Creator;
+            => RestWebhook.Creator
+                .Abstract();
 
         /// <inheritdoc />
         public IGuild Guild
-            => (RestWebhook as IWebhook).Guild;
+            => (RestWebhook as IWebhook).Guild
+                .Abstract();
 
         /// <inheritdoc />
         public ulong? GuildId
@@ -90,7 +93,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestWebhook"/> objects.
     /// </summary>
-    public static class RestWebhookAbstractionExtensions
+    internal static class RestWebhookAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestWebhook"/> to an abstracted <see cref="IRestWebhook"/> value.

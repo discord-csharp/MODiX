@@ -27,7 +27,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestMessage"/>, through the <see cref="IRestMessage"/> interface.
     /// </summary>
-    public abstract class RestMessageAbstraction : IRestMessage
+    internal abstract class RestMessageAbstraction : IRestMessage
     {
         /// <summary>
         /// Constructs a new <see cref="RestMessageAbstraction"/> around an existing <see cref="Rest.RestMessage"/>.
@@ -41,7 +41,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IMessageActivity Activity
-            => RestMessage.Activity.Abstract();
+            => RestMessage.Activity
+                .Abstract();
 
         /// <inheritdoc />
         MessageActivity IMessage.Activity
@@ -49,7 +50,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IMessageApplication Application
-            => RestMessage.Application.Abstract();
+            => RestMessage.Application
+                .Abstract();
 
         /// <inheritdoc />
         MessageApplication IMessage.Application
@@ -61,11 +63,13 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IUser Author
-            => RestMessage.Author;
+            => RestMessage.Author
+                .Abstract();
 
         /// <inheritdoc />
         public IMessageChannel Channel
-            => RestMessage.Channel;
+            => RestMessage.Channel
+                .Abstract();
 
         /// <inheritdoc />
         public string Content
@@ -150,7 +154,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestMessage"/> objects.
     /// </summary>
-    public static class RestMessageAbstractionExtensions
+    internal static class RestMessageAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestMessage"/> to an abstracted <see cref="IRestMessage"/> value.
@@ -159,9 +163,16 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restMessage"/>.</exception>
         /// <returns>An <see cref="IRestMessage"/> that abstracts <paramref name="restMessage"/>.</returns>
         public static IRestMessage Abstract(this RestMessage restMessage)
-            => (restMessage is null) ? throw new ArgumentNullException(nameof(RestMessage))
-                : (restMessage is RestSystemMessage restSystemMessage) ? restSystemMessage.Abstract() as IRestMessage
-                : (restMessage is RestUserMessage restUserMessage) ? restUserMessage.Abstract() as IRestMessage
-                : throw new NotSupportedException($"Unable to abstract {nameof(RestMessage)} type {restMessage.GetType().Name}");
+            => restMessage switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(restMessage)),
+                RestSystemMessage restSystemMessage
+                    => restSystemMessage.Abstract() as IRestMessage,
+                RestUserMessage restUserMessage
+                    => restUserMessage.Abstract() as IRestMessage,
+                _
+                    => throw new NotSupportedException($"Unable to abstract {nameof(RestMessage)} type {restMessage.GetType().Name}")
+            };
     }
 }

@@ -9,7 +9,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestInvite"/>, through the <see cref="IRestInvite"/> interface.
     /// </summary>
-    public class RestInviteAbstraction : IRestInvite
+    internal class RestInviteAbstraction : IRestInvite
     {
         /// <summary>
         /// Constructs a new <see cref="RestInviteAbstraction"/> around an existing <see cref="Rest.RestInvite"/>.
@@ -23,7 +23,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IChannel Channel
-            => (RestInvite as IInvite).Channel;
+            => (RestInvite as IInvite).Channel
+                .Abstract();
 
         /// <inheritdoc />
         public ulong ChannelId
@@ -43,7 +44,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IGuild Guild
-            => (RestInvite as IInvite).Guild;
+            => (RestInvite as IInvite).Guild
+                .Abstract();
 
         /// <inheritdoc />
         public ulong? GuildId
@@ -90,7 +92,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestInvite"/> objects.
     /// </summary>
-    public static class RestInviteAbstractionExtensions
+    internal static class RestInviteAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestInvite"/> to an abstracted <see cref="IRestInvite"/> value.
@@ -99,8 +101,14 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restInvite"/>.</exception>
         /// <returns>An <see cref="IRestInvite"/> that abstracts <paramref name="restInvite"/>.</returns>
         public static IRestInvite Abstract(this RestInvite restInvite)
-            => (restInvite is null) ? throw new ArgumentNullException(nameof(restInvite))
-                : (restInvite is RestInviteMetadata restInviteMetadata) ? restInviteMetadata.Abstract() as IRestInvite
-                : new RestInviteAbstraction(restInvite) as IRestInvite;
+            => restInvite switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(restInvite)),
+                RestInviteMetadata restInviteMetadata
+                    => restInviteMetadata.Abstract() as IRestInvite,
+                _
+                    => new RestInviteAbstraction(restInvite) as IRestInvite
+            };
     }
 }

@@ -33,7 +33,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Provides an abstraction wrapper layer around an <see cref="WebSocket.DiscordShardedClient"/>, through the <see cref="IDiscordShardedClient"/> interface.
     /// </summary>
-    public class DiscordShardedClientAbstraction : BaseSocketClientAbstraction, IDiscordShardedClient
+    internal class DiscordShardedClientAbstraction : BaseSocketClientAbstraction, IDiscordShardedClient
     {
         /// <summary>
         /// Constructs a new <see cref="DiscordShardedClientAbstraction"/> around an existing <see cref="WebSocket.DiscordShardedClient"/>.

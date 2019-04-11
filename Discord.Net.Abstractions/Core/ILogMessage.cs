@@ -25,7 +25,7 @@ namespace Discord
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="LogMessage"/>, through the <see cref="ILogMessage"/> interface.
     /// </summary>
-    public struct LogMessageAbstraction : ILogMessage
+    internal struct LogMessageAbstraction : ILogMessage
     {
         /// <summary>
         /// Constructs a new <see cref="LogMessageAbstraction"/> around an existing <see cref="LogMessage"/>.

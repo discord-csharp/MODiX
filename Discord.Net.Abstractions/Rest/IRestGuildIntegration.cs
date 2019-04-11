@@ -25,7 +25,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestGuildIntegration"/>, through the <see cref="IRestGuildIntegration"/> interface.
     /// </summary>
-    public class RestGuildIntegrationAbstraction : IRestGuildIntegration
+    internal class RestGuildIntegrationAbstraction : IRestGuildIntegration
     {
         /// <summary>
         /// Constructs a new <see cref="RestGuildIntegrationAbstraction"/> around an existing <see cref="Rest.RestGuildIntegration"/>.
@@ -68,7 +68,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IGuild Guild
-            => (RestGuildIntegration as IGuildIntegration).Guild;
+            => (RestGuildIntegration as IGuildIntegration).Guild
+                .Abstract();
 
         /// <inheritdoc />
         public ulong GuildId
@@ -97,7 +98,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         IUser IGuildIntegration.User
-            => (RestGuildIntegration as IGuildIntegration).User;
+            => (RestGuildIntegration as IGuildIntegration).User
+                .Abstract();
 
         /// <inheritdoc />
         public Task DeleteAsync()
@@ -124,7 +126,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestGuildIntegration"/> objects.
     /// </summary>
-    public static class RestGuildIntegrationAbstractionExtensions
+    internal static class RestGuildIntegrationAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestGuildIntegration"/> to an abstracted <see cref="IRestGuildIntegration"/> value.

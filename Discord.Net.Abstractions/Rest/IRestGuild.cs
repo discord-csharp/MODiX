@@ -135,7 +135,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestGuild"/>, through the <see cref="IRestGuild"/> interface.
     /// </summary>
-    public class RestGuildAbstraction : IRestGuild
+    internal class RestGuildAbstraction : IRestGuild
     {
         /// <summary>
         /// Constructs a new <see cref="RestGuildAbstraction"/> around an existing <see cref="Rest.RestGuild"/>.
@@ -200,7 +200,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         IRole IGuild.EveryoneRole
-            => (RestGuild as IGuild).EveryoneRole;
+            => (RestGuild as IGuild).EveryoneRole
+                .Abstract();
 
         /// <inheritdoc />
         public ExplicitContentFilterLevel ExplicitContentFilter
@@ -246,7 +247,9 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         IReadOnlyCollection<IRole> IGuild.Roles
-            => (RestGuild as IGuild).Roles;
+            => (RestGuild as IGuild).Roles
+                .Select(RoleAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public string SplashId
@@ -282,8 +285,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        Task<IGuildUser> IGuild.AddGuildUserAsync(ulong userId, string accessToken, Action<AddGuildUserProperties> func, RequestOptions options)
-            => (RestGuild as IGuild).AddGuildUserAsync(userId, accessToken, func, options);
+        async Task<IGuildUser> IGuild.AddGuildUserAsync(ulong userId, string accessToken, Action<AddGuildUserProperties> func, RequestOptions options)
+            => (await (RestGuild as IGuild).AddGuildUserAsync(userId, accessToken, func, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestCategoryChannel> CreateCategoryChannelAsync(string name, Action<GuildChannelProperties> func = null, RequestOptions options = null)
@@ -291,8 +295,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        public Task<ICategoryChannel> CreateCategoryAsync(string name, Action<GuildChannelProperties> func = null, RequestOptions options = null)
-            => (RestGuild as IGuild).CreateCategoryAsync(name, func, options);
+        public async Task<ICategoryChannel> CreateCategoryAsync(string name, Action<GuildChannelProperties> func = null, RequestOptions options = null)
+            => (await (RestGuild as IGuild).CreateCategoryAsync(name, func, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IGuildEmote> CreateEmoteAsync(string name, Image image, Optional<IEnumerable<IRole>> roles = default, RequestOptions options = null)
@@ -309,8 +314,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        Task<IGuildIntegration> IGuild.CreateIntegrationAsync(ulong id, string type, RequestOptions options)
-            => (RestGuild as IGuild).CreateIntegrationAsync(id, type, options);
+        async Task<IGuildIntegration> IGuild.CreateIntegrationAsync(ulong id, string type, RequestOptions options)
+            => (await (RestGuild as IGuild).CreateIntegrationAsync(id, type, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, RequestOptions options = null)
@@ -318,8 +324,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        Task<IRole> IGuild.CreateRoleAsync(string name, GuildPermissions? permissions, Color? color, bool isHoisted, RequestOptions options)
-            => (RestGuild as IGuild).CreateRoleAsync(name, permissions, color, isHoisted, options);
+        async Task<IRole> IGuild.CreateRoleAsync(string name, GuildPermissions? permissions, Color? color, bool isHoisted, RequestOptions options)
+            => (await (RestGuild as IGuild).CreateRoleAsync(name, permissions, color, isHoisted, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestTextChannel> CreateTextChannelAsync(string name, Action<TextChannelProperties> func = null, RequestOptions options = null)
@@ -327,8 +334,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        Task<ITextChannel> IGuild.CreateTextChannelAsync(string name, Action<TextChannelProperties> func, RequestOptions options)
-            => (RestGuild as IGuild).CreateTextChannelAsync(name, func, options);
+        async Task<ITextChannel> IGuild.CreateTextChannelAsync(string name, Action<TextChannelProperties> func, RequestOptions options)
+            => (await (RestGuild as IGuild).CreateTextChannelAsync(name, func, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestVoiceChannel> CreateVoiceChannelAsync(string name, Action<VoiceChannelProperties> func = null, RequestOptions options = null)
@@ -336,8 +344,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        Task<IVoiceChannel> IGuild.CreateVoiceChannelAsync(string name, Action<VoiceChannelProperties> func, RequestOptions options)
-            => (RestGuild as IGuild).CreateVoiceChannelAsync(name, func, options);
+        async Task<IVoiceChannel> IGuild.CreateVoiceChannelAsync(string name, Action<VoiceChannelProperties> func, RequestOptions options)
+            => (await (RestGuild as IGuild).CreateVoiceChannelAsync(name, func, options))
+                .Abstract();
 
         /// <inheritdoc />
         public Task DeleteAsync(RequestOptions options = null)
@@ -361,8 +370,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        public Task<IVoiceChannel> GetAFKChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGuild as IGuild).GetAFKChannelAsync(mode, options);
+        public async Task<IVoiceChannel> GetAFKChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestGuild as IGuild).GetAFKChannelAsync(mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IRestAuditLogEntry>> GetAuditLogsAsync(int limit, RequestOptions options = null)
@@ -372,8 +382,10 @@ namespace Discord.Rest
                     .ToArray());
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<IAuditLogEntry>> GetAuditLogsAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGuild as IGuild).GetAuditLogsAsync(limit, mode, options);
+        public async Task<IReadOnlyCollection<IAuditLogEntry>> GetAuditLogsAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestGuild as IGuild).GetAuditLogsAsync(limit, mode, options))
+                .Select(AuditLogEntryAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public async Task<IBan> GetBanAsync(ulong userId, RequestOptions options = null)
@@ -388,8 +400,10 @@ namespace Discord.Rest
             => await RestGuild.GetBansAsync(options);
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<ICategoryChannel>> GetCategoriesAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGuild as IGuild).GetCategoriesAsync(mode, options);
+        public async Task<IReadOnlyCollection<ICategoryChannel>> GetCategoriesAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestGuild as IGuild).GetCategoriesAsync(mode, options))
+                .Select(CategoryChannelAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestCategoryChannel>> GetCategoryChannelsAsync(RequestOptions options = null)
@@ -403,8 +417,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        public Task<IGuildChannel> GetChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGuild as IGuild).GetChannelAsync(id, mode, options);
+        public async Task<IGuildChannel> GetChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestGuild as IGuild).GetChannelAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestGuildChannel>> GetChannelsAsync(RequestOptions options = null)
@@ -413,8 +428,10 @@ namespace Discord.Rest
                 .ToArray();
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<IGuildChannel>> GetChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGuild as IGuild).GetChannelsAsync(mode, options);
+        public async Task<IReadOnlyCollection<IGuildChannel>> GetChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestGuild as IGuild).GetChannelsAsync(mode, options))
+                .Select(GuildChannelAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public async Task<IRestGuildUser> GetCurrentUserAsync(RequestOptions options = null)
@@ -422,8 +439,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        public Task<IGuildUser> GetCurrentUserAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGuild as IGuild).GetCurrentUserAsync(mode, options);
+        public async Task<IGuildUser> GetCurrentUserAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestGuild as IGuild).GetCurrentUserAsync(mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestTextChannel> GetDefaultChannelAsync(RequestOptions options = null)
@@ -431,8 +449,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        public Task<ITextChannel> GetDefaultChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGuild as IGuild).GetDefaultChannelAsync(mode, options);
+        public async Task<ITextChannel> GetDefaultChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestGuild as IGuild).GetDefaultChannelAsync(mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestGuildChannel> GetEmbedChannelAsync(RequestOptions options = null)
@@ -440,8 +459,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        public Task<IGuildChannel> GetEmbedChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGuild as IGuild).GetEmbedChannelAsync(mode, options);
+        public async Task<IGuildChannel> GetEmbedChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestGuild as IGuild).GetEmbedChannelAsync(mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IGuildEmote> GetEmoteAsync(ulong id, RequestOptions options = null)
@@ -459,8 +479,10 @@ namespace Discord.Rest
                 .ToArray();
 
         /// <inheritdoc />
-        Task<IReadOnlyCollection<IGuildIntegration>> IGuild.GetIntegrationsAsync(RequestOptions options)
-            => (RestGuild as IGuild).GetIntegrationsAsync(options);
+        async Task<IReadOnlyCollection<IGuildIntegration>> IGuild.GetIntegrationsAsync(RequestOptions options)
+            => (await (RestGuild as IGuild).GetIntegrationsAsync(options))
+                .Select(GuildIntegrationAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestInviteMetadata>> GetInvitesAsync(RequestOptions options = null)
@@ -469,8 +491,10 @@ namespace Discord.Rest
                 .ToArray();
 
         /// <inheritdoc />
-        Task<IReadOnlyCollection<IInviteMetadata>> IGuild.GetInvitesAsync(RequestOptions options)
-            => (RestGuild as IGuild).GetInvitesAsync(options);
+        async Task<IReadOnlyCollection<IInviteMetadata>> IGuild.GetInvitesAsync(RequestOptions options)
+            => (await (RestGuild as IGuild).GetInvitesAsync(options))
+                .Select(InviteMetadataAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public async Task<IRestGuildUser> GetOwnerAsync(RequestOptions options = null)
@@ -478,8 +502,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        public Task<IGuildUser> GetOwnerAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGuild as IGuild).GetOwnerAsync(mode, options);
+        public async Task<IGuildUser> GetOwnerAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestGuild as IGuild).GetOwnerAsync(mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public IRestRole GetRole(ulong id)
@@ -488,7 +513,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         IRole IGuild.GetRole(ulong id)
-            => (RestGuild as IGuild).GetRole(id);
+            => (RestGuild as IGuild).GetRole(id)
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestTextChannel> GetSystemChannelAsync(RequestOptions options = null)
@@ -496,8 +522,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        public Task<ITextChannel> GetSystemChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGuild as IGuild).GetSystemChannelAsync(mode, options);
+        public async Task<ITextChannel> GetSystemChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestGuild as IGuild).GetSystemChannelAsync(mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestTextChannel> GetTextChannelAsync(ulong id, RequestOptions options = null)
@@ -505,8 +532,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        public Task<ITextChannel> GetTextChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGuild as IGuild).GetTextChannelAsync(id, mode, options);
+        public async Task<ITextChannel> GetTextChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestGuild as IGuild).GetTextChannelAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestTextChannel>> GetTextChannelsAsync(RequestOptions options = null)
@@ -524,8 +552,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        public Task<IGuildUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGuild as IGuild).GetUserAsync(id, mode, options);
+        public async Task<IGuildUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestGuild as IGuild).GetUserAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IRestGuildUser>> GetUsersAsync(RequestOptions options = null)
@@ -535,8 +564,10 @@ namespace Discord.Rest
                     .ToArray());
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<IGuildUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGuild as IGuild).GetUsersAsync(mode, options);
+        public async Task<IReadOnlyCollection<IGuildUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestGuild as IGuild).GetUsersAsync(mode, options))
+                .Select(GuildUserAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public async Task<IRestInviteMetadata> GetVanityInviteAsync(RequestOptions options = null)
@@ -544,8 +575,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        Task<IInviteMetadata> IGuild.GetVanityInviteAsync(RequestOptions options)
-            => (RestGuild as IGuild).GetVanityInviteAsync(options);
+        async Task<IInviteMetadata> IGuild.GetVanityInviteAsync(RequestOptions options)
+            => (await (RestGuild as IGuild).GetVanityInviteAsync(options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IRestVoiceChannel> GetVoiceChannelAsync(ulong id, RequestOptions options = null)
@@ -553,8 +585,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        public Task<IVoiceChannel> GetVoiceChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGuild as IGuild).GetVoiceChannelAsync(id, mode, options);
+        public async Task<IVoiceChannel> GetVoiceChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestGuild as IGuild).GetVoiceChannelAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestVoiceChannel>> GetVoiceChannelsAsync(RequestOptions options = null)
@@ -563,18 +596,22 @@ namespace Discord.Rest
                 .ToArray();
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<IVoiceChannel>> GetVoiceChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (RestGuild as IGuild).GetVoiceChannelsAsync(mode, options);
+        public async Task<IReadOnlyCollection<IVoiceChannel>> GetVoiceChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (RestGuild as IGuild).GetVoiceChannelsAsync(mode, options))
+                .Select(VoiceChannelAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestVoiceRegion>> GetVoiceRegionsAsync(RequestOptions options = null)
             => (await RestGuild.GetVoiceRegionsAsync(options))
-                .Select(RestVoiceRegionAbsractionExtension.Abstract)
+                .Select(RestVoiceRegionAbstractionExtensions.Abstract)
                 .ToArray();
 
         /// <inheritdoc />
-        Task<IReadOnlyCollection<IVoiceRegion>> IGuild.GetVoiceRegionsAsync(RequestOptions options)
-            => (RestGuild as IGuild).GetVoiceRegionsAsync(options);
+        async Task<IReadOnlyCollection<IVoiceRegion>> IGuild.GetVoiceRegionsAsync(RequestOptions options)
+            => (await (RestGuild as IGuild).GetVoiceRegionsAsync(options))
+                .Select(VoiceRegionAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public async Task<IRestWebhook> GetWebhookAsync(ulong id, RequestOptions options = null)
@@ -582,8 +619,9 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        Task<IWebhook> IGuild.GetWebhookAsync(ulong id, RequestOptions options)
-            => (RestGuild as IGuild).GetWebhookAsync(id, options);
+        async Task<IWebhook> IGuild.GetWebhookAsync(ulong id, RequestOptions options)
+            => (await (RestGuild as IGuild).GetWebhookAsync(id, options))
+                .Abstract();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestWebhook>> GetWebhooksAsync(RequestOptions options = null)
@@ -592,8 +630,10 @@ namespace Discord.Rest
                 .ToArray();
 
         /// <inheritdoc />
-        Task<IReadOnlyCollection<IWebhook>> IGuild.GetWebhooksAsync(RequestOptions options)
-            => (RestGuild as IGuild).GetWebhooksAsync(options);
+        async Task<IReadOnlyCollection<IWebhook>> IGuild.GetWebhooksAsync(RequestOptions options)
+            => (await (RestGuild as IGuild).GetWebhooksAsync(options))
+                .Select(WebhookAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public Task LeaveAsync(RequestOptions options = null)
@@ -653,7 +693,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestGuild"/> objects.
     /// </summary>
-    public static class RestGuildAbstractionExtensions
+    internal static class RestGuildAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestGuild"/> to an abstracted <see cref="IRestGuild"/> value.

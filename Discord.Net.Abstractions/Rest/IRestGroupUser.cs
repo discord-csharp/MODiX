@@ -8,7 +8,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestGroupUser"/>, through the <see cref="IRestGroupUser"/> interface.
     /// </summary>
-    public class RestGroupUserAbstraction : RestUserAbstraction, IRestGroupUser
+    internal class RestGroupUserAbstraction : RestUserAbstraction, IRestGroupUser
     {
         /// <summary>
         /// Constructs a new <see cref="RestGroupUserAbstraction"/> around an existing <see cref="Rest.RestGroupUser"/>.
@@ -40,7 +40,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IVoiceChannel VoiceChannel
-            => (RestGroupUser as IVoiceState).VoiceChannel;
+            => (RestGroupUser as IVoiceState).VoiceChannel
+                .Abstract();
 
         /// <inheritdoc />
         public string VoiceSessionId
@@ -56,7 +57,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestGroupUser"/> objects.
     /// </summary>
-    public static class RestGroupUserAbstractionExtensions
+    internal static class RestGroupUserAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestGroupUser"/> to an abstracted <see cref="IRestGroupUser"/> value.

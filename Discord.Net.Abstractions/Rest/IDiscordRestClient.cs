@@ -72,7 +72,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.DiscordRestClient"/>, through the <see cref="IDiscordRestClient"/> interface.
     /// </summary>
-    public class DiscordRestClientAbstraction : BaseDiscordClientAbstraction, IDiscordRestClient
+    internal class DiscordRestClientAbstraction : BaseDiscordClientAbstraction, IDiscordRestClient
     {
         /// <summary>
         /// Constructs a new <see cref="DiscordRestClientAbstraction"/> around an existing <see cref="Rest.DiscordRestClient"/>.
@@ -173,7 +173,7 @@ namespace Discord.Rest
         /// <inheritdoc />
         new public async Task<IReadOnlyCollection<IRestVoiceRegion>> GetVoiceRegionsAsync(RequestOptions options)
             => (await DiscordRestClient.GetVoiceRegionsAsync(options))
-                .Select(RestVoiceRegionAbsractionExtension.Abstract)
+                .Select(RestVoiceRegionAbstractionExtensions.Abstract)
                 .ToArray();
 
         /// <inheritdoc />
@@ -200,8 +200,14 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="discordRestClient"/>.</exception>
         /// <returns>An <see cref="IDiscordRestClient"/> that abstracts <paramref name="discordRestClient"/>.</returns>
         public static IDiscordRestClient Abstract(this DiscordRestClient discordRestClient)
-            => (discordRestClient is null) ? throw new ArgumentNullException(nameof(discordRestClient))
-                : (discordRestClient is DiscordSocketRestClient discordRestSocketClient) ? discordRestSocketClient.Abstract() as IDiscordRestClient
-                : new DiscordRestClientAbstraction(discordRestClient) as IDiscordRestClient;
+            => discordRestClient switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(discordRestClient)),
+                DiscordSocketRestClient discordRestSocketClient
+                    => discordRestSocketClient.Abstract() as IDiscordRestClient,
+                _
+                    => new DiscordRestClientAbstraction(discordRestClient) as IDiscordRestClient
+            };
     }
 }

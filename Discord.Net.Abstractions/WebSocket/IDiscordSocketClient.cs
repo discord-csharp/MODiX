@@ -36,7 +36,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Provides an abstraction wrapper layer around an <see cref="WebSocket.DiscordSocketClient"/>, through the <see cref="IDiscordSocketClient"/> interface.
     /// </summary>
-    public class DiscordSocketClientAbstraction : BaseSocketClientAbstraction, IDiscordSocketClient
+    internal class DiscordSocketClientAbstraction : BaseSocketClientAbstraction, IDiscordSocketClient
     {
         /// <summary>
         /// Constructs a new <see cref="DiscordSocketClientAbstraction"/> around an existing <see cref="WebSocket.DiscordSocketClient"/>.
@@ -60,7 +60,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public IDiscordSocketRestClient Rest
-            => DiscordSocketClient.Rest.Abstract();
+            => DiscordSocketClient.Rest
+                .Abstract();
 
         /// <inheritdoc />
         public int ShardId

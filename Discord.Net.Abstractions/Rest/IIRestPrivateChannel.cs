@@ -13,7 +13,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="IRestPrivateChannel"/> objects.
     /// </summary>
-    public static class IRestPrivateChannelAbstractionExtensions
+    internal static class IRestPrivateChannelAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="IRestPrivateChannel"/> to an abstracted <see cref="IIRestPrivateChannel"/> value.
@@ -22,9 +22,16 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="iRestPrivateChannel"/>.</exception>
         /// <returns>An <see cref="IIRestPrivateChannel"/> that abstracts <paramref name="iRestPrivateChannel"/>.</returns>
         public static IIRestPrivateChannel Abstract(this IRestPrivateChannel iRestPrivateChannel)
-            => (iRestPrivateChannel is null) ? throw new ArgumentNullException(nameof(iRestPrivateChannel))
-                : (iRestPrivateChannel is RestDMChannel restDMChannel) ? restDMChannel.Abstract() as IIRestPrivateChannel
-                : (iRestPrivateChannel is RestGroupChannel restGroupChannel) ? restGroupChannel.Abstract() as IIRestPrivateChannel
-                : throw new NotSupportedException($"{nameof(IRestPrivateChannel)} type {iRestPrivateChannel.GetType().FullName} is not supported");
+            => iRestPrivateChannel switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(iRestPrivateChannel)),
+                RestDMChannel restDMChannel
+                    => restDMChannel.Abstract() as IIRestPrivateChannel,
+                RestGroupChannel restGroupChannel
+                    => restGroupChannel.Abstract() as IIRestPrivateChannel,
+                _
+                    => throw new NotSupportedException($"{nameof(IRestPrivateChannel)} type {iRestPrivateChannel.GetType().FullName} is not supported")
+            };
     }
 }

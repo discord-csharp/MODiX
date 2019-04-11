@@ -24,7 +24,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="WebSocket.SocketReaction"/>, through the <see cref="ISocketReaction"/> interface.
     /// </summary>
-    public class SocketReactionAbstraction : ISocketReaction
+    internal class SocketReactionAbstraction : ISocketReaction
     {
         /// <summary>
         /// Constructs a new <see cref="SocketReactionAbstraction"/> around an existing <see cref="WebSocket.SocketReaction"/>.
@@ -51,14 +51,17 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public Optional<ISocketUserMessage> Message
-            => (SocketReaction.Message.IsSpecified)
+            => SocketReaction.Message.IsSpecified
                 ? new Optional<ISocketUserMessage>(SocketReaction.Message.Value
-                        .Abstract())
+                    .Abstract())
                 : Optional<ISocketUserMessage>.Unspecified;
 
         /// <inheritdoc />
         public Optional<IUser> User
-            => SocketReaction.User;
+            => SocketReaction.User.IsSpecified
+                ? new Optional<IUser>(SocketReaction.User.Value
+                    .Abstract())
+                : Optional<IUser>.Unspecified;
 
         /// <inheritdoc />
         public ulong UserId
@@ -81,7 +84,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="SocketReaction"/> objects.
     /// </summary>
-    public static class SocketReactionAbstractionExtensions
+    internal static class SocketReactionAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="SocketReaction"/> to an abstracted <see cref="ISocketReaction"/> value.

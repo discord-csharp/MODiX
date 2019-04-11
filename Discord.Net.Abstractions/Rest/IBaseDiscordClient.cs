@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Discord.WebSocket;
@@ -32,7 +33,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.BaseDiscordClient"/>, through the <see cref="IBaseDiscordClient"/> interface.
     /// </summary>
-    public abstract class BaseDiscordClientAbstraction : IBaseDiscordClient
+    internal abstract class BaseDiscordClientAbstraction : IBaseDiscordClient
     {
         /// <summary>
         /// Constructs a new <see cref="BaseDiscordClientAbstraction"/> around an existing <see cref="Rest.BaseDiscordClient"/>.
@@ -52,7 +53,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public ISelfUser CurrentUser
-            => BaseDiscordClient.CurrentUser;
+            => BaseDiscordClient.CurrentUser
+                .Abstract();
 
         /// <inheritdoc />
         public LoginState LoginState
@@ -80,72 +82,91 @@ namespace Discord.Rest
         }
 
         /// <inheritdoc />
-        public Task<IGuild> CreateGuildAsync(string name, IVoiceRegion region, Stream jpegIcon = null, RequestOptions options = null)
-            => (BaseDiscordClient as IDiscordClient).CreateGuildAsync(name, region, jpegIcon, options);
+        public async Task<IGuild> CreateGuildAsync(string name, IVoiceRegion region, Stream jpegIcon = null, RequestOptions options = null)
+            => (await (BaseDiscordClient as IDiscordClient).CreateGuildAsync(name, region, jpegIcon, options))
+                .Abstract();
 
         /// <inheritdoc />
         public void Dispose()
             => BaseDiscordClient.Dispose();
 
         /// <inheritdoc />
-        public Task<IApplication> GetApplicationInfoAsync(RequestOptions options = null)
-            => (BaseDiscordClient as IDiscordClient).GetApplicationInfoAsync(options);
+        public async Task<IApplication> GetApplicationInfoAsync(RequestOptions options = null)
+            => (await (BaseDiscordClient as IDiscordClient).GetApplicationInfoAsync(options))
+                .Abstract();
 
         /// <inheritdoc />
-        public Task<IChannel> GetChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (BaseDiscordClient as IDiscordClient).GetChannelAsync(id, mode, options);
+        public async Task<IChannel> GetChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (BaseDiscordClient as IDiscordClient).GetChannelAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
         public Task<IReadOnlyCollection<IConnection>> GetConnectionsAsync(RequestOptions options = null)
             => (BaseDiscordClient as IDiscordClient).GetConnectionsAsync(options);
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<IDMChannel>> GetDMChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (BaseDiscordClient as IDiscordClient).GetDMChannelsAsync(mode, options);
+        public async Task<IReadOnlyCollection<IDMChannel>> GetDMChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (BaseDiscordClient as IDiscordClient).GetDMChannelsAsync(mode, options))
+                .Select(DMChannelAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<IGroupChannel>> GetGroupChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (BaseDiscordClient as IDiscordClient).GetGroupChannelsAsync(mode, options);
+        public async Task<IReadOnlyCollection<IGroupChannel>> GetGroupChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (BaseDiscordClient as IDiscordClient).GetGroupChannelsAsync(mode, options))
+                .Select(GroupChannelAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
-        public Task<IGuild> GetGuildAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (BaseDiscordClient as IDiscordClient).GetGuildAsync(id, mode, options);
+        public async Task<IGuild> GetGuildAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (BaseDiscordClient as IDiscordClient).GetGuildAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<IGuild>> GetGuildsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (BaseDiscordClient as IDiscordClient).GetGuildsAsync(mode, options);
+        public async Task<IReadOnlyCollection<IGuild>> GetGuildsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (BaseDiscordClient as IDiscordClient).GetGuildsAsync(mode, options))
+                .Select(GuildAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
-        public Task<IInvite> GetInviteAsync(string inviteId, RequestOptions options = null)
-            => (BaseDiscordClient as IDiscordClient).GetInviteAsync(inviteId, options);
+        public async Task<IInvite> GetInviteAsync(string inviteId, RequestOptions options = null)
+            => (await (BaseDiscordClient as IDiscordClient).GetInviteAsync(inviteId, options))
+                .Abstract();
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<IPrivateChannel>> GetPrivateChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (BaseDiscordClient as IDiscordClient).GetPrivateChannelsAsync(mode, options);
+        public async Task<IReadOnlyCollection<IPrivateChannel>> GetPrivateChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (BaseDiscordClient as IDiscordClient).GetPrivateChannelsAsync(mode, options))
+                .Select(PrivateChannelAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
         public Task<int> GetRecommendedShardCountAsync(RequestOptions options = null)
             => (BaseDiscordClient as IDiscordClient).GetRecommendedShardCountAsync(options);
 
         /// <inheritdoc />
-        public Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (BaseDiscordClient as IDiscordClient).GetUserAsync(id, mode, options);
+        public async Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (BaseDiscordClient as IDiscordClient).GetUserAsync(id, mode, options))
+                .Abstract();
 
         /// <inheritdoc />
-        public Task<IUser> GetUserAsync(string username, string discriminator, RequestOptions options = null)
-            => (BaseDiscordClient as IDiscordClient).GetUserAsync(username, discriminator, options);
+        public async Task<IUser> GetUserAsync(string username, string discriminator, RequestOptions options = null)
+            => (await (BaseDiscordClient as IDiscordClient).GetUserAsync(username, discriminator, options))
+                .Abstract();
 
         /// <inheritdoc />
-        public Task<IVoiceRegion> GetVoiceRegionAsync(string id, RequestOptions options = null)
-            => (BaseDiscordClient as IDiscordClient).GetVoiceRegionAsync(id, options);
+        public async Task<IVoiceRegion> GetVoiceRegionAsync(string id, RequestOptions options = null)
+            => (await (BaseDiscordClient as IDiscordClient).GetVoiceRegionAsync(id, options))
+                .Abstract();
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<IVoiceRegion>> GetVoiceRegionsAsync(RequestOptions options = null)
-            => (BaseDiscordClient as IDiscordClient).GetVoiceRegionsAsync(options);
+        public async Task<IReadOnlyCollection<IVoiceRegion>> GetVoiceRegionsAsync(RequestOptions options = null)
+            => (await (BaseDiscordClient as IDiscordClient).GetVoiceRegionsAsync(options))
+                .Select(VoiceRegionAbstractionExtensions.Abstract)
+                .ToArray();
 
         /// <inheritdoc />
-        public Task<IWebhook> GetWebhookAsync(ulong id, RequestOptions options = null)
-            => (BaseDiscordClient as IDiscordClient).GetWebhookAsync(id, options);
+        public async Task<IWebhook> GetWebhookAsync(ulong id, RequestOptions options = null)
+            => (await (BaseDiscordClient as IDiscordClient).GetWebhookAsync(id, options))
+                .Abstract();
 
         /// <inheritdoc />
         public Task LoginAsync(TokenType tokenType, string token, bool validateToken = true)
@@ -172,7 +193,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="BaseDiscordClient"/> objects.
     /// </summary>
-    public static class BaseDiscordClientAbstractionExtensions
+    internal static class BaseDiscordClientAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="BaseDiscordClient"/> to an abstracted <see cref="IBaseDiscordClient"/> value.
@@ -181,9 +202,16 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="baseDiscordClient"/>.</exception>
         /// <returns>An <see cref="IBaseDiscordClient"/> that abstracts <paramref name="baseDiscordClient"/>.</returns>
         public static IBaseDiscordClient Abstract(this BaseDiscordClient baseDiscordClient)
-            => (baseDiscordClient is null) ? throw new ArgumentNullException(nameof(baseDiscordClient))
-                : (baseDiscordClient is DiscordRestClient discordRestClient) ? discordRestClient.Abstract() as IBaseDiscordClient
-                : (baseDiscordClient is BaseSocketClient baseSocketClient) ? baseSocketClient.Abstract() as IBaseDiscordClient
-                : throw new NotSupportedException($"Unable to abstract {nameof(BaseDiscordClient)} type {baseDiscordClient.GetType().Name}");
+            => baseDiscordClient switch
+            {
+                null
+                    => throw new ArgumentNullException(nameof(baseDiscordClient)),
+                DiscordRestClient discordRestClient
+                    => discordRestClient.Abstract() as IBaseDiscordClient,
+                BaseSocketClient baseSocketClient
+                    => baseSocketClient.Abstract() as IBaseDiscordClient,
+                _
+                    => throw new NotSupportedException($"Unable to abstract {nameof(BaseDiscordClient)} type {baseDiscordClient.GetType().Name}")
+            };
     }
 }

@@ -7,7 +7,7 @@ namespace Discord.WebSocket
     /// <inheritdoc cref="DiscordSocketRestClient" />
     public interface IDiscordSocketRestClient : IDiscordRestClient { }
 
-    public class DiscordSocketRestClientAbstraction : DiscordRestClientAbstraction, IDiscordSocketRestClient
+    internal class DiscordSocketRestClientAbstraction : DiscordRestClientAbstraction, IDiscordSocketRestClient
     {
         /// <summary>
         /// Constructs a new <see cref="DiscordSocketRestClientAbstraction"/> around an existing <see cref="WebSocket.DiscordSocketRestClient"/>.
@@ -33,7 +33,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="DiscordSocketRestClient"/> objects.
     /// </summary>
-    public static class DiscordSocketRestClientAbstractionExtensions
+    internal static class DiscordSocketRestClientAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="DiscordSocketRestClient"/> to an abstracted <see cref="IDiscordSocketRestClient"/> value.

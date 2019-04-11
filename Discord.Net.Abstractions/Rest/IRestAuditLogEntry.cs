@@ -8,7 +8,7 @@ namespace Discord.Rest
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="Rest.RestAuditLogEntry"/>, through the <see cref="IRestAuditLogEntry"/> interface.
     /// </summary>
-    public class RestAuditLogEntryAbstraction : IRestAuditLogEntry
+    internal class RestAuditLogEntryAbstraction : IRestAuditLogEntry
     {
         /// <summary>
         /// Constructs a new <see cref="RestAuditLogEntryAbstraction"/> around an existing <see cref="Rest.RestAuditLogEntry"/>.
@@ -42,7 +42,8 @@ namespace Discord.Rest
 
         /// <inheritdoc />
         public IUser User
-            => RestAuditLogEntry.User;
+            => RestAuditLogEntry.User
+                .Abstract();
 
         /// <summary>
         /// The existing <see cref="Rest.RestAuditLogEntry"/> being abstracted.
@@ -53,7 +54,7 @@ namespace Discord.Rest
     /// <summary>
     /// Contains extension methods for abstracting <see cref="RestAuditLogEntry"/> objects.
     /// </summary>
-    public static class RestAuditLogEntryAbstractionExtensions
+    internal static class RestAuditLogEntryAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="RestAuditLogEntry"/> to an abstracted <see cref="IRestAuditLogEntry"/> value.

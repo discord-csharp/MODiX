@@ -14,7 +14,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Provides an abstraction wrapper layer around a <see cref="WebSocket.SocketWebhookUser"/>, through the <see cref="ISocketWebhookUser"/> interface.
     /// </summary>
-    public class SocketWebhookUserAbstraction : SocketUserAbstraction, ISocketWebhookUser
+    internal class SocketWebhookUserAbstraction : SocketUserAbstraction, ISocketWebhookUser
     {
         /// <summary>
         /// Constructs a new <see cref="SocketWebhookUserAbstraction"/> around an existing <see cref="WebSocket.SocketWebhookUser"/>.
@@ -31,7 +31,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         IGuild IGuildUser.Guild
-            => (SocketWebhookUser as IGuildUser).Guild;
+            => (SocketWebhookUser as IGuildUser).Guild
+                .Abstract();
 
         /// <inheritdoc />
         public ulong GuildId
@@ -75,7 +76,8 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public IVoiceChannel VoiceChannel
-            => (SocketWebhookUser as IVoiceState).VoiceChannel;
+            => (SocketWebhookUser as IVoiceState).VoiceChannel
+                .Abstract();
 
         /// <inheritdoc />
         public string VoiceSessionId
@@ -123,7 +125,7 @@ namespace Discord.WebSocket
     /// <summary>
     /// Contains extension methods for abstracting <see cref="SocketWebhookUser"/> objects.
     /// </summary>
-    public static class SocketWebhookUserAbstractionExtensions
+    internal static class SocketWebhookUserAbstractionExtensions
     {
         /// <summary>
         /// Converts an existing <see cref="SocketWebhookUser"/> to an abstracted <see cref="ISocketWebhookUser"/> value.
