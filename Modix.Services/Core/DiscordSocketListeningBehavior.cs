@@ -30,6 +30,7 @@ namespace Modix.Services.Core
             DiscordSocketClient.MessageUpdated += OnMessageUpdatedAsync;
             DiscordSocketClient.ReactionAdded += OnReactionAddedAsync;
             DiscordSocketClient.ReactionRemoved += OnReactionRemovedAsync;
+            DiscordSocketClient.Ready += OnReadyAsync;
             DiscordSocketClient.UserBanned += OnUserBannedAsync;
             DiscordSocketClient.UserJoined += OnUserJoinedAsync;
             DiscordSocketClient.UserLeft += OnUserLeftAsync;
@@ -45,6 +46,7 @@ namespace Modix.Services.Core
             DiscordSocketClient.MessageUpdated -= OnMessageUpdatedAsync;
             DiscordSocketClient.ReactionAdded -= OnReactionAddedAsync;
             DiscordSocketClient.ReactionRemoved -= OnReactionRemovedAsync;
+            DiscordSocketClient.Ready -= OnReadyAsync;
             DiscordSocketClient.UserBanned -= OnUserBannedAsync;
             DiscordSocketClient.UserJoined -= OnUserJoinedAsync;
             DiscordSocketClient.UserLeft -= OnUserLeftAsync;
@@ -93,6 +95,13 @@ namespace Modix.Services.Core
         private Task OnReactionRemovedAsync(ICacheable<IUserMessage, ulong> message, IISocketMessageChannel channel, ISocketReaction reaction)
         {
             MessageDispatcher.Dispatch(new ReactionRemovedNotification(message, channel, reaction));
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnReadyAsync()
+        {
+            MessageDispatcher.Dispatch(ReadyNotification.Default);
 
             return Task.CompletedTask;
         }

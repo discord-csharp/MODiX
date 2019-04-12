@@ -78,7 +78,13 @@ namespace Modix.Services.Test.Core
 
             public event Func<int, int, Task> LatencyUpdated;
 
-            public event Func<Task> Ready;
+            public event Func<Task> Ready
+            {
+                add => FakeReadyEvent.AddHandler(value);
+                remove => FakeReadyEvent.RemoveHandler(value);
+            }
+            public readonly FakeAsyncEvent FakeReadyEvent
+                = new FakeAsyncEvent();
 
             public event Func<ISocketRole, Task> RoleCreated;
 
@@ -315,6 +321,7 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeMessageUpdatedEvent.Handlers.Count.ShouldBe(1);
             fakeDiscordSocketClient.FakeReactionAddedEvent.Handlers.Count.ShouldBe(1);
             fakeDiscordSocketClient.FakeReactionRemovedEvent.Handlers.Count.ShouldBe(1);
+            fakeDiscordSocketClient.FakeReadyEvent.Handlers.Count.ShouldBe(1);
             fakeDiscordSocketClient.FakeUserBannedEvent.Handlers.Count.ShouldBe(1);
             fakeDiscordSocketClient.FakeUserJoinedEvent.Handlers.Count.ShouldBe(1);
             fakeDiscordSocketClient.FakeUserLeftEvent.Handlers.Count.ShouldBe(1);
@@ -341,6 +348,7 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeMessageUpdatedEvent.Handlers.ShouldBeEmpty();
             fakeDiscordSocketClient.FakeReactionAddedEvent.Handlers.ShouldBeEmpty();
             fakeDiscordSocketClient.FakeReactionRemovedEvent.Handlers.ShouldBeEmpty();
+            fakeDiscordSocketClient.FakeReadyEvent.Handlers.ShouldBeEmpty();
             fakeDiscordSocketClient.FakeUserBannedEvent.Handlers.ShouldBeEmpty();
             fakeDiscordSocketClient.FakeUserJoinedEvent.Handlers.ShouldBeEmpty();
             fakeDiscordSocketClient.FakeUserLeftEvent.Handlers.ShouldBeEmpty();
@@ -486,6 +494,28 @@ namespace Modix.Services.Test.Core
         }
 
         #endregion DiscordSocketClient.ReactionRemoved Tests
+
+        #region DiscordSocketClient.Ready Tests
+
+        [Test]
+        public async Task DiscordSocketClientReady_Always_DispatchesNotification()
+        {
+            var autoMocker = new AutoMocker();
+            var fakeDiscordSocketClient = new FakeDiscordSocketClient();
+            autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
+            var mockMessageDispatcher = autoMocker.GetMock<IMessageDispatcher>();
+
+            var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
+
+            await uut.StartAsync();
+
+            fakeDiscordSocketClient.FakeReadyEvent.InvokeAsync()
+                .IsCompleted.ShouldBeTrue();
+
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(ReadyNotification.Default));
+        }
+
+        #endregion DiscordSocketClient.Ready Tests
 
         #region DiscordSocketClient.UserBanned Tests
 
