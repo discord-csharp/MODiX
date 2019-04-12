@@ -82,12 +82,12 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         new public ISocketGuildUser GetUser(ulong id)
             => SocketGuildChannel.GetUser(id)
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         async Task<IGuildUser> IGuildChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)
             => (await (SocketGuildChannel as IGuildChannel).GetUserAsync(id, mode, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         IAsyncEnumerable<IReadOnlyCollection<IGuildUser>> IGuildChannel.GetUsersAsync(CacheMode mode, RequestOptions options)

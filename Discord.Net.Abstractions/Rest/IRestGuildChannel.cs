@@ -65,7 +65,7 @@ namespace Discord.Rest
         /// <inheritdoc />
         async Task<IGuildUser> IGuildChannel.GetUserAsync(ulong id, CacheMode mode, RequestOptions options)
             => (await (RestGuildChannel as IGuildChannel).GetUserAsync(id, mode, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         IAsyncEnumerable<IReadOnlyCollection<IGuildUser>> IGuildChannel.GetUsersAsync(CacheMode mode, RequestOptions options)

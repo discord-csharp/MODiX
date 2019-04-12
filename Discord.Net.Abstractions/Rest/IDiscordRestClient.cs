@@ -100,7 +100,7 @@ namespace Discord.Rest
         /// <inheritdoc />
         public async Task<IRestChannel> GetChannelAsync(ulong id, RequestOptions options = null)
             => (await DiscordRestClient.GetChannelAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestDMChannel>> GetDMChannelsAsync(RequestOptions options = null)
@@ -117,7 +117,7 @@ namespace Discord.Rest
         /// <inheritdoc />
         public async Task<IRestGuild> GetGuildAsync(ulong id, RequestOptions options = null)
             => (await DiscordRestClient.GetGuildAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IRestGuildEmbed> GetGuildEmbedAsync(ulong id, RequestOptions options = null)
@@ -147,12 +147,12 @@ namespace Discord.Rest
         /// <inheritdoc />
         public async Task<IRestGuildUser> GetGuildUserAsync(ulong guildId, ulong id, RequestOptions options = null)
             => (await DiscordRestClient.GetGuildUserAsync(guildId, id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         new public async Task<IRestInviteMetadata> GetInviteAsync(string inviteId, RequestOptions options)
             => (await DiscordRestClient.GetInviteAsync(inviteId, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IIRestPrivateChannel>> GetPrivateChannelsAsync(RequestOptions options = null)
@@ -163,12 +163,12 @@ namespace Discord.Rest
         /// <inheritdoc />
         public async Task<IRestUser> GetUserAsync(ulong id, RequestOptions options = null)
             => (await DiscordRestClient.GetUserAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         new public async Task<IRestVoiceRegion> GetVoiceRegionAsync(string id, RequestOptions options)
             => (await DiscordRestClient.GetVoiceRegionAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         new public async Task<IReadOnlyCollection<IRestVoiceRegion>> GetVoiceRegionsAsync(RequestOptions options)
@@ -179,7 +179,7 @@ namespace Discord.Rest
         /// <inheritdoc />
         new public async Task<IRestWebhook> GetWebhookAsync(ulong id, RequestOptions options)
             => (await DiscordRestClient.GetWebhookAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <summary>
         /// The existing <see cref="Rest.DiscordRestClient"/> being abstracted.

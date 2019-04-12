@@ -120,7 +120,7 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public ISocketMessage GetCachedMessage(ulong id)
             => SocketDMChannel.GetCachedMessage(id)
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public IReadOnlyCollection<ISocketMessage> GetCachedMessages(int limit = 100)
@@ -143,12 +143,12 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public async Task<IMessage> GetMessageAsync(ulong id, RequestOptions options = null)
             => (await SocketDMChannel.GetMessageAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IMessage> GetMessageAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (SocketDMChannel as IMessageChannel).GetMessageAsync(id, mode, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(int limit = 100, RequestOptions options = null)

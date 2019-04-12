@@ -70,12 +70,12 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public IDiscordSocketClient GetShard(int id)
             => DiscordShardedClient.GetShard(id)
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public IDiscordSocketClient GetShardFor(IGuild guild)
             => DiscordShardedClient.GetShardFor(guild)
-                .Abstract();
+                ?.Abstract();
 
         /// <summary>
         /// The existing <see cref="WebSocket.DiscordShardedClient"/> being abstracted.

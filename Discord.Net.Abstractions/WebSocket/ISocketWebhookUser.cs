@@ -27,12 +27,12 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public ISocketGuild Guild
             => SocketWebhookUser.Guild
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         IGuild IGuildUser.Guild
             => (SocketWebhookUser as IGuildUser).Guild
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public ulong GuildId
