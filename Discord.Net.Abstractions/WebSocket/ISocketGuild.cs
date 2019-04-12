@@ -476,7 +476,7 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public async Task<IVoiceChannel> GetAFKChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (SocketGuild as IGuild).GetAFKChannelAsync(mode, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IRestAuditLogEntry>> GetAuditLogsAsync(int limit, RequestOptions options = null)
@@ -512,7 +512,7 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public ISocketGuildChannel GetChannel(ulong id)
             => SocketGuild.GetChannel(id)
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IGuildChannel> GetChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
@@ -533,17 +533,17 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public async Task<ITextChannel> GetDefaultChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (SocketGuild as IGuild).GetDefaultChannelAsync(mode, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IGuildChannel> GetEmbedChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (SocketGuild as IGuild).GetEmbedChannelAsync(mode, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IGuildEmote> GetEmoteAsync(ulong id, RequestOptions options = null)
             => (await SocketGuild.GetEmoteAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         Task<GuildEmote> IGuild.GetEmoteAsync(ulong id, RequestOptions options)
@@ -581,12 +581,12 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public ISocketRole GetRole(ulong id)
             => SocketGuild.GetRole(id)
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         IRole IGuild.GetRole(ulong id)
             => (SocketGuild as IGuild).GetRole(id)
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<ITextChannel> GetSystemChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
@@ -596,12 +596,12 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public ISocketTextChannel GetTextChannel(ulong id)
             => SocketGuild.GetTextChannel(id)
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<ITextChannel> GetTextChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (SocketGuild as IGuild).GetTextChannelAsync(id, mode, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<ITextChannel>> GetTextChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
@@ -612,12 +612,12 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public ISocketGuildUser GetUser(ulong id)
             => SocketGuild.GetUser(id)
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IGuildUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (SocketGuild as IGuild).GetUserAsync(id, mode, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IGuildUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
@@ -638,12 +638,12 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public ISocketVoiceChannel GetVoiceChannel(ulong id)
             => SocketGuild.GetVoiceChannel(id)
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IVoiceChannel> GetVoiceChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (SocketGuild as IGuild).GetVoiceChannelAsync(id, mode, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IVoiceChannel>> GetVoiceChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
@@ -665,13 +665,18 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public async Task<IRestWebhook> GetWebhookAsync(ulong id, RequestOptions options = null)
-            => RestWebhookAbstractionExtensions.Abstract(
-                await SocketGuild.GetWebhookAsync(id, options));
+        {
+            var restWebhook = await SocketGuild.GetWebhookAsync(id, options);
+
+            return (restWebhook is null)
+                ? null
+                : RestWebhookAbstractionExtensions.Abstract(restWebhook);
+        }
 
         /// <inheritdoc />
         async Task<IWebhook> IGuild.GetWebhookAsync(ulong id, RequestOptions options)
             => (await (SocketGuild as IGuild).GetWebhookAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestWebhook>> GetWebhooksAsync(RequestOptions options = null)

@@ -113,7 +113,7 @@ namespace Discord.Rest
         /// <inheritdoc />
         public async Task<IRestMessage> GetMessageAsync(ulong id, RequestOptions options = null)
             => (await RestDMChannel.GetMessageAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IMessage> GetMessageAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
@@ -177,7 +177,7 @@ namespace Discord.Rest
         /// <inheritdoc />
         public IRestUser GetUser(ulong id)
             => RestDMChannel.GetUser(id)
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null)

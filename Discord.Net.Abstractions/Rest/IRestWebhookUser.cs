@@ -25,7 +25,7 @@ namespace Discord.Rest
         /// <inheritdoc />
         IGuild IGuildUser.Guild
             => (RestWebhookUser as IGuildUser).Guild
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public ulong GuildId

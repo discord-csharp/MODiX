@@ -38,7 +38,7 @@ namespace Discord.Rest
         /// <inheritdoc />
         public async Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (RestChannel as IChannel).GetUserAsync(id, mode, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetUsersAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)

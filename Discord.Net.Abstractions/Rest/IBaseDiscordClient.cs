@@ -98,7 +98,7 @@ namespace Discord.Rest
         /// <inheritdoc />
         public async Task<IChannel> GetChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (BaseDiscordClient as IDiscordClient).GetChannelAsync(id, mode, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public Task<IReadOnlyCollection<IConnection>> GetConnectionsAsync(RequestOptions options = null)
@@ -119,7 +119,7 @@ namespace Discord.Rest
         /// <inheritdoc />
         public async Task<IGuild> GetGuildAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (BaseDiscordClient as IDiscordClient).GetGuildAsync(id, mode, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IGuild>> GetGuildsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
@@ -130,7 +130,7 @@ namespace Discord.Rest
         /// <inheritdoc />
         public async Task<IInvite> GetInviteAsync(string inviteId, RequestOptions options = null)
             => (await (BaseDiscordClient as IDiscordClient).GetInviteAsync(inviteId, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IPrivateChannel>> GetPrivateChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
@@ -145,17 +145,17 @@ namespace Discord.Rest
         /// <inheritdoc />
         public async Task<IUser> GetUserAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (BaseDiscordClient as IDiscordClient).GetUserAsync(id, mode, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IUser> GetUserAsync(string username, string discriminator, RequestOptions options = null)
             => (await (BaseDiscordClient as IDiscordClient).GetUserAsync(username, discriminator, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IVoiceRegion> GetVoiceRegionAsync(string id, RequestOptions options = null)
             => (await (BaseDiscordClient as IDiscordClient).GetVoiceRegionAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IVoiceRegion>> GetVoiceRegionsAsync(RequestOptions options = null)
@@ -166,7 +166,7 @@ namespace Discord.Rest
         /// <inheritdoc />
         public async Task<IWebhook> GetWebhookAsync(ulong id, RequestOptions options = null)
             => (await (BaseDiscordClient as IDiscordClient).GetWebhookAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public Task LoginAsync(TokenType tokenType, string token, bool validateToken = true)
