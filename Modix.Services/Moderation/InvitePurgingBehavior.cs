@@ -29,12 +29,12 @@ namespace Modix.Services.Moderation
             IDesignatedChannelService designatedChannelService,
             IAuthorizationService authorizationService,
             IModerationService moderationService,
-            ISelfUser selfUser)
+            ISelfUserProvider selfUserProvider)
         {
             DesignatedChannelService = designatedChannelService;
             AuthorizationService = authorizationService;
             ModerationService = moderationService;
-            SelfUser = selfUser;
+            SelfUserProvider = selfUserProvider;
         }
 
         /// <inheritdoc />
@@ -61,9 +61,9 @@ namespace Modix.Services.Moderation
         internal protected IModerationService ModerationService { get; }
 
         /// <summary>
-        /// A reference to the current bot user.
+        /// An <see cref="ISelfUserProvider"/> used to interact with the current bot user.
         /// </summary>
-        internal protected ISelfUser SelfUser { get; }
+        internal protected ISelfUserProvider SelfUserProvider { get; }
 
         private async Task TryPurgeInviteLinkAsync(IMessage message)
         {
@@ -78,7 +78,8 @@ namespace Modix.Services.Moderation
                 return;
             }
 
-            if (author.Id == SelfUser.Id)
+            var selfUser = await SelfUserProvider.GetSelfUserAsync();
+            if (author.Id == selfUser.Id)
                 return;
 
             var matches = _inviteLinkMatcher.Matches(message.Content);
@@ -110,7 +111,7 @@ namespace Modix.Services.Moderation
 
             Log.Debug("Message {MessageId} is going to be deleted", message.Id);
 
-            await ModerationService.DeleteMessageAsync(message, "Unauthorized Invite Link", SelfUser.Id);
+            await ModerationService.DeleteMessageAsync(message, "Unauthorized Invite Link", selfUser.Id);
 
             Log.Debug("Message {MessageId} was deleted because it contains an invite link", message.Id);
 

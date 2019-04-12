@@ -27,21 +27,21 @@ namespace Modix.Services.Promotions
             IDesignatedChannelService designatedChannelService,
             IUserService userService,
             IPromotionsService promotionsService,
-            ISelfUser selfUser)
+            ISelfUserProvider selfUserProvider)
         {
             AuthorizationService = authorizationService;
             DiscordClient = discordClient;
             DesignatedChannelService = designatedChannelService;
             UserService = userService;
             PromotionsService = promotionsService;
-            SelfUser = selfUser;
+            SelfUserProvider = selfUserProvider;
         }
         
         public async Task HandleNotificationAsync(PromotionActionCreatedNotification notification, CancellationToken cancellationToken)
         {
             // TODO: Temporary workaround, remove as part of auth rework.
             if (AuthorizationService.CurrentUserId is null)
-                await AuthorizationService.OnAuthenticatedAsync(SelfUser);
+                await AuthorizationService.OnAuthenticatedAsync(await SelfUserProvider.GetSelfUserAsync());
 
             if (await DesignatedChannelService.AnyDesignatedChannelAsync(notification.Data.GuildId, DesignatedChannelType.PromotionLog))
             {
@@ -139,9 +139,9 @@ namespace Modix.Services.Promotions
         internal protected IPromotionsService PromotionsService { get; }
 
         /// <summary>
-        /// The <see cref="ISelfUser"/> representing the bot, within the Discord API.
+        /// An <see cref="ISelfUserProvider"/> for interacting with the current bot user.
         /// </summary>
-        internal protected ISelfUser SelfUser { get; }
+        internal protected ISelfUserProvider SelfUserProvider { get; }
 
         private static readonly Dictionary<(PromotionActionType, PromotionSentiment?, PromotionCampaignOutcome?), string> _logRenderTemplates
             = new Dictionary<(PromotionActionType, PromotionSentiment?, PromotionCampaignOutcome?), string>()
