@@ -46,12 +46,12 @@ namespace Modix.Common.Test.Messaging
         #region Dispatch() Tests
 
         [Test]
-        public async Task Dispatch_NotificationIsNull_ThrowsException()
+        public void Dispatch_NotificationIsNull_ThrowsException()
         {
             (var mockServiceScopeFactory, var uut) = BuildTestContext();
 
-            await Should.ThrowAsync<ArgumentNullException>(async () =>
-                await uut.DispatchAsync(null as INotification));
+            Should.Throw<ArgumentNullException>(() =>
+                uut.Dispatch(null as INotification));
         }
 
         [Test]

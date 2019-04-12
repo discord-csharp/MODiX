@@ -37,9 +37,14 @@ namespace Modix.Common.Messaging
 
         /// <inheritdoc />
         public void Dispatch<TNotification>(TNotification notification) where TNotification : INotification
+        {
+            if (notification == null)
+                throw new ArgumentNullException(nameof(notification));
+
             #pragma warning disable CS4014
-            => DispatchAsync(notification);
+            DispatchAsync(notification);
             #pragma warning restore CS4014
+        }
 
         /// <summary>
         /// An <see cref="IServiceScopeFactory"/> used to generate service scopes for dispatched messages to be processed within.
@@ -49,22 +54,26 @@ namespace Modix.Common.Messaging
         // For testing
         internal async Task DispatchAsync<TNotification>(TNotification notification) where TNotification : INotification
         {
-            if (notification == null)
-                throw new ArgumentNullException(nameof(notification));
-
-            using (var serviceScope = ServiceScopeFactory.CreateScope())
+            try
             {
-                foreach (var handler in serviceScope.ServiceProvider.GetServices<INotificationHandler<TNotification>>())
+                using (var serviceScope = ServiceScopeFactory.CreateScope())
                 {
-                    try
+                    foreach (var handler in serviceScope.ServiceProvider.GetServices<INotificationHandler<TNotification>>())
                     {
-                        await handler.HandleNotificationAsync(notification);
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "An unexpected error occurred within a handler for a dispatched message: {notification}", notification);
+                        try
+                        {
+                            await handler.HandleNotificationAsync(notification);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "An unexpected error occurred within a handler for a dispatched message: {notification}", notification);
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "An unexpected error occurred while dispatching a notification: {notification}", notification);
             }
         }
     }
