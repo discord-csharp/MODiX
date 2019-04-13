@@ -16,9 +16,11 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{23DA774D-7AE9-48C1-A261-F27D15A07858}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		build\build.sh = build\build.sh
 		Directory.Build.props = Directory.Build.props
 		Dockerfile = Dockerfile
 		readme.md = readme.md
+		build\test.sh = build\test.sh
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix", "Modix\Modix.csproj", "{C4BE4089-0983-464F-9D76-EE9BD2B708DD}"
@@ -84,6 +86,7 @@ Global
 		{E8C7267F-5BC3-4A13-B5EF-60DC1B0E919F}.Debug|x86.ActiveCfg = Release|Any CPU
 		{E8C7267F-5BC3-4A13-B5EF-60DC1B0E919F}.Debug|x86.Build.0 = Release|Any CPU
 		{E8C7267F-5BC3-4A13-B5EF-60DC1B0E919F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8C7267F-5BC3-4A13-B5EF-60DC1B0E919F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E8C7267F-5BC3-4A13-B5EF-60DC1B0E919F}.Release|x64.ActiveCfg = Release|Any CPU
 		{E8C7267F-5BC3-4A13-B5EF-60DC1B0E919F}.Release|x64.Build.0 = Release|Any CPU
 		{E8C7267F-5BC3-4A13-B5EF-60DC1B0E919F}.Release|x86.ActiveCfg = Release|Any CPU
