@@ -349,32 +349,42 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public ISocketChannel GetChannel(ulong id)
             => BaseSocketClient.GetChannel(id)
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public ISocketGuild GetGuild(ulong id)
             => BaseSocketClient.GetGuild(id)
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         new public async Task<IRestInviteMetadata> GetInviteAsync(string inviteId, RequestOptions options)
-            => RestInviteMetadataAbstractionExtensions.Abstract(
-                await BaseSocketClient.GetInviteAsync(inviteId, options));
+        {
+            var restInviteMetadata = await BaseSocketClient.GetInviteAsync(inviteId, options);
+
+            return (restInviteMetadata is null)
+                ? null
+                : RestInviteMetadataAbstractionExtensions.Abstract(restInviteMetadata);
+        }
 
         /// <inheritdoc />
         public ISocketUser GetUser(ulong id)
             => BaseSocketClient.GetUser(id)
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public ISocketUser GetUser(string username, string discriminator)
             => BaseSocketClient.GetUser(username, discriminator)
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public IRestVoiceRegion GetVoiceRegion(string id)
-            => RestVoiceRegionAbstractionExtensions.Abstract(
-                BaseSocketClient.GetVoiceRegion(id));
+        {
+            var restVoiceRegion = BaseSocketClient.GetVoiceRegion(id);
+
+            return (restVoiceRegion is null)
+                ? null
+                : RestVoiceRegionAbstractionExtensions.Abstract(restVoiceRegion);
+        }
 
         /// <inheritdoc />
         public Task SetActivityAsync(IActivity activity)

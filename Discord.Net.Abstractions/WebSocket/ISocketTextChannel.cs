@@ -118,7 +118,7 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public ISocketMessage GetCachedMessage(ulong id)
             => SocketTextChannel.GetCachedMessage(id)
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public IReadOnlyCollection<ISocketMessage> GetCachedMessages(int limit = 100)
@@ -152,12 +152,12 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public async Task<IMessage> GetMessageAsync(ulong id, RequestOptions options = null)
             => (await SocketTextChannel.GetMessageAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IMessage> GetMessageAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (SocketTextChannel as IMessageChannel).GetMessageAsync(id, mode, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IMessage>> GetMessagesAsync(int limit = 100, RequestOptions options = null)
@@ -215,13 +215,18 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public async Task<IRestWebhook> GetWebhookAsync(ulong id, RequestOptions options = null)
-            => RestWebhookAbstractionExtensions.Abstract(
-                await SocketTextChannel.GetWebhookAsync(id, options));
+        {
+            var restWebhook = await SocketTextChannel.GetWebhookAsync(id, options);
+
+            return (restWebhook is null)
+                ? null
+                : RestWebhookAbstractionExtensions.Abstract(restWebhook);
+        }
 
         /// <inheritdoc />
         async Task<IWebhook> ITextChannel.GetWebhookAsync(ulong id, RequestOptions options)
             => (await (SocketTextChannel as ITextChannel).GetWebhookAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestWebhook>> GetWebhooksAsync(RequestOptions options = null)

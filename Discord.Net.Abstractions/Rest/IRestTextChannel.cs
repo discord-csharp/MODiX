@@ -139,12 +139,12 @@ namespace Discord.Rest
         /// <inheritdoc />
         public async Task<IRestMessage> GetMessageAsync(ulong id, RequestOptions options = null)
             => (await RestTextChannel.GetMessageAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IMessage> GetMessageAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (RestTextChannel as IMessageChannel).GetMessageAsync(id, mode, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IRestMessage>> GetMessagesAsync(int limit = 100, RequestOptions options = null)
@@ -203,7 +203,7 @@ namespace Discord.Rest
         /// <inheritdoc />
         public async Task<IRestGuildUser> GetUserAsync(ulong id, RequestOptions options = null)
             => (await RestTextChannel.GetUserAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IRestGuildUser>> GetUsersAsync(RequestOptions options = null)
@@ -215,12 +215,12 @@ namespace Discord.Rest
         /// <inheritdoc />
         public async Task<IRestWebhook> GetWebhookAsync(ulong id, RequestOptions options = null)
             => (await RestTextChannel.GetWebhookAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         async Task<IWebhook> ITextChannel.GetWebhookAsync(ulong id, RequestOptions options)
             => (await (RestTextChannel as ITextChannel).GetWebhookAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestWebhook>> GetWebhooksAsync(RequestOptions options = null)

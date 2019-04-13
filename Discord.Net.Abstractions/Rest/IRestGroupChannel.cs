@@ -105,12 +105,12 @@ namespace Discord.Rest
         /// <inheritdoc />
         public async Task<IRestMessage> GetMessageAsync(ulong id, RequestOptions options = null)
             => (await RestGroupChannel.GetMessageAsync(id, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IMessage> GetMessageAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (RestGroupChannel as IMessageChannel).GetMessageAsync(id, mode, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public IAsyncEnumerable<IReadOnlyCollection<IRestMessage>> GetMessagesAsync(int limit = 100, RequestOptions options = null)
@@ -169,7 +169,7 @@ namespace Discord.Rest
         /// <inheritdoc />
         public IRestUser GetUser(ulong id)
             => RestGroupChannel.GetUser(id)
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public Task LeaveAsync(RequestOptions options = null)

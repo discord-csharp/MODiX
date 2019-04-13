@@ -29,12 +29,10 @@ namespace Modix.Modules
         [Summary("Lists the currently assigned claims for the calling user, or given user")]
         public async Task ClaimsAsync(
             [Summary("User whom to list the claims for, if any")]
-                IGuildUser user = null)
+                [Remainder] DiscordUserEntity user = null)
         {
-            // If a user was provided, get their claims, otherwise get the caller's claims.
-            var claims = user is null
-                ? _authorizationService.CurrentClaims
-                : await _authorizationService.GetGuildUserClaimsAsync(user);
+            var guildUser = await Context.Guild.GetUserAsync(user?.Id ?? Context.User.Id);
+            var claims = await _authorizationService.GetGuildUserClaimsAsync(guildUser);
 
             await ReplyWithClaimsAsync(claims);
         }
