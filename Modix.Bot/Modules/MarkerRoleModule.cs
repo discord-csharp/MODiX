@@ -5,19 +5,53 @@ using Discord;
 using Discord.Commands;
 using Modix.Services.Core;
 using Modix.Data.Models.Core;
+using Humanizer;
+using Discord.WebSocket;
 
 namespace Modix.Modules
 {
-    [Group("pingrole"), Name("Marker Role Manager"), Summary("Allows you to add and remove specific marker roles.")]
+    [Group("pingrole")]
+    [Alias("pingroles")]
+    [Name("Marker Role Manager")]
+    [Summary("Allows you to add and remove specific marker roles.")]
     public class MarkerRoleModule : ModuleBase
     {
-        private readonly IAuthorizationService _authorizationService;
         private readonly IDesignatedRoleService _designatedRoleService;
 
-        public MarkerRoleModule(IAuthorizationService authorizationService, IDesignatedRoleService designatedRoleService)
+        public MarkerRoleModule(IDesignatedRoleService designatedRoleService)
         {
-            _authorizationService = authorizationService;
             _designatedRoleService = designatedRoleService;
+        }
+
+        [Command("list")]
+        [Alias("")]
+        public async Task List()
+        {
+            var pingRoles = await _designatedRoleService
+                .SearchDesignatedRolesAsync(new DesignatedRoleMappingSearchCriteria()
+                {
+                    Type = DesignatedRoleType.Pingable
+                });
+
+            var pingRolesInformation = pingRoles
+                .OrderBy(x => x.Role.Name)
+                .Select(x =>
+                {
+                    var role = Context.Guild.GetRole(x.Role.Id) as ISocketRole;
+                    return $"{role.Mention} - {Format.Bold("member".ToQuantity(role.Members.Count()))}";
+                })
+                .ToArray();
+
+            var pingableRolesFormatted = "Pingable role".ToQuantity(pingRolesInformation.Length, ShowQuantityAs.None);
+
+            var embed = new EmbedBuilder()
+                .WithAuthor(Context.Guild.Name, Context.Guild.IconUrl)
+                .WithColor(Color.Blue)
+                .WithTitle($"{pingableRolesFormatted} ({pingRolesInformation.Length})")
+                .WithDescription(string.Join("\n", pingRolesInformation))
+                .WithFooter("Register to any of the above with !pingrole register <RoleName>");
+
+            await ReplyAsync(embed: embed.Build());
         }
 
         [Command("register")]
