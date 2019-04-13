@@ -27,7 +27,7 @@ namespace Modix.Controllers
                 Id = d.Id,
                 RoleId = d.Role.Id,
                 RoleDesignation = d.Type,
-                Name = UserGuild?.GetRole(d.Role.Id).Name ?? d.Id.ToString()
+                Name = UserGuild?.GetRole(d.Role.Id)?.Name ?? d.Role.Id.ToString()
             });
 
             return Ok(mapped);
