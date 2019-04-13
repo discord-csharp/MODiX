@@ -33,12 +33,14 @@ namespace Modix.Modules
                     Type = DesignatedRoleType.Pingable
                 });
 
-            var pingRolesInformation = pingRoles.Select(x =>
-            {
-                var role = Context.Guild.GetRole(x.Role.Id) as ISocketRole;
-                return $"{role.Mention} - {Format.Bold("member".ToQuantity(role.Members.Count()))}";
-            })
-            .ToArray();
+            var pingRolesInformation = pingRoles
+                .OrderBy(x => x.Role.Name)
+                .Select(x =>
+                {
+                    var role = Context.Guild.GetRole(x.Role.Id) as ISocketRole;
+                    return $"{role.Mention} - {Format.Bold("member".ToQuantity(role.Members.Count()))}";
+                })
+                .ToArray();
 
             var pingableRolesFormatted = "Pingable role".ToQuantity(pingRolesInformation.Length, ShowQuantityAs.None);
 
