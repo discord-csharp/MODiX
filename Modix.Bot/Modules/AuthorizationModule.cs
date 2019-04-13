@@ -29,10 +29,7 @@ namespace Modix.Modules
                 [Remainder] DiscordUserEntity user = null)
         {
             var guildUser = await Context.Guild.GetUserAsync(user?.Id ?? Context.User.Id);
-
-            var claims = (guildUser == null)
-                    ? AuthorizationService.CurrentClaims
-                    : await AuthorizationService.GetGuildUserClaimsAsync(guildUser);
+            var claims = await AuthorizationService.GetGuildUserClaimsAsync(guildUser);
 
             await ReplyWithClaimsAsync(claims);
         }
