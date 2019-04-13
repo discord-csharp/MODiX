@@ -19,7 +19,6 @@ namespace Modix.Services.Core
         /// <returns><paramref name="services"/></returns>
         public static IServiceCollection AddModixCore(this IServiceCollection services)
             => services
-                .AddSingleton<IBehavior, AuthorizationAutoConfigBehavior>()
                 .AddSingleton<IBehavior, ChannelTrackingBehavior>()
                 .AddSingleton<IBehavior, RoleTrackingBehavior>()
                 .AddSingleton<IBehavior, UserTrackingBehavior>()
@@ -30,6 +29,9 @@ namespace Modix.Services.Core
                 .AddSingleton<INotificationHandler<ReadyNotification>>(x => x.GetService<ReadySynchronizationProvider>())
                 .AddSingleton<ISelfUserProvider, SelfUserProvider>()
                 .AddScoped<IAuthorizationService, AuthorizationService>()
+                .AddScoped<AuthorizationAutoConfigBehavior>()
+                .AddScoped<INotificationHandler<GuildAvailableNotification>>(x => x.GetService<AuthorizationAutoConfigBehavior>())
+                .AddScoped<INotificationHandler<JoinedGuildNotification>>(x => x.GetService<AuthorizationAutoConfigBehavior>())
                 .AddScoped<IChannelService, ChannelService>()
                 .AddScoped<IRoleService, RoleService>()
                 .AddScoped<IUserService, UserService>()

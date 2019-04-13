@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -33,15 +34,9 @@ namespace Modix.Services.Core
         /// Default claims include granting all existing claims to any role that has the Discord "Administrate" permission.
         /// </summary>
         /// <param name="guild">The guild to be configured.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that may be used to cancel the returned <see cref="Task"/>.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task AutoConfigureGuildAsync(IGuild guild);
-
-        /// <summary>
-        /// Removes all authorization configuration for a guild, by rescinding all of its claim mappings.
-        /// </summary>
-        /// <param name="guild">The guild to be un-configured.</param>
-        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task UnConfigureGuildAsync(IGuild guild);
+        Task AutoConfigureGuildAsync(IGuild guild, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Modifies a claim mapping for a role. 
@@ -178,12 +173,12 @@ namespace Modix.Services.Core
     /// <inheritdoc />
     public class AuthorizationService : IAuthorizationService
     {
-        public AuthorizationService(IServiceProvider serviceProvider, IDiscordClient discordClient, IClaimMappingRepository claimMappingRepository)
+        public AuthorizationService(IServiceProvider serviceProvider, IClaimMappingRepository claimMappingRepository, ISelfUserProvider selfUserProvider)
         {
-            DiscordClient = discordClient;
             // Workaround for circular dependency.
             _lazyUserService = new Lazy<IUserService>(() => serviceProvider.GetRequiredService<IUserService>());
             ClaimMappingRepository = claimMappingRepository;
+            SelfUserProvider = selfUserProvider;
         }
 
         /// <inheritdoc />
@@ -196,7 +191,7 @@ namespace Modix.Services.Core
         public IReadOnlyCollection<AuthorizationClaim> CurrentClaims { get; internal protected set; }
 
         /// <inheritdoc />
-        public async Task AutoConfigureGuildAsync(IGuild guild)
+        public async Task AutoConfigureGuildAsync(IGuild guild, CancellationToken cancellationToken = default)
         {
             if (await ClaimMappingRepository.AnyAsync(new ClaimMappingSearchCriteria()
             {
@@ -207,9 +202,10 @@ namespace Modix.Services.Core
                 return;
             }
 
+            var selfUser = await SelfUserProvider.GetSelfUserAsync(cancellationToken);
+
             // Need the bot user to exist, before we start adding claims, created by the bot user.
-            await UserService.TrackUserAsync(
-                await guild.GetUserAsync(DiscordClient.CurrentUser.Id));
+            await UserService.TrackUserAsync(guild, selfUser.Id);
 
             using (var transaction = await ClaimMappingRepository.BeginCreateTransactionAsync())
             {
@@ -222,26 +218,10 @@ namespace Modix.Services.Core
                             RoleId = role.Id,
                             UserId = null,
                             Claim = claim,
-                            CreatedById = DiscordClient.CurrentUser.Id
+                            CreatedById = selfUser.Id
                         });
 
                 transaction.Commit();
-            }
-        }
-
-        /// <inheritdoc />
-        public async Task UnConfigureGuildAsync(IGuild guild)
-        {
-            using (var deleteTransaction = await ClaimMappingRepository.BeginDeleteTransactionAsync())
-            {
-                foreach (var claimMappingId in await ClaimMappingRepository.SearchIdsAsync(new ClaimMappingSearchCriteria()
-                {
-                    GuildId = guild.Id,
-                    IsDeleted = false
-                }))
-                {
-                    await ClaimMappingRepository.TryDeleteAsync(claimMappingId, DiscordClient.CurrentUser.Id);
-                }
             }
         }
 
@@ -407,11 +387,13 @@ namespace Modix.Services.Core
             if (guildUser == null)
                 throw new ArgumentNullException(nameof(guildUser));
 
-            if (guildUser.Id == DiscordClient.CurrentUser.Id || guildUser.GuildPermissions.Administrator)
-                return Enum.GetValues(typeof(AuthorizationClaim)).Cast<AuthorizationClaim>().ToArray();
-
             if (guildUser.Id == CurrentUserId)
                 return CurrentClaims;
+
+            var selfUser = await SelfUserProvider.GetSelfUserAsync();
+
+            if (guildUser.Id == selfUser.Id || guildUser.GuildPermissions.Administrator)
+                return Enum.GetValues(typeof(AuthorizationClaim)).Cast<AuthorizationClaim>().ToArray();
 
             return await LookupPosessedClaimsAsync(guildUser.GuildId, guildUser.RoleIds, guildUser.Id, filterClaims);
         }
@@ -493,11 +475,6 @@ namespace Modix.Services.Core
         }
 
         /// <summary>
-        /// An <see cref="IDiscordClient"/> for interacting with the Discord API.
-        /// </summary>
-        internal protected IDiscordClient DiscordClient { get; }
-
-        /// <summary>
         /// An <see cref="IUserService"/> for interacting with discord users within the application.
         /// </summary>
         internal protected IUserService UserService
@@ -509,6 +486,11 @@ namespace Modix.Services.Core
         /// An <see cref="IClaimMappingRepository"/> for storing and retrieving claim mapping data.
         /// </summary>
         internal protected IClaimMappingRepository ClaimMappingRepository { get; }
+
+        /// <summary>
+        /// An <see cref="ISelfUserProvider"/> for interacting with the current bot user.
+        /// </summary>
+        internal protected ISelfUserProvider SelfUserProvider { get; }
 
         private async Task<IReadOnlyCollection<AuthorizationClaim>> LookupPosessedClaimsAsync(ulong guildId, IEnumerable<ulong> roleIds, ulong userId, IEnumerable<AuthorizationClaim> claimsFilter = null)
         {

@@ -1,66 +1,40 @@
-﻿using System;
+﻿using System.Threading;
 using System.Threading.Tasks;
 
 using Discord;
-using Discord.WebSocket;
+
+using Modix.Common.Messaging;
 
 namespace Modix.Services.Core
 {
     /// <summary>
-    /// Implements a behavior that automatically performs configuration necessary for an <see cref="IAuthorizationService"/> to work.
+    /// Automatically performs configuration necessary for an <see cref="IAuthorizationService"/> to work.
+    /// This includes seeding the system with authorization claim mappings for guild administrators, if no claims are present
+    /// so that guild administrators have the ability to configure authorization manually.
     /// </summary>
-    public class AuthorizationAutoConfigBehavior : BehaviorBase
+    public class AuthorizationAutoConfigBehavior
+        : INotificationHandler<GuildAvailableNotification>,
+            INotificationHandler<JoinedGuildNotification>
     {
-        // TODO: Abstract DiscordSocketClient to IDiscordSocketClient, or something, to make this testable
         /// <summary>
-        /// Constructs a new <see cref="AuthorizationAutoConfigBehavior"/> object, with the given injected dependencies.
-        /// See <see cref="BehaviorBase"/> for more details.
+        /// Constructs a new <see cref="AuthorizationAutoConfigBehavior"/> object, with the given dependencies.
         /// </summary>
-        /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
-        /// <param name="serviceProvider">See <see cref="BehaviorBase"/>.</param>
-        public AuthorizationAutoConfigBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
-            : base(serviceProvider)
+        public AuthorizationAutoConfigBehavior(
+            IAuthorizationService authorizationService)
         {
-            DiscordClient = discordClient;
+            _authorizationService = authorizationService;
         }
 
         /// <inheritdoc />
-        internal protected override Task OnStartingAsync()
-        {
-            DiscordClient.GuildAvailable += OnGuildAvailable;
-            DiscordClient.LeftGuild += OnLeftGuild;
-
-            return Task.CompletedTask;
-        }
+        public Task HandleNotificationAsync(GuildAvailableNotification notification, CancellationToken cancellationToken = default)
+            => _authorizationService.AutoConfigureGuildAsync(notification.Guild, cancellationToken);
 
         /// <inheritdoc />
-        internal protected override Task OnStoppedAsync()
-        {
-            DiscordClient.GuildAvailable -= OnGuildAvailable;
-            DiscordClient.LeftGuild -= OnLeftGuild;
+        public Task HandleNotificationAsync(JoinedGuildNotification notification, CancellationToken cancellationToken = default)
+            => notification.Guild.Available
+                ? _authorizationService.AutoConfigureGuildAsync(notification.Guild, cancellationToken)
+                : Task.CompletedTask;
 
-            return Task.CompletedTask;
-        }
-
-        /// <inheritdoc />
-        internal protected override void Dispose(bool disposeManaged)
-        {
-            if (disposeManaged && IsRunning)
-                OnStoppedAsync();
-
-            base.Dispose(disposeManaged);
-        }
-
-        // TODO: Abstract DiscordSocketClient to IDiscordSocketClient, or something, to make this testable
-        /// <summary>
-        /// A <see cref="DiscordSocketClient"/> for interacting with, and receiving events from, the Discord API.
-        /// </summary>
-        internal protected DiscordSocketClient DiscordClient { get; }
-
-        private Task OnGuildAvailable(IGuild guild)
-            => SelfExecuteRequest<IAuthorizationService>(x => x.AutoConfigureGuildAsync(guild));
-
-        private Task OnLeftGuild(IGuild guild)
-            => SelfExecuteRequest<IAuthorizationService>(x => x.UnConfigureGuildAsync(guild));
+        private readonly IAuthorizationService _authorizationService;
     }
 }
