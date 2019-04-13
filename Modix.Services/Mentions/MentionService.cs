@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 using Discord;
@@ -15,59 +14,66 @@ namespace Modix.Services.Mentions
         /// Mentions the given role in the given channel
         /// </summary>
         /// <param name="role">The role to mention</param>
-        /// <param name="message">The message that triggered the mention-action</param>
-        Task MentionRoleAsync(IRole role, IUserMessage message, string content);
+        /// <param name="channel">The channel to mention in</param>
+        Task MentionRoleAsync(IRole role, IMessageChannel channel);
     }
 
     /// <inheritdoc />
     internal class MentionService : IMentionService
     {
         public MentionService(
+            IDiscordClient discordClient,
             IAuthorizationService authorizationService,
             IDesignatedRoleService designatedRoleService)
         {
+            DiscordClient = discordClient;
             AuthorizationService = authorizationService;
             DesignatedRoleService = designatedRoleService;
         }
 
         /// <inheritdoc />
-        public async Task MentionRoleAsync(IRole role, IUserMessage message, string content)
+        public async Task MentionRoleAsync(IRole role, IMessageChannel channel)
         {
             if (role is null)
                 throw new ArgumentNullException(nameof(role));
 
-            if(!(message.Channel is ITextChannel channel) || !(message.Author is IGuildUser user))
+            if (channel is null)
+                throw new ArgumentNullException(nameof(channel));
+
+            if (role.IsMentionable)
             {
+                await channel.SendMessageAsync($"You can do that yourself - but fine: {role.Mention}");
                 return;
             }
 
-            if (await DesignatedRoleService.RoleHasDesignationAsync(role.Guild.Id, role.Id, DesignatedRoleType.RestrictedMentionability))
+            AuthorizationService.RequireClaims(AuthorizationClaim.MentionRestrictedRole);
+
+            if (await DesignatedRoleService.RoleHasDesignationAsync(role.Guild.Id, role.Id, DesignatedRoleType.RestrictedMentionability) == false)
             {
-                AuthorizationService.RequireClaims(AuthorizationClaim.MentionRestrictedRole);
+                await channel.SendMessageAsync($"Sorry, **{role.Name}** hasn't been designated as mentionable.");
+                return;
             }
 
             //Set the role to mentionable, immediately mention it, then set it
-            //to unmentionable again (if it isn't a pingable role)
+            //to unmentionable again
 
             await role.ModifyAsync(x => x.Mentionable = true);
-
-            var pingMessage = $"{role.Mention} listen up, {user.Mention} wants your attention!";
-
-            pingMessage = content is null ? pingMessage : $"{pingMessage} (s)he left this message for you: {content}";
 
             //Make sure we set the role to unmentionable again no matter what
             try
             {
-                await channel.SendMessageAsync(pingMessage);
+                await channel.SendMessageAsync(role.Mention);
             }
             finally
             {
-                if (!await DesignatedRoleService.RoleHasDesignationAsync(role.Guild.Id, role.Id, DesignatedRoleType.Pingable))
-                {
-                    await role.ModifyAsync(x => x.Mentionable = false);
-                }
+                await role.ModifyAsync(x => x.Mentionable = false);
             }
         }
+
+        /// <summary>
+        /// An <see cref="IDiscordClient"/> for interacting with the Discord API.
+        /// </summary>
+        internal protected IDiscordClient DiscordClient { get; }
 
         /// <summary>
         /// An <see cref="IAuthorizationService"/> to be used to interact with frontend authentication system, and perform authorization.
