@@ -6,6 +6,7 @@ using Discord.WebSocket;
 
 using Modix.Common.Messaging;
 using Modix.Data.Models.Moderation;
+using Modix.Services.Core;
 
 using Serilog;
 
@@ -18,19 +19,19 @@ namespace Modix.Services.Moderation
         INotificationHandler<UserJoinedNotification>
     {
         private readonly IModerationService _moderationService;
-        private readonly ISelfUser _botUser;
+        private readonly ISelfUserProvider _selfUserProvider;
 
         /// <summary>
         /// Constructs a new <see cref="MutePersistingHandler"/> object with the given injected dependencies.
         /// </summary>
         /// <param name="moderationService">A moderation service to interact with the infractions system.</param>
-        /// <param name="botUser">The Discord user that the bot is running as.</param>
+        /// <param name="selfUserProvider">The Discord user that the bot is running as.</param>
         public MutePersistingHandler(
             IModerationService moderationService,
-            ISelfUser botUser)
+            ISelfUserProvider selfUserProvider)
         {
             _moderationService = moderationService;
-            _botUser = botUser;
+            _selfUserProvider = selfUserProvider;
         }
 
         public Task HandleNotificationAsync(UserJoinedNotification notification, CancellationToken cancellationToken)
@@ -61,7 +62,7 @@ namespace Modix.Services.Moderation
                 return;
             }
 
-            var muteRole = await _moderationService.GetOrCreateDesignatedMuteRoleAsync(guildUser.Guild, _botUser.Id);
+            var muteRole = await _moderationService.GetOrCreateDesignatedMuteRoleAsync(guildUser.Guild, (await _selfUserProvider.GetSelfUserAsync()).Id);
 
             Log.Debug("User {0} was muted, because they have an active mute infraction.", guildUser.Id);
 

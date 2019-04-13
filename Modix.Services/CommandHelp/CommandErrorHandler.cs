@@ -5,8 +5,11 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.WebSocket;
+
 using Microsoft.Extensions.Caching.Memory;
+
 using Modix.Common.Messaging;
+using Modix.Services.Core;
 
 namespace Modix.Services.CommandHelp
 {
@@ -27,12 +30,12 @@ namespace Modix.Services.CommandHelp
 
         private const string _emoji = "⚠";
         private readonly IEmote _emote = new Emoji(_emoji);
-        private readonly ISelfUser _botUser;
+        private readonly ISelfUserProvider _selfUserProvider;
         private readonly IMemoryCache _memoryCache;
 
-        public CommandErrorHandler(ISelfUser botUser, IMemoryCache memoryCache)
+        public CommandErrorHandler(ISelfUserProvider selfUserProvider, IMemoryCache memoryCache)
         {
-            _botUser = botUser;
+            _selfUserProvider = selfUserProvider;
             _memoryCache = memoryCache;
         }
 
@@ -135,7 +138,7 @@ namespace Modix.Services.CommandHelp
                     await originalMessage.RemoveReactionAsync(_emote, reaction.User.Value);
                 }
 
-                await originalMessage.RemoveReactionAsync(_emote, _botUser);
+                await originalMessage.RemoveReactionAsync(_emote, await _selfUserProvider.GetSelfUserAsync());
             }
         }
     }

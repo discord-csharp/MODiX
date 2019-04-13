@@ -25,9 +25,14 @@ namespace Modix.Services.Test.Moderation
 
             var uut = autoMocker.CreateInstance<InvitePurgingBehavior>();
 
-            autoMocker.GetMock<ISelfUser>()
+            var mockSelfUser = autoMocker.GetMock<ISocketSelfUser>();
+            mockSelfUser
                 .Setup(x => x.Id)
                 .Returns(1);
+
+            autoMocker.GetMock<ISelfUserProvider>()
+                .Setup(x => x.GetSelfUserAsync(It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(mockSelfUser.Object));
 
             return (autoMocker, uut);
         }
@@ -131,7 +136,7 @@ namespace Modix.Services.Test.Moderation
             uut.DesignatedChannelService.ShouldBeSameAs(autoMocker.Get<IDesignatedChannelService>());
             uut.AuthorizationService.ShouldBeSameAs(autoMocker.Get<IAuthorizationService>());
             uut.ModerationService.ShouldBeSameAs(autoMocker.Get<IModerationService>());
-            uut.SelfUser.ShouldBeSameAs(autoMocker.Get<ISelfUser>());
+            uut.SelfUserProvider.ShouldBeSameAs(autoMocker.Get<ISelfUserProvider>());
         }
 
         #endregion Constructor() Tests
@@ -215,7 +220,7 @@ namespace Modix.Services.Test.Moderation
             var notification = new MessageReceivedNotification(
                 message: BuildTestMessage(autoMocker, DefaultInviteLink));
 
-            autoMocker.GetMock<ISelfUser>()
+            autoMocker.GetMock<ISocketSelfUser>()
                 .Setup(x => x.Id)
                 .Returns(autoMocker.Get<IGuildUser>().Id);
 
@@ -304,7 +309,7 @@ namespace Modix.Services.Test.Moderation
                     DeleteMessageAsync(
                         notification.Message,
                         It.Is<string>(y => y.Contains("invite", StringComparison.OrdinalIgnoreCase)),
-                        autoMocker.Get<ISelfUser>().Id));
+                        autoMocker.Get<ISocketSelfUser>().Id));
         }
 
         [Test]
@@ -417,7 +422,7 @@ namespace Modix.Services.Test.Moderation
                 newMessage: BuildTestMessage(autoMocker, DefaultInviteLink),
                 channel: autoMocker.Get<IISocketMessageChannel>());
 
-            autoMocker.GetMock<ISelfUser>()
+            autoMocker.GetMock<ISocketSelfUser>()
                 .Setup(x => x.Id)
                 .Returns(autoMocker.Get<IGuildUser>().Id);
 
@@ -516,7 +521,7 @@ namespace Modix.Services.Test.Moderation
                     DeleteMessageAsync(
                         notification.NewMessage,
                         It.Is<string>(y => y.Contains("invite", StringComparison.OrdinalIgnoreCase)),
-                        autoMocker.Get<ISelfUser>().Id));
+                        autoMocker.Get<ISocketSelfUser>().Id));
         }
 
         [Test]

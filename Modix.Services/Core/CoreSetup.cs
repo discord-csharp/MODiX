@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Discord;
 
+using Microsoft.Extensions.DependencyInjection;
+
+using Modix.Common.Messaging;
 using Modix.Data.Repositories;
 
 namespace Modix.Services.Core
@@ -22,6 +25,10 @@ namespace Modix.Services.Core
                 .AddSingleton<IBehavior, UserTrackingBehavior>()
                 .AddSingleton<IBehavior, MessageLogBehavior>()
                 .AddSingleton<IBehavior, DiscordSocketListeningBehavior>()
+                .AddSingleton<ReadySynchronizationProvider>()
+                .AddSingleton<IReadySynchronizationProvider>(x => x.GetService<ReadySynchronizationProvider>())
+                .AddSingleton<INotificationHandler<ReadyNotification>>(x => x.GetService<ReadySynchronizationProvider>())
+                .AddSingleton<ISelfUserProvider, SelfUserProvider>()
                 .AddScoped<IAuthorizationService, AuthorizationService>()
                 .AddScoped<IChannelService, ChannelService>()
                 .AddScoped<IRoleService, RoleService>()
