@@ -167,7 +167,7 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public ISocketVoiceChannel AFKChannel
             => SocketGuild.AFKChannel
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public ulong? AFKChannelId
@@ -234,7 +234,7 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public ISocketGuildChannel EmbedChannel
             => SocketGuild.EmbedChannel
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public ulong? EmbedChannelId
@@ -517,7 +517,7 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public async Task<IGuildChannel> GetChannelAsync(ulong id, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (SocketGuild as IGuild).GetChannelAsync(id, mode, options))
-                .Abstract();
+                ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IGuildChannel>> GetChannelsAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
