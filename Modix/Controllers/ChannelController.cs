@@ -27,7 +27,7 @@ namespace Modix.Controllers
                 Id = d.Id,
                 ChannelId = d.Channel.Id,
                 ChannelDesignation = d.Type,
-                Name = UserGuild?.GetChannel(d.Channel.Id).Name ?? d.Id.ToString()
+                Name = UserGuild?.GetChannel(d.Channel.Id)?.Name ?? d.Channel.Id.ToString()
             });
 
             return Ok(mapped);
