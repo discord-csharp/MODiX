@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -17,19 +18,21 @@ namespace Modix.Modules
     [HelpTags("claims")]
     public class AuthorizationModule : ModuleBase
     {
+        private readonly IAuthorizationService _authorizationService;
+
         public AuthorizationModule(IAuthorizationService authorizationService)
         {
-            AuthorizationService = authorizationService;
+            _authorizationService = authorizationService;
         }
 
         [Command("claims")]
-        [Summary("Lists the currently assigned claims for the current user, or a given user.")]
+        [Summary("Lists the currently assigned claims for the calling user, or given user")]
         public async Task ClaimsAsync(
-            [Summary("The user for whom to list claims, if any.")]
+            [Summary("User whom to list the claims for, if any")]
                 [Remainder] DiscordUserEntity user = null)
         {
             var guildUser = await Context.Guild.GetUserAsync(user?.Id ?? Context.User.Id);
-            var claims = await AuthorizationService.GetGuildUserClaimsAsync(guildUser);
+            var claims = await _authorizationService.GetGuildUserClaimsAsync(guildUser);
 
             await ReplyWithClaimsAsync(claims);
         }
@@ -37,64 +40,78 @@ namespace Modix.Modules
         [Command("claims")]
         [Summary("Lists the currently assigned claims for the given role.")]
         public async Task ClaimsAsync(
-            [Summary("The role for which to list claims.")]
-                IRole guildRole)
+            [Summary("Role for which to list claims of.")]
+                IRole role)
         {
-            var claims = await AuthorizationService.GetGuildRoleClaimsAsync(guildRole);
+            var claims = await _authorizationService.GetGuildRoleClaimsAsync(role);
             await ReplyWithClaimsAsync(claims);
         }
 
-        private async Task ReplyWithClaimsAsync(IEnumerable<AuthorizationClaim> claims)
+        [Command("claims add")]
+        [Summary("Adds a claim to the given role")]
+        public Task AddClaimAsync(
+            [Summary("Claim to be added")]
+                AuthorizationClaim claim,
+            [Summary("Access of a claim, whether granted or denied")]
+                ClaimMappingType type,
+            [Summary("Role which to add the claim to")]
+                IRole role)
         {
-            await ReplyAsync(claims.Any()
-                 ? Format.Code(string.Join("\r\n", claims.Select(x => x.ToString())))
-                 : "No claims assigned");
+            return _authorizationService.AddClaimMappingAsync(role, type, claim);
         }
 
         [Command("claims add")]
-        [Summary("Adds a claim mapping to a given role")]
-        public Task AddClaimMapping(
-            [Summary("The claim to be added.")]
+        [Summary("Adds a claim to the given user")]
+        public Task AddClaimAsync(
+            [Summary("Claim to be added")]
                 AuthorizationClaim claim,
-            [Summary("The type of claim mapping, e.g. granted or denied.")]
+            [Summary("Access of a claim, whether granted or denied")]
                 ClaimMappingType type,
-            [Summary("The role to which the claim is to be added.")]
-                IRole role)
-            => AuthorizationService.AddClaimMappingAsync(role, type, claim);
-
-        [Command("claims add")]
-        [Summary("Adds a claim mapping to a given user")]
-        public Task AddClaimMapping(
-            [Summary("The claim to be added.")]
-                AuthorizationClaim claim,
-            [Summary("The type of claim mapping, e.g. granted or denied.")]
-                ClaimMappingType type,
-            [Summary("The user to which the claim is to be added.")]
+            [Summary("User to add the claim to")]
                 IGuildUser user)
-            => AuthorizationService.AddClaimMappingAsync(user, type, claim);
+        {
+            return _authorizationService.AddClaimMappingAsync(user, type, claim);
+        }
 
         [Command("claims remove")]
-        [Summary("Removes a claim mapping from a given role")]
-        public Task RemoveClaimMapping(
-            [Summary("The claim to be removed.")]
+        [Summary("Removes a claim from the given role")]
+        public Task RemoveClaimAsync(
+            [Summary("Claim to be removed")]
                 AuthorizationClaim claim,
-            [Summary("The type of claim mapping, e.g. granted or denied.")]
+            [Summary("Access of the claim, whether granted or denied")]
                 ClaimMappingType type,
-            [Summary("The role from which the claim is to be removed.")]
+            [Summary("Role from which the claim is to be removed")]
                 IRole role)
-            => AuthorizationService.RemoveClaimMappingAsync(role, type, claim);
+        {
+            return _authorizationService.RemoveClaimMappingAsync(role, type, claim);
+        }
 
         [Command("claims remove")]
-        [Summary("Removes a claim mapping from a given user")]
-        public Task RemoveClaimMapping(
-            [Summary("The claim to be removed.")]
+        [Summary("Removes a claim from the given user")]
+        public Task RemoveClaimAsync(
+            [Summary("Claim to be added")]
                 AuthorizationClaim claim,
-            [Summary("The type of claim mapping, e.g. granted or denied.")]
+            [Summary("Access of a claim, whether granted or denied")]
                 ClaimMappingType type,
-            [Summary("The user from which the claim is to be removed.")]
+            [Summary("User to add the claim to")]
                 IGuildUser user)
-            => AuthorizationService.RemoveClaimMappingAsync(user, type, claim);
+        {
+            return _authorizationService.RemoveClaimMappingAsync(user, type, claim);
+        }
 
-        internal protected IAuthorizationService AuthorizationService { get; }
+        private async Task ReplyWithClaimsAsync(IReadOnlyCollection<AuthorizationClaim> claims)
+        {
+            if (!claims.Any())
+            {
+                await ReplyAsync("No claims assigned"); // TODO: Move to resources folder perhaps?
+                return;
+            }
+
+            // Turn the claims into strings, then put them one under another in a code block.
+            var stringifiedClaims = claims.Select(x => x.ToString());
+            var joinedClaims = string.Join(Environment.NewLine, stringifiedClaims);
+
+            await ReplyAsync(Format.Code(joinedClaims));
+        }
     }
 }
