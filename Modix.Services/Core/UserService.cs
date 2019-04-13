@@ -55,6 +55,14 @@ namespace Modix.Services.Core
         /// <param name="user">The user whose info is to be tracked.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
         Task TrackUserAsync(IGuildUser user);
+
+        /// <summary>
+        /// Updates information about the given user within the user tracking system of a guild.
+        /// </summary>
+        /// <param name="guild">The guild for which user info is to be tracked.</param>
+        /// <param name="userId">The <see cref="IEntity{ulong}.Id"/> value of the user whose info is to be tracked.</param>
+        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
+        Task TrackUserAsync(IGuild guild, ulong userId);
     }
 
     /// <inheritdoc />
@@ -175,6 +183,11 @@ namespace Modix.Services.Core
                 transaction.Commit();
             }
         }
+
+        /// <inheritdoc />
+        public async Task TrackUserAsync(IGuild guild, ulong userId)
+            => await TrackUserAsync(
+                    await guild.GetUserAsync(userId));
 
         /// <summary>
         /// A <see cref="IDiscordClient"/> to be used to interact with the Discord API.

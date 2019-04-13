@@ -92,13 +92,25 @@ namespace Modix.Services.Test.Core
 
             public event Func<ISocketRole, ISocketRole, Task> RoleUpdated;
 
-            public event Func<ISocketGuild, Task> JoinedGuild;
+            public event Func<ISocketGuild, Task> JoinedGuild
+            {
+                add => FakeJoinedGuildEvent.AddHandler(value);
+                remove => FakeJoinedGuildEvent.RemoveHandler(value);
+            }
+            public readonly FakeAsyncEvent<ISocketGuild> FakeJoinedGuildEvent
+                = new FakeAsyncEvent<ISocketGuild>();
 
             public event Func<ISocketGuild, Task> LeftGuild;
 
             public event Func<ICacheable<IUserMessage, ulong>, IISocketMessageChannel, Task> ReactionsCleared;
 
-            public event Func<ISocketGuild, Task> GuildAvailable;
+            public event Func<ISocketGuild, Task> GuildAvailable
+            {
+                add => FakeGuildAvailableEvent.AddHandler(value);
+                remove => FakeGuildAvailableEvent.RemoveHandler(value);
+            }
+            public readonly FakeAsyncEvent<ISocketGuild> FakeGuildAvailableEvent
+                = new FakeAsyncEvent<ISocketGuild>();
 
             public event Func<ISocketGuild, Task> GuildMembersDownloaded;
 
@@ -316,8 +328,9 @@ namespace Modix.Services.Test.Core
 
             uut.StartAsync().IsCompleted.ShouldBeTrue();
 
+            fakeDiscordSocketClient.FakeGuildAvailableEvent.Handlers.Count.ShouldBe(1);
+            fakeDiscordSocketClient.FakeJoinedGuildEvent.Handlers.Count.ShouldBe(1);
             fakeDiscordSocketClient.FakeMessageDeletedEvent.Handlers.Count.ShouldBe(1);
-            fakeDiscordSocketClient.FakeMessageReceivedEvent.Handlers.Count.ShouldBe(1);
             fakeDiscordSocketClient.FakeMessageUpdatedEvent.Handlers.Count.ShouldBe(1);
             fakeDiscordSocketClient.FakeReactionAddedEvent.Handlers.Count.ShouldBe(1);
             fakeDiscordSocketClient.FakeReactionRemovedEvent.Handlers.Count.ShouldBe(1);
@@ -343,6 +356,8 @@ namespace Modix.Services.Test.Core
             await uut.StartAsync();
             uut.StopAsync().IsCompleted.ShouldBeTrue();
 
+            fakeDiscordSocketClient.FakeGuildAvailableEvent.Handlers.ShouldBeEmpty();
+            fakeDiscordSocketClient.FakeJoinedGuildEvent.Handlers.ShouldBeEmpty();
             fakeDiscordSocketClient.FakeMessageDeletedEvent.Handlers.ShouldBeEmpty();
             fakeDiscordSocketClient.FakeMessageReceivedEvent.Handlers.ShouldBeEmpty();
             fakeDiscordSocketClient.FakeMessageUpdatedEvent.Handlers.ShouldBeEmpty();
@@ -355,6 +370,56 @@ namespace Modix.Services.Test.Core
         }
 
         #endregion StopAsync() Tests
+
+        #region DiscordSocketClient.GuildAvailable Tests
+
+        [Test]
+        public async Task DiscordSocketClientGuildAvailable_Always_DispatchesNotification()
+        {
+            var autoMocker = new AutoMocker();
+            var fakeDiscordSocketClient = new FakeDiscordSocketClient();
+            autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
+            var mockMessageDispatcher = autoMocker.GetMock<IMessageDispatcher>();
+
+            var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
+
+            await uut.StartAsync();
+
+            var mockGuild = new Mock<ISocketGuild>();
+
+            fakeDiscordSocketClient.FakeGuildAvailableEvent.InvokeAsync(mockGuild.Object)
+                .IsCompleted.ShouldBeTrue();
+
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<GuildAvailableNotification>(y =>
+                ReferenceEquals(y.Guild, mockGuild.Object))));
+        }
+
+        #endregion DiscordSocketClient.GuildAvailable Tests
+
+        #region DiscordSocketClient.JoinedGuild Tests
+
+        [Test]
+        public async Task DiscordSocketClientJoinedGuild_Always_DispatchesNotification()
+        {
+            var autoMocker = new AutoMocker();
+            var fakeDiscordSocketClient = new FakeDiscordSocketClient();
+            autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
+            var mockMessageDispatcher = autoMocker.GetMock<IMessageDispatcher>();
+
+            var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
+
+            await uut.StartAsync();
+
+            var mockGuild = new Mock<ISocketGuild>();
+
+            fakeDiscordSocketClient.FakeJoinedGuildEvent.InvokeAsync(mockGuild.Object)
+                .IsCompleted.ShouldBeTrue();
+
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<JoinedGuildNotification>(y =>
+                ReferenceEquals(y.Guild, mockGuild.Object))));
+        }
+
+        #endregion DiscordSocketClient.JoinedGuild Tests
 
         #region DiscordSocketClient.MessageDeleted Tests
 

@@ -8,15 +8,17 @@ using Modix.Common.Messaging;
 namespace Modix.Services.Core
 {
     /// <summary>
-    /// Listens for events from <see cref="DiscordSocketClient"/> and dispatches them to the rest of the application,
+    /// Listens for events from an <see cref="IDiscordSocketClient"/> and dispatches them to the rest of the application,
     /// through an <see cref="IMessagePublisher"/>.
     /// </summary>
     public class DiscordSocketListeningBehavior : IBehavior
     {
         /// <summary>
-        /// Constructs a new <see cref="DiscordSocketListeningBehavior"/> from the given dependencies.
+        /// Constructs a new <see cref="DiscordSocketListeningBehavior"/> with the given dependencies.
         /// </summary>
-        public DiscordSocketListeningBehavior(IDiscordSocketClient discordSocketClient, IMessageDispatcher messageDispatcher)
+        public DiscordSocketListeningBehavior(
+            IDiscordSocketClient discordSocketClient,
+            IMessageDispatcher messageDispatcher)
         {
             DiscordSocketClient = discordSocketClient;
             MessageDispatcher = messageDispatcher;
@@ -25,6 +27,8 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public Task StartAsync()
         {
+            DiscordSocketClient.GuildAvailable += OnGuildAvailableAsync;
+            DiscordSocketClient.JoinedGuild += OnJoinedGuildAsync;
             DiscordSocketClient.MessageDeleted += OnMessageDeletedAsync;
             DiscordSocketClient.MessageReceived += OnMessageReceivedAsync;
             DiscordSocketClient.MessageUpdated += OnMessageUpdatedAsync;
@@ -41,6 +45,8 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public Task StopAsync()
         {
+            DiscordSocketClient.GuildAvailable -= OnGuildAvailableAsync;
+            DiscordSocketClient.JoinedGuild -= OnJoinedGuildAsync;
             DiscordSocketClient.MessageDeleted -= OnMessageDeletedAsync;
             DiscordSocketClient.MessageReceived -= OnMessageReceivedAsync;
             DiscordSocketClient.MessageUpdated -= OnMessageUpdatedAsync;
@@ -63,6 +69,20 @@ namespace Modix.Services.Core
         /// A <see cref="IMessageDispatcher"/> used to dispatch discord notifications to the rest of the application.
         /// </summary>
         internal protected IMessageDispatcher MessageDispatcher { get; }
+
+        private Task OnGuildAvailableAsync(ISocketGuild guild)
+        {
+            MessageDispatcher.Dispatch(new GuildAvailableNotification(guild));
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnJoinedGuildAsync(ISocketGuild guild)
+        {
+            MessageDispatcher.Dispatch(new JoinedGuildNotification(guild));
+
+            return Task.CompletedTask;
+        }
 
         private Task OnMessageDeletedAsync(ICacheable<IMessage, ulong> message, IISocketMessageChannel channel)
         {
