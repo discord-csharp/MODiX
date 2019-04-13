@@ -26,8 +26,10 @@ namespace Modix.Modules
         [Summary("Lists the currently assigned claims for the current user, or a given user.")]
         public async Task ClaimsAsync(
             [Summary("The user for whom to list claims, if any.")]
-                IGuildUser guildUser = null)
+                [Remainder] DiscordUserEntity user = null)
         {
+            var guildUser = await Context.Guild.GetUserAsync(user?.Id ?? Context.User.Id);
+
             var claims = (guildUser == null)
                     ? AuthorizationService.CurrentClaims
                     : await AuthorizationService.GetGuildUserClaimsAsync(guildUser);
