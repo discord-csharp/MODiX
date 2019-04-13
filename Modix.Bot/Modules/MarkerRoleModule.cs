@@ -1,28 +1,71 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+
 using Discord;
 using Discord.Commands;
-using Modix.Services.Core;
+using Discord.WebSocket;
+
+using Humanizer;
+
 using Modix.Data.Models.Core;
+using Modix.Services.CommandHelp;
+using Modix.Services.Core;
 
 namespace Modix.Modules
 {
-    [Group("pingrole"), Name("Marker Role Manager"), Summary("Allows you to add and remove specific marker roles.")]
+    [Group("pingrole")]
+    [Alias("pingroles")]
+    [Name("Marker Role Manager")]
+    [Summary("Provides functionality for maintaining and registering or unregistering from pingable roles.")]
+    [HelpTags("marker", "pingroles", "pingable")]
     public class MarkerRoleModule : ModuleBase
     {
-        private readonly IAuthorizationService _authorizationService;
         private readonly IDesignatedRoleService _designatedRoleService;
 
-        public MarkerRoleModule(IAuthorizationService authorizationService, IDesignatedRoleService designatedRoleService)
+        public MarkerRoleModule(IDesignatedRoleService designatedRoleService)
         {
-            _authorizationService = authorizationService;
             _designatedRoleService = designatedRoleService;
+        }
+
+        [Command("list")]
+        [Alias("")]
+        public async Task List()
+        {
+            var pingRoles = await _designatedRoleService
+                .SearchDesignatedRolesAsync(new DesignatedRoleMappingSearchCriteria()
+                {
+                    Type = DesignatedRoleType.Pingable
+                });
+
+            var pingRolesInformation = pingRoles
+                .OrderBy(x => x.Role.Name)
+                .Select(x =>
+                {
+                    var role = Context.Guild.GetRole(x.Role.Id) as ISocketRole;
+                    return $"{role.Mention} - {Format.Bold("member".ToQuantity(role.Members.Count()))}";
+                })
+                .ToArray();
+
+            var pingableRolesFormatted = "Pingable role".ToQuantity(pingRolesInformation.Length, ShowQuantityAs.None);
+
+            var embed = new EmbedBuilder()
+                .WithAuthor(Context.Guild.Name, Context.Guild.IconUrl)
+                .WithColor(Color.Blue)
+                .WithTitle($"{pingableRolesFormatted} ({pingRolesInformation.Length})")
+                .WithDescription(string.Join("\n", pingRolesInformation))
+                .WithFooter("Register to any of the above with !pingrole register <RoleName>");
+
+            await ReplyAsync(embed: embed.Build());
         }
 
         [Command("register")]
         [RequireContext(ContextType.Guild)]
-        public async Task Register(IRole targetRole)
+        [Summary("Registers the user as a member of the supplied pingrole.")]
+        public async Task RegisterAsync(
+            [Remainder]
+            [Summary("The role to register to.")]
+                IRole targetRole)
         {
             var user = Context.User as IGuildUser;
 
@@ -44,7 +87,11 @@ namespace Modix.Modules
 
         [Command("unregister")]
         [RequireContext(ContextType.Guild)]
-        public async Task Unregister(IRole targetRole)
+        [Summary("Unregisters the user from being a member of the supplied pingrole.")]
+        public async Task UnregisterAsync(
+            [Remainder]
+            [Summary("The role to unregister from.")]
+                IRole targetRole)
         {
             var user = Context.User as IGuildUser;
 
@@ -67,7 +114,11 @@ namespace Modix.Modules
 
         [Command("create")]
         [RequireUserPermission(GuildPermission.ManageRoles)]
-        public async Task CreateRole([Remainder] string targetRoleName)
+        [Summary("Creates a new pingable role.")]
+        public async Task CreateRoleAsync(
+            [Remainder]
+            [Summary("The name of the new pingable role.")]
+                string targetRoleName)
         {
             if (Context.Guild.Roles
                 .Any(x => string.Equals(
@@ -88,7 +139,12 @@ namespace Modix.Modules
         }
 
         [Command("delete")]
-        public async Task DeleteRole(IRole role)
+        [RequireUserPermission(GuildPermission.ManageRoles)]
+        [Summary("Deletes an existing pingable role.")]
+        public async Task DeleteRoleAsync(
+            [Remainder]
+            [Summary("The pingable role to delete.")]
+                IRole role)
         {
             await _designatedRoleService.RemoveDesignatedRoleAsync(Context.Guild.Id, role.Id, DesignatedRoleType.Pingable);
 
