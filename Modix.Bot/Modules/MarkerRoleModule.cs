@@ -30,25 +30,32 @@ namespace Modix.Modules
             var pingRoles = await _designatedRoleService
                 .SearchDesignatedRolesAsync(new DesignatedRoleMappingSearchCriteria()
                 {
-                    Type = DesignatedRoleType.Pingable
+                    Type = DesignatedRoleType.Pingable,
+                    IsDeleted = false,
                 });
 
             var pingRolesInformation = pingRoles
                 .OrderBy(x => x.Role.Name)
                 .Select(x =>
                 {
-                    var role = Context.Guild.GetRole(x.Role.Id) as ISocketRole;
-                    return $"{role.Mention} - {Format.Bold("member".ToQuantity(role.Members.Count()))}";
+                    return Context.Guild.GetRole(x.Role.Id) is ISocketRole role
+                        ? $"{role.Mention} - {Format.Bold("member".ToQuantity(role.Members.Count()))}"
+                        : null;
                 })
+                .Where(x => x != null)
                 .ToArray();
 
             var pingableRolesFormatted = "Pingable role".ToQuantity(pingRolesInformation.Length, ShowQuantityAs.None);
+            var pingRolesInformationFormatted = pingRolesInformation.Length == 0
+                                                    ? "No Pingable Roles available."
+                                                    : string.Join("\n", pingRolesInformation);
+
 
             var embed = new EmbedBuilder()
                 .WithAuthor(Context.Guild.Name, Context.Guild.IconUrl)
                 .WithColor(Color.Blue)
                 .WithTitle($"{pingableRolesFormatted} ({pingRolesInformation.Length})")
-                .WithDescription(string.Join("\n", pingRolesInformation))
+                .WithDescription(pingRolesInformationFormatted)
                 .WithFooter("Register to any of the above with !pingrole register <RoleName>");
 
             await ReplyAsync(embed: embed.Build());
