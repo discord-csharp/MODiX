@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -22,12 +21,10 @@ namespace Modix.Modules
         }
 
         [Command("register")]
+        [RequireContext(ContextType.Guild)]
         public async Task Register(IRole targetRole)
         {
-            if(!(Context.User is IGuildUser user))
-            {
-                return;
-            }
+            var user = Context.User as IGuildUser;
 
             if (user.RoleIds.Any(x => x == targetRole.Id))
             {
@@ -46,12 +43,10 @@ namespace Modix.Modules
         }
 
         [Command("unregister")]
+        [RequireContext(ContextType.Guild)]
         public async Task Unregister(IRole targetRole)
         {
-            if (!(Context.User is IGuildUser user))
-            {
-                return;
-            }
+            var user = Context.User as IGuildUser;
 
             if (!user.RoleIds.Any(x => x == targetRole.Id))
             {
@@ -59,7 +54,8 @@ namespace Modix.Modules
                 return;
             }
 
-            if (!await _designatedRoleService.RoleHasDesignationAsync(Context.Guild.Id, targetRole.Id, DesignatedRoleType.Pingable))
+            if (!await _designatedRoleService
+                .RoleHasDesignationAsync(Context.Guild.Id, targetRole.Id, DesignatedRoleType.Pingable))
             {
                 await ReplyAsync("Can't unregister from a role that isn't pingable.");
                 return;
@@ -70,9 +66,14 @@ namespace Modix.Modules
         }
 
         [Command("create")]
+        [RequireUserPermission(GuildPermission.ManageRoles)]
         public async Task CreateRole([Remainder] string targetRoleName)
         {
-            if (Context.Guild.Roles.FirstOrDefault(x => string.Equals(x.Name, targetRoleName, StringComparison.OrdinalIgnoreCase)) is IRole)
+            if (Context.Guild.Roles
+                .Any(x => string.Equals(
+                    x.Name,
+                    targetRoleName,
+                    StringComparison.OrdinalIgnoreCase)))
             {
                 await ReplyAsync("Cannot create that role - it already exists, did you mean to register to it?");
                 return;
