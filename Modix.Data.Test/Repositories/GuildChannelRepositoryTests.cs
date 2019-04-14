@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -79,6 +80,22 @@ namespace Modix.Data.Test.Repositories
 
         [Test]
         [NonParallelizable]
+        public async Task BeginCreateTransactionAsync_CancellationTokenIsCancelled_ThrowsException()
+        {
+            (_, var uut) = BuildTestContext();
+
+            using (var existingTransaction = await uut.BeginCreateTransactionAsync())
+            using (var cancellationTokenSource = new CancellationTokenSource())
+            using (var result = uut.BeginCreateTransactionAsync(cancellationTokenSource.Token))
+            {
+                cancellationTokenSource.Cancel();
+
+                Should.Throw<TaskCanceledException>(result);
+            }
+        }
+
+        [Test]
+        [NonParallelizable]
         public async Task BeginCreateTransactionAsync_Always_TransactionIsForContextDatabase()
         {
             (var modixContext, var uut) = BuildTestContext();
@@ -112,7 +129,7 @@ namespace Modix.Data.Test.Repositories
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
-                .SaveChangesAsync();
+                .SaveChangesAsync(Arg.Any<CancellationToken>());
         }
 
         [TestCaseSource(nameof(NewGuildChannelCreationTestCases))]
@@ -120,28 +137,31 @@ namespace Modix.Data.Test.Repositories
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            await uut.CreateAsync(data);
+            using (var cancellationTokenSource = new CancellationTokenSource())
+            {
+                await uut.CreateAsync(data, cancellationTokenSource.Token);
 
-            modixContext.GuildChannels
-                .ShouldContain(x => x.ChannelId == data.ChannelId);
-            var channel = modixContext.GuildChannels
-                .First(x => x.ChannelId == data.ChannelId);
+                modixContext.GuildChannels
+                    .ShouldContain(x => x.ChannelId == data.ChannelId);
+                var channel = modixContext.GuildChannels
+                    .First(x => x.ChannelId == data.ChannelId);
 
-            channel.GuildId.ShouldBe(data.GuildId);
-            channel.Name.ShouldBe(data.Name);
+                channel.GuildId.ShouldBe(data.GuildId);
+                channel.Name.ShouldBe(data.Name);
 
-            modixContext.GuildChannels
-                .Where(x => x.ChannelId != channel.ChannelId)
-                .Select(x => x.ChannelId)
-                .ShouldBe(GuildChannels.Entities
-                    .Select(x => x.ChannelId));
+                modixContext.GuildChannels
+                    .Where(x => x.ChannelId != channel.ChannelId)
+                    .Select(x => x.ChannelId)
+                    .ShouldBe(GuildChannels.Entities
+                        .Select(x => x.ChannelId));
 
-            modixContext.GuildChannels
-                .Where(x => x.ChannelId != channel.ChannelId)
-                .EachShould(x => x.ShouldNotHaveChanged());
+                modixContext.GuildChannels
+                    .Where(x => x.ChannelId != channel.ChannelId)
+                    .EachShould(x => x.ShouldNotHaveChanged());
 
-            await modixContext.ShouldHaveReceived(1)
-                .SaveChangesAsync();
+                await modixContext.ShouldHaveReceived(1)
+                    .SaveChangesAsync(cancellationTokenSource.Token);
+            }
         }
 
         [TestCaseSource(nameof(ExistingGuildChannelCreationTestCases))]
@@ -160,7 +180,7 @@ namespace Modix.Data.Test.Repositories
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
-                .SaveChangesAsync();
+                .SaveChangesAsync(Arg.Any<CancellationToken>());
         }
 
         #endregion CreateAsync() Tests
@@ -184,7 +204,7 @@ namespace Modix.Data.Test.Repositories
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
-                .SaveChangesAsync();
+                .SaveChangesAsync(Arg.Any<CancellationToken>());
         }
 
         [TestCaseSource(nameof(ExistingGuildChannelIds))]
@@ -199,28 +219,31 @@ namespace Modix.Data.Test.Repositories
                 Name = "UpdatedChannel"
             };
 
-            var result = await uut.TryUpdateAsync(channelId, data =>
+            using (var cancellationTokenSource = new CancellationTokenSource())
             {
-                data.Name.ShouldBe(guildChannel.Name);
+                var result = await uut.TryUpdateAsync(channelId, data =>
+                {
+                    data.Name.ShouldBe(guildChannel.Name);
 
-                data.Name = mutatedData.Name;
-            });
+                    data.Name = mutatedData.Name;
+                }, cancellationTokenSource.Token);
 
-            result.ShouldBeTrue();
+                result.ShouldBeTrue();
 
-            guildChannel.Name.ShouldBe(mutatedData.Name);
+                guildChannel.Name.ShouldBe(mutatedData.Name);
 
-            modixContext.GuildChannels
-                .Select(x => x.ChannelId)
-                .ShouldBe(GuildChannels.Entities
-                    .Select(x => x.ChannelId));
+                modixContext.GuildChannels
+                    .Select(x => x.ChannelId)
+                    .ShouldBe(GuildChannels.Entities
+                        .Select(x => x.ChannelId));
 
-            modixContext.GuildChannels
-                .Where(x => x.ChannelId != channelId)
-                .EachShould(x => x.ShouldNotHaveChanged());
+                modixContext.GuildChannels
+                    .Where(x => x.ChannelId != channelId)
+                    .EachShould(x => x.ShouldNotHaveChanged());
 
-            await modixContext.ShouldHaveReceived(1)
-                .SaveChangesAsync();
+                await modixContext.ShouldHaveReceived(1)
+                    .SaveChangesAsync(cancellationTokenSource.Token);
+            }
         }
 
         [TestCaseSource(nameof(NewGuildChannelIds))]
@@ -246,7 +269,7 @@ namespace Modix.Data.Test.Repositories
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
-                .SaveChangesAsync();
+                .SaveChangesAsync(Arg.Any<CancellationToken>());
         }
 
         #endregion TryUpateAsync() Tests

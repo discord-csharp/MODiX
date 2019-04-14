@@ -27,6 +27,8 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public Task StartAsync()
         {
+            DiscordSocketClient.ChannelCreated += OnChannelCreatedAsync;
+            DiscordSocketClient.ChannelUpdated += OnChannelUpdatedAsync;
             DiscordSocketClient.GuildAvailable += OnGuildAvailableAsync;
             DiscordSocketClient.JoinedGuild += OnJoinedGuildAsync;
             DiscordSocketClient.MessageDeleted += OnMessageDeletedAsync;
@@ -45,6 +47,8 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public Task StopAsync()
         {
+            DiscordSocketClient.ChannelCreated -= OnChannelCreatedAsync;
+            DiscordSocketClient.ChannelUpdated -= OnChannelUpdatedAsync;
             DiscordSocketClient.GuildAvailable -= OnGuildAvailableAsync;
             DiscordSocketClient.JoinedGuild -= OnJoinedGuildAsync;
             DiscordSocketClient.MessageDeleted -= OnMessageDeletedAsync;
@@ -69,6 +73,20 @@ namespace Modix.Services.Core
         /// A <see cref="IMessageDispatcher"/> used to dispatch discord notifications to the rest of the application.
         /// </summary>
         internal protected IMessageDispatcher MessageDispatcher { get; }
+
+        private Task OnChannelCreatedAsync(ISocketChannel channel)
+        {
+            MessageDispatcher.Dispatch(new ChannelCreatedNotification(channel));
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnChannelUpdatedAsync(ISocketChannel oldChannel, ISocketChannel newChannel)
+        {
+            MessageDispatcher.Dispatch(new ChannelUpdatedNotification(oldChannel, newChannel));
+
+            return Task.CompletedTask;
+        }
 
         private Task OnGuildAvailableAsync(ISocketGuild guild)
         {

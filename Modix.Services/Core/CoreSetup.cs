@@ -19,7 +19,6 @@ namespace Modix.Services.Core
         /// <returns><paramref name="services"/></returns>
         public static IServiceCollection AddModixCore(this IServiceCollection services)
             => services
-                .AddSingleton<IBehavior, ChannelTrackingBehavior>()
                 .AddSingleton<IBehavior, RoleTrackingBehavior>()
                 .AddSingleton<IBehavior, UserTrackingBehavior>()
                 .AddSingleton<IBehavior, MessageLogBehavior>()
@@ -33,6 +32,11 @@ namespace Modix.Services.Core
                 .AddScoped<INotificationHandler<GuildAvailableNotification>>(x => x.GetService<AuthorizationAutoConfigBehavior>())
                 .AddScoped<INotificationHandler<JoinedGuildNotification>>(x => x.GetService<AuthorizationAutoConfigBehavior>())
                 .AddScoped<IChannelService, ChannelService>()
+                .AddScoped<ChannelTrackingBehavior>()
+                .AddScoped<INotificationHandler<ChannelCreatedNotification>>(x => x.GetService<ChannelTrackingBehavior>())
+                .AddScoped<INotificationHandler<ChannelUpdatedNotification>>(x => x.GetService<ChannelTrackingBehavior>())
+                .AddScoped<INotificationHandler<GuildAvailableNotification>>(x => x.GetService<ChannelTrackingBehavior>())
+                .AddScoped<INotificationHandler<JoinedGuildNotification>>(x => x.GetService<ChannelTrackingBehavior>())
                 .AddScoped<IRoleService, RoleService>()
                 .AddScoped<IUserService, UserService>()
                 .AddScoped<IGuildChannelRepository, GuildChannelRepository>()
