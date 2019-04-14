@@ -226,6 +226,7 @@ export default class Promotions extends ModixComponent
 
     commentToEdit: PromotionComment | null = null;
     showCommentEditModal: boolean = false;
+    commentUpdatedCallback: (() => Promise<void>) | null = null;
 
     get campaigns(): PromotionCampaign[]
     {
@@ -362,15 +363,21 @@ export default class Promotions extends ModixComponent
         }
     }
 
-    onCommentEditModalOpened(comment: PromotionComment)
+    onCommentEditModalOpened(comment: PromotionComment, callback: () => Promise<void>)
     {
         this.commentToEdit = comment;
+        this.commentUpdatedCallback = callback;
         this.showCommentEditModal = true;
     }
 
-    onCommentEditModalClosing() : void
+    async onCommentEditModalClosing() : Promise<void>
     {
         this.showCommentEditModal = false;
+
+        if (this.commentUpdatedCallback)
+        {
+            await this.commentUpdatedCallback();
+        }
     }
 
     mounted()
