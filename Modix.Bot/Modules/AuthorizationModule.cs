@@ -32,6 +32,13 @@ namespace Modix.Modules
                 [Remainder] DiscordUserEntity user = null)
         {
             var guildUser = await Context.Guild.GetUserAsync(user?.Id ?? Context.User.Id);
+
+            if (guildUser is null)
+            {
+                await ReplyAsync("Unable to find a user with that ID.");
+                return;
+            }
+
             var claims = await _authorizationService.GetGuildUserClaimsAsync(guildUser);
 
             await ReplyWithClaimsAsync(claims);
