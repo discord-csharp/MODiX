@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 using Discord;
 
@@ -16,8 +17,9 @@ namespace Modix.Services.Core
         /// Updates information about the given channel within the channel tracking feature.
         /// </summary>
         /// <param name="channel">The channel whose info is to be tracked.</param>
+        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that may be used to cancel the returned <see cref="Task"/> before it completes.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task TrackChannelAsync(IGuildChannel channel);
+        Task TrackChannelAsync(IGuildChannel channel, CancellationToken cancellationToken = default);
     }
 
     /// <inheritdoc />
@@ -26,43 +28,34 @@ namespace Modix.Services.Core
         /// <summary>
         /// Constructs a new <see cref="ChannelService"/> with the given injected dependencies.
         /// </summary>
-        /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
-        public ChannelService(IDiscordClient discordClient, IGuildChannelRepository guildChannelRepository)
+        public ChannelService(
+            IGuildChannelRepository guildChannelRepository)
         {
-            DiscordClient = discordClient;
-            GuildChannelRepository = guildChannelRepository;
+            _guildChannelRepository = guildChannelRepository;
         }
 
         /// <inheritdoc />
-        public async Task TrackChannelAsync(IGuildChannel channel)
+        public async Task TrackChannelAsync(IGuildChannel channel, CancellationToken cancellationToken = default)
         {
-            using (var transaction = await GuildChannelRepository.BeginCreateTransactionAsync())
+            using (var transaction = await _guildChannelRepository.BeginCreateTransactionAsync(cancellationToken))
             {
-                if (!await GuildChannelRepository.TryUpdateAsync(channel.Id, data =>
+                if (!await _guildChannelRepository.TryUpdateAsync(channel.Id, data =>
                 {
                     data.Name = channel.Name;
-                }))
+                }, cancellationToken))
                 {
-                    await GuildChannelRepository.CreateAsync(new GuildChannelCreationData()
+                    await _guildChannelRepository.CreateAsync(new GuildChannelCreationData()
                     {
                         ChannelId = channel.Id,
                         GuildId = channel.GuildId,
                         Name = channel.Name
-                    });
+                    }, cancellationToken);
                 }
 
                 transaction.Commit();
             }
         }
 
-        /// <summary>
-        /// An <see cref="IDiscordClient"/> to be used to interact with the Discord API.
-        /// </summary>
-        internal protected IDiscordClient DiscordClient { get; }
-
-        /// <summary>
-        /// An <see cref="IGuildChannelRepository"/> to be used to interact with channel data within a datastore.
-        /// </summary>
-        internal protected IGuildChannelRepository GuildChannelRepository { get; }
+        private readonly IGuildChannelRepository _guildChannelRepository;
     }
 }

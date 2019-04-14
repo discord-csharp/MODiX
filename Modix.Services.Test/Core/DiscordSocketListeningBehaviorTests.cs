@@ -188,7 +188,13 @@ namespace Modix.Services.Test.Core
             public readonly FakeAsyncEvent<ICacheable<IUserMessage, ulong>, IISocketMessageChannel, ISocketReaction> FakeReactionAddedEvent
                 = new FakeAsyncEvent<ICacheable<IUserMessage, ulong>, IISocketMessageChannel, ISocketReaction>();
 
-            public event Func<ISocketChannel, Task> ChannelCreated;
+            public event Func<ISocketChannel, Task> ChannelCreated
+            {
+                add => FakeChannelCreatedEvent.AddHandler(value);
+                remove => FakeChannelCreatedEvent.RemoveHandler(value);
+            }
+            public readonly FakeAsyncEvent<ISocketChannel> FakeChannelCreatedEvent
+                = new FakeAsyncEvent<ISocketChannel>();
 
             public event Func<ISocketChannel, Task> ChannelDestroyed;
 
@@ -204,7 +210,13 @@ namespace Modix.Services.Test.Core
             public readonly FakeAsyncEvent<ICacheable<IMessage, ulong>, IISocketMessageChannel> FakeMessageDeletedEvent
                 = new FakeAsyncEvent<ICacheable<IMessage, ulong>, IISocketMessageChannel>();
 
-            public event Func<ISocketChannel, ISocketChannel, Task> ChannelUpdated;
+            public event Func<ISocketChannel, ISocketChannel, Task> ChannelUpdated
+            {
+                add => FakeChannelUpdatedEvent.AddHandler(value);
+                remove => FakeChannelUpdatedEvent.RemoveHandler(value);
+            }
+            public readonly FakeAsyncEvent<ISocketChannel, ISocketChannel> FakeChannelUpdatedEvent
+                = new FakeAsyncEvent<ISocketChannel, ISocketChannel>();
 
             public event Func<ILogMessage, Task> Log;
 
@@ -328,6 +340,8 @@ namespace Modix.Services.Test.Core
 
             uut.StartAsync().IsCompleted.ShouldBeTrue();
 
+            fakeDiscordSocketClient.FakeChannelCreatedEvent.Handlers.Count.ShouldBe(1);
+            fakeDiscordSocketClient.FakeChannelUpdatedEvent.Handlers.Count.ShouldBe(1);
             fakeDiscordSocketClient.FakeGuildAvailableEvent.Handlers.Count.ShouldBe(1);
             fakeDiscordSocketClient.FakeJoinedGuildEvent.Handlers.Count.ShouldBe(1);
             fakeDiscordSocketClient.FakeMessageDeletedEvent.Handlers.Count.ShouldBe(1);
@@ -356,6 +370,8 @@ namespace Modix.Services.Test.Core
             await uut.StartAsync();
             uut.StopAsync().IsCompleted.ShouldBeTrue();
 
+            fakeDiscordSocketClient.FakeChannelCreatedEvent.Handlers.ShouldBeEmpty();
+            fakeDiscordSocketClient.FakeChannelUpdatedEvent.Handlers.ShouldBeEmpty();
             fakeDiscordSocketClient.FakeGuildAvailableEvent.Handlers.ShouldBeEmpty();
             fakeDiscordSocketClient.FakeJoinedGuildEvent.Handlers.ShouldBeEmpty();
             fakeDiscordSocketClient.FakeMessageDeletedEvent.Handlers.ShouldBeEmpty();
@@ -370,6 +386,58 @@ namespace Modix.Services.Test.Core
         }
 
         #endregion StopAsync() Tests
+
+        #region DiscordSocketClient.ChannelCreated Tests
+
+        [Test]
+        public async Task DiscordSocketClientChannelCreated_Always_DispatchesNotification()
+        {
+            var autoMocker = new AutoMocker();
+            var fakeDiscordSocketClient = new FakeDiscordSocketClient();
+            autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
+            var mockMessageDispatcher = autoMocker.GetMock<IMessageDispatcher>();
+
+            var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
+
+            await uut.StartAsync();
+
+            var mockChannel = new Mock<ISocketChannel>();
+
+            fakeDiscordSocketClient.FakeChannelCreatedEvent.InvokeAsync(mockChannel.Object)
+                .IsCompleted.ShouldBeTrue();
+
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<ChannelCreatedNotification>(y =>
+                ReferenceEquals(y.Channel, mockChannel.Object))));
+        }
+
+        #endregion DiscordSocketClient.ChannelCreated Tests
+
+        #region DiscordSocketClient.ChannelUpdated Tests
+
+        [Test]
+        public async Task DiscordSocketClientChannelUpdated_Always_DispatchesNotification()
+        {
+            var autoMocker = new AutoMocker();
+            var fakeDiscordSocketClient = new FakeDiscordSocketClient();
+            autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
+            var mockMessageDispatcher = autoMocker.GetMock<IMessageDispatcher>();
+
+            var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
+
+            await uut.StartAsync();
+
+            var mockOldChannel = new Mock<ISocketChannel>();
+            var mockNewChannel = new Mock<ISocketChannel>();
+
+            fakeDiscordSocketClient.FakeChannelUpdatedEvent.InvokeAsync(mockOldChannel.Object, mockNewChannel.Object)
+                .IsCompleted.ShouldBeTrue();
+
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<ChannelUpdatedNotification>(y =>
+                ReferenceEquals(y.OldChannel, mockOldChannel.Object)
+                && ReferenceEquals(y.NewChannel, mockNewChannel.Object))));
+        }
+
+        #endregion DiscordSocketClient.ChannelUpdated Tests
 
         #region DiscordSocketClient.GuildAvailable Tests
 
