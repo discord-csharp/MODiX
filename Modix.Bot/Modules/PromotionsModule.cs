@@ -69,7 +69,7 @@ namespace Modix.Modules
 
         [Command("nominate")]
         [Summary("Nominate the given user for promotion")]
-        public async Task Nominate(
+        public async Task NominateAsync(
             [Summary("The user to nominate")]
                 IGuildUser subject,
             [Remainder]
@@ -81,7 +81,7 @@ namespace Modix.Modules
 
         [Command("comment")]
         [Summary("Comment on an ongoing campaign to promote a user.")]
-        public Task Comment(
+        public async Task CommentAsync(
             [Summary("The ID value of the campaign to be commented upon")]
                 long campaignId,
             [Summary("The sentiment of the comment")]
@@ -89,60 +89,71 @@ namespace Modix.Modules
             [Remainder]
             [Summary("The content of the comment")]
                 string content)
-            => PromotionsService.AddCommentAsync(campaignId, sentiment, content);
+        {
+            await PromotionsService.AddCommentAsync(campaignId, sentiment, content);
+            await Context.AddConfirmation();
+        }
 
         [Command("approve")]
         [Summary("Alias to approve on an ongoing campaign to promote a user.")]
-        public Task Approve(
+        public async Task ApproveAsync(
             [Summary("The ID value of the campaign to be commented upon")]
                 long campaignId,
             [Remainder]
             [Summary("The content of the comment")]
-                string content)
-            => PromotionsService.AddCommentAsync(campaignId, PromotionSentiment.Approve, content);
-
-        [Command("approve")]
-        [Summary("Alias to approve on an ongoing campaign to promote a user.")]
-        public Task Approve(
-            [Summary("The ID value of the campaign to be commented upon")]
-                long campaignId)
-            => PromotionsService.AddCommentAsync(campaignId, PromotionSentiment.Approve, DefaultApprovalMessage);
+                string content = DefaultApprovalMessage)
+        {
+            await PromotionsService.AddCommentAsync(campaignId, PromotionSentiment.Approve, content);
+            await Context.AddConfirmation();
+        }
 
         [Command("oppose")]
         [Summary("Alias to oppose on an ongoing campaign to promote a user.")]
-        public Task Oppose(
+        public async Task OpposeAsync(
             [Summary("The ID value of the campaign to be commented upon")]
                 long campaignId,
             [Remainder]
             [Summary("The content of the comment")]
                 string content)
-            => PromotionsService.AddCommentAsync(campaignId, PromotionSentiment.Oppose, content);
+        {
+            await PromotionsService.AddCommentAsync(campaignId, PromotionSentiment.Oppose, content);
+            await Context.AddConfirmation();
+        }
 
         [Command("abstain")]
         [Summary("Alias to abstain from an ongoing campaign to promote a user.")]
-        public Task Abstain(
+        public async Task AbstainAsync(
             [Summary("The ID value of the campaign to be commented upon")]
                 long campaignId,
             [Remainder]
             [Summary("The content of the comment")]
                 string content)
-            => PromotionsService.AddCommentAsync(campaignId, PromotionSentiment.Abstain, content);
+        {
+            await PromotionsService.AddCommentAsync(campaignId, PromotionSentiment.Abstain, content);
+            await Context.AddConfirmation();
+        }
 
         [Command("accept")]
         [Summary("Accept an ongoing campaign to promote a user, and perform the promotion.")]
-        public Task Accept(
+        public async Task AcceptAsync(
             [Summary("The ID value of the campaign to be accepted.")]
                 long campaignId,
             [Summary("Whether to bypass the time restriction on campaign acceptance")]
                 bool force = false)
-            => PromotionsService.AcceptCampaignAsync(campaignId, force);
+        {
+            await PromotionsService.AcceptCampaignAsync(campaignId, force);
+            await Context.AddConfirmation();
+        }
 
         [Command("reject")]
         [Summary("Reject an ongoing campaign to promote a user.")]
-        public Task Reject(
+        public async Task RejectAsync(
             [Summary("The ID value of the campaign to be rejected.")]
                 long campaignId)
-            => PromotionsService.RejectCampaignAsync(campaignId);
+        {
+            await PromotionsService.RejectCampaignAsync(campaignId);
+            await Context.AddConfirmation();
+        }
 
         internal protected IPromotionsService PromotionsService { get; }
     }
