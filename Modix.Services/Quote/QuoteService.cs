@@ -43,15 +43,15 @@ namespace Modix.Services.Quote
                 return embed;
             }
 
-            if (!TryAddImageAttachment(message, ref embed))
-            {
-                TryAddOtherAttachment(message, ref embed);
-            }
+            if (!TryAddImageAttachment(message, embed))
+                if (!TryAddImageEmbed(message, embed))
+                    if (!TryAddThumbnailEmbed(message, embed))
+                        TryAddOtherAttachment(message, embed);
 
-            AddContent(message, ref embed);
-            AddOtherEmbed(message, ref embed);
-            AddActivity(message, ref embed);
-            AddMeta(message, executingUser, ref embed);
+            AddContent(message, embed);
+            AddOtherEmbed(message, embed);
+            AddActivity(message, embed);
+            AddMeta(message, executingUser, embed);
 
             return embed;
         }
@@ -69,25 +69,45 @@ namespace Modix.Services.Quote
                 async (e) => await callback.Invoke(e));
         }
 
-        private bool TryAddImageAttachment(IMessage message, ref EmbedBuilder embed)
+        private bool TryAddImageAttachment(IMessage message, EmbedBuilder embed)
         {
             var firstAttachment = message.Attachments.FirstOrDefault();
             if (firstAttachment == null || firstAttachment.Height == null)
                 return false;
 
-            embed = embed
-                .WithImageUrl(firstAttachment.Url);
+            embed.WithImageUrl(firstAttachment.Url);
 
             return true;
         }
 
-        private bool TryAddOtherAttachment(IMessage message, ref EmbedBuilder embed)
+        private bool TryAddOtherAttachment(IMessage message, EmbedBuilder embed)
         {
             var firstAttachment = message.Attachments.FirstOrDefault();
             if (firstAttachment == null) return false;
 
-            embed = embed
-                .AddField($"Attachment (Size: {new ByteSize(firstAttachment.Size)})", firstAttachment.Url);
+            embed.AddField($"Attachment (Size: {new ByteSize(firstAttachment.Size)})", firstAttachment.Url);
+
+            return true;
+        }
+
+        private bool TryAddImageEmbed(IMessage message, EmbedBuilder embed)
+        {
+            var imageEmbed = message.Embeds.Select(x => x.Image).FirstOrDefault(x => x is { });
+            if (imageEmbed is null)
+                return false;
+
+            embed.WithImageUrl(imageEmbed.Value.Url);
+
+            return true;
+        }
+
+        private bool TryAddThumbnailEmbed(IMessage message, EmbedBuilder embed)
+        {
+            var thumbnailEmbed = message.Embeds.Select(x => x.Thumbnail).FirstOrDefault(x => x is { });
+            if (thumbnailEmbed is null)
+                return false;
+
+            embed.WithImageUrl(thumbnailEmbed.Value.Url);
 
             return true;
         }
@@ -110,33 +130,32 @@ namespace Modix.Services.Quote
             return true;
         }
 
-        private void AddActivity(IMessage message, ref EmbedBuilder embed)
+        private void AddActivity(IMessage message, EmbedBuilder embed)
         {
             if (message.Activity == null) { return; }
 
-            embed = embed
+            embed
                 .AddField("Invite Type", message.Activity.Type)
                 .AddField("Party Id", message.Activity.PartyId);
         }
 
-        private void AddOtherEmbed(IMessage message, ref EmbedBuilder embed)
+        private void AddOtherEmbed(IMessage message, EmbedBuilder embed)
         {
             if (message.Embeds.Count == 0) return;
 
-            embed = embed
-                .AddField("Embed Type", message.Embeds.First().Type);
+            embed.AddField("Embed Type", message.Embeds.First().Type);
         }
 
-        private void AddContent(IMessage message, ref EmbedBuilder embed)
+        private void AddContent(IMessage message, EmbedBuilder embed)
         {
             if (string.IsNullOrWhiteSpace(message.Content)) return;
 
-            embed = embed.WithDescription(message.Content);
+            embed.WithDescription(message.Content);
         }
 
-        private void AddMeta(IMessage message, IUser executingUser, ref EmbedBuilder embed)
+        private void AddMeta(IMessage message, IUser executingUser, EmbedBuilder embed)
         {
-            embed = embed
+            embed
                 .WithUserAsAuthor(message.Author)
                 .WithTimestamp(message.Timestamp)
                 .WithColor(new Color(95, 186, 125))
