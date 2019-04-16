@@ -1,9 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Humanizer;
+using Modix.Bot.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Services.Core;
 
@@ -45,60 +46,59 @@ namespace Modix.Modules
 
                 builder.AddField(new EmbedFieldBuilder()
                 {
-                    Name = Format.Bold(_designatedChannelTypeRenderings[type]),
+                    Name = type.Humanize(),
                     Value = (designatedChannels.Length == 0)
                         ? Format.Italics("No channels assigned")
-                        : designatedChannels
-                            .Select(x => MentionUtils.MentionChannel(x.Channel.Id))
-                            .Aggregate(string.Empty, (x, y) => $"{x}\n{y}"),
+                        : string.Join(Environment.NewLine, designatedChannels.Select(x => MentionUtils.MentionChannel(x.Channel.Id))),
                     IsInline = false
                 });
             }
 
-            await ReplyAsync(string.Empty, false, builder.Build());
+            await ReplyAsync(embed: builder.Build());
         }
 
         [Command("add")]
         [Summary("Assigns a designation to the given channel")]
-        public Task Add(
+        public async Task AddAsync(
             [Summary("The channel to be assigned a designation")]
                 IMessageChannel channel,
             [Summary("The designation to assign")]
                 DesignatedChannelType designation)
-            => DesignatedChannelService.AddDesignatedChannelAsync(Context.Guild, channel, designation);
+        {
+            await DesignatedChannelService.AddDesignatedChannelAsync(Context.Guild, channel, designation);
+            await Context.AddConfirmation();
+        }
 
         [Command("add")]
         [Summary("Assigns a designation to the current channel")]
-        public Task Add(
+        public async Task AddAsync(
             [Summary("The designation to assign")]
                 DesignatedChannelType designation)
-            => DesignatedChannelService.AddDesignatedChannelAsync(Context.Guild, Context.Channel, designation);
+        {
+            await DesignatedChannelService.AddDesignatedChannelAsync(Context.Guild, Context.Channel, designation);
+            await Context.AddConfirmation();
+        }
 
         [Command("remove")]
         [Summary("Removes a designation from the given channel")]
-        public Task Remove(
+        public async Task RemoveAsync(
             [Summary("The channel whose designation is to be unassigned")]
                 IMessageChannel channel,
             [Summary("The designation to be unassigned")]
                 DesignatedChannelType designation)
-            => DesignatedChannelService.RemoveDesignatedChannelAsync(Context.Guild, channel, designation);
+        {
+            await DesignatedChannelService.RemoveDesignatedChannelAsync(Context.Guild, channel, designation);
+            await Context.AddConfirmation();
+        }
 
         [Command("remove")]
         [Summary("Removes a designation from the current channel")]
-        public Task Remove(
+        public async Task RemoveAsync(
             [Summary("The designation to be unassigned")]
                 DesignatedChannelType designation)
-            => DesignatedChannelService.RemoveDesignatedChannelAsync(Context.Guild, Context.Channel, designation);
-
-        private static readonly Dictionary<DesignatedChannelType, string> _designatedChannelTypeRenderings
-            = new Dictionary<DesignatedChannelType, string>()
-            {
-                { DesignatedChannelType.MessageLog,             "Message Log" },
-                { DesignatedChannelType.ModerationLog,          "Moderation Log" },
-                { DesignatedChannelType.PromotionLog,           "Promotion Log" },
-                { DesignatedChannelType.PromotionNotifications, "Promotion Notifications" },
-                { DesignatedChannelType.Unmoderated,            "Unmoderated" },
-                { DesignatedChannelType.Starboard,              "Starboard" }
-            };
+        {
+            await DesignatedChannelService.RemoveDesignatedChannelAsync(Context.Guild, Context.Channel, designation);
+            await Context.AddConfirmation();
+        }
     }
 }

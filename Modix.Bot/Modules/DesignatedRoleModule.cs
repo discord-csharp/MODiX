@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Humanizer;
+using Modix.Bot.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Services.Core;
 
@@ -47,35 +48,39 @@ namespace Modix.Modules
 
                 builder.AddField(new EmbedFieldBuilder()
                 {
-                    Name = Format.Bold(type.Humanize()),
+                    Name = type.Humanize(),
                     Value = (designatedRoles.Length == 0)
                         ? Format.Italics("No roles assigned")
-                        : designatedRoles
-                            .Select(x => MentionUtils.MentionRole(x.Role.Id))
-                            .Aggregate(string.Empty, (x, y) => $"{x}\n{y}"),
+                        : string.Join(Environment.NewLine, designatedRoles.Select(x => MentionUtils.MentionRole(x.Role.Id))),
                     IsInline = false
                 });
             }
 
-            await ReplyAsync(string.Empty, false, builder.Build());
+            await ReplyAsync(embed: builder.Build());
         }
 
         [Command("add")]
         [Summary("Assigns a designation to the given role")]
-        public Task Add(
+        public async Task AddAsync(
             [Summary("The role to be assigned a designation")]
                 IRole role,
             [Summary("The designation to assign")]
                 DesignatedRoleType designation)
-            => DesignatedRoleService.AddDesignatedRoleAsync(role.Guild.Id, role.Id, designation);
+        {
+            await DesignatedRoleService.AddDesignatedRoleAsync(role.Guild.Id, role.Id, designation);
+            await Context.AddConfirmation();
+        }
 
         [Command("remove")]
         [Summary("Removes a designation from the given role")]
-        public Task RemoveLogRole(
+        public async Task RemoveAsync(
             [Summary("The role whose designation is to be unassigned")]
                 IRole role,
             [Summary("The designation to be unassigned")]
                 DesignatedRoleType designation)
-            => DesignatedRoleService.RemoveDesignatedRoleAsync(role.Guild.Id, role.Id, designation);
+        {
+            await DesignatedRoleService.RemoveDesignatedRoleAsync(role.Guild.Id, role.Id, designation);
+            await Context.AddConfirmation();
+        }
     }
 }

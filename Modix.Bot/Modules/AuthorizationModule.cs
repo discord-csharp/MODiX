@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 
+using Modix.Bot.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
@@ -54,7 +55,7 @@ namespace Modix.Modules
         [Command("claims add")]
         [RequireContext(ContextType.Guild)]
         [Summary("Adds a claim to the given role")]
-        public Task AddClaimAsync(
+        public async Task AddClaimAsync(
             [Summary("Claim to be added")]
                 AuthorizationClaim claim,
             [Summary("Access of a claim, whether granted or denied")]
@@ -63,13 +64,14 @@ namespace Modix.Modules
             [Summary("Role which to add the claim to")]
                 IRole role)
         {
-            return _authorizationService.AddClaimMappingAsync(role, type, claim);
+            await _authorizationService.AddClaimMappingAsync(role, type, claim);
+            await Context.AddConfirmation();
         }
 
         [Command("claims add")]
         [RequireContext(ContextType.Guild)]
         [Summary("Adds a claim to the given user")]
-        public Task AddClaimAsync(
+        public async Task AddClaimAsync(
             [Summary("Claim to be added")]
                 AuthorizationClaim claim,
             [Summary("Access of a claim, whether granted or denied")]
@@ -78,13 +80,14 @@ namespace Modix.Modules
             [Summary("User to add the claim to")]
                 IGuildUser user)
         {
-            return _authorizationService.AddClaimMappingAsync(user, type, claim);
+            await _authorizationService.AddClaimMappingAsync(user, type, claim);
+            await Context.AddConfirmation();
         }
 
         [Command("claims remove")]
         [RequireContext(ContextType.Guild)]
         [Summary("Removes a claim from the given role")]
-        public Task RemoveClaimAsync(
+        public async Task RemoveClaimAsync(
             [Summary("Claim to be removed")]
                 AuthorizationClaim claim,
             [Summary("Access of the claim, whether granted or denied")]
@@ -93,13 +96,14 @@ namespace Modix.Modules
             [Summary("Role from which the claim is to be removed")]
                 IRole role)
         {
-            return _authorizationService.RemoveClaimMappingAsync(role, type, claim);
+            await _authorizationService.RemoveClaimMappingAsync(role, type, claim);
+            await Context.AddConfirmation();
         }
 
         [Command("claims remove")]
         [RequireContext(ContextType.Guild)]
         [Summary("Removes a claim from the given user")]
-        public Task RemoveClaimAsync(
+        public async Task RemoveClaimAsync(
             [Summary("Claim to be added")]
                 AuthorizationClaim claim,
             [Summary("Access of a claim, whether granted or denied")]
@@ -108,7 +112,8 @@ namespace Modix.Modules
             [Summary("User to add the claim to")]
                 IGuildUser user)
         {
-            return _authorizationService.RemoveClaimMappingAsync(user, type, claim);
+            await _authorizationService.RemoveClaimMappingAsync(user, type, claim);
+            await Context.AddConfirmation();
         }
 
         private async Task ReplyWithClaimsAsync(IReadOnlyCollection<AuthorizationClaim> claims)
