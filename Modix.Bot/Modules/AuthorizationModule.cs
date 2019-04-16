@@ -26,20 +26,24 @@ namespace Modix.Modules
         }
 
         [Command("claims")]
+        [RequireContext(ContextType.Guild)]
         [Summary("Lists the currently assigned claims for the calling user, or given user")]
         public async Task ClaimsAsync(
+            [Remainder] 
             [Summary("User whom to list the claims for, if any")]
-                [Remainder] DiscordUserEntity user = null)
+                IGuildUser user = null)
         {
-            var guildUser = await Context.Guild.GetUserAsync(user?.Id ?? Context.User.Id);
+            var guildUser = user ?? (IGuildUser)Context.User;
             var claims = await _authorizationService.GetGuildUserClaimsAsync(guildUser);
 
             await ReplyWithClaimsAsync(claims);
         }
 
         [Command("claims")]
+        [RequireContext(ContextType.Guild)]
         [Summary("Lists the currently assigned claims for the given role.")]
         public async Task ClaimsAsync(
+            [Remainder]
             [Summary("Role for which to list claims of.")]
                 IRole role)
         {
@@ -48,12 +52,14 @@ namespace Modix.Modules
         }
 
         [Command("claims add")]
+        [RequireContext(ContextType.Guild)]
         [Summary("Adds a claim to the given role")]
         public Task AddClaimAsync(
             [Summary("Claim to be added")]
                 AuthorizationClaim claim,
             [Summary("Access of a claim, whether granted or denied")]
                 ClaimMappingType type,
+            [Remainder]
             [Summary("Role which to add the claim to")]
                 IRole role)
         {
@@ -61,12 +67,14 @@ namespace Modix.Modules
         }
 
         [Command("claims add")]
+        [RequireContext(ContextType.Guild)]
         [Summary("Adds a claim to the given user")]
         public Task AddClaimAsync(
             [Summary("Claim to be added")]
                 AuthorizationClaim claim,
             [Summary("Access of a claim, whether granted or denied")]
                 ClaimMappingType type,
+            [Remainder]
             [Summary("User to add the claim to")]
                 IGuildUser user)
         {
@@ -74,12 +82,14 @@ namespace Modix.Modules
         }
 
         [Command("claims remove")]
+        [RequireContext(ContextType.Guild)]
         [Summary("Removes a claim from the given role")]
         public Task RemoveClaimAsync(
             [Summary("Claim to be removed")]
                 AuthorizationClaim claim,
             [Summary("Access of the claim, whether granted or denied")]
                 ClaimMappingType type,
+            [Remainder]
             [Summary("Role from which the claim is to be removed")]
                 IRole role)
         {
@@ -87,12 +97,14 @@ namespace Modix.Modules
         }
 
         [Command("claims remove")]
+        [RequireContext(ContextType.Guild)]
         [Summary("Removes a claim from the given user")]
         public Task RemoveClaimAsync(
             [Summary("Claim to be added")]
                 AuthorizationClaim claim,
             [Summary("Access of a claim, whether granted or denied")]
                 ClaimMappingType type,
+            [Remainder]
             [Summary("User to add the claim to")]
                 IGuildUser user)
         {
