@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -16,7 +15,6 @@ using Humanizer.Localisation;
 
 using Modix.Data.Models.Moderation;
 using Modix.Services.CodePaste;
-using Modix.Services.Utilities.ColorQuantization;
 
 namespace Modix.Services.Utilities
 {
@@ -140,51 +138,6 @@ namespace Modix.Services.Utilities
         private static readonly Regex _userMentionRegex = new Regex("<@!?(?<Id>[0-9]+)>", RegexOptions.Compiled);
 
         private static readonly Regex _roleMentionRegex = new Regex("<@&(?<Id>[0-9]+)>", RegexOptions.Compiled);
-
-        /// <summary>
-        /// Identifies a dominant color from the provided image.
-        /// </summary>
-        /// <param name="image">The image for which the dominant color is to be retrieved.</param>
-        /// <returns>A dominant color in the provided image.</returns>
-        public static Color GetDominantColor(Image image)
-        {
-            if (image.Stream is null)
-                return new Color(253, 95, 0);
-
-            var imageBytes = new byte[image.Stream.Length].AsSpan();
-            image.Stream.Seek(0, SeekOrigin.Begin);
-            image.Stream.Read(imageBytes);
-
-            var colorTree = new Octree();
-
-            using (var img = SixLabors.ImageSharp.Image.Load(imageBytes))
-            {
-                for (var x = 0; x < img.Width; x++)
-                {
-                    for (var y = 0; y < img.Height; y++)
-                    {
-                        var pixel = img[x, y];
-
-                        // Don't include transparent pixels.
-                        if (pixel.A > 127)
-                        {
-                            var color = System.Drawing.Color.FromArgb(pixel.A, pixel.R, pixel.G, pixel.B);
-
-                            colorTree.Add(color);
-                        }
-                    }
-                }
-            }
-
-            for (var i = 0; i < 7; i++)
-            {
-                colorTree.Reduce();
-            }
-
-            var mostCommonPaletteColor = colorTree.GetPalette().OrderByDescending(x => x.Weight * x.Color.GetSaturation()).FirstOrDefault().Color;
-
-            return (Color)mostCommonPaletteColor;
-        }
         
         /// <summary>
         /// Collapses plural forms into a "singular(s)"-type format.

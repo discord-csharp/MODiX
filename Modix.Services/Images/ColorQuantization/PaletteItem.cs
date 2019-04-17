@@ -1,6 +1,6 @@
 ﻿using System.Drawing;
 
-namespace Modix.Services.Utilities.ColorQuantization
+namespace Modix.Services.Images.ColorQuantization
 {
     public struct PaletteItem
     {

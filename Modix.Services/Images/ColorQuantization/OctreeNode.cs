@@ -1,4 +1,4 @@
-﻿namespace Modix.Services.Utilities.ColorQuantization
+﻿namespace Modix.Services.Images.ColorQuantization
 {
     public sealed class OctreeNode
     {
