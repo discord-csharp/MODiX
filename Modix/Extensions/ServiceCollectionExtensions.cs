@@ -128,10 +128,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
             services.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
 
-            services
-                .AddScoped<AutoCodePasteBehavior>()
-                .AddScoped<INotificationHandler<ReactionAddedNotification>>(p => p.GetRequiredService<AutoCodePasteBehavior>())
-                .AddScoped<INotificationHandler<ReactionRemovedNotification>>(p => p.GetRequiredService<AutoCodePasteBehavior>());
             services.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>();
 
             services.AddHostedService<ModixBot>();
