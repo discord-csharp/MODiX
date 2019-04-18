@@ -43,8 +43,17 @@ namespace Modix.Services.EmojiStats
                 return;
 
             var channel = notification.Channel as ITextChannel;
+            if (channel is null)
+                return;
+
             var message = await notification.Message.GetOrDownloadAsync();
+            if (message is null)
+                return;
+
             var reaction = notification.Reaction;
+            if (reaction is null)
+                return;
+
             var emote = reaction.Emote as IEmoteEntity;
 
             await LogReactionAsync(channel, message, reaction, emote);
@@ -86,8 +95,17 @@ namespace Modix.Services.EmojiStats
                 return;
 
             var channel = notification.Channel as ITextChannel;
+            if (channel is null)
+                return;
+
             var message = await notification.Message.GetOrDownloadAsync();
+            if (message is null)
+                return;
+
             var reaction = notification.Reaction;
+            if (reaction is null)
+                return;
+
             var emote = reaction.Emote as IEmoteEntity;
 
             await UnlogReactionAsync(channel, message, reaction, emote);

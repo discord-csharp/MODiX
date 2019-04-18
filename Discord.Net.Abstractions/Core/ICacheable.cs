@@ -63,6 +63,8 @@ namespace Discord
         private static object AbstractEntity(object entity)
             => entity switch
             {
+                null
+                    => null,
                 IUserMessage userMessage
                     => userMessage.Abstract() as object,
                 IMessage message
