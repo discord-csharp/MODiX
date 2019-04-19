@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Modix.Data.Repositories;
-using Serilog;
+using Modix.Services.Core;
 
 namespace Modix
 {
@@ -15,9 +15,12 @@ namespace Modix
             if (ulong.TryParse(input, out var messageId))
             {
                 var value = await FindMessageInUnknownChannelAsync(context, messageId, services);
-                var userMessage = new DiscordUserMessage(value as IUserMessage);
+                var userMessage = value as IUserMessage;
 
-                return TypeReaderResult.FromSuccess(userMessage);
+                if (userMessage is null)
+                    return TypeReaderResult.FromError(CommandError.ObjectNotFound, "Message not found.");
+
+                return TypeReaderResult.FromSuccess(new DiscordUserMessage(userMessage));
             }
 
             return TypeReaderResult.FromError(CommandError.ObjectNotFound, "Message not found.");
@@ -42,19 +45,18 @@ namespace Modix
 
             var channels = await context.Guild.GetTextChannelsAsync();
 
+            var selfUserProvider = (ISelfUserProvider)services.GetService(typeof(ISelfUserProvider));
+            var selfUser = await selfUserProvider.GetSelfUserAsync();
+            var selfGuildUser = await context.Guild.GetUserAsync(selfUser.Id);
+
             foreach (var channel in channels)
             {
-                try
+                if (selfGuildUser.GetPermissions(channel).ReadMessageHistory)
                 {
                     message = await channel.GetMessageAsync(messageId);
 
                     if (message is { })
                         break;
-                }
-                catch (Exception e)
-                {
-                    Log.Debug(e, "Failed accessing channel {ChannelName} when searching for message {MessageId}",
-                        channel.Name, messageId);
                 }
             }
 
@@ -62,7 +64,7 @@ namespace Modix
         }
     }
 
-    public class DiscordUserMessage : IUserMessage
+    public class DiscordUserMessage
     {
         public DiscordUserMessage(IUserMessage userMessage)
         {

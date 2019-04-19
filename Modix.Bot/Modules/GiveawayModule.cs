@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -9,10 +10,7 @@ using Discord.Commands;
 
 using Humanizer;
 
-using Modix.Bot.Extensions;
 using Modix.Services.CommandHelp;
-using Modix.Services.Core;
-using Modix.Services.Utilities;
 
 namespace Modix.Bot.Modules
 {
@@ -23,16 +21,14 @@ namespace Modix.Bot.Modules
     [HelpTags("giveaways")]
     public class GiveawayModule : ModuleBase
     {
-        public GiveawayModule()
-        {
-        }
-
         [Command("choose")]
         [Alias("pick")]
         [Summary("Randomly chooses a winner for the supplied giveaway.")]
         public async Task ChooseAsync(
-            DiscordUserMessage message,
-            int count = 1)
+            [Summary("The giveaway message from which users will be drawn.")]
+                DiscordUserMessage message,
+            [Summary("How many winners to choose.")]
+                int count = 1)
         {
             if (count <= 0)
             {
@@ -63,7 +59,7 @@ namespace Modix.Bot.Modules
             await ReplyAsync(response);
         }
 
-        private async Task<ImmutableArray<IUser>> GetReactorsAsync(IUserMessage message)
+        private async Task<ImmutableArray<IUser>> GetReactorsAsync(DiscordUserMessage message)
         {
             var reactors = await message.GetReactionUsersAsync(_giveawayEmoji, int.MaxValue).FlattenAsync();
 
@@ -72,6 +68,8 @@ namespace Modix.Bot.Modules
 
         private ImmutableArray<ulong> DetermineWinners(ImmutableArray<IUser> reactors, int count)
         {
+            Debug.Assert(reactors.Length > count);
+
             var winners = new HashSet<ulong>();
 
             while (winners.Count < count)
