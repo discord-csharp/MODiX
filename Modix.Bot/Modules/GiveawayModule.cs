@@ -19,6 +19,7 @@ namespace Modix.Bot.Modules
     [Group("giveaway")]
     [Alias("giveaways")]
     [HelpTags("giveaways")]
+    [RequireUserPermission(GuildPermission.Administrator)]
     public class GiveawayModule : ModuleBase
     {
         [Command("choose")]
