@@ -93,6 +93,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                     service.AddTypeReader<IEmote>(new EmoteTypeReader());
                     service.AddTypeReader<DiscordUserEntity>(new UserEntityTypeReader());
+                    service.AddTypeReader<DiscordUserMessage>(new DiscordUserMessageTypeReader());
 
                     return service;
                 })
