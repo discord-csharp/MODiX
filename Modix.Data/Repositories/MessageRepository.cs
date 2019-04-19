@@ -135,9 +135,11 @@ namespace Modix.Data.Repositories
                 .AsNoTracking()
                 .FromSql(
                     @"with msgs as (
-                        select ""AuthorId"", ""Id"" as ""MessageId"", ""GuildId""
-                        from ""Messages""
+                        select msg.""AuthorId"", msg.""Id"" as ""MessageId"", msg.""GuildId""
+                        from ""Messages"" as msg
+                        left outer join ""DesignatedChannelMappings"" as dcm on msg.""ChannelId"" = dcm.""ChannelId""
                         where ""GuildId"" = cast(:GuildId as numeric(20))
+                        and dcm.""Type"" = 'CountsTowardsParticipation'
                         and ""Timestamp"" >= (current_date - interval '30 day')
                     ),
                     user_count as (
@@ -156,9 +158,9 @@ namespace Modix.Data.Repositories
                         group by ""AuthorId"", ""GuildId"", ""AveragePerDay""
                     ),
                     ranked_users as (
-	                    select user_avg.""AuthorId"" as ""UserId"", ""AveragePerDay"", ""Percentile"", dense_rank() over (order by ""AveragePerDay"" desc) as ""Rank"", user_avg.""GuildId""
-	                    from user_avg
-	                    inner join ntiles on user_avg.""AuthorId"" = ntiles.""AuthorId"" and user_avg.""GuildId"" = ntiles.""GuildId""
+                        select user_avg.""AuthorId"" as ""UserId"", ""AveragePerDay"", ""Percentile"", dense_rank() over (order by ""AveragePerDay"" desc) as ""Rank"", user_avg.""GuildId""
+                        from user_avg
+                        inner join ntiles on user_avg.""AuthorId"" = ntiles.""AuthorId"" and user_avg.""GuildId"" = ntiles.""GuildId""
                     )
                     select ""AveragePerDay"", ""Percentile"", ""Rank"", ""GuildId"", ""UserId""
                     from ranked_users
