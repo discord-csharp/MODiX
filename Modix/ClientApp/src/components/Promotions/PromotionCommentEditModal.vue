@@ -53,19 +53,19 @@
 
 
 <script lang="ts">
-import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
-
+import { Component, Prop, Watch } from 'vue-property-decorator';
+import ModixComponent from '@/components/ModixComponent.vue';
 import PromotionComment from '@/models/promotions/PromotionComment';
 import * as _ from 'lodash';
 import PromotionCommentData from '@/models/promotions/PromotionCommentData';
-import { SentimentIcons, PromotionSentiment } from '@/models/promotions/PromotionCampaign';
+import PromotionCampaign, { SentimentIcons, PromotionSentiment } from '@/models/promotions/PromotionCampaign';
 import PromotionService from '@/services/PromotionService';
 
 @Component({})
-export default class PromotionCommentEditModal extends Vue
+export default class PromotionCommentEditModal extends ModixComponent
 {
     @Prop() public comment!: PromotionComment;
-    @Prop({default: false}) public showUpdateModal!: boolean;
+    @Prop({ default: false }) public showUpdateModal!: boolean;
 
     loadingCommentUpdate: boolean = false;
     newComment: PromotionCommentData = { body: "", sentiment: PromotionSentiment.Abstain };

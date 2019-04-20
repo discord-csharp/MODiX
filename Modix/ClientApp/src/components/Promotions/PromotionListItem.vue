@@ -95,13 +95,12 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 import PromotionCommentView from './PromotionCommentView.vue';
 import PromotionComment from '@/models/promotions/PromotionComment';
-import PromotionCampaign, {PromotionSentiment, SentimentIcons, StatusIcons, CampaignOutcome} from '@/models/promotions/PromotionCampaign';
+import PromotionCampaign, { PromotionSentiment, SentimentIcons, StatusIcons } from '@/models/promotions/PromotionCampaign';
 import * as _ from 'lodash';
-import {formatDate} from '@/app/Util';
-import { Dictionary } from 'vuex';
+import { formatDate } from '@/app/Util';
 import Role from '@/models/Role';
 import store from '@/app/Store';
 import PromotionCommentData from '@/models/promotions/PromotionCommentData';
@@ -112,7 +111,7 @@ import { getFullUsername } from '@/models/core/GuildUserIdentity';
 
 @Component({
     components: {PromotionCommentView},
-    methods: { getFullUsername }
+    methods: { getFullUsername, formatDate }
 })
 export default class PromotionListItem extends ModixComponent
 {
@@ -124,11 +123,6 @@ export default class PromotionListItem extends ModixComponent
     error: string = "";
     commentSubmitting: boolean = false;
     comments: PromotionComment[] | null = null;
-
-    formatDate(date: Date): string
-    {
-        return formatDate(date);
-    }
 
     get canClose()
     {
@@ -189,6 +183,11 @@ export default class PromotionListItem extends ModixComponent
         return (this.campaign.outcome ? StatusIcons[this.campaign.outcome] : "&#128499;");
     }
 
+    async refreshComments()
+    {
+        this.comments = await PromotionService.getComments(this.campaign.id);
+    }
+
     async submitComment()
     {
         this.commentSubmitting = true;
@@ -202,6 +201,7 @@ export default class PromotionListItem extends ModixComponent
             }
 
             await PromotionService.commentOnCampaign(this.campaign, this.newComment);
+            await this.refreshComments();
             this.$emit("commentSubmitted");
             this.resetNewComment();
         }
@@ -237,7 +237,7 @@ export default class PromotionListItem extends ModixComponent
         {
             try
             {
-                this.comments = await PromotionService.getComments(this.campaign.id);
+                await this.refreshComments();
             }
             finally
             {
@@ -252,7 +252,7 @@ export default class PromotionListItem extends ModixComponent
 
     onCommentEditModalOpened(comment: PromotionComment)
     {
-        this.$emit('comment-edit-modal-opened', comment);
+        this.$emit('comment-edit-modal-opened', comment, this.refreshComments);
     }
 
     userAlreadyCommented()
