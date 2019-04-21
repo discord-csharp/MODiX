@@ -1,10 +1,14 @@
 ﻿using System;
-using Discord.Commands;
 using System.Threading.Tasks;
+
 using Discord;
-using Modix.Services.Quote;
-using Serilog;
+using Discord.Commands;
+
+using Modix.Data.Repositories;
 using Modix.Services.CommandHelp;
+using Modix.Services.Quote;
+
+using Serilog;
 
 namespace Modix.Modules
 {
@@ -14,10 +18,14 @@ namespace Modix.Modules
     public class QuoteModule : ModuleBase
     {
         private readonly IQuoteService _quoteService;
+        private readonly IMessageRepository _messageRepository;
 
-        public QuoteModule(IQuoteService quoteService)
+        public QuoteModule(
+            IQuoteService quoteService,
+            IMessageRepository messageRepository)
         {
             _quoteService = quoteService;
+            _messageRepository = messageRepository;
         }
 
         [Command("quote"), Summary("Quote the given message.")]
@@ -32,7 +40,7 @@ namespace Modix.Modules
                 message = await GetMessage(messageId, Context.Channel as ITextChannel);
 
                 if (message == null)
-                    message = await FindMessageInUnknownChannel(messageId);
+                    message = await FindMessageInUnknownChannelAsync(messageId);
             }
             catch (Exception e)
             {
@@ -89,8 +97,16 @@ namespace Modix.Modules
             await Context.Message.DeleteAsync();
         }
 
-        private async Task<IMessage> FindMessageInUnknownChannel(ulong messageId)
+        private async Task<IMessage> FindMessageInUnknownChannelAsync(ulong messageId)
         {
+            var guildMessage = await _messageRepository.GetMessage(messageId);
+
+            if (guildMessage is { })
+            {
+                var channel = await Context.Guild.GetTextChannelAsync(guildMessage.ChannelId);
+                return await GetMessage(messageId, channel);
+            }
+
             IMessage message = null;
 
             // We haven't found a message, now fetch all text
