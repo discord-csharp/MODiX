@@ -164,7 +164,14 @@ namespace Modix.Services.Core
                 .WithDescription(descriptionContent)
                 .WithCurrentTimestamp();
 
-            await SelfExecuteRequest<IMessageRepository>(async messages => await messages.DeleteAsync(message.Id));
+            await SelfExecuteRequest<IMessageRepository>(async messages =>
+            {
+                using (var transaction = await messages.BeginMaintainTransactionAsync())
+                {
+                    await messages.DeleteAsync(message.Id);
+                    transaction.Commit();
+                }
+            });
 
             await TryLog(
                 guild,
@@ -187,7 +194,7 @@ namespace Modix.Services.Core
                     {
                         Log.LogInformation("Logging message #{MessageId} to the database.", message.Id);
 
-                        var entity = new MessageEntity
+                        var creationData = new MessageCreationData
                         {
                             Id = message.Id,
                             GuildId = guild.Id,
@@ -196,15 +203,19 @@ namespace Modix.Services.Core
                             Timestamp = message.Timestamp
                         };
 
-                        Log.LogDebug("Entity for message #{MessageId}: {@Message}", message.Id, entity);
+                        Log.LogDebug("Entity for message #{MessageId}: {@Message}", message.Id, creationData);
 
-                        try
+                        using (var transaction = await messages.BeginMaintainTransactionAsync())
                         {
-                            await messages.CreateAsync(entity);
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.LogError(ex, "An unexpected error occurred when attempting to log message #{MessageId}.", message.Id);
+                            try
+                            {
+                                await messages.CreateAsync(creationData);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.LogError(ex, "An unexpected error occurred when attempting to log message #{MessageId}.", message.Id);
+                            }
+                            transaction.Commit();
                         }
                     });
             }

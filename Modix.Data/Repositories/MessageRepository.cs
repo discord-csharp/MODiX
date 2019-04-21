@@ -11,6 +11,8 @@ namespace Modix.Data.Repositories
 {
     public interface IMessageRepository
     {
+        Task<IRepositoryTransaction> BeginMaintainTransactionAsync();
+
         Task<IReadOnlyDictionary<DateTime, int>> GetGuildUserMessageCountByDate(ulong guildId, ulong userId, TimeSpan timespan);
 
         Task<IReadOnlyDictionary<ulong, int>> GetGuildUserMessageCountByChannel(ulong guildId, ulong userId, TimeSpan timespan);
@@ -19,35 +21,46 @@ namespace Modix.Data.Repositories
 
         Task<GuildUserParticipationStatistics> GetGuildUserParticipationStatistics(ulong guildId, ulong userId);
 
-        Task CreateAsync(MessageEntity message);
+        Task CreateAsync(MessageCreationData message);
 
         Task DeleteAsync(ulong messageId);
 
-        Task<MessageEntity> GetMessage(ulong messageId);
+        Task<MessageBrief> GetMessage(ulong messageId);
 
-        Task UpdateStarboardColumn(MessageEntity message);
+        Task UpdateStarboardColumn(ulong messageId, ulong? starboardEntryId);
 
         Task<int> GetTotalMessageCountAsync(ulong guildId, TimeSpan timespan);
 
         Task<IReadOnlyDictionary<ulong, int>> GetTotalMessageCountByChannelAsync(ulong guildId, TimeSpan timespan);
     }
 
-    public class MessageRepository : RepositoryBase, IMessageRepository
+    public sealed class MessageRepository : RepositoryBase, IMessageRepository
     {
         public MessageRepository(ModixContext context)
             : base(context) { }
 
-        public async Task CreateAsync(MessageEntity message)
+        private static readonly RepositoryTransactionFactory _maintainTransactionFactory
+            = new RepositoryTransactionFactory();
+
+        public Task<IRepositoryTransaction> BeginMaintainTransactionAsync()
+            => _maintainTransactionFactory.BeginTransactionAsync(ModixContext.Database);
+
+        public async Task CreateAsync(MessageCreationData message)
         {
-            await ModixContext.Messages.AddAsync(message);
+            var entity = message.ToEntity();
+            await ModixContext.Messages.AddAsync(entity);
             await ModixContext.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(ulong messageId)
         {
-            if (await GetMessage(messageId) is MessageEntity message)
+            var entity = await ModixContext.Messages
+                .Where(x => x.Id == messageId)
+                .FirstOrDefaultAsync();
+
+            if (entity is MessageEntity)
             {
-                ModixContext.Messages.Remove(message);
+                ModixContext.Messages.Remove(entity);
                 await ModixContext.SaveChangesAsync();
             }
         }
@@ -56,7 +69,8 @@ namespace Modix.Data.Repositories
         {
             var earliestDateTime = DateTimeOffset.UtcNow - timespan;
 
-            return await ModixContext.Messages.AsNoTracking()
+            return await ModixContext.Messages
+                .AsNoTracking()
                 .Where(x => x.GuildId == guildId && x.AuthorId == userId && x.Timestamp >= earliestDateTime)
                 .CountAsync();
         }
@@ -176,14 +190,25 @@ namespace Modix.Data.Repositories
             return stats;
         }
 
-        public async Task<MessageEntity> GetMessage(ulong messageId)
+        public async Task<MessageBrief> GetMessage(ulong messageId)
         {
-            return await ModixContext.Messages.FindAsync(messageId);
+            return await ModixContext.Messages
+                .AsNoTracking()
+                .AsQueryable()
+                .Select(MessageBrief.FromEntityProjection)
+                .Where(x => x.Id == messageId)
+                .FirstOrDefaultAsync();
         }
 
-        public async Task UpdateStarboardColumn(MessageEntity message)
+        public async Task UpdateStarboardColumn(ulong messageId, ulong? starboardEntryId)
         {
-            ModixContext.Messages.Update(message);
+            var entity = await ModixContext.Messages
+                .Where(x => x.Id == messageId)
+                .FirstOrDefaultAsync();
+
+            entity.StarboardEntryId = starboardEntryId;
+
+            ModixContext.Messages.Update(entity);
             await ModixContext.SaveChangesAsync();
         }
 
@@ -201,9 +226,9 @@ namespace Modix.Data.Repositories
         {
             var earliestDateTime = DateTimeOffset.UtcNow - timespan;
 
-            return await ModixContext.Messages.AsNoTracking()
-                .Where(x => x.GuildId == guildId
-                    && x.Timestamp >= earliestDateTime)
+            return await ModixContext.Messages
+                .AsNoTracking()
+                .Where(x => x.GuildId == guildId && x.Timestamp >= earliestDateTime)
                 .GroupBy(x => x.ChannelId)
                 .ToDictionaryAsync(x => x.Key, x => x.Count());
         }
@@ -212,7 +237,8 @@ namespace Modix.Data.Repositories
         {
             var earliestDateTime = DateTimeOffset.UtcNow - timespan;
 
-            return ModixContext.Messages.AsNoTracking()
+            return ModixContext.Messages
+                .AsNoTracking()
                 .Where(x => x.GuildId == guildId && x.AuthorId == userId && x.Timestamp >= earliestDateTime);
         }
     }

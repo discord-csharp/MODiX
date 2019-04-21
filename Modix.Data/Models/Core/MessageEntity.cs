@@ -5,7 +5,7 @@ using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Core
 {
-    public class MessageEntity
+    internal class MessageEntity
     {
         [Required]
         public ulong Id { get; set; }
