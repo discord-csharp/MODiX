@@ -37,6 +37,12 @@ namespace Modix.Bot.Modules
                 return;
             }
 
+            if (count > MaximumWinners)
+            {
+                await ReplyAsync($"You can only have a maximum of {MaximumWinners} winners per giveaway.");
+                return;
+            }
+
             var reactors = await GetReactorsAsync(message);
             ImmutableArray<ulong> winners;
 
@@ -47,7 +53,8 @@ namespace Modix.Bot.Modules
             }
             else if (reactors.Length <= count)
             {
-                winners = reactors.Select(x => x.Id).ToImmutableArray();
+                winners = reactors.Select(x => x.Id)
+                    .ToImmutableArray();
             }
             else
             {
@@ -62,9 +69,11 @@ namespace Modix.Bot.Modules
 
         private async Task<ImmutableArray<IUser>> GetReactorsAsync(DiscordUserMessage message)
         {
-            var reactors = await message.GetReactionUsersAsync(_giveawayEmoji, int.MaxValue).FlattenAsync();
+            var reactors = await message.GetReactionUsersAsync(_giveawayEmoji, int.MaxValue)
+                .FlattenAsync();
 
-            return reactors.Where(x => !x.IsBot).ToImmutableArray();
+            return reactors.Where(x => !x.IsBot)
+                .ToImmutableArray();
         }
 
         private ImmutableArray<ulong> DetermineWinners(ImmutableArray<IUser> reactors, int count)
@@ -75,23 +84,16 @@ namespace Modix.Bot.Modules
 
             while (winners.Count < count)
             {
-                var winner = reactors[GetRandomValue(count)];
+                var winner = reactors[_random.Next(count)];
                 winners.Add(winner.Id);
             }
 
             return winners.ToImmutableArray();
         }
 
-        private static int GetRandomValue(int maxValue)
-        {
-            lock (_lockObject)
-            {
-                return _random.Next(maxValue);
-            }
-        }
+        private const int MaximumWinners = 10;
 
         private static readonly Emoji _giveawayEmoji = new Emoji("🎉");
-        private static readonly Random _random = new Random();
-        private static readonly object _lockObject = new object();
+        private readonly Random _random = new Random();
     }
 }

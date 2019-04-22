@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Microsoft.Extensions.DependencyInjection;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
 
@@ -29,7 +30,7 @@ namespace Modix
         // TODO: extract to service layer after the PR that adds the DB check to the quote service version of this is merged.
         private async Task<IMessage> FindMessageInUnknownChannelAsync(ICommandContext context, ulong messageId, IServiceProvider services)
         {
-            var messageRepository = (IMessageRepository)services.GetService(typeof(IMessageRepository));
+            var messageRepository = services.GetService<IMessageRepository>();
             var guildMessage = await messageRepository.GetMessage(messageId);
 
             if (guildMessage is { })
@@ -45,7 +46,7 @@ namespace Modix
 
             var channels = await context.Guild.GetTextChannelsAsync();
 
-            var selfUserProvider = (ISelfUserProvider)services.GetService(typeof(ISelfUserProvider));
+            var selfUserProvider = services.GetService<ISelfUserProvider>();
             var selfUser = await selfUserProvider.GetSelfUserAsync();
             var selfGuildUser = await context.Guild.GetUserAsync(selfUser.Id);
 
