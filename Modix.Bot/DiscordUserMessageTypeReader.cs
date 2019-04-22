@@ -72,63 +72,8 @@ namespace Modix
             _userMessage = userMessage;
         }
 
-        public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => _userMessage.Reactions;
-
-        public MessageType Type => _userMessage.Type;
-
-        public MessageSource Source => _userMessage.Source;
-
-        public bool IsTTS => _userMessage.IsTTS;
-
-        public bool IsPinned => _userMessage.IsPinned;
-
-        public string Content => _userMessage.Content;
-
-        public DateTimeOffset Timestamp => _userMessage.Timestamp;
-
-        public DateTimeOffset? EditedTimestamp => _userMessage.EditedTimestamp;
-
-        public IMessageChannel Channel => _userMessage.Channel;
-
-        public IUser Author => _userMessage.Author;
-
-        public IReadOnlyCollection<IAttachment> Attachments => _userMessage.Attachments;
-
-        public IReadOnlyCollection<IEmbed> Embeds => _userMessage.Embeds;
-
-        public IReadOnlyCollection<ITag> Tags => _userMessage.Tags;
-
-        public IReadOnlyCollection<ulong> MentionedChannelIds => _userMessage.MentionedChannelIds;
-
-        public IReadOnlyCollection<ulong> MentionedRoleIds => _userMessage.MentionedRoleIds;
-
-        public IReadOnlyCollection<ulong> MentionedUserIds => _userMessage.MentionedUserIds;
-
-        public MessageActivity Activity => _userMessage.Activity;
-
-        public MessageApplication Application => _userMessage.Application;
-
-        public DateTimeOffset CreatedAt => _userMessage.CreatedAt;
-
-        public ulong Id => _userMessage.Id;
-
-        public Task AddReactionAsync(IEmote emote, RequestOptions options = null) => _userMessage.AddReactionAsync(emote, options);
-
-        public Task DeleteAsync(RequestOptions options = null) => _userMessage.DeleteAsync(options);
-
-        public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null) => _userMessage.GetReactionUsersAsync(emoji, limit, options);
-
-        public Task ModifyAsync(Action<MessageProperties> func, RequestOptions options = null) => _userMessage.ModifyAsync(func, options);
-
-        public Task PinAsync(RequestOptions options = null) => _userMessage.PinAsync(options);
-
-        public Task RemoveAllReactionsAsync(RequestOptions options = null) => _userMessage.RemoveAllReactionsAsync(options);
-
-        public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null) => _userMessage.RemoveReactionAsync(emote, user, options);
-
-        public string Resolve(TagHandling userHandling = TagHandling.Name, TagHandling channelHandling = TagHandling.Name, TagHandling roleHandling = TagHandling.Name, TagHandling everyoneHandling = TagHandling.Ignore, TagHandling emojiHandling = TagHandling.Name) => _userMessage.Resolve(userHandling, channelHandling, roleHandling, everyoneHandling, emojiHandling);
-
-        public Task UnpinAsync(RequestOptions options = null) => _userMessage.UnpinAsync(options);
+        public IUserMessage ToUserMessage()
+            => _userMessage;
 
         private readonly IUserMessage _userMessage;
     }
