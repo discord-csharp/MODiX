@@ -74,8 +74,7 @@ namespace Modix.Modules
                 .WithTitle($"Infractions for user: {subject.GetFullUsername()}")
                 .WithDescription(FormatUtilities.FormatInfractionCounts(counts))
                 .WithUrl($"https://mod.gg/infractions/?subject={subject.UserId}")
-                .WithColor(new Color(0xA3BF0B))
-                .WithTimestamp(DateTimeOffset.UtcNow);
+                .WithColor(new Color(0xA3BF0B));
 
             foreach (var infraction in infractionQuery)
             {

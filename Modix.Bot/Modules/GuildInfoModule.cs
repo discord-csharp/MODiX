@@ -13,6 +13,7 @@ using Modix.Data.Models;
 using Modix.Data.Repositories;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
+using Modix.Services.Images;
 using Modix.Services.Utilities;
 
 namespace Modix.Modules
@@ -29,21 +30,18 @@ namespace Modix.Modules
             IGuildService guildService,
             IMessageRepository messageRepository,
             IEmojiRepository emojiRepository,
-            IHttpClientFactory httpClientFactory)
+            IImageService imageService)
         {
-            GuildService = guildService;
-            MessageRepository = messageRepository;
-            EmojiRepository = emojiRepository;
-            HttpClientFactory = httpClientFactory;
+            _guildService = guildService;
+            _messageRepository = messageRepository;
+            _emojiRepository = emojiRepository;
+            _imageService = imageService;
         }
 
-        private IGuildService GuildService { get; }
-
-        private IMessageRepository MessageRepository { get; }
-
-        private IEmojiRepository EmojiRepository { get; }
-
-        private IHttpClientFactory HttpClientFactory { get; }
+        private readonly IGuildService _guildService;
+        private readonly IMessageRepository _messageRepository;
+        private readonly IEmojiRepository _emojiRepository;
+        private readonly IImageService _imageService;
 
         [Command("guildinfo")]
         [Alias("serverinfo")]
@@ -56,7 +54,7 @@ namespace Modix.Modules
 
             var resolvedGuildId = guildId ?? Context.Guild.Id;
 
-            var guildResult = await GuildService.GetGuildInformationAsync(resolvedGuildId);
+            var guildResult = await _guildService.GetGuildInformationAsync(resolvedGuildId);
 
             if (guildResult.IsError)
             {
@@ -103,17 +101,10 @@ namespace Modix.Modules
 
         public async Task WithDominantColorAsync(EmbedBuilder embedBuilder, IGuild guild)
         {
-            if (guild.IconUrl is string iconUrl)
+            if (guild.IconUrl is { } iconUrl)
             {
-                using (var httpStream = await HttpClientFactory.CreateClient().GetStreamAsync(iconUrl))
-                using (var iconStream = new MemoryStream())
-                {
-                    await httpStream.CopyToAsync(iconStream);
-
-                    var icon = new Image(iconStream);
-
-                    embedBuilder.WithColor(FormatUtilities.GetDominantColor(icon));
-                }
+                var color = await _imageService.GetDominantColorAsync(new Uri(iconUrl));
+                embedBuilder.WithColor(color);
             }
         }
 
@@ -129,10 +120,10 @@ namespace Modix.Modules
 
         public async Task AppendGuildParticipationAsync(StringBuilder stringBuilder, SocketGuild guild)
         {
-            var weekTotal = await MessageRepository.GetTotalMessageCountAsync(guild.Id, TimeSpan.FromDays(7));
-            var monthTotal = await MessageRepository.GetTotalMessageCountAsync(guild.Id, TimeSpan.FromDays(30));
+            var weekTotal = await _messageRepository.GetTotalMessageCountAsync(guild.Id, TimeSpan.FromDays(7));
+            var monthTotal = await _messageRepository.GetTotalMessageCountAsync(guild.Id, TimeSpan.FromDays(30));
 
-            var channelCounts = await MessageRepository.GetTotalMessageCountByChannelAsync(guild.Id, TimeSpan.FromDays(30));
+            var channelCounts = await _messageRepository.GetTotalMessageCountByChannelAsync(guild.Id, TimeSpan.FromDays(30));
             var orderedChannelCounts = channelCounts.OrderByDescending(x => x.Value);
             var mostActiveChannel = orderedChannelCounts.First();
 
@@ -143,7 +134,7 @@ namespace Modix.Modules
                 .AppendLine($"Avg. per day: {"message".ToQuantity(monthTotal / 30, "n0")}")
                 .AppendLine($"Most active channel: {MentionUtils.MentionChannel(mostActiveChannel.Key)} ({"message".ToQuantity(mostActiveChannel.Value, "n0")} in 30 days)");
 
-            var emojiCounts = await EmojiRepository.GetEmojiStatsAsync(guild.Id, SortDirection.Ascending, 1);
+            var emojiCounts = await _emojiRepository.GetEmojiStatsAsync(guild.Id, SortDirection.Ascending, 1);
 
             if (emojiCounts.Any())
             {

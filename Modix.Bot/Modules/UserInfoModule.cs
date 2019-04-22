@@ -17,6 +17,7 @@ using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
+using Modix.Services.Images;
 using Modix.Services.Moderation;
 using Modix.Services.Promotions;
 using Modix.Services.Utilities;
@@ -38,27 +39,27 @@ namespace Modix.Modules
             IAuthorizationService authorizationService,
             IMessageRepository messageRepository,
             IEmojiRepository emojiRepository,
-            IHttpClientFactory httpClientFactory,
-            IPromotionsService promotionsService)
+            IPromotionsService promotionsService,
+            IImageService imageService)
         {
-            Log = logger ?? new NullLogger<UserInfoModule>();
-            UserService = userService;
-            ModerationService = moderationService;
-            AuthorizationService = authorizationService;
-            MessageRepository = messageRepository;
-            EmojiRepository = emojiRepository;
-            HttpClientFactory = httpClientFactory;
-            PromotionsService = promotionsService;
+            _log = logger ?? new NullLogger<UserInfoModule>();
+            _userService = userService;
+            _moderationService = moderationService;
+            _authorizationService = authorizationService;
+            _messageRepository = messageRepository;
+            _emojiRepository = emojiRepository;
+            _promotionsService = promotionsService;
+            _imageService = imageService;
         }
 
-        private ILogger<UserInfoModule> Log { get; }
-        private IUserService UserService { get; }
-        private IModerationService ModerationService { get; }
-        private IAuthorizationService AuthorizationService { get; }
-        private IMessageRepository MessageRepository { get; }
-        private IEmojiRepository EmojiRepository { get; }
-        private IHttpClientFactory HttpClientFactory { get; }
-        private IPromotionsService PromotionsService { get; }
+        private readonly ILogger<UserInfoModule> _log;
+        private readonly IUserService _userService;
+        private readonly IModerationService _moderationService;
+        private readonly IAuthorizationService _authorizationService;
+        private readonly IMessageRepository _messageRepository;
+        private readonly IEmojiRepository _emojiRepository;
+        private readonly IPromotionsService _promotionsService;
+        private readonly IImageService _imageService;
 
         [Command("info")]
         [Summary("Retrieves information about the supplied user, or the current user if one is not provided.")]
@@ -66,11 +67,11 @@ namespace Modix.Modules
             [Summary("The user to retrieve information about, if any.")]
                 [Remainder] DiscordUserEntity user = null)
         {
-            user = user ?? new DiscordUserEntity(Context.User.Id);
+            user ??= new DiscordUserEntity(Context.User.Id);
 
             var timer = Stopwatch.StartNew();
 
-            var userInfo = await UserService.GetUserInformationAsync(Context.Guild.Id, user.Id);
+            var userInfo = await _userService.GetUserInformationAsync(Context.Guild.Id, user.Id);
 
             if (userInfo == null)
             {
@@ -93,7 +94,7 @@ namespace Modix.Modules
             {
                 builder.AppendLine("Status: **Banned** \\🔨");
 
-                if (await AuthorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
+                if (await _authorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
                 {
                     builder.AppendLine($"Ban Reason: {userInfo.BanReason}");
                 }
@@ -115,7 +116,7 @@ namespace Modix.Modules
             }
             catch (Exception ex)
             {
-                Log.LogError(ex, "An error occured while retrieving a user's message count.");
+                _log.LogError(ex, "An error occured while retrieving a user's message count.");
             }
 
             var embedBuilder = new EmbedBuilder()
@@ -130,7 +131,7 @@ namespace Modix.Modules
             await AddMemberInformationToEmbedAsync(userInfo, builder, embedBuilder);
             await AddPromotionsToEmbedAsync(user.Id, builder);
 
-            if (await AuthorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
+            if (await _authorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
             {
                 await AddInfractionsToEmbedAsync(user.Id, builder);
             }
@@ -178,17 +179,8 @@ namespace Modix.Modules
 
             if ((member.GetAvatarUrl(size: 16) ?? member.GetDefaultAvatarUrl()) is string avatarUrl)
             {
-                using (var httpStream = await HttpClientFactory.CreateClient().GetStreamAsync(avatarUrl))
-                {
-                    using (var avatarStream = new MemoryStream())
-                    {
-                        await httpStream.CopyToAsync(avatarStream);
-
-                        var avatar = new Image(avatarStream);
-
-                        embedBuilder.WithColor(FormatUtilities.GetDominantColor(avatar));
-                    }
-                }
+                var color = await _imageService.GetDominantColorAsync(new Uri(avatarUrl));
+                embedBuilder.WithColor(color);
             }
         }
 
@@ -199,7 +191,7 @@ namespace Modix.Modules
 
             if (!(Context.Channel as IGuildChannel).IsPublic())
             {
-                var counts = await ModerationService.GetInfractionCountsForUserAsync(userId);
+                var counts = await _moderationService.GetInfractionCountsForUserAsync(userId);
                 builder.AppendLine(FormatUtilities.FormatInfractionCounts(counts));
             }
             else
@@ -210,8 +202,8 @@ namespace Modix.Modules
 
         private async Task AddParticipationToEmbedAsync(ulong userId, StringBuilder builder)
         {
-            var userRank = await MessageRepository.GetGuildUserParticipationStatistics(Context.Guild.Id, userId);
-            var messagesByDate = await MessageRepository.GetGuildUserMessageCountByDate(Context.Guild.Id, userId, TimeSpan.FromDays(30));
+            var userRank = await _messageRepository.GetGuildUserParticipationStatistics(Context.Guild.Id, userId);
+            var messagesByDate = await _messageRepository.GetGuildUserMessageCountByDate(Context.Guild.Id, userId, TimeSpan.FromDays(30));
 
             var lastWeek = _utcNow - TimeSpan.FromDays(7);
 
@@ -254,7 +246,7 @@ namespace Modix.Modules
 
                 try
                 {
-                    var channels = await MessageRepository.GetGuildUserMessageCountByChannel(Context.Guild.Id, userId, TimeSpan.FromDays(30));
+                    var channels = await _messageRepository.GetGuildUserMessageCountByChannel(Context.Guild.Id, userId, TimeSpan.FromDays(30));
 
                     foreach (var kvp in channels.OrderByDescending(x => x.Value))
                     {
@@ -269,11 +261,11 @@ namespace Modix.Modules
                 }
                 catch (Exception ex)
                 {
-                    Log.LogDebug(ex, "Unable to get the most active channel for {UserId}.", userId);
+                    _log.LogDebug(ex, "Unable to get the most active channel for {UserId}.", userId);
                 }
             }
 
-            var emojiCounts = await EmojiRepository.GetEmojiStatsAsync(Context.Guild.Id, SortDirection.Ascending, 1, userId: userId);
+            var emojiCounts = await _emojiRepository.GetEmojiStatsAsync(Context.Guild.Id, SortDirection.Ascending, 1, userId: userId);
 
             if (emojiCounts.Any())
             {
@@ -311,7 +303,7 @@ namespace Modix.Modules
 
         private async Task AddPromotionsToEmbedAsync(ulong userId, StringBuilder builder)
         {
-            var promotions = await PromotionsService.GetPromotionsForUserAsync(Context.Guild.Id, userId);
+            var promotions = await _promotionsService.GetPromotionsForUserAsync(Context.Guild.Id, userId);
 
             if (promotions.Count == 0)
                 return;

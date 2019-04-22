@@ -23,6 +23,7 @@ using Modix.Services.Csharp;
 using Modix.Services.DocsMaster;
 using Modix.Services.EmojiStats;
 using Modix.Services.GuildStats;
+using Modix.Services.Images;
 using Modix.Services.Mentions;
 using Modix.Services.Moderation;
 using Modix.Services.PopularityContest;
@@ -111,7 +112,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddModixTags()
                 .AddStarboard()
                 .AddAutoRemoveMessage()
-                .AddEmojiStats();
+                .AddEmojiStats()
+                .AddImages();
 
             services.AddScoped<IQuoteService, QuoteService>();
             services.AddSingleton<IBehavior, MessageLinkBehavior>();
@@ -128,10 +130,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
             services.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
 
-            services
-                .AddScoped<AutoCodePasteBehavior>()
-                .AddScoped<INotificationHandler<ReactionAddedNotification>>(p => p.GetRequiredService<AutoCodePasteBehavior>())
-                .AddScoped<INotificationHandler<ReactionRemovedNotification>>(p => p.GetRequiredService<AutoCodePasteBehavior>());
             services.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>();
 
             services.AddHostedService<ModixBot>();

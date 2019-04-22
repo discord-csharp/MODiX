@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 
-namespace Modix.Services.Utilities.ColorQuantization
+namespace Modix.Services.Images.ColorQuantization
 {
     public sealed class Octree
     {

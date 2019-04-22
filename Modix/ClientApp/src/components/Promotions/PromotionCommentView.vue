@@ -12,15 +12,17 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop, Vue } from 'vue-property-decorator';
-
-import {formatDate} from '@/app/Util';
+import { Component, Prop } from 'vue-property-decorator';
+import ModixComponent from '@/components/ModixComponent.vue';
+import { formatDate } from '@/app/Util';
 import PromotionComment from '@/models/promotions/PromotionComment';
 import { SentimentIcons, PromotionSentiment } from '@/models/promotions/PromotionCampaign';
 import PromotionCommentData from '@/models/promotions/PromotionCommentData';
 
-@Component({})
-export default class PromotionCommentView extends Vue
+@Component({
+    methods: { formatDate }
+})
+export default class PromotionCommentView extends ModixComponent
 {
     loadingUpdate: boolean = false;
     showModal: boolean = false;
@@ -33,30 +35,6 @@ export default class PromotionCommentView extends Vue
     sentimentIcon(sentiment: PromotionSentiment)
     {
         return SentimentIcons[sentiment];
-    }
-
-    formatDate(date: Date): string
-    {
-        return formatDate(date);
-    }
-
-    openModal()
-    {
-        this.showModal = true;
-    }
-
-    cancelModal()
-    {
-        this.showModal = false;
-    }
-
-    async saveComment()
-    {
-        this.loadingUpdate = true;
-
-        this.loadingUpdate = false;
-
-        this.cancelModal();
     }
 }
 </script>
