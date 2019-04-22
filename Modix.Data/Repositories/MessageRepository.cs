@@ -297,9 +297,8 @@ namespace Modix.Data.Repositories
         {
             return await ModixContext.Messages
                 .AsNoTracking()
-                .AsQueryable()
-                .Select(MessageBrief.FromEntityProjection)
                 .Where(x => x.Id == messageId)
+                .Select(MessageBrief.FromEntityProjection)
                 .FirstOrDefaultAsync();
         }
 
