@@ -41,7 +41,8 @@ namespace Modix.Modules
             IMessageRepository messageRepository,
             IEmojiRepository emojiRepository,
             IPromotionsService promotionsService,
-            IImageService imageService)
+            IImageService imageService,
+            IChannelService channelService)
         {
             _log = logger ?? new NullLogger<UserInfoModule>();
             _userService = userService;
@@ -51,6 +52,7 @@ namespace Modix.Modules
             _emojiRepository = emojiRepository;
             _promotionsService = promotionsService;
             _imageService = imageService;
+            _channelService = channelService;
         }
 
         private readonly ILogger<UserInfoModule> _log;
@@ -61,6 +63,7 @@ namespace Modix.Modules
         private readonly IEmojiRepository _emojiRepository;
         private readonly IPromotionsService _promotionsService;
         private readonly IImageService _imageService;
+        private readonly IChannelService _channelService;
 
         [Command("info")]
         [Summary("Retrieves information about the supplied user, or the current user if one is not provided.")]
@@ -264,7 +267,7 @@ namespace Modix.Modules
                 {
                     foreach (var kvp in messageCountsByChannel.OrderByDescending(x => x.Value))
                     {
-                        var channel = await Context.Guild.GetChannelAsync(kvp.Key);
+                        var channel = await _channelService.GetChannelAsync(Context.Guild.Id, kvp.Key);
 
                         if (channel.IsPublic())
                         {

@@ -125,6 +125,18 @@ namespace Modix.Data.Models.Promotions
                 .HasOne(x => x.CloseAction)
                 .WithOne()
                 .HasForeignKey<PromotionCampaignEntity>(x => x.CloseActionId);
+
+            modelBuilder
+                .Entity<PromotionCampaignEntity>()
+                .HasIndex(x => x.GuildId);
+
+            modelBuilder
+                .Entity<PromotionCampaignEntity>()
+                .HasIndex(x => x.SubjectId);
+
+            modelBuilder
+                .Entity<PromotionCampaignEntity>()
+                .HasIndex(x => x.Outcome);
         }
     }
 }

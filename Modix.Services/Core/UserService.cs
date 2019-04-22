@@ -78,12 +78,14 @@ namespace Modix.Services.Core
             IDiscordClient discordClient,
             DiscordRestClient discordRestClient,
             IAuthorizationService authorizationService,
-            IGuildUserRepository guildUserRepository)
+            IGuildUserRepository guildUserRepository,
+            IGuildService guildService)
         {
             DiscordClient = discordClient;
             DiscordRestClient = discordRestClient;
             AuthorizationService = authorizationService;
             GuildUserRepository = guildUserRepository;
+            _guildService = guildService;
         }
 
         /// <inheritdoc />
@@ -128,12 +130,13 @@ namespace Modix.Services.Core
             if (userId == 0)
                 return null;
 
-            var guildTask = DiscordClient.GetGuildAsync(guildId);
+            var guildTask = _guildService.GetGuildInformationAsync(guildId, true);
             var userTask = DiscordClient.GetUserAsync(userId);
             var restUserTask = DiscordRestClient.GetUserAsync(userId);
             var guildUserSummaryTask = GetGuildUserSummaryAsync(guildId, userId);
 
-            var guild = await guildTask;
+            var guildResult = await guildTask;
+            var guild = guildResult.Guild;
 
             var guildUserTask = guild.GetUserAsync(userId);
             var bansTask = guild.GetBansAsync();
@@ -215,5 +218,7 @@ namespace Modix.Services.Core
         /// A <see cref="IGuildUserRepository"/> to be used to interact with user data within a datastore.
         /// </summary>
         internal protected IGuildUserRepository GuildUserRepository { get; }
+
+        private readonly IGuildService _guildService;
     }
 }
