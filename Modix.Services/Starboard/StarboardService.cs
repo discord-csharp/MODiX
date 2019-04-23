@@ -101,15 +101,15 @@ namespace Modix.Services.Starboard
         /// <inheritdoc />
         public async Task<bool> ExistsOnStarboard(IMessage message)
         {
-            var messageEntity = await _messageRepository.GetMessage(message.Id);
-            return messageEntity?.StarboardEntryId != null;
+            var messageBrief = await _messageRepository.GetMessage(message.Id);
+            return messageBrief?.StarboardEntryId != null;
         }
 
         private async Task<IUserMessage> GetStarboardEntry(IGuild guild, IMessage message)
         {
             var channel = await GetStarboardChannel(guild);
-            var entity = await _messageRepository.GetMessage(message.Id);
-            return await channel.GetMessageAsync(entity.StarboardEntryId.Value) as IUserMessage;
+            var brief = await _messageRepository.GetMessage(message.Id);
+            return await channel.GetMessageAsync(brief.StarboardEntryId.Value) as IUserMessage;
         }
 
         private async Task<ITextChannel> GetStarboardChannel(IGuild guild)
@@ -123,16 +123,20 @@ namespace Modix.Services.Starboard
         /// <inheritdoc />
         public async Task RemoveFromStarboard(IGuild guild, IMessage message)
         {
-            var messageEntity = await _messageRepository.GetMessage(message.Id);
-            var channel = await GetStarboardChannel(guild);
-
-            var msg = await channel.GetMessageAsync(messageEntity.StarboardEntryId.Value);
-            if (msg != default)
+            using (var transaction = await _messageRepository.BeginMaintainTransactionAsync())
             {
-                await channel.DeleteMessageAsync(messageEntity.StarboardEntryId.Value);
-                messageEntity.StarboardEntryId = null;
-                await _messageRepository.UpdateStarboardColumn(messageEntity);
+                var messageBrief = await _messageRepository.GetMessage(message.Id);
+                var channel = await GetStarboardChannel(guild);
+
+                var msg = await channel.GetMessageAsync(messageBrief.StarboardEntryId.Value);
+                if (msg != default)
+                {
+                    await channel.DeleteMessageAsync(messageBrief.StarboardEntryId.Value);
+                    await _messageRepository.UpdateStarboardColumn(messageBrief.Id, null);
+                }
+                transaction.Commit();
             }
+
         }
 
         /// <inheritdoc />
@@ -166,23 +170,24 @@ namespace Modix.Services.Starboard
             var starChannel = await GetStarboardChannel(guild);
             var starEntry = await starChannel.SendMessageAsync(content, false, embed);
 
-            var messageEntity = await _messageRepository.GetMessage(message.Id);
-
-            if(messageEntity == null)
+            using (var transaction = await _messageRepository.BeginMaintainTransactionAsync())
             {
-                messageEntity = new MessageEntity
+                if (await _messageRepository.GetMessage(message.Id) == null)
                 {
-                    Id = message.Id,
-                    GuildId = guild.Id,
-                    ChannelId = message.Channel.Id,
-                    AuthorId = message.Author.Id,
-                    Timestamp = message.Timestamp,
-                };
-                await _messageRepository.CreateAsync(messageEntity);
-            }
+                    var creationData = new MessageCreationData
+                    {
+                        Id = message.Id,
+                        GuildId = guild.Id,
+                        ChannelId = message.Channel.Id,
+                        AuthorId = message.Author.Id,
+                        Timestamp = message.Timestamp,
+                    };
+                    await _messageRepository.CreateAsync(creationData);
+                }
 
-            messageEntity.StarboardEntryId = starEntry.Id;
-            await _messageRepository.UpdateStarboardColumn(messageEntity);
+                await _messageRepository.UpdateStarboardColumn(message.Id, starEntry.Id);
+                transaction.Commit();
+            }
         }
 
         /// <inheritdoc />

@@ -43,7 +43,7 @@ namespace Modix.Data
 
         public DbSet<DesignatedRoleMappingEntity> DesignatedRoleMappings { get; set; }
 
-        public DbSet<MessageEntity> Messages { get; set; }
+        internal DbSet<MessageEntity> Messages { get; set; }
 
         public DbSet<ModerationActionEntity> ModerationActions { get; set; }
 
