@@ -29,6 +29,9 @@
         /// Defines a channel to which starred messages are sent.
         /// </summary>
         Starboard,
+        /// Defines a channel that should be included when calculating user participation.
+        /// </summary>
+        CountsTowardsParticipation,
         /// <summary>
         /// Defines a channel in which giveaways and their winners will be posted.
         /// </summary>
