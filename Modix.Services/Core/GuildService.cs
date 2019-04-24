@@ -1,10 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Discord;
 using Discord.Net;
 using Discord.Rest;
 using Discord.WebSocket;
-using Microsoft.Extensions.Caching.Memory;
 using Modix.Data.Models.Core;
 
 namespace Modix.Services.Core
@@ -18,12 +16,11 @@ namespace Modix.Services.Core
         /// Retrieves all available information on a guild matching the supplied criteria.
         /// </summary>
         /// <param name="guildId">The Discord snowflake ID of the guild being searched.</param>
-        /// <param name="allowCache">Indicates whether to look for the guild in the cache before querying the Discord API. May result in outdated information.</param>
         /// <returns>
-        /// A <see cref="ValueTask"/> that completes when the operation completes,
+        /// A <see cref="Task"/> that completes when the operation completes,
         /// containing all information that was found for the guild.
         /// </returns>
-        ValueTask<GuildResult> GetGuildInformationAsync(ulong guildId, bool allowCache = false);
+        Task<GuildResult> GetGuildInformationAsync(ulong guildId);
     }
 
     /// <inheritdoc />
@@ -32,30 +29,19 @@ namespace Modix.Services.Core
         /// <summary>
         /// Constructs a new <see cref="GuildService"/> with the given injected dependencies.
         /// </summary>
-        public GuildService(
-            DiscordRestClient discordRestClient,
-            DiscordSocketClient socketClient,
-            IMemoryCache cache)
+        public GuildService(DiscordRestClient discordRestClient, DiscordSocketClient socketClient)
         {
             DiscordRestClient = discordRestClient;
             DiscordSocketClient = socketClient;
-            _cache = cache;
         }
 
         /// <inheritdoc />
-        public async ValueTask<GuildResult> GetGuildInformationAsync(ulong guildId, bool allowCache = false)
+        public async Task<GuildResult> GetGuildInformationAsync(ulong guildId)
         {
-            var key = GetKey(guildId);
+            IGuild guild = DiscordSocketClient.GetGuild(guildId);
 
-            if (!allowCache || !_cache.TryGetValue<IGuild>(key, out var guild))
+            if (guild != null)
             {
-                guild = DiscordSocketClient.GetGuild(guildId);
-            }
-
-            if (guild is { })
-            {
-                _cache.Set(key, guild, TimeSpan.FromDays(7));
-
                 return new GuildResult(guild);
             }
 
@@ -66,11 +52,6 @@ namespace Modix.Services.Core
             catch (HttpException ex) when (ex.DiscordCode == 50001)
             {
                 return new GuildResult("Sorry, I do not have access to any guilds with that ID.");
-            }
-
-            if (guild is { })
-            {
-                _cache.Set(key, guild, TimeSpan.FromDays(7));
             }
 
             return new GuildResult(guild);
@@ -85,10 +66,5 @@ namespace Modix.Services.Core
         /// A <see cref="DiscordSocketClient"/> to be used to interact with the Discord API.
         /// </summary>
         internal DiscordSocketClient DiscordSocketClient { get; }
-
-        private object GetKey(ulong guildId)
-            => new { Target = "Guild", guildId };
-
-        private readonly IMemoryCache _cache;
     }
 }

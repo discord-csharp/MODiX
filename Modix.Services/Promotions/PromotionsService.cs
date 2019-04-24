@@ -11,7 +11,6 @@ using Modix.Data.Models.Promotions;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace Modix.Services.Promotions
 {
@@ -108,10 +107,10 @@ namespace Modix.Services.Promotions
         /// <param name="guildId">The unique Discord snowflake ID of the guild in which the desired promotions took place.</param>
         /// <param name="userId">The unique Discord snowflake ID of the user for whom to retrieve promotions.</param>
         /// <returns>
-        /// A <see cref="ValueTask"/> that will complete when the operation is complete,
+        /// A <see cref="Task"/> that will complete when the operation is complete,
         /// containing a collection representing the promotion progression for the supplied user.
         /// </returns>
-        ValueTask<IReadOnlyCollection<PromotionCampaignSummary>> GetPromotionsForUserAsync(ulong guildId, ulong userId);
+        Task<IReadOnlyCollection<PromotionCampaignSummary>> GetPromotionsForUserAsync(ulong guildId, ulong userId);
     }
 
     /// <inheritdoc />
@@ -125,8 +124,7 @@ namespace Modix.Services.Promotions
             IPromotionActionRepository promotionActionRepository,
             IPromotionCampaignRepository promotionCampaignRepository,
             IPromotionCommentRepository promotionCommentRepository,
-            IMessageDispatcher messageDispatcher,
-            IMemoryCache cache)
+            IMessageDispatcher messageDispatcher)
         {
             DiscordClient = discordClient;
             AuthorizationService = authorizationService;
@@ -136,7 +134,6 @@ namespace Modix.Services.Promotions
             PromotionCampaignRepository = promotionCampaignRepository;
             PromotionCommentRepository = promotionCommentRepository;
             MessageDispatcher = messageDispatcher;
-            _cache = cache;
         }
 
         private static readonly TimeSpan CampaignAcceptCooldown = TimeSpan.FromHours(48);
@@ -151,7 +148,7 @@ namespace Modix.Services.Promotions
 
             var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
             var subject = await UserService.GetGuildUserAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
-            
+
             if (!TryGetNextRankRoleForUser(subjectId, rankRoles, subject, out var nextRankRole, out var message))
                 throw new InvalidOperationException(message);
 
@@ -337,9 +334,6 @@ namespace Modix.Services.Promotions
             }
 
             PublishActionNotificationAsync(resultAction);
-
-            var key = GetSubjectKey(resultAction.GuildId, resultAction.Campaign.Subject.Id);
-            _cache.Remove(key);
         }
 
         /// <inheritdoc />
@@ -352,9 +346,6 @@ namespace Modix.Services.Promotions
                 throw new InvalidOperationException($"Campaign {campaignId} doesn't exist or is already closed");
 
             PublishActionNotificationAsync(resultAction);
-
-            var key = GetSubjectKey(resultAction.GuildId, resultAction.Campaign.Subject.Id);
-            _cache.Remove(key);
         }
 
         /// <inheritdoc />
@@ -389,18 +380,8 @@ namespace Modix.Services.Promotions
         }
 
         /// <inheritdoc />
-        public async ValueTask<IReadOnlyCollection<PromotionCampaignSummary>> GetPromotionsForUserAsync(ulong guildId, ulong userId)
-        {
-            var key = GetSubjectKey(guildId, userId);
-
-            if (!_cache.TryGetValue<IReadOnlyCollection<PromotionCampaignSummary>>(key, out var campaigns))
-            {
-                campaigns = await PromotionCampaignRepository.GetPromotionsForUserAsync(guildId, userId);
-                _cache.Set(key, campaigns, TimeSpan.FromDays(7));
-            }
-
-            return campaigns;
-        }
+        public async Task<IReadOnlyCollection<PromotionCampaignSummary>> GetPromotionsForUserAsync(ulong guildId, ulong userId)
+            => await PromotionCampaignRepository.GetPromotionsForUserAsync(guildId, userId);
 
         /// <summary>
         /// An <see cref="IDiscordClient"/> for interacting with the Discord API.
@@ -441,9 +422,6 @@ namespace Modix.Services.Promotions
         /// An <see cref="IMessageDispatcher"/> for dispatching notifications throughout the application.
         /// </summary>
         internal protected IMessageDispatcher MessageDispatcher { get; }
-
-        private object GetSubjectKey(ulong guildId, ulong subjectId)
-            => new { Target = "CampaignsForSubject", guildId, subjectId };
 
         private async Task<GuildRoleBrief[]> GetRankRolesAsync(ulong guildId)
             => (await DesignatedRoleService.SearchDesignatedRolesAsync(new DesignatedRoleMappingSearchCriteria()
@@ -574,7 +552,5 @@ namespace Modix.Services.Promotions
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsCreateCampaign);
         }
-
-        private readonly IMemoryCache _cache;
     }
 }
