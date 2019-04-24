@@ -152,6 +152,6 @@ namespace Modix.Data.Models.Core
         /// Authorizes a request to create a giveaway and determine its winners.
         /// </summary>
         [ClaimInfo(Misc, "Authorizes a request to create a giveaway and determine its winners.")]
-        HostGiveaway,
+        ExecuteGiveaway,
     }
 }

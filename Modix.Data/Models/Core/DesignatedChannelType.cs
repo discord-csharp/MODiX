@@ -28,6 +28,10 @@
         /// <summary>
         /// Defines a channel to which starred messages are sent.
         /// </summary>
-        Starboard
+        Starboard,
+        /// <summary>
+        /// Defines a channel in which giveaways and their winners will be posted.
+        /// </summary>
+        GiveawayLog,
     }
 }

@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 
 using Discord;
 
@@ -23,11 +21,10 @@ namespace Modix.Services.Giveaways
         /// <param name="message">The giveaway message that users reacted to.</param>
         /// <param name="count">The number of winners to return.</param>
         /// <returns>
-        /// A <see cref="ValueTask"/> that will complete when the operation is complete,
-        /// containing a result type that indicates whether the operation succeeded,
+        /// A result type that indicates whether the operation succeeded,
         /// including the results if so or an error message if not.
         /// </returns>
-        ValueTask<WinnersResult> GetWinnersAsync(IUserMessage message, int count);
+        GiveawayResult GetWinners(IUserMessage message, int count);
     }
 
     /// <inheritdoc />
@@ -39,63 +36,57 @@ namespace Modix.Services.Giveaways
         }
 
         /// <inheritdoc />
-        public async ValueTask<WinnersResult> GetWinnersAsync(IUserMessage message, int count)
+        public GiveawayResult GetWinners(IUserMessage message, int count)
         {
-            _authorizationService.RequireClaims(AuthorizationClaim.HostGiveaway);
+            _authorizationService.RequireClaims(AuthorizationClaim.ExecuteGiveaway);
 
             if (count <= 0)
             {
-                return new WinnersResult("You need to request at least one winner.");
+                return GiveawayResult.FromError("You need to request at least one winner.");
             }
 
             if (count > MaximumWinners)
             {
-                return new WinnersResult($"You can only have a maximum of {MaximumWinners} winners per giveaway.");
+                return GiveawayResult.FromError($"You can only have a maximum of {MaximumWinners} winners per giveaway.");
             }
 
-            var reactors = await GetReactorsAsync(message);
+            var reactors = GetReactors(message);
 
             if (reactors.Length == 0)
             {
-                return new WinnersResult("Cannot choose any winners, because nobody entered the giveaway.");
+                return GiveawayResult.FromError("Cannot choose any winners, because nobody entered the giveaway.");
             }
             else if (reactors.Length <= count)
             {
                 var winners = reactors.Select(x => x.Id)
                     .ToImmutableArray();
 
-                return new WinnersResult(winners);
+                return GiveawayResult.FromSuccess(winners);
             }
             else
             {
                 var winners = DetermineWinners(reactors, count);
 
-                return new WinnersResult(winners);
+                return GiveawayResult.FromSuccess(winners);
             }
         }
 
-        private async Task<ImmutableArray<IUser>> GetReactorsAsync(IUserMessage message)
-        {
-            var reactors = await message.GetReactionUsersAsync(_giveawayEmoji, int.MaxValue)
-                .FlattenAsync();
-
-            return reactors.Where(x => !x.IsBot)
+        private ImmutableArray<IUser> GetReactors(IUserMessage message)
+            => message.GetReactionUsersAsync(_giveawayEmoji, int.MaxValue)
+                .ToEnumerable()
+                .SelectMany(x => x
+                    .Where(y => !y.IsBot))
                 .ToImmutableArray();
-        }
 
         private ImmutableArray<ulong> DetermineWinners(ImmutableArray<IUser> reactors, int count)
         {
             Debug.Assert(reactors.Length > count);
 
-            var winners = new HashSet<ulong>();
-
-            while (winners.Count < count)
-            {
-                var winner = reactors[_random.Next(count)];
-                winners.Add(winner.Id);
-            }
-
-            return winners.ToImmutableArray();
+            return reactors
+                .OrderBy(_ => _random.Next())
+                .Take(count)
+                .Select(x => x.Id)
+                .ToImmutableArray();
         }
 
         private readonly IAuthorizationService _authorizationService;
