@@ -1,10 +1,11 @@
 ﻿using System.Threading.Tasks;
+
 using Discord;
 using Discord.WebSocket;
-using Modix.Data.Repositories;
-using Modix.Services.Core;
 
-namespace Modix.Services.Messages
+using Modix.Data.Repositories;
+
+namespace Modix.Services.Core
 {
     /// <summary>
     /// Describes a service that performs functions related to Discord messages.
@@ -20,7 +21,7 @@ namespace Modix.Services.Messages
         /// A <see cref="Task"/> that will complete when the operation completes,
         /// containing the message, if found, or <see langword="null"/> if not.
         /// </returns>
-        Task<IMessage> FindMessageInUnknownChannelAsync(ulong guildId, ulong messageId);
+        Task<IUserMessage> FindMessageAsync(ulong guildId, ulong messageId);
     }
 
     /// <inheritdoc />
@@ -37,7 +38,7 @@ namespace Modix.Services.Messages
         }
 
         /// <inheritdoc />
-        public async Task<IMessage> FindMessageInUnknownChannelAsync(ulong guildId, ulong messageId)
+        public async Task<IUserMessage> FindMessageAsync(ulong guildId, ulong messageId)
         {
             var guild = await _discordSocketClient.GetGuildAsync(guildId);
             var guildMessage = await _messageRepository.GetMessage(messageId);
@@ -45,7 +46,7 @@ namespace Modix.Services.Messages
             if (guildMessage is { })
             {
                 var channel = await guild.GetTextChannelAsync(guildMessage.ChannelId);
-                return await channel.GetMessageAsync(messageId);
+                return (await channel.GetMessageAsync(messageId)) as IUserMessage;
             }
 
             IMessage message = null;
@@ -69,7 +70,7 @@ namespace Modix.Services.Messages
                 }
             }
 
-            return message;
+            return message as IUserMessage;
         }
 
         private readonly IDiscordSocketClient _discordSocketClient;

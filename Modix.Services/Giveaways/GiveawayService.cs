@@ -2,7 +2,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-
+using System.Threading.Tasks;
 using Discord;
 
 using Modix.Data.Models.Core;
@@ -21,10 +21,11 @@ namespace Modix.Services.Giveaways
         /// <param name="message">The giveaway message that users reacted to.</param>
         /// <param name="count">The number of winners to return.</param>
         /// <returns>
-        /// A result type that indicates whether the operation succeeded,
+        /// A <see cref="Task"/> that will complete when the operation completes,
+        /// containing a result type that indicates whether the operation succeeded,
         /// including the results if so or an error message if not.
         /// </returns>
-        GiveawayResult GetWinners(IUserMessage message, int count);
+        Task<GiveawayResult> GetWinnersAsync(IUserMessage message, int count);
     }
 
     /// <inheritdoc />
@@ -36,7 +37,7 @@ namespace Modix.Services.Giveaways
         }
 
         /// <inheritdoc />
-        public GiveawayResult GetWinners(IUserMessage message, int count)
+        public async Task<GiveawayResult> GetWinnersAsync(IUserMessage message, int count)
         {
             _authorizationService.RequireClaims(AuthorizationClaim.ExecuteGiveaway);
 
@@ -50,7 +51,7 @@ namespace Modix.Services.Giveaways
                 return GiveawayResult.FromError($"You can only have a maximum of {MaximumWinners} winners per giveaway.");
             }
 
-            var reactors = GetReactors(message);
+            var reactors = await GetReactorsAsync(message);
 
             if (reactors.Length == 0)
             {
@@ -71,11 +72,10 @@ namespace Modix.Services.Giveaways
             }
         }
 
-        private ImmutableArray<IUser> GetReactors(IUserMessage message)
-            => message.GetReactionUsersAsync(_giveawayEmoji, int.MaxValue)
-                .ToEnumerable()
-                .SelectMany(x => x
-                    .Where(y => !y.IsBot))
+        private async Task<ImmutableArray<IUser>> GetReactorsAsync(IUserMessage message)
+            => (await message.GetReactionUsersAsync(_giveawayEmoji, int.MaxValue)
+                .FlattenAsync())
+                .Where(y => !y.IsBot)
                 .ToImmutableArray();
 
         private ImmutableArray<ulong> DetermineWinners(ImmutableArray<IUser> reactors, int count)

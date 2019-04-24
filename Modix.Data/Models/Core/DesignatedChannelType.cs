@@ -29,6 +29,7 @@
         /// Defines a channel to which starred messages are sent.
         /// </summary>
         Starboard,
+        /// <summary>
         /// Defines a channel that should be included when calculating user participation.
         /// </summary>
         CountsTowardsParticipation,

@@ -26,7 +26,6 @@ using Modix.Services.Giveaways;
 using Modix.Services.GuildStats;
 using Modix.Services.Images;
 using Modix.Services.Mentions;
-using Modix.Services.Messages;
 using Modix.Services.Moderation;
 using Modix.Services.PopularityContest;
 using Modix.Services.Promotions;
@@ -117,8 +116,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddAutoRemoveMessage()
                 .AddEmojiStats()
                 .AddImages()
-                .AddGiveaways()
-                .AddMessages();
+                .AddGiveaways();
 
             services.AddScoped<IQuoteService, QuoteService>();
             services.AddSingleton<IBehavior, MessageLinkBehavior>();

@@ -4,6 +4,7 @@ using Discord;
 using Discord.Commands;
 
 using Humanizer;
+
 using Modix.Data.Models.Core;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
@@ -31,19 +32,11 @@ namespace Modix.Bot.Modules
         [Summary("Randomly chooses a winner for the supplied giveaway.")]
         public async Task ChooseAsync(
             [Summary("The giveaway message from which users will be drawn.")]
-                IMessage message,
+                IUserMessage message,
             [Summary("How many winners to choose.")]
                 int count = 1)
         {
-            var userMessage = message as IUserMessage;
-
-            if (userMessage is null)
-            {
-                await ReplyAsync($"Message {message.Id} is not a valid giveaway message.");
-                return;
-            }
-
-            var winnersResult = _giveawayService.GetWinners(userMessage, count);
+            var winnersResult = await _giveawayService.GetWinnersAsync(message, count);
 
             if (winnersResult.IsError)
             {

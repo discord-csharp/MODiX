@@ -2,7 +2,7 @@
 
 namespace Modix.Services.Giveaways
 {
-    public class GiveawayResult
+    public struct GiveawayResult
     {
         public static GiveawayResult FromSuccess(ImmutableArray<ulong> winnerIds)
             => new GiveawayResult() { WinnerIds = winnerIds };
