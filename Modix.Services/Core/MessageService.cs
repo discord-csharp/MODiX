@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 
 using Discord;
 using Discord.WebSocket;
@@ -21,7 +22,7 @@ namespace Modix.Services.Core
         /// A <see cref="Task"/> that will complete when the operation completes,
         /// containing the message, if found, or <see langword="null"/> if not.
         /// </returns>
-        Task<IUserMessage> FindMessageAsync(ulong guildId, ulong messageId);
+        Task<IMessage> FindMessageAsync(ulong guildId, ulong messageId);
     }
 
     /// <inheritdoc />
@@ -38,39 +39,38 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task<IUserMessage> FindMessageAsync(ulong guildId, ulong messageId)
+        public async Task<IMessage> FindMessageAsync(ulong guildId, ulong messageId)
         {
-            var guild = await _discordSocketClient.GetGuildAsync(guildId);
-            var guildMessage = await _messageRepository.GetMessage(messageId);
+            var guild = _discordSocketClient.GetGuild(guildId);
+            var trackedMessage = await _messageRepository.GetMessage(messageId);
 
-            if (guildMessage is { })
-            {
-                var channel = await guild.GetTextChannelAsync(guildMessage.ChannelId);
-                return (await channel.GetMessageAsync(messageId)) as IUserMessage;
-            }
+            var selfGuildUser = guild.GetUser(
+                (await _selfUserProvider.GetSelfUserAsync())
+                    .Id);
 
-            IMessage message = null;
+            var channels = guild.TextChannels
+                .AsEnumerable();
 
-            // We haven't found a message, now fetch all text
-            // channels and attempt to find the message
+            // If we've tracked the message, lookup the channel, and check that one first.
+            if (trackedMessage is { })
+                channels = channels
+                    .Where(x => x.Id != trackedMessage.ChannelId)
+                    .Prepend(guild.GetTextChannel(trackedMessage.ChannelId));
 
-            var channels = await guild.GetTextChannelsAsync();
-
-            var selfUser = await _selfUserProvider.GetSelfUserAsync();
-            var selfGuildUser = await guild.GetUserAsync(selfUser.Id);
-
+            // Search through all available channels to find the message.
             foreach (var channel in channels)
             {
-                if (selfGuildUser.GetPermissions(channel).ReadMessageHistory)
-                {
-                    message = await channel.GetMessageAsync(messageId);
+                // Only try and download the message if we have permissions to
+                var message = selfGuildUser.GetPermissions(channel).ReadMessageHistory
+                    ? await channel.GetMessageAsync(messageId)
+                    : channel.GetCachedMessage(messageId);
 
-                    if (message is { })
-                        break;
-                }
+                if (message is { })
+                    return message;
             }
 
-            return message as IUserMessage;
+            // If we made it here, we couldn't find the message.
+            return null;
         }
 
         private readonly IDiscordSocketClient _discordSocketClient;

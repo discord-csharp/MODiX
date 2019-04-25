@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 
 using Modix;
 using Modix.Behaviors;
+using Modix.Bot;
 using Modix.Bot.Behaviors;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
@@ -94,7 +95,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                     service.AddTypeReader<IEmote>(new EmoteTypeReader());
                     service.AddTypeReader<DiscordUserEntity>(new UserEntityTypeReader());
-                    service.AddTypeReader<IMessage>(new MessageTypeReader(), true);
+                    service.AddTypeReader<AnyGuildMessage<IUserMessage>>(new AnyGuildMessageTypeReader<IUserMessage>());
 
                     return service;
                 })
