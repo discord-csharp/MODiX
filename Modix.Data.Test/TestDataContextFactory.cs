@@ -46,6 +46,10 @@ namespace Modix.Data.Test
                     x => x.TagActions,
                     x => x.Id);
 
+                modixContext.ResetSequenceToMaxValue(
+                    x => x.Emoji,
+                    x => x.Id);
+
                 modixContext.SaveChanges();
                 modixContext.ClearReceivedCalls();
             }

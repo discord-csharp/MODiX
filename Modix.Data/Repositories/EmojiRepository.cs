@@ -58,28 +58,6 @@ namespace Modix.Data.Repositories
         Task DeleteAsync(EmojiSearchCriteria criteria);
 
         /// <summary>
-        /// Returns the number of times emoji matching the specified criteria occurred.
-        /// </summary>
-        /// <param name="criteria">The criteria for the emoji to be counted.</param>
-        /// <exception cref="ArgumentNullException">Throws for <paramref name="criteria"/>.</exception>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing a dictionary of emoji and their counts.
-        /// </returns>
-        Task<IReadOnlyDictionary<EphemeralEmoji, int>> GetCountsAsync(EmojiSearchCriteria criteria);
-
-        /// <summary>
-        /// Searches the emoji logs for emoji records matching the supplied criteria.
-        /// </summary>
-        /// <param name="criteria">The criteria with which to filter the emoji returned.</param>
-        /// <exception cref="ArgumentNullException">Throws for <paramref name="criteria"/>.</exception>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing a collection of emoji meeting the supplied criteria.
-        /// </returns>
-        Task<IReadOnlyCollection<EmojiSummary>> SearchSummariesAsync(EmojiSearchCriteria criteria);
-
-        /// <summary>
         /// Retrieves statistics for a single emoji.
         /// </summary>
         /// <param name="guildId">The Discord snowflake ID of the guild to retrieve statistics from.</param>
@@ -176,52 +154,11 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyDictionary<EphemeralEmoji, int>> GetCountsAsync(EmojiSearchCriteria criteria)
-        {
-            if (criteria is null)
-                throw new ArgumentNullException(nameof(criteria));
-
-            var emoji = await ModixContext.Emoji.AsNoTracking()
-                .FilterBy(criteria)
-                .GroupBy(x => new
-                {
-                    x.EmojiId,
-                    EmojiName = x.EmojiId == null
-                        ? x.EmojiName
-                        : null
-                },
-                x => new { x.EmojiId, x.EmojiName, x.IsAnimated, x.Timestamp })
-                .ToArrayAsync();
-
-            var counts = emoji.ToDictionary(
-                x =>
-                {
-                    var mostRecentEmoji = x.OrderByDescending(y => y.Timestamp).First();
-                    return EphemeralEmoji.FromRawData(mostRecentEmoji.EmojiName, mostRecentEmoji.EmojiId, mostRecentEmoji.IsAnimated);
-                },
-                x => x.Count());
-
-            return counts;
-        }
-
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<EmojiSummary>> SearchSummariesAsync(EmojiSearchCriteria criteria)
-        {
-            if (criteria is null)
-                throw new ArgumentNullException(nameof(criteria));
-
-            var emoji = await ModixContext.Emoji.AsNoTracking()
-                .FilterBy(criteria)
-                .AsExpandable()
-                .Select(EmojiSummary.FromEntityProjection)
-                .ToArrayAsync();
-
-            return emoji;
-        }
-
-        /// <inheritdoc />
         public async Task<SingleEmojiUsageStatistics> GetEmojiStatsAsync(ulong guildId, EphemeralEmoji emoji, TimeSpan? dateFilter = null)
         {
+            if (emoji is null)
+                throw new ArgumentNullException(nameof(emoji));
+
             var query = GetQuery();
             var parameters = GetParameters();
 
