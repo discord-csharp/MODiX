@@ -22,6 +22,7 @@ using Modix.Services.Core;
 using Modix.Services.Csharp;
 using Modix.Services.DocsMaster;
 using Modix.Services.EmojiStats;
+using Modix.Services.Giveaways;
 using Modix.Services.GuildStats;
 using Modix.Services.Images;
 using Modix.Services.Mentions;
@@ -93,6 +94,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                     service.AddTypeReader<IEmote>(new EmoteTypeReader());
                     service.AddTypeReader<DiscordUserEntity>(new UserEntityTypeReader());
+                    service.AddTypeReader<IMessage>(new MessageTypeReader(), true);
 
                     return service;
                 })
@@ -113,7 +115,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddStarboard()
                 .AddAutoRemoveMessage()
                 .AddEmojiStats()
-                .AddImages();
+                .AddImages()
+                .AddGiveaways();
 
             services.AddScoped<IQuoteService, QuoteService>();
             services.AddSingleton<IBehavior, MessageLinkBehavior>();
