@@ -52,6 +52,9 @@ namespace Modix.Data.Models.Core
 
             modelBuilder.Entity<MessageEntity>()
                 .HasIndex(x => new { x.GuildId, x.AuthorId });
+
+            modelBuilder.Entity<MessageEntity>()
+                .HasIndex(x => x.Timestamp);
         }
     }
 }

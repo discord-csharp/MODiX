@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Rest;
+
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 
@@ -90,10 +91,12 @@ namespace Modix.Services.Core
         public async Task<bool> GuildUserExistsAsync(ulong guildId, ulong userId)
         {
             var guild = await DiscordClient.GetGuildAsync(guildId);
-            if (guild == null) { return false; }
+            if (guild == null)
+            { return false; }
 
             var user = await guild.GetUserAsync(userId);
-            if (user == null) { return false; }
+            if (user == null)
+            { return false; }
 
             await TrackUserAsync(user);
 
@@ -128,17 +131,24 @@ namespace Modix.Services.Core
             if (userId == 0)
                 return null;
 
-            var guild = await DiscordClient.GetGuildAsync(guildId);
-            var guildUser = await guild.GetUserAsync(userId);
+            var guildTask = DiscordClient.GetGuildAsync(guildId);
+            var userTask = DiscordClient.GetUserAsync(userId);
+            var restUserTask = DiscordRestClient.GetUserAsync(userId);
+            var guildUserSummaryTask = GetGuildUserSummaryAsync(guildId, userId);
 
-            if (!(guildUser is null))
+            var guild = await guildTask;
+
+            var guildUserTask = guild.GetUserAsync(userId);
+            var bansTask = guild.GetBansAsync();
+
+            var user = await userTask;
+            var restUser = await restUserTask;
+            var guildUserSummary = await guildUserSummaryTask;
+            var ban = (await bansTask).FirstOrDefault(x => x.User.Id == userId);
+            var guildUser = await guildUserTask;
+
+            if (guildUser is {})
                 await TrackUserAsync(guildUser);
-
-            var user = await DiscordClient.GetUserAsync(userId);
-            var restUser = await DiscordRestClient.GetUserAsync(userId);
-            var guildUserSummary = await GetGuildUserSummaryAsync(guildId, userId);
-
-            var ban = (await guild.GetBansAsync()).FirstOrDefault(x => x.User.Id == userId);
 
             var buildUser = new EphemeralUser()
                 .WithGuildUserSummaryData(guildUserSummary)

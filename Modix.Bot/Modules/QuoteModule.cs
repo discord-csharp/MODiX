@@ -44,7 +44,7 @@ namespace Modix.Modules
             }
             catch (Exception e)
             {
-                Log.Error(e, "Failed fetching message for Quote command, ran by {User} with a Message ID of {MessageId}", 
+                Log.Error(e, "Failed fetching message for Quote command, ran by {User} with a Message ID of {MessageId}",
                     Context.User.Mention, messageId);
             }
 
@@ -66,7 +66,7 @@ namespace Modix.Modules
             }
             catch (Exception e)
             {
-                Log.Error(e, "Failed fetching message for Quote command, ran by {User} with a Message ID of {MessageId} for channel {Channel}", 
+                Log.Error(e, "Failed fetching message for Quote command, ran by {User} with a Message ID of {MessageId} for channel {Channel}",
                     Context.User.Mention, messageId, channel.Name);
             }
 
@@ -136,7 +136,7 @@ namespace Modix.Modules
         private Task<IMessage> GetMessage(ulong messageId, ITextChannel channel)
             => GetMessageInChannel(messageId, channel);
 
-        private static Task<IMessage> GetMessageInChannel(ulong messageId, ITextChannel channel) 
+        private static Task<IMessage> GetMessageInChannel(ulong messageId, ITextChannel channel)
             => channel.GetMessageAsync(messageId);
 
         private Task ReplyFailure() => ReplyAsync($"I couldn't find the message you're referring to {Context.User.Mention}");

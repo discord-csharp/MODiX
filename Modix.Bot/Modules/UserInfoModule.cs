@@ -1,8 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
@@ -14,6 +13,8 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Modix.Bot.Extensions;
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
+using Modix.Data.Models.Emoji;
+using Modix.Data.Models.Promotions;
 using Modix.Data.Repositories;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
@@ -87,14 +88,41 @@ namespace Modix.Modules
 
             var builder = new StringBuilder();
             builder.AppendLine("**\u276F User Information**");
-            builder.AppendLine("ID: " + userInfo.Id);
-            builder.AppendLine("Profile: " + MentionUtils.MentionUser(userInfo.Id));
+            builder.AppendLine("ID: " + user.Id);
+            builder.AppendLine("Profile: " + MentionUtils.MentionUser(user.Id));
+
+            var embedBuilder = new EmbedBuilder()
+                .WithUserAsAuthor(userInfo)
+                .WithTimestamp(_utcNow);
+
+            var avatar = userInfo.GetDefiniteAvatarUrl();
+
+            embedBuilder.ThumbnailUrl = avatar;
+            embedBuilder.Author.IconUrl = avatar;
+
+            ValueTask<Color> colorTask = default;
+
+            if ((userInfo.GetAvatarUrl(size: 16) ?? userInfo.GetDefaultAvatarUrl()) is { } avatarUrl)
+            {
+                colorTask = _imageService.GetDominantColorAsync(new Uri(avatarUrl));
+            }
+
+            var moderationReadTask = _authorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead);
+            var userRankTask = _messageRepository.GetGuildUserParticipationStatistics(Context.Guild.Id, user.Id);
+            var messagesByDateTask = _messageRepository.GetGuildUserMessageCountByDate(Context.Guild.Id, user.Id, TimeSpan.FromDays(30));
+            var messageCountsByChannelTask = _messageRepository.GetGuildUserMessageCountByChannel(Context.Guild.Id, user.Id, TimeSpan.FromDays(30));
+            var emojiCountsTask = _emojiRepository.GetEmojiStatsAsync(Context.Guild.Id, SortDirection.Ascending, 1, userId: user.Id);
+            var promotionsTask = _promotionsService.GetPromotionsForUserAsync(Context.Guild.Id, user.Id);
+
+            embedBuilder.WithColor(await colorTask);
+
+            var moderationRead = await moderationReadTask;
 
             if (userInfo.IsBanned)
             {
                 builder.AppendLine("Status: **Banned** \\🔨");
 
-                if (await _authorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
+                if (moderationRead)
                 {
                     builder.AppendLine($"Ban Reason: {userInfo.BanReason}");
                 }
@@ -112,26 +140,17 @@ namespace Modix.Modules
 
             try
             {
-                await AddParticipationToEmbedAsync(user.Id, builder);
+                await AddParticipationToEmbedAsync(user.Id, builder, await userRankTask, await messagesByDateTask, await messageCountsByChannelTask, await emojiCountsTask);
             }
             catch (Exception ex)
             {
                 _log.LogError(ex, "An error occured while retrieving a user's message count.");
             }
 
-            var embedBuilder = new EmbedBuilder()
-                .WithUserAsAuthor(userInfo)
-                .WithTimestamp(_utcNow);
+            AddMemberInformationToEmbed(userInfo, builder);
+            AddPromotionsToEmbed(builder, await promotionsTask);
 
-            var avatar = userInfo.GetDefiniteAvatarUrl();
-
-            embedBuilder.ThumbnailUrl = avatar;
-            embedBuilder.Author.IconUrl = avatar;
-
-            await AddMemberInformationToEmbedAsync(userInfo, builder, embedBuilder);
-            await AddPromotionsToEmbedAsync(user.Id, builder);
-
-            if (await _authorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead))
+            if (moderationRead)
             {
                 await AddInfractionsToEmbedAsync(user.Id, builder);
             }
@@ -141,10 +160,10 @@ namespace Modix.Modules
             timer.Stop();
             embedBuilder.WithFooter(footer => footer.Text = $"Completed after {timer.ElapsedMilliseconds} ms");
 
-            await ReplyAsync(string.Empty, embed: embedBuilder.Build());
+            await ReplyAsync(embed: embedBuilder.Build());
         }
 
-        private async Task AddMemberInformationToEmbedAsync(EphemeralUser member, StringBuilder builder, EmbedBuilder embedBuilder)
+        private void AddMemberInformationToEmbed(EphemeralUser member, StringBuilder builder)
         {
             builder.AppendLine();
             builder.AppendLine("**\u276F Member Information**");
@@ -176,12 +195,6 @@ namespace Modix.Modules
                     builder.AppendLine(roles.Select(r => r.Mention).Humanize());
                 }
             }
-
-            if ((member.GetAvatarUrl(size: 16) ?? member.GetDefaultAvatarUrl()) is string avatarUrl)
-            {
-                var color = await _imageService.GetDominantColorAsync(new Uri(avatarUrl));
-                embedBuilder.WithColor(color);
-            }
         }
 
         private async Task AddInfractionsToEmbedAsync(ulong userId, StringBuilder builder)
@@ -200,11 +213,14 @@ namespace Modix.Modules
             }
         }
 
-        private async Task AddParticipationToEmbedAsync(ulong userId, StringBuilder builder)
+        private async Task AddParticipationToEmbedAsync(
+            ulong userId,
+            StringBuilder builder,
+            GuildUserParticipationStatistics userRank,
+            IReadOnlyDictionary<DateTime, int> messagesByDate,
+            IReadOnlyDictionary<ulong, int> messageCountsByChannel,
+            IReadOnlyCollection<EmojiUsageStatistics> emojiCounts)
         {
-            var userRank = await _messageRepository.GetGuildUserParticipationStatistics(Context.Guild.Id, userId);
-            var messagesByDate = await _messageRepository.GetGuildUserMessageCountByDate(Context.Guild.Id, userId, TimeSpan.FromDays(30));
-
             var lastWeek = _utcNow - TimeSpan.FromDays(7);
 
             var weekTotal = 0;
@@ -246,9 +262,7 @@ namespace Modix.Modules
 
                 try
                 {
-                    var channels = await _messageRepository.GetGuildUserMessageCountByChannel(Context.Guild.Id, userId, TimeSpan.FromDays(30));
-
-                    foreach (var kvp in channels.OrderByDescending(x => x.Value))
+                    foreach (var kvp in messageCountsByChannel.OrderByDescending(x => x.Value))
                     {
                         var channel = await Context.Guild.GetChannelAsync(kvp.Key);
 
@@ -264,8 +278,6 @@ namespace Modix.Modules
                     _log.LogDebug(ex, "Unable to get the most active channel for {UserId}.", userId);
                 }
             }
-
-            var emojiCounts = await _emojiRepository.GetEmojiStatsAsync(Context.Guild.Id, SortDirection.Ascending, 1, userId: userId);
 
             if (emojiCounts.Any())
             {
@@ -301,10 +313,8 @@ namespace Modix.Modules
             return string.Empty;
         }
 
-        private async Task AddPromotionsToEmbedAsync(ulong userId, StringBuilder builder)
+        private void AddPromotionsToEmbed(StringBuilder builder, IReadOnlyCollection<PromotionCampaignSummary> promotions)
         {
-            var promotions = await _promotionsService.GetPromotionsForUserAsync(Context.Guild.Id, userId);
-
             if (promotions.Count == 0)
                 return;
 

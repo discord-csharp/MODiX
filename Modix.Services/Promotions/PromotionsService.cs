@@ -148,7 +148,7 @@ namespace Modix.Services.Promotions
 
             var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
             var subject = await UserService.GetGuildUserAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
-            
+
             if (!TryGetNextRankRoleForUser(subjectId, rankRoles, subject, out var nextRankRole, out var message))
                 throw new InvalidOperationException(message);
 
