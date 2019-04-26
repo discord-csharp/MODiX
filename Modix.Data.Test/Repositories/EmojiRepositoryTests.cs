@@ -263,12 +263,12 @@ namespace Modix.Data.Test.Repositories
 
         #region Single GetEmojiStatsAsync() Tests
 
-        [TestCaseSource(nameof(ExceptionSingleEmojiStatsTestCases))]
-        public async Task SingleGetEmojiStatsAsync_CriteriaIsInvalid_Throws(ulong guildId, EphemeralEmoji emoji, TimeSpan? dateFilter, Type exceptionType)
+        [Test]
+        public async Task SingleGetEmojiStatsAsync_CriteriaIsInvalid_Throws()
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            await Should.ThrowAsync(() => uut.GetEmojiStatsAsync(guildId, emoji, dateFilter), exceptionType);
+            await Should.ThrowAsync<ArgumentNullException>(() => uut.GetEmojiStatsAsync(1, null));
         }
 
         #endregion Single GetEmojiStatsAsync() Tests
@@ -293,21 +293,6 @@ namespace Modix.Data.Test.Repositories
         public static readonly IEnumerable<TestCaseData> ValidDeleteTestCases
             = Deletions.ValidDeletions
                 .Select(x => new TestCaseData(x.Criteria, x.DeletedCount)
-                    .SetName($"{{m}}({x.TestName})"));
-
-        public static readonly IEnumerable<TestCaseData> ExceptionSingleEmojiStatsTestCases
-            = SingleEmoji.Exceptions
-                .Select(x => new TestCaseData(x.GuildId, x.Emoji, x.DateFilter, x.ExceptionType)
-                    .SetName($"{{m}}({x.TestName})"));
-
-        public static readonly IEnumerable<TestCaseData> NonexistentSingleEmojiStatsTestCases
-            = SingleEmoji.Nonexistent
-                .Select(x => new TestCaseData(x.GuildId, x.Emoji, x.DateFilter)
-                    .SetName($"{{m}}({x.TestName})"));
-
-        public static readonly IEnumerable<TestCaseData> ValidSingleEmojiStatsTestCases
-            = SingleEmoji.Valid
-                .Select(x => new TestCaseData(x.GuildId, x.Emoji, x.DateFilter, x.Result)
                     .SetName($"{{m}}({x.TestName})"));
 
         #endregion Test Data
