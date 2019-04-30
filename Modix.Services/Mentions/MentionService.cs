@@ -16,6 +16,14 @@ namespace Modix.Services.Mentions
         /// <param name="role">The role to mention</param>
         /// <param name="channel">The channel to mention in</param>
         Task MentionRoleAsync(IRole role, IMessageChannel channel);
+
+        /// <summary>
+        /// Mentions the given role in the given channel
+        /// </summary>
+        /// <param name="role">The role to mention</param>
+        /// <param name="channel">The channel to mention in</param>
+        /// <param name="message">The message to send alongside the mention</param>
+        Task MentionRoleAsync(IRole role, IMessageChannel channel, string message);
     }
 
     /// <inheritdoc />
@@ -33,6 +41,10 @@ namespace Modix.Services.Mentions
 
         /// <inheritdoc />
         public async Task MentionRoleAsync(IRole role, IMessageChannel channel)
+            => await MentionRoleAsync(role, channel, string.Empty);
+
+        /// <inheritdoc />
+        public async Task MentionRoleAsync(IRole role, IMessageChannel channel, string message)
         {
             if (role is null)
                 throw new ArgumentNullException(nameof(role));
@@ -40,7 +52,7 @@ namespace Modix.Services.Mentions
             if (channel is null)
                 throw new ArgumentNullException(nameof(channel));
 
-            if (role.IsMentionable)
+            if (role.IsMentionable && string.IsNullOrWhiteSpace(message))
             {
                 await channel.SendMessageAsync($"You can do that yourself - but fine: {role.Mention}");
                 return;
@@ -62,7 +74,7 @@ namespace Modix.Services.Mentions
             //Make sure we set the role to unmentionable again no matter what
             try
             {
-                await channel.SendMessageAsync(role.Mention);
+                await channel.SendMessageAsync($"{role.Mention} {message}");
             }
             finally
             {
