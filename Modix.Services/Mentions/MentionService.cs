@@ -15,7 +15,7 @@ namespace Modix.Services.Mentions
         /// </summary>
         /// <param name="role">The role to mention</param>
         /// <param name="channel">The channel to mention in</param>
-        Task MentionRoleAsync(IRole role, IMessageChannel channel);
+        Task<bool> MentionRoleAsync(IRole role, IMessageChannel channel);
 
         /// <summary>
         /// Mentions the given role in the given channel
@@ -23,7 +23,7 @@ namespace Modix.Services.Mentions
         /// <param name="role">The role to mention</param>
         /// <param name="channel">The channel to mention in</param>
         /// <param name="message">The message to send alongside the mention</param>
-        Task MentionRoleAsync(IRole role, IMessageChannel channel, string message);
+        Task<bool> MentionRoleAsync(IRole role, IMessageChannel channel, string message);
     }
 
     /// <inheritdoc />
@@ -40,11 +40,11 @@ namespace Modix.Services.Mentions
         }
 
         /// <inheritdoc />
-        public async Task MentionRoleAsync(IRole role, IMessageChannel channel)
+        public async Task<bool> MentionRoleAsync(IRole role, IMessageChannel channel)
             => await MentionRoleAsync(role, channel, string.Empty);
 
         /// <inheritdoc />
-        public async Task MentionRoleAsync(IRole role, IMessageChannel channel, string message)
+        public async Task<bool> MentionRoleAsync(IRole role, IMessageChannel channel, string message)
         {
             if (role is null)
                 throw new ArgumentNullException(nameof(role));
@@ -52,10 +52,10 @@ namespace Modix.Services.Mentions
             if (channel is null)
                 throw new ArgumentNullException(nameof(channel));
 
-            if (role.IsMentionable && string.IsNullOrWhiteSpace(message))
+            if (role.IsMentionable)
             {
                 await channel.SendMessageAsync($"You can do that yourself - but fine: {role.Mention}");
-                return;
+                return true;
             }
 
             AuthorizationService.RequireClaims(AuthorizationClaim.MentionRestrictedRole);
@@ -63,7 +63,7 @@ namespace Modix.Services.Mentions
             if (await DesignatedRoleService.RoleHasDesignationAsync(role.Guild.Id, role.Id, DesignatedRoleType.RestrictedMentionability) == false)
             {
                 await channel.SendMessageAsync($"Sorry, **{role.Name}** hasn't been designated as mentionable.");
-                return;
+                return false;
             }
 
             //Set the role to mentionable, immediately mention it, then set it
@@ -80,6 +80,8 @@ namespace Modix.Services.Mentions
             {
                 await role.ModifyAsync(x => x.Mentionable = false);
             }
+
+            return true;
         }
 
         /// <summary>

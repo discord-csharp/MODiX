@@ -26,10 +26,11 @@ namespace Modix.Bot.Modules
             string message)
         {
             // Send message
-            await _mentionService.MentionRoleAsync(role, Context.Channel, message);
-
-            // Clean up
-            await Context.Message.DeleteAsync();
+            if (await _mentionService.MentionRoleAsync(role, Context.Channel, message))
+            {
+                // Clean up
+                await Context.Message.DeleteAsync();
+            }
         }
     }
 }

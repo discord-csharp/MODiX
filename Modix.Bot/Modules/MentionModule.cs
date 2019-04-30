@@ -31,9 +31,9 @@ namespace Modix.Bot.Modules
         public async Task MentionAsync(
             [Summary("The role that the user is attempting to mention.")]
             IRole role,
-            [Summary("The message that is being sent with the mention.")] [Remainder]
+            [Remainder, Summary("The message that is being sent with the mention. Note, this is ignored by the command.")]
             string message)
-            => await MentionService.MentionRoleAsync(role, Context.Channel, message);
+            => await MentionService.MentionRoleAsync(role, Context.Channel);
 
         internal protected IMentionService MentionService { get; }
     }
