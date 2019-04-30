@@ -6,7 +6,7 @@ using Modix.Services.Mentions;
 
 namespace Modix.Bot.Modules
 {
-    [Name("announce")]
+    [Name("Announcements")]
     [Summary("Makes an announcement")]
     [HelpTags("announce", "$")]
     public class AnnounceModule : ModuleBase
@@ -18,9 +18,9 @@ namespace Modix.Bot.Modules
             _mentionService = mentionService;
         }
 
-        [Command]
+        [Command("announce")]
         [Alias("$")]
-        [Summary("Makes an announcement in the currnet channel")]
+        [Summary("Makes an announcement in the current channel")]
         public async Task MakeAnnouncementAsync([Summary("The role to mention")] IRole role,
             [Remainder, Summary("The message to send as part of the announcement.")]
             string message)
