@@ -22,7 +22,8 @@ namespace Modix.Bot.Modules
         [Alias("$")]
         [Summary("Makes an announcement in the current channel")]
         public async Task MakeAnnouncementAsync([Summary("The role to mention")] IRole role,
-            [Remainder, Summary("The message to send as part of the announcement.")]
+            [Summary("The message to send as part of the announcement.")]
+            [Remainder]
             string message)
         {
             // Send message
