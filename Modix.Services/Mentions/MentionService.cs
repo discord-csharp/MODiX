@@ -15,15 +15,8 @@ namespace Modix.Services.Mentions
         /// </summary>
         /// <param name="role">The role to mention</param>
         /// <param name="channel">The channel to mention in</param>
-        Task<bool> MentionRoleAsync(IRole role, IMessageChannel channel);
-
-        /// <summary>
-        /// Mentions the given role in the given channel
-        /// </summary>
-        /// <param name="role">The role to mention</param>
-        /// <param name="channel">The channel to mention in</param>
         /// <param name="message">The message to send alongside the mention</param>
-        Task<bool> MentionRoleAsync(IRole role, IMessageChannel channel, string message);
+        Task<bool> MentionRoleAsync(IRole role, IMessageChannel channel, string message = null);
     }
 
     /// <inheritdoc />
@@ -40,17 +33,16 @@ namespace Modix.Services.Mentions
         }
 
         /// <inheritdoc />
-        public async Task<bool> MentionRoleAsync(IRole role, IMessageChannel channel)
-            => await MentionRoleAsync(role, channel, string.Empty);
-
-        /// <inheritdoc />
-        public async Task<bool> MentionRoleAsync(IRole role, IMessageChannel channel, string message)
+        public async Task<bool> MentionRoleAsync(IRole role, IMessageChannel channel, string message = null)
         {
             if (role is null)
                 throw new ArgumentNullException(nameof(role));
 
             if (channel is null)
                 throw new ArgumentNullException(nameof(channel));
+
+            if (message is null)
+                message = string.Empty;
 
             if (role.IsMentionable)
             {
