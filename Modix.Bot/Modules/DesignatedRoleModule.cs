@@ -38,7 +38,7 @@ namespace Modix.Modules
             var url = new UriBuilder(Config.WebsiteBaseUrl)
             {
                 Path = "/config/roles"
-            }.ToString();
+            }.ToString(true);
 
             var builder = new EmbedBuilder()
             {

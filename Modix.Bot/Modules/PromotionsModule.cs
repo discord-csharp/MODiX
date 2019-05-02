@@ -44,7 +44,7 @@ namespace Modix.Modules
             var url = new UriBuilder(Config.WebsiteBaseUrl)
             {
                 Path = "/promotions"
-            }.ToString();
+            }.ToString(true);
 
             var embed = new EmbedBuilder()
             {

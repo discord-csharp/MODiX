@@ -37,7 +37,7 @@ namespace Modix.Modules
             var url = new UriBuilder(Config.WebsiteBaseUrl)
             {
                 Path = "/commands"
-            }.ToString().Replace(":80", "").Replace(":443", "");
+            }.ToString(true);
 
             var descriptionBuilder = new StringBuilder()
                 .AppendLine("Modules:")

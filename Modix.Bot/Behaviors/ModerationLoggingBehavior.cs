@@ -8,6 +8,7 @@ using Discord;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Modix.Bot.Extensions;
 using Modix.Common;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
@@ -105,7 +106,7 @@ namespace Modix.Behaviors
         {
             Path = "/logs/deletedMessages",
             Query = "batchId={14}"
-        }.ToString().Replace(":80", "").Replace(":443", "");
+        }.ToString(true);
 
         private static readonly Dictionary<(ModerationActionType, InfractionType?), string> _renderTemplates
             = new Dictionary<(ModerationActionType, InfractionType?), string>()

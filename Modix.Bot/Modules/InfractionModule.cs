@@ -77,7 +77,7 @@ namespace Modix.Modules
             {
                 Path = "/infractions",
                 Query = $"subject={subject.UserId}"
-            }.ToString();
+            }.ToString(true);
 
             var builder = new EmbedBuilder()
                 .WithTitle($"Infractions for user: {subject.GetFullUsername()}")
