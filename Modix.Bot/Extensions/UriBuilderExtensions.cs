@@ -5,10 +5,8 @@ namespace Modix.Bot.Extensions
     public static class UriBuilderExtensions
     {
         /// <summary>
-        /// Returns the display string for the specified <see cref="UriBuilder"/> instance.
+        /// Removes the port specification from the builder if it's the default port for the specified scheme.
         /// </summary>
-        /// <param name="trimDefaultPort">True to trim the default port; otherwise false.</param>
-        /// <remarks>If <param name="trimDefaultPort" /> is false, the result is the same as running <see cref="UriBuilder.ToString"/>.</remarks>
         /// <returns>The UriBuilder instance for command chaining.</returns>
         public static UriBuilder RemoveDefaultPort(this UriBuilder builder)
         {
