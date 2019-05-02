@@ -8,5 +8,6 @@
   "StackoverflowToken": "",
   "MessageCacheSize": "",
   "ReplUrl": "",
-  "IlUrl":  ""
+  "IlUrl": "",
+  "WebsiteBaseUrl": ""
 }

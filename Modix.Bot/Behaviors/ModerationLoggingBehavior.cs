@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
 using Discord;
 
 using Microsoft.Extensions.DependencyInjection;
-
+using Microsoft.Extensions.Options;
+using Modix.Common;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Repositories;
@@ -24,10 +26,15 @@ namespace Modix.Behaviors
         /// <summary>
         /// Constructs a new <see cref="ModerationLoggingBehavior"/> object, with injected dependencies.
         /// </summary>
-        public ModerationLoggingBehavior(IServiceProvider serviceProvider, IDiscordClient discordClient, IDesignatedChannelService designatedChannelService)
+        public ModerationLoggingBehavior(
+            IServiceProvider serviceProvider,
+            IDiscordClient discordClient,
+            IDesignatedChannelService designatedChannelService,
+            IOptions<ModixConfig> config)
         {
             DiscordClient = discordClient;
             DesignatedChannelService = designatedChannelService;
+            Config = config.Value;
 
             _lazyModerationService = new Lazy<IModerationService>(() => serviceProvider.GetRequiredService<IModerationService>());
         }
@@ -91,6 +98,14 @@ namespace Modix.Behaviors
             => _lazyModerationService.Value;
         private readonly Lazy<IModerationService> _lazyModerationService;
 
+        internal static protected ModixConfig Config { get; private set; }
+
+        private static string _batchDeletedUrl = new UriBuilder(Config.WebsiteBaseUrl)
+        {
+            Path = "/logs/deletedMessages",
+            Query = "batchId={14}"
+        }.ToString().Replace(":80", "").Replace(":443", "");
+
         private static readonly Dictionary<(ModerationActionType, InfractionType?), string> _renderTemplates
             = new Dictionary<(ModerationActionType, InfractionType?), string>()
             {
@@ -105,7 +120,7 @@ namespace Modix.Behaviors
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Mute),    "`[{0}]` **{1}** deleted a mute (`{2}`) for **{3}** (`{4}`)" },
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Ban),     "`[{0}]` **{1}** deleted a ban (`{2}`) for **{3}** (`{4}`)" },
                 { (ModerationActionType.MessageDeleted,      null),                   "`[{0}]` **{1}** deleted the following message (`{6}`) from **{7}** (`{8}`) in **#{9}** ```\n{12}``` for reason ```\n{11}```" },
-                { (ModerationActionType.MessageBatchDeleted, null),                   "`[{0}]` **{1}** deleted **{13}** messages in **#{9}** (<https://mod.gg/logs/deletedMessages?batchId={14}>)" },
+                { (ModerationActionType.MessageBatchDeleted, null),                  $"`[{{0}}]` **{{1}}** deleted **{{13}}** messages in **#{{9}}** (<{_batchDeletedUrl}>)" },
             };
     }
 }

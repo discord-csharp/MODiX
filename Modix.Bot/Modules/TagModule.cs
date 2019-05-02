@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
-
+using Microsoft.Extensions.Options;
 using Modix.Bot.Extensions;
+using Modix.Data.Models.Core;
 using Modix.Data.Models.Tags;
 using Modix.Services.CodePaste;
 using Modix.Services.Core;
@@ -21,11 +22,16 @@ namespace Modix.Bot.Modules
     [Alias("tags")]
     public class TagModule : ModuleBase
     {
-        public TagModule(ITagService tagService, CodePasteService codePasteService, IUserService userService)
+        public TagModule(
+            ITagService tagService,
+            CodePasteService codePasteService,
+            IUserService userService,
+            IOptions<ModixConfig> config)
         {
             TagService = tagService;
             CodePasteService = codePasteService;
             UserService = userService;
+            Config = config.Value;
         }
 
         [Command("create")]
@@ -166,6 +172,8 @@ namespace Modix.Bot.Modules
 
         protected IUserService UserService { get; }
 
+        protected ModixConfig Config { get; }
+
         private async Task HandleTagError(string message)
         {
             var embed = new EmbedBuilder()
@@ -209,8 +217,14 @@ namespace Modix.Bot.Modules
             {
                 var fieldName = $"and {tags.Count - tagsToDisplay} more";
 
+                // https://modix.gg/tags
+                var url = new UriBuilder(Config.WebsiteBaseUrl)
+                {
+                    Path = "/tags"
+                }.ToString().Replace(":80", "").Replace(":443", "");
+
                 builder.AddField(x => x.WithName(fieldName)
-                                       .WithValue($"View at https://mod.gg/tags"));
+                                       .WithValue($"View at {url}"));
             }
 
             return builder.Build();

@@ -21,5 +21,7 @@
         public string ReplUrl { get; set; }
 
         public string IlUrl { get; set; }
+
+        public string WebsiteBaseUrl { get; set; } = "https://mod.gg";
     }
 }

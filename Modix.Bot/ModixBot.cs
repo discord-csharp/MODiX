@@ -218,7 +218,7 @@ namespace Modix
             {
                 Log.LogTrace("Discord client is ready. Setting game status.");
                 _client.Ready -= OnClientReady;
-                await _client.SetGameAsync("https://mod.gg/");
+                await _client.SetGameAsync($"https://{_config.ManagementDomain}/");
             }
         }
     }

@@ -4,9 +4,10 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
-
+using Microsoft.Extensions.Options;
 using Modix.Bot.Extensions;
 using Modix.Data.Models;
+using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Services.Moderation;
 using Modix.Services.Core;
@@ -18,10 +19,11 @@ namespace Modix.Modules
     [Summary("Provides commands for working with infractions.")]
     public class InfractionModule : ModuleBase
     {
-        public InfractionModule(IModerationService moderationService, IUserService userService)
+        public InfractionModule(IModerationService moderationService, IUserService userService, IOptions<ModixConfig> config)
         {
             ModerationService = moderationService;
             UserService = userService;
+            Config = config.Value;
         }
 
         [Command]
@@ -70,17 +72,29 @@ namespace Modix.Modules
 
             var counts = await ModerationService.GetInfractionCountsForUserAsync(subjectEntity.Id);
 
+            // https://modix.gg/infractions?subject=12345
+            var url = new UriBuilder(Config.WebsiteBaseUrl)
+            {
+                Path = "/infractions",
+                Query = $"subject={subject.UserId}"
+            }.ToString();
+
             var builder = new EmbedBuilder()
                 .WithTitle($"Infractions for user: {subject.GetFullUsername()}")
                 .WithDescription(FormatUtilities.FormatInfractionCounts(counts))
-                .WithUrl($"https://mod.gg/infractions/?subject={subject.UserId}")
+                .WithUrl(url)
                 .WithColor(new Color(0xA3BF0B));
 
             foreach (var infraction in infractionQuery)
             {
+                var infractionUrl = new UriBuilder(Config.WebsiteBaseUrl)
+                {
+                    Path = "/infractions",
+                    Query = $"id={infraction.Id}"
+                }.ToString();
                 builder.AddField(
                     $"#{infraction.Id} - {infraction.Type} - Created: {infraction.Created}{(infraction.Rescinded ? " - [RESCINDED]" : "")}",
-                    Format.Url($"Reason: {infraction.Reason}", $"https://mod.gg/infractions/?id={infraction.Id}")
+                    Format.Url($"Reason: {infraction.Reason}", infractionUrl)
                 );
             }
 
@@ -104,5 +118,7 @@ namespace Modix.Modules
 
         internal protected IModerationService ModerationService { get; }
         internal protected IUserService UserService { get; }
+
+        internal protected ModixConfig Config { get; }
     }
 }
