@@ -87,6 +87,7 @@ namespace Modix.Modules
 
             foreach (var infraction in infractionQuery)
             {
+                // https://modix.gg/infractions?id=123
                 var infractionUrl = new UriBuilder(Config.WebsiteBaseUrl)
                 {
                     Path = "/infractions",
