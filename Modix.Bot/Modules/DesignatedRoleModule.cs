@@ -34,6 +34,7 @@ namespace Modix.Modules
         {
             var roles = await DesignatedRoleService.GetDesignatedRolesAsync(Context.Guild.Id);
 
+            // https://mod.gg/config/roles
             var url = new UriBuilder(Config.WebsiteBaseUrl)
             {
                 Path = "/config/roles"
