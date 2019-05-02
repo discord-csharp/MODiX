@@ -9,7 +9,7 @@ namespace Modix.Bot.Extensions
         /// </summary>
         /// <param name="trimDefaultPort">True to trim the default port; otherwise false.</param>
         /// <remarks>If <param name="trimDefaultPort" /> is false, the result is the same as running <see cref="UriBuilder.ToString"/>.</remarks>
-        /// <returns>The UriBuilder instance for command chaining</returns>
+        /// <returns>The UriBuilder instance for command chaining.</returns>
         public static UriBuilder RemoveDefaultPort(this UriBuilder builder)
         {
             if (builder.Uri.IsDefaultPort)
