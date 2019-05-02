@@ -102,7 +102,7 @@ namespace Modix.Behaviors
         internal protected static ModixConfig Config { get; private set; }
 
         // https://modix.gg/logs/deletedMessages?batchId={14}
-        private static string _batchDeletedUrl = new UriBuilder(Config.WebsiteBaseUrl)
+        private static readonly string _batchDeletedUrl = new UriBuilder(Config.WebsiteBaseUrl)
         {
             Path = "/logs/deletedMessages",
             Query = "batchId={14}"
