@@ -99,7 +99,7 @@ namespace Modix.Behaviors
             => _lazyModerationService.Value;
         private readonly Lazy<IModerationService> _lazyModerationService;
 
-        internal static protected ModixConfig Config { get; private set; }
+        internal protected static ModixConfig Config { get; private set; }
 
         // https://modix.gg/logs/deletedMessages?batchId={14}
         private static string _batchDeletedUrl = new UriBuilder(Config.WebsiteBaseUrl)
