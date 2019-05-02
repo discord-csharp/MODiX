@@ -106,9 +106,9 @@ namespace Modix.Behaviors
         {
             Path = "/logs/deletedMessages",
             Query = "batchId={14}"
-        }.ToString(true);
+        }.RemoveDefaultPort().ToString();
 
-        private static readonly Dictionary<(ModerationActionType, InfractionType?), string> _renderTemplates
+        private readonly Dictionary<(ModerationActionType, InfractionType?), string> _renderTemplates
             = new Dictionary<(ModerationActionType, InfractionType?), string>()
             {
                 { (ModerationActionType.InfractionCreated,   InfractionType.Notice),  "`[{0}]` **{1}** recorded the following note for **{3}** (`{4}`) ```\n{5}```" },

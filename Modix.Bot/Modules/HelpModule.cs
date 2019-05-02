@@ -19,12 +19,12 @@ namespace Modix.Modules
     public sealed class HelpModule : ModuleBase
     {
         private readonly ICommandHelpService _commandHelpService;
-        private readonly ModixConfig Config;
+        private readonly ModixConfig _config;
 
         public HelpModule(ICommandHelpService commandHelpService, IOptions<ModixConfig> config)
         {
             _commandHelpService = commandHelpService;
-            Config = config.Value;
+            _config = config.Value;
         }
 
         [Command("help"), Summary("Prints a neat list of all commands.")]
@@ -35,10 +35,10 @@ namespace Modix.Modules
                 .OrderBy(d => d);
 
             // https://mod.gg/commands
-            var url = new UriBuilder(Config.WebsiteBaseUrl)
+            var url = new UriBuilder(_config.WebsiteBaseUrl)
             {
                 Path = "/commands"
-            }.ToString(true);
+            }.RemoveDefaultPort().ToString();
 
             var descriptionBuilder = new StringBuilder()
                 .AppendLine("Modules:")

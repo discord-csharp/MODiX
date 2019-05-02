@@ -77,7 +77,7 @@ namespace Modix.Modules
             {
                 Path = "/infractions",
                 Query = $"subject={subject.UserId}"
-            }.ToString(true);
+            }.RemoveDefaultPort().ToString();
 
             var builder = new EmbedBuilder()
                 .WithTitle($"Infractions for user: {subject.GetFullUsername()}")
@@ -119,7 +119,6 @@ namespace Modix.Modules
 
         internal protected IModerationService ModerationService { get; }
         internal protected IUserService UserService { get; }
-
         internal protected ModixConfig Config { get; }
     }
 }

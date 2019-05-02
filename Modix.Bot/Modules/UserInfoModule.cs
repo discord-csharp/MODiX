@@ -208,7 +208,7 @@ namespace Modix.Modules
             {
                 Path = "/infractions",
                 Query = $"subject={userId}"
-            }.ToString(true);
+            }.RemoveDefaultPort().ToString();
 
             builder.AppendLine();
             builder.AppendLine($"**\u276F Infractions [See here]({url})**");

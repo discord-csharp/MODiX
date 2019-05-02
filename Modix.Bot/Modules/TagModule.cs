@@ -221,7 +221,7 @@ namespace Modix.Bot.Modules
                 var url = new UriBuilder(Config.WebsiteBaseUrl)
                 {
                     Path = "/tags"
-                }.ToString(true);
+                }.RemoveDefaultPort().ToString();
 
                 builder.AddField(x => x.WithName(fieldName)
                                        .WithValue($"View at {url}"));
