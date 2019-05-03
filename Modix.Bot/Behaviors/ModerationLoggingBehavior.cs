@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -8,8 +7,8 @@ using Discord;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+
 using Modix.Bot.Extensions;
-using Modix.Common;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Repositories;
@@ -46,40 +45,33 @@ namespace Modix.Behaviors
             if (!await DesignatedChannelService.AnyDesignatedChannelAsync(data.GuildId, DesignatedChannelType.ModerationLog))
                 return;
 
-            try
-            {
-                var moderationAction = await ModerationService.GetModerationActionSummaryAsync(moderationActionId);
+            var moderationAction = await ModerationService.GetModerationActionSummaryAsync(moderationActionId);
 
-                if (!_renderTemplates.TryGetValue((moderationAction.Type, moderationAction.Infraction?.Type), out var renderTemplate))
-                    return;
+            if (!_renderTemplates.TryGetValue((moderationAction.Type, moderationAction.Infraction?.Type), out var renderTemplate))
+                return;
 
-                // De-linkify links in the message, otherwise Discord will make auto-embeds for them in the log channel
-                var content = moderationAction.DeletedMessage?.Content.Replace("http://", "[redacted]").Replace("https://", "[redacted]");
+            // De-linkify links in the message, otherwise Discord will make auto-embeds for them in the log channel
+            var content = moderationAction.DeletedMessage?.Content.Replace("http://", "[redacted]").Replace("https://", "[redacted]");
 
-                var message = string.Format(renderTemplate,
-                    moderationAction.Created.UtcDateTime.ToString("HH:mm:ss"),
-                    moderationAction.CreatedBy.GetFullUsername(),
-                    moderationAction.Infraction?.Id,
-                    moderationAction.Infraction?.Subject.GetFullUsername(),
-                    moderationAction.Infraction?.Subject.Id,
-                    moderationAction.Infraction?.Reason,
-                    moderationAction.DeletedMessage?.Id,
-                    moderationAction.DeletedMessage?.Author.GetFullUsername(),
-                    moderationAction.DeletedMessage?.Author.Id,
-                    moderationAction.DeletedMessage?.Channel.Name ?? moderationAction.DeletedMessages?.First().Channel.Name,
-                    moderationAction.DeletedMessage?.Channel.Id,
-                    moderationAction.DeletedMessage?.Reason,
-                    string.IsNullOrWhiteSpace(content) ? "Empty Message Content" : content,
-                    moderationAction.DeletedMessages?.Count,
-                    moderationAction.DeletedMessages?.FirstOrDefault()?.BatchId);
+            var message = string.Format(renderTemplate,
+                moderationAction.Created.UtcDateTime.ToString("HH:mm:ss"),
+                moderationAction.CreatedBy.GetFullUsername(),
+                moderationAction.Infraction?.Id,
+                moderationAction.Infraction?.Subject.GetFullUsername(),
+                moderationAction.Infraction?.Subject.Id,
+                moderationAction.Infraction?.Reason,
+                moderationAction.DeletedMessage?.Id,
+                moderationAction.DeletedMessage?.Author.GetFullUsername(),
+                moderationAction.DeletedMessage?.Author.Id,
+                moderationAction.DeletedMessage?.Channel.Name ?? moderationAction.DeletedMessages?.First().Channel.Name,
+                moderationAction.DeletedMessage?.Channel.Id,
+                moderationAction.DeletedMessage?.Reason,
+                string.IsNullOrWhiteSpace(content) ? "Empty Message Content" : content,
+                moderationAction.DeletedMessages?.Count,
+                GetBatchUrl(moderationAction.DeletedMessages?.FirstOrDefault()?.BatchId));
 
-                await DesignatedChannelService.SendToDesignatedChannelsAsync(
-                    await DiscordClient.GetGuildAsync(data.GuildId), DesignatedChannelType.ModerationLog, message);
-            }
-            catch (Exception ex)
-            {
-                var text = Newtonsoft.Json.JsonConvert.SerializeObject(ex);
-            }
+            await DesignatedChannelService.SendToDesignatedChannelsAsync(
+                await DiscordClient.GetGuildAsync(data.GuildId), DesignatedChannelType.ModerationLog, message);
         }
 
         /// <summary>
@@ -102,13 +94,16 @@ namespace Modix.Behaviors
         internal protected static ModixConfig Config { get; private set; }
 
         // https://modix.gg/logs/deletedMessages?batchId={14}
-        private static readonly string _batchDeletedUrl = new UriBuilder(Config.WebsiteBaseUrl)
-        {
-            Path = "/logs/deletedMessages",
-            Query = "batchId={14}"
-        }.RemoveDefaultPort().ToString();
+        private string GetBatchUrl(long? batchId)
+            => batchId is null || string.IsNullOrWhiteSpace(Config?.WebsiteBaseUrl)
+                ? string.Empty
+                : new UriBuilder(Config.WebsiteBaseUrl)
+                {
+                    Path = "/logs/deletedMessages",
+                    Query = $"batchId={batchId}"
+                }.RemoveDefaultPort().ToString();
 
-        private readonly Dictionary<(ModerationActionType, InfractionType?), string> _renderTemplates
+        private static readonly Dictionary<(ModerationActionType, InfractionType?), string> _renderTemplates
             = new Dictionary<(ModerationActionType, InfractionType?), string>()
             {
                 { (ModerationActionType.InfractionCreated,   InfractionType.Notice),  "`[{0}]` **{1}** recorded the following note for **{3}** (`{4}`) ```\n{5}```" },
@@ -122,7 +117,7 @@ namespace Modix.Behaviors
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Mute),    "`[{0}]` **{1}** deleted a mute (`{2}`) for **{3}** (`{4}`)" },
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Ban),     "`[{0}]` **{1}** deleted a ban (`{2}`) for **{3}** (`{4}`)" },
                 { (ModerationActionType.MessageDeleted,      null),                   "`[{0}]` **{1}** deleted the following message (`{6}`) from **{7}** (`{8}`) in **#{9}** ```\n{12}``` for reason ```\n{11}```" },
-                { (ModerationActionType.MessageBatchDeleted, null),                  $"`[{{0}}]` **{{1}}** deleted **{{13}}** messages in **#{{9}}** (<{_batchDeletedUrl}>)" },
+                { (ModerationActionType.MessageBatchDeleted, null),                   "`[{0}]` **{1}** deleted **{13}** messages in **#{9}** (<{14}>)" },
             };
     }
 }
