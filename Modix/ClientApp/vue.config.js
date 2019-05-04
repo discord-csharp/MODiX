@@ -73,6 +73,6 @@ module.exports = {
 
         config
             .plugin('context-replace')
-                .use(webpack.ContextReplacementPlugin, [/highlight\.js\/lib\/languages$/, new RegExp(`^./(${['javascript', 'python', 'bash'].join('|')})$`)]);
+                .use(webpack.ContextReplacementPlugin, [/highlight\.js\/lib\/languages$/, new RegExp(`^./(${highlightLanguages.join('|')})$`)]);
     }
 }
