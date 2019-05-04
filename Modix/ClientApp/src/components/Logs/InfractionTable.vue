@@ -53,7 +53,7 @@ import RecordsPage from '@/models/RecordsPage';
 import TableParameters from '@/models/TableParameters';
 import { SortDirection } from '@/models/SortDirection';
 import ModixComponent from '@/components/ModixComponent.vue';
-import { InfractionType } from '@/models/infractions/InfractionType';
+import { InfractionType, infractionTypeToEmoji } from '@/models/infractions/InfractionType';
 
 function getSortDirection(direction: string): SortDirection
 {
@@ -191,7 +191,7 @@ export default class InfractionTable extends ModixComponent
 
     get infractionTypes(): string[]
     {
-        return Object.keys(InfractionType).map(c => InfractionType[<any>c]);
+        return Object.keys(InfractionType);
     }
 
     get filteredInfractions(): InfractionSummary[]
@@ -338,7 +338,7 @@ export default class InfractionTable extends ModixComponent
 
     emojiFor(type: InfractionType)
     {
-        return InfractionType.toEmoji(type);
+        return infractionTypeToEmoji(type);
     }
 
     mounted()
