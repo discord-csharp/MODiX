@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
+
 using Discord;
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
+
 using Microsoft.Extensions.Options;
 
 using Modix;
@@ -96,6 +98,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     service.AddTypeReader<IEmote>(new EmoteTypeReader());
                     service.AddTypeReader<DiscordUserEntity>(new UserEntityTypeReader());
                     service.AddTypeReader<AnyGuildMessage<IUserMessage>>(new AnyGuildMessageTypeReader<IUserMessage>());
+                    service.AddTypeReader<TimeSpan>(new TimeSpanTypeReader(), true);
 
                     return service;
                 })
