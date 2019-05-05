@@ -1,6 +1,7 @@
 import * as dateformat from "dateformat";
 import * as _ from 'lodash';
 import ModixState from '@/models/ModixState';
+import toHTML from '@/app/discord-markdown';
 
 export const formatDate = (date: Date): string =>
 {
@@ -51,8 +52,6 @@ export const getCookie = (name: string) =>
     var value = re.exec(document.cookie);
     return (value != null) ? unescape(value[1]) : null;
 }
-
-const { toHTML } = require('discord-markdown');
 
 export const parseDiscordContent = (store: ModixState, content: string): string =>
 {

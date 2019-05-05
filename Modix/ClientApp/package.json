@@ -15,32 +15,27 @@
     "chart.js": "^2.8.0",
     "lodash-es": "^4.17.11",
     "tinycolor2": "^1.4.1",
-    "v-tooltip": "^2.0.0-rc.33",
-    "vue": "^2.6.9",
-    "vue-class-component": "^7.0.1",
+    "v-tooltip": "^2.0.2",
+    "vue": "^2.6.10",
+    "vue-class-component": "^7.0.2",
     "vue-clipboards": "^1.2.4",
     "vue-good-table": "^2.16.3",
-    "vue-property-decorator": "^8.0.0",
-    "vue-router": "^3.0.2",
+    "vue-property-decorator": "^8.1.0",
+    "vue-router": "^3.0.6",
     "vuex": "^3.1.0",
-    "vuex-typex": "^3.1.4",
-    "discord-markdown": "^2.1.2"
+    "vuex-typex": "^3.1.5",
+    "simple-markdown": "^0.4.4"
   },
   "devDependencies": {
-    "@types/chart.js": "^2.7.48",
+    "@types/chart.js": "^2.7.52",
     "@types/lodash-es": "^4.17.3",
     "@types/node": "^10.12.12",
-    "@types/webpack-env": "^1.13.6",
-    "@vue/cli-plugin-typescript": "^3.5.1",
-    "@vue/cli-service": "^3.5.3",
-    "node-sass": "^4.11.0",
+    "@types/webpack-env": "^1.13.9",
+    "@vue/cli-plugin-typescript": "^3.7.0",
+    "@vue/cli-service": "^3.7.0",
+    "node-sass": "^4.12.0",
     "sass-loader": "^7.1.0",
-    "typescript": "^3.3.3333",
-    "vue-template-compiler": "^2.6.9"
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not ie <= 8"
-  ]
+    "typescript": "^3.4.5",
+    "vue-template-compiler": "^2.6.10"
+  }
 }
