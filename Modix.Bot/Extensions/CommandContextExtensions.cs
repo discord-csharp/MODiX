@@ -46,7 +46,7 @@ namespace Modix.Bot.Extensions
                 }
             }
 
-            await RemoveReactionsAndUpdateMessage("Confirmation was not received. Cancelling deletion.");
+            await RemoveReactionsAndUpdateMessage("Confirmation was not received. Cancelling the operation.");
             return false;
 
             async Task RemoveReactionsAndUpdateMessage(string bottomMessage)
