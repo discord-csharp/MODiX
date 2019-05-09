@@ -4,8 +4,9 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
-
+using Microsoft.Extensions.Options;
 using Modix.Bot.Extensions;
+using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
 using Modix.Data.Utilities;
 using Modix.Services.CommandHelp;
@@ -23,7 +24,7 @@ namespace Modix.Modules
     {
         private const string DefaultApprovalMessage = "I approve of this nomination.";
 
-        public PromotionsModule(IPromotionsService promotionsService)
+        public PromotionsModule(IPromotionsService promotionsService, IOptions<ModixConfig> config)
         {
             PromotionsService = promotionsService;
         }
@@ -39,10 +40,16 @@ namespace Modix.Modules
                 IsClosed = false                
             });
 
+            // https://mod.gg/promotions
+            var url = new UriBuilder(Config.WebsiteBaseUrl)
+            {
+                Path = "/promotions"
+            }.RemoveDefaultPort().ToString();
+
             var embed = new EmbedBuilder()
             {
                 Title = Format.Bold("Active Promotion Campaigns"),
-                Url = "https://mod.gg/promotions",
+                Url = url,
                 Color = Color.Gold,
                 Timestamp = DateTimeOffset.Now,
                 Description = campaigns.Any() ? null : "There are no active promotion campaigns."
@@ -156,5 +163,7 @@ namespace Modix.Modules
         }
 
         internal protected IPromotionsService PromotionsService { get; }
+
+        internal protected ModixConfig Config { get; }
     }
 }

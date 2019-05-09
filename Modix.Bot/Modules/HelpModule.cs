@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.Net;
+using Microsoft.Extensions.Options;
+using Modix.Bot.Extensions;
+using Modix.Data.Models.Core;
 using Modix.Services.CommandHelp;
 using Modix.Services.Utilities;
 
@@ -16,10 +19,12 @@ namespace Modix.Modules
     public sealed class HelpModule : ModuleBase
     {
         private readonly ICommandHelpService _commandHelpService;
+        private readonly ModixConfig _config;
 
-        public HelpModule(ICommandHelpService commandHelpService)
+        public HelpModule(ICommandHelpService commandHelpService, IOptions<ModixConfig> config)
         {
             _commandHelpService = commandHelpService;
+            _config = config.Value;
         }
 
         [Command("help"), Summary("Prints a neat list of all commands.")]
@@ -29,6 +34,12 @@ namespace Modix.Modules
                 .Select(d => d.Name)
                 .OrderBy(d => d);
 
+            // https://mod.gg/commands
+            var url = new UriBuilder(_config.WebsiteBaseUrl)
+            {
+                Path = "/commands"
+            }.RemoveDefaultPort().ToString();
+
             var descriptionBuilder = new StringBuilder()
                 .AppendLine("Modules:")
                 .AppendJoin(", ", modules)
@@ -36,7 +47,7 @@ namespace Modix.Modules
                 .AppendLine()
                 .AppendLine("Do \"!help dm\" to have everything DMed to you. (Spammy!)")
                 .AppendLine("Do \"!help [module name] to have that module's commands listed.")
-                .AppendLine("Visit https://mod.gg/commands to view all the commands!");
+                .AppendLine($"Visit {url} to view all the commands!");
 
             var embed = new EmbedBuilder()
                 .WithTitle("Help")

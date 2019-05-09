@@ -10,6 +10,7 @@ using Discord.WebSocket;
 using Humanizer;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Modix.Bot.Extensions;
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
@@ -41,7 +42,8 @@ namespace Modix.Modules
             IMessageRepository messageRepository,
             IEmojiRepository emojiRepository,
             IPromotionsService promotionsService,
-            IImageService imageService)
+            IImageService imageService,
+            IOptions<ModixConfig> config)
         {
             _log = logger ?? new NullLogger<UserInfoModule>();
             _userService = userService;
@@ -51,6 +53,7 @@ namespace Modix.Modules
             _emojiRepository = emojiRepository;
             _promotionsService = promotionsService;
             _imageService = imageService;
+            _config = config.Value;
         }
 
         private readonly ILogger<UserInfoModule> _log;
@@ -61,6 +64,7 @@ namespace Modix.Modules
         private readonly IEmojiRepository _emojiRepository;
         private readonly IPromotionsService _promotionsService;
         private readonly IImageService _imageService;
+        private readonly ModixConfig _config;
 
         [Command("info")]
         [Summary("Retrieves information about the supplied user, or the current user if one is not provided.")]
@@ -199,8 +203,15 @@ namespace Modix.Modules
 
         private async Task AddInfractionsToEmbedAsync(ulong userId, StringBuilder builder)
         {
+            // https://modix.gg/infractions?subject=1234
+            var url = new UriBuilder(_config.WebsiteBaseUrl)
+            {
+                Path = "/infractions",
+                Query = $"subject={userId}"
+            }.RemoveDefaultPort().ToString();
+
             builder.AppendLine();
-            builder.AppendLine($"**\u276F Infractions [See here](https://mod.gg/infractions?subject={userId})**");
+            builder.AppendLine($"**\u276F Infractions [See here]({url})**");
 
             if (!(Context.Channel as IGuildChannel).IsPublic())
             {
