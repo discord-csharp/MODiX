@@ -124,6 +124,7 @@ namespace Modix.Modules
         }
 
         [Command("clean")]
+        [Alias("prune")]
         [Summary("Mass-deletes a specified number of messages.")]
         public async Task CleanAsync(
             [Summary("The number of messages to delete.")]
@@ -134,6 +135,7 @@ namespace Modix.Modules
                         $"You are attempting to delete the past {count} messages in #{Context.Channel.Name}.{Environment.NewLine}"));
 
         [Command("clean")]
+        [Alias("prune")]
         [Summary("Mass-deletes a specified number of messages.")]
         public async Task CleanAsync(
             [Summary("The number of messages to delete.")]
@@ -146,6 +148,7 @@ namespace Modix.Modules
                         $"You are attempting to delete the past {count} messages in #{Context.Channel.Name}.{Environment.NewLine}"));
 
         [Command("clean")]
+        [Alias("prune")]
         [Summary("Mass-deletes a specified number of messages by the supplied user.")]
         public async Task CleanAsync(
             [Summary("The number of messages to delete.")]
