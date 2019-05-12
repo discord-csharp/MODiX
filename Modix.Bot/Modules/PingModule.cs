@@ -77,7 +77,7 @@ namespace Modix.Modules
                 embed.AddField(name, FormatLatency(latency), true);
             }
 
-            embed.AddField("Average", FormatLatency(average, "~0"), true);
+            embed.AddField("Average", FormatLatency(average), true);
 
             await message.ModifyAsync(m =>
             {
@@ -86,7 +86,7 @@ namespace Modix.Modules
             });
         }
 
-        private string FormatLatency(double latency, string numberFormat = "0")
+        private string FormatLatency(double latency)
         {
             if (latency == 0)
             {
@@ -101,7 +101,7 @@ namespace Modix.Modules
                 _ => "❓"
             };
 
-            return $"📶 {String.Format(numberFormat, latency)}ms {suffix}";
+            return $"📶 {latency: 0}ms {suffix}";
         }
 
         private Color LatencyColor(double avg)
