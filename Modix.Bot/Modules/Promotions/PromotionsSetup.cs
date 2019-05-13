@@ -2,8 +2,9 @@
 
 using Modix.Common.Messaging;
 using Modix.Data.Repositories;
+using Modix.Services.Promotions;
 
-namespace Modix.Services.Promotions
+namespace Modix.Bot.Modules.Promotions
 {
     /// <summary>
     /// Contains extension methods for configuring the Promotions feature, upon application startup.

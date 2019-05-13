@@ -1,16 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Discord;
-
+using Modix.Bot.Extensions;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
 using Modix.Services.Core;
+using Modix.Services.Promotions;
 using Modix.Services.Utilities;
 
-namespace Modix.Services.Promotions
+namespace Modix.Bot.Modules.Promotions
 {
     /// <summary>
     /// Renders moderation actions, as they are created, as messages to each configured moderation log channel.
@@ -27,7 +28,8 @@ namespace Modix.Services.Promotions
             IDesignatedChannelService designatedChannelService,
             IUserService userService,
             IPromotionsService promotionsService,
-            ISelfUserProvider selfUserProvider)
+            ISelfUserProvider selfUserProvider,
+            ModixConfig modixConfig)
         {
             AuthorizationService = authorizationService;
             DiscordClient = discordClient;
@@ -35,8 +37,9 @@ namespace Modix.Services.Promotions
             UserService = userService;
             PromotionsService = promotionsService;
             SelfUserProvider = selfUserProvider;
+            ModixConfig = modixConfig;
         }
-        
+
         public async Task HandleNotificationAsync(PromotionActionCreatedNotification notification, CancellationToken cancellationToken)
         {
             // TODO: Temporary workaround, remove as part of auth rework.
@@ -73,19 +76,26 @@ namespace Modix.Services.Promotions
 
             var embed = new EmbedBuilder();
 
-            if (promotionAction.Type != PromotionActionType.CampaignClosed) { return null; }
-            if (targetCampaign.Outcome != PromotionCampaignOutcome.Accepted) { return null; }
+            if (promotionAction.Type != PromotionActionType.CampaignClosed)
+            { return null; }
+            if (targetCampaign.Outcome != PromotionCampaignOutcome.Accepted)
+            { return null; }
 
             var boldName = $"**{targetCampaign.Subject.GetFullUsername()}**";
             var boldRole = $"**{MentionUtils.MentionRole(targetCampaign.TargetRole.Id)}**";
 
             var subject = await UserService.GetUserInformationAsync(data.GuildId, targetCampaign.Subject.Id);
 
+            var url = new UriBuilder(ModixConfig.WebsiteBaseUrl)
+            {
+                Path = "/promotions"
+            }.RemoveDefaultPort().ToString();
+
             embed = embed
                 .WithTitle("The campaign is over!")
                 .WithDescription($"Staff accepted the campaign, and {boldName} was promoted to {boldRole}! 🎉")
                 .WithUserAsAuthor(subject)
-                .WithFooter("See more at https://mod.gg/promotions");
+                .WithFooter($"See more at {url}");
 
             return embed.Build();
         }
@@ -142,6 +152,11 @@ namespace Modix.Services.Promotions
         /// An <see cref="ISelfUserProvider"/> for interacting with the current bot user.
         /// </summary>
         internal protected ISelfUserProvider SelfUserProvider { get; }
+
+        /// <summary>
+        /// An <see cref="ModixConfig"/> for interacting with the bot configuration.
+        /// </summary>
+        internal protected ModixConfig ModixConfig  { get; }
 
         private static readonly Dictionary<(PromotionActionType, PromotionSentiment?, PromotionCampaignOutcome?), string> _logRenderTemplates
             = new Dictionary<(PromotionActionType, PromotionSentiment?, PromotionCampaignOutcome?), string>()
