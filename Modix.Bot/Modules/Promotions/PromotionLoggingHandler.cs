@@ -154,7 +154,7 @@ namespace Modix.Bot.Modules.Promotions
         internal protected ISelfUserProvider SelfUserProvider { get; }
 
         /// <summary>
-        /// An <see cref="ModixConfig"/> for interacting with the bot configuration.
+        /// A <see cref="ModixConfig"/> for interacting with the bot configuration.
         /// </summary>
         internal protected ModixConfig ModixConfig  { get; }
 
