@@ -58,14 +58,14 @@ namespace Modix.Modules
                         }
                         catch (Exception) //Yes, I know
                         {
-                            return (name: d.Key, latency: 0);
+                            return (name: d.Key, latency: -1);
                         }
                     })
             );
 
             var average = results
                 .Select(d => d.latency)
-                .Where(d => d > 0)
+                .Where(d => d > -1)
                 .Average();
 
             embed = embed
@@ -107,7 +107,7 @@ namespace Modix.Modules
         private Color LatencyColor(double avg)
             => avg switch
             {
-                _ when avg > 250 || avg == 0 => Color.Red,
+                _ when avg > 250 || avg < 0 => Color.Red,
                 _ when avg > 100 => Color.Gold,
                 _ when avg < 100 => Color.Green,
                 _ => Color.Default
