@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
+
 using Microsoft.Extensions.Options;
+
 using Modix.Bot.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
@@ -27,6 +29,7 @@ namespace Modix.Modules
         public PromotionsModule(IPromotionsService promotionsService, IOptions<ModixConfig> config)
         {
             PromotionsService = promotionsService;
+            Config = config.Value;
         }
 
         [Command("campaigns")]
