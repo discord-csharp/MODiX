@@ -213,9 +213,11 @@ namespace Modix.Data.Repositories
                             count(*) as ""MessageCount"",
                             ""AuthorId"" = :UserId as ""IsCurrentUser""
                         from ""Messages""
-                        where ""GuildId"" = :GuildId
+                        left outer join ""DesignatedChannelMappings"" on ""Messages"".""ChannelId"" = ""DesignatedChannelMappings"".""ChannelId""
+                        where ""Messages"".""GuildId"" = :GuildId
+                            and ""DesignatedChannelMappings"".""Type"" = 'CountsTowardsParticipation'
                             and ""Timestamp"" >= :StartTimestamp
-                        group by ""AuthorId"", ""GuildId""
+                        group by ""AuthorId"", ""Messages"".""GuildId""
                     ),
                     currentUserCount as (
                         select ""UserId"", ""Rank"", ""MessageCount"", ""IsCurrentUser""
