@@ -90,16 +90,17 @@ namespace Modix.Modules
                 string query)
         {
             var foundModule = _commandHelpService.GetModuleHelpData(query);
+            var sanitizedQuery = FormatUtilities.SanitizeAllMentions(query);
 
             if (foundModule is null)
             {
-                await ReplyAsync($"Sorry, I couldn't find help related to \"{query}\".");
+                await ReplyAsync($"Sorry, I couldn't find help related to \"{sanitizedQuery}\".");
                 return;
             }
 
             var embed = GetEmbedForModule(foundModule);
 
-            await ReplyAsync($"Results for \"{query}\":", embed: embed.Build());
+            await ReplyAsync($"Results for \"{sanitizedQuery}\":", embed: embed.Build());
 
         }
 
