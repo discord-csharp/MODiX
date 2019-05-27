@@ -30,7 +30,7 @@ namespace Modix.Services.EmojiStats
         /// <summary>
         /// Constructs a new <see cref="EmojiUsageHandler"/> object with the given injected dependencies.
         /// </summary>
-        /// <param name="discordClient">A client to interact with the Discord API.</param>
+        /// <param name="emojiRepository">Repository for managing emoji entities within an underlying data storage provider.</param>
         public EmojiUsageHandler(
             IEmojiRepository emojiRepository)
         {
@@ -48,6 +48,9 @@ namespace Modix.Services.EmojiStats
 
             var message = await notification.Message.GetOrDownloadAsync();
             if (message is null)
+                return;
+
+            if (message.Author.IsBot)
                 return;
 
             var reaction = notification.Reaction;
