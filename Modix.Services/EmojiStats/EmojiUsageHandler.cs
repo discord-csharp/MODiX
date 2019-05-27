@@ -105,6 +105,9 @@ namespace Modix.Services.EmojiStats
             if (message is null)
                 return;
 
+            if (message.Author.IsBot)
+                return;
+
             var reaction = notification.Reaction;
             if (reaction is null)
                 return;
@@ -158,6 +161,9 @@ namespace Modix.Services.EmojiStats
             var channel = notification.Message.Channel as ITextChannel;
             var message = notification.Message as IUserMessage;
 
+            if (message.Author.IsBot)
+                return;
+
             foreach (var (emoji, count) in newEmoji.Cast<Match>().GroupBy(x => x.Value).Select(x => (x.Key, x.Count())))
             {
                 var isEmote = Emote.TryParse(emoji, out var emote);
@@ -184,6 +190,9 @@ namespace Modix.Services.EmojiStats
             if (newEmoji.Count == 0)
                 return;
 
+            if (newMessage.Author.IsBot)
+                return;
+
             foreach (var (emoji, count) in newEmoji.Cast<Match>().GroupBy(x => x.Value).Select(x => (x.Key, x.Count())))
             {
                 var isEmote = Emote.TryParse(emoji, out var emote);
@@ -195,6 +204,10 @@ namespace Modix.Services.EmojiStats
         public async Task HandleNotificationAsync(MessageDeletedNotification notification, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
+                return;
+
+            var message = await notification.Message.GetOrDownloadAsync();
+            if (message.Author.IsBot)
                 return;
 
             var channel = notification.Channel as ITextChannel;
