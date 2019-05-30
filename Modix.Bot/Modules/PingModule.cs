@@ -117,7 +117,7 @@ namespace Modix.Modules
             {
                 _ when latency > 300 => "💔",
                 _ when latency > 100 => "💛", //Yellow heart - trust me
-                _ when latency < 100 => "💚", //Green heart - trust me again
+                _ when latency <= 100 => "💚", //Green heart - trust me again
                 _ => "❓"
             };
 
@@ -134,7 +134,7 @@ namespace Modix.Modules
             {
                 _ when avg > 300 || avg < 0 => Color.Red,
                 _ when avg > 100 => Color.Gold,
-                _ when avg < 100 => Color.Green,
+                _ when avg <= 100 => Color.Green,
                 _ => Color.Default
             };
 
