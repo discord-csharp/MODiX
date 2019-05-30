@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.Rest;
 using Discord.WebSocket;
 
 namespace Modix.Modules
@@ -17,23 +18,30 @@ namespace Modix.Modules
     public sealed class PingModule : ModuleBase
     {
         private Dictionary<string, Func<Task<double>>> _latencyProviders;
+        private Dictionary<string, Func<Task<bool>>> _availabilityProviders;
+
         private const int PingTimeout = 2000;
 
-        public PingModule(DiscordSocketClient discordClient, IHttpClientFactory httpClientFactory)
+        public PingModule(DiscordSocketClient discordClient, DiscordRestClient restClient, IHttpClientFactory httpClientFactory)
         {
             _discordClient = discordClient;
+            _restClient = restClient;
             _httpClient = httpClientFactory.CreateClient();
 
             //Some APIs require this
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "MODiX");
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "github.com/discord-csharp/MODiX");
 
             _latencyProviders = new Dictionary<string, Func<Task<double>>>
             {
                 ["Discord Gateway"] = () => Task.FromResult((double)_discordClient.Latency),
                 ["Google"] = async () => (await new Ping().SendPingAsync("8.8.8.8", PingTimeout)).RoundtripTime,
-                ["Cloudflare"] = async () => (await new Ping().SendPingAsync("1.1.1.1", PingTimeout)).RoundtripTime,
-                ["Github API 🌐"] = () => GetEndpointLatency("https://api.github.com"),
-                ["Discord REST 🌐"] = () => GetEndpointLatency("https://discordapp.com/api")
+                ["Cloudflare"] = async () => (await new Ping().SendPingAsync("1.1.1.1", PingTimeout)).RoundtripTime
+            };
+
+            _availabilityProviders = new Dictionary<string, Func<Task<bool>>>
+            {
+                ["Github REST"] = () => EndpointAvailable("https://api.github.com"),
+                ["Discord REST"] = () => EndpointAvailable(() => _restClient.GetApplicationInfoAsync())
             };
         }
 
@@ -41,12 +49,13 @@ namespace Modix.Modules
         [Summary("Ping MODiX to determine connectivity and latency.")]
         public async Task Ping()
         {
-            var message = await ReplyAsync($"Pinging {_latencyProviders.Count} endpoints...");
+            var message = await ReplyAsync($"Pinging {_latencyProviders.Count} latency endpoints " +
+                $"and {_availabilityProviders.Count} availability endpoints...");
 
             var embed = new EmbedBuilder()
-                .WithTitle($"Pong! Pinged {_latencyProviders.Count} services");
+                .WithTitle($"Pong! Checked {_latencyProviders.Count + _availabilityProviders.Count} endpoints");
 
-            var results = await Task.WhenAll
+            var latencyResults = await Task.WhenAll
             (
                 _latencyProviders
                     .Select(async d =>
@@ -56,14 +65,20 @@ namespace Modix.Modules
                             var latency = await d.Value();
                             return (name: d.Key, latency);
                         }
-                        catch (Exception) //Yes, I know
+                        catch (PingException)
                         {
                             return (name: d.Key, latency: -1);
                         }
                     })
             );
 
-            var average = results
+            var availabilityResults = await Task.WhenAll
+            (
+                _availabilityProviders
+                    .Select(async d => (name: d.Key, isUp: await d.Value()))
+            );
+
+            var average = latencyResults
                 .Select(d => d.latency)
                 .Where(d => d > -1)
                 .Average();
@@ -72,12 +87,17 @@ namespace Modix.Modules
                 .WithCurrentTimestamp()
                 .WithColor(LatencyColor(average));
 
-            foreach (var (name, latency) in results)
+            foreach (var (name, latency) in latencyResults)
             {
                 embed.AddField(name, FormatLatency(latency), true);
             }
 
-            embed.AddField("Average", FormatLatency(average), true);
+            foreach (var (name, isUp) in availabilityResults)
+            {
+                embed.AddField(name, FormatAvailability(isUp), true);
+            }
+
+            embed.AddField("Average", FormatLatency(average, "📈"), true);
 
             await message.ModifyAsync(m =>
             {
@@ -86,46 +106,67 @@ namespace Modix.Modules
             });
         }
 
-        private string FormatLatency(double latency)
+        private string FormatLatency(double latency, string icon = "📶")
         {
-            if (latency == 0)
+            if (latency == -1)
             {
-                return "📶 Error ⚠️";
+                return $"{icon} Error ⚠️";
             }
 
             var suffix = latency switch
             {
-                _ when latency > 250 => "💔",
+                _ when latency > 300 => "💔",
                 _ when latency > 100 => "💛", //Yellow heart - trust me
-                _ when latency < 100 => "💚", //Green heart - trust me again
+                _ when latency <= 100 => "💚", //Green heart - trust me again
                 _ => "❓"
             };
 
-            return $"📶 {latency: 0}ms {suffix}";
+            return $"{icon} {latency: 0}ms {suffix}";
+        }
+
+        private string FormatAvailability(bool isUp)
+        {
+            return $"🌐 {(isUp ? "Up" : "Down")} {(isUp ? "💚" : "💔")}";
         }
 
         private Color LatencyColor(double avg)
             => avg switch
             {
-                _ when avg > 250 || avg < 0 => Color.Red,
+                _ when avg > 300 || avg < 0 => Color.Red,
                 _ when avg > 100 => Color.Gold,
-                _ when avg < 100 => Color.Green,
+                _ when avg <= 100 => Color.Green,
                 _ => Color.Default
             };
 
 
-        private async Task<double> GetEndpointLatency(string url)
+        private async Task<bool> EndpointAvailable(string url)
         {
-            //We can't really ping a REST api so... just make a request and time it
-
-            var watch = Stopwatch.StartNew();
-            await _httpClient.GetAsync(url, new CancellationTokenSource(PingTimeout).Token);
-            watch.Stop();
-
-            return watch.ElapsedMilliseconds;
+            try
+            {
+                var response = await _httpClient.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, new CancellationTokenSource(PingTimeout).Token);
+                return response.IsSuccessStatusCode;
+            }
+            catch (HttpRequestException)
+            {
+                return false;
+            }
         }
 
-        private DiscordSocketClient _discordClient;
+        private async Task<bool> EndpointAvailable(Func<Task> endpoint)
+        {
+            try
+            {
+                await endpoint();
+                return true;
+            }
+            catch (HttpRequestException)
+            {
+                return false;
+            }
+        }
+
+        private readonly DiscordSocketClient _discordClient;
         private readonly HttpClient _httpClient;
+        private readonly DiscordRestClient _restClient;
     }
 }
