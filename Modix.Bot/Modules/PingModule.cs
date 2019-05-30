@@ -29,7 +29,7 @@ namespace Modix.Modules
             _httpClient = httpClientFactory.CreateClient();
 
             //Some APIs require this
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "github.com/discord-csharp/MODiX");
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "MODiX");
 
             _latencyProviders = new Dictionary<string, Func<Task<double>>>
             {
