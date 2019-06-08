@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="AspNet.Security.OAuth.Discord" Version="2.0.1" />
-    <PackageReference Include="Discord.Net.WebSocket" Version="2.0.1" />
+    <PackageReference Include="Discord.Net.WebSocket" Version="2.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="2.2.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.2.0" />
@@ -95,10 +95,9 @@
     </Touch>
   </Target>
 
-  <Target Name="RunVueCli" Condition=" '$(Configuration)' == 'Debug' " AfterTargets="BeforeBuild" DependsOnTargets="CheckDevServerRunning" Inputs="@(ClientSrc)"
-          Outputs="$(MSBuildThisFileDirectory)obj\$(Configuration)\.vue_timestamp">
+  <Target Name="RunVueCli" Condition=" '$(Configuration)' == 'Debug' " AfterTargets="BeforeBuild" DependsOnTargets="CheckDevServerRunning" Inputs="@(ClientSrc)" Outputs="$(MSBuildThisFileDirectory)obj\$(Configuration)\.vue_timestamp">
 
-    <Message Importance="high" Text="Performing Webpack build (Mode: $(NpmBuild))" Condition="!$(DevServerRunning)"/>
+    <Message Importance="high" Text="Performing Webpack build (Mode: $(NpmBuild))" Condition="!$(DevServerRunning)" />
     
     <Exec WorkingDirectory="$(SpaRoot)" Command="npm run $(NpmBuild)" Condition="!$(DevServerRunning)">
       <Output TaskParameter="ExitCode" PropertyName="VueErrorCode" />
