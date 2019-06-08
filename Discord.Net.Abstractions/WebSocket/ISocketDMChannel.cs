@@ -50,11 +50,11 @@ namespace Discord.WebSocket
         /// <inheritdoc cref="SocketDMChannel.GetUser(ulong)" />
         new ISocketUser GetUser(ulong id);
 
-        /// <inheritdoc cref="SocketDMChannel.SendFileAsync(Stream, string, string, bool, Embed, RequestOptions)" />
-        new Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null);
+        /// <inheritdoc cref="SocketDMChannel.SendFileAsync(Stream, string, string, bool, Embed, RequestOptions, bool)" />
+        new Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false);
 
-        /// <inheritdoc cref="SocketDMChannel.SendFileAsync(string, string, bool, Embed, RequestOptions)" />
-        new Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null);
+        /// <inheritdoc cref="SocketDMChannel.SendFileAsync(string, string, bool, Embed, RequestOptions, bool)" />
+        new Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false);
 
         /// <inheritdoc cref="SocketDMChannel.SendMessageAsync(string, bool, Embed, RequestOptions)" />
         new Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null);
@@ -205,23 +205,23 @@ namespace Discord.WebSocket
                 .ToArray();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null)
+        public async Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false)
             => RestUserMessageAbstractionExtensions.Abstract(
-                await SocketDMChannel.SendFileAsync(filePath, text, isTTS, embed, options));
+                await SocketDMChannel.SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler));
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options)
-            => (await (SocketDMChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options))
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler)
+            => (await (SocketDMChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler))
                 .Abstract();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null)
+        public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false)
             => RestUserMessageAbstractionExtensions.Abstract(
-                await SocketDMChannel.SendFileAsync(stream, filename, text, isTTS, embed, options));
+                await SocketDMChannel.SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler));
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options)
-            => (await (SocketDMChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options))
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler)
+            => (await (SocketDMChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler))
                 .Abstract();
 
         /// <inheritdoc />

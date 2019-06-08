@@ -23,11 +23,11 @@ namespace Discord.Rest
         /// <inheritdoc cref="IRestMessageChannel.GetPinnedMessagesAsync(RequestOptions)" />
         new Task<IReadOnlyCollection<IRestMessage>> GetPinnedMessagesAsync(RequestOptions options = null);
 
-        /// <inheritdoc cref="IRestMessageChannel.SendFileAsync(string, string, bool, Embed, RequestOptions)" />
-        new Task<IRestUserMessage> SendFileAsync(string filePath, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null);
+        /// <inheritdoc cref="IRestMessageChannel.SendFileAsync(string, string, bool, Embed, RequestOptions, bool)" />
+        new Task<IRestUserMessage> SendFileAsync(string filePath, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false);
 
-        /// <inheritdoc cref="IRestMessageChannel.SendFileAsync(Stream, string, string, bool, Embed, RequestOptions)" />
-        new Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null);
+        /// <inheritdoc cref="IRestMessageChannel.SendFileAsync(Stream, string, string, bool, Embed, RequestOptions, bool)" />
+        new Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false);
 
         /// <inheritdoc cref="IRestMessageChannel.SendMessageAsync(string, bool, Embed, RequestOptions)" />
         new Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null);
