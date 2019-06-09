@@ -44,13 +44,13 @@ namespace Modix.Services.Test.Moderation
             var mockGuild = autoMocker.GetMock<IGuild>();
             mockGuild
                 .Setup(x => x.GetInvitesAsync(It.IsAny<RequestOptions>()))
-                .ReturnsAsync(GuildInviteLinks
+                .ReturnsAsync(GuildInviteCodes
                     .Select(x =>
                     {
                         var mockInviteMetadata = new Mock<IInviteMetadata>();
 
                         mockInviteMetadata
-                            .Setup(y => y.Url)
+                            .Setup(y => y.Code)
                             .Returns(x);
 
                         return mockInviteMetadata.Object;
@@ -121,7 +121,14 @@ namespace Modix.Services.Test.Moderation
             = {
                 "https://discord.gg/123456",
                 "https://discord.gg/234567",
-                "https://discord.gg/345678"
+                "https://discord.gg/345678",
+            };
+
+        private static readonly string[] GuildInviteCodes
+            = {
+                "123456",
+                "234567",
+                "345678",
             };
 
         #endregion Test Data
