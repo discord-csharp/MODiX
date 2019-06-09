@@ -3,7 +3,7 @@
     <DefineConstants>TRACE;DEBUG</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="2.1.0" />
+    <PackageReference Include="Discord.Net" Version="2.1.1" />
     <PackageReference Include="Humanizer.Core" Version="2.5.16" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="2.2.0" />
