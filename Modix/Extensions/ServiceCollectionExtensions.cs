@@ -24,6 +24,7 @@ using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.Csharp;
 using Modix.Services.DocsMaster;
+using Modix.Services.DuplicitMessage;
 using Modix.Services.EmojiStats;
 using Modix.Services.Giveaways;
 using Modix.Services.GuildStats;
@@ -120,7 +121,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddAutoRemoveMessage()
                 .AddEmojiStats()
                 .AddImages()
-                .AddGiveaways();
+                .AddGiveaways()
+                .AddDuplicitMessageCheck();
 
             services.AddScoped<IQuoteService, QuoteService>();
             services.AddSingleton<IBehavior, MessageLinkBehavior>();
