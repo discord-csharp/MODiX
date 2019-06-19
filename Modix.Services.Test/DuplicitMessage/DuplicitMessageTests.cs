@@ -84,8 +84,8 @@ namespace Modix.Services.Test.DuplicitMessage
             var now = new DateTime(2019, 1, 1, 1, 1, 1);
             var addSecs = 1;
 
-            var notification1 = new MessageReceivedNotification(BuildTestMessage(CreateMocker(), "abc123", now));
-            var notification2 = new MessageReceivedNotification(BuildTestMessage(autoMocker, "lol", now.AddSeconds(addSecs)));
+            var notification1 = new MessageReceivedNotification(BuildTestMessage(CreateMocker(), "abcde12345", now));
+            var notification2 = new MessageReceivedNotification(BuildTestMessage(autoMocker, "lololololol", now.AddSeconds(addSecs)));
 
             await uut.HandleNotificationAsync(notification1);
             autoMocker.MessageShouldNotHaveBeenDeleted();
@@ -107,8 +107,8 @@ namespace Modix.Services.Test.DuplicitMessage
             var now = new DateTime(2019, 1, 1, 1, 1, 1);
             var addSecs = uut.MinimumSecondsBetweenMessages + 0.1;
 
-            var notification1 = new MessageReceivedNotification(BuildTestMessage(CreateMocker(), "abc123", now));
-            var notification2 = new MessageReceivedNotification(BuildTestMessage(autoMocker, "abc123", now.AddSeconds(addSecs)));
+            var notification1 = new MessageReceivedNotification(BuildTestMessage(CreateMocker(), "abcde12345", now));
+            var notification2 = new MessageReceivedNotification(BuildTestMessage(autoMocker, "abcde12345", now.AddSeconds(addSecs)));
 
             await uut.HandleNotificationAsync(notification1);
             autoMocker.MessageShouldNotHaveBeenDeleted();
@@ -130,8 +130,8 @@ namespace Modix.Services.Test.DuplicitMessage
             var now = new DateTime(2019, 1, 1, 1, 1, 1);
             var addSecs = uut.MinimumSecondsBetweenMessages - 0.1;
 
-            var notification1 = new MessageReceivedNotification(BuildTestMessage(CreateMocker(), "abc123", now));
-            var notification2 = new MessageReceivedNotification(BuildTestMessage(autoMocker, "abc123", now.AddSeconds(addSecs)));
+            var notification1 = new MessageReceivedNotification(BuildTestMessage(CreateMocker(), "abcde12345", now));
+            var notification2 = new MessageReceivedNotification(BuildTestMessage(autoMocker, "abcde12345", now.AddSeconds(addSecs)));
 
             await uut.HandleNotificationAsync(notification1);
             autoMocker.MessageShouldNotHaveBeenDeleted();

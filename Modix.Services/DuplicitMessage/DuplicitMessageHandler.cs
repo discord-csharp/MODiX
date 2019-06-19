@@ -15,7 +15,7 @@ namespace Modix.Services.DuplicitMessage
         INotificationHandler<MessageDeletedNotification>,
         INotificationHandler<UserLeftNotification>
     {
-        private readonly Dictionary<ulong, LastMessage> _messages = new Dictionary<ulong, LastMessage>();
+        private readonly Dictionary<ulong, MessageInfo> _messages = new Dictionary<ulong, MessageInfo>();
 
         /// <summary>
         /// An <see cref="ISelfUserProvider"/> used to interact with the current bot user.
@@ -49,7 +49,7 @@ namespace Modix.Services.DuplicitMessage
 
         /// <inheritdoc />
         public Task HandleNotificationAsync(MessageDeletedNotification notification, CancellationToken cancellationToken = default)
-            => RemoveLastMessageByUser(notification.Message.Value.Author);
+            => TryRemoveLastMessage(notification.Message.Value);
 
         /// <inheritdoc />
         public Task HandleNotificationAsync(UserLeftNotification notification, CancellationToken cancellationToken = default)
@@ -77,7 +77,7 @@ namespace Modix.Services.DuplicitMessage
 
             if (_messages.TryGetValue(author.Id, out var lastMessage))
             {
-                _messages[author.Id] = new LastMessage(message);
+                _messages[author.Id] = new MessageInfo(message);
 
                 if (message.Content != lastMessage.Content)
                     return;
@@ -88,17 +88,24 @@ namespace Modix.Services.DuplicitMessage
             }
             else
             {
-                _messages.Add(author.Id, new LastMessage(message));
+                _messages.Add(author.Id, new MessageInfo(message));
                 return;
             }
 
             Log.Debug("Message {MessageId} is going to be deleted", message.Id);
-
             await ModerationService.DeleteMessageAsync(message, "Duplicit message detected", selfUser.Id);
 
             Log.Debug("Message {MessageId} was deleted because it was detected as duplicate", message.Id);
-
             await message.Channel.SendMessageAsync($"Sorry {author.Mention} your message has been removed - please don't post duplicit messages");
+        }
+
+        private Task TryRemoveLastMessage(IMessage message)
+        {
+            if (message.Author is IGuildUser && _messages.TryGetValue(message.Author.Id, out var lastMessage) && lastMessage.Timestamp == message.Timestamp)
+            {
+                _messages.Remove(message.Author.Id);
+            }
+            return Task.CompletedTask;
         }
 
         private Task RemoveLastMessageByUser(IUser user)
@@ -107,12 +114,12 @@ namespace Modix.Services.DuplicitMessage
             return Task.CompletedTask;
         }
 
-        private class LastMessage
+        private struct MessageInfo
         {
             public string Content { get; }
             public DateTimeOffset Timestamp { get; }
 
-            public LastMessage(IMessage message)
+            public MessageInfo(IMessage message)
             {
                 Content = message.Content;
                 Timestamp = message.Timestamp;
