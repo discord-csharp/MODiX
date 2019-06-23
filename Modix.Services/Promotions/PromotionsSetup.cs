@@ -2,9 +2,8 @@
 
 using Modix.Common.Messaging;
 using Modix.Data.Repositories;
-using Modix.Services.Promotions;
 
-namespace Modix.Bot.Modules.Promotions
+namespace Modix.Services.Promotions
 {
     /// <summary>
     /// Contains extension methods for configuring the Promotions feature, upon application startup.
@@ -21,7 +20,6 @@ namespace Modix.Bot.Modules.Promotions
                 .AddScoped<IPromotionsService, PromotionsService>()
                 .AddScoped<IPromotionActionRepository, PromotionActionRepository>()
                 .AddScoped<IPromotionCampaignRepository, PromotionCampaignRepository>()
-                .AddScoped<IPromotionCommentRepository, PromotionCommentRepository>()
-                .AddScoped<INotificationHandler<PromotionActionCreatedNotification>, PromotionLoggingHandler>();
+                .AddScoped<IPromotionCommentRepository, PromotionCommentRepository>();
     }
 }

@@ -13,7 +13,6 @@ using Modix;
 using Modix.Behaviors;
 using Modix.Bot;
 using Modix.Bot.Behaviors;
-using Modix.Bot.Modules.Promotions;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
@@ -32,6 +31,7 @@ using Modix.Services.Images;
 using Modix.Services.Mentions;
 using Modix.Services.Moderation;
 using Modix.Services.PopularityContest;
+using Modix.Services.Promotions;
 using Modix.Services.Quote;
 using Modix.Services.StackExchange;
 using Modix.Services.Starboard;
@@ -138,6 +138,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
 
             services.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>();
+            services.AddScoped<INotificationHandler<PromotionActionCreatedNotification>, PromotionLoggingHandler>();
 
             services.AddHostedService<ModixBot>();
 

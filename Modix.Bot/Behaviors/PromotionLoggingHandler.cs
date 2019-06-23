@@ -2,7 +2,11 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Discord;
+
+using Microsoft.Extensions.Options;
+
 using Modix.Bot.Extensions;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
@@ -11,7 +15,7 @@ using Modix.Services.Core;
 using Modix.Services.Promotions;
 using Modix.Services.Utilities;
 
-namespace Modix.Bot.Modules.Promotions
+namespace Modix.Behaviors
 {
     /// <summary>
     /// Renders moderation actions, as they are created, as messages to each configured moderation log channel.
@@ -29,7 +33,7 @@ namespace Modix.Bot.Modules.Promotions
             IUserService userService,
             IPromotionsService promotionsService,
             ISelfUserProvider selfUserProvider,
-            ModixConfig modixConfig)
+            IOptions<ModixConfig> modixConfig)
         {
             AuthorizationService = authorizationService;
             DiscordClient = discordClient;
@@ -37,7 +41,7 @@ namespace Modix.Bot.Modules.Promotions
             UserService = userService;
             PromotionsService = promotionsService;
             SelfUserProvider = selfUserProvider;
-            ModixConfig = modixConfig;
+            ModixConfig = modixConfig.Value;
         }
 
         public async Task HandleNotificationAsync(PromotionActionCreatedNotification notification, CancellationToken cancellationToken)
@@ -77,15 +81,16 @@ namespace Modix.Bot.Modules.Promotions
             var embed = new EmbedBuilder();
 
             if (promotionAction.Type != PromotionActionType.CampaignClosed)
-            { return null; }
+                return null;
             if (targetCampaign.Outcome != PromotionCampaignOutcome.Accepted)
-            { return null; }
+                return null;
 
             var boldName = $"**{targetCampaign.Subject.GetFullUsername()}**";
             var boldRole = $"**{MentionUtils.MentionRole(targetCampaign.TargetRole.Id)}**";
 
             var subject = await UserService.GetUserInformationAsync(data.GuildId, targetCampaign.Subject.Id);
 
+            // https://modix.gg/promotions
             var url = new UriBuilder(ModixConfig.WebsiteBaseUrl)
             {
                 Path = "/promotions"
