@@ -20,7 +20,6 @@ namespace Modix.Services.Promotions
                 .AddScoped<IPromotionsService, PromotionsService>()
                 .AddScoped<IPromotionActionRepository, PromotionActionRepository>()
                 .AddScoped<IPromotionCampaignRepository, PromotionCampaignRepository>()
-                .AddScoped<IPromotionCommentRepository, PromotionCommentRepository>()
-                .AddScoped<INotificationHandler<PromotionActionCreatedNotification>, PromotionLoggingHandler>();
+                .AddScoped<IPromotionCommentRepository, PromotionCommentRepository>();
     }
 }
