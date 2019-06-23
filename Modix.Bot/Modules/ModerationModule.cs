@@ -129,10 +129,13 @@ namespace Modix.Modules
         public async Task CleanAsync(
             [Summary("The number of messages to delete.")]
                 int count)
-            => await ModerationService.DeleteMessagesAsync(
-                Context.Channel as ITextChannel, count, true,
+        {
+            var channel = Context.Channel as ITextChannel;
+            await ModerationService.DeleteMessagesAsync(
+                channel, count, true,
                     () => Context.GetUserConfirmationAsync(
-                        $"You are attempting to delete the past {count} messages in #{Context.Channel.Name}.{Environment.NewLine}"));
+                        $"You are attempting to delete the past {count} messages in {channel.Mention}.{Environment.NewLine}"));
+        }
 
         [Command("clean")]
         [Alias("prune")]
@@ -145,7 +148,7 @@ namespace Modix.Modules
             => await ModerationService.DeleteMessagesAsync(
                 channel, count, Context.Channel.Id == channel.Id,
                     () => Context.GetUserConfirmationAsync(
-                        $"You are attempting to delete the past {count} messages in #{Context.Channel.Name}.{Environment.NewLine}"));
+                        $"You are attempting to delete the past {count} messages in {channel.Mention}.{Environment.NewLine}"));
 
         [Command("clean")]
         [Alias("prune")]
@@ -155,10 +158,13 @@ namespace Modix.Modules
                 int count,
             [Summary("The user whose messages should be deleted.")]
                 IGuildUser user)
-            => await ModerationService.DeleteMessagesAsync(
-                Context.Channel as ITextChannel, user, count,
+        {
+            var channel = Context.Channel as ITextChannel;
+            await ModerationService.DeleteMessagesAsync(
+                channel, user, count,
                     () => Context.GetUserConfirmationAsync(
-                        $"You are attempting to delete the past {count} messages by {user.GetFullUsername()} in #{Context.Channel.Name}.{Environment.NewLine}"));
+                        $"You are attempting to delete the past {count} messages by {user.GetFullUsername()} in {channel.Mention}.{Environment.NewLine}"));
+        }
 
         private async Task ConfirmAndReplyWithCountsAsync(ulong userId)
         {
