@@ -15,7 +15,8 @@ namespace Modix.Services.Mentions
         /// </summary>
         /// <param name="role">The role to mention</param>
         /// <param name="channel">The channel to mention in</param>
-        Task MentionRoleAsync(IRole role, IMessageChannel channel);
+        /// <param name="message">The message to send alongside the mention</param>
+        Task<bool> MentionRoleAsync(IRole role, IMessageChannel channel, string message = null);
     }
 
     /// <inheritdoc />
@@ -32,7 +33,7 @@ namespace Modix.Services.Mentions
         }
 
         /// <inheritdoc />
-        public async Task MentionRoleAsync(IRole role, IMessageChannel channel)
+        public async Task<bool> MentionRoleAsync(IRole role, IMessageChannel channel, string message = null)
         {
             if (role is null)
                 throw new ArgumentNullException(nameof(role));
@@ -40,10 +41,13 @@ namespace Modix.Services.Mentions
             if (channel is null)
                 throw new ArgumentNullException(nameof(channel));
 
+            if (message is null)
+                message = string.Empty;
+
             if (role.IsMentionable)
             {
                 await channel.SendMessageAsync($"You can do that yourself - but fine: {role.Mention}");
-                return;
+                return true;
             }
 
             AuthorizationService.RequireClaims(AuthorizationClaim.MentionRestrictedRole);
@@ -51,7 +55,7 @@ namespace Modix.Services.Mentions
             if (await DesignatedRoleService.RoleHasDesignationAsync(role.Guild.Id, role.Id, DesignatedRoleType.RestrictedMentionability) == false)
             {
                 await channel.SendMessageAsync($"Sorry, **{role.Name}** hasn't been designated as mentionable.");
-                return;
+                return false;
             }
 
             //Set the role to mentionable, immediately mention it, then set it
@@ -62,12 +66,14 @@ namespace Modix.Services.Mentions
             //Make sure we set the role to unmentionable again no matter what
             try
             {
-                await channel.SendMessageAsync(role.Mention);
+                await channel.SendMessageAsync($"{role.Mention} {message}");
             }
             finally
             {
                 await role.ModifyAsync(x => x.Mentionable = false);
             }
+
+            return true;
         }
 
         /// <summary>

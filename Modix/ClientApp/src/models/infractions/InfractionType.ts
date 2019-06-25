@@ -6,22 +6,19 @@ export enum InfractionType
     Ban = "Ban"
 }
 
-export namespace InfractionType
+export function infractionTypeToEmoji(type: InfractionType)
 {
-    export function toEmoji(type: InfractionType)
+    switch (type)
     {
-        switch (type)
-        {
-            case "Notice":
-                return "&#128221;";
-            case "Warning":
-                return "&#9888;";
-            case "Mute":
-                return "&#128263;";
-            case "Ban":
-                return "&#128296;";
-            default:
-                return type;
-        }
+        case "Notice":
+            return "&#128221;";
+        case "Warning":
+            return "&#9888;";
+        case "Mute":
+            return "&#128263;";
+        case "Ban":
+            return "&#128296;";
+        default:
+            return type;
     }
 }

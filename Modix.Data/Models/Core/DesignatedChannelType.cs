@@ -32,6 +32,10 @@
         /// <summary>
         /// Defines a channel that should be included when calculating user participation.
         /// </summary>
-        CountsTowardsParticipation
+        CountsTowardsParticipation,
+        /// <summary>
+        /// Defines a channel in which giveaways and their winners will be posted.
+        /// </summary>
+        GiveawayLog,
     }
 }

@@ -30,7 +30,7 @@ namespace Modix.Services.EmojiStats
         /// <summary>
         /// Constructs a new <see cref="EmojiUsageHandler"/> object with the given injected dependencies.
         /// </summary>
-        /// <param name="discordClient">A client to interact with the Discord API.</param>
+        /// <param name="emojiRepository">Repository for managing emoji entities within an underlying data storage provider.</param>
         public EmojiUsageHandler(
             IEmojiRepository emojiRepository)
         {
@@ -48,6 +48,9 @@ namespace Modix.Services.EmojiStats
 
             var message = await notification.Message.GetOrDownloadAsync();
             if (message is null)
+                return;
+
+            if (message.Author.IsBot)
                 return;
 
             var reaction = notification.Reaction;
@@ -100,6 +103,9 @@ namespace Modix.Services.EmojiStats
 
             var message = await notification.Message.GetOrDownloadAsync();
             if (message is null)
+                return;
+
+            if (message.Author.IsBot)
                 return;
 
             var reaction = notification.Reaction;
@@ -155,6 +161,9 @@ namespace Modix.Services.EmojiStats
             var channel = notification.Message.Channel as ITextChannel;
             var message = notification.Message as IUserMessage;
 
+            if (message.Author.IsBot)
+                return;
+
             foreach (var (emoji, count) in newEmoji.Cast<Match>().GroupBy(x => x.Value).Select(x => (x.Key, x.Count())))
             {
                 var isEmote = Emote.TryParse(emoji, out var emote);
@@ -181,6 +190,9 @@ namespace Modix.Services.EmojiStats
             if (newEmoji.Count == 0)
                 return;
 
+            if (newMessage.Author.IsBot)
+                return;
+
             foreach (var (emoji, count) in newEmoji.Cast<Match>().GroupBy(x => x.Value).Select(x => (x.Key, x.Count())))
             {
                 var isEmote = Emote.TryParse(emoji, out var emote);
@@ -192,6 +204,10 @@ namespace Modix.Services.EmojiStats
         public async Task HandleNotificationAsync(MessageDeletedNotification notification, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
+                return;
+
+            var message = await notification.Message.GetOrDownloadAsync();
+            if (message.Author.IsBot)
                 return;
 
             var channel = notification.Channel as ITextChannel;

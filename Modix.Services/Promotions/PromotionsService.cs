@@ -148,8 +148,8 @@ namespace Modix.Services.Promotions
 
             var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
             var subject = await UserService.GetGuildUserAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
-            
-            if (!TryGetNextRankRoleForUser(subjectId, rankRoles, subject, out var nextRankRole, out var message))
+
+            if (!TryGetNextRankRoleForUser(rankRoles, subject, out var nextRankRole, out var message))
                 throw new InvalidOperationException(message);
 
             await PerformCommonCreateCampaignValidationsAsync(subject, nextRankRole, rankRoles);
@@ -182,7 +182,7 @@ namespace Modix.Services.Promotions
             var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
             var subject = await UserService.GetGuildUserAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
 
-            if (TryGetNextRankRoleForUser(subjectId, rankRoles, subject, out var nextRankRole, out _))
+            if (TryGetNextRankRoleForUser(rankRoles, subject, out var nextRankRole, out _))
                 return nextRankRole;
 
             return null;
@@ -504,12 +504,17 @@ namespace Modix.Services.Promotions
             }))
                 throw new InvalidOperationException($"An active campaign already exists for {subject.GetFullUsername()} to be promoted to {targetRankRole.Name}");
 
+            // JoinedAt is null, when it cannot be obtained
+            if (subject.JoinedAt.HasValue)
+                if (subject.JoinedAt.Value.DateTime > (DateTimeOffset.Now - TimeSpan.FromDays(30)))
+                    throw new InvalidOperationException($"{subject.GetFullUsername()} has joined less than 30 days prior");
+
             if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value, targetRankRole.Id))
                 throw new InvalidOperationException($"Creating a promotion campaign requires a rank at least as high as the proposed target rank");
         }
 
         private bool TryGetNextRankRoleForUser(
-            ulong subjectId, GuildRoleBrief[] rankRoles, IGuildUser subject, out GuildRoleBrief nextRankRole, out string message)
+            GuildRoleBrief[] rankRoles, IGuildUser subject, out GuildRoleBrief nextRankRole, out string message)
         {
             var userRankRoles = rankRoles.Where(r => subject.RoleIds.Contains(r.Id));
             var userCurrentRankRole = userRankRoles.OrderByDescending(r => r.Position).FirstOrDefault();
@@ -531,7 +536,7 @@ namespace Modix.Services.Promotions
             }
             else
             {
-                nextRankRole = rankRoles.FirstOrDefault(r => r.Position == userCurrentRankRole.Position + 1);
+                nextRankRole = rankRoles.OrderBy(x => x.Position).FirstOrDefault(r => r.Position > userCurrentRankRole.Position);
 
                 if (nextRankRole is null)
                 {

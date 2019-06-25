@@ -1,18 +1,22 @@
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const webpack = require('webpack');
 
+let highlightLanguages = ['cs', 'json'];
+
 module.exports = {
-    "devServer":
+    devServer:
     {
-        "proxy":
+        proxy:
         {
             "/api":
             {
-                "target": "http://localhost:5000",
-                "changeOrigin": true
+                target: "http://localhost:5000",
+                changeOrigin: true
             }
         }
     },
+
+
 
     css:
     {
@@ -64,7 +68,11 @@ module.exports = {
             .set('chart.js', 'chart.js/dist/Chart.js');
 
         config
-            .plugin('context-replacement')
+            .plugin('ignore')
                 .use(webpack.IgnorePlugin, [/^\.\/locale$/, /moment$/]);
+
+        config
+            .plugin('context-replace')
+                .use(webpack.ContextReplacementPlugin, [/highlight\.js\/lib\/languages$/, new RegExp(`^./(${highlightLanguages.join('|')})$`)]);
     }
 }

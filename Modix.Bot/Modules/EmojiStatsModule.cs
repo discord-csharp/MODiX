@@ -170,7 +170,7 @@ namespace Modix.Modules
             BuildEmojiStatString(sb, guildStats.TotalUses, emojiStats, (emoji) =>
             {
                 var numberOfDays = Math.Clamp((DateTime.Now - guildStats.OldestTimestamp).Days, 1, 30);
-                var uses30 = emojiStats30.First(x => x.Emoji.Equals(emoji.Emoji)).Uses;
+                var uses30 = emojiStats30.FirstOrDefault(x => x.Emoji.Equals(emoji.Emoji))?.Uses ?? 0;
                 return (double)uses30 / numberOfDays;
             });
 

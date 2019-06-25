@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Humanizer;
+using Microsoft.Extensions.Options;
 using Modix.Bot.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Services.Core;
@@ -18,10 +19,13 @@ namespace Modix.Modules
         public IAuthorizationService AuthorizationService { get; }
         public IDesignatedRoleService DesignatedRoleService { get; }
 
-        public DesignatedRoleModule(IAuthorizationService authorizationService, IDesignatedRoleService designatedRoleService)
+        public ModixConfig Config { get; }
+
+        public DesignatedRoleModule(IAuthorizationService authorizationService, IDesignatedRoleService designatedRoleService, IOptions<ModixConfig> config)
         {
             AuthorizationService = authorizationService;
             DesignatedRoleService = designatedRoleService;
+            Config = config.Value;
         }
 
         [Command]
@@ -30,10 +34,16 @@ namespace Modix.Modules
         {
             var roles = await DesignatedRoleService.GetDesignatedRolesAsync(Context.Guild.Id);
 
+            // https://mod.gg/config/roles
+            var url = new UriBuilder(Config.WebsiteBaseUrl)
+            {
+                Path = "/config/roles"
+            }.RemoveDefaultPort().ToString();
+
             var builder = new EmbedBuilder()
             {
                 Title = "Assigned Role Designations",
-                Url = "https://mod.gg/config/roles",
+                Url = url,
                 Color = Color.Gold,
                 Timestamp = DateTimeOffset.UtcNow
             };

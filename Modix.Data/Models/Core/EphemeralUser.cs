@@ -270,8 +270,11 @@ namespace Modix.Data.Models.Core
 
         public EphemeralUser WithGuildContext(IGuild guild)
         {
-            Guild = guild;
-            GuildId = guild.Id;
+            if (guild is { })
+            {
+                Guild = guild;
+                GuildId = guild.Id;
+            }
 
             return this;
         }

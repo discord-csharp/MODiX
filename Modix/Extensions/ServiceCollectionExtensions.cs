@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
+
 using Discord;
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
+
 using Microsoft.Extensions.Options;
 
 using Modix;
 using Modix.Behaviors;
+using Modix.Bot;
 using Modix.Bot.Behaviors;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
@@ -22,6 +25,7 @@ using Modix.Services.Core;
 using Modix.Services.Csharp;
 using Modix.Services.DocsMaster;
 using Modix.Services.EmojiStats;
+using Modix.Services.Giveaways;
 using Modix.Services.GuildStats;
 using Modix.Services.Images;
 using Modix.Services.Mentions;
@@ -93,6 +97,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
                     service.AddTypeReader<IEmote>(new EmoteTypeReader());
                     service.AddTypeReader<DiscordUserEntity>(new UserEntityTypeReader());
+                    service.AddTypeReader<AnyGuildMessage<IUserMessage>>(new AnyGuildMessageTypeReader<IUserMessage>());
+                    service.AddTypeReader<TimeSpan>(new TimeSpanTypeReader(), true);
 
                     return service;
                 })
@@ -113,7 +119,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddStarboard()
                 .AddAutoRemoveMessage()
                 .AddEmojiStats()
-                .AddImages();
+                .AddImages()
+                .AddGiveaways();
 
             services.AddScoped<IQuoteService, QuoteService>();
             services.AddSingleton<IBehavior, MessageLinkBehavior>();
@@ -131,6 +138,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
 
             services.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>();
+            services.AddScoped<INotificationHandler<PromotionActionCreatedNotification>, PromotionLoggingHandler>();
 
             services.AddHostedService<ModixBot>();
 

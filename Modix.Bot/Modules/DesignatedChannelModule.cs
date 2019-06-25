@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Humanizer;
+using Microsoft.Extensions.Options;
 using Modix.Bot.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Services.Core;
@@ -18,10 +19,13 @@ namespace Modix.Modules
         public IAuthorizationService AuthorizationService { get; }
         public IDesignatedChannelService DesignatedChannelService { get; }
 
-        public DesignatedChannelModule(IAuthorizationService authorizationService, IDesignatedChannelService designatedChannelService)
+        public ModixConfig Config { get; }
+
+        public DesignatedChannelModule(IAuthorizationService authorizationService, IDesignatedChannelService designatedChannelService, IOptions<ModixConfig> config)
         {
             AuthorizationService = authorizationService;
             DesignatedChannelService = designatedChannelService;
+            Config = config.Value;
         }
 
         [Command]
@@ -30,10 +34,16 @@ namespace Modix.Modules
         {
             var channels = await DesignatedChannelService.GetDesignatedChannelsAsync(Context.Guild.Id);
 
+            // https://mod.gg/config/channels
+            var url = new UriBuilder(Config.WebsiteBaseUrl)
+            {
+                Path = "/config/channels"
+            }.RemoveDefaultPort().ToString();
+
             var builder = new EmbedBuilder()
             {
                 Title = "Assigned Channel Designations",
-                Url = "https://mod.gg/config/channels",
+                Url = url,
                 Color = Color.Gold,
                 Timestamp = DateTimeOffset.UtcNow
             };

@@ -148,5 +148,10 @@ namespace Modix.Data.Models.Core
         /// </summary>
         [ClaimInfo(TagActions, "Authorizes a request to maintain a tag that was not created by the requesting user.")]
         MaintainOtherUserTag,
+        /// <summary>
+        /// Authorizes a request to create a giveaway and determine its winners.
+        /// </summary>
+        [ClaimInfo(Misc, "Authorizes a request to create a giveaway and determine its winners.")]
+        ExecuteGiveaway,
     }
 }

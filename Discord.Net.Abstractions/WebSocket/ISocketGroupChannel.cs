@@ -204,23 +204,23 @@ namespace Discord.WebSocket
             => SocketGroupChannel.LeaveAsync(options);
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendFileAsync(string filePath, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
+        public async Task<IRestUserMessage> SendFileAsync(string filePath, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false)
             => RestUserMessageAbstractionExtensions.Abstract(
-                await SocketGroupChannel.SendFileAsync(filePath, text, isTTS, embed, options));
+                await SocketGroupChannel.SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler));
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options)
-            => (await (SocketGroupChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options))
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler)
+            => (await (SocketGroupChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler))
                 .Abstract();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
+        public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false)
             => RestUserMessageAbstractionExtensions.Abstract(
-                await SocketGroupChannel.SendFileAsync(stream, filename, text, isTTS, embed, options));
+                await SocketGroupChannel.SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler));
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options)
-            => (await (SocketGroupChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options))
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler)
+            => (await (SocketGroupChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler))
                 .Abstract();
 
         /// <inheritdoc />

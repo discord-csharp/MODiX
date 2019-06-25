@@ -9,3 +9,4 @@ declare module 'vue-good-table';
 declare module 'tinycolor';
 declare module 'vue-clipboards';
 declare module 'v-tooltip';
+declare module '@/app/discord-markdown';

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Modix.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Modix.Data.Migrations
@@ -15,7 +16,7 @@ namespace Modix.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "2.2.3-servicing-35854")
+                .HasAnnotation("ProductVersion", "2.2.4-servicing-10062")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("Modix.Data.Models.BehaviourConfiguration", b =>
@@ -235,6 +236,8 @@ namespace Modix.Data.Migrations
                     b.Property<DateTimeOffset>("Timestamp");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Timestamp");
 
                     b.HasIndex("GuildId", "AuthorId");
 
@@ -480,6 +483,12 @@ namespace Modix.Data.Migrations
 
                     b.HasIndex("CreateActionId")
                         .IsUnique();
+
+                    b.HasIndex("GuildId");
+
+                    b.HasIndex("Outcome");
+
+                    b.HasIndex("SubjectId");
 
                     b.HasIndex("TargetRoleId");
 

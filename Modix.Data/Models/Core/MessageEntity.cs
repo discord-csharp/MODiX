@@ -5,7 +5,7 @@ using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Core
 {
-    public class MessageEntity
+    internal class MessageEntity
     {
         [Required]
         public ulong Id { get; set; }
@@ -52,6 +52,9 @@ namespace Modix.Data.Models.Core
 
             modelBuilder.Entity<MessageEntity>()
                 .HasIndex(x => new { x.GuildId, x.AuthorId });
+
+            modelBuilder.Entity<MessageEntity>()
+                .HasIndex(x => x.Timestamp);
         }
     }
 }
