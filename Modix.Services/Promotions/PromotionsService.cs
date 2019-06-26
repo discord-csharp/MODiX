@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Discord;
-
+using Humanizer;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
@@ -296,7 +296,7 @@ namespace Modix.Services.Promotions
                 var timeSince = DateTime.UtcNow - campaign.CreateAction.Created;
 
                 if (timeSince < CampaignAcceptCooldown && !force)
-                    throw new InvalidOperationException($"Campaign {campaignId} cannot be accepted until {CampaignAcceptCooldown.TotalHours} hours after its creation ({(CampaignAcceptCooldown - timeSince).TotalHours:#.##} hrs remain)");
+                    throw new InvalidOperationException($"Campaign {campaignId} cannot be accepted until {CampaignAcceptCooldown.TotalHours} hours after its creation ({(CampaignAcceptCooldown - timeSince).Humanize(4)} remain)");
 
                 try
                 {
