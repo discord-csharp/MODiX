@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Discord;
-
+using Humanizer;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
@@ -296,7 +296,7 @@ namespace Modix.Services.Promotions
                 var timeSince = DateTime.UtcNow - campaign.CreateAction.Created;
 
                 if (timeSince < CampaignAcceptCooldown && !force)
-                    throw new InvalidOperationException($"Campaign {campaignId} cannot be accepted until {CampaignAcceptCooldown.TotalHours} hours after its creation ({(CampaignAcceptCooldown - timeSince).TotalHours:#.##} hrs remain)");
+                    throw new InvalidOperationException($"Campaign {campaignId} cannot be accepted until {CampaignAcceptCooldown.TotalHours} hours after its creation ({(CampaignAcceptCooldown - timeSince).Humanize(4)} remain)");
 
                 try
                 {
@@ -506,8 +506,8 @@ namespace Modix.Services.Promotions
 
             // JoinedAt is null, when it cannot be obtained
             if (subject.JoinedAt.HasValue)
-                if (subject.JoinedAt.Value.DateTime > (DateTimeOffset.Now - TimeSpan.FromDays(30)))
-                    throw new InvalidOperationException($"{subject.GetFullUsername()} has joined less than 30 days prior");
+                if (subject.JoinedAt.Value.DateTime > (DateTimeOffset.Now - TimeSpan.FromDays(20)))
+                    throw new InvalidOperationException($"{subject.GetFullUsername()} has joined less than 20 days prior");
 
             if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value, targetRankRole.Id))
                 throw new InvalidOperationException($"Creating a promotion campaign requires a rank at least as high as the proposed target rank");

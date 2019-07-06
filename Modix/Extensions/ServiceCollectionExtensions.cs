@@ -140,6 +140,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
 
             services.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>();
+            services.AddScoped<INotificationHandler<PromotionActionCreatedNotification>, PromotionLoggingHandler>();
 
             services.AddHostedService<ModixBot>();
 
