@@ -79,7 +79,7 @@ namespace Modix
                     new StatsDConfiguration
                     {
                         Host = "modix-graphite-service",
-                        Port = 2003,
+                        Port = 8125,
                         Prefix = "modix.",
                         OnError = (ex) =>
                         {
