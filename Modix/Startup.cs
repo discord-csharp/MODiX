@@ -84,7 +84,7 @@ namespace Modix
                         OnError = (ex) =>
                         {
                             provider.GetRequiredService<ILogger<StatsDPublisher>>()
-                                .LogError(ex, "An exception occurred while attempting to publish a StatsD metric.");
+                                .LogWarning(ex, "An exception occurred while attempting to publish a StatsD metric.");
 
                             return true;
                         }
