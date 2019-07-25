@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using JustEat.StatsD;
 using Microsoft.Extensions.Logging;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
@@ -13,13 +14,15 @@ namespace Modix.Services.Core
     public class MessageLogBehavior : BehaviorBase
     {
         private readonly DiscordSocketClient _discordClient;
+        private readonly IStatsDPublisher _stats;
 
-        public MessageLogBehavior(DiscordSocketClient discordClient, ILogger<MessageLogBehavior> logger, IServiceProvider serviceProvider)
+        public MessageLogBehavior(DiscordSocketClient discordClient, ILogger<MessageLogBehavior> logger, IServiceProvider serviceProvider, IStatsDPublisher stats)
             : base(serviceProvider)
         {
             _discordClient = discordClient;
 
             Log = logger;
+            _stats = stats;
         }
 
         private ILogger<MessageLogBehavior> Log { get; }
@@ -182,6 +185,8 @@ namespace Modix.Services.Core
         private async Task HandleMessageReceived(IMessage message)
         {
             Log.LogDebug("Handling message received event for message #{MessageId}.", message.Id);
+
+            _stats.Increment("message_count");
 
             if (!message.Content.StartsWith('!') &&
                 message.Channel is IGuildChannel channel &&
