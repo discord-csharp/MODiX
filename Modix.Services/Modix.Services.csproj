@@ -3,6 +3,7 @@
     <PackageReference Include="AsyncEvent" Version="0.2.0" />
     <PackageReference Include="Discord.Net" Version="2.1.1" />
     <PackageReference Include="Humanizer.Core" Version="2.5.16" />
+    <PackageReference Include="JustEat.StatsD" Version="4.0.1" />
     <PackageReference Include="Kitsu" Version="1.4.1" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="2.2.0" />

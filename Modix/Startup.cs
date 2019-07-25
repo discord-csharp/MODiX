@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
+using JustEat.StatsD;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -71,6 +72,9 @@ namespace Modix
                     options.SerializerSettings.Converters.Add(new StringEnumConverter());
                     options.SerializerSettings.Converters.Add(new StringULongConverter());
                 });
+
+            services.AddStatsD(
+                (provider) => new StatsDConfiguration { Host = "modix-graphite-service", Port = 2003, Prefix = "modix." });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
