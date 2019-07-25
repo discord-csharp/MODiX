@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Modix.Auth;
 using Modix.Configuration;
@@ -75,20 +74,7 @@ namespace Modix
                 });
 
             services.AddStatsD(
-                (provider) =>
-                    new StatsDConfiguration
-                    {
-                        Host = "modix-graphite-service",
-                        Port = 2003,
-                        Prefix = "modix.",
-                        OnError = (ex) =>
-                        {
-                            provider.GetRequiredService<ILogger<StatsDPublisher>>()
-                                .LogError(ex, "An exception occurred while attempting to publish a StatsD metric.");
-
-                            return true;
-                        }
-                    });
+                (provider) => new StatsDConfiguration { Host = "modix-graphite-service", Port = 2003, Prefix = "modix." });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
