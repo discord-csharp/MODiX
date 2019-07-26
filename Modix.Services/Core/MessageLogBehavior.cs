@@ -194,35 +194,38 @@ namespace Modix.Services.Core
                 author.Guild is IGuild guild &&
                 !author.IsBot && !author.IsWebhook)
             {
-                await SelfExecuteRequest<IMessageRepository>(
-                    async messages =>
-                    {
-                        Log.LogInformation("Logging message #{MessageId} to the database.", message.Id);
-
-                        var creationData = new MessageCreationData
+                using (_stats.StartTimer("message_processing_ms"))
+                {
+                    await SelfExecuteRequest<IMessageRepository>(
+                        async messages =>
                         {
-                            Id = message.Id,
-                            GuildId = guild.Id,
-                            ChannelId = channel.Id,
-                            AuthorId = author.Id,
-                            Timestamp = message.Timestamp
-                        };
+                            Log.LogInformation("Logging message #{MessageId} to the database.", message.Id);
 
-                        Log.LogDebug("Entity for message #{MessageId}: {@Message}", message.Id, creationData);
+                            var creationData = new MessageCreationData
+                            {
+                                Id = message.Id,
+                                GuildId = guild.Id,
+                                ChannelId = channel.Id,
+                                AuthorId = author.Id,
+                                Timestamp = message.Timestamp
+                            };
 
-                        using (var transaction = await messages.BeginMaintainTransactionAsync())
-                        {
-                            try
+                            Log.LogDebug("Entity for message #{MessageId}: {@Message}", message.Id, creationData);
+
+                            using (var transaction = await messages.BeginMaintainTransactionAsync())
                             {
-                                await messages.CreateAsync(creationData);
+                                try
+                                {
+                                    await messages.CreateAsync(creationData);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.LogError(ex, "An unexpected error occurred when attempting to log message #{MessageId}.", message.Id);
+                                }
+                                transaction.Commit();
                             }
-                            catch (Exception ex)
-                            {
-                                Log.LogError(ex, "An unexpected error occurred when attempting to log message #{MessageId}.", message.Id);
-                            }
-                            transaction.Commit();
-                        }
-                    });
+                        });
+                }
             }
         }
     }
