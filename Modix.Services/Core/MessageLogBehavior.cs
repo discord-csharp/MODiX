@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -186,7 +187,25 @@ namespace Modix.Services.Core
         {
             Log.LogDebug("Handling message received event for message #{MessageId}.", message.Id);
 
-            _stats.Increment("message_count");
+            var tags = new List<string>();
+
+            if (message.Channel is IGuildChannel msgChannel)
+            {
+                if (msgChannel.Guild is IGuild msgGuild)
+                {
+                    tags.Add("guild=" + msgGuild.Name);
+                }
+
+                tags.Add("channel=" + msgChannel.Name);
+            }
+
+            var stat = "message_count";
+            if (tags.Count > 0)
+            {
+                stat += ";" + string.Join(';', tags);
+            }
+
+            _stats.Increment(stat);
 
             if (!message.Content.StartsWith('!') &&
                 message.Channel is IGuildChannel channel &&
