@@ -98,10 +98,10 @@ namespace Modix.Services.Moderation
 
             // Allow invites to the guild in which the message was posted
             var externalInvites = matches
-                .Select(x => x.Value)
+                .Select(x => x.Groups["Code"].Value)
                 .Except((await author.Guild
                     .GetInvitesAsync())
-                    .Select(x => x.Url));
+                    .Select(x => x.Code));
 
             if (!externalInvites.Any())
             {
@@ -120,7 +120,7 @@ namespace Modix.Services.Moderation
 
         private static readonly Regex _inviteLinkMatcher
             = new Regex(
-                pattern: @"(https?:\/\/)?(www\.)?(discord\.(gg|io|me|li)|discordapp\.com\/invite)\/\w+",
+                pattern: @"(https?://)?(www\.)?(discord\.(gg|io|me|li)|discordapp\.com/invite)/(?<Code>\w+)",
                 options: RegexOptions.Compiled | RegexOptions.IgnoreCase,
                 matchTimeout: TimeSpan.FromSeconds(2));
     }
