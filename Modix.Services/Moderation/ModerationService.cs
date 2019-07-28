@@ -9,8 +9,8 @@ using Modix.Data.Models;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Repositories;
-
 using Modix.Services.Core;
+
 using Serilog;
 using Discord.Net;
 
@@ -239,7 +239,8 @@ namespace Modix.Services.Moderation
             IDesignatedRoleMappingRepository designatedRoleMappingRepository,
             IInfractionRepository infractionRepository,
             IDeletedMessageRepository deletedMessageRepository,
-            IDeletedMessageBatchRepository deletedMessageBatchRepository)
+            IDeletedMessageBatchRepository deletedMessageBatchRepository,
+            IRoleService roleService)
         {
             DiscordClient = discordClient;
             AuthorizationService = authorizationService;
@@ -250,6 +251,7 @@ namespace Modix.Services.Moderation
             InfractionRepository = infractionRepository;
             DeletedMessageRepository = deletedMessageRepository;
             DeletedMessageBatchRepository = deletedMessageBatchRepository;
+            RoleService = roleService;
         }
 
         /// <inheritdoc />
@@ -753,6 +755,8 @@ namespace Modix.Services.Moderation
                 var role = guild.Roles.FirstOrDefault(x => x.Name == MuteRoleName)
                     ?? await guild.CreateRoleAsync(MuteRoleName);
 
+                await RoleService.TrackRoleAsync(role);
+
                 await DesignatedRoleMappingRepository.CreateAsync(new DesignatedRoleMappingCreationData()
                 {
                     GuildId = guild.Id,
@@ -810,6 +814,11 @@ namespace Modix.Services.Moderation
         /// An <see cref="IDeletedMessageBatchRepository"/> for storing and retrieving records of deleted message batches.
         /// </summary>
         internal protected IDeletedMessageBatchRepository DeletedMessageBatchRepository { get; }
+
+        /// <summary>
+        /// An <see cref="IRoleService"/> for interacting with discord roles within the application.
+        /// </summary>
+        internal protected IRoleService RoleService { get; }
 
         private async Task ConfigureChannelMuteRolePermissionsAsync(IGuildChannel channel, IRole muteRole)
         {
