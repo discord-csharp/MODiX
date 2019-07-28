@@ -202,7 +202,7 @@ namespace Modix.Services.Core
 
                 if (guild is SocketGuild socketGuild)
                 {
-                    _stats.Gauge("user_count", socketGuild.MemberCount, tags: new[] { socketGuild.Name });
+                    _stats.Gauge("user_count", socketGuild.MemberCount, tags: tags);
                 }
             }
         }
