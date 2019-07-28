@@ -10,7 +10,6 @@ using Discord;
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
-using JustEat.StatsD;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -23,6 +22,7 @@ using Modix.Services.BehaviourConfiguration;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
+using StatsdClient;
 
 namespace Modix
 {
@@ -36,7 +36,7 @@ namespace Modix
         private readonly DiscordSerilogAdapter _serilogAdapter;
         private readonly IApplicationLifetime _applicationLifetime;
         private readonly IHostingEnvironment _env;
-        private readonly IStatsDPublisher _stats;
+        private readonly IDogStatsd _stats;
         private IServiceScope _scope;
         private readonly ConcurrentDictionary<ICommandContext, IServiceScope> _commandScopes = new ConcurrentDictionary<ICommandContext, IServiceScope>();
 
@@ -50,7 +50,7 @@ namespace Modix
             IServiceProvider serviceProvider,
             ILogger<ModixBot> logger,
             IHostingEnvironment env,
-            IStatsDPublisher stats)
+            IDogStatsd stats)
         {
             _client = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
