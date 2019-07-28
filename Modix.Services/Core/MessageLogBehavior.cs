@@ -1,22 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
-using JustEat.StatsD;
 using Microsoft.Extensions.Logging;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Services.Utilities;
+using StatsdClient;
 
 namespace Modix.Services.Core
 {
     public class MessageLogBehavior : BehaviorBase
     {
         private readonly DiscordSocketClient _discordClient;
-        private readonly IStatsDPublisher _stats;
+        private readonly IDogStatsd _stats;
 
-        public MessageLogBehavior(DiscordSocketClient discordClient, ILogger<MessageLogBehavior> logger, IServiceProvider serviceProvider, IStatsDPublisher stats)
+        public MessageLogBehavior(DiscordSocketClient discordClient, ILogger<MessageLogBehavior> logger, IServiceProvider serviceProvider, IDogStatsd stats)
             : base(serviceProvider)
         {
             _discordClient = discordClient;
@@ -186,8 +187,19 @@ namespace Modix.Services.Core
         {
             Log.LogDebug("Handling message received event for message #{MessageId}.", message.Id);
 
-            _stats.Increment("message_count");
+            var tags = new List<string>();
 
+            if (message.Channel is IGuildChannel msgChannel)
+            {
+                if (msgChannel.Guild is IGuild msgGuild)
+                {
+                    tags.Add("guild:" + msgGuild.Name);
+                }
+
+                tags.Add("channel:" + msgChannel.Name);
+            }
+
+            _stats.Increment("messages_received", tags: tags.ToArray());
             if (!message.Content.StartsWith('!') &&
                 message.Channel is IGuildChannel channel &&
                 message.Author is IGuildUser author &&

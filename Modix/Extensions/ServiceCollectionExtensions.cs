@@ -37,6 +37,7 @@ using Modix.Services.StackExchange;
 using Modix.Services.Starboard;
 using Modix.Services.Tags;
 using Modix.Services.Wikipedia;
+using StatsdClient;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -142,6 +143,21 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddHostedService<ModixBot>();
 
+            return services;
+        }
+
+        public static IServiceCollection AddStatsD(this IServiceCollection services)
+        {
+            var cfg = new StatsdConfig { Prefix = "modix" };
+            DogStatsd.Configure(cfg);
+            services.AddSingleton(cfg);
+            services.AddSingleton<IDogStatsd>(provider =>
+            {
+                var config = provider.GetRequiredService<StatsdConfig>();
+                var service = new DogStatsdService();
+                service.Configure(config);
+                return service;
+            });
             return services;
         }
     }
