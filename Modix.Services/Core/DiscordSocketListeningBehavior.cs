@@ -196,7 +196,7 @@ namespace Modix.Services.Core
         {
             if (!string.IsNullOrEmpty(guild?.Name))
             {
-                var tags = new[] { guild.Name };
+                var tags = new[] { "guild:" + guild.Name };
 
                 _stats.Increment(counterName, tags: tags);
 
