@@ -200,7 +200,7 @@ namespace Modix.Services.Core
 
                 _stats.Increment(counterName, tags: tags);
 
-                if (guild is SocketGuild socketGuild)
+                if (guild is ISocketGuild socketGuild)
                 {
                     _stats.Gauge("user_count", socketGuild.MemberCount, tags: tags);
                 }
