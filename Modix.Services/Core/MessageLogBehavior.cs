@@ -187,19 +187,6 @@ namespace Modix.Services.Core
         {
             Log.LogDebug("Handling message received event for message #{MessageId}.", message.Id);
 
-            var tags = new List<string>();
-
-            if (message.Channel is IGuildChannel msgChannel)
-            {
-                if (msgChannel.Guild is IGuild msgGuild)
-                {
-                    tags.Add("guild:" + msgGuild.Name);
-                }
-
-                tags.Add("channel:" + msgChannel.Name);
-            }
-
-            _stats.Increment("messages_received", tags: tags.ToArray());
             if (!message.Content.StartsWith('!') &&
                 message.Channel is IGuildChannel channel &&
                 message.Author is IGuildUser author &&
