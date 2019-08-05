@@ -97,7 +97,7 @@ namespace Modix.Services.Core
 
             if (guild == null)
             {
-                Log.LogInformation("Recieved message update event for non-guild message, ignoring");
+                Log.LogInformation("Received message update event for non-guild message, ignoring");
                 return;
             }
 

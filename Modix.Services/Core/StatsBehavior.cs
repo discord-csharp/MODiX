@@ -12,20 +12,17 @@ namespace Modix.Services.Core
     public class StatsBehavior : BehaviorBase
     {
         private readonly DiscordSocketClient _discordClient;
-        private readonly IDesignatedChannelService _designatedChannelService;
         private readonly IDogStatsd _stats;
         private readonly ILogger<StatsBehavior> _log;
 
         public StatsBehavior(
             DiscordSocketClient discordClient,
-            IDesignatedChannelService designatedChannelService,
             IDogStatsd stats,
             ILogger<StatsBehavior> log,
             IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
             _discordClient = discordClient;
-            _designatedChannelService = designatedChannelService;
             _stats = stats;
             _log = log;
         }
@@ -59,8 +56,9 @@ namespace Modix.Services.Core
                 var isParticipation = true;
                 try
                 {
-                    isParticipation = await _designatedChannelService.ChannelHasDesignationAsync(guild, channel, DesignatedChannelType.CountsTowardsParticipation)
-                        .ConfigureAwait(false);
+                    await SelfExecuteRequest<IDesignatedChannelService>(async d
+                        => isParticipation = await d.ChannelHasDesignationAsync(guild, channel,
+                            DesignatedChannelType.CountsTowardsParticipation));
                 }
                 catch (Exception ex)
                 {
