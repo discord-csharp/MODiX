@@ -16,6 +16,7 @@ using Modix.Bot.Behaviors;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
+using Modix.DataDog;
 using Modix.Services;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.BehaviourConfiguration;
@@ -149,6 +150,13 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddStatsD(this IServiceCollection services)
         {
             var cfg = new StatsdConfig { Prefix = "modix" };
+
+            if (string.IsNullOrWhiteSpace(cfg.StatsdServerName))
+            {
+                services.AddSingleton<IDogStatsd, DebugDogStatsd>();
+                return services;
+            }
+
             DogStatsd.Configure(cfg);
             services.AddSingleton(cfg);
             services.AddSingleton<IDogStatsd>(provider =>
