@@ -151,7 +151,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             var cfg = new StatsdConfig { Prefix = "modix" };
 
-            if (environment.IsDevelopment() && string.IsNullOrWhiteSpace(cfg.StatsdServerName))
+            if (!environment.IsProduction() && string.IsNullOrWhiteSpace(cfg.StatsdServerName))
             {
                 services.AddSingleton<IDogStatsd, DebugDogStatsd>();
                 return services;
