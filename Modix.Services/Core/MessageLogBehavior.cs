@@ -116,7 +116,7 @@ namespace Modix.Services.Core
             }
 
             var embed = new EmbedBuilder()
-                .WithUserAsAuthor(original.Author, original.Id.ToString())
+                .WithUserAsAuthor(original.Author, original.Author.Id.ToString())
                 .WithDescription(descriptionText)
                 .WithCurrentTimestamp();
 
