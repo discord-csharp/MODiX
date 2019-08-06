@@ -170,6 +170,12 @@ namespace Modix.Modules
         {
             await Context.AddConfirmation();
 
+            // If the channel is public, do not list the infraction embed that occurs after a user has reached 3 infractions
+            if ((Context.Channel as IGuildChannel)?.IsPublic() is true)
+            {
+                return;
+            }
+
             var counts = await ModerationService.GetInfractionCountsForUserAsync(userId);
 
             //TODO: Make this configurable
