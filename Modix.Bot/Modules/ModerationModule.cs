@@ -168,13 +168,13 @@ namespace Modix.Modules
 
         private async Task ConfirmAndReplyWithCountsAsync(ulong userId)
         {
+            await Context.AddConfirmation();
+
             // If the channel is public, do not list the infraction embed that occurs after a user has reached 3 infractions
             if ((Context.Channel as IGuildChannel).IsPublic())
             {
                 return;
             }
-
-            await Context.AddConfirmation();
 
             var counts = await ModerationService.GetInfractionCountsForUserAsync(userId);
 
