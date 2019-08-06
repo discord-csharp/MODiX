@@ -87,6 +87,24 @@ namespace Modix.Modules
             await ConfirmAndReplyWithCountsAsync(subject.Id);
         }
 
+        [Command("tempmute")]
+        [Alias("mute")]
+        [Summary("Mute a user, for a temporary amount of time.")]
+        public async Task TempMuteAsync(
+            [Summary("The duration of the mute.")]
+                TimeSpan duration,
+            [Summary("The user to be muted.")]
+                DiscordUserEntity subject,
+            [Summary("The reason for the mute.")]
+            [Remainder]
+                string reason)
+        {
+            var reasonWithUrls = AppendUrlsFromMessage(reason);
+
+            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.Id, reasonWithUrls, duration);
+            await ConfirmAndReplyWithCountsAsync(subject.Id);
+        }
+
         [Command("unmute")]
         [Summary("Remove a mute that has been applied to a user.")]
         public async Task UnMuteAsync(
