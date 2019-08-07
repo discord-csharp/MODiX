@@ -419,6 +419,11 @@ namespace Modix.Services.Promotions
         internal protected IPromotionCommentRepository PromotionCommentRepository { get; }
 
         /// <summary>
+        /// An <see cref="IGuildConfigurationRepository"/> for storign and retrieving guild configurations.
+        /// </summary>
+        internal protected IGuildConfigurationRepository GuildConfigurationRepository { get; }
+
+        /// <summary>
         /// An <see cref="IMessageDispatcher"/> for dispatching notifications throughout the application.
         /// </summary>
         internal protected IMessageDispatcher MessageDispatcher { get; }
@@ -505,9 +510,13 @@ namespace Modix.Services.Promotions
                 throw new InvalidOperationException($"An active campaign already exists for {subject.GetFullUsername()} to be promoted to {targetRankRole.Name}");
 
             // JoinedAt is null, when it cannot be obtained
-            if (subject.JoinedAt.HasValue)
-                if (subject.JoinedAt.Value.DateTime > (DateTimeOffset.Now - TimeSpan.FromDays(20)))
-                    throw new InvalidOperationException($"{subject.GetFullUsername()} has joined less than 20 days prior");
+            if (subject.JoinedAt.HasValue && await GuildConfigurationRepository.HasMinimumDaysBeforePromotion(subject.GuildId))
+            {
+                var minimumDuration = await GuildConfigurationRepository.GetMinimumDaysBeforePromotion(subject.GuildId);
+
+                if(subject.JoinedAt.Value.DateTime > (DateTimeOffset.Now - TimeSpan.FromDays(minimumDuration)))
+                    throw new InvalidOperationException($"{subject.GetFullUsername()} has joined less than {minimumDuration} days prior");
+            }
 
             if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value, targetRankRole.Id))
                 throw new InvalidOperationException($"Creating a promotion campaign requires a rank at least as high as the proposed target rank");

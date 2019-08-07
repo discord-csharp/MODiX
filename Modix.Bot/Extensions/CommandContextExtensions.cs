@@ -55,5 +55,26 @@ namespace Modix.Bot.Extensions
                 await confirmationMessage.ModifyAsync(m => m.Content = mainMessage + bottomMessage);
             }
         }
+
+        public static Task<IUserMessage> ReplyWithEmbed(this ICommandContext context, string message)
+            => EmbedSend(context, message, Color.Green);
+        public static Task<IUserMessage> ReplyWithErrorEmbed(this ICommandContext context, string message)
+            => EmbedSend(context, message, Color.Red);
+
+        private static Task<IUserMessage> EmbedSend(ICommandContext context, string message, Color color, bool useDefaultFooter = true)
+        {
+            var embed = new EmbedBuilder()
+            {
+                Description = message,
+                Color = color
+            };
+
+            if (useDefaultFooter)
+            {
+                embed.WithDefaultFooter(context.User);
+            }
+
+            return context.Channel.SendMessageAsync(embed: embed.Build());
+        }
     }
 }

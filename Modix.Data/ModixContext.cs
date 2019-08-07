@@ -59,6 +59,8 @@ namespace Modix.Data
 
         public DbSet<PromotionActionEntity> PromotionActions { get; set; }
 
+        public DbSet<GuildConfigEntity> GuildConfigurations { get; set; }
+
         internal DbSet<TagEntity> Tags { get; set; }
 
         internal DbSet<TagActionEntity> TagActions { get; set; }
