@@ -149,6 +149,10 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static IServiceCollection AddStatsD(this IServiceCollection services, IHostingEnvironment environment)
         {
+            services.AddSingleton<IDogStatsd, DebugDogStatsd>();
+            return services;
+
+            /*
             var cfg = new StatsdConfig { Prefix = "modix" };
 
             if (!environment.IsProduction() && string.IsNullOrWhiteSpace(cfg.StatsdServerName))
@@ -167,6 +171,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 return service;
             });
             return services;
+            */
         }
     }
 }
