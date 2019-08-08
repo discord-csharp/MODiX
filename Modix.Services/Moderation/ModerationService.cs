@@ -88,6 +88,13 @@ namespace Modix.Services.Moderation
         Task DeleteInfractionAsync(long infractionId);
 
         /// <summary>
+        /// Marks a deleted infraction as active, based on its ID
+        /// </summary>
+        /// <param name="infractionId"></param>
+        /// <returns></returns>
+        Task RestoreInfractionAsync(long infractionId);
+
+        /// <summary>
         /// Deletes a message and creates a record of the deletion within the database.
         /// </summary>
         /// <param name="message">The message to be deleted.</param>
@@ -535,7 +542,7 @@ namespace Modix.Services.Moderation
                         Log.Warning("Tried to unmute {User} while deleting mute infraction, but they weren't in the guild: {Guild}",
                             infraction.Subject.Id, guild.Id);
                     }
-                    
+
                     break;
 
                 case InfractionType.Ban:
@@ -549,6 +556,22 @@ namespace Modix.Services.Moderation
 
                     break;
             }
+        }
+
+        /// <inheritdoc />
+        public async Task RestoreInfractionAsync(long infractionId)
+        {
+            AuthorizationService.RequireAuthenticatedUser();
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationDeleteInfraction);
+
+            var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
+
+            if (infraction == null)
+                throw new InvalidOperationException($"Infraction {infractionId} does not exist");
+
+            await RequireSubjectRankLowerThanModeratorRankAsync(infraction.GuildId, AuthorizationService.CurrentUserId.Value, infraction.Subject.Id);
+
+            await InfractionRepository.TryRestoreAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
         }
 
         /// <inheritdoc />
@@ -929,7 +952,7 @@ namespace Modix.Services.Moderation
             if (!await DoesModeratorOutrankUserAsync(guildId, moderatorId, subjectId))
                 throw new InvalidOperationException("Cannot moderate users that have a rank greater than or equal to your own.");
         }
-            
+
         private static readonly OverwritePermissions _mutePermissions
             = new OverwritePermissions(
                 sendMessages: PermValue.Deny,

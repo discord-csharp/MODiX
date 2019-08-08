@@ -104,17 +104,27 @@ namespace Modix.Data.Repositories
         /// </summary>
         /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be rescinded.</param>
         /// <param name="rescindedById">The <see cref="UserEntity.Id"/> value of the user that is rescinding the infraction.</param>
-        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// <returns>A <see cref="Task"/> which will complete when the operation is complete,
         /// containing a flag indicating whether the update was successful (I.E. whether the specified infraction could be found).
         /// </returns>
         Task<bool> TryRescindAsync(long infractionId, ulong rescindedById);
+
+        /// <summary>
+        /// Marks a deleted infraction as active, based on its ID
+        /// </summary>
+        /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be restored.</param>
+        /// <param name="restoredById">The <see cref="UserEntity.Id"/> value of the user that is rescinding the infraction.</param>
+        /// <returns>A <see cref="Task"/> which will complete when the operation is complete,
+        /// containing a flag indicating whether the update was successful (I.E. whether the specified infraction could be found).
+        /// </returns>
+        Task<bool> TryRestoreAsync(long infractionId, ulong restoredById);
 
         /// <summary>
         /// Marks an existing infraction as deleted, based on its ID.
         /// </summary>
         /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be deleted.</param>
         /// <param name="deletedById">The <see cref="UserEntity.Id"/> value of the user that is deleting the infraction.</param>
-        /// A <see cref="Task"/> which will complete when the operation is complete,
+        /// <returns>A <see cref="Task"/> which will complete when the operation is complete,
         /// containing a flag indicating whether the operation was successful (I.E. whether the specified infraction could be found).
         /// </returns>
         Task<bool> TryDeleteAsync(long infractionId, ulong deletedById);
@@ -262,6 +272,33 @@ namespace Modix.Data.Repositories
             };
             await ModixContext.SaveChangesAsync();
 
+            await RaiseModerationActionCreatedAsync(entity.RescindAction);
+
+            return true;
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> TryRestoreAsync(long infractionId, ulong restoredById)
+        {
+            var entity = await ModixContext.Infractions
+                .Where(x => x.Id == infractionId)
+                .FirstOrDefaultAsync();
+
+            if ((entity == null) || (entity.RescindActionId != null))
+            {
+                return false;
+            }
+
+            entity.RestoreAction = new ModerationActionEntity
+            {
+                GuildId = entity.GuildId,
+                Type = ModerationActionType.InfractionRestored,
+                Created = DateTimeOffset.Now,
+                CreatedById = restoredById,
+                InfractionId = entity.Id
+            };
+
+            await ModixContext.SaveChangesAsync();
             await RaiseModerationActionCreatedAsync(entity.RescindAction);
 
             return true;

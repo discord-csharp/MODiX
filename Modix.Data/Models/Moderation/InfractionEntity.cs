@@ -79,6 +79,16 @@ namespace Modix.Data.Models.Moderation
         public virtual ModerationActionEntity RescindAction { get; set; }
 
         /// <summary>
+        /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="RestoreAction"/>.
+        /// </summary>
+        public long? RestoreActionId { get; set; }
+
+        /// <summary>
+        /// The <see cref="ModerationActionEntity"/> (if any) that restored this <see cref="InfractionEntity"/>.
+        /// </summary>
+        public virtual ModerationActionEntity RestoreAction { get; set; }
+
+        /// <summary>
         /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="DeleteAction"/>.
         /// </summary>
         public long? DeleteActionId { get; set; }
@@ -129,6 +139,12 @@ namespace Modix.Data.Models.Moderation
                 .HasOne(x => x.DeleteAction)
                 .WithOne()
                 .HasForeignKey<InfractionEntity>(x => x.DeleteActionId);
+
+            modelBuilder
+                .Entity<InfractionEntity>()
+                .HasOne(x => x.RestoreAction)
+                .WithOne()
+                .HasForeignKey<InfractionEntity>(x => x.RestoreActionId);
         }
     }
 }

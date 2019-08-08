@@ -117,6 +117,16 @@ namespace Modix.Modules
             await Context.AddConfirmation();
         }
 
+        [Command("restore")]
+        [Summary("Marks an a previously deleted infraction as restored and active")]
+        public async Task RestoreAsync(
+            [Summary("The ID value of the infraction to be restored.")]
+            long infractionId)
+        {
+            await ModerationService.RestoreInfractionAsync(infractionId);
+            await Context.AddConfirmation();
+        }
+
         internal protected IModerationService ModerationService { get; }
         internal protected IUserService UserService { get; }
         internal protected ModixConfig Config { get; }

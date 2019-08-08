@@ -25,5 +25,9 @@
         /// Describes a moderation action where a sequence of messages were deleted simultaneously.
         /// </summary>
         MessageBatchDeleted,
+        /// <summary>
+        /// Describes a moderation action where a previous, (soft) deleted infraction was restored to an active status.
+        /// </summary>
+        InfractionRestored,
     }
 }
