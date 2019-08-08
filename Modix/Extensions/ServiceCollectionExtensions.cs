@@ -150,8 +150,10 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddStatsD(this IServiceCollection services, IHostingEnvironment environment)
         {
             var cfg = new StatsdConfig { Prefix = "modix" };
-
-            if (!environment.IsProduction() && string.IsNullOrWhiteSpace(cfg.StatsdServerName))
+            bool.TryParse(Environment.GetEnvironmentVariable("MODIX_ENABLESTATSD"), out var enableStatsd);
+               
+            if (!enableStatsd ||
+                environment.IsDevelopment() && string.IsNullOrWhiteSpace(cfg.StatsdServerName))
             {
                 services.AddSingleton<IDogStatsd, DebugDogStatsd>();
                 return services;
