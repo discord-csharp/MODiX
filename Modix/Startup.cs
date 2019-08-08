@@ -75,7 +75,7 @@ namespace Modix
                     options.SerializerSettings.Converters.Add(new StringULongConverter());
                 });
 
-            services.AddStatsD(_hostingEnvironment);
+            // services.AddStatsD(_hostingEnvironment);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
