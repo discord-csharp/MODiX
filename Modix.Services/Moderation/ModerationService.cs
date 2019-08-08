@@ -4,15 +4,16 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Discord;
+using Discord.Net;
 
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
+using Modix.Services.Utilities;
 
 using Serilog;
-using Discord.Net;
 
 namespace Modix.Services.Moderation
 {
@@ -884,7 +885,12 @@ namespace Modix.Services.Moderation
             {
                 case InfractionType.Mute:
                     if (!await UserService.GuildUserExistsAsync(guild.Id, infraction.Subject.Id))
-                        throw new InvalidOperationException("Cannot unmute a user who is not in the server.");
+                    {
+                        Log.Information("Attempted to remove the mute role from {0} ({1}), but they were not in the server.",
+                            infraction.Subject.GetFullUsername(),
+                            infraction.Subject.Id);
+                        break;
+                    }
 
                     var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
                     await subject.RemoveRoleAsync(await GetDesignatedMuteRoleAsync(guild));
