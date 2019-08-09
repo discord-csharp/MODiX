@@ -216,6 +216,8 @@ namespace Modix.Services.Moderation
         /// containing the designated mute role in the guild.
         /// </returns>
         Task<IRole> GetOrCreateDesignatedMuteRoleAsync(IGuild guild, ulong currentUserId);
+
+        Task<bool> UpdateInfractionAsync(long infractionId, string newReason, ulong currentUserId);
     }
 
     /// <inheritdoc />
@@ -769,6 +771,25 @@ namespace Modix.Services.Moderation
                 transaction.Commit();
                 return role;
             }
+        }
+        
+        public async Task<bool> UpdateInfractionAsync(long infractionId, string newReason, ulong currentUserId)
+        {
+            var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
+
+            AuthorizationService.RequireClaims(_createInfractionClaimsByType[infraction.Type]);
+
+            // Allow users who created the infraction to bypass any further
+            // validation and update their own infraction
+            if (infraction.CreateAction.CreatedBy.Id == currentUserId)
+            {
+                return await InfractionRepository.TryUpdateAync(infractionId, newReason);
+            }
+
+            // Else we know it's not the user's infraction
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationUpdateInfraction);
+
+            return await InfractionRepository.TryUpdateAync(infractionId, newReason);
         }
 
         /// <summary>

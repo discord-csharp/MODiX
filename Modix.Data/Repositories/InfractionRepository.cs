@@ -118,6 +118,8 @@ namespace Modix.Data.Repositories
         /// containing a flag indicating whether the operation was successful (I.E. whether the specified infraction could be found).
         /// </returns>
         Task<bool> TryDeleteAsync(long infractionId, ulong deletedById);
+
+        Task<bool> TryUpdateAync(long infractionId, string newReason);
     }
 
     /// <inheritdoc />
@@ -288,6 +290,22 @@ namespace Modix.Data.Repositories
             await ModixContext.SaveChangesAsync();
 
             await RaiseModerationActionCreatedAsync(entity.DeleteAction);
+
+            return true;
+        }
+
+        public async Task<bool> TryUpdateAync(long infractionId, string newReason)
+        {
+            var entity = await ModixContext.Infractions
+                .Where(x => x.Id == infractionId)
+                .FirstOrDefaultAsync();
+
+            if (entity == null)
+                return false;
+
+            entity.Reason = newReason;
+
+            await ModixContext.SaveChangesAsync();
 
             return true;
         }
