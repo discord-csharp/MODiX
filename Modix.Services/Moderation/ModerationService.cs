@@ -938,6 +938,7 @@ namespace Modix.Services.Moderation
             
         private static readonly OverwritePermissions _mutePermissions
             = new OverwritePermissions(
+                addReactions: PermValue.Deny,
                 sendMessages: PermValue.Deny,
                 speak: PermValue.Deny);
 
