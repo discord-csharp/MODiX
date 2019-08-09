@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
-
+using Microsoft.Extensions.Options;
 using Modix.Bot.Extensions;
+using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Services.CommandHelp;
 using Modix.Services.Moderation;
@@ -19,9 +20,10 @@ namespace Modix.Modules
     [HelpTags("note", "warn", "mute", "tempmute", "unmute", "ban", "forceban", "unban", "clean")]
     public class ModerationModule : ModuleBase
     {
-        public ModerationModule(IModerationService moderationService)
+        public ModerationModule(IModerationService moderationService, IOptions<ModixConfig> config)
         {
             ModerationService = moderationService;
+            Config = config.Value;
         }
 
         [Command("note")]
@@ -199,10 +201,18 @@ namespace Modix.Modules
             //TODO: Make this configurable
             if (counts.Values.Any(count => count >= 3))
             {
+                // https://modix.gg/infractions?subject=12345
+                var url = new UriBuilder(Config.WebsiteBaseUrl)
+                {
+                    Path = "/infractions",
+                    Query = $"subject={userId}"
+                }.RemoveDefaultPort().ToString();
+
                 await ReplyAsync(embed: new EmbedBuilder()
                     .WithTitle("Infraction Count Notice")
                     .WithColor(Color.Orange)
                     .WithDescription(FormatUtilities.FormatInfractionCounts(counts))
+                    .WithUrl(url)
                     .Build());
             }
         }
@@ -224,5 +234,6 @@ namespace Modix.Modules
         }
 
         internal protected IModerationService ModerationService { get; }
+        internal protected ModixConfig Config { get; }
     }
 }
