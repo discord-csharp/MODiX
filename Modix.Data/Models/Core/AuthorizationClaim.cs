@@ -54,7 +54,7 @@ namespace Modix.Data.Models.Core
         [ClaimInfo(ModerationActions, "Authorizes a request to delete an infraction upon a user.")]
         ModerationDeleteInfraction,
         /// <summary>
-        /// Authorizes a request to delete an infraction upon a user.
+        /// Authorizes a request to update an infraction.
         /// </summary>
         [ClaimInfo(ModerationActions, "Authorizes a request to update an infraction.")]
         ModerationUpdateInfraction,
