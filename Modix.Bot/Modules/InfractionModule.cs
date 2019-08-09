@@ -32,16 +32,16 @@ namespace Modix.Modules
         [Priority(10)]
         public async Task SearchAsync(
             [Summary("The user whose infractions are to be displayed.")]
-                DiscordUserEntity subjectEntity)
+                DiscordUserOrMessageAuthorEntity subjectEntity)
         {
             var requestor = Context.User.Mention;
-            var subject = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, subjectEntity.Id);
+            var subject = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, subjectEntity.UserId);
 
             var infractions = await ModerationService.SearchInfractionsAsync(
                 new InfractionSearchCriteria
                 {
                     GuildId = Context.Guild.Id,
-                    SubjectId = subjectEntity.Id,
+                    SubjectId = subjectEntity.UserId,
                     IsDeleted = false
                 },
                 new[]
@@ -70,7 +70,7 @@ namespace Modix.Modules
                 Rescinded = infraction.RescindAction != null
             }).OrderBy(s => s.Type);
 
-            var counts = await ModerationService.GetInfractionCountsForUserAsync(subjectEntity.Id);
+            var counts = await ModerationService.GetInfractionCountsForUserAsync(subjectEntity.UserId);
 
             // https://modix.gg/infractions?subject=12345
             var url = new UriBuilder(Config.WebsiteBaseUrl)
