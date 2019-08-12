@@ -68,7 +68,8 @@ namespace Modix.Behaviors
                 moderationAction.DeletedMessage?.Reason,
                 string.IsNullOrWhiteSpace(content) ? "Empty Message Content" : content,
                 moderationAction.DeletedMessages?.Count,
-                GetBatchUrl(moderationAction.DeletedMessages?.FirstOrDefault()?.BatchId));
+                GetBatchUrl(moderationAction.DeletedMessages?.FirstOrDefault()?.BatchId),
+                moderationAction.OriginalInfractionReason);
 
             await DesignatedChannelService.SendToDesignatedChannelsAsync(
                 await DiscordClient.GetGuildAsync(data.GuildId), DesignatedChannelType.ModerationLog, message);
@@ -116,6 +117,10 @@ namespace Modix.Behaviors
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Warning), "`[{0}]` **{1}** deleted a warning (`{2}`) for **{3}** (`{4}`)" },
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Mute),    "`[{0}]` **{1}** deleted a mute (`{2}`) for **{3}** (`{4}`)" },
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Ban),     "`[{0}]` **{1}** deleted a ban (`{2}`) for **{3}** (`{4}`)" },
+                { (ModerationActionType.InfractionUpdated,   InfractionType.Notice),  "`[{0}]` **{1}** updated a note (`{2}`) for **{3}** (`{4}`) from ```\n{15}``` to ```\n{5}```" },
+                { (ModerationActionType.InfractionUpdated,   InfractionType.Warning), "`[{0}]` **{1}** updated a warning (`{2}`) for **{3}** (`{4}`) from ```\n{15}``` to ```\n{5}```" },
+                { (ModerationActionType.InfractionUpdated,   InfractionType.Mute),    "`[{0}]` **{1}** updated a mute (`{2}`) for **{3}** (`{4}`) from ```\n{15}``` to ```\n{5}```" },
+                { (ModerationActionType.InfractionUpdated,   InfractionType.Ban),      "`[{0}]` **{1}** updated a ban (`{2}`) for **{3}** (`{4}`) from ```\n{15}``` to ```\n{5}```" },
                 { (ModerationActionType.MessageDeleted,      null),                   "`[{0}]` **{1}** deleted the following message (`{6}`) from **{7}** (`{8}`) in **#{9}** ```\n{12}``` for reason ```\n{11}```" },
                 { (ModerationActionType.MessageBatchDeleted, null),                   "`[{0}]` **{1}** deleted **{13}** messages in **#{9}** (<{14}>)" },
             };

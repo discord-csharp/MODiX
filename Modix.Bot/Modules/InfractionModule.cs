@@ -117,6 +117,23 @@ namespace Modix.Modules
             await Context.AddConfirmation();
         }
 
+        [Command("update")]
+        [Summary("Updates an infraction by ID, overwriting the existing reason")]
+        public async Task UpdateAsync(
+            [Summary("The ID value of the infraction to be update.")] long infractionId,
+                [Summary("New reason for the infraction"), Remainder] string reason)
+        {
+            var success = await ModerationService.UpdateInfractionAsync(infractionId, reason, Context.User.Id);
+
+            if (!success)
+            {
+                await ReplyAsync("Failed updating infraction");
+                return;
+            }
+
+            await Context.AddConfirmation();
+        }
+
         internal protected IModerationService ModerationService { get; }
         internal protected IUserService UserService { get; }
         internal protected ModixConfig Config { get; }
