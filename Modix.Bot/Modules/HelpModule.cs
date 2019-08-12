@@ -90,15 +90,17 @@ namespace Modix.Modules
                 string query)
         {
             var foundModule = _commandHelpService.GetModuleHelpData(query);
+            var foundCommand = _commandHelpService.GetCommandHelpData(query);
             var sanitizedQuery = FormatUtilities.SanitizeAllMentions(query);
 
-            if (foundModule is null)
+            if (foundModule is null && foundCommand is null)
             {
                 await ReplyAsync($"Sorry, I couldn't find help related to \"{sanitizedQuery}\".");
                 return;
             }
 
-            var embed = GetEmbedForModule(foundModule);
+            // Command has a higher priority than modules.
+            var embed = foundCommand != null ? GetEmbedForCommand(foundCommand) : GetEmbedForModule(foundModule);
 
             await ReplyAsync($"Results for \"{sanitizedQuery}\":", embed: embed.Build());
 
@@ -110,20 +112,28 @@ namespace Modix.Modules
                 .WithTitle($"Module: {module.Name}")
                 .WithDescription(module.Summary);
 
-            return AddCommandFields(embedBuilder, module.Commands);
+            foreach (var command in module.Commands)
+            {
+                AddCommandFields(embedBuilder, command);
+            }
+
+            return embedBuilder;
         }
 
-        private EmbedBuilder AddCommandFields(EmbedBuilder embedBuilder, IEnumerable<CommandHelpData> commands)
+        private EmbedBuilder GetEmbedForCommand(CommandHelpData command)
         {
-            foreach (var command in commands)
-            {
-                var summaryBuilder = new StringBuilder(command.Summary ?? "No summary.").AppendLine();
-                var summary = AppendAliases(summaryBuilder, command.Aliases);
 
-                embedBuilder.AddField(new EmbedFieldBuilder()
-                    .WithName($"Command: !{command.Aliases.FirstOrDefault()} {GetParams(command)}")
-                    .WithValue(summary.ToString()));
-            }
+            return AddCommandFields(new EmbedBuilder(), command);
+        }
+
+        private EmbedBuilder AddCommandFields(EmbedBuilder embedBuilder, CommandHelpData command)
+        {
+            var summaryBuilder = new StringBuilder(command.Summary ?? "No summary.").AppendLine();
+            var summary = AppendAliases(summaryBuilder, command.Aliases);
+
+            embedBuilder.AddField(new EmbedFieldBuilder()
+                                 .WithName($"Command: !{command.Aliases.FirstOrDefault()} {GetParams(command)}")
+                                 .WithValue(summary.ToString()));
 
             return embedBuilder;
         }
