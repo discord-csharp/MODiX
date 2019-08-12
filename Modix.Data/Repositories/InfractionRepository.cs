@@ -119,7 +119,7 @@ namespace Modix.Data.Repositories
         /// </returns>
         Task<bool> TryDeleteAsync(long infractionId, ulong deletedById);
 
-        Task<bool> TryUpdateAync(long infractionId, string newReason);
+        Task<bool> TryUpdateAync(long infractionId, string newReason, ulong updatedById);
     }
 
     /// <inheritdoc />
@@ -294,7 +294,7 @@ namespace Modix.Data.Repositories
             return true;
         }
 
-        public async Task<bool> TryUpdateAync(long infractionId, string newReason)
+        public async Task<bool> TryUpdateAync(long infractionId, string newReason, ulong updatedById)
         {
             var entity = await ModixContext.Infractions
                 .Where(x => x.Id == infractionId)
@@ -303,9 +303,23 @@ namespace Modix.Data.Repositories
             if (entity == null)
                 return false;
 
+            var originalReason = entity.Reason;
+
             entity.Reason = newReason;
 
+            entity.UpdateAction = new ModerationActionEntity()
+            {
+                GuildId = entity.GuildId,
+                Type = ModerationActionType.InfractionUpdated,
+                Created = DateTimeOffset.Now,
+                CreatedById = updatedById,
+                InfractionId = entity.Id,
+                OriginalInfractionReason = originalReason,
+            };
+
             await ModixContext.SaveChangesAsync();
+
+            await RaiseModerationActionCreatedAsync(entity.UpdateAction);
 
             return true;
         }

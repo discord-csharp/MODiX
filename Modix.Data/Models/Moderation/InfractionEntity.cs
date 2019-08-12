@@ -88,6 +88,16 @@ namespace Modix.Data.Models.Moderation
         /// </summary>
         public virtual ModerationActionEntity DeleteAction { get; set; }
 
+        /// <summary>
+        /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="UpdateAction"/>.
+        /// </summary>
+        public long? UpdateActionId { get; set; }
+
+        /// <summary>
+        /// The <see cref="ModerationActionEntity"/> (if any) that updated this <see cref="InfractionEntity"/>.
+        /// </summary>
+        public virtual ModerationActionEntity UpdateAction { get; set; }
+
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -129,6 +139,12 @@ namespace Modix.Data.Models.Moderation
                 .HasOne(x => x.DeleteAction)
                 .WithOne()
                 .HasForeignKey<InfractionEntity>(x => x.DeleteActionId);
+
+            modelBuilder
+                .Entity<InfractionEntity>()
+                .HasOne(x => x.UpdateAction)
+                .WithOne()
+                .HasForeignKey<InfractionEntity>(x => x.UpdateActionId);
         }
     }
 }

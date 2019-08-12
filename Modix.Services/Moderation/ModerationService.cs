@@ -777,19 +777,24 @@ namespace Modix.Services.Moderation
         {
             var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
 
+            var editCutoff = DateTimeOffset.Now.AddDays(-1);
+
+            if (infraction.CreateAction.Created <= editCutoff)
+                return false;
+
             AuthorizationService.RequireClaims(_createInfractionClaimsByType[infraction.Type]);
 
             // Allow users who created the infraction to bypass any further
             // validation and update their own infraction
             if (infraction.CreateAction.CreatedBy.Id == currentUserId)
             {
-                return await InfractionRepository.TryUpdateAync(infractionId, newReason);
+                return await InfractionRepository.TryUpdateAync(infractionId, newReason, currentUserId);
             }
 
             // Else we know it's not the user's infraction
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationUpdateInfraction);
 
-            return await InfractionRepository.TryUpdateAync(infractionId, newReason);
+            return await InfractionRepository.TryUpdateAync(infractionId, newReason, currentUserId);
         }
 
         /// <summary>
