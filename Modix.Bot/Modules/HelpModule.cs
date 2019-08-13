@@ -89,21 +89,25 @@ namespace Modix.Modules
             [Summary("The module name or related query to use to search for the help module.")]
                 string query)
         {
-            var foundModule = _commandHelpService.GetModuleHelpData(query);
-            var foundCommand = _commandHelpService.GetCommandHelpData(query);
             var sanitizedQuery = FormatUtilities.SanitizeAllMentions(query);
 
-            if (foundModule is null && foundCommand is null)
+            var byCommand = _commandHelpService.GetCommandHelpData(query);
+            if (byCommand != null)
             {
-                await ReplyAsync($"Sorry, I couldn't find help related to \"{sanitizedQuery}\".");
+                await Reply(GetEmbedForCommand(byCommand));
                 return;
             }
 
-            // Command has a higher priority than modules.
-            var embed = foundCommand != null ? GetEmbedForCommand(foundCommand) : GetEmbedForModule(foundModule);
+            var byModule = _commandHelpService.GetModuleHelpData(query);
+            if (byModule != null)
+            {
+                await Reply(GetEmbedForModule(byModule));
+                return;
+            }
 
-            await ReplyAsync($"Results for \"{sanitizedQuery}\":", embed: embed.Build());
+            await ReplyAsync($"Sorry, I couldn't find help related to \"{sanitizedQuery}\".");
 
+            Task Reply(EmbedBuilder e) => ReplyAsync($"Results for \"{sanitizedQuery}\":", embed: e.Build());
         }
 
         private EmbedBuilder GetEmbedForModule(ModuleHelpData module)
