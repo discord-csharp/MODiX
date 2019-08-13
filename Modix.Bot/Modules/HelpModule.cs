@@ -89,21 +89,25 @@ namespace Modix.Modules
             [Summary("The module name or related query to use to search for the help module.")]
                 string query)
         {
-            var foundModule = _commandHelpService.GetModuleHelpData(query);
-            var foundCommand = _commandHelpService.GetCommandHelpData(query);
             var sanitizedQuery = FormatUtilities.SanitizeAllMentions(query);
 
-            if (foundModule is null && foundCommand is null)
+            var byCommand = _commandHelpService.GetCommandHelpData(query);
+            if (byCommand != null)
             {
-                await ReplyAsync($"Sorry, I couldn't find help related to \"{sanitizedQuery}\".");
+                await Reply(GetEmbedForCommand(byCommand));
                 return;
             }
 
-            // Command has a higher priority than modules.
-            var embed = foundCommand != null ? GetEmbedForCommand(foundCommand) : GetEmbedForModule(foundModule);
+            var byModule = _commandHelpService.GetModuleHelpData(query);
+            if (byModule != null)
+            {
+                await Reply(GetEmbedForModule(byModule));
+                return;
+            }
 
-            await ReplyAsync($"Results for \"{sanitizedQuery}\":", embed: embed.Build());
+            await ReplyAsync($"Sorry, I couldn't find help related to \"{sanitizedQuery}\".");
 
+            Task Reply(EmbedBuilder e) => ReplyAsync($"Results for \"{sanitizedQuery}\":", embed: e.Build());
         }
 
         private EmbedBuilder GetEmbedForModule(ModuleHelpData module)
@@ -130,11 +134,12 @@ namespace Modix.Modules
         {
             var summaryBuilder = new StringBuilder(command.Summary ?? "No summary.").AppendLine();
             var name = command.Aliases.FirstOrDefault();
-            var summary = AppendAliases(summaryBuilder, command.Aliases.Where(a => !a.Equals(name, StringComparison.OrdinalIgnoreCase)).ToList());
+            AppendAliases(summaryBuilder, command.Aliases.Where(a => !a.Equals(name, StringComparison.OrdinalIgnoreCase)).ToList());
+            AppendParameters(summaryBuilder, command.Parameters);
 
             embedBuilder.AddField(new EmbedFieldBuilder()
                                  .WithName($"Command: !{name} {GetParams(command)}")
-                                 .WithValue(summary.ToString()));
+                                 .WithValue(summaryBuilder.ToString()));
 
             return embedBuilder;
         }
@@ -149,6 +154,23 @@ namespace Modix.Modules
             foreach (var alias in FormatUtilities.CollapsePlurals(aliases))
             {
                 stringBuilder.AppendLine($"• {alias}");
+            }
+
+            return stringBuilder;
+        }
+
+        private StringBuilder AppendParameters(StringBuilder stringBuilder,
+            IReadOnlyCollection<ParameterHelpData> parameters)
+        {
+            if (parameters.Count == 0)
+                return stringBuilder;
+
+            stringBuilder.AppendLine(Format.Bold("Parameters:"));
+
+            foreach (var parameter in parameters)
+            {
+                if (!(parameter.Summary is null))
+                    stringBuilder.AppendLine($"• {Format.Bold(parameter.Name)}: {parameter.Summary}");
             }
 
             return stringBuilder;
