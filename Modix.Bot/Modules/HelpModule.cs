@@ -130,11 +130,12 @@ namespace Modix.Modules
         {
             var summaryBuilder = new StringBuilder(command.Summary ?? "No summary.").AppendLine();
             var name = command.Aliases.FirstOrDefault();
-            var summary = AppendAliases(summaryBuilder, command.Aliases.Where(a => !a.Equals(name, StringComparison.OrdinalIgnoreCase)).ToList());
+            AppendAliases(summaryBuilder, command.Aliases.Where(a => !a.Equals(name, StringComparison.OrdinalIgnoreCase)).ToList());
+            AppendParameters(summaryBuilder, command.Parameters);
 
             embedBuilder.AddField(new EmbedFieldBuilder()
                                  .WithName($"Command: !{name} {GetParams(command)}")
-                                 .WithValue(summary.ToString()));
+                                 .WithValue(summaryBuilder.ToString()));
 
             return embedBuilder;
         }
@@ -149,6 +150,23 @@ namespace Modix.Modules
             foreach (var alias in FormatUtilities.CollapsePlurals(aliases))
             {
                 stringBuilder.AppendLine($"• {alias}");
+            }
+
+            return stringBuilder;
+        }
+
+        private StringBuilder AppendParameters(StringBuilder stringBuilder,
+            IReadOnlyCollection<ParameterHelpData> parameters)
+        {
+            if (parameters.Count == 0)
+                return stringBuilder;
+
+            stringBuilder.AppendLine(Format.Bold("Parameters:"));
+
+            foreach (var parameter in parameters)
+            {
+                if (!(parameter.Summary is null))
+                    stringBuilder.AppendLine($"• {Format.Bold(parameter.Name)}: {parameter.Summary}");
             }
 
             return stringBuilder;
