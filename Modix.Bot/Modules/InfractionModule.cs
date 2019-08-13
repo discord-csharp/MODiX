@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
+
 using Microsoft.Extensions.Options;
+
 using Modix.Bot.Extensions;
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
@@ -63,12 +65,10 @@ namespace Modix.Modules
             {
                 Id = infraction.Id,
                 Created = infraction.CreateAction.Created.ToUniversalTime().ToString("yyyy MMM dd"),
-                Type = infraction.Type.ToString(),
-                Subject = infraction.Subject.Username,
-                Creator = infraction.CreateAction.CreatedBy.GetFullUsername(),
+                Type = infraction.Type,
                 Reason = infraction.Reason,
                 Rescinded = infraction.RescindAction != null
-            }).OrderBy(s => s.Type);
+            });
 
             var counts = await ModerationService.GetInfractionCountsForUserAsync(subjectEntity.Id);
 
@@ -93,8 +93,11 @@ namespace Modix.Modules
                     Path = "/infractions",
                     Query = $"id={infraction.Id}"
                 }.ToString();
+
+                var emoji = GetEmojiForInfractionType(infraction.Type);
+
                 builder.AddField(
-                    $"#{infraction.Id} - {infraction.Type} - Created: {infraction.Created}{(infraction.Rescinded ? " - [RESCINDED]" : "")}",
+                    $"#{infraction.Id} - \\{emoji} {infraction.Type} - Created: {infraction.Created}{(infraction.Rescinded ? " - [RESCINDED]" : "")}",
                     Format.Url($"Reason: {infraction.Reason}", infractionUrl)
                 );
             }
@@ -137,5 +140,15 @@ namespace Modix.Modules
         internal protected IModerationService ModerationService { get; }
         internal protected IUserService UserService { get; }
         internal protected ModixConfig Config { get; }
+
+        private static string GetEmojiForInfractionType(InfractionType infractionType)
+            => infractionType switch
+            {
+                InfractionType.Notice => "📝",
+                InfractionType.Warning => "⚠️",
+                InfractionType.Mute => "🔇",
+                InfractionType.Ban => "🔨",
+                _ => "❔",
+            };
     }
 }
