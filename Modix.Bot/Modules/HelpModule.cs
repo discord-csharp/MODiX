@@ -130,7 +130,7 @@ namespace Modix.Modules
         {
             var summaryBuilder = new StringBuilder(command.Summary ?? "No summary.").AppendLine();
             var name = command.Aliases.FirstOrDefault();
-            var summary = AppendAliases(summaryBuilder, command.Aliases.Where(a => !a.Equals(name)).ToList());
+            var summary = AppendAliases(summaryBuilder, command.Aliases.Where(a => !a.Equals(name, StringComparison.OrdinalIgnoreCase)).ToList());
 
             embedBuilder.AddField(new EmbedFieldBuilder()
                                  .WithName($"Command: !{name} {GetParams(command)}")
