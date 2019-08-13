@@ -72,7 +72,7 @@ namespace Modix.Modules
             [Summary("The user to retrieve information about, if any.")]
                 [Remainder] DiscordUserOrMessageAuthorEntity user = null)
         {
-            var userId = user.UserId;
+            var userId = user?.UserId ?? Context.User.Id;
 
             var timer = Stopwatch.StartNew();
 
