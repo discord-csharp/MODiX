@@ -1,15 +1,19 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
+
 using Microsoft.Extensions.Options;
+
 using Modix.Bot.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Services.CommandHelp;
+using Modix.Services.Core;
 using Modix.Services.Moderation;
 using Modix.Services.Utilities;
 
@@ -20,9 +24,13 @@ namespace Modix.Modules
     [HelpTags("note", "warn", "mute", "tempmute", "unmute", "ban", "forceban", "unban", "clean")]
     public class ModerationModule : ModuleBase
     {
-        public ModerationModule(IModerationService moderationService, IOptions<ModixConfig> config)
+        public ModerationModule(
+            IModerationService moderationService,
+            IUserService userService,
+            IOptions<ModixConfig> config)
         {
             ModerationService = moderationService;
+            UserService = userService;
             Config = config.Value;
         }
 
@@ -35,6 +43,11 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
+            if (!await GetConfirmationIfRequiredAsync(subject))
+            {
+                return;
+            }
+
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
             await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Notice, subject.UserId, reasonWithUrls, null);
@@ -50,6 +63,11 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
+            if (!await GetConfirmationIfRequiredAsync(subject))
+            {
+                return;
+            }
+
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
             await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Warning, subject.UserId, reasonWithUrls, null);
@@ -65,6 +83,11 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
+            if (!await GetConfirmationIfRequiredAsync(subject))
+            {
+                return;
+            }
+
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
             await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.UserId, reasonWithUrls, null);
@@ -83,6 +106,11 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
+            if (!await GetConfirmationIfRequiredAsync(subject))
+            {
+                return;
+            }
+
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
             await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.UserId, reasonWithUrls, duration);
@@ -101,6 +129,11 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
+            if (!await GetConfirmationIfRequiredAsync(subject))
+            {
+                return;
+            }
+
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
             await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.UserId, reasonWithUrls, duration);
@@ -113,6 +146,11 @@ namespace Modix.Modules
             [Summary("The user to be un-muted.")]
                 DiscordUserOrMessageAuthorEntity subject)
         {
+            if (!await GetConfirmationIfRequiredAsync(subject))
+            {
+                return;
+            }
+
             await ModerationService.RescindInfractionAsync(InfractionType.Mute, subject.UserId);
             await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
@@ -127,6 +165,11 @@ namespace Modix.Modules
             [Remainder]
                 string reason)
         {
+            if (!await GetConfirmationIfRequiredAsync(subject))
+            {
+                return;
+            }
+
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
             await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Ban, subject.UserId, reasonWithUrls, null);
@@ -139,6 +182,11 @@ namespace Modix.Modules
             [Summary("The user to be un-banned.")]
                 DiscordUserOrMessageAuthorEntity subject)
         {
+            if (!await GetConfirmationIfRequiredAsync(subject))
+            {
+                return;
+            }
+
             await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.UserId);
             await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
@@ -233,7 +281,26 @@ namespace Modix.Modules
                 .ToString();
         }
 
+        private async ValueTask<bool> GetConfirmationIfRequiredAsync(DiscordUserOrMessageAuthorEntity userOrAuthor)
+        {
+            if (userOrAuthor.MessageId is null)
+            {
+                return true;
+            }
+
+            var author = await UserService.GetUserAsync(userOrAuthor.UserId);
+
+            Debug.Assert(author is { }); // author should be nonnull, because we have a message written by someone with that ID
+
+            return await Context.GetUserConfirmationAsync(
+                "Detected a message ID instead of a user ID. Do you want to perform this action on "
+                + $"{Format.Bold(author.GetFullUsername())} ({userOrAuthor.UserId}), the message's author?");
+        }
+
         internal protected IModerationService ModerationService { get; }
+
+        internal protected IUserService UserService { get; }
+
         internal protected ModixConfig Config { get; }
     }
 }
