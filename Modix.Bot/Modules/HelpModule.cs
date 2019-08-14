@@ -136,7 +136,7 @@ namespace Modix.Modules
                 }
             }
 
-            if (queries.HasFlag(HelpDataType.Module) && embed is null)
+            if (queries.HasFlag(HelpDataType.Module))
             {
                 var byModule = _commandHelpService.GetCommandHelpData(query);
                 if (byModule != null)
