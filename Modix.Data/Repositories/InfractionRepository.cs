@@ -113,7 +113,7 @@ namespace Modix.Data.Repositories
         /// Marks a deleted infraction as active, based on its ID
         /// </summary>
         /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be restored.</param>
-        /// <param name="restoredById">The <see cref="UserEntity.Id"/> value of the user that is rescinding the infraction.</param>
+        /// <param name="restoredById">The <see cref="UserEntity.Id"/> value of the user that is restoring the infraction.</param>
         /// <returns>A <see cref="Task"/> which will complete when the operation is complete,
         /// containing a flag indicating whether the update was successful (I.E. whether the specified infraction could be found).
         /// </returns>
@@ -299,7 +299,7 @@ namespace Modix.Data.Repositories
             };
 
             await ModixContext.SaveChangesAsync();
-            await RaiseModerationActionCreatedAsync(entity.RescindAction);
+            await RaiseModerationActionCreatedAsync(entity.RestoreAction);
 
             return true;
         }
@@ -322,8 +322,8 @@ namespace Modix.Data.Repositories
                 CreatedById = deletedById,
                 InfractionId = entity.Id
             };
-            await ModixContext.SaveChangesAsync();
 
+            await ModixContext.SaveChangesAsync();
             await RaiseModerationActionCreatedAsync(entity.DeleteAction);
 
             return true;

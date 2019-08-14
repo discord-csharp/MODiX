@@ -116,6 +116,10 @@ namespace Modix.Behaviors
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Warning), "`[{0}]` **{1}** deleted a warning (`{2}`) for **{3}** (`{4}`)" },
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Mute),    "`[{0}]` **{1}** deleted a mute (`{2}`) for **{3}** (`{4}`)" },
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Ban),     "`[{0}]` **{1}** deleted a ban (`{2}`) for **{3}** (`{4}`)" },
+                { (ModerationActionType.InfractionRestored,   InfractionType.Notice),  "`[{0}]` **{1}** restored a notice (`{2}`) for **{3}** (`{4}`)" },
+                { (ModerationActionType.InfractionRestored,   InfractionType.Warning), "`[{0}]` **{1}** restored a warning (`{2}`) for **{3}** (`{4}`)" },
+                { (ModerationActionType.InfractionRestored,   InfractionType.Mute),    "`[{0}]` **{1}** restored a mute (`{2}`) for **{3}** (`{4}`)" },
+                { (ModerationActionType.InfractionRestored,   InfractionType.Ban),     "`[{0}]` **{1}** restored a ban (`{2}`) for **{3}** (`{4}`)" },
                 { (ModerationActionType.MessageDeleted,      null),                   "`[{0}]` **{1}** deleted the following message (`{6}`) from **{7}** (`{8}`) in **#{9}** ```\n{12}``` for reason ```\n{11}```" },
                 { (ModerationActionType.MessageBatchDeleted, null),                   "`[{0}]` **{1}** deleted **{13}** messages in **#{9}** (<{14}>)" },
             };
