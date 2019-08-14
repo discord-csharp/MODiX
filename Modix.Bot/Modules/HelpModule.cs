@@ -92,7 +92,7 @@ namespace Modix.Modules
             await HelpAsync(query, HelpDataType.Command | HelpDataType.Module);
         }
 
-        [Command("module"), Alias("help modules")]
+        [Command("module"), Alias("modules")]
         [Summary("Retrieves help from a specific module. Useful for modules that have an overlapping command name.")]
         public async Task HelpModuleAsync(
             [Remainder] [Summary("Name of the module to query.")]
@@ -101,7 +101,7 @@ namespace Modix.Modules
             await HelpAsync(query, HelpDataType.Module);
         }
 
-        [Command("command"), Alias("help commands")]
+        [Command("command"), Alias("commands")]
         [Summary("Retrieves help from a specific command. Useful for commands that have an overlapping module name.")]
         public async Task HelpCommandAsync(
             [Remainder] [Summary("Name of the module to query.")]
