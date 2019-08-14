@@ -27,7 +27,8 @@ namespace Modix.Modules
             _config = config.Value;
         }
 
-        [Command("help"), Summary("Prints a neat list of all commands.")]
+        [Command("help")]
+        [Summary("Prints a neat list of all commands.")]
         public async Task HelpAsync()
         {
             var modules = _commandHelpService.GetModuleHelpData()
@@ -50,8 +51,8 @@ namespace Modix.Modules
                 .AppendLine($"Visit {url} to view all the commands!");
 
             var embed = new EmbedBuilder()
-                .WithTitle("Help")
-                .WithDescription(descriptionBuilder.ToString());
+                       .WithTitle("Help")
+                       .WithDescription(descriptionBuilder.ToString());
 
             await ReplyAsync(embed: embed.Build());
         }
@@ -72,49 +73,94 @@ namespace Modix.Modules
                 }
                 catch (HttpException ex) when (ex.DiscordCode == 50007)
                 {
-                    await ReplyAsync($"You have private messages for this server disabled, {Context.User.Mention}. Please enable them so that I can send you help.");
+                    await ReplyAsync(
+                        $"You have private messages for this server disabled, {Context.User.Mention}. Please enable them so that I can send you help.");
                     return;
                 }
-
             }
 
             await ReplyAsync($"Check your private messages, {Context.User.Mention}.");
         }
 
         [Command("help")]
-        [Summary("Prints a neat list of all commands based on the supplied query.")]
+        [Summary("Retrieves help from a specific module or command.")]
         [Priority(-10)]
         public async Task HelpAsync(
-            [Remainder]
-            [Summary("The module name or related query to use to search for the help module.")]
-                string query)
+            [Remainder] [Summary("Name of the module or command to query.")]
+            string query)
+        {
+            await HelpAsync(query, HelpDataType.Command | HelpDataType.Module);
+        }
+
+        [Command("help module"), Alias("help modules")]
+        [Summary("Retrieves help from a specific module. Useful for modules that have an overlapping command name.")]
+        [Priority(-10)]
+        public async Task HelpModuleAsync(
+            [Remainder] [Summary("Name of the module to query.")]
+            string query)
+        {
+            await HelpAsync(query, HelpDataType.Module);
+        }
+
+        [Command("help command"), Alias("help commands")]
+        [Summary("Retrieves help from a specific command. Useful for commands that have an overlapping module name.")]
+        [Priority(-10)]
+        public async Task HelpCommandAsync(
+            [Remainder] [Summary("Name of the module to query.")]
+            string query)
+        {
+            await HelpAsync(query, HelpDataType.Command);
+        }
+
+        private async Task HelpAsync(string query, HelpDataType type)
         {
             var sanitizedQuery = FormatUtilities.SanitizeAllMentions(query);
 
-            var byCommand = _commandHelpService.GetCommandHelpData(query);
-            if (byCommand != null)
-            {
-                await Reply(GetEmbedForCommand(byCommand));
-                return;
-            }
-
-            var byModule = _commandHelpService.GetModuleHelpData(query);
-            if (byModule != null)
-            {
-                await Reply(GetEmbedForModule(byModule));
-                return;
-            }
+            if (TryGetEmbed(query, type, out var embed))
+                await ReplyAsync($"Results for \"{sanitizedQuery}\":", embed: embed.Build());
 
             await ReplyAsync($"Sorry, I couldn't find help related to \"{sanitizedQuery}\".");
+        }
 
-            Task Reply(EmbedBuilder e) => ReplyAsync($"Results for \"{sanitizedQuery}\":", embed: e.Build());
+        private bool TryGetEmbed(string query, HelpDataType queries, out EmbedBuilder embed)
+        {
+            embed = null;
+
+            if (queries.HasFlag(HelpDataType.Command))
+            {
+                var byCommand = _commandHelpService.GetCommandHelpData(query);
+                if (byCommand != null)
+                {
+                    embed = GetEmbedForCommand(byCommand);
+                    return true;
+                }
+            }
+
+            if (queries.HasFlag(HelpDataType.Module))
+            {
+                var byModule = _commandHelpService.GetCommandHelpData(query);
+                if (byModule != null)
+                {
+                    embed = GetEmbedForCommand(byModule);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        [Flags]
+        public enum HelpDataType
+        {
+            Command = 1 << 1,
+            Module = 1 << 2
         }
 
         private EmbedBuilder GetEmbedForModule(ModuleHelpData module)
         {
             var embedBuilder = new EmbedBuilder()
-                .WithTitle($"Module: {module.Name}")
-                .WithDescription(module.Summary);
+                              .WithTitle($"Module: {module.Name}")
+                              .WithDescription(module.Summary);
 
             foreach (var command in module.Commands)
             {
@@ -126,7 +172,6 @@ namespace Modix.Modules
 
         private EmbedBuilder GetEmbedForCommand(CommandHelpData command)
         {
-
             return AddCommandFields(new EmbedBuilder(), command);
         }
 
