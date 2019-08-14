@@ -30,45 +30,45 @@ namespace Modix.Modules
         [Summary("Applies a note to a user's infraction history.")]
         public async Task NoteAsync(
             [Summary("The user to which the note is being applied.")]
-                DiscordUserEntity subject,
+                DiscordUserOrMessageAuthorEntity subject,
             [Summary("The reason for the note.")]
             [Remainder]
                 string reason)
         {
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
-            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Notice, subject.Id, reasonWithUrls, null);
-            await ConfirmAndReplyWithCountsAsync(subject.Id);
+            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Notice, subject.UserId, reasonWithUrls, null);
+            await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
 
         [Command("warn")]
         [Summary("Issue a warning to a user.")]
         public async Task WarnAsync(
             [Summary("The user to which the warning is being issued.")]
-                DiscordUserEntity subject,
+                DiscordUserOrMessageAuthorEntity subject,
             [Summary("The reason for the warning.")]
             [Remainder]
                 string reason)
         {
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
-            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Warning, subject.Id, reasonWithUrls, null);
-            await ConfirmAndReplyWithCountsAsync(subject.Id);
+            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Warning, subject.UserId, reasonWithUrls, null);
+            await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
 
         [Command("mute")]
         [Summary("Mute a user.")]
         public async Task MuteAsync(
             [Summary("The user to be muted.")]
-                DiscordUserEntity subject,
+                DiscordUserOrMessageAuthorEntity subject,
             [Summary("The reason for the mute.")]
             [Remainder]
                 string reason)
         {
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
-            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.Id, reasonWithUrls, null);
-            await ConfirmAndReplyWithCountsAsync(subject.Id);
+            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.UserId, reasonWithUrls, null);
+            await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
 
         [Command("tempmute")]
@@ -76,7 +76,7 @@ namespace Modix.Modules
         [Summary("Mute a user, for a temporary amount of time.")]
         public async Task TempMuteAsync(
             [Summary("The user to be muted.")]
-                DiscordUserEntity subject,
+                DiscordUserOrMessageAuthorEntity subject,
             [Summary("The duration of the mute.")]
                 TimeSpan duration,
             [Summary("The reason for the mute.")]
@@ -85,8 +85,8 @@ namespace Modix.Modules
         {
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
-            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.Id, reasonWithUrls, duration);
-            await ConfirmAndReplyWithCountsAsync(subject.Id);
+            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.UserId, reasonWithUrls, duration);
+            await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
 
         [Command("tempmute")]
@@ -96,25 +96,25 @@ namespace Modix.Modules
             [Summary("The duration of the mute.")]
                 TimeSpan duration,
             [Summary("The user to be muted.")]
-                DiscordUserEntity subject,
+                DiscordUserOrMessageAuthorEntity subject,
             [Summary("The reason for the mute.")]
             [Remainder]
                 string reason)
         {
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
-            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.Id, reasonWithUrls, duration);
-            await ConfirmAndReplyWithCountsAsync(subject.Id);
+            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.UserId, reasonWithUrls, duration);
+            await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
 
         [Command("unmute")]
         [Summary("Remove a mute that has been applied to a user.")]
         public async Task UnMuteAsync(
             [Summary("The user to be un-muted.")]
-                DiscordUserEntity subject)
+                DiscordUserOrMessageAuthorEntity subject)
         {
-            await ModerationService.RescindInfractionAsync(InfractionType.Mute, subject.Id);
-            await ConfirmAndReplyWithCountsAsync(subject.Id);
+            await ModerationService.RescindInfractionAsync(InfractionType.Mute, subject.UserId);
+            await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
 
         [Command("ban")]
@@ -122,25 +122,25 @@ namespace Modix.Modules
         [Summary("Ban a user from the current guild.")]
         public async Task BanAsync(
             [Summary("The user to be banned.")]
-                DiscordUserEntity subject,
+                DiscordUserOrMessageAuthorEntity subject,
             [Summary("The reason for the ban.")]
             [Remainder]
                 string reason)
         {
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
-            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Ban, subject.Id, reasonWithUrls, null);
-            await ConfirmAndReplyWithCountsAsync(subject.Id);
+            await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Ban, subject.UserId, reasonWithUrls, null);
+            await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
 
         [Command("unban")]
         [Summary("Remove a ban that has been applied to a user.")]
         public async Task UnBanAsync(
             [Summary("The user to be un-banned.")]
-                DiscordUserEntity subject)
+                DiscordUserOrMessageAuthorEntity subject)
         {
-            await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.Id);
-            await ConfirmAndReplyWithCountsAsync(subject.Id);
+            await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.UserId);
+            await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
 
         [Command("clean")]
