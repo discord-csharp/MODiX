@@ -14,7 +14,7 @@ using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
-    [Name("Help")]
+    [Name("Help"), Group("help")]
     [Summary("Provides commands for helping users to understand how to interact with MODiX.")]
     public sealed class HelpModule : ModuleBase
     {
@@ -27,7 +27,7 @@ namespace Modix.Modules
             _config = config.Value;
         }
 
-        [Command("help")]
+        [Command]
         [Summary("Prints a neat list of all commands.")]
         public async Task HelpAsync()
         {
@@ -57,7 +57,7 @@ namespace Modix.Modules
             await ReplyAsync(embed: embed.Build());
         }
 
-        [Command("help dm")]
+        [Command("dm")]
         [Summary("Spams the user's DMs with a list of every command available.")]
         public async Task HelpDMAsync()
         {
@@ -82,7 +82,7 @@ namespace Modix.Modules
             await ReplyAsync($"Check your private messages, {Context.User.Mention}.");
         }
 
-        [Command("help")]
+        [Command]
         [Summary("Retrieves help from a specific module or command.")]
         [Priority(-10)]
         public async Task HelpAsync(
@@ -92,9 +92,8 @@ namespace Modix.Modules
             await HelpAsync(query, HelpDataType.Command | HelpDataType.Module);
         }
 
-        [Command("help module"), Alias("help modules")]
+        [Command("module"), Alias("modules")]
         [Summary("Retrieves help from a specific module. Useful for modules that have an overlapping command name.")]
-        [Priority(-10)]
         public async Task HelpModuleAsync(
             [Remainder] [Summary("Name of the module to query.")]
             string query)
@@ -102,9 +101,8 @@ namespace Modix.Modules
             await HelpAsync(query, HelpDataType.Module);
         }
 
-        [Command("help command"), Alias("help commands")]
+        [Command("command"), Alias("commands")]
         [Summary("Retrieves help from a specific command. Useful for commands that have an overlapping module name.")]
-        [Priority(-10)]
         public async Task HelpCommandAsync(
             [Remainder] [Summary("Name of the module to query.")]
             string query)
@@ -117,7 +115,10 @@ namespace Modix.Modules
             var sanitizedQuery = FormatUtilities.SanitizeAllMentions(query);
 
             if (TryGetEmbed(query, type, out var embed))
+            {
                 await ReplyAsync($"Results for \"{sanitizedQuery}\":", embed: embed.Build());
+                return;
+            }
 
             await ReplyAsync($"Sorry, I couldn't find help related to \"{sanitizedQuery}\".");
         }
