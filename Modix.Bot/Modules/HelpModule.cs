@@ -115,7 +115,10 @@ namespace Modix.Modules
             var sanitizedQuery = FormatUtilities.SanitizeAllMentions(query);
 
             if (TryGetEmbed(query, type, out var embed))
+            {
                 await ReplyAsync($"Results for \"{sanitizedQuery}\":", embed: embed.Build());
+                return;
+            }
 
             await ReplyAsync($"Sorry, I couldn't find help related to \"{sanitizedQuery}\".");
         }
