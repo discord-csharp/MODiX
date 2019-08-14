@@ -132,6 +132,7 @@ namespace Modix.Modules
                 if (byCommand != null)
                 {
                     embed = GetEmbedForCommand(byCommand);
+                    return true;
                 }
             }
 
@@ -141,10 +142,11 @@ namespace Modix.Modules
                 if (byModule != null)
                 {
                     embed = GetEmbedForCommand(byModule);
+                    return true;
                 }
             }
 
-            return embed != null;
+            return false;
         }
 
         [Flags]
