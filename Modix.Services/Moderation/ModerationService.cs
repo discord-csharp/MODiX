@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Net;
-
+using Discord.WebSocket;
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
@@ -243,7 +243,8 @@ namespace Modix.Services.Moderation
             IInfractionRepository infractionRepository,
             IDeletedMessageRepository deletedMessageRepository,
             IDeletedMessageBatchRepository deletedMessageBatchRepository,
-            IRoleService roleService)
+            IRoleService roleService,
+            IDesignatedChannelService designatedChannelService)
         {
             DiscordClient = discordClient;
             AuthorizationService = authorizationService;
@@ -255,6 +256,7 @@ namespace Modix.Services.Moderation
             DeletedMessageRepository = deletedMessageRepository;
             DeletedMessageBatchRepository = deletedMessageBatchRepository;
             RoleService = roleService;
+            DesignatedChannelService = designatedChannelService;
         }
 
         /// <inheritdoc />
@@ -307,9 +309,12 @@ namespace Modix.Services.Moderation
         {
             var muteRole = await GetOrCreateDesignatedMuteRoleAsync(guild, AuthorizationService.CurrentUserId.Value);
 
+            var unmoderatedChannels = await DesignatedChannelService.GetDesignatedChannelIdsAsync(guild.Id, DesignatedChannelType.Unmoderated);
+
             var nonCategoryChannels =
                 (await guild.GetChannelsAsync())
-                .Where(c => !(c is ICategoryChannel))
+                .Where(c => !(c is ICategoryChannel) && !(c is SocketNewsChannel))
+                .Where(c => !unmoderatedChannels.Contains(c.Id))
                 .ToList();
 
             var setUpChannels = new List<IGuildChannel>();
@@ -846,6 +851,8 @@ namespace Modix.Services.Moderation
         /// An <see cref="IRoleService"/> for interacting with discord roles within the application.
         /// </summary>
         internal protected IRoleService RoleService { get; }
+
+        internal protected IDesignatedChannelService DesignatedChannelService { get; }
 
         private async Task ConfigureChannelMuteRolePermissionsAsync(IGuildChannel channel, IRole muteRole)
         {
