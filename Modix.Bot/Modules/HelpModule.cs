@@ -139,10 +139,10 @@ namespace Modix.Modules
 
             if (queries.HasFlag(HelpDataType.Module))
             {
-                var byModule = _commandHelpService.GetCommandHelpData(query);
+                var byModule = _commandHelpService.GetModuleHelpData(query);
                 if (byModule != null)
                 {
-                    embed = GetEmbedForCommand(byModule);
+                    embed = GetEmbedForModule(byModule);
                     return true;
                 }
             }
