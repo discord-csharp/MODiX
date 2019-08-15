@@ -7,5 +7,6 @@ export enum ChannelDesignation
     Unmoderated = "Unmoderated",
     Starboard = "Starboard",
     CountsTowardsParticipation = "CountsTowardsParticipation",
-    GiveawayLog = "GiveawayLog"
+    GiveawayLog = "GiveawayLog",
+    IgnoredFromStarboard = "IgnoredFromStarboard"
 }

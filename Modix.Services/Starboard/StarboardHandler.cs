@@ -16,16 +16,16 @@ namespace Modix.Services.Starboard
         INotificationHandler<ReactionAddedNotification>,
         INotificationHandler<ReactionRemovedNotification>
     {
-        private readonly IStarboardService _service;
+        private readonly IStarboardService _starboardService;
         private readonly IDesignatedChannelService _designatedChannelService;
         private readonly IQuoteService _quoteService;
 
         public StarboardHandler(
-            IStarboardService service,
+            IStarboardService starboardService,
             IDesignatedChannelService designatedChannelService,
             IQuoteService quoteService)
         {
-            _service = service;
+            _starboardService = starboardService;
             _designatedChannelService = designatedChannelService;
             _quoteService = quoteService;
         }
@@ -39,7 +39,7 @@ namespace Modix.Services.Starboard
         private async Task HandleReactionAsync(ICacheable<IUserMessage, ulong> cachedMessage, IReaction reaction)
         {
             var emote = reaction.Emote;
-            if (!_service.IsStarEmote(emote))
+            if (!_starboardService.IsStarEmote(emote))
             {
                 return;
             }
@@ -50,32 +50,34 @@ namespace Modix.Services.Starboard
                 return;
             }
 
-            bool isUnmoderated = await _designatedChannelService
-                .ChannelHasDesignationAsync(channel.Guild, channel, DesignatedChannelType.Unmoderated);
+            var isIgnoredFromStarboard = await _designatedChannelService
+                .ChannelHasDesignationAsync(channel.Guild, channel, DesignatedChannelType.IgnoredFromStarboard);
 
-            bool starboardExists = await _designatedChannelService
+            var starboardExists = await _designatedChannelService
                 .AnyDesignatedChannelAsync(channel.GuildId, DesignatedChannelType.Starboard);
-            if (isUnmoderated || !starboardExists)
+
+            if (isIgnoredFromStarboard || !starboardExists)
             {
                 return;
             }
 
-            int reactionCount = await _service.GetReactionCount(message, emote);
-            if (await _service.ExistsOnStarboard(message))
+            var reactionCount = await _starboardService.GetReactionCount(message, emote);
+
+            if (await _starboardService.ExistsOnStarboard(message))
             {
-                if (_service.IsAboveReactionThreshold(reactionCount))
+                if (_starboardService.IsAboveReactionThreshold(reactionCount))
                 {
-                    await _service.ModifyEntry(channel.Guild, message, FormatContent(reactionCount), GetEmbedColor(reactionCount));
+                    await _starboardService.ModifyEntry(channel.Guild, message, FormatContent(reactionCount), GetEmbedColor(reactionCount));
                 }
                 else
                 {
-                    await _service.RemoveFromStarboard(channel.Guild, message);
+                    await _starboardService.RemoveFromStarboard(channel.Guild, message);
                 }
             }
-            else if (_service.IsAboveReactionThreshold(reactionCount))
+            else if (_starboardService.IsAboveReactionThreshold(reactionCount))
             {
                 var embed = GetStarEmbed(message, GetEmbedColor(reactionCount));
-                await _service.AddToStarboard(channel.Guild, message, FormatContent(reactionCount), embed);
+                await _starboardService.AddToStarboard(channel.Guild, message, FormatContent(reactionCount), embed);
             }
         }
 
@@ -95,7 +97,7 @@ namespace Modix.Services.Starboard
 
         private string FormatContent(int reactionCount)
         {
-            return $"**{reactionCount}** {_service.GetStarEmote(reactionCount)}";
+            return $"**{reactionCount}** {_starboardService.GetStarEmote(reactionCount)}";
         }
 
         private Embed GetStarEmbed(IUserMessage message, Color color)
