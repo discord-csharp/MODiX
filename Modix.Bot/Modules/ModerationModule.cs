@@ -162,14 +162,17 @@ namespace Modix.Modules
             [Summary("The user to be banned.")]
                 DiscordUserOrMessageAuthorEntity subject,
             [Summary("The reason for the ban.")]
-            [Remainder]
+            [Optional]
                 string reason)
         {
+            if (reason == null)
+                reason = "No reason provided.";
+
             if (!await GetConfirmationIfRequiredAsync(subject))
             {
                 return;
             }
-
+            
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
             await ModerationService.CreateInfractionAsync(Context.Guild.Id, Context.User.Id, InfractionType.Ban, subject.UserId, reasonWithUrls, null);
