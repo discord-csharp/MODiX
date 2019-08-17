@@ -180,14 +180,19 @@ namespace Modix.Modules
         [Summary("Remove a ban that has been applied to a user.")]
         public async Task UnBanAsync(
             [Summary("The user to be un-banned.")]
-                DiscordUserOrMessageAuthorEntity subject)
+                DiscordUserOrMessageAuthorEntity subject,
+            [Summary("The reason for the unban.")]
+            [Remainder]
+            string reason)
         {
             if (!await GetConfirmationIfRequiredAsync(subject))
             {
                 return;
             }
 
-            await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.UserId);
+            var reasonWithUrls = AppendUrlsFromMessage(reason);
+
+            await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.UserId, reasonWithUrls);
             await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
 

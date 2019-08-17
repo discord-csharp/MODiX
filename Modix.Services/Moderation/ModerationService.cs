@@ -67,8 +67,9 @@ namespace Modix.Services.Moderation
         /// </summary>
         /// <param name="type">The <see cref="InfractionEntity.Type"/> value of the infraction to be rescinded.</param>
         /// <param name="subjectId">The <see cref="InfractionEntity.SubjectId"/> value of the infraction to be rescinded.</param>
+        /// <param name="reason">The value to use for <see cref="ModerationActionEntity.Reason"/></param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
-        Task RescindInfractionAsync(InfractionType type, ulong subjectId);
+        Task RescindInfractionAsync(InfractionType type, ulong subjectId, string reason);
 
         /// <summary>
         /// Marks an existing infraction as rescinded, based on its ID.
