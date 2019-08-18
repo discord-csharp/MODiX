@@ -7,6 +7,7 @@ using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
 using Modix;
@@ -148,11 +149,13 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddStatsD(this IServiceCollection services, IHostingEnvironment environment)
+        public static IServiceCollection AddStatsD(this IServiceCollection services, IHostingEnvironment environment, IConfiguration configuration)
         {
             var cfg = new StatsdConfig { Prefix = "modix" };
 
-            if (!environment.IsProduction() && string.IsNullOrWhiteSpace(cfg.StatsdServerName))
+            var enableStatsd = configuration.GetValue<bool>(nameof(ModixConfig.EnableStatsd));
+            if (!enableStatsd ||
+                !environment.IsProduction() && string.IsNullOrWhiteSpace(cfg.StatsdServerName))
             {
                 services.AddSingleton<IDogStatsd, DebugDogStatsd>();
                 return services;

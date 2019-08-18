@@ -23,5 +23,7 @@
         public string IlUrl { get; set; }
 
         public string WebsiteBaseUrl { get; set; } = "https://mod.gg";
+
+        public bool EnableStatsd { get; set; }
     }
 }
