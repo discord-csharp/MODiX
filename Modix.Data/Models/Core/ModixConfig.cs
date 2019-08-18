@@ -24,6 +24,6 @@
 
         public string WebsiteBaseUrl { get; set; } = "https://mod.gg";
 
-        public bool EnableStatsd { get; set; } = false;
+        public bool EnableStatsd { get; set; }
     }
 }
