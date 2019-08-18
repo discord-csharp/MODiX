@@ -154,7 +154,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             var enableStatsd = configuration.GetValue<bool>(nameof(ModixConfig.EnableStatsd));
             if (!enableStatsd ||
-                environment.IsDevelopment() && string.IsNullOrWhiteSpace(cfg.StatsdServerName))
+                !environment.IsProduction() && string.IsNullOrWhiteSpace(cfg.StatsdServerName))
             {
                 services.AddSingleton<IDogStatsd, DebugDogStatsd>();
                 return services;
