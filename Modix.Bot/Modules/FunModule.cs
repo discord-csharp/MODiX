@@ -61,7 +61,7 @@ namespace Modix.Modules
 
             try
             {
-                const ushort MiniumSize = 128;
+                const ushort MinimumSize = 128;
                 const ushort MaximumSize = 512;
 
                 // Set some minimum and maximum boundaries
@@ -69,9 +69,9 @@ namespace Modix.Modules
                 // the avatar. The upper is an arbitrary limit
                 // to prevent chat from being spammed with large
                 // avatars
-                if (size < MiniumSize)
+                if (size < MinimumSize)
                 {
-                    size = MiniumSize;
+                    size = MinimumSize;
                 }
                 else if (size > MaximumSize)
                 {
