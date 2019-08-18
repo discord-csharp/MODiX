@@ -421,7 +421,7 @@ spec:
               key: log-webhook-token
               name: modix
         - name: MODIX_EnableStatsd
-          value: true
+          value: "true"
         image: cisien/modix:latest
         imagePullPolicy: Always
         name: modix
