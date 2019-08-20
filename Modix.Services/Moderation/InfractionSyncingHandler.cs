@@ -10,6 +10,7 @@ using Modix.Common.Messaging;
 using Modix.Data.Models.Moderation;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
+using Serilog;
 
 namespace Modix.Services.Moderation
 {
@@ -57,12 +58,34 @@ namespace Modix.Services.Moderation
             }
 
             var restGuild = await _restClient.GetGuildAsync(guild.Id);
-            var auditLogs = (await restGuild.GetAuditLogsAsync(10)
-                .FlattenAsync())
-                .Where(x => x.Action == ActionType.Ban && x.Data is BanAuditLogData)
-                .Select(x => (Entry: x, Data: (BanAuditLogData)x.Data));
+            var allAudits = await restGuild.GetAuditLogsAsync(10).FlattenAsync();
 
-            var banLog = auditLogs.FirstOrDefault(x => x.Data.Target.Id == user.Id);
+            var banLog = allAudits
+                .Where(x => x.Action == ActionType.Ban && x.Data is BanAuditLogData)
+                .Select(x => (Entry: x, Data: (BanAuditLogData)x.Data))
+                .FirstOrDefault(x => x.Data.Target.Id == user.Id);
+
+            // We're in a scenario in where the guild does not have a Discord audit of the
+            // ban MODiX just received, if that's the case something has gone wrong and we
+            // need to investigate.
+            if(banLog.Data is null
+               || banLog.Entry is null)
+            {
+                // Snapshot the most amount of information possible about this event
+                // to log this incident and investigate further
+                var mostRecentAudit = allAudits.OrderByDescending(x => x.CreatedAt).FirstOrDefault();
+
+                Log.Error("No ban audit found when handling {message} for user {userId}, in guild {guild} - " +
+                          "the most recent audit was created at {mostRecentAuditTime}: {mostRecentAuditAction} for user: {mostRecentAuditUserId}",
+                    nameof(UserBannedNotification),
+                    user.Id,
+                    guild.Id,
+                    mostRecentAudit?.CreatedAt,
+                    mostRecentAudit?.Action,
+                    mostRecentAudit?.User.Id);
+
+                return;
+            }
 
             var reason = string.IsNullOrWhiteSpace(banLog.Entry.Reason)
                 ? $"Banned by {banLog.Entry.User.GetFullUsername()}."
