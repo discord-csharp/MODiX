@@ -218,6 +218,12 @@ namespace Modix.Services.Moderation
         Task<IRole> GetOrCreateDesignatedMuteRoleAsync(IGuild guild, ulong currentUserId);
 
         Task<bool> UpdateInfractionAsync(long infractionId, string newReason, ulong currentUserId);
+
+        /// <summary>
+        /// Restores an infraction by creating a new infraction with the same contents
+        /// </summary>
+        /// <param name="infractionId">The infraction ID to restore</param>
+        Task RestoreInfractionAsync(long infractionId);
     }
 
     /// <inheritdoc />
@@ -543,7 +549,7 @@ namespace Modix.Services.Moderation
                         Log.Warning("Tried to unmute {User} while deleting mute infraction, but they weren't in the guild: {Guild}",
                             infraction.Subject.Id, guild.Id);
                     }
-                    
+
                     break;
 
                 case InfractionType.Ban:
@@ -777,7 +783,7 @@ namespace Modix.Services.Moderation
                 return role;
             }
         }
-        
+
         public async Task<bool> UpdateInfractionAsync(long infractionId, string newReason, ulong currentUserId)
         {
             var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
@@ -800,6 +806,34 @@ namespace Modix.Services.Moderation
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationUpdateInfraction);
 
             return await InfractionRepository.TryUpdateAync(infractionId, newReason, currentUserId);
+        }
+
+        public async Task RestoreInfractionAsync(long infractionId)
+        {
+            AuthorizationService.RequireAuthenticatedGuild();
+            AuthorizationService.RequireAuthenticatedUser();
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationDeleteInfraction);
+
+            var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
+
+            if (infraction == null)
+                throw new InvalidOperationException($"Infraction {infractionId} does not exist");
+
+            using (var transaction = await InfractionRepository.BeginCreateTransactionAsync())
+            {
+                await InfractionRepository.CreateAsync(
+                    new InfractionCreationData
+                    {
+                        GuildId = infraction.GuildId,
+                        Type = infraction.Type,
+                        SubjectId = infraction.Subject.Id,
+                        Reason = infraction.Reason,
+                        Duration = TimeSpan.Zero,
+                        CreatedById = infraction.CreateAction.CreatedBy.Id // should this be the user who restores the infraction or who originally created it?
+                    });
+
+                transaction.Commit();
+            }
         }
 
         /// <summary>
@@ -968,7 +1002,7 @@ namespace Modix.Services.Moderation
             if (!await DoesModeratorOutrankUserAsync(guildId, moderatorId, subjectId))
                 throw new InvalidOperationException("Cannot moderate users that have a rank greater than or equal to your own.");
         }
-            
+
         private static readonly OverwritePermissions _mutePermissions
             = new OverwritePermissions(
                 addReactions: PermValue.Deny,
