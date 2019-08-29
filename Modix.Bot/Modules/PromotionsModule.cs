@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
-
+using Humanizer;
 using Microsoft.Extensions.Options;
 
 using Modix.Bot.Extensions;
@@ -63,13 +63,14 @@ namespace Modix.Modules
                 var idLabel = $"#{campaign.Id}";
                 var votesLabel = (campaign.GetTotalVotes() == 1) ? "Vote" : "Votes";
 
-                var percentage = Math.Round(campaign.GetApprovalPercentage() * 100);
-                var approvalLabel = Format.Italics($"{percentage}% approval");
+                var approvalLabel = $"👍 {campaign.GetNumberOfApprovals()} / 👎 {campaign.GetNumberOfOppositions()}";
+                var timeRemaining = campaign.GetTimeUntilCampaignCanBeClosed();
+                var timeRemainingLabel = timeRemaining < TimeSpan.FromSeconds(1) ? "Can be closed now" : $"{timeRemaining.Humanize()} until close";
 
                 embed.AddField(new EmbedFieldBuilder()
                 {
-                    Name = $"{Format.Bold(idLabel)}: For {Format.Bold(campaign.Subject.GetFullUsername())} to {Format.Bold(campaign.TargetRole.Name)}",
-                    Value = $"{campaign.GetTotalVotes()} {votesLabel} ({approvalLabel})",
+                    Name = $"{Format.Bold(idLabel)}: {Format.Bold(campaign.Subject.GetFullUsername())} to {campaign.TargetRole.Name}",
+                    Value = $"{approvalLabel} ({timeRemainingLabel})",
                     IsInline = false
                 });
             }
