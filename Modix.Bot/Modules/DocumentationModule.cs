@@ -18,6 +18,7 @@ namespace Modix.Modules
         }
 
         [Command("docs"), Summary("Shows class/method reference from the new unified .NET reference.")]
+        [Alias("explain")]
         public async Task GetDocumentationAsync(
             [Remainder]
             [Summary("The term to search for in the documentation.")]
