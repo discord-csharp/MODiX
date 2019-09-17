@@ -67,6 +67,7 @@ namespace Modix.Modules
         private readonly ModixConfig _config;
 
         [Command("info")]
+        [Alias("ompf", "omfp")]
         [Summary("Retrieves information about the supplied user, or the current user if one is not provided.")]
         public async Task GetUserInfoAsync(
             [Summary("The user to retrieve information about, if any.")]
