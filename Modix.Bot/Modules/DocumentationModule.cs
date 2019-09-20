@@ -27,13 +27,12 @@ namespace Modix.Modules
             [Summary("The term to search for in the documentation.")]
                 string term)
         {
-
-            Regex reg = new Regex("^[0-9A-Za-z.<>]+$");
+            Regex reg = new Regex("^[0-9A-Za-z.<>]$");
             foreach(char c in term)
             {
                 if(!reg.IsMatch(c.ToString()))
                 {
-                    await ReplyAsync($" ' {c} ' character is not allowed in the search, Please try again.");
+                    await ReplyAsync($" '{c}' character is not allowed in the search, please try again.");
                     return;
                 }
             }
@@ -53,9 +52,9 @@ namespace Modix.Modules
             foreach (var res in response.Results.Take(3))
             {
                 embedCount++;
-                stringBuild.Append($"**\u276F [{res.ItemKind}: {res.DisplayName}]({res.Url})**{Environment.NewLine}");
-                stringBuild.Append($"{res.Description}{Environment.NewLine}");
-                stringBuild.Append(Environment.NewLine);
+                stringBuild.AppendLine($"**\u276F [{res.ItemKind}: {res.DisplayName}]({res.Url})**");
+                stringBuild.AppendLine($"{res.Description}");
+                stringBuild.AppendLine();
 
                 if (embedCount == 3)
                 {
