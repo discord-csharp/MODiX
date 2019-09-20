@@ -2,7 +2,6 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using System.Linq;
 
 namespace Modix.Services.Csharp
 {
@@ -18,7 +17,6 @@ namespace Modix.Services.Csharp
 
         public async Task<DocumentationApiResponse> GetDocumentationResultsAsync(string term)
         {
-
             var client = HttpClientFactory.CreateClient();
             var response = await client.GetAsync($"{ApiReferenceUrl}{term}{ApiFilter}");
 
