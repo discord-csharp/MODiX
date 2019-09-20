@@ -1,5 +1,8 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using System.Text;
+using System.Text.RegularExpressions;
+using System;
 using Discord;
 using Discord.Commands;
 using Modix.Services.CommandHelp;
@@ -24,6 +27,16 @@ namespace Modix.Modules
             [Summary("The term to search for in the documentation.")]
                 string term)
         {
+            Regex reg = new Regex("^[0-9A-Za-z.<>]$");
+            foreach(char c in term)
+            {
+                if(!reg.IsMatch(c.ToString()))
+                {
+                    await ReplyAsync($" '{c}' character is not allowed in the search, please try again.");
+                    return;
+                }
+            }
+
             var response = await DocumentationService.GetDocumentationResultsAsync(term);
 
             if (response.Count == 0)
@@ -31,29 +44,31 @@ namespace Modix.Modules
                 await ReplyAsync("Could not find documentation for your requested term.");
                 return;
             }
-            
+
             var embedCount = 0;
 
-            foreach (var res in response.Results.Take(3).OrderBy(x => x.DisplayName))
+            var stringBuild = new StringBuilder();
+
+            foreach (var res in response.Results.Take(3))
             {
                 embedCount++;
-
-                var builder = new EmbedBuilder()
-                    .WithColor(new Color(46, 204, 113))
-                    .WithTitle($"{res.ItemKind}: {res.DisplayName}")
-                    .WithUrl(res.Url)
-                    .WithDescription(res.Description);
+                stringBuild.AppendLine($"**\u276F [{res.ItemKind}: {res.DisplayName}]({res.Url})**");
+                stringBuild.AppendLine($"{res.Description}");
+                stringBuild.AppendLine();
 
                 if (embedCount == 3)
                 {
-                    builder.WithFooter(
-                        new EmbedFooterBuilder().WithText($"{embedCount}/{response.Results.Count} https://docs.microsoft.com/dotnet/api/?term={term}")
+                    stringBuild.Append(
+                        $"{embedCount}/{response.Results.Count} results shown ~ [Click Here for more results](https://docs.microsoft.com/dotnet/api/?term={term})"
                     );
-                    builder.Footer.Build();
                 }
-
-                await ReplyAsync(embed: builder.Build());
             }
+            var buildEmbed = new EmbedBuilder()
+            {
+                Description = stringBuild.ToString()
+            }.WithColor(new Color(46, 204, 113));
+
+            await ReplyAsync(embed: buildEmbed.Build());
         }
 
         protected DocumentationService DocumentationService { get; }
