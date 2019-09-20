@@ -20,13 +20,22 @@ namespace Modix.Services.CommandHelp
         IReadOnlyCollection<ModuleHelpData> GetModuleHelpData();
 
         /// <summary>
-        /// Retrieves help data for the supplied query.
+        /// Retrieves module help data for the supplied query.
         /// </summary>
         /// <param name="query">A query to use to search for an applicable help module.</param>
         /// <returns>
         /// Help information for the supplied query, or <see langword="null"/> if no information could be found for the supplied query.
         /// </returns>
         ModuleHelpData GetModuleHelpData(string query);
+
+        /// <summary>
+        /// Retrieves command help data for the supplied query.
+        /// </summary>
+        /// <param name="query">A query to use to search for an applicable help module.</param>
+        /// <returns>
+        /// Help information for the supplied query, or <see langword="null"/> if no information could be found for the supplied query.
+        /// </returns>
+        CommandHelpData GetCommandHelpData(string query);
     }
 
     /// <inheritdoc />
@@ -68,6 +77,23 @@ namespace Modix.Services.CommandHelp
             var byTagsContains = allHelpData.FirstOrDefault(x => x.HelpTags.Any(y => y.Contains(query, StringComparison.OrdinalIgnoreCase)));
             if (byTagsContains != null)
                 return byTagsContains;
+
+            return null;
+        }
+
+        /// <inheritdoc />
+        public CommandHelpData GetCommandHelpData(string query)
+        {
+            var allHelpData = GetModuleHelpData().SelectMany(x => x.Commands);
+
+            var byModuleNameExact = allHelpData.FirstOrDefault(x => x.Aliases.Any(y => y.Equals(query, StringComparison.OrdinalIgnoreCase)));
+            if (byModuleNameExact != null)
+                return byModuleNameExact;
+
+            var byNameContains =
+                allHelpData.FirstOrDefault(x => x.Aliases.Any(y => y.Contains(query, StringComparison.OrdinalIgnoreCase)));
+            if (byNameContains != null)
+                return byNameContains;
 
             return null;
         }

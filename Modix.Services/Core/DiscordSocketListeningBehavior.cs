@@ -1,9 +1,11 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 using Discord;
 using Discord.WebSocket;
 
 using Modix.Common.Messaging;
+using StatsdClient;
 
 namespace Modix.Services.Core
 {
@@ -13,15 +15,19 @@ namespace Modix.Services.Core
     /// </summary>
     public class DiscordSocketListeningBehavior : IBehavior
     {
+        private readonly IDogStatsd _stats;
+
         /// <summary>
         /// Constructs a new <see cref="DiscordSocketListeningBehavior"/> with the given dependencies.
         /// </summary>
         public DiscordSocketListeningBehavior(
             IDiscordSocketClient discordSocketClient,
-            IMessageDispatcher messageDispatcher)
+            IMessageDispatcher messageDispatcher,
+            IDogStatsd stats = null)
         {
             DiscordSocketClient = discordSocketClient;
             MessageDispatcher = messageDispatcher;
+            _stats = stats;
         }
 
         /// <inheritdoc />
@@ -146,23 +152,59 @@ namespace Modix.Services.Core
 
         private Task OnUserBannedAsync(ISocketUser user, ISocketGuild guild)
         {
-            MessageDispatcher.Dispatch(new UserBannedNotification(user, guild));
+            try
+            {
+                MessageDispatcher.Dispatch(new UserBannedNotification(user, guild));
+            }
+            finally
+            {
+                UpdateGuildPopulationCounter(guild, "user_banned");
+            }
 
             return Task.CompletedTask;
         }
 
         private Task OnUserJoinedAsync(ISocketGuildUser guildUser)
         {
-            MessageDispatcher.Dispatch(new UserJoinedNotification(guildUser));
+            try
+            {
+                MessageDispatcher.Dispatch(new UserJoinedNotification(guildUser));
+            }
+            finally
+            {
+                UpdateGuildPopulationCounter(guildUser?.Guild, "user_joined");
+            }
 
             return Task.CompletedTask;
         }
 
         private Task OnUserLeftAsync(ISocketGuildUser guildUser)
         {
-            MessageDispatcher.Dispatch(new UserLeftNotification(guildUser));
+            try
+            {
+                MessageDispatcher.Dispatch(new UserLeftNotification(guildUser));
+            }
+            finally
+            {
+                UpdateGuildPopulationCounter(guildUser?.Guild, "user_left");
+            }
 
             return Task.CompletedTask;
+        }
+
+        private void UpdateGuildPopulationCounter(IGuild guild, string counterName)
+        {
+            if (!string.IsNullOrEmpty(guild?.Name))
+            {
+                var tags = new[] { "guild:" + guild.Name };
+
+                _stats.Increment(counterName, tags: tags);
+
+                if (guild is ISocketGuild socketGuild)
+                {
+                    _stats.Gauge("user_count", socketGuild.MemberCount, tags: tags);
+                }
+            }
         }
     }
 }

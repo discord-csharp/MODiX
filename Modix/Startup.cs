@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Modix.Auth;
 using Modix.Configuration;
@@ -24,10 +25,12 @@ namespace Modix
     public class Startup
     {
         private readonly IConfiguration _configuration;
+        private readonly IHostingEnvironment _hostingEnvironment;
 
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IHostingEnvironment hostingEnvironment)
         {
             _configuration = configuration;
+            _hostingEnvironment = hostingEnvironment;
             Log.Information("Configuration loaded. ASP.NET Startup is a go.");
         }
 
@@ -71,6 +74,8 @@ namespace Modix
                     options.SerializerSettings.Converters.Add(new StringEnumConverter());
                     options.SerializerSettings.Converters.Add(new StringULongConverter());
                 });
+
+            services.AddStatsD(_hostingEnvironment, _configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

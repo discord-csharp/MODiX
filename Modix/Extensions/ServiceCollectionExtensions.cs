@@ -6,7 +6,8 @@ using Discord;
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
-
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
 using Modix;
@@ -16,6 +17,7 @@ using Modix.Bot.Behaviors;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
+using Modix.DataDog;
 using Modix.Services;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.BehaviourConfiguration;
@@ -38,6 +40,7 @@ using Modix.Services.StackExchange;
 using Modix.Services.Starboard;
 using Modix.Services.Tags;
 using Modix.Services.Wikipedia;
+using StatsdClient;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -100,6 +103,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     service.AddTypeReader<DiscordUserEntity>(new UserEntityTypeReader());
                     service.AddTypeReader<AnyGuildMessage<IUserMessage>>(new AnyGuildMessageTypeReader<IUserMessage>());
                     service.AddTypeReader<TimeSpan>(new TimeSpanTypeReader(), true);
+                    service.AddTypeReader<DiscordUserOrMessageAuthorEntity>(new UserOrMessageAuthorEntityTypeReader());
 
                     return service;
                 })
@@ -144,6 +148,30 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddHostedService<ModixBot>();
 
+            return services;
+        }
+
+        public static IServiceCollection AddStatsD(this IServiceCollection services, IHostingEnvironment environment, IConfiguration configuration)
+        {
+            var cfg = new StatsdConfig { Prefix = "modix" };
+
+            var enableStatsd = configuration.GetValue<bool>(nameof(ModixConfig.EnableStatsd));
+            if (!enableStatsd ||
+                !environment.IsProduction() && string.IsNullOrWhiteSpace(cfg.StatsdServerName))
+            {
+                services.AddSingleton<IDogStatsd, DebugDogStatsd>();
+                return services;
+            }
+
+            DogStatsd.Configure(cfg);
+            services.AddSingleton(cfg);
+            services.AddSingleton<IDogStatsd>(provider =>
+            {
+                var config = provider.GetRequiredService<StatsdConfig>();
+                var service = new DogStatsdService();
+                service.Configure(config);
+                return service;
+            });
             return services;
         }
     }

@@ -57,6 +57,11 @@ namespace Modix.Data.Models.Moderation
         public long? InfractionId { get; set; }
 
         /// <summary>
+        /// If applicable, represents the original infraction reason that was updated
+        /// </summary>
+        public string OriginalInfractionReason { get; set; }
+
+        /// <summary>
         /// The <see cref="InfractionEntity"/> to which this <see cref="ModerationActionEntity"/> applies.
         /// Null, if an <see cref="InfractionEntity"/> was not involved in this <see cref="ModerationActionEntity"/>.
         /// </summary>

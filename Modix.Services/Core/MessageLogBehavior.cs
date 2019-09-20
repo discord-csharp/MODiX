@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -7,19 +8,22 @@ using Microsoft.Extensions.Logging;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Services.Utilities;
+using StatsdClient;
 
 namespace Modix.Services.Core
 {
     public class MessageLogBehavior : BehaviorBase
     {
         private readonly DiscordSocketClient _discordClient;
+        private readonly IDogStatsd _stats;
 
-        public MessageLogBehavior(DiscordSocketClient discordClient, ILogger<MessageLogBehavior> logger, IServiceProvider serviceProvider)
+        public MessageLogBehavior(DiscordSocketClient discordClient, ILogger<MessageLogBehavior> logger, IServiceProvider serviceProvider, IDogStatsd stats)
             : base(serviceProvider)
         {
             _discordClient = discordClient;
 
             Log = logger;
+            _stats = stats;
         }
 
         private ILogger<MessageLogBehavior> Log { get; }
@@ -93,7 +97,7 @@ namespace Modix.Services.Core
 
             if (guild == null)
             {
-                Log.LogInformation("Recieved message update event for non-guild message, ignoring");
+                Log.LogInformation("Received message update event for non-guild message, ignoring");
                 return;
             }
 
@@ -112,7 +116,7 @@ namespace Modix.Services.Core
             }
 
             var embed = new EmbedBuilder()
-                .WithUserAsAuthor(original.Author, original.Id.ToString())
+                .WithUserAsAuthor(original.Author, original.Author.Id.ToString())
                 .WithDescription(descriptionText)
                 .WithCurrentTimestamp();
 
@@ -189,35 +193,38 @@ namespace Modix.Services.Core
                 author.Guild is IGuild guild &&
                 !author.IsBot && !author.IsWebhook)
             {
-                await SelfExecuteRequest<IMessageRepository>(
-                    async messages =>
-                    {
-                        Log.LogInformation("Logging message #{MessageId} to the database.", message.Id);
-
-                        var creationData = new MessageCreationData
+                using (_stats.StartTimer("message_processing_ms"))
+                {
+                    await SelfExecuteRequest<IMessageRepository>(
+                        async messages =>
                         {
-                            Id = message.Id,
-                            GuildId = guild.Id,
-                            ChannelId = channel.Id,
-                            AuthorId = author.Id,
-                            Timestamp = message.Timestamp
-                        };
+                            Log.LogInformation("Logging message #{MessageId} to the database.", message.Id);
 
-                        Log.LogDebug("Entity for message #{MessageId}: {@Message}", message.Id, creationData);
+                            var creationData = new MessageCreationData
+                            {
+                                Id = message.Id,
+                                GuildId = guild.Id,
+                                ChannelId = channel.Id,
+                                AuthorId = author.Id,
+                                Timestamp = message.Timestamp
+                            };
 
-                        using (var transaction = await messages.BeginMaintainTransactionAsync())
-                        {
-                            try
+                            Log.LogDebug("Entity for message #{MessageId}: {@Message}", message.Id, creationData);
+
+                            using (var transaction = await messages.BeginMaintainTransactionAsync())
                             {
-                                await messages.CreateAsync(creationData);
+                                try
+                                {
+                                    await messages.CreateAsync(creationData);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.LogError(ex, "An unexpected error occurred when attempting to log message #{MessageId}.", message.Id);
+                                }
+                                transaction.Commit();
                             }
-                            catch (Exception ex)
-                            {
-                                Log.LogError(ex, "An unexpected error occurred when attempting to log message #{MessageId}.", message.Id);
-                            }
-                            transaction.Commit();
-                        }
-                    });
+                        });
+                }
             }
         }
     }

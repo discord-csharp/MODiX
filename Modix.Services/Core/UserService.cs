@@ -51,6 +51,17 @@ namespace Modix.Services.Core
         Task<EphemeralUser> GetUserInformationAsync(ulong guildId, ulong userId);
 
         /// <summary>
+        /// Retrieves the user, if any, associated with the given user ID.
+        /// </summary>
+        /// <param name="userId">The Discord snowflake ID of the user to retrieve.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that completes when the operation completes,
+        /// containing the user identified by the supplied ID.
+        /// Returns <see langword="null"/> if no such user was found.
+        /// </returns>
+        Task<IUser?> GetUserAsync(ulong userId);
+
+        /// <summary>
         /// Updates information about the given user within the user tracking system of a guild.
         /// </summary>
         /// <param name="user">The user whose info is to be tracked.</param>
@@ -159,6 +170,23 @@ namespace Modix.Services.Core
                 .WithBanData(ban);
 
             return buildUser.Id == 0 ? null : buildUser;
+        }
+
+        public async Task<IUser?> GetUserAsync(ulong userId)
+        {
+            // Special-case 0, because Discord.Net throws an exception otherwise.
+            if (userId == 0)
+            {
+                return null;
+            }
+
+            var socketUser = await DiscordClient.GetUserAsync(userId);
+            if (socketUser is { })
+            {
+                return socketUser;
+            }
+
+            return await DiscordRestClient.GetUserAsync(userId);
         }
 
         /// <inheritdoc />

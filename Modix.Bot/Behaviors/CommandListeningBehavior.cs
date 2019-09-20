@@ -76,7 +76,7 @@ namespace Modix.Bot.Behaviors
                     Log.Warning(error);
 
                 if (commandResult.Error == CommandError.Exception)
-                    await commandContext.Channel.SendMessageAsync($"Error: {FormatUtilities.SanitizeEveryone(error)}");
+                    await commandContext.Channel.SendMessageAsync($"Error: {FormatUtilities.SanitizeEveryone(commandResult.ErrorReason)}");
                 else
                     await CommandErrorHandler.AssociateError(userMessage, error);
             }

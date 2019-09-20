@@ -16,10 +16,21 @@ namespace Modix
     {
         public static int Main(string[] args)
         {
-            var config = new ConfigurationBuilder()
+            const string DEVELOPMENT_ENVIRONMENT_VARIABLE = "ASPNETCORE_ENVIRONMENT";
+            const string DEVELOPMENT_ENVIRONMENT_KEY = "Development";
+
+            var environment = Environment.GetEnvironmentVariable(DEVELOPMENT_ENVIRONMENT_VARIABLE);
+
+            var configBuilder = new ConfigurationBuilder()
                 .AddEnvironmentVariables("MODIX_")
-                .AddJsonFile("developmentSettings.json", optional: true, reloadOnChange: false)
-                .Build();
+                .AddJsonFile("developmentSettings.json", optional: true, reloadOnChange: false);
+
+            if(environment is DEVELOPMENT_ENVIRONMENT_KEY)
+            {
+                configBuilder.AddUserSecrets<Startup>();
+            }
+
+            var config = configBuilder.Build();
 
             var loggerConfig = new LoggerConfiguration()
                 .MinimumLevel.Verbose()

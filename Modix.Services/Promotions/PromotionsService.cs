@@ -11,6 +11,7 @@ using Modix.Data.Models.Promotions;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
+using Modix.Data.Utilities;
 
 namespace Modix.Services.Promotions
 {
@@ -136,7 +137,6 @@ namespace Modix.Services.Promotions
             MessageDispatcher = messageDispatcher;
         }
 
-        private static readonly TimeSpan CampaignAcceptCooldown = TimeSpan.FromHours(48);
 
         /// <inheritdoc />
         public async Task CreateCampaignAsync(
@@ -295,8 +295,8 @@ namespace Modix.Services.Promotions
 
                 var timeSince = DateTime.UtcNow - campaign.CreateAction.Created;
 
-                if (timeSince < CampaignAcceptCooldown && !force)
-                    throw new InvalidOperationException($"Campaign {campaignId} cannot be accepted until {CampaignAcceptCooldown.TotalHours} hours after its creation ({(CampaignAcceptCooldown - timeSince).Humanize(4)} remain)");
+                if (timeSince < PromotionCampaignEntityExtensions.CampaignAcceptCooldown && !force)
+                    throw new InvalidOperationException($"Campaign {campaignId} cannot be accepted until {PromotionCampaignEntityExtensions.CampaignAcceptCooldown.TotalHours} hours after its creation ({(PromotionCampaignEntityExtensions.CampaignAcceptCooldown - timeSince).Humanize(4)} remain)");
 
                 try
                 {
