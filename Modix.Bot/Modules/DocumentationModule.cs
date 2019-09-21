@@ -32,7 +32,9 @@ namespace Modix.Modules
             {
                 if(!reg.IsMatch(c.ToString()))
                 {
-                    await ReplyAsync($" '{c}' character is not allowed in the search, please try again.");
+                    //Double the escape char so discord will print it as well
+                    string s = (c == '\\') ? "\\\\" : c.ToString(); 
+                    await ReplyAsync($" '{s}' character is not allowed in the search, please try again.");
                     return;
                 }
             }
