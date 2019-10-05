@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Humanizer;
+using Humanizer.Localisation;
 using Microsoft.Extensions.Options;
 
 using Modix.Bot.Extensions;
@@ -65,7 +66,7 @@ namespace Modix.Modules
 
                 var approvalLabel = $"👍 {campaign.GetNumberOfApprovals()} / 👎 {campaign.GetNumberOfOppositions()}";
                 var timeRemaining = campaign.GetTimeUntilCampaignCanBeClosed();
-                var timeRemainingLabel = timeRemaining < TimeSpan.FromSeconds(1) ? "Can be closed now" : $"{timeRemaining.Humanize()} until close";
+                var timeRemainingLabel = timeRemaining < TimeSpan.FromSeconds(1) ? "Can be closed now" : $"{timeRemaining.Humanize(precision: 2, minUnit: TimeUnit.Minute)} until close";
 
                 embed.AddField(new EmbedFieldBuilder()
                 {
