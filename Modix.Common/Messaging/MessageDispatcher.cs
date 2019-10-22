@@ -1,9 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Serilog;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Microsoft.Extensions.DependencyInjection;
+
+using Serilog;
 
 namespace Modix.Common.Messaging
 {
@@ -40,7 +41,9 @@ namespace Modix.Common.Messaging
             if (notification == null)
                 throw new ArgumentNullException(nameof(notification));
 
-            _ = DispatchAsync(notification);
+            #pragma warning disable CS4014
+            DispatchAsync(notification);
+            #pragma warning restore CS4014
         }
 
         /// <summary>
@@ -55,24 +58,17 @@ namespace Modix.Common.Messaging
             {
                 using (var serviceScope = ServiceScopeFactory.CreateScope())
                 {
-                    var handlerTasks = new List<Task>();
                     foreach (var handler in serviceScope.ServiceProvider.GetServices<INotificationHandler<TNotification>>())
                     {
-                        var task = Task.Run(async () =>
+                        try
                         {
-                            try
-                            {
-                                await handler.HandleNotificationAsync(notification);
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(ex, "An unexpected error occurred within a handler for a dispatched message: {notification}", notification);
-                            }
-                        });
-                        handlerTasks.Add(task);
+                            await handler.HandleNotificationAsync(notification);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "An unexpected error occurred within a handler for a dispatched message: {notification}", notification);
+                        }
                     }
-
-                    await Task.WhenAll(handlerTasks);
                 }
             }
             catch (Exception ex)

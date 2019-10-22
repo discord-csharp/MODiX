@@ -1,8 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+
+using Microsoft.Extensions.DependencyInjection;
+
+using Serilog;
 
 namespace Modix.Common.Messaging
 {
@@ -51,14 +54,8 @@ namespace Modix.Common.Messaging
             if (notification == null)
                 throw new ArgumentNullException(nameof(notification));
 
-            var handlerTasks = new List<Task>();
             foreach (var handler in ServiceProvider.GetServices<INotificationHandler<TNotification>>())
-            {
-                var task = handler.HandleNotificationAsync(notification, cancellationToken);
-                handlerTasks.Add(task);
-            }
-
-            await Task.WhenAll(handlerTasks);
+                await handler.HandleNotificationAsync(notification, cancellationToken);
         }
 
         /// <inheritdoc />
