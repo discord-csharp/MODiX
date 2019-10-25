@@ -225,7 +225,8 @@ namespace Modix.Data.Repositories
             var query = GetQuery();
             var parameters = GetParameters();
 
-            var stats = await ModixContext.Query<SingleEmojiStatsDto>()
+            var stats = await ModixContext
+                .Query<SingleEmojiStatsDto>()
                 .AsNoTracking()
                 .FromSql(query, parameters)
                 .FirstOrDefaultAsync();
