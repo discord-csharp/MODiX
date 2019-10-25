@@ -3,16 +3,16 @@
     <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="AsyncEvent" Version="0.2.0" />
-    <PackageReference Include="Discord.Net" Version="2.2.0-dev-20191024.6" />
-    <PackageReference Include="DogStatsD-CSharp-Client" Version="3.3.0" />
-    <PackageReference Include="Humanizer.Core" Version="2.5.16" />
-    <PackageReference Include="Kitsu" Version="1.4.1" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="3.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="2.2.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-    <PackageReference Include="Serilog" Version="2.8.0" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0006" />
+    <PackageReference Include="AsyncEvent" />
+    <PackageReference Include="Discord.Net" />
+    <PackageReference Include="DogStatsD-CSharp-Client" />
+    <PackageReference Include="Humanizer.Core" />
+    <PackageReference Include="Kitsu" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
+    <PackageReference Include="Microsoft.Extensions.Http" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="SixLabors.ImageSharp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Discord.Net.Abstractions\Discord.Net.Abstractions.csproj" />

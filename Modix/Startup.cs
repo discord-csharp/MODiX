@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Modix.Auth;
@@ -25,12 +26,12 @@ namespace Modix
     public class Startup
     {
         private readonly IConfiguration _configuration;
-        private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public Startup(IConfiguration configuration, IHostingEnvironment hostingEnvironment)
+        public Startup(IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
         {
             _configuration = configuration;
-            _hostingEnvironment = hostingEnvironment;
+            _webHostEnvironment = webHostEnvironment;
             Log.Information("Configuration loaded. ASP.NET Startup is a go.");
         }
 
@@ -67,7 +68,7 @@ namespace Modix
                 .AddModixHttpClients()
                 .AddModix();
 
-            services.AddMvc()
+            services.AddMvc(d => d.EnableEndpointRouting = false)
                 .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
                 .AddNewtonsoftJson(options =>
                 {
@@ -75,11 +76,11 @@ namespace Modix
                     options.SerializerSettings.Converters.Add(new StringULongConverter());
                 });
 
-            services.AddStatsD(_hostingEnvironment, _configuration);
+            services.AddStatsD(_webHostEnvironment, _configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, CodePasteService codePasteService)
+        public void Configure(IApplicationBuilder app, IHostEnvironment env, CodePasteService codePasteService)
         {
             var options = new ForwardedHeadersOptions
             {

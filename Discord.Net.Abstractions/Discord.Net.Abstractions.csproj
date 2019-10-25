@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="2.2.0-dev-20191024.6" />
+    <PackageReference Include="Discord.Net" />
   </ItemGroup>
 
 </Project>
