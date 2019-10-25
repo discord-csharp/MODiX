@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 namespace Discord.Rest
@@ -99,6 +100,8 @@ namespace Discord.Rest
         /// The existing <see cref="Rest.RestUser"/> being abstracted.
         /// </summary>
         protected RestUser RestUser { get; }
+
+        public IImmutableSet<ClientType> ActiveClients => throw new NotImplementedException();
     }
 
     /// <summary>

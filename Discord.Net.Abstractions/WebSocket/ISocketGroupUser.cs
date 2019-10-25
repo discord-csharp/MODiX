@@ -56,6 +56,8 @@ namespace Discord.WebSocket
         public string VoiceSessionId
             => (SocketGroupUser as IGroupUser).VoiceSessionId;
 
+        public bool IsStreaming => throw new NotImplementedException();
+
         /// <summary>
         /// The existing <see cref="WebSocket.SocketGroupUser"/> being abstracted.
         /// </summary>

@@ -31,10 +31,6 @@ namespace Discord.Rest
                 .ToDictionary(x => x.Key, x => x.Value.Abstract());
 
         /// <inheritdoc />
-        IReadOnlyDictionary<IEmote, ReactionMetadata> IUserMessage.Reactions
-            => RestUserMessage.Reactions;
-
-        /// <inheritdoc />
         public Task AddReactionAsync(IEmote emote, RequestOptions options = null)
             => RestUserMessage.AddReactionAsync(emote, options);
 
@@ -68,6 +64,11 @@ namespace Discord.Rest
         /// <inheritdoc />
         public Task UnpinAsync(RequestOptions options = null)
             => RestUserMessage.UnpinAsync(options);
+
+        public Task ModifySuppressionAsync(bool suppressEmbeds, RequestOptions options = null)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// The existing <see cref="Rest.RestUserMessage"/> being abstracted.

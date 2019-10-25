@@ -145,10 +145,39 @@ namespace Discord.Rest
         public override string ToString()
             => RestMessage.ToString();
 
+        public Task AddReactionAsync(IEmote emote, RequestOptions options = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions options = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RemoveAllReactionsAsync(RequestOptions options = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// The existing <see cref="Rest.RestMessage"/> being abstracted.
         /// </summary>
         protected RestMessage RestMessage { get; }
+
+        public bool IsSuppressed => throw new NotImplementedException();
+
+        public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => throw new NotImplementedException();
     }
 
     /// <summary>

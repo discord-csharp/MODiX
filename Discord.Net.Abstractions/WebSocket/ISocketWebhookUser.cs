@@ -120,6 +120,10 @@ namespace Discord.WebSocket
         /// </summary>
         protected SocketWebhookUser SocketWebhookUser
             => SocketUser as SocketWebhookUser;
+
+        public DateTimeOffset? PremiumSince => throw new NotImplementedException();
+
+        public bool IsStreaming => throw new NotImplementedException();
     }
 
     /// <summary>

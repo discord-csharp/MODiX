@@ -47,6 +47,8 @@ namespace Discord.Rest
         public string VoiceSessionId
             => (RestGroupUser as IVoiceState).VoiceSessionId;
 
+        public bool IsStreaming => (RestGroupUser as IVoiceState).IsStreaming;
+
         /// <summary>
         /// The existing <see cref="Rest.RestGroupUser"/> being abstracted.
         /// </summary>

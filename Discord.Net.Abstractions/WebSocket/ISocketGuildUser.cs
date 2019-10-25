@@ -158,6 +158,10 @@ namespace Discord.WebSocket
         /// </summary>
         protected SocketGuildUser SocketGuildUser
             => SocketUser as SocketGuildUser;
+
+        public DateTimeOffset? PremiumSince => throw new NotImplementedException();
+
+        public bool IsStreaming => throw new NotImplementedException();
     }
 
     /// <summary>

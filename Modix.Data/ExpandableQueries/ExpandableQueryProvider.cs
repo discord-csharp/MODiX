@@ -43,15 +43,10 @@ namespace Modix.Data.ExpandableQueries
         public object Execute(Expression expression)
             => _provider.Execute(Visit(expression));
 
-        public IAsyncEnumerable<TResult> ExecuteAsync<TResult>(Expression expression)
-            => (_provider is IAsyncQueryProvider asyncProvider)
-                ? asyncProvider.ExecuteAsync<TResult>(Visit(expression))
-                : throw new InvalidOperationException("This query cannot be executed asynchronously");
-
-        public Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
-            => (_provider is IAsyncQueryProvider asyncProvider)
-                ? asyncProvider.ExecuteAsync<TResult>(Visit(expression), cancellationToken)
-                : throw new InvalidOperationException("This query cannot be executed asynchronously");
+        TResult IAsyncQueryProvider.ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
+#pragma warning disable EF1001 // Internal EF Core API usage.
+            => ((IAsyncQueryProvider)_provider).ExecuteAsync<TResult>(Visit(expression));
+#pragma warning restore EF1001 // Internal EF Core API usage.
 
         internal readonly IQueryProvider _provider;
 

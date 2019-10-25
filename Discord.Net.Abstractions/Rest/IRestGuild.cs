@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -684,10 +685,33 @@ namespace Discord.Rest
         public override string ToString()
             => RestGuild.ToString();
 
+        public Task<IReadOnlyCollection<IAuditLogEntry>> GetAuditLogsAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null, ulong? beforeId = null, ulong? userId = null, ActionType? actionType = null)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// The existing <see cref="Rest.RestGuild"/> being abstracted.
         /// </summary>
         protected RestGuild RestGuild { get; }
+
+        public PremiumTier PremiumTier => throw new NotImplementedException();
+
+        public string BannerId => throw new NotImplementedException();
+
+        public string BannerUrl => throw new NotImplementedException();
+
+        public string VanityURLCode => throw new NotImplementedException();
+
+        public SystemChannelMessageDeny SystemChannelFlags => throw new NotImplementedException();
+
+        public string Description => throw new NotImplementedException();
+
+        public int PremiumSubscriptionCount => throw new NotImplementedException();
+
+        public string PreferredLocale => throw new NotImplementedException();
+
+        public CultureInfo PreferredCulture => throw new NotImplementedException();
     }
 
     /// <summary>

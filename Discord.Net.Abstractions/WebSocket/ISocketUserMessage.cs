@@ -31,10 +31,6 @@ namespace Discord.WebSocket
                 .ToDictionary(x => x.Key, x => x.Value.Abstract());
 
         /// <inheritdoc />
-        IReadOnlyDictionary<IEmote, ReactionMetadata> IUserMessage.Reactions
-            => (SocketUserMessage as IUserMessage).Reactions;
-
-        /// <inheritdoc />
         public Task AddReactionAsync(IEmote emote, RequestOptions options = null)
             => SocketUserMessage.AddReactionAsync(emote, options);
 
@@ -68,6 +64,11 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public Task UnpinAsync(RequestOptions options = null)
             => SocketUserMessage.UnpinAsync(options);
+
+        public Task ModifySuppressionAsync(bool suppressEmbeds, RequestOptions options = null)
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// The existing <see cref="WebSocket.SocketUserMessage"/> being abstracted.

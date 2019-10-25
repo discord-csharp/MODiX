@@ -107,6 +107,10 @@ namespace Discord.Rest
         /// </summary>
         protected RestGuildUser RestGuildUser
             => RestUser as RestGuildUser;
+
+        public DateTimeOffset? PremiumSince => throw new NotImplementedException();
+
+        public bool IsStreaming => throw new NotImplementedException();
     }
 
     /// <summary>

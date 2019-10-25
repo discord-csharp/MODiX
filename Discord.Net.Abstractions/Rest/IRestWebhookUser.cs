@@ -113,6 +113,10 @@ namespace Discord.Rest
         /// </summary>
         protected RestWebhookUser RestWebhookUser
             => RestUser as RestWebhookUser;
+
+        public DateTimeOffset? PremiumSince => throw new NotImplementedException();
+
+        public bool IsStreaming => throw new NotImplementedException();
     }
 
     /// <summary>
