@@ -362,11 +362,13 @@ namespace Modix.Data.Test.Repositories
                 });
 
             modixContext.DesignatedChannelMappings
+                .AsEnumerable()
                 .Where(x => !designatedChannelMappingIds.Contains(x.Id) || DesignatedChannelMappings.Entities
                     .Any(y => (y.Id == x.Id) && (x.DeleteActionId == null)))
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.ConfigurationActions
+                .AsEnumerable()
                 .Where(x => DesignatedChannelMappings.Entities
                     .Any(y => (y.DeleteActionId == x.Id) && designatedChannelMappingIds.Contains(y.Id)))
                 .EachShould(x => x.ShouldNotHaveChanged());

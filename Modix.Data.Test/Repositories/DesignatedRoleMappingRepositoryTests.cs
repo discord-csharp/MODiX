@@ -333,11 +333,13 @@ namespace Modix.Data.Test.Repositories
                 });
 
             modixContext.DesignatedRoleMappings
+                .AsEnumerable()
                 .Where(x => !designatedRoleMappingIds.Contains(x.Id) || DesignatedRoleMappings.Entities
                     .Any(y => (y.Id == x.Id) && (x.DeleteActionId == null)))
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.ConfigurationActions
+                .AsEnumerable()
                 .Where(x => DesignatedRoleMappings.Entities
                     .Any(y => (y.DeleteActionId == x.Id) && designatedRoleMappingIds.Contains(y.Id)))
                 .EachShould(x => x.ShouldNotHaveChanged());
