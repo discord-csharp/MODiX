@@ -114,6 +114,7 @@ namespace Modix.Data.Test.Repositories
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.Users
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(Users.Entities
                     .Select(x => x.Id));
@@ -168,6 +169,7 @@ namespace Modix.Data.Test.Repositories
             user.Discriminator.ShouldBe(data.Discriminator);
 
             modixContext.Users
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(Users.Entities
                     .Select(x => x.Id));
@@ -198,6 +200,7 @@ namespace Modix.Data.Test.Repositories
             user.Username.ShouldBe(previousUser.Username);
 
             modixContext.Users
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(Users.Entities
                     .Select(x => x.Id));
@@ -228,6 +231,7 @@ namespace Modix.Data.Test.Repositories
             user.Discriminator.ShouldBe(previousUser.Discriminator);
 
             modixContext.Users
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(Users.Entities
                     .Select(x => x.Id));
@@ -284,6 +288,7 @@ namespace Modix.Data.Test.Repositories
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.Users
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(Users.Entities
                     .Select(x => x.Id));
@@ -342,6 +347,7 @@ namespace Modix.Data.Test.Repositories
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.Users
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(Users.Entities
                     .Select(x => x.Id));
@@ -399,6 +405,7 @@ namespace Modix.Data.Test.Repositories
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.Users
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(Users.Entities
                     .Select(x => x.Id));
@@ -434,6 +441,7 @@ namespace Modix.Data.Test.Repositories
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.Users
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(Users.Entities
                     .Select(x => x.Id));

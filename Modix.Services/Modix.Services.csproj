@@ -4,6 +4,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AsyncEvent" Version="0.2.0" />
+    <PackageReference Include="Discord.Net" Version="2.2.0-dev-20191024.6" />
     <PackageReference Include="DogStatsD-CSharp-Client" Version="3.3.0" />
     <PackageReference Include="Humanizer.Core" Version="2.5.16" />
     <PackageReference Include="Kitsu" Version="1.4.1" />

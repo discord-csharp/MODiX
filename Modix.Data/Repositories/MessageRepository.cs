@@ -195,12 +195,13 @@ namespace Modix.Data.Repositories
             var earliestDateTime = DateTimeOffset.UtcNow - timespan;
             var query = GetQuery();
 
-            var counts = await ModixContext.Query<PerUserMessageCount>()
-                .AsNoTracking()
-                .FromSql(query,
+            var counts = await ModixContext
+                .Set<PerUserMessageCount>()
+                .FromSqlRaw(query,
                     new NpgsqlParameter(":GuildId", NpgsqlDbType.Bigint) { Value = unchecked((long)guildId) },
                     new NpgsqlParameter(":UserId", NpgsqlDbType.Bigint) { Value = unchecked((long)userId) },
                     new NpgsqlParameter(":StartTimestamp", NpgsqlDbType.TimestampTz) { Value = earliestDateTime })
+                .AsNoTracking()
                 .ToArrayAsync();
 
             return counts;
@@ -249,9 +250,9 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<GuildUserParticipationStatistics> GetGuildUserParticipationStatistics(ulong guildId, ulong userId)
         {
-            var stats = await ModixContext.Query<GuildUserParticipationStatistics>()
-                .AsNoTracking()
-                .FromSql(
+            var stats = await ModixContext
+                .Set<GuildUserParticipationStatistics>()
+                .FromSqlRaw(
                     @"with msgs as (
                         select msg.""AuthorId"", msg.""Id"" as ""MessageId"", msg.""GuildId""
                         from ""Messages"" as msg
@@ -285,6 +286,7 @@ namespace Modix.Data.Repositories
                     where ""UserId"" = cast(:UserId as numeric(20))",
                     new NpgsqlParameter(":GuildId", guildId.ToString()),
                     new NpgsqlParameter(":UserId", userId.ToString()))
+                .AsNoTracking()
                 .OrderByDescending(x => x.AveragePerDay)
                 .FirstOrDefaultAsync() ?? new GuildUserParticipationStatistics();
 

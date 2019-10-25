@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
+using Modix.Data;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Data.Test.TestData;
@@ -341,6 +342,7 @@ namespace Modix.Data.Test.Repositories
             claimMapping.DeleteActionId.ShouldNotBeNull();
 
             modixContext.ClaimMappings
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(ClaimMappings.Entities
                     .Select(x => x.Id));
@@ -390,6 +392,7 @@ namespace Modix.Data.Test.Repositories
             result.ShouldBeFalse();
 
             modixContext.ClaimMappings
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(ClaimMappings.Entities
                     .Select(x => x.Id));
@@ -399,6 +402,7 @@ namespace Modix.Data.Test.Repositories
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.ConfigurationActions
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(ConfigurationActions.Entities
                     .Where(x => !(x.ClaimMappingId is null))
