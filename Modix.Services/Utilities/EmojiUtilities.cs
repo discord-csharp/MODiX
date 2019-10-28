@@ -43,7 +43,7 @@ namespace Modix.Services.Utilities
             }
             else
             {
-                const string EmojiLink = "https://raw.githubusercontent.com/twitter/twemoji/gh-pages/2/72x72/";
+                const string EmojiLink = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/";
                 var hexValues = new List<string>();
 
                 for (var i = 0; i < emoji.Length; i++)
