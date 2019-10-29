@@ -120,9 +120,6 @@ namespace Modix.Services.GuildStats
                     Count = d.Count()
                 }).ToList();
 
-                //Doesn't work great
-                //ret.Add(new GuildInfoResult { Name = "Other", Color = "#808080", Count = members.Count - ret.Sum(d => d.Count) });
-
                 _cache.Set(key, ret, _roleCacheEntryOptions);
             }
 
@@ -131,14 +128,12 @@ namespace Modix.Services.GuildStats
 
         public string GetRoleColorHex(IRole role)
         {
-            var ret = "99aab5"; //"Discord Grey"
-
             if (role.Color.RawValue > 0)
             {
-                ret = role.Color.RawValue.ToString("X");
+                return role.Color.ToString();
             }
 
-            return $"#{ret}";
+            return Color.Default.ToString();
         }
 
         /// <summary>
@@ -153,10 +148,12 @@ namespace Modix.Services.GuildStats
 
             //Try to get their highest role
             var highestPosition = roles
-                .Where(d => d.Name != "@everyone" && !d.IsManaged)
+                .Where(d =>
+                    d.Name != "@everyone"
+                    && !d.IsManaged
+                    && d.Color != Color.Default)
                 .OrderByDescending(role => role.IsHoisted)
                 .ThenByDescending(role => role.Position)
-                .ThenByDescending(d => !d.Color.Equals(Color.Default))
                 .FirstOrDefault();
 
             return highestPosition;
