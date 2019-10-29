@@ -13,7 +13,7 @@
     "bulma": "0.7.4",
     "dateformat": "^3.0.3",
     "chart.js": "^2.8.0",
-    "lodash-es": "^4.17.11",
+    "lodash-es": "^4.17.14",
     "tinycolor2": "^1.4.1",
     "v-tooltip": "^2.0.2",
     "vue": "^2.6.10",
