@@ -77,7 +77,11 @@ namespace Modix.Services.Starboard
             else if (_starboardService.IsAboveReactionThreshold(reactionCount))
             {
                 var embed = GetStarEmbed(message, GetEmbedColor(reactionCount));
-                await _starboardService.AddToStarboard(channel.Guild, message, FormatContent(reactionCount), embed);
+
+                if (embed is { })
+                {
+                    await _starboardService.AddToStarboard(channel.Guild, message, FormatContent(reactionCount), embed);
+                }
             }
         }
 
@@ -103,8 +107,14 @@ namespace Modix.Services.Starboard
         private Embed GetStarEmbed(IUserMessage message, Color color)
         {
             var author = message.Author as IGuildUser;
-            var embed = _quoteService.BuildQuoteEmbed(message, author)
-                .WithTimestamp(message.Timestamp)
+            var embed = _quoteService.BuildQuoteEmbed(message, author);
+
+            if (embed is null)
+            {
+                return null;
+            }
+
+            embed.WithTimestamp(message.Timestamp)
                 .WithColor(color)
                 .WithUserAsAuthor(author);
 
@@ -115,8 +125,9 @@ namespace Modix.Services.Starboard
                 .AppendLine(embed.Description)
                 .ToString();
 
-            embed.Fields.RemoveAt(embed.Fields.Count-1); //Remove the "Quoted by" field
+            embed.Fields.RemoveAt(embed.Fields.Count - 1); //Remove the "Quoted by" field
             embed.Footer = null;
+
             return embed.Build();
         }
     }
