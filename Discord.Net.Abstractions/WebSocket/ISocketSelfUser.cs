@@ -41,11 +41,11 @@ namespace Discord.WebSocket
         protected SocketSelfUser SocketSelfUser
             => SocketUser as SocketSelfUser;
 
-        public UserProperties Flags => throw new NotImplementedException();
+        public UserProperties Flags => SocketSelfUser.Flags;
 
-        public PremiumType PremiumType => throw new NotImplementedException();
+        public PremiumType PremiumType => SocketSelfUser.PremiumType;
 
-        public string Locale => throw new NotImplementedException();
+        public string Locale => SocketSelfUser.Locale;
     }
 
     /// <summary>

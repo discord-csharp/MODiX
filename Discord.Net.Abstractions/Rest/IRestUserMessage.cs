@@ -66,9 +66,7 @@ namespace Discord.Rest
             => RestUserMessage.UnpinAsync(options);
 
         public Task ModifySuppressionAsync(bool suppressEmbeds, RequestOptions options = null)
-        {
-            throw new NotImplementedException();
-        }
+            => RestUserMessage.ModifySuppressionAsync(suppressEmbeds, options);
 
         /// <summary>
         /// The existing <see cref="Rest.RestUserMessage"/> being abstracted.

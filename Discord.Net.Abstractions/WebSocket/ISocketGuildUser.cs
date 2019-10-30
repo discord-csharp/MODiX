@@ -159,9 +159,9 @@ namespace Discord.WebSocket
         protected SocketGuildUser SocketGuildUser
             => SocketUser as SocketGuildUser;
 
-        public DateTimeOffset? PremiumSince => throw new NotImplementedException();
+        public DateTimeOffset? PremiumSince => (SocketUser as IGuildUser).PremiumSince;
 
-        public bool IsStreaming => throw new NotImplementedException();
+        public bool IsStreaming => (SocketUser as IGuildUser).IsStreaming;
     }
 
     /// <summary>

@@ -685,33 +685,32 @@ namespace Discord.Rest
         public override string ToString()
             => RestGuild.ToString();
 
-        public Task<IReadOnlyCollection<IAuditLogEntry>> GetAuditLogsAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null, ulong? beforeId = null, ulong? userId = null, ActionType? actionType = null)
-        {
-            throw new NotImplementedException();
-        }
+        public async Task<IReadOnlyCollection<IAuditLogEntry>> GetAuditLogsAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null, ulong? beforeId = null, ulong? userId = null, ActionType? actionType = null)
+            => (await RestGuild.GetAuditLogsAsync(limit, options, beforeId, userId, actionType).FlattenAsync())
+            .ToArray();
 
         /// <summary>
         /// The existing <see cref="Rest.RestGuild"/> being abstracted.
         /// </summary>
         protected RestGuild RestGuild { get; }
 
-        public PremiumTier PremiumTier => throw new NotImplementedException();
+        public PremiumTier PremiumTier => RestGuild.PremiumTier;
 
-        public string BannerId => throw new NotImplementedException();
+        public string BannerId => RestGuild.BannerId;
 
-        public string BannerUrl => throw new NotImplementedException();
+        public string BannerUrl => RestGuild.BannerUrl;
 
-        public string VanityURLCode => throw new NotImplementedException();
+        public string VanityURLCode => RestGuild.VanityURLCode;
 
-        public SystemChannelMessageDeny SystemChannelFlags => throw new NotImplementedException();
+        public SystemChannelMessageDeny SystemChannelFlags => RestGuild.SystemChannelFlags;
 
-        public string Description => throw new NotImplementedException();
+        public string Description => RestGuild.Description;
 
-        public int PremiumSubscriptionCount => throw new NotImplementedException();
+        public int PremiumSubscriptionCount => RestGuild.PremiumSubscriptionCount;
 
-        public string PreferredLocale => throw new NotImplementedException();
+        public string PreferredLocale => RestGuild.PreferredLocale;
 
-        public CultureInfo PreferredCulture => throw new NotImplementedException();
+        public CultureInfo PreferredCulture => RestGuild.PreferredCulture;
     }
 
     /// <summary>

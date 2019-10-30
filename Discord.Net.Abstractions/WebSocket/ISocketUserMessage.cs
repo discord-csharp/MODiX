@@ -66,9 +66,7 @@ namespace Discord.WebSocket
             => SocketUserMessage.UnpinAsync(options);
 
         public Task ModifySuppressionAsync(bool suppressEmbeds, RequestOptions options = null)
-        {
-            throw new NotImplementedException();
-        }
+            => SocketUserMessage.ModifySuppressionAsync(suppressEmbeds, options);
 
         /// <summary>
         /// The existing <see cref="WebSocket.SocketUserMessage"/> being abstracted.

@@ -100,7 +100,7 @@ namespace Discord.WebSocket
         /// </summary>
         protected SocketUser SocketUser { get; }
 
-        public IImmutableSet<ClientType> ActiveClients => throw new NotImplementedException();
+        public IImmutableSet<ClientType> ActiveClients => SocketUser.ActiveClients;
     }
 
     /// <summary>

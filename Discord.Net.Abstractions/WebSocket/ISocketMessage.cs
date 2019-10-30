@@ -154,38 +154,28 @@ namespace Discord.WebSocket
             => SocketMessage.ToString();
 
         public Task AddReactionAsync(IEmote emote, RequestOptions options = null)
-        {
-            throw new NotImplementedException();
-        }
+            => SocketMessage.AddReactionAsync(emote, options);
 
         public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null)
-        {
-            throw new NotImplementedException();
-        }
+            => SocketMessage.RemoveReactionAsync(emote, user, options);
 
         public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions options = null)
-        {
-            throw new NotImplementedException();
-        }
+            => SocketMessage.RemoveReactionAsync(emote, userId, options);
 
         public Task RemoveAllReactionsAsync(RequestOptions options = null)
-        {
-            throw new NotImplementedException();
-        }
+            => SocketMessage.RemoveAllReactionsAsync(options);
 
         public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null)
-        {
-            throw new NotImplementedException();
-        }
+            => SocketMessage.GetReactionUsersAsync(emoji, limit, options);
 
         /// <summary>
         /// The existing <see cref="WebSocket.SocketMessage"/> being abstracted.
         /// </summary>
         protected SocketMessage SocketMessage { get; }
 
-        public bool IsSuppressed => throw new NotImplementedException();
+        public bool IsSuppressed => SocketMessage.IsSuppressed;
 
-        public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => throw new NotImplementedException();
+        public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => SocketMessage.Reactions;
     }
 
     /// <summary>

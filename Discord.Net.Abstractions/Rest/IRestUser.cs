@@ -101,7 +101,7 @@ namespace Discord.Rest
         /// </summary>
         protected RestUser RestUser { get; }
 
-        public IImmutableSet<ClientType> ActiveClients => throw new NotImplementedException();
+        public IImmutableSet<ClientType> ActiveClients => RestUser.ActiveClients;
     }
 
     /// <summary>

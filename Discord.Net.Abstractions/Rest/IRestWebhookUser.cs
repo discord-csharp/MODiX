@@ -114,9 +114,9 @@ namespace Discord.Rest
         protected RestWebhookUser RestWebhookUser
             => RestUser as RestWebhookUser;
 
-        public DateTimeOffset? PremiumSince => throw new NotImplementedException();
+        public DateTimeOffset? PremiumSince => (RestUser as IGuildUser).PremiumSince;
 
-        public bool IsStreaming => throw new NotImplementedException();
+        public bool IsStreaming => (RestUser as IGuildUser).IsStreaming;
     }
 
     /// <summary>

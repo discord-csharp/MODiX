@@ -746,23 +746,23 @@ namespace Discord.WebSocket
         /// </summary>
         protected SocketGuild SocketGuild { get; }
 
-        public PremiumTier PremiumTier => throw new NotImplementedException();
+        public PremiumTier PremiumTier => SocketGuild.PremiumTier;
 
-        public string BannerId => throw new NotImplementedException();
+        public string BannerId => SocketGuild.BannerId;
 
-        public string BannerUrl => throw new NotImplementedException();
+        public string BannerUrl => SocketGuild.BannerUrl;
 
-        public string VanityURLCode => throw new NotImplementedException();
+        public string VanityURLCode => SocketGuild.VanityURLCode;
 
-        public SystemChannelMessageDeny SystemChannelFlags => throw new NotImplementedException();
+        public SystemChannelMessageDeny SystemChannelFlags => SocketGuild.SystemChannelFlags;
 
-        public string Description => throw new NotImplementedException();
+        public string Description => SocketGuild.Description;
 
-        public int PremiumSubscriptionCount => throw new NotImplementedException();
+        public int PremiumSubscriptionCount => SocketGuild.PremiumSubscriptionCount;
 
-        public string PreferredLocale => throw new NotImplementedException();
+        public string PreferredLocale => SocketGuild.PreferredLocale;
 
-        public CultureInfo PreferredCulture => throw new NotImplementedException();
+        public CultureInfo PreferredCulture => SocketGuild.PreferredCulture;
     }
 
     /// <summary>

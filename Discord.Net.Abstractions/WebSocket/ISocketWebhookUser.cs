@@ -121,9 +121,9 @@ namespace Discord.WebSocket
         protected SocketWebhookUser SocketWebhookUser
             => SocketUser as SocketWebhookUser;
 
-        public DateTimeOffset? PremiumSince => throw new NotImplementedException();
+        public DateTimeOffset? PremiumSince => (SocketUser as IGuildUser).PremiumSince;
 
-        public bool IsStreaming => throw new NotImplementedException();
+        public bool IsStreaming => (SocketUser as IGuildUser).IsStreaming;
     }
 
     /// <summary>
