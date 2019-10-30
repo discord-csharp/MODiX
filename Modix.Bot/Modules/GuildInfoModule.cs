@@ -133,7 +133,7 @@ namespace Modix.Modules
                 .AppendLine($"Last 30 days: {"message".ToQuantity(monthTotal, "n0")}")
                 .AppendLine($"Avg. per day: {"message".ToQuantity(monthTotal / 30, "n0")}");
 
-            if (!(mostActiveChannel is { }))
+            if (mostActiveChannel is { })
             {
                 stringBuilder
                     .AppendLine($"Most active channel: {MentionUtils.MentionChannel(mostActiveChannel.Key)} ({"message".ToQuantity(mostActiveChannel.Value, "n0")} in 30 days)");
