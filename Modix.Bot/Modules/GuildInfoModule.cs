@@ -125,14 +125,19 @@ namespace Modix.Modules
 
             var channelCounts = await _messageRepository.GetTotalMessageCountByChannelAsync(guild.Id, TimeSpan.FromDays(30));
             var orderedChannelCounts = channelCounts.OrderByDescending(x => x.Value);
-            var mostActiveChannel = orderedChannelCounts.First();
+            var mostActiveChannel = orderedChannelCounts.FirstOrDefault();
 
             stringBuilder
                 .AppendLine(Format.Bold("\u276F Guild Participation"))
                 .AppendLine($"Last 7 days: {"message".ToQuantity(weekTotal, "n0")}")
                 .AppendLine($"Last 30 days: {"message".ToQuantity(monthTotal, "n0")}")
-                .AppendLine($"Avg. per day: {"message".ToQuantity(monthTotal / 30, "n0")}")
-                .AppendLine($"Most active channel: {MentionUtils.MentionChannel(mostActiveChannel.Key)} ({"message".ToQuantity(mostActiveChannel.Value, "n0")} in 30 days)");
+                .AppendLine($"Avg. per day: {"message".ToQuantity(monthTotal / 30, "n0")}");
+
+            if (!(mostActiveChannel is { }))
+            {
+                stringBuilder
+                    .AppendLine($"Most active channel: {MentionUtils.MentionChannel(mostActiveChannel.Key)} ({"message".ToQuantity(mostActiveChannel.Value, "n0")} in 30 days)");
+            }
 
             var emojiCounts = await _emojiRepository.GetEmojiStatsAsync(guild.Id, SortDirection.Ascending, 1);
 
