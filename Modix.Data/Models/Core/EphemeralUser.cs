@@ -68,11 +68,11 @@ namespace Modix.Data.Models.Core
 
         public string BanReason { get; private set; }
 
-        public DateTimeOffset? PremiumSince => throw new NotImplementedException();
+        public DateTimeOffset? PremiumSince { get; private set; }
 
-        public IImmutableSet<ClientType> ActiveClients => throw new NotImplementedException();
+        public IImmutableSet<ClientType> ActiveClients { get; private set; }
 
-        public bool IsStreaming => throw new NotImplementedException();
+        public bool IsStreaming { get; private set; }
 
         public async Task AddRoleAsync(IRole role, RequestOptions options = null)
         {
