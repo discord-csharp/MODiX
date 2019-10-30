@@ -8,8 +8,6 @@ namespace Discord.Rest
     /// <inheritdoc cref="RestUserMessage" />
     public interface IRestUserMessage : IRestMessage, IUserMessage, IDeletable
     {
-        /// <inheritdoc cref="RestUserMessage.Reactions" />
-        new IReadOnlyDictionary<IEmote, IReactionMetadata> Reactions { get; }
     }
 
     /// <summary>
@@ -26,36 +24,12 @@ namespace Discord.Rest
             : base(restUserMessage) { }
 
         /// <inheritdoc />
-        public IReadOnlyDictionary<IEmote, IReactionMetadata> Reactions
-            => RestUserMessage.Reactions
-                .ToDictionary(x => x.Key, x => x.Value.Abstract());
-
-        /// <inheritdoc />
-        public Task AddReactionAsync(IEmote emote, RequestOptions options = null)
-            => RestUserMessage.AddReactionAsync(emote, options);
-
-        /// <inheritdoc />
-        public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null)
-            => RestUserMessage.GetReactionUsersAsync(emoji, limit, options)
-                .Select(x => x
-                    .Select(UserAbstractionExtensions.Abstract)
-                    .ToArray());
-
-        /// <inheritdoc />
         public Task ModifyAsync(Action<MessageProperties> func, RequestOptions options = null)
             => RestUserMessage.ModifyAsync(func, options);
 
         /// <inheritdoc />
         public Task PinAsync(RequestOptions options = null)
             => RestUserMessage.PinAsync(options);
-
-        /// <inheritdoc />
-        public Task RemoveAllReactionsAsync(RequestOptions options = null)
-            => RestUserMessage.RemoveAllReactionsAsync(options);
-
-        /// <inheritdoc />
-        public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null)
-            => RestUserMessage.RemoveReactionAsync(emote, user, options);
 
         /// <inheritdoc />
         public string Resolve(TagHandling userHandling = TagHandling.Name, TagHandling channelHandling = TagHandling.Name, TagHandling roleHandling = TagHandling.Name, TagHandling everyoneHandling = TagHandling.Ignore, TagHandling emojiHandling = TagHandling.Name)

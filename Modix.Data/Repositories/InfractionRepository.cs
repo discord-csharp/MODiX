@@ -203,16 +203,20 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<IDictionary<InfractionType, int>> GetInfractionCountsAsync(InfractionSearchCriteria searchCriteria)
         {
-            var result = await ModixContext.Infractions.AsNoTracking()
+            // TODO: Group by here is not supported server side right now, should be refactored
+            var infractions = await ModixContext.Infractions
+                .AsNoTracking()
                 .FilterBy(searchCriteria)
-                .GroupBy(x => x.Type)
                 .ToArrayAsync();
+
+            var infractionGrouping = infractions
+                .GroupBy(x => x.Type);
 
             //Initialize the returned dictionary so we always have all infraction types present
             var ret = Enum.GetValues(typeof(InfractionType)).Cast<InfractionType>()
                 .ToDictionary(x => x, _ => 0);
 
-            foreach (var group in result)
+            foreach (var group in infractionGrouping)
             {
                 ret[group.Key] = group.Count();
             }
