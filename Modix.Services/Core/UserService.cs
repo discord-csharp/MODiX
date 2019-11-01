@@ -146,20 +146,18 @@ namespace Modix.Services.Core
             var guildTask = DiscordClient.GetGuildAsync(guildId);
             var userTask = DiscordClient.GetUserAsync(userId);
             var restUserTask = DiscordRestClient.GetUserAsync(userId);
-            var guildUserSummaryTask = GetGuildUserSummaryAsync(guildId, userId);
+            var guildUserSummary = await GetGuildUserSummaryAsync(guildId, userId);
 
             var guild = await guildTask;
 
-            var guildUserTask = guild.GetUserAsync(userId);
-            var bansTask = guild.GetBansAsync();
+            var guildUser = await guild.GetUserAsync(userId);
+            var bans = await guild.GetBansAsync();
 
             var user = await userTask;
             var restUser = await restUserTask;
-            var guildUserSummary = await guildUserSummaryTask;
-            var ban = (await bansTask).FirstOrDefault(x => x.User.Id == userId);
-            var guildUser = await guildUserTask;
+            var ban = bans.FirstOrDefault(x => x.User.Id == userId);
 
-            if (guildUser is {})
+            if (guildUser is { })
                 await TrackUserAsync(guildUser);
 
             var buildUser = new EphemeralUser()
