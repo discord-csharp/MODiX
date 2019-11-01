@@ -121,6 +121,7 @@ namespace Modix.Data.Test.Repositories
             await Should.ThrowAsync<ArgumentNullException>(uut.CreateAsync(null));
 
             modixContext.GuildChannels
+                .AsQueryable()
                 .Select(x => x.ChannelId)
                 .ShouldBe(GuildChannels.Entities
                     .Select(x => x.ChannelId));
@@ -172,6 +173,7 @@ namespace Modix.Data.Test.Repositories
             await Should.ThrowAsync<InvalidOperationException>(uut.CreateAsync(data));
 
             modixContext.GuildChannels
+                .AsQueryable()
                 .Select(x => x.ChannelId)
                 .ShouldBe(GuildChannels.Entities
                     .Select(x => x.ChannelId));
@@ -196,6 +198,7 @@ namespace Modix.Data.Test.Repositories
                 await uut.TryUpdateAsync(1, null));
 
             modixContext.GuildChannels
+                .AsQueryable()
                 .Select(x => x.ChannelId)
                 .ShouldBe(GuildChannels.Entities
                     .Select(x => x.ChannelId));
@@ -233,6 +236,7 @@ namespace Modix.Data.Test.Repositories
                 guildChannel.Name.ShouldBe(mutatedData.Name);
 
                 modixContext.GuildChannels
+                .AsQueryable()
                     .Select(x => x.ChannelId)
                     .ShouldBe(GuildChannels.Entities
                         .Select(x => x.ChannelId));
@@ -261,6 +265,7 @@ namespace Modix.Data.Test.Repositories
                 .Invoke(Arg.Any<GuildChannelMutationData>());
 
             modixContext.GuildChannels
+                .AsQueryable()
                 .Select(x => x.ChannelId)
                 .ShouldBe(GuildChannels.Entities
                     .Select(x => x.ChannelId));

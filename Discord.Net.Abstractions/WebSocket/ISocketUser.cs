@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -98,6 +99,8 @@ namespace Discord.WebSocket
         /// The existing <see cref="WebSocket.SocketUser"/> being abstracted.
         /// </summary>
         protected SocketUser SocketUser { get; }
+
+        public IImmutableSet<ClientType> ActiveClients => SocketUser.ActiveClients;
     }
 
     /// <summary>

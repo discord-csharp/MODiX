@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -48,7 +49,7 @@ namespace Modix.Services.Core
         /// A <see cref="Task"/> that completes when the operation completes,
         /// containing all user information that was found for the user.
         /// </returns>
-        Task<EphemeralUser> GetUserInformationAsync(ulong guildId, ulong userId);
+        Task<EphemeralUser?> GetUserInformationAsync(ulong guildId, ulong userId);
 
         /// <summary>
         /// Retrieves the user, if any, associated with the given user ID.
@@ -137,7 +138,7 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task<EphemeralUser> GetUserInformationAsync(ulong guildId, ulong userId)
+        public async Task<EphemeralUser?> GetUserInformationAsync(ulong guildId, ulong userId)
         {
             if (userId == 0)
                 return null;

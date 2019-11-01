@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord.Audio;
@@ -735,10 +736,33 @@ namespace Discord.WebSocket
         public override string ToString()
             => SocketGuild.ToString();
 
+        public Task<IReadOnlyCollection<IAuditLogEntry>> GetAuditLogsAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null, ulong? beforeId = null, ulong? userId = null, ActionType? actionType = null)
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// The existing <see cref="Rest.SocketGuild"/> being abstracted.
         /// </summary>
         protected SocketGuild SocketGuild { get; }
+
+        public PremiumTier PremiumTier => SocketGuild.PremiumTier;
+
+        public string BannerId => SocketGuild.BannerId;
+
+        public string BannerUrl => SocketGuild.BannerUrl;
+
+        public string VanityURLCode => SocketGuild.VanityURLCode;
+
+        public SystemChannelMessageDeny SystemChannelFlags => SocketGuild.SystemChannelFlags;
+
+        public string Description => SocketGuild.Description;
+
+        public int PremiumSubscriptionCount => SocketGuild.PremiumSubscriptionCount;
+
+        public string PreferredLocale => SocketGuild.PreferredLocale;
+
+        public CultureInfo PreferredCulture => SocketGuild.PreferredCulture;
     }
 
     /// <summary>

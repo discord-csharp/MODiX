@@ -113,6 +113,10 @@ namespace Discord.Rest
         /// </summary>
         protected RestWebhookUser RestWebhookUser
             => RestUser as RestWebhookUser;
+
+        public DateTimeOffset? PremiumSince => (RestUser as IGuildUser).PremiumSince;
+
+        public bool IsStreaming => (RestUser as IGuildUser).IsStreaming;
     }
 
     /// <summary>

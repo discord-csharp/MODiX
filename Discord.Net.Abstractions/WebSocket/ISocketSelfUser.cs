@@ -40,6 +40,12 @@ namespace Discord.WebSocket
         /// </summary>
         protected SocketSelfUser SocketSelfUser
             => SocketUser as SocketSelfUser;
+
+        public UserProperties Flags => SocketSelfUser.Flags;
+
+        public PremiumType PremiumType => SocketSelfUser.PremiumType;
+
+        public string Locale => SocketSelfUser.Locale;
     }
 
     /// <summary>

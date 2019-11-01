@@ -8,6 +8,7 @@ using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 using Modix;
@@ -149,7 +150,7 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddStatsD(this IServiceCollection services, IHostingEnvironment environment, IConfiguration configuration)
+        public static IServiceCollection AddStatsD(this IServiceCollection services, IHostEnvironment environment, IConfiguration configuration)
         {
             var cfg = new StatsdConfig { Prefix = "modix" };
 

@@ -58,6 +58,8 @@ namespace Discord.WebSocket
         public bool IsSelfDeafened
             => _socketVoiceState.IsSelfDeafened;
 
+        public bool IsStreaming => _socketVoiceState.IsStreaming;
+
         /// <inheritdoc cref="SocketVoiceState.ToString" />
         public override string ToString()
             => _socketVoiceState.ToString();

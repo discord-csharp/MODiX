@@ -187,7 +187,8 @@ namespace Modix.Data.Test.Repositories
 
             await Should.ThrowAsync<ArgumentNullException>(uut.CreateAsync(null));
 
-            modixContext.DesignatedRoleMappings.Select(x => x.Id).ShouldBe(DesignatedRoleMappings.Entities.Select(x => x.Id));
+            modixContext.DesignatedRoleMappings
+                .AsQueryable().Select(x => x.Id).ShouldBe(DesignatedRoleMappings.Entities.Select(x => x.Id));
             modixContext.DesignatedRoleMappings.EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
@@ -301,6 +302,7 @@ namespace Modix.Data.Test.Repositories
                 .Count());
 
             modixContext.DesignatedRoleMappings
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(DesignatedRoleMappings.Entities.Select(x => x.Id));
 
@@ -331,11 +333,13 @@ namespace Modix.Data.Test.Repositories
                 });
 
             modixContext.DesignatedRoleMappings
+                .AsEnumerable()
                 .Where(x => !designatedRoleMappingIds.Contains(x.Id) || DesignatedRoleMappings.Entities
                     .Any(y => (y.Id == x.Id) && (x.DeleteActionId == null)))
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.ConfigurationActions
+                .AsEnumerable()
                 .Where(x => DesignatedRoleMappings.Entities
                     .Any(y => (y.DeleteActionId == x.Id) && designatedRoleMappingIds.Contains(y.Id)))
                 .EachShould(x => x.ShouldNotHaveChanged());
@@ -354,6 +358,7 @@ namespace Modix.Data.Test.Repositories
             result.ShouldBe(0);
 
             modixContext.DesignatedRoleMappings
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(DesignatedRoleMappings.Entities
                     .Select(x => x.Id));
@@ -362,6 +367,7 @@ namespace Modix.Data.Test.Repositories
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.ConfigurationActions
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(ConfigurationActions.Entities
                     .Where(x => x.DesignatedRoleMappingId != null)
@@ -402,6 +408,7 @@ namespace Modix.Data.Test.Repositories
             designatedRoleMapping.DeleteActionId.ShouldNotBeNull();
 
             modixContext.DesignatedRoleMappings
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(DesignatedRoleMappings.Entities
                     .Select(x => x.Id));
@@ -451,6 +458,7 @@ namespace Modix.Data.Test.Repositories
             result.ShouldBeFalse();
 
             modixContext.DesignatedRoleMappings
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(DesignatedRoleMappings.Entities
                     .Select(x => x.Id));
@@ -459,6 +467,7 @@ namespace Modix.Data.Test.Repositories
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.ConfigurationActions
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(ConfigurationActions.Entities
                     .Where(x => !(x.DesignatedRoleMappingId is null))

@@ -104,6 +104,7 @@ namespace Modix.Data.Test.Repositories
             await Should.ThrowAsync<ArgumentNullException>(uut.CreateAsync(null));
 
             modixContext.GuildRoles
+                .AsQueryable()
                 .Select(x => x.RoleId)
                 .ShouldBe(GuildRoles.Entities
                     .Select(x => x.RoleId));
@@ -151,6 +152,7 @@ namespace Modix.Data.Test.Repositories
             await Should.ThrowAsync<InvalidOperationException>(uut.CreateAsync(data));
 
             modixContext.GuildRoles
+                .AsQueryable()
                 .Select(x => x.RoleId)
                 .ShouldBe(GuildRoles.Entities
                     .Select(x => x.RoleId));
@@ -175,6 +177,7 @@ namespace Modix.Data.Test.Repositories
                 await uut.TryUpdateAsync(1, null));
 
             modixContext.GuildRoles
+                .AsQueryable()
                 .Select(x => x.RoleId)
                 .ShouldBe(GuildRoles.Entities
                     .Select(x => x.RoleId));
@@ -214,6 +217,7 @@ namespace Modix.Data.Test.Repositories
             guildRole.Position.ShouldBe(mutatedData.Position);
 
             modixContext.GuildRoles
+                .AsQueryable()
                 .Select(x => x.RoleId)
                 .ShouldBe(GuildRoles.Entities
                     .Select(x => x.RoleId));
@@ -241,6 +245,7 @@ namespace Modix.Data.Test.Repositories
                 .Invoke(Arg.Any<GuildRoleMutationData>());
 
             modixContext.GuildRoles
+                .AsQueryable()
                 .Select(x => x.RoleId)
                 .ShouldBe(GuildRoles.Entities
                     .Select(x => x.RoleId));
