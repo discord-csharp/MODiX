@@ -1,9 +1,17 @@
+using System.Net;
 using Newtonsoft.Json;
 
 namespace Modix.Services.IsUp
 {
-    public class IsUpResponse
+
+    public interface IIsUpResponse
     {
+        string? StatusString { get; set; }
+    }
+
+    public class IsUpResponse : IIsUpResponse
+    {
+
         [JsonProperty("deprecated")]
         public bool Deprecated { get; set; }
 
@@ -15,5 +23,7 @@ namespace Modix.Services.IsUp
 
         [JsonProperty("response_code")]
         public long? ResponseCode { get; set; }
+
+        public string? StatusString { get; set; }
     }
 }

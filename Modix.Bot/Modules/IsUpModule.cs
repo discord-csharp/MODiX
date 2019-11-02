@@ -39,10 +39,10 @@ namespace Modix.Modules
             var resp = await _isUpService.GetIsUpResponseAsync(url);
 
 
-            if (resp == null)
+            if (resp.StatusString != "OK")
             {
                 await message.DeleteAsync();
-                await ReplyAsync($"Error: Something Went Wrong Querying the IsItDown API");
+                await ReplyAsync($"Error {resp.StatusString}: Something Went Wrong Querying the IsItDown API ");
                 return;
             }
 

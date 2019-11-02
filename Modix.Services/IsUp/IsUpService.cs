@@ -25,11 +25,16 @@ namespace Modix.Services.IsUp
 
             if (!response.IsSuccessStatusCode)
             {
-                return null;
+                return new IsUpResponse()
+                {
+                    StatusString = response.ReasonPhrase
+                };
             }
 
             var JsonResp = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<IsUpResponse>(JsonResp);
+            var RespObj = JsonConvert.DeserializeObject<IsUpResponse>(JsonResp);
+            RespObj.StatusString = response.ReasonPhrase;
+            return RespObj;
         }
     }
 }
