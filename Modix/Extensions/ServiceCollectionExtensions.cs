@@ -31,6 +31,7 @@ using Modix.Services.EmojiStats;
 using Modix.Services.Giveaways;
 using Modix.Services.GuildStats;
 using Modix.Services.Images;
+using Modix.Services.IsUp;
 using Modix.Services.Mentions;
 using Modix.Services.Moderation;
 using Modix.Services.PopularityContest;
@@ -137,6 +138,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<WikipediaService>();
             services.AddScoped<StackExchangeService>();
             services.AddScoped<DocumentationService>();
+            services.AddScoped<IsUpService>();
 
             services.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
             services.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
