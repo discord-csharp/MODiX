@@ -10,7 +10,7 @@ namespace Modix.Services.IsUp
     {
         private const string _apiBaseURl = "https://isitdown.site/api/v3/";
 
-        public IHttpClientFactory HttpClientFactory { get; }
+        protected IHttpClientFactory HttpClientFactory { get; }
 
         public IsUpService(IHttpClientFactory httpClientFactory)
         {
