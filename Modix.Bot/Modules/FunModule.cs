@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using Modix.Services.CommandHelp;
 using Modix.Services.Utilities;
 using Serilog;
@@ -108,6 +109,25 @@ namespace Modix.Modules
                 Log.Warning(ex, "Failed getting avatar for user {userId}", user.Id);
                 await ReplyAsync($"Sorry {Context.User.Mention}, I couldn't get the avatar!");
             }
+        }
+
+        [Command("bomb"), Summary("Bombs the server with the given payload (nickname).")]
+        [RequireUserPermission(GuildPermission.Administrator)]
+        public async Task BombAsync(
+            [Summary("The payload to bomb the server with (Defaults to Inzanit)")]
+            string payload = "Inzanit")
+        {
+            var allUsers = await Context.Guild.GetUsersAsync();
+            Task.Run(async () =>
+            {
+                await ReplyAsync("Planting the bomb...");
+                foreach (var guildUser in allUsers)
+                {
+                    await guildUser.ModifyAsync(x => x.Nickname = payload);
+                }
+
+                await ReplyAsync("The bomb has been planted.");
+            });
         }
 
         protected IHttpClientFactory HttpClientFactory { get; }
