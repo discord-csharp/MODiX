@@ -28,7 +28,6 @@ namespace Modix.Modules
         [Command("isup")]
         public async Task IsUp([Summary("Url to ping")] string url)
         {
-
             var message = await ReplyAsync("", embed: new EmbedBuilder()
                 .WithTitle($"Checking status of {url}")
                 .WithUserAsAuthor(Context.User)
@@ -49,7 +48,7 @@ namespace Modix.Modules
             if (resp.Host == null || resp.ResponseCode == null)
             {
                  builder = new EmbedBuilder()
-                    .WithTitle($"Status of: {url}")
+                    .WithTitle($"Host: { (resp.Host != null ? $"```{resp.Host}```" : "No Host found")}")
                     .WithUserAsAuthor(Context.User)
                     .WithColor(Color.Red)
                     .WithDescription($"Something went wrong querying: `{url}` Is that a valid URL?");
@@ -57,13 +56,10 @@ namespace Modix.Modules
             else
             {
                 builder = new EmbedBuilder()
-                    .WithTitle($"Status of: {url}")
+                    .WithTitle($"Host: { (resp.Host != null ? $"```{resp.Host}```" : "No Host found")}")
                     .WithUserAsAuthor(Context.User)
                     .WithColor(Color.Green)
-                    .AddField("Status: ", $"{(resp.Isitdown ? "❌" : "✅")}", true)
-                    .AddField("Host: ", $"{resp.Host}", true)
-                    .AddField("Deprecated: ", $"{(resp.Deprecated ? "✅" : "❌")}", true)
-                    .AddField("Response Code: ", $"{resp.ResponseCode}", true);
+                    .AddField("Status ", $"{(resp.Isitdown ? "❌" : "✅")} {resp.ResponseCode}", true);
             }
 
             await _autoRemoveMessageService.RegisterRemovableMessageAsync(Context.User, builder, async (e) =>

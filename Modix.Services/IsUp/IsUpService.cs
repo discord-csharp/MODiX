@@ -1,3 +1,4 @@
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -19,7 +20,12 @@ namespace Modix.Services.IsUp
 
         public async Task<IsUpResponse> GetIsUpResponseAsync([Summary("Url to get status of")]string url)
         {
-            var apiQueryUrl = $"{_apiBaseURl}{url}";
+            string apiQueryUrl = $"{_apiBaseURl}{url}";
+            if (Uri.TryCreate(url, UriKind.Absolute, out var uri))
+            {
+                apiQueryUrl = $"{_apiBaseURl}{uri.Host}";
+            }
+
             var client = HttpClientFactory.CreateClient();
             var response = await client.GetAsync(apiQueryUrl);
 
