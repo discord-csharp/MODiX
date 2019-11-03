@@ -94,33 +94,23 @@ namespace Modix.Services.Moderation
             if (await DesignatedChannelService.ChannelHasDesignationAsync(channel.Guild, channel, DesignatedChannelType.Unmoderated))
                 return;
 
-            if (await AuthorizationService.HasClaimsAsync(author, AuthorizationClaim.PostInviteLink))
-            {
-                Log.Debug("Message {MessageId} was skipped because the author {Author} has the PostInviteLink claim",
-                    message.Id, message.Author.Id);
-                return;
-            }
+            //if (await AuthorizationService.HasClaimsAsync(author, AuthorizationClaim.PostInviteLink))
+            //{
+            //    Log.Debug("Message {MessageId} was skipped because the author {Author} has the PostInviteLink claim",
+            //        message.Id, message.Author.Id);
+            //    return;
+            //}
 
-            var actualInvites = new List<IInvite>(matches.Count);
+            var invites = new List<IInvite>(matches.Count);
 
             foreach (var code in matches.Select(x => x.Groups["Code"].Value))
             {
                 var invite = await DiscordClient.GetInviteAsync(code);
-
-                if (invite is { })
-                {
-                    actualInvites.Add(invite);
-                }
-            }
-
-            if (actualInvites.Count == 0)
-            {
-                Log.Debug("Message {MessageId} was skipped because it didn't contain any real invites", message.Id);
-                return;
+                invites.Add(invite);
             }
 
             // Allow invites to the guild in which the message was posted
-            if (actualInvites.All(x => x.GuildId == author.GuildId))
+            if (invites.All(x => x?.GuildId == author.GuildId))
             {
                 Log.Debug("Message {MessageId} was skipped because the invite was to this server", message.Id);
                 return;
