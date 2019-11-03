@@ -158,6 +158,10 @@ namespace Discord.WebSocket
         /// </summary>
         protected SocketGuildUser SocketGuildUser
             => SocketUser as SocketGuildUser;
+
+        public DateTimeOffset? PremiumSince => (SocketUser as IGuildUser).PremiumSince;
+
+        public bool IsStreaming => (SocketUser as IGuildUser).IsStreaming;
     }
 
     /// <summary>

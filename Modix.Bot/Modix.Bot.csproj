@@ -2,18 +2,20 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>TRACE;DEBUG</DefineConstants>
   </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+  </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="2.1.1" />
-    <PackageReference Include="DogStatsD-CSharp-Client" Version="3.3.0" />
-    <PackageReference Include="Humanizer.Core" Version="2.5.16" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="2.2.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="Serilog" Version="2.8.0" />
-    <PackageReference Include="Serilog.Extensions.Logging" Version="2.0.2" />
-    <PackageReference Include="Serilog.Sinks.Literate" Version="3.0.0" />
-    <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
-    <PackageReference Include="Serilog.Sinks.Sentry" Version="2.4.1" />
+    <PackageReference Include="DogStatsD-CSharp-Client"/>
+    <PackageReference Include="Humanizer.Core"/>
+    <PackageReference Include="Microsoft.Extensions.Hosting"/>
+    <PackageReference Include="Microsoft.Extensions.Http"/>
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Serilog"/>
+    <PackageReference Include="Serilog.Extensions.Logging" />
+    <PackageReference Include="Serilog.Sinks.Literate"/>
+    <PackageReference Include="Serilog.Sinks.RollingFile" />
+    <PackageReference Include="Serilog.Sinks.Sentry"  />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Discord.Net.Abstractions\Discord.Net.Abstractions.csproj" />

@@ -153,10 +153,29 @@ namespace Discord.WebSocket
         public override string ToString()
             => SocketMessage.ToString();
 
+        public Task AddReactionAsync(IEmote emote, RequestOptions options = null)
+            => SocketMessage.AddReactionAsync(emote, options);
+
+        public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null)
+            => SocketMessage.RemoveReactionAsync(emote, user, options);
+
+        public Task RemoveReactionAsync(IEmote emote, ulong userId, RequestOptions options = null)
+            => SocketMessage.RemoveReactionAsync(emote, userId, options);
+
+        public Task RemoveAllReactionsAsync(RequestOptions options = null)
+            => SocketMessage.RemoveAllReactionsAsync(options);
+
+        public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null)
+            => SocketMessage.GetReactionUsersAsync(emoji, limit, options);
+
         /// <summary>
         /// The existing <see cref="WebSocket.SocketMessage"/> being abstracted.
         /// </summary>
         protected SocketMessage SocketMessage { get; }
+
+        public bool IsSuppressed => SocketMessage.IsSuppressed;
+
+        public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => SocketMessage.Reactions;
     }
 
     /// <summary>

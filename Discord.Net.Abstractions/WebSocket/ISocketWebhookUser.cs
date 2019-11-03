@@ -120,6 +120,10 @@ namespace Discord.WebSocket
         /// </summary>
         protected SocketWebhookUser SocketWebhookUser
             => SocketUser as SocketWebhookUser;
+
+        public DateTimeOffset? PremiumSince => (SocketUser as IGuildUser).PremiumSince;
+
+        public bool IsStreaming => (SocketUser as IGuildUser).IsStreaming;
     }
 
     /// <summary>

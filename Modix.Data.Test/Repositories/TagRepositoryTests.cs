@@ -190,7 +190,7 @@ namespace Modix.Data.Test.Repositories
 
             await Should.ThrowAsync<ArgumentNullException>(uut.CreateAsync(null));
 
-            modixContext.Tags.Select(x => x.Id).ShouldBe(Tags.Entities.Select(x => x.Id));
+            modixContext.Tags.AsQueryable().Select(x => x.Id).ShouldBe(Tags.Entities.Select(x => x.Id));
             modixContext.Tags.EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()

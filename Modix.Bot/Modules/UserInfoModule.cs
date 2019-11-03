@@ -112,16 +112,10 @@ namespace Modix.Modules
                 colorTask = _imageService.GetDominantColorAsync(new Uri(avatarUrl));
             }
 
-            var moderationReadTask = _authorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead);
-            var userRankTask = _messageRepository.GetGuildUserParticipationStatistics(Context.Guild.Id, userId);
-            var messagesByDateTask = _messageRepository.GetGuildUserMessageCountByDate(Context.Guild.Id, userId, TimeSpan.FromDays(30));
-            var messageCountsByChannelTask = _messageRepository.GetGuildUserMessageCountByChannel(Context.Guild.Id, userId, TimeSpan.FromDays(30));
-            var emojiCountsTask = _emojiRepository.GetEmojiStatsAsync(Context.Guild.Id, SortDirection.Ascending, 1, userId: userId);
-            var promotionsTask = _promotionsService.GetPromotionsForUserAsync(Context.Guild.Id, userId);
+            var moderationRead = await _authorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead);
+            var promotions = await _promotionsService.GetPromotionsForUserAsync(Context.Guild.Id, userId);
 
             embedBuilder.WithColor(await colorTask);
-
-            var moderationRead = await moderationReadTask;
 
             if (userInfo.IsBanned)
             {
@@ -145,7 +139,12 @@ namespace Modix.Modules
 
             try
             {
-                await AddParticipationToEmbedAsync(userId, builder, await userRankTask, await messagesByDateTask, await messageCountsByChannelTask, await emojiCountsTask);
+                var userRank = await _messageRepository.GetGuildUserParticipationStatistics(Context.Guild.Id, userId);
+                var messagesByDate = await _messageRepository.GetGuildUserMessageCountByDate(Context.Guild.Id, userId, TimeSpan.FromDays(30));
+                var messageCountsByChannel = await _messageRepository.GetGuildUserMessageCountByChannel(Context.Guild.Id, userId, TimeSpan.FromDays(30));
+                var emojiCounts = await _emojiRepository.GetEmojiStatsAsync(Context.Guild.Id, SortDirection.Ascending, 1, userId: userId);
+
+                await AddParticipationToEmbedAsync(userId, builder, userRank, messagesByDate, messageCountsByChannel, emojiCounts);
             }
             catch (Exception ex)
             {
@@ -153,7 +152,7 @@ namespace Modix.Modules
             }
 
             AddMemberInformationToEmbed(userInfo, builder);
-            AddPromotionsToEmbed(builder, await promotionsTask);
+            AddPromotionsToEmbed(builder, promotions);
 
             if (moderationRead)
             {

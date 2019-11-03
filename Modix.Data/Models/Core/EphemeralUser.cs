@@ -1,6 +1,7 @@
 ﻿using Discord;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 namespace Modix.Data.Models.Core
@@ -66,6 +67,12 @@ namespace Modix.Data.Models.Core
         public bool IsBanned { get; private set; }
 
         public string BanReason { get; private set; }
+
+        public DateTimeOffset? PremiumSince { get; private set; }
+
+        public IImmutableSet<ClientType> ActiveClients { get; private set; }
+
+        public bool IsStreaming { get; private set; }
 
         public async Task AddRoleAsync(IRole role, RequestOptions options = null)
         {

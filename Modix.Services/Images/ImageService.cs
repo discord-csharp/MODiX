@@ -90,7 +90,8 @@ namespace Modix.Services.Images
 
             var mostCommonPaletteColor = colorTree.GetPalette().OrderByDescending(x => x.Weight * x.Color.GetSaturation()).FirstOrDefault().Color;
 
-            return (Color)mostCommonPaletteColor;
+            // TODO Investigate why we cannot cast here anymore (return (Color)mostCommonPaletteColor;)
+            return new Color((uint)mostCommonPaletteColor.ToArgb() << 8 >> 8);
         }
 
         private object GetKey(Uri uri) => new { Target = "DominantColor", uri.AbsoluteUri };

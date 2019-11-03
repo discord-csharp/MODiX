@@ -187,7 +187,11 @@ namespace Modix.Data.Test.Repositories
 
             await Should.ThrowAsync<ArgumentNullException>(uut.CreateAsync(null));
 
-            modixContext.DesignatedChannelMappings.Select(x => x.Id).ShouldBe(DesignatedChannelMappings.Entities.Select(x => x.Id));
+            modixContext.DesignatedChannelMappings
+                .AsQueryable()
+                .Select(x => x.Id)
+                .ShouldBe(DesignatedChannelMappings.Entities.Select(x => x.Id));
+
             modixContext.DesignatedChannelMappings.EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
@@ -327,6 +331,7 @@ namespace Modix.Data.Test.Repositories
                 .Count());
 
             modixContext.DesignatedChannelMappings
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(DesignatedChannelMappings.Entities.Select(x => x.Id));
 
@@ -357,11 +362,13 @@ namespace Modix.Data.Test.Repositories
                 });
 
             modixContext.DesignatedChannelMappings
+                .AsEnumerable()
                 .Where(x => !designatedChannelMappingIds.Contains(x.Id) || DesignatedChannelMappings.Entities
                     .Any(y => (y.Id == x.Id) && (x.DeleteActionId == null)))
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.ConfigurationActions
+                .AsEnumerable()
                 .Where(x => DesignatedChannelMappings.Entities
                     .Any(y => (y.DeleteActionId == x.Id) && designatedChannelMappingIds.Contains(y.Id)))
                 .EachShould(x => x.ShouldNotHaveChanged());
@@ -380,6 +387,7 @@ namespace Modix.Data.Test.Repositories
             result.ShouldBe(0);
 
             modixContext.DesignatedChannelMappings
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(DesignatedChannelMappings.Entities
                     .Select(x => x.Id));
@@ -388,6 +396,7 @@ namespace Modix.Data.Test.Repositories
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.ConfigurationActions
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(ConfigurationActions.Entities
                     .Where(x => x.DesignatedChannelMappingId != null)
@@ -428,6 +437,7 @@ namespace Modix.Data.Test.Repositories
             designatedChannelMapping.DeleteActionId.ShouldNotBeNull();
 
             modixContext.DesignatedChannelMappings
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(DesignatedChannelMappings.Entities
                     .Select(x => x.Id));
@@ -477,6 +487,7 @@ namespace Modix.Data.Test.Repositories
             result.ShouldBeFalse();
 
             modixContext.DesignatedChannelMappings
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(DesignatedChannelMappings.Entities
                     .Select(x => x.Id));
@@ -485,6 +496,7 @@ namespace Modix.Data.Test.Repositories
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             modixContext.ConfigurationActions
+                .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(ConfigurationActions.Entities
                     .Where(x => !(x.DesignatedChannelMappingId is null))

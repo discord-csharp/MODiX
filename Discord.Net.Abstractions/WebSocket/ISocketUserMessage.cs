@@ -8,8 +8,6 @@ namespace Discord.WebSocket
     /// <inheritdoc cref="SocketUserMessage" />
     public interface ISocketUserMessage : ISocketMessage, IUserMessage
     {
-        /// <inheritdoc cref="SocketUserMessage.Reactions" />
-        new IReadOnlyDictionary<IEmote, IReactionMetadata> Reactions { get; }
     }
 
     /// <summary>
@@ -26,26 +24,6 @@ namespace Discord.WebSocket
             : base(socketUserMessage) { }
 
         /// <inheritdoc />
-        public IReadOnlyDictionary<IEmote, IReactionMetadata> Reactions
-            => SocketUserMessage.Reactions
-                .ToDictionary(x => x.Key, x => x.Value.Abstract());
-
-        /// <inheritdoc />
-        IReadOnlyDictionary<IEmote, ReactionMetadata> IUserMessage.Reactions
-            => (SocketUserMessage as IUserMessage).Reactions;
-
-        /// <inheritdoc />
-        public Task AddReactionAsync(IEmote emote, RequestOptions options = null)
-            => SocketUserMessage.AddReactionAsync(emote, options);
-
-        /// <inheritdoc />
-        public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null)
-            => SocketUserMessage.GetReactionUsersAsync(emoji, limit, options)
-                .Select(x => x
-                    .Select(UserAbstractionExtensions.Abstract)
-                    .ToArray());
-
-        /// <inheritdoc />
         public Task ModifyAsync(Action<MessageProperties> func, RequestOptions options = null)
             => SocketUserMessage.ModifyAsync(func, options);
 
@@ -54,20 +32,15 @@ namespace Discord.WebSocket
             => SocketUserMessage.PinAsync(options);
 
         /// <inheritdoc />
-        public Task RemoveAllReactionsAsync(RequestOptions options = null)
-            => SocketUserMessage.RemoveAllReactionsAsync(options);
-
-        /// <inheritdoc />
-        public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null)
-            => SocketUserMessage.RemoveReactionAsync(emote, user, options);
-
-        /// <inheritdoc />
         public string Resolve(TagHandling userHandling = TagHandling.Name, TagHandling channelHandling = TagHandling.Name, TagHandling roleHandling = TagHandling.Name, TagHandling everyoneHandling = TagHandling.Ignore, TagHandling emojiHandling = TagHandling.Name)
             => SocketUserMessage.Resolve(userHandling, channelHandling, roleHandling, everyoneHandling, emojiHandling);
 
         /// <inheritdoc />
         public Task UnpinAsync(RequestOptions options = null)
             => SocketUserMessage.UnpinAsync(options);
+
+        public Task ModifySuppressionAsync(bool suppressEmbeds, RequestOptions options = null)
+            => SocketUserMessage.ModifySuppressionAsync(suppressEmbeds, options);
 
         /// <summary>
         /// The existing <see cref="WebSocket.SocketUserMessage"/> being abstracted.

@@ -75,11 +75,11 @@ namespace Modix.Data
             foreach(var method in onModelCreatingMethods)
                 method.Invoke(null, new [] { modelBuilder });
 
-            modelBuilder.Query<PerUserMessageCount>();
-            modelBuilder.Query<GuildUserParticipationStatistics>();
-            modelBuilder.Query<SingleEmojiStatsDto>();
-            modelBuilder.Query<EmojiStatsDto>();
-            modelBuilder.Query<GuildEmojiStats>();
+            modelBuilder.Entity<PerUserMessageCount>().HasNoKey();
+            modelBuilder.Entity<GuildUserParticipationStatistics>().HasNoKey();
+            modelBuilder.Entity<SingleEmojiStatsDto>().HasNoKey();
+            modelBuilder.Entity<EmojiStatsDto>().HasNoKey();
+            modelBuilder.Entity<GuildEmojiStats>().HasNoKey();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -48,7 +49,7 @@ namespace Modix.Services.Core
         /// A <see cref="Task"/> that completes when the operation completes,
         /// containing all user information that was found for the user.
         /// </returns>
-        Task<EphemeralUser> GetUserInformationAsync(ulong guildId, ulong userId);
+        Task<EphemeralUser?> GetUserInformationAsync(ulong guildId, ulong userId);
 
         /// <summary>
         /// Retrieves the user, if any, associated with the given user ID.
@@ -137,7 +138,7 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task<EphemeralUser> GetUserInformationAsync(ulong guildId, ulong userId)
+        public async Task<EphemeralUser?> GetUserInformationAsync(ulong guildId, ulong userId)
         {
             if (userId == 0)
                 return null;
@@ -145,20 +146,18 @@ namespace Modix.Services.Core
             var guildTask = DiscordClient.GetGuildAsync(guildId);
             var userTask = DiscordClient.GetUserAsync(userId);
             var restUserTask = DiscordRestClient.GetUserAsync(userId);
-            var guildUserSummaryTask = GetGuildUserSummaryAsync(guildId, userId);
+            var guildUserSummary = await GetGuildUserSummaryAsync(guildId, userId);
 
             var guild = await guildTask;
 
-            var guildUserTask = guild.GetUserAsync(userId);
-            var bansTask = guild.GetBansAsync();
+            var guildUser = await guild.GetUserAsync(userId);
+            var bans = await guild.GetBansAsync();
 
             var user = await userTask;
             var restUser = await restUserTask;
-            var guildUserSummary = await guildUserSummaryTask;
-            var ban = (await bansTask).FirstOrDefault(x => x.User.Id == userId);
-            var guildUser = await guildUserTask;
+            var ban = bans.FirstOrDefault(x => x.User.Id == userId);
 
-            if (guildUser is {})
+            if (guildUser is { })
                 await TrackUserAsync(guildUser);
 
             var buildUser = new EphemeralUser()

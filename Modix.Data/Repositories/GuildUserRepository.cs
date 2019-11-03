@@ -79,7 +79,9 @@ namespace Modix.Data.Repositories
 
             var guildDataEntity = data.ToGuildDataEntity();
 
-            guildDataEntity.User = await ModixContext.Users.FirstOrDefaultAsync(x => x.Id == data.UserId)
+            guildDataEntity.User = await ModixContext
+                .Users
+                .FirstOrDefaultAsync(x => x.Id == data.UserId)
                 ?? data.ToUserEntity();
 
             await ModixContext.GuildUsers.AddAsync(guildDataEntity);

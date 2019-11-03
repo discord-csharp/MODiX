@@ -176,17 +176,25 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<IReadOnlyDictionary<DateTime, int>> GetGuildUserMessageCountByDate(ulong guildId, ulong userId, TimeSpan timespan)
         {
-            return await GetGuildUserMessages(guildId, userId, timespan)
-                .GroupBy(x => x.Timestamp.Date)
-                .ToDictionaryAsync(x => x.Key, x => x.Count());
+            var messages = await GetGuildUserMessages(guildId, userId, timespan)
+                .Select(x => x.Timestamp)
+                .ToListAsync(); 
+
+                return messages
+                .GroupBy(timestamp => timestamp.Date)
+                .ToDictionary(x => x.Key, x => x.Count());
         }
 
         /// <inheritdoc />
         public async Task<IReadOnlyDictionary<ulong, int>> GetGuildUserMessageCountByChannel(ulong guildId, ulong userId, TimeSpan timespan)
         {
-            return await GetGuildUserMessages(guildId, userId, timespan)
-                .GroupBy(x => x.ChannelId)
-                .ToDictionaryAsync(x => x.Key, x => x.Count());
+            var messages = await GetGuildUserMessages(guildId, userId, timespan)
+                .Select(x => x.ChannelId)
+                .ToListAsync();
+
+            return messages
+                .GroupBy(x => x)
+                .ToDictionary(x => x.Key, x => x.Count());
         }
 
         /// <inheritdoc />
@@ -195,12 +203,13 @@ namespace Modix.Data.Repositories
             var earliestDateTime = DateTimeOffset.UtcNow - timespan;
             var query = GetQuery();
 
-            var counts = await ModixContext.Query<PerUserMessageCount>()
-                .AsNoTracking()
-                .FromSql(query,
+            var counts = await ModixContext
+                .Set<PerUserMessageCount>()
+                .FromSqlRaw(query,
                     new NpgsqlParameter(":GuildId", NpgsqlDbType.Bigint) { Value = unchecked((long)guildId) },
                     new NpgsqlParameter(":UserId", NpgsqlDbType.Bigint) { Value = unchecked((long)userId) },
                     new NpgsqlParameter(":StartTimestamp", NpgsqlDbType.TimestampTz) { Value = earliestDateTime })
+                .AsNoTracking()
                 .ToArrayAsync();
 
             return counts;
@@ -249,9 +258,9 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<GuildUserParticipationStatistics> GetGuildUserParticipationStatistics(ulong guildId, ulong userId)
         {
-            var stats = await ModixContext.Query<GuildUserParticipationStatistics>()
-                .AsNoTracking()
-                .FromSql(
+            var stats = await ModixContext
+                .Set<GuildUserParticipationStatistics>()
+                .FromSqlRaw(
                     @"with msgs as (
                         select msg.""AuthorId"", msg.""Id"" as ""MessageId"", msg.""GuildId""
                         from ""Messages"" as msg
@@ -285,6 +294,7 @@ namespace Modix.Data.Repositories
                     where ""UserId"" = cast(:UserId as numeric(20))",
                     new NpgsqlParameter(":GuildId", guildId.ToString()),
                     new NpgsqlParameter(":UserId", userId.ToString()))
+                .AsNoTracking()
                 .OrderByDescending(x => x.AveragePerDay)
                 .FirstOrDefaultAsync() ?? new GuildUserParticipationStatistics();
 
@@ -333,11 +343,15 @@ namespace Modix.Data.Repositories
         {
             var earliestDateTime = DateTimeOffset.UtcNow - timespan;
 
-            return await ModixContext.Messages
+            var messages = await ModixContext.Messages
                 .AsNoTracking()
                 .Where(x => x.GuildId == guildId && x.Timestamp >= earliestDateTime)
-                .GroupBy(x => x.ChannelId)
-                .ToDictionaryAsync(x => x.Key, x => x.Count());
+                .Select(x => x.ChannelId)
+                .ToListAsync();
+
+            return messages
+                .GroupBy(channelId => channelId)
+                .ToDictionary(x => x.Key, x => x.Count());
         }
 
         private IQueryable<MessageEntity> GetGuildUserMessages(ulong guildId, ulong userId, TimeSpan timespan)
