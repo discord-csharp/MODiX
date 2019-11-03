@@ -34,33 +34,55 @@ namespace Modix.Services.Test.Moderation
                 .Setup(x => x.GetSelfUserAsync(It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(mockSelfUser.Object));
 
+            autoMocker.GetMock<IDiscordClient>()
+                .Setup(x => x.GetInviteAsync(It.IsIn(GuildInviteCodes), It.IsAny<RequestOptions>()))
+                .ReturnsAsync((string code, RequestOptions _) =>
+                {
+                    var mockInvite = autoMocker.GetMock<IInvite>();
+
+                    mockInvite
+                        .SetupGet(x => x.Code)
+                        .Returns(code);
+
+                    mockInvite
+                        .SetupGet(x => x.GuildId)
+                        .Returns(42);
+
+                    return mockInvite.Object;
+                });
+
+            autoMocker.GetMock<IDiscordClient>()
+                .Setup(x => x.GetInviteAsync(It.IsNotIn(GuildInviteCodes), It.IsAny<RequestOptions>()))
+                .ReturnsAsync((string code, RequestOptions _) =>
+                {
+                    var mockInvite = autoMocker.GetMock<IInvite>();
+
+                    mockInvite
+                        .SetupGet(x => x.Code)
+                        .Returns(code);
+
+                    mockInvite
+                        .SetupGet(x => x.GuildId)
+                        .Returns(77);
+
+                    return mockInvite.Object;
+                });
+
             return (autoMocker, uut);
         }
 
         private static ISocketMessage BuildTestMessage(AutoMocker autoMocker, string content)
         {
             var mockMessage = autoMocker.GetMock<ISocketMessage>();
-
             var mockGuild = autoMocker.GetMock<IGuild>();
-            mockGuild
-                .Setup(x => x.GetInvitesAsync(It.IsAny<RequestOptions>()))
-                .ReturnsAsync(GuildInviteCodes
-                    .Select(x =>
-                    {
-                        var mockInviteMetadata = new Mock<IInviteMetadata>();
-
-                        mockInviteMetadata
-                            .Setup(y => y.Code)
-                            .Returns(x);
-
-                        return mockInviteMetadata.Object;
-                    })
-                    .ToArray());
 
             var mockAuthor = autoMocker.GetMock<IGuildUser>();
             mockAuthor
                 .Setup(x => x.Guild)
                 .Returns(mockGuild.Object);
+            mockAuthor
+                .Setup(x => x.GuildId)
+                .Returns(42);
             mockAuthor
                 .Setup(x => x.Id)
                 .Returns(2);
