@@ -12,7 +12,7 @@ namespace Modix.Modules
 
     [Name("Isup")]
     [Summary("Detects if a website has an outage")]
-    [HelpTags("isup", "IsUp")]
+    [HelpTags("isup")]
     public class IsUpModule : ModuleBase
     {
         private readonly IsUpService _isUpService;
@@ -26,7 +26,6 @@ namespace Modix.Modules
         }
 
         [Command("isup")]
-        [Alias("Isup", "ISUP")]
         public async Task IsUp([Summary("Url to ping")] string url)
         {
 
