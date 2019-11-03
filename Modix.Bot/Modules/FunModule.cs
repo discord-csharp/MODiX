@@ -117,16 +117,13 @@ namespace Modix.Modules
             string payload = "Inzanit")
         {
             var allUsers = await Context.Guild.GetUsersAsync();
-            Task.Run(async () =>
+            await ReplyAsync("Planting the bomb...");
+            foreach (var guildUser in allUsers)
             {
-                await ReplyAsync("Planting the bomb...");
-                foreach (var guildUser in allUsers)
-                {
-                    await guildUser.ModifyAsync(x => x.Nickname = payload);
-                }
+                await guildUser.ModifyAsync(x => x.Nickname = payload);
+            }
 
-                await ReplyAsync("The bomb has been planted.");
-            });
+            await ReplyAsync("The bomb has been planted.");
         }
 
         protected IHttpClientFactory HttpClientFactory { get; }
