@@ -94,12 +94,12 @@ namespace Modix.Services.Moderation
             if (await DesignatedChannelService.ChannelHasDesignationAsync(channel.Guild, channel, DesignatedChannelType.Unmoderated))
                 return;
 
-            //if (await AuthorizationService.HasClaimsAsync(author, AuthorizationClaim.PostInviteLink))
-            //{
-            //    Log.Debug("Message {MessageId} was skipped because the author {Author} has the PostInviteLink claim",
-            //        message.Id, message.Author.Id);
-            //    return;
-            //}
+            if (await AuthorizationService.HasClaimsAsync(author, AuthorizationClaim.PostInviteLink))
+            {
+                Log.Debug("Message {MessageId} was skipped because the author {Author} has the PostInviteLink claim",
+                    message.Id, message.Author.Id);
+                return;
+            }
 
             var invites = new List<IInvite>(matches.Count);
 
