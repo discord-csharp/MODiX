@@ -46,7 +46,7 @@ namespace Modix.Services.Mentions
 
             if (role.IsMentionable)
             {
-                await channel.SendMessageAsync($"You can do that yourself - but fine: {role.Mention}");
+                await channel.SendMessageAsync($"You can do that yourself - but fine: {role.Mention} {message}");
                 return true;
             }
 
