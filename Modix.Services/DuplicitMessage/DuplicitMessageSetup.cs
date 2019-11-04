@@ -15,8 +15,8 @@ namespace Modix.Services.DuplicitMessage
         /// <returns><paramref name="services"/></returns>
         public static IServiceCollection AddDuplicitMessageCheck(this IServiceCollection services)
             => services
-               .AddScoped<INotificationHandler<MessageReceivedNotification>, DuplicitMessageHandler>()
-               .AddScoped<INotificationHandler<MessageDeletedNotification>, DuplicitMessageHandler>()
-               .AddScoped<INotificationHandler<UserLeftNotification>, DuplicitMessageHandler>();
+               .AddSingleton<INotificationHandler<MessageReceivedNotification>, DuplicitMessageHandler>()
+               .AddSingleton<INotificationHandler<MessageDeletedNotification>, DuplicitMessageHandler>()
+               .AddSingleton<INotificationHandler<UserLeftNotification>, DuplicitMessageHandler>();
     }
 }
