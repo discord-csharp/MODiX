@@ -27,7 +27,7 @@ namespace Modix
 
             if(environment is DEVELOPMENT_ENVIRONMENT_KEY)
             {
-                configBuilder.AddUserSecrets<Startup>();
+                configBuilder.AddUserSecrets("5B9ECED8-0E0C-443E-98B1-F1E508AB292B");
             }
 
             var config = configBuilder.Build();
