@@ -149,13 +149,13 @@ namespace Modix.Modules
         {
             var returnValue = parsedResult.ReturnValue?.ToString() ?? " ";
             var consoleOut = parsedResult.ConsoleOut;
+            var status = string.IsNullOrEmpty(parsedResult.Exception) ? "Success" : "Failure";
 
             var embed = new EmbedBuilder()
-                .WithTitle("REPL Result")
-                .WithDescription(string.IsNullOrEmpty(parsedResult.Exception) ? "Success" : "Failure")
-                .WithColor(string.IsNullOrEmpty(parsedResult.Exception) ? Color.Green : Color.Red)
-                .WithUserAsAuthor(guildUser)
-                .WithFooter(a => a.WithText($"Compile: {parsedResult.CompileTime.TotalMilliseconds:F}ms | Execution: {parsedResult.ExecutionTime.TotalMilliseconds:F}ms"));
+                    .WithTitle($"REPL Result: {status}")
+                    .WithColor(string.IsNullOrEmpty(parsedResult.Exception) ? Color.Green : Color.Red)
+                    .WithUserAsAuthor(guildUser)
+                    .WithFooter(a => a.WithText($"Compile: {parsedResult.CompileTime.TotalMilliseconds:F}ms | Execution: {parsedResult.ExecutionTime.TotalMilliseconds:F}ms"));
 
             embed.WithDescription(Format.Code(parsedResult.Code, "cs"));
 
