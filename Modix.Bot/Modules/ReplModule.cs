@@ -157,14 +157,7 @@ namespace Modix.Modules
                 .WithUserAsAuthor(guildUser)
                 .WithFooter(a => a.WithText($"Compile: {parsedResult.CompileTime.TotalMilliseconds:F}ms | Execution: {parsedResult.ExecutionTime.TotalMilliseconds:F}ms"));
 
-            var code = new string(parsedResult.Code.Take(MaxFormattedFieldSize).ToArray());
-            embed.AddField(a => a.WithName("Code").WithIsInline(false).WithValue(Format.Code(code, "cs")));
-
-            if (parsedResult.Code.Length > MaxFormattedFieldSize)
-            {
-                var remaining = new string(parsedResult.Code.Skip(MaxFormattedFieldSize).ToArray());
-                embed.AddField(a => a.WithIsInline(false).WithName("Continued...").WithValue(Format.Code(remaining, "cs")));
-            }
+            embed.WithDescription(Format.Code(parsedResult.Code, "cs"));
 
             if (parsedResult.ReturnValue != null)
             {
