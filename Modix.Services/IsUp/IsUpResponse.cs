@@ -1,3 +1,4 @@
+﻿#nullable enable
 using System.Net;
 using Newtonsoft.Json;
 
@@ -16,7 +17,7 @@ namespace Modix.Services.IsUp
         public bool Deprecated { get; set; }
 
         [JsonProperty("host")]
-        public string Host { get; set; }
+        public string? Host { get; set; }
 
         [JsonProperty("isitdown")]
         public bool Isitdown { get; set; }

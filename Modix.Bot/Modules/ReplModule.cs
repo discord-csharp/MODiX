@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -35,11 +36,7 @@ namespace Modix.Modules
     [HelpTags("eval", "exec")]
     public class ReplModule : ModuleBase
     {
-        // 1000 is the maximum field embed size
-        // THIS LIMIT IS SOMEWHAT ARBITRARY
-        private const int MaxReplSize = 1000;
-        private const int MaxInputCodeSize = MaxReplSize * 2;
-
+        private const int MaxFormattedFieldSize = 1000;
         private const string DefaultReplRemoteUrl = "http://csdiscord-repl-service:31337/Eval";
         private readonly string _replUrl;
         private readonly CodePasteService _pasteService;
@@ -65,15 +62,9 @@ namespace Modix.Modules
             [Summary("The code to execute.")]
                 string code)
         {
-            if (!(Context.Channel is IGuildChannel) || ! (Context.User is IGuildUser guildUser))
+            if (!(Context.Channel is IGuildChannel) || !(Context.User is IGuildUser guildUser))
             {
                 await ModifyOrSendErrorEmbed("The REPL can only be executed in public guild channels.");
-                return;
-            }
-
-            if (code.Length > MaxInputCodeSize)
-            {
-                await ModifyOrSendErrorEmbed($"Code to execute cannot be longer than {MaxInputCodeSize} characters.");
                 return;
             }
 
@@ -91,16 +82,8 @@ namespace Modix.Modules
             try
             {
                 var client = _httpClientFactory.CreateClient();
+                res = await client.PostAsync(_replUrl, content);
 
-                using (var tokenSrc = new CancellationTokenSource(30000))
-                {
-                    res = await client.PostAsync(_replUrl, content, tokenSrc.Token);
-                }
-            }
-            catch (TaskCanceledException)
-            {
-                await ModifyOrSendErrorEmbed("Gave up waiting for a response from the REPL service.", message);
-                return;
             }
             catch (IOException ex)
             {
@@ -174,28 +157,35 @@ namespace Modix.Modules
                 .WithUserAsAuthor(guildUser)
                 .WithFooter(a => a.WithText($"Compile: {parsedResult.CompileTime.TotalMilliseconds:F}ms | Execution: {parsedResult.ExecutionTime.TotalMilliseconds:F}ms"));
 
-            embed.AddField(a => a.WithName("Code").WithValue(Format.Code(parsedResult.Code, "cs")));
+            var code = new string(parsedResult.Code.Take(MaxFormattedFieldSize).ToArray());
+            embed.AddField(a => a.WithName("Code").WithIsInline(false).WithValue(Format.Code(code, "cs")));
+
+            if (parsedResult.Code.Length > MaxFormattedFieldSize)
+            {
+                var remaining = new string(parsedResult.Code.Skip(MaxFormattedFieldSize).ToArray());
+                embed.AddField(a => a.WithIsInline(false).WithName("Continued...").WithValue(Format.Code(remaining, "cs")));
+            }
 
             if (parsedResult.ReturnValue != null)
             {
                 embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnTypeName ?? "null"}")
-                                     .WithValue(Format.Code($"{returnValue.TruncateTo(MaxReplSize)}", "json")));
-                await embed.UploadToServiceIfBiggerThan(returnValue, "json", MaxReplSize, _pasteService);
+                                     .WithValue(Format.Code($"{returnValue.TruncateTo(MaxFormattedFieldSize)}", "json")));
+                await embed.UploadToServiceIfBiggerThan(returnValue, "json", MaxFormattedFieldSize, _pasteService);
             }
 
             if (!string.IsNullOrWhiteSpace(consoleOut))
             {
                 embed.AddField(a => a.WithName("Console Output")
-                                     .WithValue(Format.Code(consoleOut.TruncateTo(MaxReplSize), "txt")));
-                await embed.UploadToServiceIfBiggerThan(consoleOut, "txt", MaxReplSize, _pasteService);
+                                     .WithValue(Format.Code(consoleOut.TruncateTo(MaxFormattedFieldSize), "txt")));
+                await embed.UploadToServiceIfBiggerThan(consoleOut, "txt", MaxFormattedFieldSize, _pasteService);
             }
 
             if (!string.IsNullOrWhiteSpace(parsedResult.Exception))
             {
                 var diffFormatted = Regex.Replace(parsedResult.Exception, "^", "- ", RegexOptions.Multiline);
                 embed.AddField(a => a.WithName($"Exception: {parsedResult.ExceptionType}")
-                                     .WithValue(Format.Code(diffFormatted.TruncateTo(MaxReplSize), "diff")));
-                await embed.UploadToServiceIfBiggerThan(diffFormatted, "diff", MaxReplSize, _pasteService);
+                                     .WithValue(Format.Code(diffFormatted.TruncateTo(MaxFormattedFieldSize), "diff")));
+                await embed.UploadToServiceIfBiggerThan(diffFormatted, "diff", MaxFormattedFieldSize, _pasteService);
             }
 
             return embed;
