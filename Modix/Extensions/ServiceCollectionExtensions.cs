@@ -148,7 +148,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<INotificationHandler<PromotionActionCreatedNotification>, PromotionLoggingHandler>();
 
             services.AddHostedService<ModixBot>();
-            services.AddHostedService<ChristmasCountdownService>();
 
             return services;
         }
