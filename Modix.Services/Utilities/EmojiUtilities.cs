@@ -51,7 +51,7 @@ namespace Modix.Services.Utilities
                 var withoutTrailingVariantSelectors = runes.SkipLast(x => IsVariantSelector(x));
                 var hexValues = string.Join('-', withoutTrailingVariantSelectors.Select(x => x.Value.ToString("x")));
 
-                return $"{EmojiLink}{string.Join('-', hexValues)}.png";
+                return $"{EmojiLink}{hexValues}.png";
             }
 
             static bool IsVariantSelector(Rune rune)
