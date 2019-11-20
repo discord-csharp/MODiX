@@ -12,8 +12,8 @@
         <PackageReference Include="Moq" />
         <PackageReference Include="Moq.AutoMock" />
         <PackageReference Include="NUnit" />
-        <PackageReference Include="NUnit3TestAdapter"/>
-        <PackageReference Include="Shouldly"/>
+        <PackageReference Include="NUnit3TestAdapter" />
+        <PackageReference Include="Shouldly" />
     </ItemGroup>
 
     <ItemGroup>
