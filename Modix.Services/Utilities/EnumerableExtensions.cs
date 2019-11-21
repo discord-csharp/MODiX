@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Modix.Services.Utilities
 {
@@ -15,25 +16,48 @@ namespace Modix.Services.Utilities
             }
         }
 
+        public static IEnumerable<T> SkipLast<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+        {
+            var possibleTail = new Queue<T>();
+
+            foreach (var item in source)
+            {
+                if (!predicate(item))
+                {
+                    // We found an item that doesn't match the predicate, so
+                    // anything we weren't sure about is now safe to return.
+                    while (possibleTail.TryDequeue(out var queuedItem))
+                    {
+                        yield return queuedItem;
+                    }
+
+                    yield return item;
+                }
+                else
+                {
+                    possibleTail.Enqueue(item);
+                }
+            }
+        }
+
         public static IEnumerable<(TFirst First, TSecond Second)> ZipOrDefault<TFirst, TSecond>(this IEnumerable<TFirst> first, IEnumerable<TSecond> second)
         {
-            using (var e1 = first.GetEnumerator())
-            using (var e2 = second.GetEnumerator())
+            using var e1 = first.GetEnumerator();
+            using var e2 = second.GetEnumerator();
+
+            while (true)
             {
-                while (true)
-                {
-                    var e1Moved = e1.MoveNext();
-                    var e2Moved = e2.MoveNext();
+                var e1Moved = e1.MoveNext();
+                var e2Moved = e2.MoveNext();
 
-                    if (!e1Moved && !e2Moved)
-                        break;
+                if (!e1Moved && !e2Moved)
+                    break;
 
-                    yield return
-                    (
-                        e1Moved ? e1.Current : default,
-                        e2Moved ? e2.Current : default
-                    );
-                }
+                yield return
+                (
+                    e1Moved ? e1.Current : default,
+                    e2Moved ? e2.Current : default
+                );
             }
         }
     }
