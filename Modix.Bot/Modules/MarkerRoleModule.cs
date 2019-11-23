@@ -16,9 +16,9 @@ namespace Modix.Modules
 {
     [Group("pingrole")]
     [Alias("pingroles")]
-    [Name("Marker Role Manager")]
-    [Summary("Provides functionality for maintaining and registering or unregistering from pingable roles.")]
-    [HelpTags("marker", "pingroles", "pingable")]
+    [Name("Topic Roles")]
+    [Summary("Provides functionality for maintaining and registering or unregistering topic roles.")]
+    [HelpTags("marker", "pingroles", "pingable", "topicroles")]
     public class MarkerRoleModule : ModuleBase
     {
         private readonly IDesignatedRoleService _designatedRoleService;
