@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -153,6 +153,8 @@ namespace Modix.Services.Tags
     /// <inheritdoc />
     internal class TagService : ITagService
     {
+        private static readonly Regex _tagNameRegex = new Regex(@"^\S+\b$");
+        
         /// <summary>
         /// Constructs a new <see cref="TagService"/> with the supplied dependencies.
         /// </summary>
@@ -180,6 +182,9 @@ namespace Modix.Services.Tags
 
             if (string.IsNullOrWhiteSpace(content))
                 throw new ArgumentException("The tag content cannot be blank or whitespace.", nameof(content));
+                
+            if (!_tagNameRegex.IsMatch(name))
+                throw new ArgumentException("The tag name cannot have punctuation at the end.", nameof(name));
 
             name = name.Trim().ToLower();
 
