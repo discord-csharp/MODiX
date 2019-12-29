@@ -115,8 +115,6 @@ namespace Modix.Modules
             var moderationRead = await _authorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead);
             var promotions = await _promotionsService.GetPromotionsForUserAsync(Context.Guild.Id, userId);
 
-            embedBuilder.WithColor(await colorTask);
-
             if (userInfo.IsBanned)
             {
                 builder.AppendLine("Status: **Banned** \\🔨");
@@ -160,6 +158,8 @@ namespace Modix.Modules
             }
 
             embedBuilder.Description = builder.ToString();
+
+            embedBuilder.WithColor(await colorTask);
 
             timer.Stop();
             embedBuilder.WithFooter(footer => footer.Text = $"Completed after {timer.ElapsedMilliseconds} ms");

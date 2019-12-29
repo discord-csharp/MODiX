@@ -40,6 +40,7 @@ using Modix.Services.Quote;
 using Modix.Services.StackExchange;
 using Modix.Services.Starboard;
 using Modix.Services.Tags;
+using Modix.Services.Utilities;
 using Modix.Services.Wikipedia;
 using StatsdClient;
 
@@ -51,13 +52,13 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.AddHttpClient();
 
-            services.AddHttpClient(nameof(CodePasteService))
+            services.AddHttpClient(HttpClientNames.TimeoutFiveSeconds)
                 .ConfigureHttpClient(client =>
                 {
                     client.Timeout = TimeSpan.FromSeconds(5);
                 });
 
-            services.AddHttpClient(nameof(StackExchangeService))
+            services.AddHttpClient(HttpClientNames.AutomaticGZipDecompression)
                 .ConfigurePrimaryHttpMessageHandler(() =>
                 new HttpClientHandler()
                 {
