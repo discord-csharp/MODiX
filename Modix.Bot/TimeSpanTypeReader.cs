@@ -35,6 +35,9 @@ namespace Modix.Bot
 
                     switch (input[i])
                     {
+                        case 'w':
+                            result += TimeSpan.FromDays(timeQuantity * 7);
+                            break;
                         case 'd':
                             result += TimeSpan.FromDays(timeQuantity);
                             break;
