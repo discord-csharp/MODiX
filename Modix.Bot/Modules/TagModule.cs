@@ -127,6 +127,56 @@ namespace Modix.Bot.Modules
             await ReplyAsync(embed: embed);
         }
 
+        [Command("owner")]
+        [Summary("Lists the owner of the supplied tag.")]
+        public async Task GetOwnerAsync(
+            [Summary("The name of the tag whose owner is being requested.")]
+                string name)
+        {
+            var tag = await TagService.GetTagAsync(Context.Guild.Id, name);
+
+            if (tag is null)
+            {
+                await ReplyAsync($"The tag '{name.Trim().ToLower()}' does not exist.");
+                return;
+            }
+
+            var embedBuilder = new EmbedBuilder()
+                .WithDescription($"Owns the '{tag.Name}' tag.")
+                .WithColor(Color.DarkPurple)
+                .WithFooter(EmbedFooterText);
+
+            if (tag.OwnerUser != null)
+            {
+                var user = await UserService.GetUserAsync(tag.OwnerUser.Id);
+
+                if (user != null)
+                {
+                    embedBuilder.WithUserAsAuthor(user, user.Id.ToString());
+                }
+                else
+                {
+                    embedBuilder.WithAuthor($"{tag.OwnerUser.GetFullUsername()} ({tag.OwnerUser.Id})");
+                }
+            }
+            else if (tag.OwnerRole != null)
+            {
+                var role = Context.Guild.GetRole(tag.OwnerRole.Id);
+
+                embedBuilder
+                    .WithAuthor($"The {role.Name} role", Context.Guild.IconUrl)
+                    .WithColor(role.Color);
+            }
+            else
+            {
+                embedBuilder
+                    .WithDescription($"Unable to find the owner of the '{tag.Name}' tag.")
+                    .WithColor(Color.Red);
+            }
+
+            await ReplyAsync(embed: embedBuilder.Build());
+        }
+
         [Command("all")]
         [Alias("list", "")]
         [Summary("Lists all tags available in the current guild.")]
@@ -203,7 +253,7 @@ namespace Modix.Bot.Modules
                 .WithAuthor(ownerName, ownerImage)
                 .WithColor(Color.DarkPurple)
                 .WithDescription(tags.Count > 0 ? null : "No tags.")
-                .WithFooter("Use tags with \"!tag name\", or inline with \"$name\"")
+                .WithFooter(EmbedFooterText)
                 .WithTitle("Tags");
 
             const int tagsToDisplay = 6;
@@ -229,5 +279,7 @@ namespace Modix.Bot.Modules
 
             return builder.Build();
         }
+
+        private const string EmbedFooterText = "Use tags with \"!tag name\", or inline with \"$name\"";
     }
 }
