@@ -8,14 +8,14 @@ namespace Modix.Services.AutoRemoveMessage
 {
     public class RemovableMessageSentNotification : INotification
     {
-        public RemovableMessageSentNotification(IMessage message, IUser user)
+        public RemovableMessageSentNotification(IMessage message, IUser[] users)
         {
             Message = message ?? throw new ArgumentNullException(nameof(message));
-            User = user ?? throw new ArgumentNullException(nameof(user));
+            Users = users ?? throw new ArgumentNullException(nameof(users));
         }
 
         public IMessage Message { get; }
 
-        public IUser User { get; }
+        public IUser[] Users { get; }
     }
 }
