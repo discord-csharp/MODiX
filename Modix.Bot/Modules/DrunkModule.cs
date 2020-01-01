@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
 
-using Microsoft.Extensions.Options;
-
 using Modix.Bot.Extensions;
-using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
@@ -19,6 +15,9 @@ using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
+    [Name("Drunk")]
+    [Summary("Tools for evicting drunk users")]
+    [HelpTags("sober", "drunk")]
     public class DrunkModule : ModuleBase
     {
         public DrunkModule(
