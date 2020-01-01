@@ -47,7 +47,7 @@ namespace Modix.Data.Models.Core
         /// The Discord user that performed this action.
         /// </summary>
         [Required]
-        public virtual GuildUserEntity CreatedBy { get; set; }
+        public virtual GuildUserEntity CreatedBy { get; set; } = null!;
 
         /// <summary>
         /// The <see cref="ClaimMappingEntity.Id"/> value (if any) of <see cref="ClaimMapping"/>.
@@ -58,7 +58,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// The claim mapping that was affected by this action, if any.
         /// </summary>
-        public ClaimMappingEntity ClaimMapping { get; set; }
+        public ClaimMappingEntity? ClaimMapping { get; set; }
 
         /// <summary>
         /// The <see cref="DesignatedChannelMappingEntity.Id"/> value (if any) of <see cref="DesignatedChannelMappingEntity"/>.
@@ -69,7 +69,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// The designated channel mapping that was affected by this action, if any.
         /// </summary>
-        public DesignatedChannelMappingEntity DesignatedChannelMapping { get; set; }
+        public DesignatedChannelMappingEntity? DesignatedChannelMapping { get; set; }
 
         /// <summary>
         /// The <see cref="DesignatedRoleMappingEntity.Id"/> value (if any) of <see cref="DesignatedRoleMappingEntity"/>.
@@ -80,7 +80,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// The designated role mapping that was affected by this action, if any.
         /// </summary>
-        public DesignatedRoleMappingEntity DesignatedRoleMapping { get; set; }
+        public DesignatedRoleMappingEntity? DesignatedRoleMapping { get; set; }
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

@@ -18,7 +18,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// See <see cref="GuildChannelEntity.Name"/>.
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
 
         [ExpansionExpression]
         internal static Expression<Func<GuildChannelEntity, GuildChannelBrief>> FromEntityProjection

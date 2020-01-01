@@ -19,22 +19,22 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="DeletedMessageEntity.Channel"/>.
         /// </summary>
-        public GuildChannelBrief Channel { get; set; }
+        public GuildChannelBrief Channel { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="DeletedMessageEntity.Author"/>.
         /// </summary>
-        public GuildUserBrief Author { get; set; }
+        public GuildUserBrief Author { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="DeletedMessageEntity.Content"/>.
         /// </summary>
-        public string Content { get; set; }
+        public string Content { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="DeletedMessageEntity.Reason"/>.
         /// </summary>
-        public string Reason { get; set; }
+        public string Reason { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="DeletedMessageEntity.BatchId"/>.

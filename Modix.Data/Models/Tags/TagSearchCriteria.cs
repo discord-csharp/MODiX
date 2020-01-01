@@ -17,7 +17,7 @@ namespace Modix.Data.Models.Tags
         /// <summary>
         /// A partial tag name to filter on.
         /// </summary>
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         /// <summary>
         /// The Discord snowflake ID of the owner user of the tags to filter on.
@@ -35,20 +35,20 @@ namespace Modix.Data.Models.Tags
         public static IQueryable<TagEntity> FilterBy(this IQueryable<TagEntity> query, TagSearchCriteria criteria)
             => query
                 .FilterBy(
-                    x => x.GuildId == criteria.GuildId.Value,
+                    x => x.GuildId == criteria.GuildId!.Value,
                     !(criteria.GuildId is null))
                 .FilterBy(
-                    x => x.Name.Contains(criteria.Name.ToLower()),
+                    x => x.Name.Contains(criteria.Name!.ToLower()),
                     !(criteria.Name is null))
                 .FilterBy(
                     x => x.OwnerUserId == null
                         ? false
-                        : x.OwnerUserId == criteria.OwnerUserId.Value,
+                        : x.OwnerUserId == criteria.OwnerUserId!.Value,
                     !(criteria.OwnerUserId is null))
                 .FilterBy(
                     x => x.OwnerRoleId == null
                         ? false
-                        : x.OwnerRoleId == criteria.OwnerRoleId.Value,
+                        : x.OwnerRoleId == criteria.OwnerRoleId!.Value,
                     !(criteria.OwnerRoleId is null));
     }
 }

@@ -62,7 +62,7 @@ namespace Modix.Data.Utilities
         /// <returns>The result of attaching the new OrderBy or ThenBy clause to <paramref name="query"/>.</returns>
         public static IOrderedQueryable<TRecord> OrderThenBy<TRecord, TKey>(this IQueryable<TRecord> query, Expression<Func<TRecord, TKey>> keySelector, SortDirection direction)
             => (query.Expression.Type == typeof(IOrderedQueryable<TRecord>))
-                ? (query as IOrderedQueryable<TRecord>).ThenBy(keySelector, direction)
+                ? ((IOrderedQueryable<TRecord>)query).ThenBy(keySelector, direction)
                 : query.OrderBy(keySelector, direction);
 
 
@@ -91,7 +91,7 @@ namespace Modix.Data.Utilities
         /// <param name="sortablePropertyMap">A map of valid <see cref="SortingCriteria.PropertyName"/> values, to expressions that select the appropriate sorting key for that sorting clause.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="source"/> and <paramref name="sortablePropertyMap"/>.</exception>
         /// <returns>The result of attaching a sequence of OrderThenBy clauses to <paramref name="source"/>.</returns>
-        public static IQueryable<T> SortBy<T>(this IQueryable<T> source, IEnumerable<SortingCriteria> criteria, IDictionary<string, Expression<Func<T, object>>> sortablePropertyMap)
+        public static IQueryable<T> SortBy<T>(this IQueryable<T> source, IEnumerable<SortingCriteria>? criteria, IDictionary<string, Expression<Func<T, object?>>> sortablePropertyMap)
         {
             if (source == null)
                 throw new ArgumentNullException(nameof(source));

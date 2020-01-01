@@ -23,17 +23,17 @@ namespace Modix.Data.Models.Promotions
         /// <summary>
         /// See <see cref="PromotionCommentEntity.Content"/>.
         /// </summary>
-        public string Content { get; set; }
+        public string Content { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="PromotionCommentEntity.CreateAction"/>.
         /// </summary>
-        public PromotionActionBrief CreateAction { get; set; }
+        public PromotionActionBrief CreateAction { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="PromotionCommentEntity.ModifyAction"/>.
         /// </summary>
-        public PromotionActionBrief ModifyAction { get; set; }
+        public PromotionActionBrief? ModifyAction { get; set; }
 
         [ExpansionExpression]
         internal static Expression<Func<PromotionCommentEntity, PromotionCommentCampaignBrief>> FromEntityProjection

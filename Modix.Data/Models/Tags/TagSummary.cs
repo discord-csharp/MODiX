@@ -24,22 +24,22 @@ namespace Modix.Data.Models.Tags
         /// <summary>
         /// See <see cref="TagEntity.CreateAction"/>.
         /// </summary>
-        public TagActionBrief CreateAction { get; set; }
+        public TagActionBrief CreateAction { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="TagEntity.DeleteAction"/>.
         /// </summary>
-        public TagActionBrief DeleteAction { get; set; }
+        public TagActionBrief? DeleteAction { get; set; }
 
         /// <summary>
         /// See <see cref="TagEntity.Name"/>.
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="TagEntity.Content"/>.
         /// </summary>
-        public string Content { get; set; }
+        public string Content { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="TagEntity.Uses"/>.
@@ -49,12 +49,12 @@ namespace Modix.Data.Models.Tags
         /// <summary>
         /// See <see cref="TagEntity.OwnerUser"/>.
         /// </summary>
-        public GuildUserBrief OwnerUser { get; set; }
+        public GuildUserBrief? OwnerUser { get; set; }
 
         /// <summary>
         /// See <see cref="TagEntity.OwnerRole"/>.
         /// </summary>
-        public GuildRoleBrief OwnerRole { get; set; }
+        public GuildRoleBrief? OwnerRole { get; set; }
 
         [ExpansionExpression]
         internal static readonly Expression<Func<TagEntity, TagSummary>> FromEntityProjection
@@ -69,10 +69,10 @@ namespace Modix.Data.Models.Tags
                 Name = entity.Name,
                 Content = entity.Content,
                 Uses = entity.Uses,
-                OwnerUser = (entity.OwnerUserId == null)
+                OwnerUser = (entity.OwnerUser == null)
                     ? null
                     : entity.OwnerUser.Project(GuildUserBrief.FromEntityProjection),
-                OwnerRole = (entity.OwnerRoleId == null)
+                OwnerRole = (entity.OwnerRole == null)
                     ? null
                     : entity.OwnerRole.Project(GuildRoleBrief.FromEntityProjection),
             };

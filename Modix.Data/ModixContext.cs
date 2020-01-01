@@ -25,45 +25,45 @@ namespace Modix.Data
         {
         }
 
-        public DbSet<ConfigurationActionEntity> ConfigurationActions { get; set; }
+        public DbSet<ConfigurationActionEntity> ConfigurationActions { get; set; } = null!;
 
-        public DbSet<BehaviourConfiguration> BehaviourConfigurations { get; set; }
+        public DbSet<BehaviourConfiguration> BehaviourConfigurations { get; set; } = null!;
 
-        public DbSet<UserEntity> Users { get; set; }
+        public DbSet<UserEntity> Users { get; set; } = null!;
 
-        public DbSet<GuildChannelEntity> GuildChannels { get; set; }
+        public DbSet<GuildChannelEntity> GuildChannels { get; set; } = null!;
 
-        public DbSet<GuildRoleEntity> GuildRoles { get; set; }
+        public DbSet<GuildRoleEntity> GuildRoles { get; set; } = null!;
 
-        public DbSet<GuildUserEntity> GuildUsers { get; set; }
+        public DbSet<GuildUserEntity> GuildUsers { get; set; } = null!;
 
-        public DbSet<ClaimMappingEntity> ClaimMappings { get; set; }
+        public DbSet<ClaimMappingEntity> ClaimMappings { get; set; } = null!;
 
-        public DbSet<DesignatedChannelMappingEntity> DesignatedChannelMappings { get; set; }
+        public DbSet<DesignatedChannelMappingEntity> DesignatedChannelMappings { get; set; } = null!;
 
-        public DbSet<DesignatedRoleMappingEntity> DesignatedRoleMappings { get; set; }
+        public DbSet<DesignatedRoleMappingEntity> DesignatedRoleMappings { get; set; } = null!;
 
-        internal DbSet<MessageEntity> Messages { get; set; }
+        internal DbSet<MessageEntity> Messages { get; set; } = null!;
 
-        public DbSet<ModerationActionEntity> ModerationActions { get; set; }
+        public DbSet<ModerationActionEntity> ModerationActions { get; set; } = null!;
 
-        public DbSet<InfractionEntity> Infractions { get; set; }
+        public DbSet<InfractionEntity> Infractions { get; set; } = null!;
 
-        public DbSet<DeletedMessageEntity> DeletedMessages { get; set; }
+        public DbSet<DeletedMessageEntity> DeletedMessages { get; set; } = null!;
 
-        public DbSet<DeletedMessageBatchEntity> DeletedMessageBatches { get; set; }
+        public DbSet<DeletedMessageBatchEntity> DeletedMessageBatches { get; set; } = null!;
 
-        public DbSet<PromotionCampaignEntity> PromotionCampaigns { get; set; }
+        public DbSet<PromotionCampaignEntity> PromotionCampaigns { get; set; } = null!;
 
-        public DbSet<PromotionCommentEntity> PromotionComments { get; set; }
+        public DbSet<PromotionCommentEntity> PromotionComments { get; set; } = null!;
 
-        public DbSet<PromotionActionEntity> PromotionActions { get; set; }
+        public DbSet<PromotionActionEntity> PromotionActions { get; set; } = null!;
 
-        internal DbSet<TagEntity> Tags { get; set; }
+        internal DbSet<TagEntity> Tags { get; set; } = null!;
 
-        internal DbSet<TagActionEntity> TagActions { get; set; }
+        internal DbSet<TagActionEntity> TagActions { get; set; } = null!;
 
-        internal DbSet<EmojiEntity> Emoji { get; set; }
+        internal DbSet<EmojiEntity> Emoji { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

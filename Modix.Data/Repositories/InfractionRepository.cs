@@ -66,7 +66,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing the requested value, or null if no such infractions exist.
         /// </returns>
-        Task<DateTimeOffset?> ReadExpiresFirstOrDefaultAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null);
+        Task<DateTimeOffset?> ReadExpiresFirstOrDefaultAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria>? sortingCriteria = null);
 
         /// <summary>
         /// Searches the repository for infraction ID values, based on an arbitrary set of criteria.
@@ -81,7 +81,7 @@ namespace Modix.Data.Repositories
         /// <param name="searchCriteria">The criteria for selecting <see cref="InfractionSummary"/> records to be returned.</param>
         /// <param name="sortingCriteria">The criteria for sorting the matching records to be returned.</param>
         /// <returns>A <see cref="Task"/> which will complete when the matching records have been retrieved.</returns>
-        Task<IReadOnlyCollection<InfractionSummary>> SearchSummariesAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null);
+        Task<IReadOnlyCollection<InfractionSummary>> SearchSummariesAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria>? sortingCriteria = null);
 
         /// <summary>
         /// Searches the repository for infraction information, based on an arbitrary set of criteria, and returns the counts of those infractions grouped by type.
@@ -175,7 +175,7 @@ namespace Modix.Data.Repositories
                 .AnyAsync();
 
         /// <inheritdoc />
-        public Task<DateTimeOffset?> ReadExpiresFirstOrDefaultAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null)
+        public Task<DateTimeOffset?> ReadExpiresFirstOrDefaultAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria>? sortingCriteria = null)
             => ModixContext.Infractions.AsNoTracking()
                 .FilterBy(searchCriteria)
                 .AsExpandable()
@@ -192,7 +192,7 @@ namespace Modix.Data.Repositories
                 .ToArrayAsync();
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<InfractionSummary>> SearchSummariesAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null)
+        public async Task<IReadOnlyCollection<InfractionSummary>> SearchSummariesAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria>? sortingCriteria = null)
             => await ModixContext.Infractions.AsNoTracking()
                 .FilterBy(searchCriteria)
                 .AsExpandable()

@@ -34,22 +34,22 @@ namespace Modix.Data.Models.Promotions
         /// <summary>
         /// See <see cref="PromotionActionEntity.CreatedBy"/>.
         /// </summary>
-        public GuildUserBrief CreatedBy { get; set; }
+        public GuildUserBrief CreatedBy { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="PromotionActionEntity.Campaign"/>.
         /// </summary>
-        public PromotionCampaignBrief Campaign { get; set; }
+        public PromotionCampaignBrief? Campaign { get; set; }
 
         /// <summary>
         /// See <see cref="PromotionActionEntity.NewComment"/>.
         /// </summary>
-        public PromotionCommentActionBrief NewComment { get; set; }
+        public PromotionCommentActionBrief? NewComment { get; set; }
 
         /// <summary>
         /// See <see cref="PromotionActionEntity.OldComment"/>.
         /// </summary>
-        public PromotionCommentActionBrief OldComment { get; set; }
+        public PromotionCommentActionBrief? OldComment { get; set; }
 
         [ExpansionExpression]
         internal static Expression<Func<PromotionActionEntity, PromotionActionSummary>> FromEntityProjection

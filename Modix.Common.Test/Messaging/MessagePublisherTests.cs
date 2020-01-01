@@ -52,8 +52,8 @@ namespace Modix.Common.Test.Messaging
 
             var cancellationTokenSource = new CancellationTokenSource();
 
-            await Should.ThrowAsync<ArgumentNullException>(async () => 
-                await uut.PublishAsync(null as INotification, cancellationTokenSource.Token));
+            await Should.ThrowAsync<ArgumentNullException>(async () =>
+                await uut.PublishAsync((null as INotification)!, cancellationTokenSource.Token));
         }
 
         [Test]
@@ -109,8 +109,8 @@ namespace Modix.Common.Test.Messaging
 
             var cancellationTokenSource = new CancellationTokenSource();
 
-            await Should.ThrowAsync<ArgumentNullException>(async () => 
-                await uut.PublishAsync<IRequest<object>, object>(null, cancellationTokenSource.Token));
+            await Should.ThrowAsync<ArgumentNullException>(async () =>
+                await uut.PublishAsync<IRequest<object>, object>(null!, cancellationTokenSource.Token));
         }
 
         [Test]
@@ -167,7 +167,7 @@ namespace Modix.Common.Test.Messaging
             var mockRequest = new Mock<IRequest<object>>();
             var cancellationTokenSource = new CancellationTokenSource();
 
-            await Should.ThrowAsync<Exception>(async () => 
+            await Should.ThrowAsync<Exception>(async () =>
                 await uut.PublishAsync<IRequest<object>, object>(mockRequest.Object, cancellationTokenSource.Token));
         }
 

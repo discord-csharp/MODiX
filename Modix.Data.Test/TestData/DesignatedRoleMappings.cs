@@ -67,7 +67,7 @@ namespace Modix.Data.Test.TestData
                 }
             };
 
-        public static IEnumerable<(string name, DesignatedRoleMappingSearchCriteria criteria, long[] resultIds)> Searches
+        public static IEnumerable<(string name, DesignatedRoleMappingSearchCriteria? criteria, long[] resultIds)> Searches
             = new[]
             {
                 (

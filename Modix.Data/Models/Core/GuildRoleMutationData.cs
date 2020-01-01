@@ -8,7 +8,7 @@
         /// <summary>
         /// See <see cref="GuildRoleEntity.Name"/>.
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="GuildRoleEntity.Position"/>.

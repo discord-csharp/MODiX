@@ -21,7 +21,7 @@ namespace Modix.Common.Messaging
         /// </summary>
         /// <typeparam name="TNotification">The type of notification to be dispatched.</typeparam>
         /// <param name="notification">The notification data to be dispatched.</param>
-        void Dispatch<TNotification>(TNotification notification) where TNotification : INotification;
+        void Dispatch<TNotification>(TNotification notification) where TNotification : notnull, INotification;
     }
 
     /// <inheritdoc />
@@ -36,7 +36,7 @@ namespace Modix.Common.Messaging
         }
 
         /// <inheritdoc />
-        public void Dispatch<TNotification>(TNotification notification) where TNotification : INotification
+        public void Dispatch<TNotification>(TNotification notification) where TNotification : notnull, INotification
         {
             if (notification == null)
                 throw new ArgumentNullException(nameof(notification));
@@ -52,7 +52,7 @@ namespace Modix.Common.Messaging
         internal protected IServiceScopeFactory ServiceScopeFactory { get; }
 
         // For testing
-        internal async Task DispatchAsync<TNotification>(TNotification notification) where TNotification : INotification
+        internal async Task DispatchAsync<TNotification>(TNotification notification) where TNotification : notnull, INotification
         {
             try
             {

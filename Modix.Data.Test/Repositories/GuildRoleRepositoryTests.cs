@@ -101,7 +101,7 @@ namespace Modix.Data.Test.Repositories
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            await Should.ThrowAsync<ArgumentNullException>(uut.CreateAsync(null));
+            await Should.ThrowAsync<ArgumentNullException>(uut.CreateAsync(null!));
 
             modixContext.GuildRoles
                 .AsQueryable()
@@ -174,7 +174,7 @@ namespace Modix.Data.Test.Repositories
             (var modixContext, var uut) = BuildTestContext();
 
             await Should.ThrowAsync<ArgumentNullException>(async () =>
-                await uut.TryUpdateAsync(1, null));
+                await uut.TryUpdateAsync(1, null!));
 
             modixContext.GuildRoles
                 .AsQueryable()

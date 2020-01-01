@@ -36,7 +36,7 @@ namespace Modix.Data.Models.Moderation
         /// A comment about why the infraction was recorded.
         /// </summary>
         [Required]
-        public string Reason { get; set; }
+        public string Reason { get; set; } = null!;
 
         /// <summary>
         /// The duration from <see cref="Created"/>, indicating when the infraction should be considered "expired".
@@ -54,7 +54,7 @@ namespace Modix.Data.Models.Moderation
         /// The user upon which the <see cref="InfractionEntity"/> was applied.
         /// </summary>
         [Required]
-        public virtual GuildUserEntity Subject { get; set; }
+        public virtual GuildUserEntity Subject { get; set; } = null!;
 
         /// <summary>
         /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="CreateAction"/>.
@@ -66,7 +66,7 @@ namespace Modix.Data.Models.Moderation
         /// The <see cref="ModerationActionEntity"/> that created this <see cref="InfractionEntity"/>.
         /// </summary>
         [Required]
-        public virtual ModerationActionEntity CreateAction { get; set; }
+        public virtual ModerationActionEntity CreateAction { get; set; } = null!;
 
         /// <summary>
         /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="RescindAction"/>.
@@ -76,7 +76,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// The <see cref="ModerationActionEntity"/> (if any) that rescinded this <see cref="InfractionEntity"/>.
         /// </summary>
-        public virtual ModerationActionEntity RescindAction { get; set; }
+        public virtual ModerationActionEntity? RescindAction { get; set; }
 
         /// <summary>
         /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="DeleteAction"/>.
@@ -86,7 +86,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// The <see cref="ModerationActionEntity"/> (if any) that deleted this <see cref="InfractionEntity"/>.
         /// </summary>
-        public virtual ModerationActionEntity DeleteAction { get; set; }
+        public virtual ModerationActionEntity? DeleteAction { get; set; }
 
         /// <summary>
         /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="UpdateAction"/>.
@@ -96,7 +96,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// The <see cref="ModerationActionEntity"/> (if any) that updated this <see cref="InfractionEntity"/>.
         /// </summary>
-        public virtual ModerationActionEntity UpdateAction { get; set; }
+        public virtual ModerationActionEntity? UpdateAction { get; set; }
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

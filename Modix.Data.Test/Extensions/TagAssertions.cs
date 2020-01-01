@@ -20,7 +20,7 @@ namespace Shouldly
             if (!(entity.DeleteActionId is null))
             {
                 summary.DeleteAction.ShouldNotBeNull();
-                summary.DeleteAction.ShouldMatchTestData();
+                summary.DeleteAction!.ShouldMatchTestData();
             }
 
             summary.GuildId.ShouldBe(entity.GuildId);

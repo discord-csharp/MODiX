@@ -17,7 +17,7 @@
         /// <summary>
         /// The name of the property to be sorted.
         /// </summary>
-        public string PropertyName { get; set; }
+        public string PropertyName { get; set; } = null!;
 
         /// <summary>
         /// The direction of the sort to be applied.

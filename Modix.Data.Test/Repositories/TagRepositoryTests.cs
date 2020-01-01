@@ -188,7 +188,7 @@ namespace Modix.Data.Test.Repositories
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            await Should.ThrowAsync<ArgumentNullException>(uut.CreateAsync(null));
+            await Should.ThrowAsync<ArgumentNullException>(uut.CreateAsync(null!));
 
             modixContext.Tags.AsQueryable().Select(x => x.Id).ShouldBe(Tags.Entities.Select(x => x.Id));
             modixContext.Tags.EachShould(x => x.ShouldNotHaveChanged());

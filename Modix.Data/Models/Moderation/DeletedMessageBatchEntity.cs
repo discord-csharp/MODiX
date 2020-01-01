@@ -33,13 +33,13 @@ namespace Modix.Data.Models.Moderation
         /// The action that created this batch.
         /// </summary>
         [Required]
-        public virtual ModerationActionEntity CreateAction { get; set; }
+        public virtual ModerationActionEntity CreateAction { get; set; } = null!;
 
         /// <summary>
         /// The messages that were deleted simultaneously to form this batch.
         /// </summary>
         [Required]
-        public virtual IReadOnlyCollection<DeletedMessageEntity> DeletedMessages { get; set; }
+        public virtual IReadOnlyCollection<DeletedMessageEntity> DeletedMessages { get; set; } = null!;
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

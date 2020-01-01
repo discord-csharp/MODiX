@@ -18,7 +18,7 @@
         /// <summary>
         /// See <see cref="GuildChannelEntity.Name"/>.
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
 
         internal GuildChannelEntity ToEntity()
             => new GuildChannelEntity()

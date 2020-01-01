@@ -103,7 +103,7 @@ namespace Modix.Data.Test.Repositories
             (var modixContext, var uut) = BuildTestContext();
 
             await Should.ThrowAsync<ArgumentNullException>(async () => 
-                await uut.CreateAsync(null));
+                await uut.CreateAsync(null!));
 
             modixContext.GuildUsers.AsEnumerable()
                 .Select(x => (x.UserId, x.GuildId))
@@ -187,7 +187,7 @@ namespace Modix.Data.Test.Repositories
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            data.Username = null;
+            data.Username = null!;
 
             var userCount = modixContext.Users.Count();
             var previousUser = modixContext.Users.First(x => x.Id == data.UserId);
@@ -218,7 +218,7 @@ namespace Modix.Data.Test.Repositories
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            data.Discriminator = null;
+            data.Discriminator = null!;
 
             var userCount = modixContext.Users.Count();
             var previousUser = modixContext.Users.First(x => x.Id == data.UserId);
@@ -336,7 +336,7 @@ namespace Modix.Data.Test.Repositories
             (var modixContext, var uut) = BuildTestContext();
 
             await Should.ThrowAsync<ArgumentNullException>(async () =>
-                await uut.TryUpdateAsync(1, 1, null));
+                await uut.TryUpdateAsync(1, 1, null!));
 
             modixContext.GuildUsers.AsEnumerable()
                 .Select(x => (x.UserId, x.GuildId))

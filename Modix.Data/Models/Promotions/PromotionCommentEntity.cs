@@ -32,7 +32,7 @@ namespace Modix.Data.Models.Promotions
         /// The <see cref="PromotionCampaignEntity"/> to which this comment belongs.
         /// </summary>
         [Required]
-        public virtual PromotionCampaignEntity Campaign { get; set; }
+        public virtual PromotionCampaignEntity Campaign { get; set; } = null!;
 
         /// <summary>
         /// The commenter's sentiment, regarding the outcome of <see cref="Campaign"/>.
@@ -44,7 +44,7 @@ namespace Modix.Data.Models.Promotions
         /// The text content of the comment, supplied by the commenter.
         /// </summary>
         [Required]
-        public string Content { get; set; }
+        public string Content { get; set; } = null!;
 
         /// <summary>
         /// The <see cref="PromotionActionEntity.Id"/> value of <see cref="CreateAction"/>.
@@ -56,7 +56,7 @@ namespace Modix.Data.Models.Promotions
         /// The <see cref="PromotionActionEntity"/> that created this comment.
         /// </summary>
         [Required]
-        public virtual PromotionActionEntity CreateAction { get; set; }
+        public virtual PromotionActionEntity CreateAction { get; set; } = null!;
 
         /// <summary>
         /// The <see cref="PromotionActionEntity.Id"/> value of <see cref="ModifyAction"/>.
@@ -66,7 +66,7 @@ namespace Modix.Data.Models.Promotions
         /// <summary>
         /// The <see cref="PromotionActionEntity"/> that modified this comment.
         /// </summary>
-        public virtual PromotionActionEntity ModifyAction { get; set; }
+        public virtual PromotionActionEntity? ModifyAction { get; set; }
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

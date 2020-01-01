@@ -18,6 +18,7 @@ namespace Modix.Data.ExpandableQueries
         }
 
         public static TOut Project<TIn, TOut>(this TIn input, Expression<Func<TIn, TOut>> projection)
+            where TIn : notnull
             => throw new NotSupportedException($"Direct invocation of this method is not supported. It can only be invoked in the context of an {nameof(AsExpandable)} query.");
     }
 }

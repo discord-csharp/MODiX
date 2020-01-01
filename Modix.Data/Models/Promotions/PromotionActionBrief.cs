@@ -24,7 +24,7 @@ namespace Modix.Data.Models.Promotions
         /// <summary>
         /// See <see cref="PromotionActionEntity.CreatedBy"/>.
         /// </summary>
-        public GuildUserBrief CreatedBy { get; set; }
+        public GuildUserBrief CreatedBy { get; set; } = null!;
 
         [ExpansionExpression]
         internal static Expression<Func<PromotionActionEntity, PromotionActionBrief>> FromEntityProjection

@@ -48,7 +48,7 @@ namespace Modix.Data.Models.Moderation
         /// The staff member that applied this moderation action
         /// </summary>
         [Required]
-        public virtual GuildUserEntity CreatedBy { get; set; }
+        public virtual GuildUserEntity CreatedBy { get; set; } = null!;
 
         /// <summary>
         /// The <see cref="InfractionEntity.Id"/> value of <see cref="Infraction"/>.
@@ -59,13 +59,13 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// If applicable, represents the original infraction reason that was updated
         /// </summary>
-        public string OriginalInfractionReason { get; set; }
+        public string? OriginalInfractionReason { get; set; }
 
         /// <summary>
         /// The <see cref="InfractionEntity"/> to which this <see cref="ModerationActionEntity"/> applies.
         /// Null, if an <see cref="InfractionEntity"/> was not involved in this <see cref="ModerationActionEntity"/>.
         /// </summary>
-        public virtual InfractionEntity Infraction { get; set; }
+        public virtual InfractionEntity? Infraction { get; set; }
 
         /// <summary>
         /// The <see cref="DeletedMessageEntity.MessageId"/> value of <see cref="DeletedMessage"/>.
@@ -77,7 +77,7 @@ namespace Modix.Data.Models.Moderation
         /// The <see cref="DeletedMessageEntity"/> to which this <see cref="ModerationActionEntity"/> applies.
         /// Null, if a <see cref="DeletedMessageEntity"/> was not involved in this <see cref="ModerationActionEntity"/>.
         /// </summary>
-        public virtual DeletedMessageEntity DeletedMessage { get; set; }
+        public virtual DeletedMessageEntity? DeletedMessage { get; set; }
 
         /// <summary>
         /// The <see cref="DeletedMessageBatch.Id"/> value of the <see cref="DeletedMessageBatch"/>, if any.
@@ -89,7 +89,7 @@ namespace Modix.Data.Models.Moderation
         /// The <see cref="DeletedMessageBatch"/> to which this <see cref="ModerationActionEntity"/> applies.
         /// Null, if a <see cref="DeletedMessageBatch"/> was not involved in this <see cref="ModerationActionEntity"/>.
         /// </summary>
-        public virtual DeletedMessageBatchEntity DeletedMessageBatch { get; set; }
+        public virtual DeletedMessageBatchEntity? DeletedMessageBatch { get; set; }
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

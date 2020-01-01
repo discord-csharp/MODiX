@@ -132,7 +132,7 @@ namespace Modix.Data.Test.TestData
                 Created = entity.Created,
                 Type = entity.Type,
                 CreatedById = entity.CreatedById,
-                CreatedBy = entity.CreatedBy?.Clone(),
+                CreatedBy = entity.CreatedBy?.Clone()!,
                 NewTagId = entity.NewTagId,
                 NewTag = entity.NewTag?.Clone(),
                 OldTagId = entity.OldTagId,

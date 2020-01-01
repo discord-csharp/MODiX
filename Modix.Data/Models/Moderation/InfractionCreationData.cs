@@ -20,7 +20,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="InfractionEntity.Reason"/>
         /// </summary>
-        public string Reason { get; set; }
+        public string Reason { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="InfractionEntity.Duration"/>.

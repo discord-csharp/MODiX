@@ -105,7 +105,7 @@ namespace Modix.Data.Repositories
         /// containing a collection of statistical information about the emoji in a guild.
         /// </returns>
         Task<IReadOnlyCollection<EmojiUsageStatistics>> GetEmojiStatsAsync(
-            ulong guildId, SortDirection sortDirection, int recordLimit, TimeSpan? dateFilter = null, ulong? userId = null, IEnumerable<ulong> emojiIds = null);
+            ulong guildId, SortDirection sortDirection, int recordLimit, TimeSpan? dateFilter = null, ulong? userId = null, IEnumerable<ulong>? emojiIds = null);
 
         /// <summary>
         /// Retrieves statistics about a guild's emoji usage.
@@ -116,7 +116,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> that will complete when the operation completes,
         /// containing statistical information about a guild's emoji usage.
         /// </returns>
-        Task<GuildEmojiStats> GetGuildStatsAsync(ulong guildId, ulong? userId = null, IEnumerable<ulong> emojiIds = null);
+        Task<GuildEmojiStats> GetGuildStatsAsync(ulong guildId, ulong? userId = null, IEnumerable<ulong>? emojiIds = null);
     }
 
     /// <inheritdoc />
@@ -283,7 +283,7 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<EmojiUsageStatistics>> GetEmojiStatsAsync(
-            ulong guildId, SortDirection sortDirection, int recordLimit, TimeSpan? dateFilter = null, ulong? userId = null, IEnumerable<ulong> emojiIds = null)
+            ulong guildId, SortDirection sortDirection, int recordLimit, TimeSpan? dateFilter = null, ulong? userId = null, IEnumerable<ulong>? emojiIds = null)
         {
             var parameters = GetParameters();
             var query = GetQuery();
@@ -350,7 +350,7 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<GuildEmojiStats> GetGuildStatsAsync(ulong guildId, ulong? userId = null, IEnumerable<ulong> emojiIds = null)
+        public async Task<GuildEmojiStats> GetGuildStatsAsync(ulong guildId, ulong? userId = null, IEnumerable<ulong>? emojiIds = null)
         {
             var parameters = GetParameters();
             var query = GetQuery();

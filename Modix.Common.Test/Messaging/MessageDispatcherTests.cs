@@ -51,7 +51,7 @@ namespace Modix.Common.Test.Messaging
             (var mockServiceScopeFactory, var uut) = BuildTestContext();
 
             Should.Throw<ArgumentNullException>(() =>
-                uut.Dispatch(null as INotification));
+                uut.Dispatch((null as INotification)!));
         }
 
         [Test]

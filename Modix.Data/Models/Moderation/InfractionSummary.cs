@@ -30,7 +30,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="InfractionEntity.Reason"/>.
         /// </summary>
-        public string Reason { get; set; }
+        public string Reason { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="InfractionEntity.Duration"/>.
@@ -40,25 +40,25 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="InfractionEntity.Subject"/>.
         /// </summary>
-        public GuildUserBrief Subject { get; set; }
+        public GuildUserBrief Subject { get; set; } = null!;
 
         /// <summary>
         /// The associated <see cref="ModerationActionEntity"/> from <see cref="InfractionEntity.ModerationActions"/>,
         /// whose <see cref="ModerationActionEntity.Type"/> is <see cref="ModerationActionType.InfractionCreated"/>.
         /// </summary>
-        public ModerationActionBrief CreateAction { get; set; }
+        public ModerationActionBrief CreateAction { get; set; } = null!;
 
         /// <summary>
         /// The associated <see cref="ModerationActionEntity"/> from <see cref="InfractionEntity.ModerationActions"/>,
         /// whose <see cref="ModerationActionEntity.Type"/> is <see cref="ModerationActionType.InfractionRescinded"/>.
         /// </summary>
-        public ModerationActionBrief RescindAction { get; set; }
+        public ModerationActionBrief? RescindAction { get; set; }
 
         /// <summary>
         /// The associated <see cref="ModerationActionEntity"/> from <see cref="InfractionEntity.ModerationActions"/>,
         /// whose <see cref="ModerationActionEntity.Type"/> is <see cref="ModerationActionType.InfractionDeleted"/>.
         /// </summary>
-        public ModerationActionBrief DeleteAction { get; set; }
+        public ModerationActionBrief? DeleteAction { get; set; }
 
         /// <summary>
         /// A timestamp indicating when (if at all) this infraction expires, and should be automatically rescinded.
@@ -72,8 +72,8 @@ namespace Modix.Data.Models.Moderation
         public static ICollection<string> SortablePropertyNames
             => SortablePropertyMap.Keys;
 
-        internal static readonly IDictionary<string, Expression<Func<InfractionSummary, object>>> SortablePropertyMap
-            = new Dictionary<string, Expression<Func<InfractionSummary, object>>>()
+        internal static readonly IDictionary<string, Expression<Func<InfractionSummary, object?>>> SortablePropertyMap
+            = new Dictionary<string, Expression<Func<InfractionSummary, object?>>>()
             {
                 {
                     nameof(Id),
@@ -116,10 +116,10 @@ namespace Modix.Data.Models.Moderation
                 Duration = entity.Duration,
                 Subject = entity.Subject.Project(GuildUserBrief.FromEntityProjection),
                 CreateAction = entity.CreateAction.Project(ModerationActionBrief.FromEntityProjection),
-                RescindAction = (entity.RescindActionId == null)
+                RescindAction = (entity.RescindAction == null)
                     ? null
                     : entity.RescindAction.Project(ModerationActionBrief.FromEntityProjection),
-                DeleteAction = (entity.DeleteActionId == null)
+                DeleteAction = (entity.DeleteAction == null)
                     ? null
                     : entity.DeleteAction.Project(ModerationActionBrief.FromEntityProjection),
                 Expires = entity.CreateAction.Created + entity.Duration

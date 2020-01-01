@@ -12,13 +12,13 @@ namespace Modix.Data.Models.Emoji
         public DateTimeOffset? CreatedAt
             => _emote?.CreatedAt;
 
-        public string Name
+        public string? Name
             => _emote?.Name ?? _emoji?.Name;
 
         public bool Animated
             => _emote?.Animated ?? false;
 
-        public string Url
+        public string? Url
             => _emote?.Url;
 
         ulong IEntity<ulong>.Id
@@ -28,7 +28,7 @@ namespace Modix.Data.Models.Emoji
             => CreatedAt ?? throw new InvalidOperationException(UnicodeError);
 
         public override string ToString()
-            => _emote?.ToString() ?? _emoji?.ToString();
+            => _emote?.ToString() ?? _emoji?.ToString() ?? "null";
 
         public static EphemeralEmoji FromRawData(string name, ulong? id = null, bool isAnimated = false)
         {
@@ -64,12 +64,12 @@ namespace Modix.Data.Models.Emoji
             return this;
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return Equals(obj as EphemeralEmoji);
         }
 
-        public bool Equals(EphemeralEmoji other)
+        public bool Equals(EphemeralEmoji? other)
         {
             return other != null &&
                    EqualityComparer<ulong?>.Default.Equals(Id, other.Id) &&
@@ -83,7 +83,7 @@ namespace Modix.Data.Models.Emoji
 
         private const string UnicodeError = "This operation is unavailable for Unicode emoji.";
 
-        private Emote _emote;
-        private Discord.Emoji _emoji;
+        private Emote? _emote;
+        private Discord.Emoji? _emoji;
     }
 }

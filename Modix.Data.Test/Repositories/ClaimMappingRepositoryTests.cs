@@ -170,7 +170,7 @@ namespace Modix.Data.Test.Repositories
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            await Should.ThrowAsync<ArgumentNullException>(uut.CreateAsync(null));
+            await Should.ThrowAsync<ArgumentNullException>(uut.CreateAsync(null!));
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();

@@ -37,7 +37,7 @@ namespace Modix.Data.Models.Core
         /// The role being designated by this mapping.
         /// </summary>
         [Required]
-        public virtual GuildRoleEntity Role { get; set; }
+        public virtual GuildRoleEntity Role { get; set; } = null!;
 
         /// <summary>
         /// The type of designation being defined for this role.
@@ -54,7 +54,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// The <see cref="ConfigurationActionEntity"/> that created this <see cref="DesignatedRoleMappingEntity"/>.
         /// </summary>
-        public virtual ConfigurationActionEntity CreateAction { get; set; }
+        public virtual ConfigurationActionEntity CreateAction { get; set; } = null!;
 
         /// <summary>
         /// The <see cref="ConfigurationActionEntity.Id"/> value of <see cref="DeleteAction"/>.
@@ -64,7 +64,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// The <see cref="ConfigurationActionEntity"/> (if any) that deleted this <see cref="DesignatedRoleMappingEntity"/>.
         /// </summary>
-        public virtual ConfigurationActionEntity DeleteAction { get; set; }
+        public virtual ConfigurationActionEntity? DeleteAction { get; set; }
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

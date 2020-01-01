@@ -28,7 +28,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// See <see cref="ConfigurationActionEntity.CreatedBy"/>.
         /// </summary>
-        public GuildUserBrief CreatedBy { get; set; }
+        public GuildUserBrief CreatedBy { get; set; } = null!;
 
         [ExpansionExpression]
         internal static Expression<Func<ConfigurationActionEntity, ConfigurationActionBrief>> FromEntityProjection

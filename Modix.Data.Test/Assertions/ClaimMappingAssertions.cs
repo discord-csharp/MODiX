@@ -40,7 +40,7 @@ namespace Shouldly
             if (entity.DeleteActionId is null)
                 summary.DeleteAction.ShouldBeNull();
             else
-                summary.DeleteAction.ShouldMatchTestData(entity.GuildId);
+                summary.DeleteAction!.ShouldMatchTestData(entity.GuildId);
         }
 
         public static void ShouldNotHaveChanged(this ClaimMappingEntity entity)

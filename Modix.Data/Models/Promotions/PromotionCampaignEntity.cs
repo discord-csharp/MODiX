@@ -38,7 +38,7 @@ namespace Modix.Data.Models.Promotions
         /// The user whose promotion is being proposed by this campaign.
         /// </summary>
         [Required]
-        public virtual GuildUserEntity Subject { get; set; }
+        public virtual GuildUserEntity Subject { get; set; } = null!;
 
         /// <summary>
         /// The <see cref="GuildRoleEntity.RoleId"/> value of <see cref="TargetRole"/>.
@@ -51,7 +51,7 @@ namespace Modix.Data.Models.Promotions
         /// The role to which <see cref="Subject"/> should be promoted.
         /// </summary>
         [Required]
-        public virtual GuildRoleEntity TargetRole { get; set; }
+        public virtual GuildRoleEntity TargetRole { get; set; } = null!;
 
         /// <summary>
         /// The <see cref="PromotionActionEntity.Id"/> value of <see cref="CreateAction"/>.
@@ -63,7 +63,7 @@ namespace Modix.Data.Models.Promotions
         /// The <see cref="PromotionActionEntity"/> that created this <see cref="PromotionCampaignEntity"/>.
         /// </summary>
         [Required]
-        public virtual PromotionActionEntity CreateAction { get; set; }
+        public virtual PromotionActionEntity CreateAction { get; set; } = null!;
 
         /// <summary>
         /// The outcome of the campaign, I.E. the result of processing <see cref="CloseAction"/>.
@@ -78,12 +78,12 @@ namespace Modix.Data.Models.Promotions
         /// <summary>
         /// The <see cref="PromotionActionEntity"/> that closed this <see cref="PromotionCampaignEntity"/>.
         /// </summary>
-        public virtual PromotionActionEntity CloseAction { get; set; }
+        public virtual PromotionActionEntity? CloseAction { get; set; }
 
         /// <summary>
         /// The set of comments that have been recorded for this campaign.
         /// </summary>
-        public virtual ICollection<PromotionCommentEntity> Comments { get; set; }
+        public virtual ICollection<PromotionCommentEntity> Comments { get; set; } = null!;
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

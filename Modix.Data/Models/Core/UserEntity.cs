@@ -24,13 +24,13 @@ namespace Modix.Data.Models.Core
         /// The "username" value of this user, within the Discord API.
         /// </summary>
         [Required]
-        public string Username { get; set; }
-        
+        public string Username { get; set; } = null!;
+
         /// <summary>
         /// The "discriminator" value of this user, within the Discord API.
         /// </summary>
         [Required]
-        public string Discriminator { get; set; }
+        public string Discriminator { get; set; } = null!;
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

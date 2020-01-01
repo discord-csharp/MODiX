@@ -8,7 +8,7 @@
         /// <summary>
         /// See <see cref="GuildChannelEntity.Name"/>.
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
 
         internal static GuildChannelMutationData FromEntity(GuildChannelEntity entity)
             => new GuildChannelMutationData()

@@ -91,22 +91,22 @@ namespace Modix.Data.Models.Promotions
                     x => x.TargetRoleId == criteria.TargetRoleId,
                     !(criteria.TargetRoleId is null))
                 .FilterBy(
-                    x => x.CreateAction.Created >= criteria.CreatedRange.Value.From.Value,
+                    x => x.CreateAction.Created >= criteria.CreatedRange!.Value.From!.Value,
                     !(criteria.CreatedRange?.From is null))
                 .FilterBy(
-                    x => x.CreateAction.Created <= criteria.CreatedRange.Value.To.Value,
+                    x => x.CreateAction.Created <= criteria.CreatedRange!.Value.To!.Value,
                     !(criteria.CreatedRange?.To is null))
                 .FilterBy(
                     x => x.CreateAction.CreatedById == criteria.CreatedById,
                     !(criteria.CreatedById is null))
                 .FilterBy(
-                    x => x.CloseAction.Created >= criteria.ClosedRange.Value.From.Value,
+                    x => x.CloseAction != null && x.CloseAction!.Created >= criteria.ClosedRange!.Value.From!.Value,
                     !(criteria.ClosedRange?.From is null))
                 .FilterBy(
-                    x => x.CloseAction.Created <= criteria.ClosedRange.Value.To.Value,
+                    x => x.CloseActionId != null && x.CloseAction!.Created <= criteria.ClosedRange!.Value.To!.Value,
                     !(criteria.ClosedRange?.To is null))
                 .FilterBy(
-                    x => (x.CloseActionId != null) && (x.CloseAction.CreatedById == criteria.ClosedById),
+                    x => (x.CloseActionId != null) && (x.CloseAction!.CreatedById == criteria.ClosedById),
                     !(criteria.ClosedById is null))
                 .FilterBy(
                     x => x.CloseAction == null,

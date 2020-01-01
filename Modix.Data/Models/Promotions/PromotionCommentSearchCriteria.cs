@@ -52,16 +52,16 @@ namespace Modix.Data.Models.Promotions
 
             return query
                 .FilterBy(
-                    x => x.CampaignId == criteria.CampaignId.Value,
+                    x => x.CampaignId == criteria.CampaignId!.Value,
                     !(criteria.CampaignId is null))
                 .FilterBy(
-                    x => x.Sentiment == criteria.Sentiment.Value,
+                    x => x.Sentiment == criteria.Sentiment!.Value,
                     !(criteria.Sentiment is null))
                 .FilterBy(
-                    x => x.CreateAction.Created >= criteria.CreatedRange.Value.From.Value,
+                    x => x.CreateAction.Created >= criteria.CreatedRange!.Value.From!.Value,
                     !(criteria.CreatedRange?.From is null))
                 .FilterBy(
-                    x => x.CreateAction.Created <= criteria.CreatedRange.Value.To.Value,
+                    x => x.CreateAction.Created <= criteria.CreatedRange!.Value.To!.Value,
                     !(criteria.CreatedRange?.To is null))
                 .FilterBy(
                     x => x.CreateAction.CreatedById == criteria.CreatedById,

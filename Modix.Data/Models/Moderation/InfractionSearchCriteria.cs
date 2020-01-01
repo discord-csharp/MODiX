@@ -24,12 +24,12 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// A set of <see cref="InfractionEntity.Type"/> values, defining the <see cref="InfractionEntity"/> entities to be returned.
         /// </summary>
-        public IReadOnlyCollection<InfractionType> Types { get; set; }
+        public IReadOnlyCollection<InfractionType>? Types { get; set; }
 
         /// <summary>
         /// A <see cref="GuildUserBrief.DisplayName"/> value, defining the <see cref="InfractionEntity"/> entities to be returned.
         /// </summary>
-        public string Subject { get; set; }
+        public string? Subject { get; set; }
 
         /// <summary>
         /// A <see cref="InfractionEntity.SubjectId"/> value, defining the <see cref="InfractionEntity"/> entities to be returned.
@@ -46,7 +46,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// A <see cref="GuildUserBrief.DisplayName"/> value, defining the <see cref="InfractionEntity"/> entities to be returned.
         /// </summary>
-        public string Creator { get; set; }
+        public string? Creator { get; set; }
 
         /// <summary>
         /// A value defining the <see cref="InfractionEntity"/> entities to be returned.
@@ -83,40 +83,40 @@ namespace Modix.Data.Models.Moderation
                     x => x.Id == criteria.Id,
                     criteria?.Id != null)
                 .FilterBy(
-                    x => x.GuildId == criteria.GuildId,
+                    x => x.GuildId == criteria!.GuildId,
                     criteria?.GuildId != null)
                 .FilterBy(
-                    x => criteria.Types.Contains(x.Type),
+                    x => criteria!.Types.Contains(x.Type),
                     criteria?.Types?.Any() ?? false)
                 .FilterBy(
-                    x => (x.Subject.Nickname ?? $"{x.Subject.User.Username}#{x.Subject.User.Discriminator}").OrdinalContains(criteria.Subject),
+                    x => (x.Subject.Nickname ?? $"{x.Subject.User.Username}#{x.Subject.User.Discriminator}").OrdinalContains(criteria!.Subject!),
                     !string.IsNullOrWhiteSpace(criteria?.Subject))
                 .FilterBy(
-                    x => x.SubjectId == criteria.SubjectId,
+                    x => x.SubjectId == criteria!.SubjectId,
                     criteria?.SubjectId != null)
                 .FilterBy(
-                    x => x.CreateAction.Created >= criteria.CreatedRange.Value.From,
+                    x => x.CreateAction.Created >= criteria!.CreatedRange!.Value.From,
                     criteria?.CreatedRange?.From != null)
                 .FilterBy(
-                    x => x.CreateAction.Created <= criteria.CreatedRange.Value.To,
+                    x => x.CreateAction.Created <= criteria!.CreatedRange!.Value.To,
                     criteria?.CreatedRange?.To != null)
                 .FilterBy(
-                    x => (x.CreateAction.CreatedBy.Nickname ?? $"{x.CreateAction.CreatedBy.User.Username}#{x.CreateAction.CreatedBy.User.Discriminator}").OrdinalContains(criteria.Creator),
+                    x => (x.CreateAction.CreatedBy.Nickname ?? $"{x.CreateAction.CreatedBy.User.Username}#{x.CreateAction.CreatedBy.User.Discriminator}").OrdinalContains(criteria!.Creator!),
                     !string.IsNullOrWhiteSpace(criteria?.Creator))
                 .FilterBy(
-                    x => x.CreateAction.CreatedById == criteria.CreatedById,
+                    x => x.CreateAction.CreatedById == criteria!.CreatedById,
                     criteria?.CreatedById != null)
                 .FilterBy(
-                    x => (x.RescindActionId != null) == criteria.IsRescinded,
+                    x => (x.RescindActionId != null) == criteria!.IsRescinded,
                     criteria?.IsRescinded != null)
                 .FilterBy(
-                    x => (x.DeleteActionId != null) == criteria.IsDeleted,
+                    x => (x.DeleteActionId != null) == criteria!.IsDeleted,
                     criteria?.IsDeleted != null)
                 .FilterBy(
-                    x => (x.CreateAction.Created + x.Duration) >= criteria.ExpiresRange.Value.From,
+                    x => (x.CreateAction.Created + x.Duration) >= criteria!.ExpiresRange!.Value.From,
                     criteria?.ExpiresRange?.From != null)
                 .FilterBy(
-                    x => (x.CreateAction.Created + x.Duration) <= criteria.ExpiresRange.Value.To,
+                    x => (x.CreateAction.Created + x.Duration) <= criteria!.ExpiresRange!.Value.To,
                     criteria?.ExpiresRange?.To != null);
     }
 }

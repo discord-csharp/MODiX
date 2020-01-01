@@ -21,6 +21,6 @@ namespace Modix.Data.Models
         /// <summary>
         /// The current page of records, selected from the larger recordset.
         /// </summary>
-        public IReadOnlyCollection<T> Records { get; set; }
+        public IReadOnlyCollection<T> Records { get; set; } = null!;
     }
 }

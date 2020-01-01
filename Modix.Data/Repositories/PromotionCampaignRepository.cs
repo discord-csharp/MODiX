@@ -80,7 +80,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing the action representing the closure of the campaign.
         /// </returns>
-        Task<PromotionActionSummary> TryCloseAsync(long campaignId, ulong closedById, PromotionCampaignOutcome outcome);
+        Task<PromotionActionSummary?> TryCloseAsync(long campaignId, ulong closedById, PromotionCampaignOutcome outcome);
 
         /// <summary>
         /// Retireves the promotion progression for the supplied user.
@@ -157,7 +157,7 @@ namespace Modix.Data.Repositories
                 .FirstOrDefaultAsync();
 
         /// <inheritdoc />
-        public async Task<PromotionActionSummary> TryCloseAsync(long campaignId, ulong closedById, PromotionCampaignOutcome outcome)
+        public async Task<PromotionActionSummary?> TryCloseAsync(long campaignId, ulong closedById, PromotionCampaignOutcome outcome)
         {
             var entity = await ModixContext.PromotionCampaigns
                 .Where(x => x.Id == campaignId)

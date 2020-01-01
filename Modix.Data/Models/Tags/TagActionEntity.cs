@@ -50,8 +50,10 @@ namespace Modix.Data.Models.Tags
         /// <summary>
         /// The user who performed the action.
         /// </summary>
+        // TODO: There are some tests that have null CreatedBy's. We should
+        // update the tests to have valid elements here.
         [Required]
-        public virtual GuildUserEntity CreatedBy { get; set; }
+        public virtual GuildUserEntity? CreatedBy { get; set; } = null!;
 
         /// <summary>
         /// The unique identifier of the tag that was created by the action.
@@ -62,7 +64,7 @@ namespace Modix.Data.Models.Tags
         /// <summary>
         /// The tag that was created by the action.
         /// </summary>
-        public virtual TagEntity NewTag { get; set; }
+        public virtual TagEntity? NewTag { get; set; }
 
         /// <summary>
         /// The unique identifier of the tag that was deleted by the action.
@@ -73,7 +75,7 @@ namespace Modix.Data.Models.Tags
         /// <summary>
         /// The tag that was deleted by the action.
         /// </summary>
-        public virtual TagEntity OldTag { get; set; }
+        public virtual TagEntity? OldTag { get; set; }
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

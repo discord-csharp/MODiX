@@ -34,7 +34,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// The channel to which this mapping applies.
         /// </summary>
-        public virtual GuildChannelEntity Channel { get; set; }
+        public virtual GuildChannelEntity Channel { get; set; } = null!;
 
         /// <summary>
         /// The type of designation being mapped to <see cref="Channel"/>.
@@ -51,7 +51,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// The <see cref="ConfigurationActionEntity"/> that created this <see cref="DesignatedChannelMappingEntity"/>.
         /// </summary>
-        public virtual ConfigurationActionEntity CreateAction { get; set; }
+        public virtual ConfigurationActionEntity CreateAction { get; set; } = null!;
 
         /// <summary>
         /// The <see cref="ConfigurationActionEntity.Id"/> value of <see cref="DeleteAction"/>.
@@ -61,7 +61,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// The <see cref="ConfigurationActionEntity"/> (if any) that deleted this <see cref="DesignatedChannelMappingEntity"/>.
         /// </summary>
-        public virtual ConfigurationActionEntity DeleteAction { get; set; }
+        public virtual ConfigurationActionEntity? DeleteAction { get; set; }
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

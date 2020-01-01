@@ -50,7 +50,7 @@ namespace Modix.Data.Models.Promotions
         /// The staff member that performed this action.
         /// </summary>
         [Required]
-        public virtual GuildUserEntity CreatedBy { get; set; }
+        public virtual GuildUserEntity CreatedBy { get; set; } = null!;
 
         /// <summary>
         /// The <see cref="PromotionCampaignEntity.Id"/> value of <see cref="Campaign"/>, if any.
@@ -62,7 +62,7 @@ namespace Modix.Data.Models.Promotions
         /// The <see cref="PromotionCampaignEntity"/> to which this <see cref="PromotionActionEntity"/> applies.
         /// Null, if an <see cref="PromotionCampaignEntity"/> was involved in this <see cref="PromotionActionEntity"/>.
         /// </summary>
-        public virtual PromotionCampaignEntity Campaign { get; set; }
+        public virtual PromotionCampaignEntity? Campaign { get; set; }
 
         /// <summary>
         /// The <see cref="PromotionCommentEntity.Id"/> value of <see cref="NewComment"/>, if any.
@@ -74,7 +74,7 @@ namespace Modix.Data.Models.Promotions
         /// The <see cref="PromotionCommentEntity"/> to which this <see cref="PromotionActionEntity"/> applies.
         /// Null, if a <see cref="PromotionCommentEntity"/> was not involved in this <see cref="PromotionActionEntity"/>.
         /// </summary>
-        public virtual PromotionCommentEntity NewComment { get; set; }
+        public virtual PromotionCommentEntity? NewComment { get; set; }
 
         /// <summary>
         /// The <see cref="PromotionCommentEntity.Id"/> value of <see cref="OldComment"/>, if any.
@@ -86,7 +86,7 @@ namespace Modix.Data.Models.Promotions
         /// The old <see cref="PromotionCommentEntity"/> to which this <see cref="PromotionActionEntity"/> applies.
         /// Null, if a <see cref="PromotionCommentEntity"/> was not involved in this <see cref="PromotionActionEntity"/>.
         /// </summary>
-        public virtual PromotionCommentEntity OldComment { get; set; }
+        public virtual PromotionCommentEntity? OldComment { get; set; }
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

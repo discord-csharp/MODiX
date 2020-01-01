@@ -38,7 +38,7 @@ namespace Modix.Data.Models.Moderation
         /// The channel from which the message was deleted.
         /// </summary>
         [Required]
-        public virtual GuildChannelEntity Channel { get; set; }
+        public virtual GuildChannelEntity Channel { get; set; } = null!;
         
         /// <summary>
         /// The <see cref="GuildUserEntity.UserId"/> value of <see cref="Author"/>.
@@ -50,19 +50,19 @@ namespace Modix.Data.Models.Moderation
         /// The user that authored the deleted message.
         /// </summary>
         [Required]
-        public virtual GuildUserEntity Author { get; set; }
+        public virtual GuildUserEntity Author { get; set; } = null!;
 
         /// <summary>
         /// The content of the deleted message.
         /// </summary>
         [Required]
-        public string Content { get; set; }
+        public string Content { get; set; } = null!;
 
         /// <summary>
         /// A description of the reason that the message was deleted.
         /// </summary>
         [Required]
-        public string Reason { get; set; }
+        public string Reason { get; set; } = null!;
 
         /// <summary>
         /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="CreateAction"/>.
@@ -72,7 +72,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// The <see cref="ModerationActionEntity"/> that created this <see cref="DeletedMessageEntity"/>.
         /// </summary>
-        public virtual ModerationActionEntity CreateAction { get; set; }
+        public virtual ModerationActionEntity CreateAction { get; set; } = null!;
 
         /// <summary>
         /// The <see cref="DeletedMessageBatchEntity.Id"/> value of the batch
@@ -84,7 +84,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// The batch that this <see cref="DeletedMessageEntity"/> belongs to.
         /// </summary>
-        public virtual DeletedMessageBatchEntity Batch { get; set; }
+        public virtual DeletedMessageBatchEntity? Batch { get; set; }
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

@@ -20,7 +20,7 @@ namespace Modix.Data.Test.ExpandableQueries
         {
             Should.Throw<ArgumentNullException>(() =>
             {
-                ExpandableExtensions.AsExpandable<object>(null);
+                ExpandableExtensions.AsExpandable<object>(null!);
             });
         }
 
@@ -54,16 +54,16 @@ namespace Modix.Data.Test.ExpandableQueries
                 .ToArray();
 
             provider.ShouldHaveReceived(1)
-                .Execute<IEnumerable<TOut>>(Arg.Is<MethodCallExpression>(x => 
+                .Execute<IEnumerable<TOut>>(Arg.Is<MethodCallExpression>(x =>
                     (x != null)
                     && (x.Method.Name == nameof(Enumerable.Select))
                     && (x.Arguments.Count == 2)));
 
-            var receivedExpression = provider.ReceivedCalls()
+            var receivedExpression = (MethodCallExpression)provider.ReceivedCalls()
                 .Where(x => x.GetMethodInfo().Name == nameof(IQueryProvider.Execute))
                 .First()
                 .GetArguments()
-                .First() as MethodCallExpression;
+                .First();
 
             receivedExpression.Arguments[1].ShouldBe(output);
         }
@@ -75,37 +75,37 @@ namespace Modix.Data.Test.ExpandableQueries
                     (Expression<Func<object, object>>)(x => x))
                     .SetName("{m}(unity expression, without expansions)"),
                 new TestCaseData(
-                    (Expression<Func<object, string>>)(x => x.ToString()),
-                    (Expression<Func<object, string>>)(x => x.ToString()))
+                    (Expression<Func<object, string?>>)(x => x.ToString()),
+                    (Expression<Func<object, string?>>)(x => x.ToString()))
                     .SetName("{m}(method call expression, without expansions)"),
                 new TestCaseData(
-                    (Expression<Func<IQueryable<object>, IQueryable<string>>>)(x => x.Select(y => y.ToString())),
-                    (Expression<Func<IQueryable<object>, IQueryable<string>>>)(x => x.Select(y => y.ToString())))
+                    (Expression<Func<IQueryable<object>, IQueryable<string>>>)(x => x.Select(y => y.ToString())!),
+                    (Expression<Func<IQueryable<object>, IQueryable<string>>>)(x => x.Select(y => y.ToString())!))
                     .SetName("{m}(sub-expression, without expansions)"),
                 new TestCaseData(
                     (Expression<Func<IQueryable<object>, IQueryable<string>>>)(x => x.Select(ObjectToStringExpansionExpression)),
-                    (Expression<Func<IQueryable<object>, IQueryable<string>>>)(x => x.Select(y => y.ToString())))
+                    (Expression<Func<IQueryable<object>, IQueryable<string>>>)(x => x.Select(y => y.ToString())!))
                     .SetName("{m}(sub-expression, with expansion)"),
                 new TestCaseData(
                     (Expression<Func<IQueryable<object>, IQueryable<string>>>)(x => x.Select(ObjectToStringNonExpansionExpression)),
                     (Expression<Func<IQueryable<object>, IQueryable<string>>>)(x => x.Select(ObjectToStringNonExpansionExpression)))
                     .SetName("{m}(sub-expression, with non-expansion)"),
                 new TestCaseData(
-                    (Expression<Func<object, string>>)(x => x.Project(y => y.ToString())),
-                    (Expression<Func<object, string>>)(x => x.ToString()))
+                    (Expression<Func<object, string>>)(x => x.Project(y => y.ToString())!),
+                    (Expression<Func<object, string>>)(x => x.ToString()!))
                     .SetName("{m}(projection expression, without expansions)"),
                 new TestCaseData(
                     (Expression<Func<object, string>>)(x => x.Project(ObjectToStringExpansionExpression)),
-                    (Expression<Func<object, string>>)(x => x.ToString()))
+                    (Expression<Func<object, string>>)(x => x.ToString()!))
                     .SetName("{m}(projection expression, with expansions)"),
             };
 
         [ExpansionExpression]
         private static readonly Expression<Func<object, string>> ObjectToStringExpansionExpression
-            = y => y.ToString();
+            = y => y.ToString()!;
 
         private static readonly Expression<Func<object, string>> ObjectToStringNonExpansionExpression
-            = y => y.ToString();
+            = y => y.ToString()!;
 
         #endregion AsExpandable() Tests
 
