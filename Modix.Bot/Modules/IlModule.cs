@@ -39,7 +39,7 @@ namespace Modix.Modules
             _ilUrl = string.IsNullOrWhiteSpace(modixConfig.Value.IlUrl) ? DefaultIlRemoteUrl : modixConfig.Value.IlUrl;
         }
 
-        [Command("il"), Summary("Compile & return the resulting IL of C# code.")]
+        [Command("il"), Alias("decompile"), Summary("Compile & return the resulting IL of C# code.")]
         public async Task ReplInvokeAsync(
             [Remainder]
             [Summary("The code to decompile.")]
