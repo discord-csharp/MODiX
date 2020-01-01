@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Discord;
@@ -69,6 +70,17 @@ namespace Modix.Services.Tags
         /// A <see cref="Task"/> that will complete when the operation completes.
         /// </returns>
         Task DeleteTagAsync(ulong guildId, ulong deleterId, string name);
+
+        /// <summary>
+        /// Retrieves the tag that matches the supplied criteria.
+        /// </summary>
+        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tag belongs.</param>
+        /// <param name="name">The name that is used to invoke the tag.</param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation completes,
+        /// with the tag that fit the supplied criteria.
+        /// </returns>
+        Task<TagSummary> GetTagAsync(ulong guildId, string name);
 
         /// <summary>
         /// Searches all tags based on the supplied criteria.
@@ -153,6 +165,8 @@ namespace Modix.Services.Tags
     /// <inheritdoc />
     internal class TagService : ITagService
     {
+        private static readonly Regex _tagNameRegex = new Regex(@"^\S+\b$");
+        
         /// <summary>
         /// Constructs a new <see cref="TagService"/> with the supplied dependencies.
         /// </summary>
@@ -180,6 +194,9 @@ namespace Modix.Services.Tags
 
             if (string.IsNullOrWhiteSpace(content))
                 throw new ArgumentException("The tag content cannot be blank or whitespace.", nameof(content));
+                
+            if (!_tagNameRegex.IsMatch(name))
+                throw new ArgumentException("The tag name cannot have punctuation at the end.", nameof(name));
 
             name = name.Trim().ToLower();
 
@@ -287,6 +304,17 @@ namespace Modix.Services.Tags
 
                 transaction.Commit();
             }
+        }
+
+        /// <inheritdoc />
+        public async Task<TagSummary> GetTagAsync(ulong guildId, string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("The tag name cannot be blank or whitespace.", nameof(name));
+
+            name = name.Trim().ToLower();
+
+            return await TagRepository.ReadSummaryAsync(guildId, name);
         }
 
         /// <inheritdoc />

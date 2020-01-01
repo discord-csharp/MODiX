@@ -39,7 +39,7 @@ namespace Modix.Services.CodePaste
             var content = FormatUtilities.BuildContent(code);
             HttpResponseMessage response;
 
-            var client = _httpClientFactory.CreateClient(nameof(CodePasteService));
+            var client = _httpClientFactory.CreateClient(HttpClientNames.TimeoutFiveSeconds);
 
             try
             {
@@ -61,7 +61,7 @@ namespace Modix.Services.CodePaste
             var pasteKey = JObject.Parse(urlResponse)["key"].Value<string>();
 
             var domain = usingFallback ? FallbackApiReferenceUrl : ApiReferenceUrl;
-            return $"{domain}{pasteKey}.{language ?? (FormatUtilities.GetCodeLanguage(code) ?? "cs")}";
+            return $"{domain}{pasteKey}.{language ?? FormatUtilities.GetCodeLanguage(code) ?? "cs"}";
         }
 
         /// <summary>

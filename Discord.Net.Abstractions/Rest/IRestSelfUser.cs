@@ -40,6 +40,12 @@ namespace Discord.Rest
         /// </summary>
         protected RestSelfUser RestSelfUser
             => RestUser as RestSelfUser;
+
+        public UserProperties Flags => throw new NotImplementedException();
+
+        public PremiumType PremiumType => throw new NotImplementedException();
+
+        public string Locale => throw new NotImplementedException();
     }
 
     /// <summary>

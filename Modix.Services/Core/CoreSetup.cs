@@ -22,6 +22,7 @@ namespace Modix.Services.Core
                 .AddSingleton<IBehavior, RoleTrackingBehavior>()
                 .AddSingleton<IBehavior, UserTrackingBehavior>()
                 .AddSingleton<IBehavior, MessageLogBehavior>()
+                .AddSingleton<IBehavior, StatsBehavior>()
                 .AddSingleton<IBehavior, DiscordSocketListeningBehavior>()
                 .AddSingleton<ReadySynchronizationProvider>()
                 .AddSingleton<IReadySynchronizationProvider>(x => x.GetService<ReadySynchronizationProvider>())

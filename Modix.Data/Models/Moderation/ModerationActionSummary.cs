@@ -48,6 +48,8 @@ namespace Modix.Data.Models.Moderation
         /// </summary>
         public DeletedMessageBrief DeletedMessage { get; set; }
 
+        public string OriginalInfractionReason { get; set; }
+
         /// <summary>
         /// See <see cref="DeletedMessageBatchEntity.DeletedMessages"/>.
         /// </summary>
@@ -71,6 +73,7 @@ namespace Modix.Data.Models.Moderation
                 DeletedMessages = (entity.DeletedMessageBatch == null)
                     ? null
                     : entity.DeletedMessageBatch.DeletedMessages.Select(x => x.Project(DeletedMessageBrief.FromEntityProjection)).ToArray(),
+                OriginalInfractionReason = entity.OriginalInfractionReason,
             };
     }
 }

@@ -4,7 +4,9 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
+
 using Microsoft.Extensions.Options;
+
 using Modix.Bot.Extensions;
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
@@ -32,16 +34,16 @@ namespace Modix.Modules
         [Priority(10)]
         public async Task SearchAsync(
             [Summary("The user whose infractions are to be displayed.")]
-                DiscordUserEntity subjectEntity)
+                DiscordUserOrMessageAuthorEntity subjectEntity)
         {
             var requestor = Context.User.Mention;
-            var subject = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, subjectEntity.Id);
+            var subject = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, subjectEntity.UserId);
 
             var infractions = await ModerationService.SearchInfractionsAsync(
                 new InfractionSearchCriteria
                 {
                     GuildId = Context.Guild.Id,
-                    SubjectId = subjectEntity.Id,
+                    SubjectId = subjectEntity.UserId,
                     IsDeleted = false
                 },
                 new[]
@@ -63,14 +65,12 @@ namespace Modix.Modules
             {
                 Id = infraction.Id,
                 Created = infraction.CreateAction.Created.ToUniversalTime().ToString("yyyy MMM dd"),
-                Type = infraction.Type.ToString(),
-                Subject = infraction.Subject.Username,
-                Creator = infraction.CreateAction.CreatedBy.GetFullUsername(),
+                Type = infraction.Type,
                 Reason = infraction.Reason,
                 Rescinded = infraction.RescindAction != null
-            }).OrderBy(s => s.Type);
+            });
 
-            var counts = await ModerationService.GetInfractionCountsForUserAsync(subjectEntity.Id);
+            var counts = await ModerationService.GetInfractionCountsForUserAsync(subjectEntity.UserId);
 
             // https://modix.gg/infractions?subject=12345
             var url = new UriBuilder(Config.WebsiteBaseUrl)
@@ -93,8 +93,11 @@ namespace Modix.Modules
                     Path = "/infractions",
                     Query = $"id={infraction.Id}"
                 }.ToString();
+
+                var emoji = GetEmojiForInfractionType(infraction.Type);
+
                 builder.AddField(
-                    $"#{infraction.Id} - {infraction.Type} - Created: {infraction.Created}{(infraction.Rescinded ? " - [RESCINDED]" : "")}",
+                    $"#{infraction.Id} - \\{emoji} {infraction.Type} - Created: {infraction.Created}{(infraction.Rescinded ? " - [RESCINDED]" : "")}",
                     Format.Url($"Reason: {infraction.Reason}", infractionUrl)
                 );
             }
@@ -117,8 +120,35 @@ namespace Modix.Modules
             await Context.AddConfirmation();
         }
 
+        [Command("update")]
+        [Summary("Updates an infraction by ID, overwriting the existing reason")]
+        public async Task UpdateAsync(
+            [Summary("The ID value of the infraction to be update.")] long infractionId,
+                [Summary("New reason for the infraction"), Remainder] string reason)
+        {
+            var success = await ModerationService.UpdateInfractionAsync(infractionId, reason, Context.User.Id);
+
+            if (!success)
+            {
+                await ReplyAsync("Failed updating infraction");
+                return;
+            }
+
+            await Context.AddConfirmation();
+        }
+
         internal protected IModerationService ModerationService { get; }
         internal protected IUserService UserService { get; }
         internal protected ModixConfig Config { get; }
+
+        private static string GetEmojiForInfractionType(InfractionType infractionType)
+            => infractionType switch
+            {
+                InfractionType.Notice => "📝",
+                InfractionType.Warning => "⚠️",
+                InfractionType.Mute => "🔇",
+                InfractionType.Ban => "🔨",
+                _ => "❔",
+            };
     }
 }

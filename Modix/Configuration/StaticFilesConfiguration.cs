@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
 namespace Modix.Configuration
@@ -9,9 +10,9 @@ namespace Modix.Configuration
     public class StaticFilesConfiguration : IConfigureOptions<StaticFileOptions>
     {
         private readonly IAntiforgery antiforgery;
-        private readonly IHostingEnvironment _env;
+        private readonly IWebHostEnvironment _env;
 
-        public StaticFilesConfiguration(IAntiforgery antiforgery, IHostingEnvironment env)
+        public StaticFilesConfiguration(IAntiforgery antiforgery, IWebHostEnvironment env)
         {
             this.antiforgery = antiforgery;
             _env = env;

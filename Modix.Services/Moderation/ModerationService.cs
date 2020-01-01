@@ -4,15 +4,16 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Discord;
-
+using Discord.Net;
+using Discord.WebSocket;
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Repositories;
-
 using Modix.Services.Core;
+using Modix.Services.Utilities;
+
 using Serilog;
-using Discord.Net;
 
 namespace Modix.Services.Moderation
 {
@@ -215,6 +216,8 @@ namespace Modix.Services.Moderation
         /// containing the designated mute role in the guild.
         /// </returns>
         Task<IRole> GetOrCreateDesignatedMuteRoleAsync(IGuild guild, ulong currentUserId);
+
+        Task<bool> UpdateInfractionAsync(long infractionId, string newReason, ulong currentUserId);
     }
 
     /// <inheritdoc />
@@ -239,7 +242,9 @@ namespace Modix.Services.Moderation
             IDesignatedRoleMappingRepository designatedRoleMappingRepository,
             IInfractionRepository infractionRepository,
             IDeletedMessageRepository deletedMessageRepository,
-            IDeletedMessageBatchRepository deletedMessageBatchRepository)
+            IDeletedMessageBatchRepository deletedMessageBatchRepository,
+            IRoleService roleService,
+            IDesignatedChannelService designatedChannelService)
         {
             DiscordClient = discordClient;
             AuthorizationService = authorizationService;
@@ -250,6 +255,8 @@ namespace Modix.Services.Moderation
             InfractionRepository = infractionRepository;
             DeletedMessageRepository = deletedMessageRepository;
             DeletedMessageBatchRepository = deletedMessageBatchRepository;
+            RoleService = roleService;
+            DesignatedChannelService = designatedChannelService;
         }
 
         /// <inheritdoc />
@@ -302,9 +309,12 @@ namespace Modix.Services.Moderation
         {
             var muteRole = await GetOrCreateDesignatedMuteRoleAsync(guild, AuthorizationService.CurrentUserId.Value);
 
+            var unmoderatedChannels = await DesignatedChannelService.GetDesignatedChannelIdsAsync(guild.Id, DesignatedChannelType.Unmoderated);
+
             var nonCategoryChannels =
                 (await guild.GetChannelsAsync())
-                .Where(c => !(c is ICategoryChannel))
+                .Where(c => !(c is ICategoryChannel) && !(c is SocketNewsChannel))
+                .Where(c => !unmoderatedChannels.Contains(c.Id))
                 .ToList();
 
             var setUpChannels = new List<IGuildChannel>();
@@ -753,6 +763,8 @@ namespace Modix.Services.Moderation
                 var role = guild.Roles.FirstOrDefault(x => x.Name == MuteRoleName)
                     ?? await guild.CreateRoleAsync(MuteRoleName);
 
+                await RoleService.TrackRoleAsync(role);
+
                 await DesignatedRoleMappingRepository.CreateAsync(new DesignatedRoleMappingCreationData()
                 {
                     GuildId = guild.Id,
@@ -764,6 +776,30 @@ namespace Modix.Services.Moderation
                 transaction.Commit();
                 return role;
             }
+        }
+        
+        public async Task<bool> UpdateInfractionAsync(long infractionId, string newReason, ulong currentUserId)
+        {
+            var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
+
+            var editCutoff = DateTimeOffset.Now.AddDays(-1);
+
+            if (infraction.CreateAction.Created <= editCutoff)
+                return false;
+
+            AuthorizationService.RequireClaims(_createInfractionClaimsByType[infraction.Type]);
+
+            // Allow users who created the infraction to bypass any further
+            // validation and update their own infraction
+            if (infraction.CreateAction.CreatedBy.Id == currentUserId)
+            {
+                return await InfractionRepository.TryUpdateAync(infractionId, newReason, currentUserId);
+            }
+
+            // Else we know it's not the user's infraction
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationUpdateInfraction);
+
+            return await InfractionRepository.TryUpdateAync(infractionId, newReason, currentUserId);
         }
 
         /// <summary>
@@ -810,6 +846,13 @@ namespace Modix.Services.Moderation
         /// An <see cref="IDeletedMessageBatchRepository"/> for storing and retrieving records of deleted message batches.
         /// </summary>
         internal protected IDeletedMessageBatchRepository DeletedMessageBatchRepository { get; }
+
+        /// <summary>
+        /// An <see cref="IRoleService"/> for interacting with discord roles within the application.
+        /// </summary>
+        internal protected IRoleService RoleService { get; }
+
+        internal protected IDesignatedChannelService DesignatedChannelService { get; }
 
         private async Task ConfigureChannelMuteRolePermissionsAsync(IGuildChannel channel, IRole muteRole)
         {
@@ -875,7 +918,12 @@ namespace Modix.Services.Moderation
             {
                 case InfractionType.Mute:
                     if (!await UserService.GuildUserExistsAsync(guild.Id, infraction.Subject.Id))
-                        throw new InvalidOperationException("Cannot unmute a user who is not in the server.");
+                    {
+                        Log.Information("Attempted to remove the mute role from {0} ({1}), but they were not in the server.",
+                            infraction.Subject.GetFullUsername(),
+                            infraction.Subject.Id);
+                        break;
+                    }
 
                     var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
                     await subject.RemoveRoleAsync(await GetDesignatedMuteRoleAsync(guild));
@@ -923,6 +971,7 @@ namespace Modix.Services.Moderation
             
         private static readonly OverwritePermissions _mutePermissions
             = new OverwritePermissions(
+                addReactions: PermValue.Deny,
                 sendMessages: PermValue.Deny,
                 speak: PermValue.Deny);
 

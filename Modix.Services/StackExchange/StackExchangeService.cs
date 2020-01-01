@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Modix.Services.Utilities;
+using Newtonsoft.Json;
 using System;
 using System.Net;
 using System.Net.Http;
@@ -28,7 +29,7 @@ namespace Modix.Services.StackExchange
             tags = Uri.EscapeDataString(tags);
             var query = _apiReferenceUrl += $"&site={site}&tags={tags}&q={phrase}";
 
-            var client = HttpClientFactory.CreateClient(nameof(StackExchangeService));
+            var client = HttpClientFactory.CreateClient(HttpClientNames.AutomaticGZipDecompression);
 
             var response = await client.GetAsync(query);
 

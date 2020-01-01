@@ -14,7 +14,7 @@ namespace Modix.Services.Tags
 {
     public class TagInlineParsingHandler : INotificationHandler<MessageReceivedNotification>
     {
-        private static readonly Regex _inlineTagRegex = new Regex(@"\$(\S+)\s?");
+        private static readonly Regex _inlineTagRegex = new Regex(@"\$(\S+)\b");
 
         public DiscordSocketClient DiscordClient { get; }
         public IAuthorizationService AuthorizationService { get; }

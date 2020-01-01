@@ -67,16 +67,17 @@ namespace Modix.Modules
         private readonly ModixConfig _config;
 
         [Command("info")]
+        [Alias("ompf", "omfp")]
         [Summary("Retrieves information about the supplied user, or the current user if one is not provided.")]
         public async Task GetUserInfoAsync(
             [Summary("The user to retrieve information about, if any.")]
-                [Remainder] DiscordUserEntity user = null)
+                [Remainder] DiscordUserOrMessageAuthorEntity user = null)
         {
-            user ??= new DiscordUserEntity(Context.User.Id);
+            var userId = user?.UserId ?? Context.User.Id;
 
             var timer = Stopwatch.StartNew();
 
-            var userInfo = await _userService.GetUserInformationAsync(Context.Guild.Id, user.Id);
+            var userInfo = await _userService.GetUserInformationAsync(Context.Guild.Id, userId);
 
             if (userInfo == null)
             {
@@ -84,7 +85,7 @@ namespace Modix.Modules
                     .WithTitle("Retrieval Error")
                     .WithColor(Color.Red)
                     .WithDescription("Sorry, we don't have any data for that user - and we couldn't find any, either.")
-                    .AddField("User Id", user.Id)
+                    .AddField("User Id", userId)
                     .Build());
 
                 return;
@@ -92,8 +93,8 @@ namespace Modix.Modules
 
             var builder = new StringBuilder();
             builder.AppendLine("**\u276F User Information**");
-            builder.AppendLine("ID: " + user.Id);
-            builder.AppendLine("Profile: " + MentionUtils.MentionUser(user.Id));
+            builder.AppendLine("ID: " + userId);
+            builder.AppendLine("Profile: " + MentionUtils.MentionUser(userId));
 
             var embedBuilder = new EmbedBuilder()
                 .WithUserAsAuthor(userInfo)
@@ -111,16 +112,8 @@ namespace Modix.Modules
                 colorTask = _imageService.GetDominantColorAsync(new Uri(avatarUrl));
             }
 
-            var moderationReadTask = _authorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead);
-            var userRankTask = _messageRepository.GetGuildUserParticipationStatistics(Context.Guild.Id, user.Id);
-            var messagesByDateTask = _messageRepository.GetGuildUserMessageCountByDate(Context.Guild.Id, user.Id, TimeSpan.FromDays(30));
-            var messageCountsByChannelTask = _messageRepository.GetGuildUserMessageCountByChannel(Context.Guild.Id, user.Id, TimeSpan.FromDays(30));
-            var emojiCountsTask = _emojiRepository.GetEmojiStatsAsync(Context.Guild.Id, SortDirection.Ascending, 1, userId: user.Id);
-            var promotionsTask = _promotionsService.GetPromotionsForUserAsync(Context.Guild.Id, user.Id);
-
-            embedBuilder.WithColor(await colorTask);
-
-            var moderationRead = await moderationReadTask;
+            var moderationRead = await _authorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead);
+            var promotions = await _promotionsService.GetPromotionsForUserAsync(Context.Guild.Id, userId);
 
             if (userInfo.IsBanned)
             {
@@ -144,7 +137,12 @@ namespace Modix.Modules
 
             try
             {
-                await AddParticipationToEmbedAsync(user.Id, builder, await userRankTask, await messagesByDateTask, await messageCountsByChannelTask, await emojiCountsTask);
+                var userRank = await _messageRepository.GetGuildUserParticipationStatistics(Context.Guild.Id, userId);
+                var messagesByDate = await _messageRepository.GetGuildUserMessageCountByDate(Context.Guild.Id, userId, TimeSpan.FromDays(30));
+                var messageCountsByChannel = await _messageRepository.GetGuildUserMessageCountByChannel(Context.Guild.Id, userId, TimeSpan.FromDays(30));
+                var emojiCounts = await _emojiRepository.GetEmojiStatsAsync(Context.Guild.Id, SortDirection.Ascending, 1, userId: userId);
+
+                await AddParticipationToEmbedAsync(userId, builder, userRank, messagesByDate, messageCountsByChannel, emojiCounts);
             }
             catch (Exception ex)
             {
@@ -152,14 +150,16 @@ namespace Modix.Modules
             }
 
             AddMemberInformationToEmbed(userInfo, builder);
-            AddPromotionsToEmbed(builder, await promotionsTask);
+            AddPromotionsToEmbed(builder, promotions);
 
             if (moderationRead)
             {
-                await AddInfractionsToEmbedAsync(user.Id, builder);
+                await AddInfractionsToEmbedAsync(userId, builder);
             }
 
             embedBuilder.Description = builder.ToString();
+
+            embedBuilder.WithColor(await colorTask);
 
             timer.Stop();
             embedBuilder.WithFooter(footer => footer.Text = $"Completed after {timer.ElapsedMilliseconds} ms");

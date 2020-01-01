@@ -8,6 +8,9 @@ using Discord;
 using Microsoft.Extensions.Caching.Memory;
 
 using Modix.Services.Images.ColorQuantization;
+using Modix.Services.Utilities;
+
+using Serilog;
 
 namespace Modix.Services.Images
 {
@@ -47,17 +50,25 @@ namespace Modix.Services.Images
         /// <inheritdoc />
         public async ValueTask<Color> GetDominantColorAsync(Uri location)
         {
-            var key = GetKey(location);
-
-            if (!_cache.TryGetValue(key, out Color color))
+            try
             {
-                var imageBytes = await _httpClientFactory.CreateClient().GetByteArrayAsync(location);
-                color = GetDominantColor(imageBytes.AsSpan());
+                var key = GetKey(location);
 
-                _cache.Set(key, color, TimeSpan.FromDays(7));
+                if (!_cache.TryGetValue(key, out Color color))
+                {
+                    var imageBytes = await _httpClientFactory.CreateClient(HttpClientNames.TimeoutFiveSeconds).GetByteArrayAsync(location);
+                    color = GetDominantColor(imageBytes.AsSpan());
+
+                    _cache.Set(key, color, TimeSpan.FromDays(7));
+                }
+
+                return color;
             }
-
-            return color;
+            catch (Exception ex)
+            {
+                Log.Error(ex, "An error occurred while attempting to determine the dominant color of an image.");
+                return Color.Default;
+            }
         }
 
         /// <inheritdoc />
@@ -90,7 +101,8 @@ namespace Modix.Services.Images
 
             var mostCommonPaletteColor = colorTree.GetPalette().OrderByDescending(x => x.Weight * x.Color.GetSaturation()).FirstOrDefault().Color;
 
-            return (Color)mostCommonPaletteColor;
+            // TODO Investigate why we cannot cast here anymore (return (Color)mostCommonPaletteColor;)
+            return new Color((uint)mostCommonPaletteColor.ToArgb() << 8 >> 8);
         }
 
         private object GetKey(Uri uri) => new { Target = "DominantColor", uri.AbsoluteUri };

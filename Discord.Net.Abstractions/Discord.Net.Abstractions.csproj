@@ -2,10 +2,11 @@
 
   <PropertyGroup>
     <RootNamespace>Discord</RootNamespace>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net" Version="2.1.1" />
+    <PackageReference Include="Discord.Net" />
   </ItemGroup>
 
 </Project>

@@ -22,6 +22,7 @@ using Modix.Services.BehaviourConfiguration;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
+using StatsdClient;
 
 namespace Modix
 {
@@ -33,8 +34,9 @@ namespace Modix
         private readonly IServiceProvider _provider;
         private readonly ModixConfig _config;
         private readonly DiscordSerilogAdapter _serilogAdapter;
-        private readonly IApplicationLifetime _applicationLifetime;
-        private readonly IHostingEnvironment _env;
+        private readonly IHostApplicationLifetime _applicationLifetime;
+        private readonly IHostEnvironment _env;
+        private readonly IDogStatsd _stats;
         private IServiceScope _scope;
         private readonly ConcurrentDictionary<ICommandContext, IServiceScope> _commandScopes = new ConcurrentDictionary<ICommandContext, IServiceScope>();
 
@@ -44,10 +46,11 @@ namespace Modix
             IOptions<ModixConfig> modixConfig,
             CommandService commandService,
             DiscordSerilogAdapter serilogAdapter,
-            IApplicationLifetime applicationLifetime,
+            IHostApplicationLifetime applicationLifetime,
             IServiceProvider serviceProvider,
             ILogger<ModixBot> logger,
-            IHostingEnvironment env)
+            IHostEnvironment env,
+            IDogStatsd stats)
         {
             _client = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
@@ -58,6 +61,7 @@ namespace Modix
             _applicationLifetime = applicationLifetime ?? throw new ArgumentNullException(nameof(applicationLifetime));
             Log = logger ?? throw new ArgumentNullException(nameof(logger));
             _env = env;
+            _stats = stats;
         }
 
         private ILogger<ModixBot> Log { get; }

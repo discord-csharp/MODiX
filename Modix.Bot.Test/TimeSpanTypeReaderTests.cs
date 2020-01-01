@@ -55,10 +55,15 @@ namespace Modix.Bot.Test
                 new object[] { "31d", TimeSpan.FromDays(31) },
                 new object[] { "32d", TimeSpan.FromDays(32) },
 
-                new object[] { "0d0h0m0s", TimeSpan.Zero },
-                new object[] { "1d1h1m1s", TimeSpan.FromDays(1) + TimeSpan.FromHours(1) + TimeSpan.FromMinutes(1) + TimeSpan.FromSeconds(1) },
-                new object[] { "31d24h60m60s", TimeSpan.FromDays(31) + TimeSpan.FromHours(24) + TimeSpan.FromMinutes(60) + TimeSpan.FromSeconds(60) },
-                new object[] { "32d25h61m61s", TimeSpan.FromDays(32) + TimeSpan.FromHours(25) + TimeSpan.FromMinutes(61) + TimeSpan.FromSeconds(61) },
+                new object[] { "0w", TimeSpan.Zero },
+                new object[] { "1w", TimeSpan.FromDays(7) },
+                new object[] { "4w", TimeSpan.FromDays(28) },
+                new object[] { "100w", TimeSpan.FromDays(700) },
+
+                new object[] { "0w0d0h0m0s", TimeSpan.Zero },
+                new object[] { "1w1d1h1m1s", TimeSpan.FromDays(7) + TimeSpan.FromDays(1) + TimeSpan.FromHours(1) + TimeSpan.FromMinutes(1) + TimeSpan.FromSeconds(1) },
+                new object[] { "4w31d24h60m60s", TimeSpan.FromDays(28) + TimeSpan.FromDays(31) + TimeSpan.FromHours(24) + TimeSpan.FromMinutes(60) + TimeSpan.FromSeconds(60) },
+                new object[] { "100w32d25h61m61s", TimeSpan.FromDays(700) + TimeSpan.FromDays(32) + TimeSpan.FromHours(25) + TimeSpan.FromMinutes(61) + TimeSpan.FromSeconds(61) },
             };
 
         [TestCaseSource(nameof(ValidInputs))]

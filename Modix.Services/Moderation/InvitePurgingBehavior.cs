@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -29,12 +30,14 @@ namespace Modix.Services.Moderation
             IDesignatedChannelService designatedChannelService,
             IAuthorizationService authorizationService,
             IModerationService moderationService,
-            ISelfUserProvider selfUserProvider)
+            ISelfUserProvider selfUserProvider,
+            IDiscordClient discordClient)
         {
             DesignatedChannelService = designatedChannelService;
             AuthorizationService = authorizationService;
             ModerationService = moderationService;
             SelfUserProvider = selfUserProvider;
+            DiscordClient = discordClient;
         }
 
         /// <inheritdoc />
@@ -64,6 +67,8 @@ namespace Modix.Services.Moderation
         /// An <see cref="ISelfUserProvider"/> used to interact with the current bot user.
         /// </summary>
         internal protected ISelfUserProvider SelfUserProvider { get; }
+
+        internal protected IDiscordClient DiscordClient { get; }
 
         private async Task TryPurgeInviteLinkAsync(IMessage message)
         {
@@ -96,14 +101,16 @@ namespace Modix.Services.Moderation
                 return;
             }
 
-            // Allow invites to the guild in which the message was posted
-            var externalInvites = matches
-                .Select(x => x.Value)
-                .Except((await author.Guild
-                    .GetInvitesAsync())
-                    .Select(x => x.Url));
+            var invites = new List<IInvite>(matches.Count);
 
-            if (!externalInvites.Any())
+            foreach (var code in matches.Select(x => x.Groups["Code"].Value))
+            {
+                var invite = await DiscordClient.GetInviteAsync(code);
+                invites.Add(invite);
+            }
+
+            // Allow invites to the guild in which the message was posted
+            if (invites.All(x => x?.GuildId == author.GuildId))
             {
                 Log.Debug("Message {MessageId} was skipped because the invite was to this server", message.Id);
                 return;
@@ -120,7 +127,7 @@ namespace Modix.Services.Moderation
 
         private static readonly Regex _inviteLinkMatcher
             = new Regex(
-                pattern: @"(https?:\/\/)?(www\.)?(discord\.(gg|io|me|li)|discordapp\.com\/invite)\/\w+",
+                pattern: @"(https?://)?(www\.)?(discord\.(gg|io|me|li)|discordapp\.com/invite)/(?<Code>\w+)",
                 options: RegexOptions.Compiled | RegexOptions.IgnoreCase,
                 matchTimeout: TimeSpan.FromSeconds(2));
     }

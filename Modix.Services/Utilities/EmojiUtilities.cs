@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-using Discord;
+﻿using Discord;
 using Discord.WebSocket;
+
 using Modix.Data.Models.Emoji;
+
+using System;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Modix.Services.Utilities
 {
@@ -43,24 +45,18 @@ namespace Modix.Services.Utilities
             }
             else
             {
-                const string EmojiLink = "https://raw.githubusercontent.com/twitter/twemoji/gh-pages/2/72x72/";
-                var hexValues = new List<string>();
+                const string EmojiLink = "https://raw.githubusercontent.com/twitter/twemoji/master/assets/72x72/";
 
-                for (var i = 0; i < emoji.Length; i++)
-                {
-                    var codepoint = char.ConvertToUtf32(emoji, i);
-                    hexValues.Add(codepoint.ToString("x"));
+                var runes = emoji.EnumerateRunes();
+                var withoutTrailingVariantSelectors = runes.SkipLast(x => IsVariantSelector(x));
+                var hexValues = string.Join('-', withoutTrailingVariantSelectors.Select(x => x.Value.ToString("x")));
 
-                    // ConvertToUtf32() might have parsed an extra character as some characters are combinations of two 16-bit characters
-                    // Which start at 0x00d800 and end at 0x00dfff (Called surrogate low and surrogate high)
-                    // If the character is in this span, we have already essentially parsed the next index of the string as well.
-                    // Therefore we make sure to skip the next one.
-                    if (char.IsSurrogate(emoji, i))
-                        i++;
-                }
-
-                return $"{EmojiLink}{string.Join('-', hexValues)}.png";
+                return $"{EmojiLink}{hexValues}.png";
             }
+
+            static bool IsVariantSelector(Rune rune)
+                => rune.Value == 0xfe0e
+                || rune.Value == 0xfe0f;
         }
 
         // https://stackoverflow.com/a/48148218/1896401

@@ -375,6 +375,8 @@ namespace Modix.Data.Migrations
                     b.Property<string>("Type")
                         .IsRequired();
 
+                    b.Property<long?>("UpdateActionId");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CreateActionId")
@@ -384,6 +386,9 @@ namespace Modix.Data.Migrations
                         .IsUnique();
 
                     b.HasIndex("RescindActionId")
+                        .IsUnique();
+
+                    b.HasIndex("UpdateActionId")
                         .IsUnique();
 
                     b.HasIndex("GuildId", "SubjectId");
@@ -407,6 +412,8 @@ namespace Modix.Data.Migrations
                     b.Property<long>("GuildId");
 
                     b.Property<long?>("InfractionId");
+
+                    b.Property<string>("OriginalInfractionReason");
 
                     b.Property<string>("Type")
                         .IsRequired();
@@ -719,6 +726,10 @@ namespace Modix.Data.Migrations
                     b.HasOne("Modix.Data.Models.Moderation.ModerationActionEntity", "RescindAction")
                         .WithOne()
                         .HasForeignKey("Modix.Data.Models.Moderation.InfractionEntity", "RescindActionId");
+
+                    b.HasOne("Modix.Data.Models.Moderation.ModerationActionEntity", "UpdateAction")
+                        .WithOne()
+                        .HasForeignKey("Modix.Data.Models.Moderation.InfractionEntity", "UpdateActionId");
 
                     b.HasOne("Modix.Data.Models.Core.GuildUserEntity", "Subject")
                         .WithMany()

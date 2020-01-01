@@ -18,6 +18,10 @@
         /// </summary>
         InfractionDeleted,
         /// <summary>
+        /// Describes a moderation action where an infraction was updated.
+        /// </summary>
+        InfractionUpdated,
+        /// <summary>
         /// Describes a moderation action where a message was automatically deleted.
         /// </summary>
         MessageDeleted,

@@ -26,7 +26,7 @@ namespace Modix.Bot.Modules
             [Summary("Message to provide to mentionees. The 'message' argument is ignored by the command.")]
             [Remainder]
             string message = null)
-            => await MentionService.MentionRoleAsync(role, Context.Channel);
+            => await MentionService.MentionRoleAsync(role, Context.Channel, message);
 
         internal protected IMentionService MentionService { get; }
     }
