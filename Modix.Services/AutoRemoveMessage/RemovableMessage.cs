@@ -6,6 +6,6 @@ namespace Modix.Services.AutoRemoveMessage
     {
         public IMessage Message { get; set; }
 
-        public IUser User { get; set; }
+        public IUser[] Users { get; set; }
     }
 }

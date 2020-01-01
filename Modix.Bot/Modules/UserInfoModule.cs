@@ -17,6 +17,7 @@ using Modix.Data.Models.Core;
 using Modix.Data.Models.Emoji;
 using Modix.Data.Models.Promotions;
 using Modix.Data.Repositories;
+using Modix.Services.AutoRemoveMessage;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.Images;
@@ -43,7 +44,8 @@ namespace Modix.Modules
             IEmojiRepository emojiRepository,
             IPromotionsService promotionsService,
             IImageService imageService,
-            IOptions<ModixConfig> config)
+            IOptions<ModixConfig> config,
+            IAutoRemoveMessageService autoRemoveMessageService)
         {
             _log = logger ?? new NullLogger<UserInfoModule>();
             _userService = userService;
@@ -54,6 +56,7 @@ namespace Modix.Modules
             _promotionsService = promotionsService;
             _imageService = imageService;
             _config = config.Value;
+            _autoRemoveMessageService = autoRemoveMessageService;
         }
 
         private readonly ILogger<UserInfoModule> _log;
@@ -65,6 +68,7 @@ namespace Modix.Modules
         private readonly IPromotionsService _promotionsService;
         private readonly IImageService _imageService;
         private readonly ModixConfig _config;
+        private readonly IAutoRemoveMessageService _autoRemoveMessageService;
 
         [Command("info")]
         [Alias("ompf", "omfp")]
@@ -81,12 +85,15 @@ namespace Modix.Modules
 
             if (userInfo == null)
             {
-                await ReplyAsync("", embed: new EmbedBuilder()
+                var embed = new EmbedBuilder()
                     .WithTitle("Retrieval Error")
                     .WithColor(Color.Red)
                     .WithDescription("Sorry, we don't have any data for that user - and we couldn't find any, either.")
-                    .AddField("User Id", userId)
-                    .Build());
+                    .AddField("User Id", userId);
+                await _autoRemoveMessageService.RegisterRemovableMessageAsync(
+                    Context.User,
+                    embed,
+                    async (embedBuilder) => await ReplyAsync(embed: embedBuilder.Build()));
 
                 return;
             }
@@ -164,7 +171,10 @@ namespace Modix.Modules
             timer.Stop();
             embedBuilder.WithFooter(footer => footer.Text = $"Completed after {timer.ElapsedMilliseconds} ms");
 
-            await ReplyAsync(embed: embedBuilder.Build());
+            await _autoRemoveMessageService.RegisterRemovableMessageAsync(
+                userInfo.Id == Context.User.Id ? new[] { userInfo } : new[] { userInfo, Context.User },
+                embedBuilder,
+                async (embedBuilder) => await ReplyAsync(embed: embedBuilder.Build()));
         }
 
         private void AddMemberInformationToEmbed(EphemeralUser member, StringBuilder builder)

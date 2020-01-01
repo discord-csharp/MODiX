@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,7 +34,7 @@ namespace Modix.Services.AutoRemoveMessage
                 new RemovableMessage()
                 {
                     Message = notification.Message,
-                    User = notification.User,
+                    Users = notification.Users,
                 },
                 _messageCacheOptions);
 
@@ -47,7 +48,7 @@ namespace Modix.Services.AutoRemoveMessage
             if (cancellationToken.IsCancellationRequested
                 || notification.Reaction.Emote.Name != "❌"
                 || !Cache.TryGetValue(key, out RemovableMessage cachedMessage)
-                || notification.Reaction.UserId != cachedMessage.User.Id)
+                || !cachedMessage.Users.Any(user => user.Id == notification.Reaction.UserId))
             {
                 return;
             }
