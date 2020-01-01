@@ -99,7 +99,7 @@
   <Target Name="RunVueCli" Condition=" '$(Configuration)' == 'Debug' " AfterTargets="BeforeBuild" DependsOnTargets="CheckDevServerRunning" Inputs="@(ClientSrc)" Outputs="$(MSBuildThisFileDirectory)obj\$(Configuration)\.vue_timestamp">
 
     <Message Importance="high" Text="Performing Webpack build (Mode: $(NpmBuild))" Condition="!$(DevServerRunning)" />
-    
+
     <Exec WorkingDirectory="$(SpaRoot)" Command="npm run $(NpmBuild)" Condition="!$(DevServerRunning)">
       <Output TaskParameter="ExitCode" PropertyName="VueErrorCode" />
     </Exec>
@@ -118,7 +118,7 @@
 
   <Target Name="VueFirstBuild" AfterTargets="BeforeBuild" Condition=" !Exists('wwwroot\index.html') ">
     <Error Text="A first-run Webpack build is required, but cannot be done while the webpack dev server is running. Shut it down and build again." Condition=" $(DevServerRunning) " />
-    
+
     <Message Importance="high" Text="First-run detected, forcing Webpack build..." />
     <Delete Files="$(MSBuildThisFileDirectory)obj\$(Configuration)\.vue_timestamp" />
   </Target>
