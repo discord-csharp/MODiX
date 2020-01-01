@@ -82,7 +82,6 @@ namespace Modix.Modules
             var timer = Stopwatch.StartNew();
 
             var userInfo = await _userService.GetUserInformationAsync(Context.Guild.Id, userId);
-            var requesterInfo = await _userService.GetUserInformationAsync(Context.Guild.Id, Context.Guild.Id);
 
             if (userInfo == null)
             {
@@ -92,7 +91,7 @@ namespace Modix.Modules
                     .WithDescription("Sorry, we don't have any data for that user - and we couldn't find any, either.")
                     .AddField("User Id", userId);
                 await _autoRemoveMessageService.RegisterRemovableMessageAsync(
-                    requesterInfo,
+                    Context.User,
                     embed,
                     async (embedBuilder) => await ReplyAsync(embed: embedBuilder.Build()));
 
@@ -173,7 +172,7 @@ namespace Modix.Modules
             embedBuilder.WithFooter(footer => footer.Text = $"Completed after {timer.ElapsedMilliseconds} ms");
 
             await _autoRemoveMessageService.RegisterRemovableMessageAsync(
-                userInfo == requesterInfo ? new[] { userInfo } : new[] { userInfo, requesterInfo },
+                userInfo.Id == Context.User.Id ? new[] { userInfo } : new[] { userInfo, Context.User },
                 embedBuilder,
                 async (embedBuilder) => await ReplyAsync(embed: embedBuilder.Build()));
         }
