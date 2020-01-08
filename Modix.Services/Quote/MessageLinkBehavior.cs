@@ -75,10 +75,23 @@ namespace Modix.Services.Quote
                     {
                         var channel = DiscordClient.GetChannel(channelId);
 
-                        if (channel is IGuildChannel &&
+                        if (channel is IGuildChannel guildChannel &&
                             channel is ISocketMessageChannel messageChannel)
                         {
-                            var msg = await messageChannel.GetMessageAsync(messageId);
+                            var currentUser = await guildChannel.Guild.GetCurrentUserAsync();
+                            var channelPermissions = currentUser.GetPermissions(guildChannel);
+
+                            if (!channelPermissions.ViewChannel)
+                            {
+                                return;
+                            }
+
+                            var cacheMode = channelPermissions.ReadMessageHistory
+                                ? CacheMode.AllowDownload
+                                : CacheMode.CacheOnly;
+
+                            var msg = await messageChannel.GetMessageAsync(messageId, cacheMode);
+
                             if (msg == null) return;
 
                             var success = await SendQuoteEmbedAsync(msg, guildUser, userMessage.Channel);
