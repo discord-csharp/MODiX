@@ -41,19 +41,20 @@ namespace Modix.Services.Utilities
             var formattedMessage = logEvent.RenderMessage(_formatProvider);
             var webhookClient = new DiscordWebhookClient(_webhookId, _webhookToken);
 
+            var message = new EmbedBuilder()
+                    .WithAuthor("DiscordLogger")
+                    .WithTitle("Modix")
+                    .WithTimestamp(DateTimeOffset.UtcNow)
+                    .WithColor(Color.Red);
+
             try
             {
                 var messagePayload = $"{formattedMessage}\n{logEvent.Exception?.Message}";
 
-                var message = new EmbedBuilder()
-                    .WithAuthor("DiscordLogger")
-                    .WithTitle("Modix")
-                    .WithTimestamp(DateTimeOffset.UtcNow)
-                    .WithColor(Color.Red)
-                    .AddField(new EmbedFieldBuilder()
-                        .WithIsInline(false)
-                        .WithName($"LogLevel: {logEvent.Level}")
-                        .WithValue(Format.Code(messagePayload.TruncateTo(DiscordStringTruncateLength))));
+                message.AddField(new EmbedFieldBuilder()
+                    .WithIsInline(false)
+                    .WithName($"LogLevel: {logEvent.Level}")
+                    .WithValue(Format.Code(messagePayload.TruncateTo(DiscordStringTruncateLength))));
 
                 var eventAsJson = JsonConvert.SerializeObject(logEvent, _jsonSerializerSettings);
 
@@ -66,11 +67,15 @@ namespace Modix.Services.Utilities
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Unable to upload log event.{ex}");
+                Console.WriteLine($"Unable to upload log event. {ex}");
+
+                var stackTracePayload = $"{formattedMessage}\n{logEvent.Exception?.ToString().TruncateTo(DiscordStringTruncateLength)}".TruncateTo(DiscordStringTruncateLength);
+
                 message.AddField(new EmbedFieldBuilder()
                     .WithIsInline(false)
                     .WithName("Stack Trace")
-                    .WithValue(Format.Code($"{formattedMessage}\n{logEvent.Exception?.ToString().TruncateTo(DiscordStringTruncateLength)}")));
+                    .WithValue(Format.Code(stackTracePayload)));
+
                 message.AddField(new EmbedFieldBuilder()
                     .WithIsInline(false)
                     .WithName("Upload Failure Exception")
@@ -81,7 +86,7 @@ namespace Modix.Services.Utilities
 
         protected CodePasteService CodePasteService { get; }
     }
-    
+
     public static class DiscordWebhookSinkExtensions
     {
         public static LoggerConfiguration DiscordWebhookSink(this LoggerSinkConfiguration config, ulong id, string token, LogEventLevel minLevel, CodePasteService codePasteService)
