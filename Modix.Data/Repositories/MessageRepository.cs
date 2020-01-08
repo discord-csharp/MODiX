@@ -294,7 +294,7 @@ namespace Modix.Data.Repositories
                     where ""UserId"" = cast(:UserId as numeric(20))",
                     new NpgsqlParameter(":GuildId", guildId.ToString()),
                     new NpgsqlParameter(":UserId", userId.ToString()))
-                .AsNoTracking()
+                .AsAsyncEnumerable()
                 .OrderByDescending(x => x.AveragePerDay)
                 .FirstOrDefaultAsync() ?? new GuildUserParticipationStatistics();
 

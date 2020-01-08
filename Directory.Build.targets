@@ -13,45 +13,43 @@
   <!-- Package versions for package references across all projects -->
   <ItemGroup>
     <PackageReference Update="Discord.Net" Version="2.2.0-dev-20191025.3" />
-    <PackageReference Update="Microsoft.EntityFrameworkCore" Version="3.0.0" />
-    <PackageReference Update="Microsoft.EntityFrameworkCore.Design" Version="3.0.0"/>
+    <PackageReference Update="Microsoft.EntityFrameworkCore" Version="3.1.0" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore.Design" Version="3.1.0"/>
     <PackageReference Update="Nito.AsyncEx.Coordination" Version="5.0.0" />
-    <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.0.1" />
+    <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.0" />
     <PackageReference Update="AspNet.Security.OAuth.Discord" Version="3.0.0" />
-    <PackageReference Update="DogStatsD-CSharp-Client" Version="3.3.0" />
-    <PackageReference Update="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.0.0" />
-    <PackageReference Update="Microsoft.AspNetCore.SpaServices.Extensions" Version="3.0.0" />
-    <PackageReference Update="Microsoft.Extensions.Configuration.UserSecrets" Version="3.0.0" />
-    <PackageReference Update="Microsoft.Extensions.Hosting" Version="3.0.0" />
-    <PackageReference Update="Microsoft.Extensions.Http" Version="3.0.0" />
-    <PackageReference Update="Microsoft.Extensions.DependencyInjection" Version="3.0.0" />
-    <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.0.1" />
+    <PackageReference Update="DogStatsD-CSharp-Client" Version="4.0.0" />
+    <PackageReference Update="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.0" />
+    <PackageReference Update="Microsoft.AspNetCore.SpaServices.Extensions" Version="3.1.0" />
+    <PackageReference Update="Microsoft.Extensions.Configuration.UserSecrets" Version="3.1.0" />
+    <PackageReference Update="Microsoft.Extensions.Hosting" Version="3.1.0" />
+    <PackageReference Update="Microsoft.Extensions.Http" Version="3.1.0" />
+    <PackageReference Update="Microsoft.Extensions.DependencyInjection" Version="3.1.0" />
 
-    <PackageReference Update="Serilog" Version="2.8.0" />
-    <PackageReference Update="Serilog.AspNetCore" Version="3.1.0" />
-    <PackageReference Update="Serilog.Extensions.Logging" Version="2.0.2" />
+    <PackageReference Update="Serilog" Version="2.9.0" />
+    <PackageReference Update="Serilog.AspNetCore" Version="3.2.0" />
+    <PackageReference Update="Serilog.Extensions.Logging" Version="3.0.1" />
     <PackageReference Update="Serilog.Sinks.Literate" Version="3.0.0" />
     <PackageReference Update="Serilog.Sinks.Sentry" Version="2.4.1" />
     <PackageReference Update="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Update="Serilog.Sinks.RollingFile" Version="3.3.0" />
-    <PackageReference Update="Serilog.Sinks.Sentry" Version="2.4.1" />
     
-    <PackageReference Update="Humanizer.Core" Version="2.5.16" />
-    <PackageReference Update="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Update="Humanizer.Core" Version="2.7.9" />
+    <PackageReference Update="Newtonsoft.Json" Version="12.0.3" />
 
-    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="16.0.1" />
-    <PackageReference Update="Moq" Version="4.10.1" />
+    <PackageReference Update="Microsoft.NET.Test.Sdk" Version="16.4.0" />
+    <PackageReference Update="Moq" Version="4.13.1" />
     <PackageReference Update="Moq.AutoMock" Version="1.2.0.120" />
-    <PackageReference Update="NUnit" Version="3.11.0" />
-    <PackageReference Update="NUnit3TestAdapter" Version="3.13.0" />
+    <PackageReference Update="NUnit" Version="3.12.0" />
+    <PackageReference Update="NUnit3TestAdapter" Version="3.16.0" />
     <PackageReference Update="Shouldly" Version="3.0.2" />
 
-    <PackageReference Update="Microsoft.EntityFrameworkCore.InMemory" Version="3.0.0" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.0" />
     <PackageReference Update="NSubstitute" Version="4.2.1" />
 
     <PackageReference Update="AsyncEvent" Version="0.2.0" />
-    <PackageReference Update="Kitsu" Version="1.4.1" />
-    <PackageReference Update="Microsoft.Extensions.Caching.Memory" Version="3.0.0" />
+    <PackageReference Update="Kitsu" Version="1.4.2" />
+    <PackageReference Update="Microsoft.Extensions.Caching.Memory" Version="3.1.0" />
     <PackageReference Update="SixLabors.ImageSharp" Version="1.0.0-beta0006" />
   </ItemGroup>
 
