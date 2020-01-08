@@ -39,6 +39,10 @@ namespace Modix.Services.Utilities
             var formattedMessage = logEvent.RenderMessage(_formatProvider);
             var webhookClient = new DiscordWebhookClient(_webhookId, _webhookToken);
 
+            var messagePayload = $"{formattedMessage}\n{logEvent.Exception?.Message}";
+
+            const int DiscordStringTruncateLength = 1000;
+
             var message = new EmbedBuilder()
                 .WithAuthor("DiscordLogger")
                 .WithTitle("Modix")
@@ -47,7 +51,7 @@ namespace Modix.Services.Utilities
                 .AddField(new EmbedFieldBuilder()
                     .WithIsInline(false)
                     .WithName($"LogLevel: {logEvent.Level}")
-                    .WithValue(Format.Code($"{formattedMessage}\n{logEvent.Exception?.Message}")));
+                    .WithValue(Format.Code(messagePayload.TruncateTo(DiscordStringTruncateLength))));
             try
             {
                 var eventAsJson = JsonConvert.SerializeObject(logEvent, _jsonSerializerSettings);
@@ -65,11 +69,11 @@ namespace Modix.Services.Utilities
                 message.AddField(new EmbedFieldBuilder()
                     .WithIsInline(false)
                     .WithName("Stack Trace")
-                    .WithValue(Format.Code($"{formattedMessage}\n{logEvent.Exception?.ToString().TruncateTo(1000)}")));
+                    .WithValue(Format.Code($"{formattedMessage}\n{logEvent.Exception?.ToString().TruncateTo(DiscordStringTruncateLength)}")));
                 message.AddField(new EmbedFieldBuilder()
                     .WithIsInline(false)
                     .WithName("Upload Failure Exception")
-                    .WithValue(Format.Code($"{ex.ToString().TruncateTo(1000)}")));
+                    .WithValue(Format.Code($"{ex.ToString().TruncateTo(DiscordStringTruncateLength)}")));
             }
             webhookClient.SendMessageAsync(string.Empty, embeds: new[] { message.Build() }, username: "Modix Logger");
         }
