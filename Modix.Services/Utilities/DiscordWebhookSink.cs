@@ -36,24 +36,25 @@ namespace Modix.Services.Utilities
         }
         public void Emit(LogEvent logEvent)
         {
+            const int DiscordStringTruncateLength = 1000;
+
             var formattedMessage = logEvent.RenderMessage(_formatProvider);
             var webhookClient = new DiscordWebhookClient(_webhookId, _webhookToken);
 
-            var messagePayload = $"{formattedMessage}\n{logEvent.Exception?.Message}";
-
-            const int DiscordStringTruncateLength = 1000;
-
-            var message = new EmbedBuilder()
-                .WithAuthor("DiscordLogger")
-                .WithTitle("Modix")
-                .WithTimestamp(DateTimeOffset.UtcNow)
-                .WithColor(Color.Red)
-                .AddField(new EmbedFieldBuilder()
-                    .WithIsInline(false)
-                    .WithName($"LogLevel: {logEvent.Level}")
-                    .WithValue(Format.Code(messagePayload.TruncateTo(DiscordStringTruncateLength))));
             try
             {
+                var messagePayload = $"{formattedMessage}\n{logEvent.Exception?.Message}";
+
+                var message = new EmbedBuilder()
+                    .WithAuthor("DiscordLogger")
+                    .WithTitle("Modix")
+                    .WithTimestamp(DateTimeOffset.UtcNow)
+                    .WithColor(Color.Red)
+                    .AddField(new EmbedFieldBuilder()
+                        .WithIsInline(false)
+                        .WithName($"LogLevel: {logEvent.Level}")
+                        .WithValue(Format.Code(messagePayload.TruncateTo(DiscordStringTruncateLength))));
+
                 var eventAsJson = JsonConvert.SerializeObject(logEvent, _jsonSerializerSettings);
 
                 var url = CodePasteService.UploadCodeAsync(eventAsJson, "json").GetAwaiter().GetResult();
