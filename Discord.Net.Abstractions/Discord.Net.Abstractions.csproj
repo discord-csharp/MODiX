@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <RootNamespace>Discord</RootNamespace>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>

@@ -3,7 +3,6 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <IsPublishable>false</IsPublishable>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
   </PropertyGroup>
   
   <ItemGroup>

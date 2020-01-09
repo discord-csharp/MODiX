@@ -2,9 +2,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>TRACE;DEBUG</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
-  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="DogStatsD-CSharp-Client" />
     <PackageReference Include="Humanizer.Core" />
