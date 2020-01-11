@@ -52,6 +52,14 @@ namespace Modix.Modules
         }
 
         [Command("avatar"), Alias("av", "ava", "pfp"), Summary("Gets an avatar for a user")]
+        public Task GetAvatarAsync(
+                [Summary("Size for the avatar, defaults to 128")]
+                ushort size = 128)
+        {
+            return GetAvatarAsync(Context.User, size);
+        }
+
+        [Command("avatar"), Alias("av", "ava", "pfp"), Summary("Gets an avatar for a user")]
         public async Task GetAvatarAsync(
             [Summary("User that has the avatar")]
                 IUser user,
