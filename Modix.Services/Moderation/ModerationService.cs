@@ -349,6 +349,13 @@ namespace Modix.Services.Moderation
 
             if (channel is IGuildChannel guildChannel)
             {
+                var isUnmoderated = await DesignatedChannelService.ChannelHasDesignationAsync(guildChannel.Guild, channel, DesignatedChannelType.Unmoderated);
+
+                if (isUnmoderated)
+                {
+                    return;
+                }
+
                 var muteRole = await GetOrCreateDesignatedMuteRoleAsync(guildChannel.Guild, AuthorizationService.CurrentUserId.Value);
 
                 await ConfigureChannelMuteRolePermissionsAsync(guildChannel, muteRole);
