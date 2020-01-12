@@ -1,8 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-
+using System.Linq.Expressions;
+using System.Text.RegularExpressions;
+using LinqKit;
 using Modix.Data.Models.Core;
+using Modix.Data.Repositories;
 using Modix.Data.Utilities;
+using Extensions = LinqKit.Extensions;
 
 namespace Modix.Data.Models.Moderation
 {
@@ -63,13 +68,13 @@ namespace Modix.Data.Models.Moderation
         public DateTimeOffsetRange? ExpiresRange { get; set; }
 
         /// <summary>
-        /// A flag indicating whether records to be returned should have an <see cref="InfractionEntity.RescindActionId"/> value of null, 
+        /// A flag indicating whether records to be returned should have an <see cref="InfractionEntity.RescindActionId"/> value of null,
         /// or non-null, (or both).
         /// </summary>
         public bool? IsRescinded { get; set; }
 
         /// <summary>
-        /// A flag indicating whether records to be returned should have an <see cref="InfractionEntity.DeleteActionId"/> value of null, 
+        /// A flag indicating whether records to be returned should have an <see cref="InfractionEntity.DeleteActionId"/> value of null,
         /// or non-null, (or both).
         /// </summary>
         public bool? IsDeleted { get; set; }
@@ -89,7 +94,7 @@ namespace Modix.Data.Models.Moderation
                     x => criteria!.Types.Contains(x.Type),
                     criteria?.Types?.Any() ?? false)
                 .FilterBy(
-                    x => (x.Subject.Nickname ?? $"{x.Subject.User.Username}#{x.Subject.User.Discriminator}").OrdinalContains(criteria!.Subject!),
+                    x => ReusableQueries.StringContainsUser.Invoke(x.Subject, criteria!.Subject!),
                     !string.IsNullOrWhiteSpace(criteria?.Subject))
                 .FilterBy(
                     x => x.SubjectId == criteria!.SubjectId,
@@ -101,7 +106,7 @@ namespace Modix.Data.Models.Moderation
                     x => x.CreateAction.Created <= criteria!.CreatedRange!.Value.To,
                     criteria?.CreatedRange?.To != null)
                 .FilterBy(
-                    x => (x.CreateAction.CreatedBy.Nickname ?? $"{x.CreateAction.CreatedBy.User.Username}#{x.CreateAction.CreatedBy.User.Discriminator}").OrdinalContains(criteria!.Creator!),
+                    x => ReusableQueries.StringContainsUser.Invoke(x.CreateAction.CreatedBy, criteria!.Creator!),
                     !string.IsNullOrWhiteSpace(criteria?.Creator))
                 .FilterBy(
                     x => x.CreateAction.CreatedById == criteria!.CreatedById,
