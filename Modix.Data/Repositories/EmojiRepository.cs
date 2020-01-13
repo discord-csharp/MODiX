@@ -228,7 +228,7 @@ namespace Modix.Data.Repositories
             var stats = await ModixContext
                 .Set<SingleEmojiStatsDto>()
                 .FromSqlRaw(query, parameters)
-                .AsNoTracking()
+                .AsAsyncEnumerable()
                 .FirstOrDefaultAsync();
 
             return SingleEmojiUsageStatistics.FromDto(stats ?? new SingleEmojiStatsDto());
@@ -291,7 +291,7 @@ namespace Modix.Data.Repositories
             var stats = await ModixContext
                 .Set<EmojiStatsDto>()
                 .FromSqlRaw(query, parameters)
-                .AsNoTracking()
+                .AsAsyncEnumerable()
                 .ToArrayAsync();
 
             return stats.Select(x => EmojiUsageStatistics.FromDto(x ?? new EmojiStatsDto())).ToArray();
@@ -358,7 +358,7 @@ namespace Modix.Data.Repositories
             var stats = await ModixContext
                 .Set<GuildEmojiStats>()
                 .FromSqlRaw(query, parameters)
-                .AsNoTracking()
+                .AsAsyncEnumerable()
                 .FirstOrDefaultAsync();
 
             return stats;
