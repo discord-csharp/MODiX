@@ -7,7 +7,7 @@ using Modix.Data.Utilities;
 namespace Modix.Data.Models.Emoji
 {
     [Table("Emoji")]
-    internal class EmojiEntity
+    public class EmojiEntity
     {
         [Key]
         [Required]

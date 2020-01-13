@@ -57,7 +57,7 @@ namespace Modix.Data.Models.Tags
         public GuildRoleBrief? OwnerRole { get; set; }
 
         [ExpansionExpression]
-        internal static readonly Expression<Func<TagEntity, TagSummary>> FromEntityProjection
+        public static readonly Expression<Func<TagEntity, TagSummary>> FromEntityProjection
             = entity => new TagSummary()
             {
                 Id = entity.Id,

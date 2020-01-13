@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,7 @@ namespace Modix.Data.Models.Tags
     /// Describes a user-configurable, reproduceable message.
     /// </summary>
     [Table("Tags")]
-    internal class TagEntity
+    public class TagEntity
     {
         /// <summary>
         /// The tag's unique identifier.
@@ -146,6 +147,42 @@ namespace Modix.Data.Models.Tags
             modelBuilder
                 .Entity<TagEntity>()
                 .HasIndex(x => x.OwnerRoleId);
+        }
+
+        public void IncrementUse()
+        {
+            Uses++;
+        }
+
+        public void Update(string newContent)
+        {
+            Content = newContent;
+        }
+
+        public void Delete(ulong deletedByUserId)
+        {
+            var deleteAction = new TagActionEntity
+            {
+                GuildId = GuildId,
+                Created = DateTimeOffset.Now,
+                Type = TagActionType.TagDeleted,
+                CreatedById = deletedByUserId,
+                OldTagId = Id,
+            };
+
+            DeleteAction = deleteAction;
+        }
+
+        public void TransferToUser(ulong userId)
+        {
+            OwnerUserId = userId;
+            OwnerRoleId = null;
+        }
+
+        public void TransferToRole(ulong roleId)
+        {
+            OwnerUserId = null;
+            OwnerRoleId = roleId;
         }
     }
 }

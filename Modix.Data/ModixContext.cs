@@ -59,11 +59,11 @@ namespace Modix.Data
 
         public DbSet<PromotionActionEntity> PromotionActions { get; set; } = null!;
 
-        internal DbSet<TagEntity> Tags { get; set; } = null!;
+        public DbSet<TagEntity> Tags { get; set; } = null!;
 
-        internal DbSet<TagActionEntity> TagActions { get; set; } = null!;
+        public DbSet<TagActionEntity> TagActions { get; set; } = null!;
 
-        internal DbSet<EmojiEntity> Emoji { get; set; } = null!;
+        public DbSet<EmojiEntity> Emoji { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
