@@ -23,17 +23,17 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// See <see cref="UserEntity.Username"/>.
         /// </summary>
-        public string Username { get; set; }
+        public string Username { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="UserEntity.Discriminator"/>.
         /// </summary>
-        public string Discriminator { get; set; }
+        public string Discriminator { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="GuildUserEntity.Nickname"/>.
         /// </summary>
-        public string Nickname { get; set; }
+        public string? Nickname { get; set; }
 
         /// <summary>
         /// See <see cref="GuildUserEntity.FirstSeen"/>.

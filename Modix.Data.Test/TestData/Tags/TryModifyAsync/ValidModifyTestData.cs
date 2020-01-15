@@ -11,6 +11,6 @@ namespace Modix.Data.Test.TestData.Tags.TryModifyAsync
         /// Arguments should be passed with the new tag's summary as the first argument and
         /// the old/original tag's summary as the second argument.
         /// </summary>
-        public Func<TagSummary, TagSummary, bool> Predicate { get; set; }
+        public Func<TagSummary, TagSummary, bool> Predicate { get; set; } = null!;
     }
 }

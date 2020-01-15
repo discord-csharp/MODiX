@@ -12,13 +12,6 @@ namespace Modix.Data.Test.TestData.Tags
             {
                 new ExceptionReadTestData()
                 {
-                    TestName = "Null name",
-                    GuildId = 1,
-                    TagName = null,
-                    ExceptionType = typeof(ArgumentException),
-                },
-                new ExceptionReadTestData()
-                {
                     TestName = "Empty name",
                     GuildId = 1,
                     TagName = "",

@@ -26,17 +26,17 @@ namespace Modix.Data.Models.Promotions
         /// <summary>
         /// See <see cref="PromotionCampaignEntity.Subject"/>.
         /// </summary>
-        public GuildUserBrief Subject { get; set; }
+        public GuildUserBrief Subject { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="PromotionCampaignEntity.TargetRole"/>.
         /// </summary>
-        public GuildRoleBrief TargetRole { get; set; }
+        public GuildRoleBrief TargetRole { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="PromotionCampaignEntity.CreateAction"/>.
         /// </summary>
-        public PromotionActionBrief CreateAction { get; set; }
+        public PromotionActionBrief CreateAction { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="PromotionCampaignEntity.Outcome"/>.
@@ -46,7 +46,7 @@ namespace Modix.Data.Models.Promotions
         /// <summary>
         /// See <see cref="PromotionCampaignEntity.CloseAction"/>.
         /// </summary>
-        public PromotionActionBrief CloseAction { get; set; }
+        public PromotionActionBrief? CloseAction { get; set; }
 
         /// <summary>
         /// A summarization of <see cref="PromotionCampaignEntity.Comments"/>,
@@ -57,7 +57,11 @@ namespace Modix.Data.Models.Promotions
             .Select(x => new { x.Key, Count = x.Count() })
             .ToDictionary(x => x.Key, x => x.Count);
 
-        public List<PromotionSentiment> SentimentsGiven { get; set; }
+        /// <summary>
+        /// A summarization of <see cref="PromotionCampaignEntity.Comments"/>,
+        /// summarizing the overall sentiment of comments.
+        /// </summary>
+        public List<PromotionSentiment> SentimentsGiven { get; set; } = null!;
 
         [ExpansionExpression]
         internal static Expression<Func<PromotionCampaignEntity, PromotionCampaignSummary>> FromEntityProjection

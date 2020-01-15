@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.DependencyInjection;
-
-using Serilog;
 
 namespace Modix.Common.Messaging
 {
@@ -21,7 +18,7 @@ namespace Modix.Common.Messaging
         /// <param name="notification">The notification data to be published.</param>
         /// <param name="cancellationToken">A token to cancel the asynchronous operation.</param>
         /// <returns>A <see cref="Task"/> that will complete when all handlers have completed handling the notification.</returns>
-        Task PublishAsync<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : INotification;
+        Task PublishAsync<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : notnull, INotification;
 
         /// <summary>
         /// Publishes a request to be handled by a registered <see cref="IRequestHandler{TRequest, TResponse}"/> object.
@@ -34,7 +31,7 @@ namespace Modix.Common.Messaging
         /// A <see cref="Task"/> that will complete when the handler has completed handling the request,
         /// containing the generated response data.
         /// </returns>
-        Task<TResponse> PublishAsync<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default) where TRequest : IRequest<TResponse>;
+        Task<TResponse> PublishAsync<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default) where TRequest : notnull, IRequest<TResponse>;
     }
 
     /// <inheritdoc />
@@ -49,7 +46,7 @@ namespace Modix.Common.Messaging
         }
 
         /// <inheritdoc />
-        public async Task PublishAsync<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : INotification
+        public async Task PublishAsync<TNotification>(TNotification notification, CancellationToken cancellationToken = default) where TNotification : notnull, INotification
         {
             if (notification == null)
                 throw new ArgumentNullException(nameof(notification));
@@ -59,7 +56,7 @@ namespace Modix.Common.Messaging
         }
 
         /// <inheritdoc />
-        public Task<TResponse> PublishAsync<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default) where TRequest : IRequest<TResponse>
+        public Task<TResponse> PublishAsync<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default) where TRequest : notnull, IRequest<TResponse>
         {
             if (request == null)
                 throw new ArgumentNullException(nameof(request));

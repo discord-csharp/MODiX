@@ -25,7 +25,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// A <see cref="DeletedMessageEntity.Channel.Name"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
         /// </summary>
-        public string Channel { get; set; }
+        public string? Channel { get; set; }
 
         /// <summary>
         /// A <see cref="DeletedMessageEntity.AuthorId"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
@@ -35,7 +35,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// A <see cref="DeletedMessageEntity.Author"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
         /// </summary>
-        public string Author { get; set; }
+        public string? Author { get; set; }
 
         /// <summary>
         /// A <see cref="DeletedMessageEntity.CreateAction.CreatedById"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
@@ -45,17 +45,17 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// A <see cref="DeletedMessageEntity.CreatedBy"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
         /// </summary>
-        public string CreatedBy { get; set; }
+        public string? CreatedBy { get; set; }
 
         /// <summary>
         /// A <see cref="DeletedMessageEntity.Content"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
         /// </summary>
-        public string Content { get; set; }
+        public string? Content { get; set; }
 
         /// <summary>
         /// A <see cref="DeletedMessageEntity.Reason"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
         /// </summary>
-        public string Reason { get; set; }
+        public string? Reason { get; set; }
 
         /// <summary>
         /// A <see cref="DeletedMessageEntity.BatchId"/> value, defining the <see cref="DeletedMessageEntity"/> entities to be returned.
@@ -119,33 +119,33 @@ namespace Modix.Data.Models.Moderation
                     x => x.GuildId == criteria.GuildId,
                     criteria?.GuildId != null)
                 .FilterBy(
-                    x => x.ChannelId == criteria.ChannelId,
+                    x => x.ChannelId == criteria!.ChannelId,
                     criteria?.ChannelId != null)
                 .FilterBy(
-                    x => x.Channel.Name.OrdinalContains(criteria.Channel),
+                    x => x.Channel.Name.OrdinalContains(criteria!.Channel!),
                     !string.IsNullOrWhiteSpace(criteria?.Channel))
                 .FilterBy(
-                    x => x.AuthorId == criteria.AuthorId,
+                    x => x.AuthorId == criteria!.AuthorId,
                     criteria?.AuthorId != null)
                 //TODO: Refactor this to a separate method
                 .FilterBy(
-                    x => (x.Author.Nickname ?? $"{x.Author.User.Username}#{x.Author.User.Discriminator}").OrdinalContains(criteria.Author),
+                    x => (x.Author.Nickname ?? $"{x.Author.User.Username}#{x.Author.User.Discriminator}").OrdinalContains(criteria!.Author!),
                     !string.IsNullOrWhiteSpace(criteria?.Author))
                 .FilterBy(
-                    x => x.CreateAction.CreatedById == criteria.CreatedById,
+                    x => x.CreateAction.CreatedById == criteria!.CreatedById,
                     criteria?.CreatedById != null)
                 //TODO: Refactor this to a separate method
                 .FilterBy(
-                    x => (x.CreateAction.CreatedBy.Nickname ?? $"{x.CreateAction.CreatedBy.User.Username}#{x.Author.User.Discriminator}").OrdinalContains(criteria.CreatedBy),
+                    x => (x.CreateAction.CreatedBy!.Nickname ?? $"{x.CreateAction.CreatedBy.User.Username}#{x.Author.User.Discriminator}").OrdinalContains(criteria!.CreatedBy!),
                     !string.IsNullOrWhiteSpace(criteria?.CreatedBy))
                 .FilterBy(
-                    x => x.Content.OrdinalContains(criteria.Content),
+                    x => x.Content.OrdinalContains(criteria!.Content!),
                     !string.IsNullOrWhiteSpace(criteria?.Content))
                 .FilterBy(
-                    x => x.Reason.OrdinalContains(criteria.Reason),
+                    x => x.Reason.OrdinalContains(criteria!.Reason!),
                     !string.IsNullOrWhiteSpace(criteria?.Reason))
                 .FilterBy(
-                    x => x.BatchId == criteria.BatchId,
+                    x => x.BatchId == criteria!.BatchId,
                     criteria?.BatchId != null);
     }
 }

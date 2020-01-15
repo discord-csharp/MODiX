@@ -35,7 +35,7 @@ namespace Modix.Data.Models.Emoji
         /// <summary>
         /// The name of the emoji.
         /// </summary>
-        public string EmojiName { get; set; }
+        public string EmojiName { get; set; } = null!;
 
         /// <summary>
         /// Indicates whether an emoji is animated.

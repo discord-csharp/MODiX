@@ -1,8 +1,10 @@
-﻿namespace Microsoft.EntityFrameworkCore.ValueGeneration
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Microsoft.EntityFrameworkCore.ValueGeneration
 {
     public abstract class ResettableSequenceValueGenerator<T> : ValueGenerator<T>
     {
-        public abstract void SetValue(T value);
+        public abstract void SetValue([AllowNull] T value);
     }
 
 }

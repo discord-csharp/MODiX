@@ -16,10 +16,10 @@ namespace Modix.Data.Models
         public BehaviourCategory Category { get; set; }
 
         [Required]
-        public string Key { get; set; }
+        public string Key { get; set; } = null!;
 
         [Required]
-        public string Value { get; set; }
+        public string Value { get; set; } = null!;
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

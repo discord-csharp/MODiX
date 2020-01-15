@@ -18,7 +18,7 @@ namespace Modix.Data.Models.Promotions
         /// <summary>
         /// See <see cref="PromotionCommentEntity.Campaign"/>.
         /// </summary>
-        public PromotionCampaignBrief Campaign { get; set; }
+        public PromotionCampaignBrief? Campaign { get; set; }
 
         /// <summary>
         /// See <see cref="PromotionCommentEntity.Sentiment"/>.
@@ -28,17 +28,17 @@ namespace Modix.Data.Models.Promotions
         /// <summary>
         /// See <see cref="PromotionCommentEntity.Content"/>.
         /// </summary>
-        public string Content { get; set; }
+        public string Content { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="PromotionCommentEntity.CreateAction"/>.
         /// </summary>
-        public PromotionActionBrief Created { get; set; }
+        public PromotionActionBrief? Created { get; set; }
 
         /// <summary>
         /// See <see cref="PromotionCommentEntity.ModifyAction"/>.
         /// </summary>
-        public PromotionActionBrief Modified { get; set; }
+        public PromotionActionBrief? Modified { get; set; }
 
         [ExpansionExpression]
         internal static Expression<Func<PromotionCommentEntity, PromotionCommentSummary>> FromEntityProjection

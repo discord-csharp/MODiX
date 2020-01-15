@@ -25,15 +25,19 @@ namespace Modix.Data.ExpandableQueries
             if (expression is null)
                 throw new ArgumentNullException(nameof(expression));
 
-            var elementType = expression.Type.GetElementType();
+            var elementType = expression.Type.GetElementType()!;
 
             try
             {
-                return Activator.CreateInstance(typeof(ExpandableQuery<>).MakeGenericType(elementType), new object[] { this, expression }) as IQueryable;
+                return (IQueryable)Activator.CreateInstance(typeof(ExpandableQuery<>).MakeGenericType(elementType), new object[] { this, expression })!;
             }
             catch (TargetInvocationException ex)
             {
-                throw ex.InnerException;
+                if (ex.InnerException is object)
+                {
+                    throw ex.InnerException;
+                }
+                throw;
             }
         }
 

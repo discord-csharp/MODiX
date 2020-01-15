@@ -36,7 +36,7 @@ namespace Modix.Data.Models.Emoji
         /// <summary>
         /// The name of the emoji.
         /// </summary>
-        public string EmojiName { get; set; }
+        public string? EmojiName { get; set; }
 
         /// <summary>
         /// Indicates whether the emoji is animated.
@@ -59,19 +59,19 @@ namespace Modix.Data.Models.Emoji
         public static IQueryable<EmojiEntity> FilterBy(this IQueryable<EmojiEntity> query, EmojiSearchCriteria criteria)
             => query
                 .FilterBy(
-                    x => x.GuildId == criteria.GuildId.Value,
+                    x => x.GuildId == criteria.GuildId!.Value,
                     criteria.GuildId != null)
                 .FilterBy(
-                    x => x.ChannelId == criteria.ChannelId.Value,
+                    x => x.ChannelId == criteria.ChannelId!.Value,
                     criteria.ChannelId != null)
                 .FilterBy(
-                    x => x.MessageId == criteria.MessageId.Value,
+                    x => x.MessageId == criteria.MessageId!.Value,
                     criteria.MessageId != null)
                 .FilterBy(
-                    x => x.UserId == criteria.UserId.Value,
+                    x => x.UserId == criteria.UserId!.Value,
                     criteria.UserId != null)
                 .FilterBy(
-                    x => x.EmojiId == criteria.EmojiId.Value,
+                    x => x.EmojiId == criteria.EmojiId!.Value,
                     criteria.EmojiId != null)
                 .FilterBy(
                     x => x.EmojiName == criteria.EmojiName,
@@ -80,15 +80,15 @@ namespace Modix.Data.Models.Emoji
                     x => x.IsAnimated == criteria.IsAnimated,
                     criteria.IsAnimated != null)
                 .FilterBy(
-                    x => x.Timestamp >= criteria.TimestampRange.Value.From.Value,
+                    x => x.Timestamp >= criteria.TimestampRange!.Value.From!.Value,
                     criteria.TimestampRange != null
                     && criteria.TimestampRange.Value.From != null)
                 .FilterBy(
-                    x => x.Timestamp <= criteria.TimestampRange.Value.To.Value,
+                    x => x.Timestamp <= criteria.TimestampRange!.Value.To!.Value,
                     criteria.TimestampRange != null
                     && criteria.TimestampRange.Value.To != null)
                 .FilterBy(
-                    x => x.UsageType == criteria.UsageType.Value,
+                    x => x.UsageType == criteria.UsageType!.Value,
                     criteria.UsageType != null);
     }
 }

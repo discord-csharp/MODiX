@@ -56,7 +56,7 @@ namespace Modix.Data.Models.Core
         /// The configuration action that created this mapping.
         /// </summary>
         [Required]
-        public virtual ConfigurationActionEntity CreateAction { get; set; }
+        public virtual ConfigurationActionEntity CreateAction { get; set; } = null!;
 
         /// <summary>
         /// The <see cref="ConfigurationActionEntity.Id"/> value (if any) of <see cref="CreateAction"/>.
@@ -66,7 +66,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// The configuration action (if any) that deleted this mapping.
         /// </summary>
-        public virtual ConfigurationActionEntity DeleteAction { get; set; }
+        public virtual ConfigurationActionEntity? DeleteAction { get; set; }
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

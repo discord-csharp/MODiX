@@ -10,7 +10,7 @@ namespace Modix.Data.ExpandableQueries
         static ProjectMethodVisitor()
         {
             _projectMethod = typeof(ExpandableExtensions)
-                .GetMethod(nameof(ExpandableExtensions.Project));
+                .GetMethod(nameof(ExpandableExtensions.Project))!;
         }
 
         protected override Expression VisitMethodCall(MethodCallExpression node)
@@ -18,7 +18,7 @@ namespace Modix.Data.ExpandableQueries
             if ((node.Method.IsGenericMethod) && (node.Method.GetGenericMethodDefinition() == _projectMethod))
             {
                 var input = node.Arguments[0];
-                var projection = (node.Arguments[1] as UnaryExpression).Operand as LambdaExpression;
+                var projection = (LambdaExpression)((UnaryExpression)node.Arguments[1]).Operand;
 
                 var parameter = projection.Parameters.First();
 

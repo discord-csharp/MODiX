@@ -33,22 +33,22 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// See <see cref="ConfigurationActionEntity.CreatedBy"/>.
         /// </summary>
-        public virtual GuildUserBrief CreatedBy { get; set; }
+        public virtual GuildUserBrief CreatedBy { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="ConfigurationActionEntity.ClaimMapping"/>.
         /// </summary>
-        public ClaimMappingBrief ClaimMapping { get; set; }
+        public ClaimMappingBrief? ClaimMapping { get; set; }
 
         /// <summary>
         /// See <see cref="ConfigurationActionEntity.DesignatedChannelMapping"/>.
         /// </summary>
-        public DesignatedChannelMappingBrief DesignatedChannelMapping { get; set; }
+        public DesignatedChannelMappingBrief? DesignatedChannelMapping { get; set; }
 
         /// <summary>
         /// See <see cref="ConfigurationActionEntity.DesignatedRoleMapping"/>.
         /// </summary>
-        public DesignatedRoleMappingBrief DesignatedRoleMapping { get; set; }
+        public DesignatedRoleMappingBrief? DesignatedRoleMapping { get; set; }
 
         [ExpansionExpression]
         internal static readonly Expression<Func<ConfigurationActionEntity, ConfigurationActionSummary>> FromEntityProjection

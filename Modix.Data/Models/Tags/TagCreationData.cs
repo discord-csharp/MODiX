@@ -20,12 +20,12 @@ namespace Modix.Data.Models.Tags
         /// <summary>
         /// See <see cref="TagEntity.Name"/>.
         /// </summary>
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="TagEntity.Content"/>.
         /// </summary>
-        public string Content { get; set; }
+        public string Content { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="TagEntity.Uses"/>.

@@ -8,7 +8,7 @@ namespace Modix.Data.Test
 {
     public static class TestDataContextFactory
     {
-        public static ModixContext BuildTestDataContext(Action<ModixContext> initializeAction = null)
+        public static ModixContext BuildTestDataContext(Action<ModixContext>? initializeAction = null)
         {
             var modixContext = Substitute.ForPartsOf<ModixContext>(new DbContextOptionsBuilder<ModixContext>()
                 .UseInMemoryDatabase((++_databaseName).ToString())

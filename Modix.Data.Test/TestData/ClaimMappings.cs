@@ -81,7 +81,7 @@ namespace Modix.Data.Test.TestData
                 }
             };
 
-        public static IEnumerable<(string name, ClaimMappingSearchCriteria criteria, long[] resultIds)> Searches
+        public static IEnumerable<(string name, ClaimMappingSearchCriteria? criteria, long[] resultIds)> Searches
             = new[]
             {
                 (

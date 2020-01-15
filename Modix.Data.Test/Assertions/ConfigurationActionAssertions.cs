@@ -34,17 +34,17 @@ namespace Shouldly
             if (entity.ClaimMappingId is null)
                 summary.ClaimMapping.ShouldBeNull();
             else
-                summary.ClaimMapping.ShouldMatchTestData();
+                summary.ClaimMapping!.ShouldMatchTestData();
 
             if (entity.DesignatedChannelMappingId is null)
                 summary.DesignatedChannelMapping.ShouldBeNull();
             else
-                summary.DesignatedChannelMapping.ShouldMatchTestData();
+                summary.DesignatedChannelMapping!.ShouldMatchTestData();
 
             if (entity.DesignatedRoleMappingId is null)
                 summary.DesignatedRoleMapping.ShouldBeNull();
             else
-                summary.DesignatedRoleMapping.ShouldMatchTestData();
+                summary.DesignatedRoleMapping!.ShouldMatchTestData();
         }
 
         public static void ShouldNotHaveChanged(this ConfigurationActionEntity entity)

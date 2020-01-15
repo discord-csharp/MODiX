@@ -12,19 +12,19 @@ namespace Modix.Data.Models.Core
 
         public DateTimeOffset? JoinedAt { get; private set; }
 
-        public string Nickname { get; private set; }
+        public string? Nickname { get; private set; }
 
         public GuildPermissions GuildPermissions { get; private set; } = new GuildPermissions();
 
-        public IGuild Guild { get; private set; }
+        public IGuild? Guild { get; private set; }
 
         public ulong GuildId { get; private set; }
 
         public IReadOnlyCollection<ulong> RoleIds { get; private set; } = new List<ulong>();
 
-        public string AvatarId { get; private set; }
+        public string? AvatarId { get; private set; }
 
-        public string Discriminator { get; private set; }
+        public string? Discriminator { get; private set; }
 
         public ushort DiscriminatorValue { get; private set; }
 
@@ -32,7 +32,7 @@ namespace Modix.Data.Models.Core
 
         public bool IsWebhook { get; private set; }
 
-        public string Username { get; private set; }
+        public string? Username { get; private set; }
 
         public DateTimeOffset CreatedAt { get; private set; } = DateTimeOffset.UtcNow;
 
@@ -40,7 +40,7 @@ namespace Modix.Data.Models.Core
 
         public string Mention => MentionUtils.MentionUser(Id);
 
-        public Game Game { get; private set; } = null;
+        public Game? Game { get; private set; }
 
         public UserStatus Status { get; private set; } = UserStatus.Offline;
 
@@ -54,11 +54,11 @@ namespace Modix.Data.Models.Core
 
         public bool IsSuppressed { get; private set; }
 
-        public IVoiceChannel VoiceChannel { get; private set; }
+        public IVoiceChannel? VoiceChannel { get; private set; }
 
-        public string VoiceSessionId { get; private set; }
+        public string? VoiceSessionId { get; private set; }
 
-        public IActivity Activity { get; private set; }
+        public IActivity? Activity { get; private set; }
 
         public DateTimeOffset? FirstSeen { get; private set; }
 
@@ -66,25 +66,25 @@ namespace Modix.Data.Models.Core
 
         public bool IsBanned { get; private set; }
 
-        public string BanReason { get; private set; }
+        public string? BanReason { get; private set; }
 
         public DateTimeOffset? PremiumSince { get; private set; }
 
-        public IImmutableSet<ClientType> ActiveClients { get; private set; }
+        public IImmutableSet<ClientType>? ActiveClients { get; private set; }
 
         public bool IsStreaming { get; private set; }
 
-        public async Task AddRoleAsync(IRole role, RequestOptions options = null)
+        public async Task AddRoleAsync(IRole role, RequestOptions? options = null)
         {
             await OnGuildUserOrThrowAsync(user => user.AddRoleAsync(role, options));
         }
 
-        public async Task AddRolesAsync(IEnumerable<IRole> roles, RequestOptions options = null)
+        public async Task AddRolesAsync(IEnumerable<IRole> roles, RequestOptions? options = null)
         {
             await OnGuildUserOrThrowAsync(user => user.AddRolesAsync(roles, options));
         }
 
-        public async Task<IDMChannel> GetOrCreateDMChannelAsync(RequestOptions options = null)
+        public async Task<IDMChannel> GetOrCreateDMChannelAsync(RequestOptions? options = null)
         {
             return await OnGuildUserOrThrowAsync(user => user.GetOrCreateDMChannelAsync(options));
         }
@@ -94,30 +94,30 @@ namespace Modix.Data.Models.Core
             return OnGuildUserOrThrow(user => user.GetPermissions(channel));
         }
 
-        public async Task KickAsync(string reason = null, RequestOptions options = null)
+        public async Task KickAsync(string? reason = null, RequestOptions? options = null)
         {
             await OnGuildUserOrThrowAsync(u => u.KickAsync(reason, options));
         }
 
-        public async Task ModifyAsync(Action<GuildUserProperties> func, RequestOptions options = null)
+        public async Task ModifyAsync(Action<GuildUserProperties> func, RequestOptions? options = null)
         {
             await OnGuildUserOrThrowAsync(u => u.ModifyAsync(func, options));
         }
 
-        public async Task RemoveRoleAsync(IRole role, RequestOptions options = null)
+        public async Task RemoveRoleAsync(IRole role, RequestOptions? options = null)
         {
             await OnGuildUserOrThrowAsync(u => u.RemoveRoleAsync(role, options));
         }
 
-        public async Task RemoveRolesAsync(IEnumerable<IRole> roles, RequestOptions options = null)
+        public async Task RemoveRolesAsync(IEnumerable<IRole> roles, RequestOptions? options = null)
         {
             await OnGuildUserOrThrowAsync(u => u.RemoveRolesAsync(roles, options));
         }
 
-        public string GetAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
+        public string? GetAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
             => _user?.GetAvatarUrl(format, size);
 
-        public string GetDefaultAvatarUrl()
+        public string? GetDefaultAvatarUrl()
             => _user?.GetDefaultAvatarUrl();
 
         public EphemeralUser WithIEntityData(IEntity<ulong> user)
@@ -328,7 +328,7 @@ namespace Modix.Data.Models.Core
             return action.Invoke(_guildUser);
         }
 
-        private IUser _user;
-        private IGuildUser _guildUser;
+        private IUser? _user;
+        private IGuildUser? _guildUser;
     }
 }

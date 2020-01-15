@@ -18,7 +18,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// See <see cref="DesignatedRoleMappingEntity.Role"/>.
         /// </summary>
-        public GuildRoleBrief Role { get; set; }
+        public GuildRoleBrief Role { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="DesignatedRoleMappingEntity.Type"/>

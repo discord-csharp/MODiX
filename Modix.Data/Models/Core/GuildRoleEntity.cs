@@ -32,7 +32,7 @@ namespace Modix.Data.Models.Core
         /// The display name of the role.
         /// </summary>
         [Required]
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
 
         /// <summary>
         /// The position of this role within its owner guild's hierarchy.

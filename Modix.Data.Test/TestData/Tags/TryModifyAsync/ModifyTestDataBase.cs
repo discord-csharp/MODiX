@@ -6,14 +6,14 @@ namespace Modix.Data.Test.TestData.Tags.TryModifyAsync
 {
     internal abstract class ModifyTestDataBase
     {
-        public string TestName { get; set; }
+        public string TestName { get; set; } = null!;
 
         public ulong GuildId { get; set; }
 
-        public string TagName { get; set; }
+        public string? TagName { get; set; }
 
         public ulong ModifiedByUserId { get; set; }
 
-        public Action<TagMutationData> ModifyAction { get; set; }
+        public Action<TagMutationData>? ModifyAction { get; set; }
     }
 }

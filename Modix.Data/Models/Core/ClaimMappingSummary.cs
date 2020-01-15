@@ -43,12 +43,12 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// See <see cref="ClaimMappingEntity.CreateAction"/>.
         /// </summary>
-        public ConfigurationActionBrief CreateAction { get; set; }
+        public ConfigurationActionBrief CreateAction { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="ClaimMappingEntity.DeleteAction"/>.
         /// </summary>
-        public ConfigurationActionBrief DeleteAction { get; set; }
+        public ConfigurationActionBrief? DeleteAction { get; set; }
 
         [ExpansionExpression]
         internal static readonly Expression<Func<ClaimMappingEntity, ClaimMappingSummary>> FromEntityProjection

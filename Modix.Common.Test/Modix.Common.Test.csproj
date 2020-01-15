@@ -3,6 +3,7 @@
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <IsPublishable>false</IsPublishable>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -25,12 +25,12 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="DeletedMessageEntity.Channel"/>.
         /// </summary>
-        public GuildChannelBrief Channel { get; set; }
+        public GuildChannelBrief Channel { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="DeletedMessageEntity.Author"/>.
         /// </summary>
-        public GuildUserBrief Author { get; set; }
+        public GuildUserBrief Author { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="DeletedMessageEntity.CreateAction.Created"/>.
@@ -40,17 +40,17 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="DeletedMessageEntity.CreateAction.CreatedBy"/>.
         /// </summary>
-        public GuildUserBrief CreatedBy { get; set; }
+        public GuildUserBrief CreatedBy { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="DeletedMessageEntity.Content"/>.
         /// </summary>
-        public string Content { get; set; }
+        public string Content { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="DeletedMessageEntity.Reason"/>.
         /// </summary>
-        public string Reason { get; set; }
+        public string Reason { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="DeletedMessageEntity.BatchId"/>.
@@ -60,7 +60,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="DeletedMessageEntity.Batch"/>.
         /// </summary>
-        public DeletedMessageBatchBrief Batch { get; set; }
+        public DeletedMessageBatchBrief Batch { get; set; } = null!;
 
         /// <summary>
         /// Defines the sortable properties of a <see cref="DeletedMessageSummary"/>
@@ -69,8 +69,8 @@ namespace Modix.Data.Models.Moderation
         public static ICollection<string> SortablePropertyNames
             => SortablePropertyMap.Keys;
 
-        internal static readonly IDictionary<string, Expression<Func<DeletedMessageSummary, object>>> SortablePropertyMap
-            = new Dictionary<string, Expression<Func<DeletedMessageSummary, object>>>()
+        internal static readonly IDictionary<string, Expression<Func<DeletedMessageSummary, object?>>> SortablePropertyMap
+            = new Dictionary<string, Expression<Func<DeletedMessageSummary, object?>>>()
             {
                 [nameof(Channel)]
                     = x => x.Channel.Name,
@@ -104,10 +104,10 @@ namespace Modix.Data.Models.Moderation
                 GuildId = entity.GuildId,
                 Channel = entity.Channel.Project(GuildChannelBrief.FromEntityProjection),
                 Author = entity.Author.Project(GuildUserBrief.FromEntityProjection),
-                Created = entity.BatchId == null
+                Created = entity.Batch == null
                     ? entity.CreateAction.Created
                     : entity.Batch.CreateAction.Created,
-                CreatedBy = entity.BatchId == null
+                CreatedBy = entity.Batch == null
                     ? entity.CreateAction.CreatedBy.Project(GuildUserBrief.FromEntityProjection)
                     : entity.Batch.CreateAction.CreatedBy.Project(GuildUserBrief.FromEntityProjection),
                 Content = entity.Content,

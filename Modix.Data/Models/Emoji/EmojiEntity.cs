@@ -29,7 +29,7 @@ namespace Modix.Data.Models.Emoji
         public ulong? EmojiId { get; set; }
 
         [Required]
-        public string EmojiName { get; set; }
+        public string EmojiName { get; set; } = null!;
 
         [Required]
         public bool IsAnimated { get; set; }

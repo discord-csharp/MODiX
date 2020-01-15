@@ -39,7 +39,7 @@ namespace Modix.Services.Core
         Task AutoConfigureGuildAsync(IGuild guild, CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Modifies a claim mapping for a role. 
+        /// Modifies a claim mapping for a role.
         /// </summary>
         /// <param name="roleId">The role for which the claim mapping is to be modified.</param>
         /// <param name="claim">The claim to be mapped.</param>
@@ -420,7 +420,7 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task<bool> HasClaimsAsync(IGuildUser guildUser, params AuthorizationClaim[] claims)
             => !(await GetGuildUserMissingClaimsAsync(guildUser, claims)).Any();
-        
+
         /// <inheritdoc />
         public async Task OnAuthenticatedAsync(IGuildUser user)
         {

@@ -18,7 +18,7 @@
         /// <summary>
         /// See <see cref="PromotionCommentEntity.Content"/>.
         /// </summary>
-        public string Content { get; set; }
+        public string Content { get; set; } = null!;
 
         internal static PromotionCommentMutationData FromEntity(PromotionCommentEntity entity)
             => new PromotionCommentMutationData

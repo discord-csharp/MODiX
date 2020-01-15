@@ -15,7 +15,7 @@ namespace Shouldly
             var entity = TagActions.Entities.First(x => x.Id == brief.Id);
             
             brief.Created.ShouldBe(entity.Created);
-            brief.CreatedBy.Id.ShouldBe(entity.CreatedById);
+            brief.CreatedBy!.Id.ShouldBe(entity.CreatedById);
         }
 
         public static void ShouldNotHaveChanged(this TagActionEntity entity)

@@ -30,12 +30,12 @@ namespace Modix.Data.Models.Core
         /// The user whose data is tracked by this entity.
         /// </summary>
         [Required]
-        public virtual UserEntity User { get; set; }
+        public virtual UserEntity User { get; set; } = null!;
 
         /// <summary>
         /// The Discord Nickname value of the user, within the guild.
         /// </summary>
-        public string Nickname { get; set; }
+        public string? Nickname { get; set; }
 
         /// <summary>
         /// A timestamp indicating the first time this user was observed within the guild.

@@ -70,7 +70,7 @@ namespace Modix.Data.Repositories
 
         private class RepositoryTransaction : IRepositoryTransaction
         {
-            public RepositoryTransaction(IDbContextTransaction transaction, IDisposable @lock)
+            public RepositoryTransaction(IDbContextTransaction? transaction, IDisposable @lock)
             {
                 _transaction = transaction;
                 _lock = @lock;
@@ -104,7 +104,7 @@ namespace Modix.Data.Repositories
             private bool _hasDisposed
                 = false;
 
-            private readonly IDbContextTransaction _transaction;
+            private readonly IDbContextTransaction? _transaction;
 
             private readonly IDisposable _lock;
         }

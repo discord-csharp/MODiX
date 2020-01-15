@@ -38,7 +38,7 @@ namespace Modix.Data.Models.Tags
         /// <summary>
         /// The action that created the tag.
         /// </summary>
-        public virtual TagActionEntity CreateAction { get; set; }
+        public virtual TagActionEntity CreateAction { get; set; } = null!;
 
         /// <summary>
         /// The unique identifier of the action that deleted the tag.
@@ -49,19 +49,19 @@ namespace Modix.Data.Models.Tags
         /// <summary>
         /// The action that deleted the tag.
         /// </summary>
-        public virtual TagActionEntity DeleteAction { get; set; }
+        public virtual TagActionEntity? DeleteAction { get; set; }
 
         /// <summary>
         /// The unique string that is used to invoke the tag.
         /// </summary>
         [Required]
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
 
         /// <summary>
         /// The message that will be displayed when the tag is invoked.
         /// </summary>
         [Required]
-        public string Content { get; set; }
+        public string Content { get; set; } = null!;
 
         /// <summary>
         /// The number of times that the tag has been invoked.
@@ -77,7 +77,7 @@ namespace Modix.Data.Models.Tags
         /// <summary>
         /// The user to whom the tag belongs, if any.
         /// </summary>
-        public virtual GuildUserEntity OwnerUser { get; set; }
+        public virtual GuildUserEntity? OwnerUser { get; set; }
 
         /// <summary>
         /// The Discord snowflake ID of the role to which the tag belongs, if any.
@@ -87,7 +87,7 @@ namespace Modix.Data.Models.Tags
         /// <summary>
         /// The role to which the tag belongs, if any.
         /// </summary>
-        public virtual GuildRoleEntity OwnerRole { get; set; }
+        public virtual GuildRoleEntity? OwnerRole { get; set; }
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

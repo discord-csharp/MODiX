@@ -16,6 +16,6 @@ namespace Modix.Data.ExpandableQueries
                 && !(fieldInfo.GetCustomAttribute<ExpansionExpressionAttribute>() is null);
 
         private static Expression GetExpansionExpression(MemberExpression node)
-            => (node.Member as FieldInfo).GetValue(null) as Expression;
+            => (Expression)((FieldInfo)node.Member).GetValue(null)!;
     }
 }

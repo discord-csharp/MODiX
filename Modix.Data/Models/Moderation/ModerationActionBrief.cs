@@ -24,7 +24,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="ModerationActionEntity.CreatedBy"/>.
         /// </summary>
-        public GuildUserBrief CreatedBy { get; set; }
+        public GuildUserBrief CreatedBy { get; set; } = null!;
 
         [ExpansionExpression]
         internal static Expression<Func<ModerationActionEntity, ModerationActionBrief>> FromEntityProjection

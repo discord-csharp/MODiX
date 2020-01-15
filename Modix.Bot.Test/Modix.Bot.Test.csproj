@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  
+
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <IsPublishable>false</IsPublishable>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Moq" />
@@ -12,9 +12,9 @@
     <PackageReference Include="NUnit3TestAdapter" />
     <PackageReference Include="Shouldly" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\Modix.Bot\Modix.Bot.csproj" />
   </ItemGroup>
-  
+
 </Project>

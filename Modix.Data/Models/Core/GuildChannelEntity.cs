@@ -31,7 +31,7 @@ namespace Modix.Data.Models.Core
         /// The last-known name of the channel.
         /// </summary>
         [Required]
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
 
         [OnModelCreating]
         internal static void OnModelCreating(ModelBuilder modelBuilder)

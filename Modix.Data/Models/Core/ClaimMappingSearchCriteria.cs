@@ -14,7 +14,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// A set of <see cref="ClaimMappingEntity.Type"/> values, defining the <see cref="ClaimMappingEntity"/> entities to be returned.
         /// </summary>
-        public IReadOnlyCollection<ClaimMappingType> Types { get; set; }
+        public IReadOnlyCollection<ClaimMappingType>? Types { get; set; }
 
         /// <summary>
         /// A <see cref="ClaimMappingEntity.GuildId"/> value, defining the <see cref="ClaimMappingEntity"/> entities to be returned.
@@ -24,7 +24,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// A set of <see cref="ClaimMappingEntity.RoleId"/> values, defining the <see cref="ClaimMappingEntity"/> entities to be returned.
         /// </summary>
-        public IReadOnlyCollection<ulong> RoleIds { get; set; }
+        public IReadOnlyCollection<ulong>? RoleIds { get; set; }
 
         /// <summary>
         /// A <see cref="ClaimMappingEntity.UserId"/> value, defining the <see cref="ClaimMappingEntity"/> entities to be returned.
@@ -34,7 +34,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// A set of <see cref="ClaimMappingEntity.Claim"/> values, defining the <see cref="ClaimMappingEntity"/> entities to be returned.
         /// </summary>
-        public IReadOnlyCollection<AuthorizationClaim> Claims { get; set; }
+        public IReadOnlyCollection<AuthorizationClaim>? Claims { get; set; }
 
         /// <summary>
         /// A range of values defining the <see cref="ClaimMappingEntity"/> entities to be returned,
@@ -49,7 +49,7 @@ namespace Modix.Data.Models.Core
         public ulong? CreatedById { get; set; }
 
         /// <summary>
-        /// A flag indicating whether records to be returned should have an <see cref="ClaimMappingEntity.DeleteActionId"/> value of null, 
+        /// A flag indicating whether records to be returned should have an <see cref="ClaimMappingEntity.DeleteActionId"/> value of null,
         /// or non-null, (or both).
         /// </summary>
         public bool? IsDeleted { get; set; }
@@ -63,31 +63,31 @@ namespace Modix.Data.Models.Core
                     x => criteria.Types.Contains(x.Type),
                     criteria?.Types?.Any() ?? false)
                 .FilterBy(
-                    x => x.GuildId == criteria.GuildId,
+                    x => x.GuildId == criteria!.GuildId,
                     criteria?.GuildId != null)
                 .FilterBy(
-                    x => ((x.RoleId != null) && criteria.RoleIds.Contains(x.RoleId.Value)) || (x.UserId == criteria.UserId),
+                    x => ((x.RoleId != null) && criteria!.RoleIds.Contains(x.RoleId.Value)) || (x.UserId == criteria!.UserId),
                     (criteria?.RoleIds?.Any() ?? false) && (criteria?.UserId != null))
                 .FilterBy(
-                    x => (x.RoleId != null) && criteria.RoleIds.Contains(x.RoleId.Value),
+                    x => (x.RoleId != null) && criteria!.RoleIds.Contains(x.RoleId.Value),
                     (criteria?.RoleIds?.Any() ?? false) && (criteria?.UserId == null))
                 .FilterBy(
-                    x => x.UserId == criteria.UserId,
+                    x => x.UserId == criteria!.UserId,
                     ((criteria?.RoleIds == null) || !criteria.RoleIds.Any()) && (criteria?.UserId != null))
                 .FilterBy(
-                    x => criteria.Claims.Contains(x.Claim),
+                    x => criteria!.Claims.Contains(x.Claim),
                     criteria?.Claims?.Any() ?? false)
                 .FilterBy(
-                    x => x.CreateAction.Created >= criteria.CreatedRange.Value.From.Value,
+                    x => x.CreateAction.Created >= criteria!.CreatedRange!.Value.From!.Value,
                     criteria?.CreatedRange?.From != null)
                 .FilterBy(
-                    x => x.CreateAction.Created <= criteria.CreatedRange.Value.To.Value,
+                    x => x.CreateAction.Created <= criteria!.CreatedRange!.Value.To!.Value,
                     criteria?.CreatedRange?.To != null)
                 .FilterBy(
-                    x => x.CreateAction.CreatedById == criteria.CreatedById,
+                    x => x.CreateAction.CreatedById == criteria!.CreatedById,
                     criteria?.CreatedById != null)
                 .FilterBy(
-                    x => (x.DeleteActionId != null) == criteria.IsDeleted.Value,
+                    x => (x.DeleteActionId != null) == criteria!.IsDeleted!.Value,
                     criteria?.IsDeleted != null);
     }
 }

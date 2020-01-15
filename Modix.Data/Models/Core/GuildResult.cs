@@ -16,9 +16,9 @@ namespace Modix.Data.Models.Core
             Error = error;
         }
 
-        public IGuild Guild { get; }
+        public IGuild? Guild { get; }
 
-        public string Error { get; }
+        public string? Error { get; }
 
         public bool IsError { get; }
     }

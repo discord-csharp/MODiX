@@ -17,6 +17,7 @@ namespace Microsoft.EntityFrameworkCore
             Expression<Func<TEntity, TProperty>> propertySelector)
                 where TContext : DbContext
                 where TEntity : class
+                where TProperty : struct
         {
             var valueGenerator = GetGetResettableSequenceValueGenerator(context, tableSelector, propertySelector);
 
@@ -53,7 +54,7 @@ namespace Microsoft.EntityFrameworkCore
 
             valueGenerator.SetValue(table.Any()
                 ? table.Max(propertySelector.Compile())
-                : default(TProperty));
+                : default(TProperty)!);
         }
 
         private static ResettableSequenceValueGenerator<TProperty> GetGetResettableSequenceValueGenerator<TContext, TEntity, TProperty>(
@@ -85,15 +86,14 @@ namespace Microsoft.EntityFrameworkCore
             if (!_valueGeneratorConstructorsByValueType.TryGetValue(property.ClrType, out var valueGeneratorConstructor))
                 throw new ArgumentException($"Unable to generate values of type {property.ClrType.Name}. No suitable {nameof(ValueGenerator)} exists");
 
-            return context.GetService<IValueGeneratorCache>()
-                .GetOrAdd(property, entity, valueGeneratorConstructor)
-                as ResettableSequenceValueGenerator<TProperty>;
+            return (ResettableSequenceValueGenerator<TProperty>)context.GetService<IValueGeneratorCache>()
+                                                                       .GetOrAdd(property, entity, valueGeneratorConstructor);
         }
 
         private static Dictionary<Type, Func<IProperty, IEntityType, ValueGenerator>> _valueGeneratorConstructorsByValueType
             = new Dictionary<Type, Func<IProperty, IEntityType, ValueGenerator>>()
             {
                 [typeof(long)] = (p, e) => new ResettableInt64SequenceValueGenerator()
-            };        
+            };
     }
 }

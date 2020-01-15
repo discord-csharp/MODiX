@@ -98,7 +98,7 @@ namespace Modix.Data.Test.TestData.Tags
                 Id = entity.Id,
                 GuildId = entity.GuildId,
                 CreateActionId = entity.CreateActionId,
-                CreateAction = entity.CreateAction?.Clone(),
+                CreateAction = entity.CreateAction?.Clone()!,
                 DeleteActionId = entity.DeleteActionId,
                 DeleteAction = entity.DeleteAction?.Clone(),
                 Name = entity.Name,

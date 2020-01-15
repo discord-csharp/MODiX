@@ -2,10 +2,10 @@
 {
     internal abstract class IncrementTestDataBase
     {
-        public string TestName { get; set; }
+        public string TestName { get; set; } = null!;
 
         public ulong GuildId { get; set; }
 
-        public string TagName { get; set; }
+        public string? TagName { get; set; }
     }
 }

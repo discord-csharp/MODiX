@@ -36,24 +36,27 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// See <see cref="ModerationActionEntity.CreatedBy"/>.
         /// </summary>
-        public GuildUserBrief CreatedBy { get; set; }
+        public GuildUserBrief CreatedBy { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="ModerationActionEntity.Infraction"/>.
         /// </summary>
-        public InfractionBrief Infraction { get; set; }
+        public InfractionBrief? Infraction { get; set; }
 
         /// <summary>
         /// See <see cref="ModerationActionEntity.DeletedMessage"/>.
         /// </summary>
-        public DeletedMessageBrief DeletedMessage { get; set; }
+        public DeletedMessageBrief? DeletedMessage { get; set; }
 
-        public string OriginalInfractionReason { get; set; }
+        /// <summary>
+        /// See <see cref="ModerationActionEntity.OriginalInfractionReason"/>.
+        /// </summary>
+        public string? OriginalInfractionReason { get; set; }
 
         /// <summary>
         /// See <see cref="DeletedMessageBatchEntity.DeletedMessages"/>.
         /// </summary>
-        public IReadOnlyCollection<DeletedMessageBrief> DeletedMessages { get; set; }
+        public IReadOnlyCollection<DeletedMessageBrief>? DeletedMessages { get; set; }
 
         [ExpansionExpression]
         internal static readonly Expression<Func<ModerationActionEntity, ModerationActionSummary>> FromEntityProjection
