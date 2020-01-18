@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
+using System.Linq;
 using Discord;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data;
@@ -68,6 +67,10 @@ namespace Modix.Services.Tags
 
         public async Task CreateTagAsync(ulong guildId, ulong creatorId, string name, string content)
         {
+            var f = await _modixContext.Tags
+                .AsQueryable()
+                .SingleOrDefaultAsync(d => d.Name == "MODiX");
+
             _authorizationService.RequireClaims(AuthorizationClaim.CreateTag);
 
             if (string.IsNullOrWhiteSpace(name))
