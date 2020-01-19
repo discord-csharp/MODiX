@@ -2,6 +2,7 @@
 
 using Discord;
 using Discord.Commands;
+using MediatR;
 using Modix.Services.CommandHelp;
 using Modix.Services.Mentions;
 
@@ -12,9 +13,11 @@ namespace Modix.Bot.Modules
     [HelpTags("mentions", "@")]
     public class MentionModule : ModuleBase
     {
-        public MentionModule(IMentionService mentionService)
+        private readonly IMediator _mediator;
+
+        public MentionModule(IMediator mediator)
         {
-            MentionService = mentionService;
+            _mediator = mediator;
         }
 
         [Command("mention")]
@@ -23,11 +26,8 @@ namespace Modix.Bot.Modules
         public async Task MentionAsync(
             [Summary("The role that the user is attempting to mention.")]
             IRole role,
-            [Summary("Message to provide to mentionees. The 'message' argument is ignored by the command.")]
-            [Remainder]
-            string message = null)
-            => await MentionService.MentionRoleAsync(role, Context.Channel, message);
-
-        internal protected IMentionService MentionService { get; }
+            [Summary("Message to provide to mentionees. The 'message' argument is ignored by the command.")] [Remainder]
+            string message = null) =>
+                await _mediator.Publish(new MentionCommand(role, Context.Channel, message));
     }
 }

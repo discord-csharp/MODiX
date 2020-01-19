@@ -121,7 +121,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddCodePaste()
                 .AddCommandHelp()
                 .AddGuildStats()
-                .AddMentions()
                 .AddModixTags()
                 .AddStarboard()
                 .AddAutoRemoveMessage()

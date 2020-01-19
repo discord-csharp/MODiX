@@ -168,6 +168,8 @@ namespace Modix.Services.Core
         /// </summary>
         /// <param name="claims">A set of claims to be checked against <see cref="CurrentClaims"/>.</param>
         void RequireClaims(params AuthorizationClaim[] claims);
+
+        bool HasClaim(AuthorizationClaim claim);
     }
 
     /// <inheritdoc />
@@ -472,6 +474,12 @@ namespace Modix.Services.Core
             if (missingClaims.Length != 0)
                 // TODO: Booooo for exception-based flow control
                 throw new InvalidOperationException($"The current operation could not be authorized. The following claims were missing: {string.Join(", ", missingClaims)}");
+        }
+
+        public bool HasClaim(AuthorizationClaim claim)
+        {
+            RequireAuthenticatedUser();
+            return CurrentClaims.Contains(claim);
         }
 
         /// <summary>
