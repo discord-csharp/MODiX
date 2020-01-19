@@ -75,6 +75,8 @@ namespace Modix.Data
             foreach(var method in onModelCreatingMethods)
                 method.Invoke(null, new [] { modelBuilder });
 
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(ModixContext).Assembly);
+
             modelBuilder.Entity<PerUserMessageCount>().HasNoKey();
             modelBuilder.Entity<GuildUserParticipationStatistics>().HasNoKey();
             modelBuilder.Entity<SingleEmojiStatsDto>().HasNoKey();
