@@ -2,6 +2,7 @@
   <PropertyGroup>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <Nullable>enable</Nullable>
+    <UserSecretsId>5B9ECED8-0E0C-443E-98B1-F1E508AB292B</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Discord.Net" />
@@ -12,5 +13,6 @@
     </PackageReference>
     <PackageReference Include="Nito.AsyncEx.Coordination" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
   </ItemGroup>
 </Project>
