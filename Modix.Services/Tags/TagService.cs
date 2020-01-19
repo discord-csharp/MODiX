@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
+using System.Linq;
 using Discord;
-
+using Microsoft.EntityFrameworkCore;
+using Modix.Data;
+using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Tags;
 using Modix.Data.Repositories;
@@ -15,249 +16,129 @@ using Modix.Services.Utilities;
 
 namespace Modix.Services.Tags
 {
-    /// <summary>
-    /// Describes a service for maintaining and invoking tags.
-    /// </summary>
     public interface ITagService
     {
-        /// <summary>
-        /// Creates a new tag.
-        /// </summary>
-        /// <param name="guildId">The Discord snowflake ID of the guild to which the tag will belong.</param>
-        /// <param name="creatorId">The Discord snowflake ID of the user who is creating the tag.</param>
-        /// <param name="name">The name that will be used to invoke the tag.</param>
-        /// <param name="content">The text that will be displayed when the tag is invoked.</param>
-        /// <exception cref="ArgumentException">Throws for <paramref name="name"/>.</exception>
-        /// <exception cref="ArgumentException">Throws for <paramref name="content"/>.</exception>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation completes.
-        /// </returns>
         Task CreateTagAsync(ulong guildId, ulong creatorId, string name, string content);
 
-        /// <summary>
-        /// Invokes a tag.
-        /// </summary>
-        /// <param name="guildId">The Discord snowflake ID of the guild to which the tag belongs.</param>
-        /// <param name="channelId">The Discord snowflake ID of the channel in which the tag is being invoked.</param>
-        /// <param name="name">The name that will be used to invoke the tag.</param>
-        /// <exception cref="ArgumentException">Throws for <paramref name="name"/>.</exception>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation completes.
-        /// </returns>
         Task UseTagAsync(ulong guildId, ulong channelId, string name);
 
-        /// <summary>
-        /// Modifies the contents of a tag.
-        /// </summary>
-        /// <param name="guildId">The Discord snowflake ID of the guild to which the tag belongs.</param>
-        /// <param name="modifierId">The Discord snowflake ID of the user who is modifying the tag.</param>
-        /// <param name="name">The name that is used to invoke the tag.</param>
-        /// <param name="newContent">The text that will be displayed when the tag is invoked.</param>
-        /// <exception cref="ArgumentException">Throws for <paramref name="name"/>.</exception>
-        /// <exception cref="ArgumentException">Throws for <paramref name="newContent"/>.</exception>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation completes.
-        /// </returns>
         Task ModifyTagAsync(ulong guildId, ulong modifierId, string name, string newContent);
 
-        /// <summary>
-        /// Deletes a tag.
-        /// </summary>
-        /// <param name="guildId">The Discord snowflake ID of the guild to which the tag belongs.</param>
-        /// <param name="deleterId">The Discord snowflake ID of the user who is modifying the tag.</param>
-        /// <param name="name">The name that is used to invoke the tag.</param>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation completes.
-        /// </returns>
         Task DeleteTagAsync(ulong guildId, ulong deleterId, string name);
 
-        /// <summary>
-        /// Retrieves the tag that matches the supplied criteria.
-        /// </summary>
-        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tag belongs.</param>
-        /// <param name="name">The name that is used to invoke the tag.</param>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation completes,
-        /// with the tag that fit the supplied criteria.
-        /// </returns>
         Task<TagSummary> GetTagAsync(ulong guildId, string name);
 
-        /// <summary>
-        /// Searches all tags based on the supplied criteria.
-        /// </summary>
-        /// <param name="criteria">Criteria describing how to filter the result set of tags.</param>
-        /// <exception cref="ArgumentNullException">Throws for <paramref name="criteria"/>.</exception>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation completes,
-        /// with a collection of tags that fit the supplied criteria.
-        /// </returns>
         Task<IReadOnlyCollection<TagSummary>> GetSummariesAsync(TagSearchCriteria criteria);
 
-        /// <summary>
-        /// Gets all tags owned by the supplied user.
-        /// </summary>
-        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tag belongs.</param>
-        /// <param name="userId">The Discord snowflake ID of the user who owns the tag.</param>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing a collection of all tags owned by the supplied user.
-        /// </returns>
         Task<IReadOnlyCollection<TagSummary>> GetTagsOwnedByUserAsync(ulong guildId, ulong userId);
 
-        /// <summary>
-        /// Gets all tags owned by the supplied role.
-        /// </summary>
-        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tag belongs.</param>
-        /// <param name="roleId">The Discord snowflake ID of the role that owns the tag.</param>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing a collection of all tags owned by the supplied role.
-        /// </returns>
         Task<IReadOnlyCollection<TagSummary>> GetTagsOwnedByRoleAsync(ulong guildId, ulong roleId);
 
-        /// <summary>
-        /// Transfers a tag to the supplied user.
-        /// </summary>
-        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tag belongs.</param>
-        /// <param name="name">The name that is used to invoke the tag.</param>
-        /// <param name="currentUserId">The user who is attempting to transfer the tag.</param>
-        /// <param name="userId">The user who will own the tag.</param>
-        /// <exception cref="ArgumentException">Throws for <paramref name="name"/>.</exception>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation is complete.
-        /// </returns>
         Task TransferToUserAsync(ulong guildId, string name, ulong currentUserId, ulong userId);
 
-        /// <summary>
-        /// Transfers a tag to the supplied role.
-        /// </summary>
-        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tag belongs.</param>
-        /// <param name="name">The name that is used to invoke the tag.</param>
-        /// <param name="currentUserId">The user who is attempting to transfer the tag.</param>
-        /// <param name="roleId">The role that will own the tag.</param>
-        /// <exception cref="ArgumentException">Throws for <paramref name="name"/>.</exception>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation is complete.
-        /// </returns>
         Task TransferToRoleAsync(ulong guildId, string name, ulong currentUserId, ulong roleId);
 
-        /// <summary>
-        /// Determines whether the supplied user can maintain the supplied tag.
-        /// </summary>
-        /// <param name="tag">The tag to be maintained.</param>
-        /// <param name="userId">The Discord snowflake ID of the user who is attempting to maintain the tag.</param>
-        /// <exception cref="ArgumentNullException">Throws for <paramref name="tag"/>.</exception>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation is complete,
-        /// containing a flag indicating whether the user can maintain the tag.
-        /// </returns>
-        Task<bool> CanUserMaintainTagAsync(TagSummary tag, ulong userId);
-
-        /// <summary>
-        /// Determines whether a tag with the given name exists within the given guild.
-        /// </summary>
-        /// <param name="guildId">The Discord snowflake ID value of the guild to which the tag belongs.</param>
-        /// <param name="name">The name that is used to invoke the tag.</param>
-        /// <returns>True if the tag exists, false if not</returns>
         Task<bool> TagExistsAsync(ulong guildId, string name);
     }
 
-    /// <inheritdoc />
     internal class TagService : ITagService
     {
+        private readonly IDiscordClient _discordClient;
+        private readonly IAuthorizationService _authorizationService;
+        private readonly IUserService _userService;
+        private readonly IDesignatedRoleMappingRepository _designatedRoleMappingRepository;
+        private readonly ModixContext _modixContext;
+
         private static readonly Regex _tagNameRegex = new Regex(@"^\S+\b$");
-        
-        /// <summary>
-        /// Constructs a new <see cref="TagService"/> with the supplied dependencies.
-        /// </summary>
+
         public TagService(
             IDiscordClient discordClient,
             IAuthorizationService authorizationService,
-            ITagRepository tagRepository,
             IUserService userService,
-            IDesignatedRoleMappingRepository designatedRoleMappingRepository)
+            IDesignatedRoleMappingRepository designatedRoleMappingRepository,
+            ModixContext modixContext)
         {
-            DiscordClient = discordClient;
-            AuthorizationService = authorizationService;
-            TagRepository = tagRepository;
-            UserService = userService;
-            DesignatedRoleMappingRepository = designatedRoleMappingRepository;
+            _discordClient = discordClient;
+            _authorizationService = authorizationService;
+            _userService = userService;
+            _modixContext = modixContext;
+            _designatedRoleMappingRepository = designatedRoleMappingRepository;
         }
 
-        /// <inheritdoc />
         public async Task CreateTagAsync(ulong guildId, ulong creatorId, string name, string content)
         {
-            AuthorizationService.RequireClaims(AuthorizationClaim.CreateTag);
+            _authorizationService.RequireClaims(AuthorizationClaim.CreateTag);
 
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("The tag name cannot be blank or whitespace.", nameof(name));
 
             if (string.IsNullOrWhiteSpace(content))
                 throw new ArgumentException("The tag content cannot be blank or whitespace.", nameof(content));
-                
+
             if (!_tagNameRegex.IsMatch(name))
                 throw new ArgumentException("The tag name cannot have punctuation at the end.", nameof(name));
 
             name = name.Trim().ToLower();
 
-            using (var transaction = await TagRepository.BeginMaintainTransactionAsync())
+            if (await _modixContext.Tags.Where(x => x.GuildId == guildId).Where(x => x.DeleteActionId == null).AnyAsync(x => x.Name == name))
+                throw new InvalidOperationException($"A tag with the name '{name}' already exists.");
+
+            var tag = new TagEntity
             {
-                var existingTag = await TagRepository.ReadSummaryAsync(guildId, name);
+                GuildId = guildId,
+                OwnerUserId = creatorId,
+                Name = name,
+                Content = content,
+            };
 
-                if (!(existingTag is null))
-                    throw new InvalidOperationException($"A tag with the name '{name}' already exists.");
+            var createAction = new TagActionEntity()
+            {
+                GuildId = guildId,
+                Created = DateTimeOffset.Now,
+                Type = TagActionType.TagCreated,
+                CreatedById = creatorId,
+            };
 
-                await TagRepository.CreateAsync(new TagCreationData()
-                {
-                    GuildId = guildId,
-                    CreatedById = creatorId,
-                    Name = name,
-                    Content = content,
-                    Uses = 0,
-                });
+            tag.CreateAction = createAction;
 
-                transaction.Commit();
-            }
+            _modixContext.Tags.Add(tag);
+
+            await _modixContext.SaveChangesAsync();
         }
 
-        /// <inheritdoc />
         public async Task UseTagAsync(ulong guildId, ulong channelId, string name)
         {
-            AuthorizationService.RequireClaims(AuthorizationClaim.UseTag);
+            _authorizationService.RequireClaims(AuthorizationClaim.UseTag);
 
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("The tag name cannot be blank or whitespace.", nameof(name));
 
             name = name.Trim().ToLower();
 
-            using (var transaction = await TagRepository.BeginUseTransactionAsync())
-            {
-                var tag = await TagRepository.ReadSummaryAsync(guildId, name);
+            var channel = await _discordClient.GetChannelAsync(channelId);
 
-                if (tag is null)
-                    throw new InvalidOperationException($"The tag '{name}' does not exist.");
+            if (!(channel is IMessageChannel messageChannel))
+                throw new InvalidOperationException($"The channel '{channel.Name}' is not a message channel.");
 
-                var channel = await DiscordClient.GetChannelAsync(channelId);
+            var tag = await _modixContext
+                .Tags
+                .Where(x => x.GuildId == guildId)
+                .Where(x => x.DeleteActionId == null)
+                .Where(x => x.Name == name)
+                .SingleOrDefaultAsync();
 
-                if (!(channel is IMessageChannel messageChannel))
-                    throw new InvalidOperationException($"The channel '{channel.Name}' is not a message channel.");
+            if (tag is null)
+                return;
 
-                var sanitizedContent = FormatUtilities.SanitizeAllMentions(tag.Content);
+            var sanitizedContent = FormatUtilities.SanitizeAllMentions(tag.Content);
 
-                try
-                {
-                    await messageChannel.SendMessageAsync(sanitizedContent);
-                }
-                finally
-                {
-                    await TagRepository.TryIncrementUsesAsync(guildId, name);
-                }
+            await messageChannel.SendMessageAsync(sanitizedContent);
 
-                transaction.Commit();
-            }
+            tag.IncrementUse();
+
+            await _modixContext.SaveChangesAsync();
         }
 
-        /// <inheritdoc />
         public async Task ModifyTagAsync(ulong guildId, ulong modifierId, string name, string newContent)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -268,22 +149,23 @@ namespace Modix.Services.Tags
 
             name = name.Trim().ToLower();
 
-            using (var transaction = await TagRepository.BeginMaintainTransactionAsync())
-            {
-                var tag = await TagRepository.ReadSummaryAsync(guildId, name);
+            var tag = await _modixContext
+                .Tags
+                .Where(x => x.GuildId == guildId)
+                .Where(x => x.DeleteActionId == null)
+                .Where(x => x.Name == name)
+                .SingleOrDefaultAsync();
 
-                if (tag is null)
-                    throw new InvalidOperationException($"The tag '{name}' does not exist.");
+            if (tag is null)
+                return;
 
-                await EnsureUserCanMaintainTagAsync(tag, modifierId);
+            await EnsureUserCanMaintainTagAsync(tag, modifierId);
 
-                await TagRepository.TryModifyAsync(guildId, name, modifierId, x => x.Content = newContent);
+            tag.Update(newContent);
 
-                transaction.Commit();
-            }
+            await _modixContext.SaveChangesAsync();
         }
 
-        /// <inheritdoc />
         public async Task DeleteTagAsync(ulong guildId, ulong deleterId, string name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -291,22 +173,23 @@ namespace Modix.Services.Tags
 
             name = name.Trim().ToLower();
 
-            using (var transaction = await TagRepository.BeginMaintainTransactionAsync())
-            {
-                var tag = await TagRepository.ReadSummaryAsync(guildId, name);
+            var tag = await _modixContext
+                .Tags
+                .Where(x => x.GuildId == guildId)
+                .Where(x => x.DeleteActionId == null)
+                .Where(x => x.Name == name)
+                .SingleOrDefaultAsync();
 
-                if (tag is null)
-                    throw new InvalidOperationException($"The tag '{name}' does not exist.");
+            if (tag is null)
+                return;
 
-                await EnsureUserCanMaintainTagAsync(tag, deleterId);
+            await EnsureUserCanMaintainTagAsync(tag, deleterId);
 
-                await TagRepository.TryDeleteAsync(guildId, name, deleterId);
+            tag.Delete(deleterId);
 
-                transaction.Commit();
-            }
+            await _modixContext.SaveChangesAsync();
         }
 
-        /// <inheritdoc />
         public async Task<TagSummary> GetTagAsync(ulong guildId, string name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -314,35 +197,48 @@ namespace Modix.Services.Tags
 
             name = name.Trim().ToLower();
 
-            return await TagRepository.ReadSummaryAsync(guildId, name);
+            return await _modixContext
+                .Tags
+                .Where(x => x.GuildId == guildId)
+                .Where(x => x.DeleteActionId == null)
+                .Where(x => x.Name == name)
+                .AsExpandable()
+                .Select(TagSummary.FromEntityProjection)
+                .FirstOrDefaultAsync();
         }
 
-        /// <inheritdoc />
         public async Task<IReadOnlyCollection<TagSummary>> GetSummariesAsync(TagSearchCriteria criteria)
         {
             if (criteria is null)
                 throw new ArgumentNullException(nameof(criteria));
 
-            return await TagRepository.SearchSummariesAsync(criteria);
+            return await _modixContext.Tags
+                .Where(x => x.DeleteActionId == null)
+                .FilterTagsBy(criteria)
+                .OrderBy(x => x.Name)
+                .AsExpandable()
+                .Select(TagSummary.FromEntityProjection)
+                .ToArrayAsync();
         }
 
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<TagSummary>> GetTagsOwnedByUserAsync(ulong guildId, ulong userId)
-            => await TagRepository.SearchSummariesAsync(new TagSearchCriteria()
+        public Task<IReadOnlyCollection<TagSummary>> GetTagsOwnedByUserAsync(ulong guildId, ulong userId)
+        {
+            return GetSummariesAsync(new TagSearchCriteria()
             {
                 GuildId = guildId,
                 OwnerUserId = userId,
             });
+        }
 
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<TagSummary>> GetTagsOwnedByRoleAsync(ulong guildId, ulong roleId)
-            => await TagRepository.SearchSummariesAsync(new TagSearchCriteria()
+        public Task<IReadOnlyCollection<TagSummary>> GetTagsOwnedByRoleAsync(ulong guildId, ulong roleId)
+        {
+            return GetSummariesAsync(new TagSearchCriteria()
             {
                 GuildId = guildId,
-                OwnerRoleId = roleId,
+                OwnerRoleId = roleId
             });
+        }
 
-        /// <inheritdoc />
         public async Task TransferToUserAsync(ulong guildId, string name, ulong currentUserId, ulong userId)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -350,27 +246,23 @@ namespace Modix.Services.Tags
 
             name = name.Trim().ToLower();
 
-            using (var transaction = await TagRepository.BeginMaintainTransactionAsync())
-            {
-                var tag = await TagRepository.ReadSummaryAsync(guildId, name);
+            var tag = await _modixContext
+                .Tags
+                .Where(x => x.GuildId == guildId)
+                .Where(x => x.DeleteActionId == null)
+                .Where(x => x.Name == name)
+                .SingleOrDefaultAsync();
 
-                if (tag is null)
-                    throw new InvalidOperationException($"The tag '{name}' does not exist.");
+            if (tag is null)
+                return;
 
-                await EnsureUserCanMaintainTagAsync(tag, currentUserId);
+            await EnsureUserCanMaintainTagAsync(tag, currentUserId);
 
-                await TagRepository.TryModifyAsync(tag.GuildId, tag.Name, currentUserId,
-                    x =>
-                    {
-                        x.OwnerRoleId = null;
-                        x.OwnerUserId = userId;
-                    });
+            tag.TransferToUser(userId);
 
-                transaction.Commit();
-            }
+            await _modixContext.SaveChangesAsync();
         }
 
-        /// <inheritdoc />
         public async Task TransferToRoleAsync(ulong guildId, string name, ulong currentUserId, ulong roleId)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -378,33 +270,29 @@ namespace Modix.Services.Tags
 
             name = name.Trim().ToLower();
 
-            using (var transaction = await TagRepository.BeginMaintainTransactionAsync())
-            {
-                var tag = await TagRepository.ReadSummaryAsync(guildId, name);
+            var tag = await _modixContext
+                .Tags
+                .Where(x => x.GuildId == guildId)
+                .Where(x => x.DeleteActionId == null)
+                .Where(x => x.Name == name)
+                .SingleOrDefaultAsync();
 
-                if (tag is null)
-                    throw new InvalidOperationException($"The tag '{name}' does not exist.");
+            if (tag is null)
+                return;
 
-                await EnsureUserCanMaintainTagAsync(tag, currentUserId);
+            await EnsureUserCanMaintainTagAsync(tag, currentUserId);
 
-                await TagRepository.TryModifyAsync(tag.GuildId, tag.Name, currentUserId,
-                    x =>
-                    {
-                        x.OwnerRoleId = roleId;
-                        x.OwnerUserId = null;
-                    });
+            tag.TransferToRole(roleId);
 
-                transaction.Commit();
-            }
+            await _modixContext.SaveChangesAsync();
         }
 
-        /// <inheritdoc />
-        public async Task<bool> CanUserMaintainTagAsync(TagSummary tag, ulong userId)
+        public async Task<bool> CanUserMaintainTagAsync(TagEntity tag, ulong userId)
         {
             if (tag is null)
                 throw new ArgumentNullException(nameof(tag));
 
-            var currentUser = await UserService.GetGuildUserAsync(tag.GuildId, userId);
+            var currentUser = await _userService.GetGuildUserAsync(tag.GuildId, userId);
 
             if (!await CanTriviallyMaintainTagAsync(currentUser))
             {
@@ -413,7 +301,7 @@ namespace Modix.Services.Tags
                     if (!await CanUserMaintainTagOwnedByRoleAsync(currentUser, tag.OwnerRole))
                         return false;
                 }
-                else if (userId != tag.OwnerUser.Id)
+                else if (userId != tag.OwnerUser.UserId)
                 {
                     return false;
                 }
@@ -422,34 +310,9 @@ namespace Modix.Services.Tags
             return true;
         }
 
-        /// <summary>
-        /// A client for interacting with the Discord API.
-        /// </summary>
-        protected IDiscordClient DiscordClient { get; }
-
-        /// <summary>
-        /// A service for interacting with frontend authentication system and performing authorization.
-        /// </summary>
-        protected IAuthorizationService AuthorizationService { get; }
-
-        /// <summary>
-        /// A service for storing and retrieving tag data.
-        /// </summary>
-        protected ITagRepository TagRepository { get; }
-
-        /// <summary>
-        /// An <see cref="IUserService"/> for interacting with discord users within the application.
-        /// </summary>
-        internal protected IUserService UserService { get; }
-
-        /// <summary>
-        /// An <see cref="IDesignatedRoleMappingRepository"/> storing and retrieving roles designated for use by the application.
-        /// </summary>
-        internal protected IDesignatedRoleMappingRepository DesignatedRoleMappingRepository { get; }
-
-        private async Task EnsureUserCanMaintainTagAsync(TagSummary tag, ulong currentUserId)
+        private async Task EnsureUserCanMaintainTagAsync(TagEntity tag, ulong currentUserId)
         {
-            var currentUser = await UserService.GetGuildUserAsync(tag.GuildId, currentUserId);
+            var currentUser = await _userService.GetGuildUserAsync(tag.GuildId, currentUserId);
 
             if (!await CanTriviallyMaintainTagAsync(currentUser))
             {
@@ -458,21 +321,21 @@ namespace Modix.Services.Tags
                     if (!await CanUserMaintainTagOwnedByRoleAsync(currentUser, tag.OwnerRole))
                         throw new InvalidOperationException("User rank insufficient to transfer the tag.");
                 }
-                else if (currentUserId != tag.OwnerUser.Id)
+                else if (currentUserId != tag.OwnerUser.UserId)
                 {
                     throw new InvalidOperationException("User does not own the tag.");
                 }
             }
         }
 
-        private async Task<bool> CanUserMaintainTagOwnedByRoleAsync(IGuildUser currentUser, GuildRoleBrief ownerRole)
+        private async Task<bool> CanUserMaintainTagOwnedByRoleAsync(IGuildUser currentUser, GuildRoleEntity ownerRole)
         {
             Debug.Assert(!(ownerRole is null));
 
             var rankRoles = await GetRankRolesAsync(currentUser.GuildId);
 
             // If the owner role is no longer ranked, everything outranks it.
-            if (!rankRoles.Any(x => x.Id == ownerRole.Id))
+            if (!rankRoles.Any(x => x.Id == ownerRole.RoleId))
                 return true;
 
             var currentUserRankRoles = rankRoles.Where(r => currentUser.RoleIds.Contains(r.Id));
@@ -496,14 +359,14 @@ namespace Modix.Services.Tags
                 return true;
 
             // Users with the MaintainOtherUserTag claim can always maintain tags.
-            if (await AuthorizationService.HasClaimsAsync(currentUser, AuthorizationClaim.MaintainOtherUserTag))
+            if (await _authorizationService.HasClaimsAsync(currentUser, AuthorizationClaim.MaintainOtherUserTag))
                 return true;
 
             return false;
         }
 
         private async Task<IEnumerable<GuildRoleBrief>> GetRankRolesAsync(ulong guildId)
-            => (await DesignatedRoleMappingRepository
+            => (await _designatedRoleMappingRepository
                 .SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria
                 {
                     GuildId = guildId,
@@ -514,8 +377,17 @@ namespace Modix.Services.Tags
 
         public async Task<bool> TagExistsAsync(ulong guildId, string name)
         {
-            var tag = await TagRepository.ReadSummaryAsync(guildId, name);
-            return tag != null;
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("The tag name cannot be blank or whitespace.", nameof(name));
+
+            name = name.Trim().ToLower();
+
+            return await _modixContext
+                .Tags
+                .Where(x => x.GuildId == guildId)
+                .Where(x => x.Name == name)
+                .Where(x => x.DeleteActionId == null)
+                .AnyAsync();
         }
     }
 }

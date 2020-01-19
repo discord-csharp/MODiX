@@ -30,9 +30,9 @@ namespace Modix.Data.Models.Tags
         public ulong? OwnerRoleId { get; set; }
     }
 
-    internal static class TagSearchCriteriaExtensions
+    public static class TagSearchCriteriaExtensions
     {
-        public static IQueryable<TagEntity> FilterBy(this IQueryable<TagEntity> query, TagSearchCriteria criteria)
+        public static IQueryable<TagEntity> FilterTagsBy(this IQueryable<TagEntity> query, TagSearchCriteria criteria)
             => query
                 .FilterBy(
                     x => x.GuildId == criteria.GuildId!.Value,

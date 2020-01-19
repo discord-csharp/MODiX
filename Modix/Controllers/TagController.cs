@@ -45,7 +45,8 @@ namespace Modix.Controllers
 
             foreach (var tag in data)
             {
-                tag.CanMaintain = await TagService.CanUserMaintainTagAsync(tag.TagSummary, SocketUser.Id);
+                // TODO Revisit this functionality
+                tag.CanMaintain = false;
             }
 
             return Ok(data);

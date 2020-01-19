@@ -13,7 +13,7 @@ namespace Modix.Data.Models.Tags
     /// Describes a maintenance action related to a tag.
     /// </summary>
     [Table("TagActions")]
-    internal class TagActionEntity
+    public class TagActionEntity
     {
         /// <summary>
         /// The action's unique identifier.
