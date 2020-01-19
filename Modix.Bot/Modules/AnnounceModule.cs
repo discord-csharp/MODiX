@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using MediatR;
 using Modix.Services.CommandHelp;
 using Modix.Services.Mentions;
 
@@ -11,11 +12,11 @@ namespace Modix.Bot.Modules
     [HelpTags("announce", "$")]
     public class AnnounceModule : ModuleBase
     {
-        private IMentionService _mentionService { get; }
+        private readonly IMediator _mediator;
 
-        public AnnounceModule(IMentionService mentionService)
+        public AnnounceModule(IMediator mediator)
         {
-            _mentionService = mentionService;
+            _mediator = mediator;
         }
 
         [Command("announce")]
@@ -26,10 +27,8 @@ namespace Modix.Bot.Modules
             [Remainder]
             string message)
         {
-            // Send message
-            if (await _mentionService.MentionRoleAsync(role, Context.Channel, message))
+            if (await _mediator.Send(new MentionCommand(role, Context.Channel, message)))
             {
-                // Clean up
                 await Context.Message.DeleteAsync();
             }
         }

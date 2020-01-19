@@ -8,7 +8,7 @@ using Modix.Services.Core;
 
 namespace Modix.Services.Mentions
 {
-    public class MentionCommand : INotification
+    public class MentionCommand : IRequest<bool>
     {
         public MentionCommand(IRole role, IMessageChannel channel, string message)
         {
@@ -22,7 +22,7 @@ namespace Modix.Services.Mentions
         public string Message { get; }
     }
 
-    public class MentionCommandHandler : INotificationHandler<MentionCommand>
+    public class MentionCommandHandler : IRequestHandler<MentionCommand, bool>
     {
         private readonly IAuthorizationService _authorizationService;
         private readonly IDesignatedRoleService _designatedRoleService;
@@ -34,48 +34,49 @@ namespace Modix.Services.Mentions
             _designatedRoleService = designatedRoleService;
         }
 
-        public async Task Handle(MentionCommand notification,
-            CancellationToken cancellationToken)
+        public async Task<bool> Handle(MentionCommand request, CancellationToken cancellationToken)
         {
-            if (notification.Role is null)
-                throw new ArgumentNullException(nameof(notification.Role));
+            if (request.Role is null)
+                throw new ArgumentNullException(nameof(request.Role));
 
-            if (notification.Channel is null)
-                throw new ArgumentNullException(nameof(notification.Channel));
+            if (request.Channel is null)
+                throw new ArgumentNullException(nameof(request.Channel));
 
-            var message = notification.Message ?? string.Empty;
+            var message = request.Message ?? string.Empty;
 
-            if (notification.Role.IsMentionable)
+            if (request.Role.IsMentionable)
             {
                 await SendMessage();
-                return;
+                return true;
             }
 
             if (!_authorizationService.HasClaim(AuthorizationClaim.MentionRestrictedRole))
             {
-                await notification.Channel.SendMessageAsync("You cannot mention roles!");
-                return;
+                await request.Channel.SendMessageAsync("You cannot mention roles!");
+                return false;
             }
 
-            if (!await _designatedRoleService.RoleHasDesignationAsync(notification.Role.Guild.Id,
-                    notification.Role.Id, DesignatedRoleType.RestrictedMentionability))
+            if (!await _designatedRoleService.RoleHasDesignationAsync(request.Role.Guild.Id,
+                request.Role.Id, DesignatedRoleType.RestrictedMentionability))
             {
-                await notification.Channel.SendMessageAsync("You cannot this role!");
-                return;
+                await request.Channel.SendMessageAsync("You cannot this role!");
+                return false;
             }
 
             try
             {
-                await notification.Role.ModifyAsync(x => x.Mentionable = true);
+                await request.Role.ModifyAsync(x => x.Mentionable = true);
                 await SendMessage();
             }
             finally
             {
-                await notification.Role.ModifyAsync(x => x.Mentionable = false);
+                await request.Role.ModifyAsync(x => x.Mentionable = false);
             }
 
+            return true;
+
             Task SendMessage() =>
-                notification.Channel.SendMessageAsync($"{notification.Role.Mention} {message}");
+                request.Channel.SendMessageAsync($"{request.Role.Mention} {message}");
         }
     }
 }

@@ -28,6 +28,6 @@ namespace Modix.Bot.Modules
             IRole role,
             [Summary("Message to provide to mentionees. The 'message' argument is ignored by the command.")] [Remainder]
             string message = null) =>
-                await _mediator.Publish(new MentionCommand(role, Context.Channel, message));
+                await _mediator.Send(new MentionCommand(role, Context.Channel, message));
     }
 }
