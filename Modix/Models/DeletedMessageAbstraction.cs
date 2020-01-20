@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Discord;
 using Humanizer.Bytes;
 using Modix.Data.Models.Moderation;
@@ -19,7 +17,7 @@ namespace Modix.Models
 
         public static DeletedMessageAbstraction FromIMessage(IMessage msg)
         {
-            string content = msg.Content;
+            var content = msg.Content;
 
             if (string.IsNullOrWhiteSpace(content))
             {
