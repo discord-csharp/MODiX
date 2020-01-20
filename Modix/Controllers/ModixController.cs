@@ -51,7 +51,7 @@ namespace Modix.Controllers
 
             if (SocketUser == null) { await next(); return; }
 
-            await AssignClaims();
+            await AssignClaimsAsync();
 
             //Do it again here to assign claims (this is very lazy of us)
             ModixUser = ModixUser.FromClaimsPrincipal(HttpContext.User);
@@ -61,7 +61,7 @@ namespace Modix.Controllers
             await next();
         }
 
-        protected async Task AssignClaims()
+        protected async Task AssignClaimsAsync()
         {
             await ModixAuth.OnAuthenticatedAsync(SocketUser);
 
