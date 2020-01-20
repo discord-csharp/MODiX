@@ -7,20 +7,21 @@ using Modix.Services.Core;
 
 namespace Modix.Controllers
 {
+    [ApiController]
     [Route("~/api/config/roles")]
     public class RoleController : ModixController
     {
-        private IDesignatedRoleService RoleService { get; }
+        private readonly IDesignatedRoleService _roleService;
 
         public RoleController(DiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedRoleService roleService) : base(client, modixAuth)
         {
-            RoleService = roleService;
+            _roleService = roleService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> RoleDesignations()
+        public async Task<IActionResult> RoleDesignationsAsync()
         {
-            var designatedRoles = await RoleService.GetDesignatedRolesAsync(ModixAuth.CurrentGuildId.Value);
+            var designatedRoles = await _roleService.GetDesignatedRolesAsync(ModixAuth.CurrentGuildId.Value);
 
             var mapped = designatedRoles.Select(d => new DesignatedRoleApiData
             {
@@ -34,14 +35,14 @@ namespace Modix.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> RemoveDesignation(long id)
+        public async Task<IActionResult> RemoveDesignationAsync(long id)
         {
-            await RoleService.RemoveDesignatedRoleByIdAsync(id);
+            await _roleService.RemoveDesignatedRoleByIdAsync(id);
             return Ok();
         }
 
         [HttpPut]
-        public async Task<IActionResult> CreateDesignation([FromBody] DesignatedRoleCreationData creationData)
+        public async Task<IActionResult> CreateDesignationAsync(DesignatedRoleCreationData creationData)
         {
             var foundRole = DiscordSocketClient
                 ?.GetGuild(ModixAuth.CurrentGuildId.Value)
@@ -54,7 +55,7 @@ namespace Modix.Controllers
 
             foreach (var designation in creationData.RoleDesignations)
             {
-                await RoleService.AddDesignatedRoleAsync(foundRole.Guild.Id, foundRole.Id, designation);
+                await _roleService.AddDesignatedRoleAsync(foundRole.Guild.Id, foundRole.Id, designation);
             }
 
             return Ok();
