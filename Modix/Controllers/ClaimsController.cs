@@ -8,20 +8,21 @@ using Modix.Services.Core;
 
 namespace Modix.Controllers
 {
+    [ApiController]
     [Route("~/api/config/claims")]
     public class ClaimsController : ModixController
     {
-        private IClaimMappingRepository ClaimMappingRepository { get; }
+        private readonly IClaimMappingRepository _claimMappingRepository;
 
         public ClaimsController(DiscordSocketClient client, IAuthorizationService modixAuth, IClaimMappingRepository claimMappingRepository) : base(client, modixAuth)
         {
-            ClaimMappingRepository = claimMappingRepository;
+            _claimMappingRepository = claimMappingRepository;
         }
 
         [HttpGet]
-        public async Task<IActionResult> RoleClaims()
+        public async Task<IActionResult> RoleClaimsAsync()
         {
-            var found = await ClaimMappingRepository.SearchBriefsAsync(new ClaimMappingSearchCriteria
+            var found = await _claimMappingRepository.SearchBriefsAsync(new ClaimMappingSearchCriteria
             {
                 IsDeleted = false
             });
@@ -30,18 +31,18 @@ namespace Modix.Controllers
         }
 
         [HttpPatch]
-        public async Task<IActionResult> ModifyRole([FromBody]RoleClaimModifyData modifyData)
+        public async Task<IActionResult> ModifyRoleAsync(RoleClaimModifyData modifyData)
         {
             await ModixAuth.ModifyClaimMappingAsync(modifyData.RoleId, modifyData.Claim, modifyData.MappingType);
             return Ok();
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteClaim(int id)
+        public async Task<IActionResult> DeleteClaimAsync(int id)
         {
-            using (var transaction = await ClaimMappingRepository.BeginDeleteTransactionAsync())
+            using (var transaction = await _claimMappingRepository.BeginDeleteTransactionAsync())
             {
-                if (!await ClaimMappingRepository.TryDeleteAsync(id, SocketUser.Id))
+                if (!await _claimMappingRepository.TryDeleteAsync(id, SocketUser.Id))
                     return NotFound();
 
                 transaction.Commit();
