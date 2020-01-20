@@ -11,15 +11,17 @@ using Modix.Services.Core;
 
 namespace Modix.Controllers
 {
+    [ApiController]
     [Route("~/api/autocomplete")]
     public class AutocompleteController : ModixController
     {
-        private IDesignatedRoleService RoleService { get; }
+        private readonly IDesignatedRoleService _roleService;
         private readonly IUserService _userService;
 
-        public AutocompleteController(DiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedRoleService roleService, IUserService userService) : base(client, modixAuth)
+        public AutocompleteController(DiscordSocketClient client, IAuthorizationService modixAuth,
+            IDesignatedRoleService roleService, IUserService userService) : base(client, modixAuth)
         {
-            RoleService = roleService;
+            _roleService = roleService;
             _userService = userService;
         }
 
@@ -41,7 +43,7 @@ namespace Modix.Controllers
         }
 
         [HttpGet("users")]
-        public async Task<IActionResult> AutocompleteUsers(string query)
+        public async Task<IActionResult> AutoCompleteUsersAsync(string query)
         {
             var result = UserGuild.Users is null
                 ? Enumerable.Empty<ModixUser>()
@@ -61,7 +63,7 @@ namespace Modix.Controllers
         }
 
         [HttpGet("roles")]
-        public async Task<IActionResult> AutocompleteRoles(string query, [FromQuery] bool rankOnly)
+        public async Task<IActionResult> AutoCompleteRolesAsync(string query, bool rankOnly)
         {
             if (query.StartsWith('@'))
             {
@@ -77,7 +79,7 @@ namespace Modix.Controllers
                     IsDeleted = false
                 };
 
-                IEnumerable<DesignatedRoleMappingBrief> result = await RoleService.SearchDesignatedRolesAsync(criteria);
+                IEnumerable<DesignatedRoleMappingBrief> result = await _roleService.SearchDesignatedRolesAsync(criteria);
 
                 if (!string.IsNullOrWhiteSpace(query))
                 {
