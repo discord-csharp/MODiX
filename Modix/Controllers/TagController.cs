@@ -12,20 +12,21 @@ using Modix.Services.Tags;
 
 namespace Modix.Controllers
 {
+    [ApiController]
     [Route("~/api/tags")]
     public class TagController : ModixController
     {
-        private ITagService TagService { get; }
+        private readonly ITagService _tagService;
 
         public TagController(DiscordSocketClient client, IAuthorizationService modixAuth, ITagService tagService) : base(client, modixAuth)
         {
-            TagService = tagService;
+            _tagService = tagService;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetTagsAsync()
         {
-            var summaries = await TagService.GetSummariesAsync(new TagSearchCriteria
+            var summaries = await _tagService.GetSummariesAsync(new TagSearchCriteria
             {
                 GuildId = UserGuild.Id,
             });
@@ -53,11 +54,11 @@ namespace Modix.Controllers
         }
 
         [HttpPut("{name}")]
-        public async Task<IActionResult> CreateTagAsync([FromRoute] string name, [FromBody] Models.Tags.TagCreationData data)
+        public async Task<IActionResult> CreateTagAsync(string name, Models.Tags.TagCreationData data)
         {
             try
             {
-                await TagService.CreateTagAsync(ModixUser.SelectedGuild, ModixUser.UserId, name, data.Content);
+                await _tagService.CreateTagAsync(ModixUser.SelectedGuild, ModixUser.UserId, name, data.Content);
             }
             catch (Exception ex)
             {
@@ -68,11 +69,11 @@ namespace Modix.Controllers
         }
 
         [HttpPatch("{name}")]
-        public async Task<IActionResult> UpdateTagAsync([FromRoute] string name, [FromBody] Models.Tags.TagMutationData data)
+        public async Task<IActionResult> UpdateTagAsync(string name, Models.Tags.TagMutationData data)
         {
             try
             {
-                await TagService.ModifyTagAsync(ModixUser.SelectedGuild, ModixUser.UserId, name, data.Content);
+                await _tagService.ModifyTagAsync(ModixUser.SelectedGuild, ModixUser.UserId, name, data.Content);
             }
             catch (Exception ex)
             {
@@ -83,11 +84,11 @@ namespace Modix.Controllers
         }
 
         [HttpDelete("{name}")]
-        public async Task<IActionResult> DeleteTagAsync([FromRoute] string name)
+        public async Task<IActionResult> DeleteTagAsync(string name)
         {
             try
             {
-                await TagService.DeleteTagAsync(ModixUser.SelectedGuild, ModixUser.UserId, name);
+                await _tagService.DeleteTagAsync(ModixUser.SelectedGuild, ModixUser.UserId, name);
             }
             catch (Exception ex)
             {
