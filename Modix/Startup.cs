@@ -12,12 +12,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Modix.Auth;
 using Modix.Configuration;
 using Modix.Data;
 using Modix.Data.Models.Core;
+using Modix.Extensions;
 using Modix.Services.CodePaste;
 using Modix.Services.Mentions;
 using Newtonsoft.Json.Converters;
@@ -49,7 +49,6 @@ namespace Modix
                 .AddCookie(options =>
                 {
                     options.LoginPath = "/api/unauthorized";
-                    //options.LogoutPath = "/logout";
                     options.ExpireTimeSpan = new TimeSpan(7, 0, 0, 0);
 
                 })
@@ -75,7 +74,6 @@ namespace Modix
                 .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.Converters.Add(new StringEnumConverter());
-                    options.SerializerSettings.Converters.Add(new StringULongConverter());
                 });
 
             services.AddStatsD(_webHostEnvironment, _configuration);
