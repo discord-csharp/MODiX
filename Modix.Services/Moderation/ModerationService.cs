@@ -14,6 +14,7 @@ using Modix.Services.Core;
 using Modix.Services.Utilities;
 
 using Serilog;
+using StatsdClient;
 
 namespace Modix.Services.Moderation
 {
@@ -244,7 +245,8 @@ namespace Modix.Services.Moderation
             IDeletedMessageRepository deletedMessageRepository,
             IDeletedMessageBatchRepository deletedMessageBatchRepository,
             IRoleService roleService,
-            IDesignatedChannelService designatedChannelService)
+            IDesignatedChannelService designatedChannelService,
+            IDogStatsd stats = null)
         {
             DiscordClient = discordClient;
             AuthorizationService = authorizationService;
@@ -257,6 +259,7 @@ namespace Modix.Services.Moderation
             DeletedMessageBatchRepository = deletedMessageBatchRepository;
             RoleService = roleService;
             DesignatedChannelService = designatedChannelService;
+            Stats = stats;
         }
 
         /// <inheritdoc />
@@ -468,6 +471,16 @@ namespace Modix.Services.Moderation
                     });
 
                 transaction.Commit();
+
+                try
+                {
+                    var guildName = await DiscordClient.GetGuildAsync(guildId);
+                    Stats.Increment("infractions", tags: new[] { $"infraction_type:{type}", $"guild:{guild.Name}" });
+                }
+                catch (Exception)
+                {
+                    // The world mourned, but nothing of tremendous value was lost.
+                }
             }
 
             // TODO: Implement ModerationSyncBehavior to listen for mutes and bans that happen directly in Discord, instead of through bot commands,
@@ -550,7 +563,7 @@ namespace Modix.Services.Moderation
                         Log.Warning("Tried to unmute {User} while deleting mute infraction, but they weren't in the guild: {Guild}",
                             infraction.Subject.Id, guild.Id);
                     }
-                    
+
                     break;
 
                 case InfractionType.Ban:
@@ -784,7 +797,7 @@ namespace Modix.Services.Moderation
                 return role;
             }
         }
-        
+
         public async Task<bool> UpdateInfractionAsync(long infractionId, string newReason, ulong currentUserId)
         {
             var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
@@ -860,6 +873,8 @@ namespace Modix.Services.Moderation
         internal protected IRoleService RoleService { get; }
 
         internal protected IDesignatedChannelService DesignatedChannelService { get; }
+
+        private IDogStatsd Stats { get; }
 
         private async Task ConfigureChannelMuteRolePermissionsAsync(IGuildChannel channel, IRole muteRole)
         {
@@ -975,7 +990,7 @@ namespace Modix.Services.Moderation
             if (!await DoesModeratorOutrankUserAsync(guildId, moderatorId, subjectId))
                 throw new InvalidOperationException("Cannot moderate users that have a rank greater than or equal to your own.");
         }
-            
+
         private static readonly OverwritePermissions _mutePermissions
             = new OverwritePermissions(
                 addReactions: PermValue.Deny,
