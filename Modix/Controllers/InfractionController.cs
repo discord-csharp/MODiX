@@ -12,24 +12,22 @@ using Modix.Mappings;
 using Modix.Models;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
-using Modix.Services.RowboatImporter;
 
 namespace Modix.Controllers
 {
+    [ApiController]
     [Route("~/api/infractions")]
     public class InfractionController : ModixController
     {
-        private IModerationService ModerationService { get; }
-        private RowboatInfractionImporterService ImporterService { get; }
+        private readonly IModerationService _moderationService;
 
-        public InfractionController(DiscordSocketClient client, IAuthorizationService modixAuth, IModerationService moderationService, RowboatInfractionImporterService importerService) : base(client, modixAuth)
+        public InfractionController(DiscordSocketClient client, IAuthorizationService modixAuth, IModerationService moderationService) : base(client, modixAuth)
         {
-            ModerationService = moderationService;
-            ImporterService = importerService;
+            _moderationService = moderationService;
         }
 
         [HttpPut]
-        public async Task<IActionResult> GetInfractionsAsync([FromBody] TableParameters tableParams)
+        public async Task<IActionResult> GetInfractionsAsync(TableParameters tableParams)
         {
             var sortingCriteria = tableParams.Sort.ToInfractionSummarySortingCriteria();
 
@@ -38,7 +36,7 @@ namespace Modix.Controllers
 
             var pagingCriteria = tableParams.ToPagingCriteria();
 
-            var result = await ModerationService.SearchInfractionsAsync(
+            var result = await _moderationService.SearchInfractionsAsync(
                 searchCriteria,
                 sortingCriteria,
                 pagingCriteria);
@@ -50,7 +48,7 @@ namespace Modix.Controllers
                 .Distinct())
             {
                 outranksValues[subjectId]
-                    = await ModerationService.DoesModeratorOutrankUserAsync(guildId, SocketUser.Id, subjectId);
+                    = await _moderationService.DoesModeratorOutrankUserAsync(guildId, SocketUser.Id, subjectId);
             }
 
             var mapped = result.Records.Select(
@@ -87,7 +85,7 @@ namespace Modix.Controllers
         }
 
         [HttpPut("{subjectId}/create")]
-        public async Task<IActionResult> CreateInfractionAsync(ulong subjectId, [FromBody] Models.InfractionCreationData creationData)
+        public async Task<IActionResult> CreateInfractionAsync(ulong subjectId, Models.InfractionCreationData creationData)
         {
             if (!Enum.TryParse<InfractionType>(creationData.Type, out var type))
                 return BadRequest($"{creationData.Type} is not a valid infraction type.");
@@ -101,7 +99,7 @@ namespace Modix.Controllers
 
             try
             {
-                await ModerationService.CreateInfractionAsync(SocketUser.Guild.Id, SocketUser.Id, type, subjectId, creationData.Reason, duration);
+                await _moderationService.CreateInfractionAsync(SocketUser.Guild.Id, SocketUser.Id, type, subjectId, creationData.Reason, duration);
             }
             catch (Exception ex)
             {
@@ -151,7 +149,7 @@ namespace Modix.Controllers
         {
             try
             {
-                await ModerationService.RescindInfractionAsync(id);
+                await _moderationService.RescindInfractionAsync(id);
             }
             catch (Exception ex)
             {
@@ -166,7 +164,7 @@ namespace Modix.Controllers
         {
             try
             {
-                await ModerationService.DeleteInfractionAsync(id);
+                await _moderationService.DeleteInfractionAsync(id);
             }
             catch (Exception ex)
             {
@@ -178,37 +176,6 @@ namespace Modix.Controllers
 
         [HttpGet("{subjectId}/doesModeratorOutrankUser")]
         public async Task<IActionResult> DoesModeratorOutrankUserAsync(ulong subjectId)
-            => Ok(await ModerationService.DoesModeratorOutrankUserAsync(ModixAuth.CurrentGuildId.Value, ModixAuth.CurrentUserId.Value, subjectId));
-
-        [HttpPut("import")]
-        public Task<IActionResult> Import()
-        {
-            throw new NotImplementedException();
-
-            //if (Request.Form.Files.Count == 0 || Request.Form.Files.First().ContentType != "application/json")
-            //{
-            //    return BadRequest("Must submit a JSON file");
-            //}
-
-            //int importCount = 0;
-
-            //try
-            //{
-            //    using (var httpStream = Request.Form.Files.First().OpenReadStream())
-            //    using (var streamReader = new StreamReader(httpStream))
-            //    {
-            //        var content = await streamReader.ReadToEndAsync();
-            //        var loaded = JsonConvert.DeserializeObject<IEnumerable<RowboatInfraction>>(content);
-
-            //        importCount = await ImporterService.ImportInfractionsAsync(loaded);
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    return BadRequest(ex.Message);
-            //}
-
-            //return Ok(importCount);
-        }
+            => Ok(await _moderationService.DoesModeratorOutrankUserAsync(ModixAuth.CurrentGuildId.Value, ModixAuth.CurrentUserId.Value, subjectId));
     }
 }
