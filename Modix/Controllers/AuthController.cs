@@ -24,7 +24,7 @@ namespace Modix.Controllers
         }
         
         [HttpGet("logout")]
-        public async Task<IActionResult> LogOut()
+        public async Task<IActionResult> LogOutAsync()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
