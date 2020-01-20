@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
-
 using Discord;
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-
-using Modix;
 using Modix.Behaviors;
 using Modix.Bot;
 using Modix.Bot.Behaviors;
@@ -25,6 +22,7 @@ using Modix.Services.BehaviourConfiguration;
 using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
+using Modix.Services.Core.Messages;
 using Modix.Services.Csharp;
 using Modix.Services.DocsMaster;
 using Modix.Services.EmojiStats;
@@ -44,7 +42,7 @@ using Modix.Services.Utilities;
 using Modix.Services.Wikipedia;
 using StatsdClient;
 
-namespace Microsoft.Extensions.DependencyInjection
+namespace Modix.Extensions
 {
     internal static class ServiceCollectionExtensions
     {
@@ -60,7 +58,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddHttpClient(HttpClientNames.AutomaticGZipDecompression)
                 .ConfigurePrimaryHttpMessageHandler(() =>
-                new HttpClientHandler()
+                new HttpClientHandler
                 {
                     AutomaticDecompression = DecompressionMethods.GZip,
                 });
@@ -85,7 +83,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IDiscordClient>(provider => provider.GetRequiredService<DiscordSocketClient>());
 
             services.AddSingleton(
-                provider => new DiscordRestClient(config: new DiscordRestConfig
+                provider => new DiscordRestClient(new DiscordRestConfig
                 {
                     LogLevel = LogSeverity.Debug,
                 }));
@@ -109,7 +107,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                     return service;
                 })
-                .AddScoped<Modix.Common.Messaging.INotificationHandler<MessageReceivedNotification>, CommandListeningBehavior>();
+                .AddScoped<INotificationHandler<MessageReceivedNotification>, CommandListeningBehavior>();
 
             services.AddSingleton<DiscordSerilogAdapter>();
 
