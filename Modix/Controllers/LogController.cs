@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
@@ -14,28 +13,28 @@ using Modix.Models;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
 using Modix.Services.Utilities;
-using Newtonsoft.Json;
 
 namespace Modix.Controllers
 {
+    [ApiController]
     [Route("~/api/logs")]
     public class LogController : ModixController
     {
-        private IModerationService ModerationService { get; }
+        private readonly IModerationService _moderationService;
 
         public LogController(DiscordSocketClient client, IAuthorizationService modixAuth, IModerationService moderationService) : base(client, modixAuth)
         {
-            ModerationService = moderationService;
+            _moderationService = moderationService;
         }
 
         [HttpGet("deletedMessages/context/{batchId}")]
-        public async Task<IActionResult> GetDeletionContext(long batchId)
+        public async Task<IActionResult> GetDeletionContextAsync(long batchId)
         {
-            var deletedMessages = await ModerationService.SearchDeletedMessagesAsync(new DeletedMessageSearchCriteria
+            var deletedMessages = await _moderationService.SearchDeletedMessagesAsync(new DeletedMessageSearchCriteria
             {
                 BatchId = batchId
             },
-            new SortingCriteria[]
+            new[]
             {
                 //Sort ascending, so the earliest message is first
                 new SortingCriteria { PropertyName = nameof(DeletedMessageSummary.MessageId), Direction = SortDirection.Ascending }
@@ -50,9 +49,8 @@ namespace Modix.Controllers
             }
 
             var batchChannelId = deletedMessages.Records.First().Channel.Id;
-            var foundChannel = UserGuild.GetChannel(batchChannelId) as ISocketMessageChannel;
 
-            if (foundChannel == null)
+            if (!(UserGuild.GetChannel(batchChannelId) is ISocketMessageChannel foundChannel))
             {
                 return NotFound($"Couldn't recreate context - text channel with id {batchChannelId} not found");
             }
@@ -76,7 +74,7 @@ namespace Modix.Controllers
         }
 
         [HttpPut("deletedMessages")]
-        public async Task<IActionResult> DeletedMessagesAsync([FromBody]TableParameters tableParams)
+        public async Task<IActionResult> DeletedMessagesAsync(TableParameters tableParams)
         {
             var sortProperty = DeletedMessageSummary.SortablePropertyNames.FirstOrDefault(
                 x => x.Equals(tableParams.Sort.Field, StringComparison.OrdinalIgnoreCase)) ?? nameof(DeletedMessageSummary.Created);
@@ -88,7 +86,7 @@ namespace Modix.Controllers
                 searchCriteria.WithPropertyValue(filter.Field, filter.Value);
             }
 
-            var result = await ModerationService.SearchDeletedMessagesAsync(searchCriteria,
+            var result = await _moderationService.SearchDeletedMessagesAsync(searchCriteria,
             new[]
             {
                 new SortingCriteria
