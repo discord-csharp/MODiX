@@ -8,7 +8,7 @@ namespace Modix.Mappings
     {
         public static InfractionSearchCriteria ToInfractionSearchCriteria(this FilterParameter[] filterParameters)
         {
-            return new InfractionSearchCriteria()
+            return new InfractionSearchCriteria
             {
                 Id = filterParameters.GetFieldValue("id")?.ToLong(),
                 Types = filterParameters.GetFieldValue("type")?.ToInfractionTypes(),

@@ -6,7 +6,7 @@ namespace Modix.Mappings
     public static class TableParametersToPagingCriteriaMapper
     {
         public static PagingCriteria ToPagingCriteria(this TableParameters tableParameters)
-            => new PagingCriteria()
+            => new PagingCriteria
             {
                 FirstRecordIndex = tableParameters.Page * tableParameters.PerPage,
                 PageSize = tableParameters.PerPage,

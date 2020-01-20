@@ -16,7 +16,7 @@ namespace Modix.Mappings
             if (sortProperty is null)
                 return null;
 
-            return new[] { new SortingCriteria()
+            return new[] { new SortingCriteria
             {
                 PropertyName = sortProperty,
                 Direction = sortParameter.Direction,
