@@ -18,7 +18,7 @@ namespace Modix.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> GetAsync()
         {
             var roleCounts = await _statService.GetGuildMemberDistributionAsync(UserGuild);
             var messageCounts = await _statService.GetTopMessageCounts(UserGuild, ModixUser.UserId);
