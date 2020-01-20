@@ -6,16 +6,15 @@ using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
-using Modix.Services.Utilities;
 
 namespace Modix.Controllers
 {
     [Route("~/api/userInformation")]
     public class UserInformationController : ModixController
     {
-        private IUserService UserService { get; }
+        private readonly IUserService _userService;
 
-        private IMessageRepository MessageRepository { get; }
+        private readonly IMessageRepository _messageRepository;
 
         public UserInformationController(
             DiscordSocketClient client,
@@ -24,8 +23,8 @@ namespace Modix.Controllers
             IMessageRepository messageRepository)
             : base(client, modixAuth)
         {
-            UserService = userService;
-            MessageRepository = messageRepository;
+            _userService = userService;
+            _messageRepository = messageRepository;
         }
 
         [HttpGet("{userIdString}")]
@@ -34,14 +33,14 @@ namespace Modix.Controllers
             if (!ulong.TryParse(userIdString, out var userId))
                 return Ok(null);
 
-            var userInformation = await UserService.GetUserInformationAsync(UserGuild.Id, userId);
+            var userInformation = await _userService.GetUserInformationAsync(UserGuild.Id, userId);
 
             if (userInformation is null)
                 return Ok(null);
 
-            var userRank = await MessageRepository.GetGuildUserParticipationStatistics(UserGuild.Id, userId);
-            var messages7 = await MessageRepository.GetGuildUserMessageCountByDate(UserGuild.Id, userId, TimeSpan.FromDays(7));
-            var messages30 = await MessageRepository.GetGuildUserMessageCountByDate(UserGuild.Id, userId, TimeSpan.FromDays(30));
+            var userRank = await _messageRepository.GetGuildUserParticipationStatistics(UserGuild.Id, userId);
+            var messages7 = await _messageRepository.GetGuildUserMessageCountByDate(UserGuild.Id, userId, TimeSpan.FromDays(7));
+            var messages30 = await _messageRepository.GetGuildUserMessageCountByDate(UserGuild.Id, userId, TimeSpan.FromDays(30));
 
             var roles = userInformation.RoleIds
                 .Select(x => UserGuild.GetRole(x))
