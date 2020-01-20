@@ -11,6 +11,7 @@ using Modix.Services.Promotions;
 
 namespace Modix.Controllers
 {
+    [ApiController]
     [Route("~/api/campaigns")]
     public class PromotionController : ModixController
     {
@@ -22,14 +23,14 @@ namespace Modix.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Campaigns()
+        public async Task<IActionResult> CampaignsAsync()
             => Ok(await _promotionsService.SearchCampaignsAsync(new PromotionCampaignSearchCriteria
             {
                 GuildId = UserGuild.Id
             }));
 
         [HttpGet("{campaignId}")]
-        public async Task<IActionResult> CampaignComments(long campaignId)
+        public async Task<IActionResult> CampaignCommentsAsync(long campaignId)
         {
             var result = await _promotionsService.GetCampaignDetailsAsync(campaignId);
 
@@ -48,7 +49,7 @@ namespace Modix.Controllers
         }
 
         [HttpGet("{subjectId}/nextRank")]
-        public async Task<IActionResult> GetNextRankRoleForUser(ulong subjectId)
+        public async Task<IActionResult> GetNextRankRoleForUserAsync(ulong subjectId)
         {
             var result = await _promotionsService.GetNextRankRoleForUserAsync(subjectId);
             var color = result is null
@@ -59,7 +60,7 @@ namespace Modix.Controllers
         }
 
         [HttpPut("{campaignId}/comments")]
-        public async Task<IActionResult> AddComment(int campaignId, [FromBody] PromotionCommentData commentData)
+        public async Task<IActionResult> AddCommentAsync(int campaignId, [FromBody] PromotionCommentData commentData)
         {
             var campaigns = await _promotionsService.SearchCampaignsAsync(new PromotionCampaignSearchCriteria
             {
@@ -84,7 +85,7 @@ namespace Modix.Controllers
         }
 
         [HttpPut("{commentId}/updateComment")]
-        public async Task<IActionResult> UpdateComment(int commentId, [FromBody] PromotionCommentData commentData)
+        public async Task<IActionResult> UpdateCommentAsync(int commentId, [FromBody] PromotionCommentData commentData)
         {
             try
             {
@@ -99,7 +100,7 @@ namespace Modix.Controllers
         }
 
         [HttpPost("{campaignId}/accept")]
-        public async Task<IActionResult> AcceptCampaign(int campaignId)
+        public async Task<IActionResult> AcceptCampaignAsync(int campaignId)
         {
             try
             {
@@ -114,7 +115,7 @@ namespace Modix.Controllers
         }
 
         [HttpPost("{campaignId}/forceAccept")]
-        public async Task<IActionResult> ForceAcceptCampaign(int campaignId)
+        public async Task<IActionResult> ForceAcceptCampaignAsync(int campaignId)
         {
             try
             {
@@ -129,7 +130,7 @@ namespace Modix.Controllers
         }
 
         [HttpPost("{campaignId}/reject")]
-        public async Task<IActionResult> RejectCampaign(int campaignId)
+        public async Task<IActionResult> RejectCampaignAsync(int campaignId)
         {
             try
             {
@@ -144,7 +145,7 @@ namespace Modix.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> Create([FromBody] PromotionCreationData creationData)
+        public async Task<IActionResult> CreateAsync(PromotionCreationData creationData)
         {
             try
             {
