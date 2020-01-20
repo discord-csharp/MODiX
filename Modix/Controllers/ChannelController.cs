@@ -7,20 +7,21 @@ using Modix.Services.Core;
 
 namespace Modix.Controllers
 {
+    [ApiController]
     [Route("~/api/config/channels")]
     public class ChannelController : ModixController
     {
-        private IDesignatedChannelService ChannelService { get; }
+        private readonly IDesignatedChannelService _channelService;
 
         public ChannelController(DiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedChannelService channelService) : base(client, modixAuth)
         {
-            ChannelService = channelService;
+            _channelService = channelService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> ChannelDesignations()
+        public async Task<IActionResult> ChannelDesignationsAsync()
         {
-            var designatedChannels = await ChannelService.GetDesignatedChannelsAsync(ModixAuth.CurrentGuildId.Value);
+            var designatedChannels = await _channelService.GetDesignatedChannelsAsync(ModixAuth.CurrentGuildId.Value);
 
             var mapped = designatedChannels.Select(d => new DesignatedChannelApiData
             {
@@ -34,14 +35,14 @@ namespace Modix.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> RemoveDesignation(long id)
+        public async Task<IActionResult> RemoveDesignationAsync(long id)
         {
-            await ChannelService.RemoveDesignatedChannelByIdAsync(id);
+            await _channelService.RemoveDesignatedChannelByIdAsync(id);
             return Ok();
         }
 
         [HttpPut]
-        public async Task<IActionResult> CreateDesignation([FromBody] DesignatedChannelCreationData creationData)
+        public async Task<IActionResult> CreateDesignationAsync(DesignatedChannelCreationData creationData)
         {
             var foundChannel = DiscordSocketClient
                 ?.GetGuild(ModixAuth.CurrentGuildId.Value)
@@ -54,7 +55,7 @@ namespace Modix.Controllers
 
             foreach (var designation in creationData.ChannelDesignations)
             {
-                await ChannelService.AddDesignatedChannelAsync(foundChannel.Guild, messageChannel, designation);
+                await _channelService.AddDesignatedChannelAsync(foundChannel.Guild, messageChannel, designation);
             }
 
             return Ok();
