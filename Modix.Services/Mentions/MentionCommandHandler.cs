@@ -59,7 +59,7 @@ namespace Modix.Services.Mentions
             if (!await _designatedRoleService.RoleHasDesignationAsync(request.Role.Guild.Id,
                 request.Role.Id, DesignatedRoleType.RestrictedMentionability))
             {
-                await request.Channel.SendMessageAsync("You cannot this role!");
+                await request.Channel.SendMessageAsync("You cannot mention this role!");
                 return false;
             }
 
