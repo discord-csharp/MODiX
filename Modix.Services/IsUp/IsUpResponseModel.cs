@@ -1,18 +1,10 @@
 ﻿#nullable enable
-using System.Net;
 using Newtonsoft.Json;
 
 namespace Modix.Services.IsUp
 {
-
-    public interface IIsUpResponse
+    public class IsUpResponseModel
     {
-        string? StatusString { get; set; }
-    }
-
-    public class IsUpResponse : IIsUpResponse
-    {
-
         [JsonProperty("deprecated")]
         public bool Deprecated { get; set; }
 
@@ -20,11 +12,9 @@ namespace Modix.Services.IsUp
         public string? Host { get; set; }
 
         [JsonProperty("isitdown")]
-        public bool Isitdown { get; set; }
+        public bool IsSiteDown { get; set; }
 
         [JsonProperty("response_code")]
         public long? ResponseCode { get; set; }
-
-        public string? StatusString { get; set; }
     }
 }
