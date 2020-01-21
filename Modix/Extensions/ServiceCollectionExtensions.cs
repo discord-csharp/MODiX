@@ -22,7 +22,6 @@ using Modix.Services.BehaviourConfiguration;
 using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
-using Modix.Services.Core.Messages;
 using Modix.Services.Csharp;
 using Modix.Services.DocsMaster;
 using Modix.Services.EmojiStats;
