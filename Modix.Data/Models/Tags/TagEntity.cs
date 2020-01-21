@@ -3,9 +3,8 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Modix.Data.Models.Core;
-using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Tags
 {
@@ -90,65 +89,6 @@ namespace Modix.Data.Models.Tags
         /// </summary>
         public virtual GuildRoleEntity? OwnerRole { get; set; }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder
-                .Entity<TagEntity>()
-                .Property(x => x.GuildId)
-                .HasConversion<long>();
-
-            modelBuilder
-                .Entity<TagEntity>()
-                .Property(x => x.OwnerUserId)
-                .HasConversion<long>();
-
-            modelBuilder
-                .Entity<TagEntity>()
-                .Property(x => x.OwnerRoleId)
-                .HasConversion<long>();
-
-            modelBuilder
-                .Entity<TagEntity>()
-                .HasOne(x => x.CreateAction)
-                .WithOne()
-                .HasForeignKey<TagEntity>(x => x.CreateActionId);
-
-            modelBuilder
-                .Entity<TagEntity>()
-                .HasOne(x => x.DeleteAction)
-                .WithOne()
-                .HasForeignKey<TagEntity>(x => x.DeleteActionId);
-
-            modelBuilder
-                .Entity<TagEntity>()
-                .HasOne(x => x.OwnerUser)
-                .WithMany()
-                .HasForeignKey(x => new { x.GuildId, x.OwnerUserId });
-
-            modelBuilder
-                .Entity<TagEntity>()
-                .HasOne(x => x.OwnerRole)
-                .WithMany()
-                .HasForeignKey(x => x.OwnerRoleId);
-
-            modelBuilder
-                .Entity<TagEntity>()
-                .HasIndex(x => x.GuildId);
-
-            modelBuilder
-                .Entity<TagEntity>()
-                .HasIndex(x => x.Name);
-
-            modelBuilder
-                .Entity<TagEntity>()
-                .HasIndex(x => x.OwnerUserId);
-
-            modelBuilder
-                .Entity<TagEntity>()
-                .HasIndex(x => x.OwnerRoleId);
-        }
-
         public void IncrementUse()
         {
             Uses++;
@@ -183,6 +123,57 @@ namespace Modix.Data.Models.Tags
         {
             OwnerUserId = null;
             OwnerRoleId = roleId;
+        }
+    }
+
+    public class TagEntityConfiguration : IEntityTypeConfiguration<TagEntity>
+    {
+        public void Configure(EntityTypeBuilder<TagEntity> builder)
+        {
+
+            builder
+                .Property(x => x.GuildId)
+                .HasConversion<long>();
+
+            builder
+                .Property(x => x.OwnerUserId)
+                .HasConversion<long>();
+
+            builder
+                .Property(x => x.OwnerRoleId)
+                .HasConversion<long>();
+
+            builder
+                .HasOne(x => x.CreateAction)
+                .WithOne()
+                .HasForeignKey<TagEntity>(x => x.CreateActionId);
+
+            builder
+                .HasOne(x => x.DeleteAction)
+                .WithOne()
+                .HasForeignKey<TagEntity>(x => x.DeleteActionId);
+
+            builder
+                .HasOne(x => x.OwnerUser)
+                .WithMany()
+                .HasForeignKey(x => new { x.GuildId, x.OwnerUserId });
+
+            builder
+                .HasOne(x => x.OwnerRole)
+                .WithMany()
+                .HasForeignKey(x => x.OwnerRoleId);
+
+            builder
+                .HasIndex(x => x.GuildId);
+
+            builder
+                .HasIndex(x => x.Name);
+
+            builder
+                .HasIndex(x => x.OwnerUserId);
+
+            builder
+                .HasIndex(x => x.OwnerRoleId);
         }
     }
 }
