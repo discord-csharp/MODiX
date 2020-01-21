@@ -12,5 +12,6 @@
     </PackageReference>
     <PackageReference Include="Nito.AsyncEx.Coordination" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
   </ItemGroup>
 </Project>

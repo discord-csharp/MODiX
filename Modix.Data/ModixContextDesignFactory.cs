@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
+using Modix.Data.Models.Core;
 
 namespace Modix.Data
 {
@@ -7,8 +9,13 @@ namespace Modix.Data
     {
         public ModixContext CreateDbContext(string[] args)
         {
-            var optionsBuilder = new DbContextOptionsBuilder<ModixContext>();
-            optionsBuilder.UseNpgsql("Server=localhost;Port=5432;Database=ModixTest;User Id=X;Password=X;");
+            var configuration = new ConfigurationBuilder()
+                .AddUserSecrets<ModixContextDesignFactory>()
+                .Build();
+
+            var optionsBuilder = new DbContextOptionsBuilder<ModixContext>()
+                .UseNpgsql(configuration.GetValue<string>(nameof(ModixConfig.DbConnection)));
+
             return new ModixContext(optionsBuilder.Options);
         }
     }
