@@ -6,9 +6,9 @@ using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Modix;
 using Modix.Behaviors;
 using Modix.Bot;
 using Modix.Bot.Behaviors;
@@ -41,7 +41,7 @@ using Modix.Services.Utilities;
 using Modix.Services.Wikipedia;
 using StatsdClient;
 
-namespace Modix.Extensions
+namespace Microsoft.Extensions.DependencyInjection
 {
     internal static class ServiceCollectionExtensions
     {
