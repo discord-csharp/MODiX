@@ -25,6 +25,8 @@
     <PackageReference Update="Microsoft.Extensions.Hosting" Version="3.1.0" />
     <PackageReference Update="Microsoft.Extensions.Http" Version="3.1.0" />
     <PackageReference Update="Microsoft.Extensions.DependencyInjection" Version="3.1.0" />
+    <PackageReference Update="MediatR" Version="8.0.0" />
+    <PackageReference Update="MediatR.Extensions.Microsoft.DependencyInjection" Version="8.0.0" />
 
     <PackageReference Update="Serilog" Version="2.9.0" />
     <PackageReference Update="Serilog.AspNetCore" Version="3.2.0" />
