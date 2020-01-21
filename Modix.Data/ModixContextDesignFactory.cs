@@ -10,7 +10,7 @@ namespace Modix.Data
         public ModixContext CreateDbContext(string[] args)
         {
             var configuration = new ConfigurationBuilder()
-                .AddUserSecrets("5B9ECED8-0E0C-443E-98B1-F1E508AB292B")
+                .AddUserSecrets<ModixContextDesignFactory>()
                 .Build();
 
             var optionsBuilder = new DbContextOptionsBuilder<ModixContext>()

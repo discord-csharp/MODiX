@@ -11,7 +11,6 @@
     <NpmBuild Condition=" '$(Configuration)' == 'Debug' ">build-dev</NpmBuild>
     <NpmBuild Condition=" '$(NpmBuild)' == '' ">build</NpmBuild>
     <DevServerRunning>false</DevServerRunning>
-    <UserSecretsId>5B9ECED8-0E0C-443E-98B1-F1E508AB292B</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
