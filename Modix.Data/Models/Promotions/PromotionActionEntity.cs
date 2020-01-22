@@ -110,7 +110,7 @@ namespace Modix.Data.Models.Promotions
                 .Entity<PromotionActionEntity>()
                 .HasOne(x => x.CreatedBy)
                 .WithMany()
-                .HasForeignKey(x => new { x.GuildId, x.CreatedById });
+                .HasForeignKey(x => x.CreatedById);
 
             modelBuilder
                 .Entity<PromotionActionEntity>()

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Modix.Data.Models.Moderation;
+using Modix.Data.Models.Promotions;
 
 namespace Modix.Data.Models.Core
 {
@@ -13,12 +15,15 @@ namespace Modix.Data.Models.Core
     /// </summary>
     public class GuildUserEntity
     {
-        public ulong GuildId { get; set; }
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public ulong Id { get; set; }
 
         [ForeignKey(nameof(User))]
         public ulong UserId { get; set; }
-
         public virtual UserEntity User { get; set; } = null!;
+
+        public ulong GuildId { get; set; }
 
         /// <summary>
         /// The Discord Nickname value of the user, within the guild.
@@ -30,7 +35,8 @@ namespace Modix.Data.Models.Core
         public DateTimeOffset LastSeen { get; set; }
 
         public ICollection<InfractionEntity> Infractions { get; set; } = new HashSet<InfractionEntity>();
-        public ICollection<MessageEntity> Messages { get; set; } = new HashSet<MessageEntity>();
+        //public ICollection<MessageEntity> Messages { get; set; } = new HashSet<MessageEntity>();
+        //public ICollection<PromotionCampaignEntity> PromotionCampaigns { get; set; } = new HashSet<PromotionCampaignEntity>();
     }
 
     public class GuildUserEntityConfiguration : IEntityTypeConfiguration<GuildUserEntity>
@@ -38,15 +44,16 @@ namespace Modix.Data.Models.Core
         public void Configure(EntityTypeBuilder<GuildUserEntity> builder)
         {
             builder
+                .Property(x => x.Id)
+                .HasConversion<long>();
+
+            builder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
 
             builder
                 .Property(x => x.UserId)
                 .HasConversion<long>();
-
-            builder
-                .HasKey(x => new { x.GuildId, x.UserId });
         }
     }
 }

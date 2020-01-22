@@ -104,7 +104,7 @@ namespace Modix.Data.Models.Core
                 .Entity<ConfigurationActionEntity>()
                 .HasOne(x => x.CreatedBy)
                 .WithMany()
-                .HasForeignKey(x => new { x.GuildId, x.CreatedById });
+                .HasForeignKey(x => x.CreatedById);
         }
     }
 }

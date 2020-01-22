@@ -8,6 +8,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Humanizer;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -23,6 +24,7 @@ using Modix.Services.Core;
 using Modix.Services.Images;
 using Modix.Services.Moderation;
 using Modix.Services.Promotions;
+using Modix.Services.UserInfo;
 using Modix.Services.Utilities;
 
 namespace Modix.Modules
@@ -45,7 +47,7 @@ namespace Modix.Modules
             IPromotionsService promotionsService,
             IImageService imageService,
             IOptions<ModixConfig> config,
-            IAutoRemoveMessageService autoRemoveMessageService)
+            IAutoRemoveMessageService autoRemoveMessageService, IMediator mediator)
         {
             _log = logger ?? new NullLogger<UserInfoModule>();
             _userService = userService;
@@ -57,6 +59,7 @@ namespace Modix.Modules
             _imageService = imageService;
             _config = config.Value;
             _autoRemoveMessageService = autoRemoveMessageService;
+            _mediator = mediator;
         }
 
         private readonly ILogger<UserInfoModule> _log;
@@ -69,112 +72,18 @@ namespace Modix.Modules
         private readonly IImageService _imageService;
         private readonly ModixConfig _config;
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
+        private readonly IMediator _mediator;
 
         [Command("info")]
         [Alias("ompf", "omfp")]
         [Summary("Retrieves information about the supplied user, or the current user if one is not provided.")]
         public async Task GetUserInfoAsync(
-            [Summary("The user to retrieve information about, if any.")]
-                [Remainder] DiscordUserOrMessageAuthorEntity user = null)
+            [Summary("The user to retrieve information about, if any.")] [Remainder]
+            DiscordUserOrMessageAuthorEntity user = null)
         {
             var userId = user?.UserId ?? Context.User.Id;
 
-            var timer = Stopwatch.StartNew();
-
-            var userInfo = await _userService.GetUserInformationAsync(Context.Guild.Id, userId);
-
-            if (userInfo == null)
-            {
-                var embed = new EmbedBuilder()
-                    .WithTitle("Retrieval Error")
-                    .WithColor(Color.Red)
-                    .WithDescription("Sorry, we don't have any data for that user - and we couldn't find any, either.")
-                    .AddField("User Id", userId);
-                await _autoRemoveMessageService.RegisterRemovableMessageAsync(
-                    Context.User,
-                    embed,
-                    async (embedBuilder) => await ReplyAsync(embed: embedBuilder.Build()));
-
-                return;
-            }
-
-            var builder = new StringBuilder();
-            builder.AppendLine("**\u276F User Information**");
-            builder.AppendLine("ID: " + userId);
-            builder.AppendLine("Profile: " + MentionUtils.MentionUser(userId));
-
-            var embedBuilder = new EmbedBuilder()
-                .WithUserAsAuthor(userInfo)
-                .WithTimestamp(_utcNow);
-
-            var avatar = userInfo.GetDefiniteAvatarUrl();
-
-            embedBuilder.ThumbnailUrl = avatar;
-            embedBuilder.Author.IconUrl = avatar;
-
-            ValueTask<Color> colorTask = default;
-
-            if ((userInfo.GetAvatarUrl(size: 16) ?? userInfo.GetDefaultAvatarUrl()) is { } avatarUrl)
-            {
-                colorTask = _imageService.GetDominantColorAsync(new Uri(avatarUrl));
-            }
-
-            var moderationRead = await _authorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead);
-            var promotions = await _promotionsService.GetPromotionsForUserAsync(Context.Guild.Id, userId);
-
-            if (userInfo.IsBanned)
-            {
-                builder.AppendLine("Status: **Banned** \\🔨");
-
-                if (moderationRead)
-                {
-                    builder.AppendLine($"Ban Reason: {userInfo.BanReason}");
-                }
-            }
-            else
-            {
-                builder.AppendLine($"Status: {userInfo.Status.Humanize()}");
-            }
-
-            if (userInfo.FirstSeen is DateTimeOffset firstSeen)
-                builder.AppendLine($"First Seen: {FormatUtilities.FormatTimeAgo(_utcNow, firstSeen)}");
-
-            if (userInfo.LastSeen is DateTimeOffset lastSeen)
-                builder.AppendLine($"Last Seen: {FormatUtilities.FormatTimeAgo(_utcNow, lastSeen)}");
-
-            try
-            {
-                var userRank = await _messageRepository.GetGuildUserParticipationStatistics(Context.Guild.Id, userId);
-                var messagesByDate = await _messageRepository.GetGuildUserMessageCountByDate(Context.Guild.Id, userId, TimeSpan.FromDays(30));
-                var messageCountsByChannel = await _messageRepository.GetGuildUserMessageCountByChannel(Context.Guild.Id, userId, TimeSpan.FromDays(30));
-                var emojiCounts = await _emojiRepository.GetEmojiStatsAsync(Context.Guild.Id, SortDirection.Ascending, 1, userId: userId);
-
-                await AddParticipationToEmbedAsync(userId, builder, userRank, messagesByDate, messageCountsByChannel, emojiCounts);
-            }
-            catch (Exception ex)
-            {
-                _log.LogError(ex, "An error occured while retrieving a user's message count.");
-            }
-
-            AddMemberInformationToEmbed(userInfo, builder);
-            AddPromotionsToEmbed(builder, promotions);
-
-            if (moderationRead)
-            {
-                await AddInfractionsToEmbedAsync(userId, builder);
-            }
-
-            embedBuilder.Description = builder.ToString();
-
-            embedBuilder.WithColor(await colorTask);
-
-            timer.Stop();
-            embedBuilder.WithFooter(footer => footer.Text = $"Completed after {timer.ElapsedMilliseconds} ms");
-
-            await _autoRemoveMessageService.RegisterRemovableMessageAsync(
-                userInfo.Id == Context.User.Id ? new[] { userInfo } : new[] { userInfo, Context.User },
-                embedBuilder,
-                async (embedBuilder) => await ReplyAsync(embed: embedBuilder.Build()));
+            await _mediator.Send(new UserInfoCommand(Context.Message, Context.Guild.Id, userId));
         }
 
         private void AddMemberInformationToEmbed(EphemeralUser member, StringBuilder builder)

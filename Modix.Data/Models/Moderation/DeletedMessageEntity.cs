@@ -113,7 +113,7 @@ namespace Modix.Data.Models.Moderation
                 .Entity<DeletedMessageEntity>()
                 .HasOne(x => x.Author)
                 .WithMany()
-                .HasForeignKey(x => new { x.GuildId, x.AuthorId });
+                .HasForeignKey(x => x.AuthorId);
 
             modelBuilder
                 .Entity<DeletedMessageEntity>()
