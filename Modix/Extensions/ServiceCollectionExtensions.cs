@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
-
 using Discord;
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -31,8 +29,6 @@ using Modix.Services.EmojiStats;
 using Modix.Services.Giveaways;
 using Modix.Services.GuildStats;
 using Modix.Services.Images;
-using Modix.Services.IsUp;
-using Modix.Services.Mentions;
 using Modix.Services.Moderation;
 using Modix.Services.PopularityContest;
 using Modix.Services.Promotions;
@@ -138,7 +134,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<WikipediaService>();
             services.AddScoped<StackExchangeService>();
             services.AddScoped<DocumentationService>();
-            services.AddScoped<IsUpService>();
 
             services.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
             services.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
