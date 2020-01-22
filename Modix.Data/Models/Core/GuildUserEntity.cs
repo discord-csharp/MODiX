@@ -1,10 +1,10 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
-
-using Modix.Data.Utilities;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Modix.Data.Models.Moderation;
 
 namespace Modix.Data.Models.Core
 {
@@ -13,23 +13,11 @@ namespace Modix.Data.Models.Core
     /// </summary>
     public class GuildUserEntity
     {
-        /// <summary>
-        /// The Discord snowflake ID of the guild for which data is tracked by this entity.
-        /// </summary>
-        [Required]
         public ulong GuildId { get; set; }
 
-        /// <summary>
-        /// The <see cref="UserEntity.Id"/> value of <see cref="User"/>.
-        /// </summary>
-        [Required]
         [ForeignKey(nameof(User))]
         public ulong UserId { get; set; }
 
-        /// <summary>
-        /// The user whose data is tracked by this entity.
-        /// </summary>
-        [Required]
         public virtual UserEntity User { get; set; } = null!;
 
         /// <summary>
@@ -37,33 +25,27 @@ namespace Modix.Data.Models.Core
         /// </summary>
         public string? Nickname { get; set; }
 
-        /// <summary>
-        /// A timestamp indicating the first time this user was observed within the guild.
-        /// </summary>
-        [Required]
         public DateTimeOffset FirstSeen { get; set; }
 
-        /// <summary>
-        /// A timestamp indicating the most recent time this user was observed within the guild.
-        /// </summary>
-        [Required]
         public DateTimeOffset LastSeen { get; set; }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+        public ICollection<InfractionEntity> Infractions { get; set; } = new HashSet<InfractionEntity>();
+        public ICollection<MessageEntity> Messages { get; set; } = new HashSet<MessageEntity>();
+    }
+
+    public class GuildUserEntityConfiguration : IEntityTypeConfiguration<GuildUserEntity>
+    {
+        public void Configure(EntityTypeBuilder<GuildUserEntity> builder)
         {
-            modelBuilder
-                .Entity<GuildUserEntity>()
+            builder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<GuildUserEntity>()
+            builder
                 .Property(x => x.UserId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<GuildUserEntity>()
+            builder
                 .HasKey(x => new { x.GuildId, x.UserId });
         }
     }

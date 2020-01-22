@@ -1,11 +1,12 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Core
 {
-    internal class MessageEntity
+    public class MessageEntity
     {
         [Required]
         public ulong Id { get; set; }
@@ -16,44 +17,42 @@ namespace Modix.Data.Models.Core
         [Required]
         public ulong ChannelId { get; set; }
 
+        public virtual GuildChannelEntity Channel { get; set; }
+
         [Required]
         public ulong AuthorId { get; set; }
+        public virtual GuildUserEntity Author { get; set; }
 
         [Required]
         public DateTimeOffset Timestamp { get; set; }
 
         public ulong? StarboardEntryId { get; set; }
+    }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+    public class MessageEntityConfiguration : IEntityTypeConfiguration<MessageEntity>
+    {
+        public void Configure(EntityTypeBuilder<MessageEntity> builder)
         {
-            modelBuilder.Entity<MessageEntity>()
-                .HasKey(x => x.Id);
-
-            modelBuilder.Entity<MessageEntity>()
+            builder
+                   .HasKey(x => x.Id);
+            builder
                 .Property(x => x.Id)
                 .HasConversion<long>();
-
-            modelBuilder.Entity<MessageEntity>()
+            builder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
-
-            modelBuilder.Entity<MessageEntity>()
+            builder
                 .Property(x => x.ChannelId)
                 .HasConversion<long>();
-
-            modelBuilder.Entity<MessageEntity>()
+            builder
                 .Property(x => x.AuthorId)
                 .HasConversion<long>();
-
-            modelBuilder.Entity<MessageEntity>()
+            builder
                 .Property(x => x.StarboardEntryId)
                 .HasConversion<long>();
-
-            modelBuilder.Entity<MessageEntity>()
+            builder
                 .HasIndex(x => new { x.GuildId, x.AuthorId });
-
-            modelBuilder.Entity<MessageEntity>()
+            builder
                 .HasIndex(x => x.Timestamp);
         }
     }
