@@ -67,6 +67,8 @@ namespace Modix.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.UseSerialColumns();
+
             var onModelCreatingMethods = Assembly.GetExecutingAssembly()
                 .GetTypes()
                 .SelectMany(x => x.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
