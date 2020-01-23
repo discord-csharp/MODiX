@@ -41,14 +41,10 @@ namespace Modix.Data.Models.Tags
                     x => x.Name.Contains(criteria.Name!.ToLower()),
                     !(criteria.Name is null))
                 .FilterBy(
-                    x => x.OwnerUserId == null
-                        ? false
-                        : x.OwnerUserId == criteria.OwnerUserId!.Value,
+                    x => x.OwnerUserId != null && x.OwnerUserId == criteria.OwnerUserId!.Value,
                     !(criteria.OwnerUserId is null))
                 .FilterBy(
-                    x => x.OwnerRoleId == null
-                        ? false
-                        : x.OwnerRoleId == criteria.OwnerRoleId!.Value,
+                    x => x.OwnerRoleId != null && x.OwnerRoleId == criteria.OwnerRoleId!.Value,
                     !(criteria.OwnerRoleId is null));
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Linq;
+using LinqKit;
 
 using Modix.Data.Repositories;
 using Modix.Data.Utilities;
@@ -122,27 +123,25 @@ namespace Modix.Data.Models.Moderation
                     x => x.ChannelId == criteria!.ChannelId,
                     criteria?.ChannelId != null)
                 .FilterBy(
-                    x => x.Channel.Name.OrdinalContains(criteria!.Channel!),
+                    x => ReusableQueries.DbCaseInsensitiveContains.Invoke(x.Channel.Name, criteria!.Channel!),
                     !string.IsNullOrWhiteSpace(criteria?.Channel))
                 .FilterBy(
                     x => x.AuthorId == criteria!.AuthorId,
                     criteria?.AuthorId != null)
-                //TODO: Refactor this to a separate method
                 .FilterBy(
-                    x => (x.Author.Nickname ?? $"{x.Author.User.Username}#{x.Author.User.Discriminator}").OrdinalContains(criteria!.Author!),
+                    x => ReusableQueries.StringContainsUser.Invoke(x.Author, criteria!.Author!),
                     !string.IsNullOrWhiteSpace(criteria?.Author))
                 .FilterBy(
                     x => x.CreateAction.CreatedById == criteria!.CreatedById,
                     criteria?.CreatedById != null)
-                //TODO: Refactor this to a separate method
                 .FilterBy(
-                    x => (x.CreateAction.CreatedBy!.Nickname ?? $"{x.CreateAction.CreatedBy.User.Username}#{x.Author.User.Discriminator}").OrdinalContains(criteria!.CreatedBy!),
+                    x => ReusableQueries.StringContainsUser.Invoke(x.CreateAction.CreatedBy!, criteria!.CreatedBy!),
                     !string.IsNullOrWhiteSpace(criteria?.CreatedBy))
                 .FilterBy(
-                    x => x.Content.OrdinalContains(criteria!.Content!),
+                    x => ReusableQueries.DbCaseInsensitiveContains.Invoke(x.Content, criteria!.Content!),
                     !string.IsNullOrWhiteSpace(criteria?.Content))
                 .FilterBy(
-                    x => x.Reason.OrdinalContains(criteria!.Reason!),
+                    x => ReusableQueries.DbCaseInsensitiveContains.Invoke(x.Reason, criteria!.Reason!),
                     !string.IsNullOrWhiteSpace(criteria?.Reason))
                 .FilterBy(
                     x => x.BatchId == criteria!.BatchId,

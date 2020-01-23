@@ -227,13 +227,12 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<RecordsPage<InfractionSummary>> SearchSummariesPagedAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
         {
-            var sourceQuery = ModixContext.Infractions.AsNoTracking();
+            var sourceQuery = ModixContext.Infractions.AsNoTracking().AsExpandable();
 
             var filteredQuery = sourceQuery
                 .FilterBy(searchCriteria);
 
             var pagedQuery = filteredQuery
-                .AsExpandable()
                 .Select(InfractionSummary.FromEntityProjection)
                 .SortBy(sortingCriteria, InfractionSummary.SortablePropertyMap)
                 // Always sort by Id last, otherwise ordering of records with matching fields is not guaranteed by the DB
