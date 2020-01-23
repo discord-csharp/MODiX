@@ -156,7 +156,7 @@ namespace Modix.Data.Models.Tags
             builder
                 .HasOne(x => x.OwnerUser)
                 .WithMany()
-                .HasForeignKey(x => x.OwnerUserId);
+                .HasForeignKey(x => new { x.GuildId, x.OwnerUserId });
 
             builder
                 .HasOne(x => x.OwnerRole)

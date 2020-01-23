@@ -59,8 +59,8 @@ namespace Modix.Data.Models.Promotions
             modelBuilder
                 .Entity<PromotionCampaignEntity>()
                 .HasOne(x => x.Subject)
-                .WithMany()
-                .HasForeignKey(x => x.SubjectId);
+                .WithMany(x => x.PromotionCampaigns)
+                .HasForeignKey(x => new { x.GuildId, x.SubjectId });
 
             modelBuilder
                 .Entity<PromotionCampaignEntity>()

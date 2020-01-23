@@ -58,6 +58,12 @@ namespace Modix.Data.Models.Moderation
 
             modelBuilder
                 .Entity<InfractionEntity>()
+                .HasOne(x => x.Subject)
+                .WithMany(x => x.Infractions)
+                .HasForeignKey(x => new { x.GuildId, x.SubjectId });
+
+            modelBuilder
+                .Entity<InfractionEntity>()
                 .Property(x => x.SubjectId)
                 .HasConversion<long>();
 

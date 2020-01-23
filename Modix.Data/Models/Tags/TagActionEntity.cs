@@ -99,7 +99,7 @@ namespace Modix.Data.Models.Tags
                 .Entity<TagActionEntity>()
                 .HasOne(x => x.CreatedBy)
                 .WithMany()
-                .HasForeignKey(x => x.CreatedById);
+                .HasForeignKey(x => new { x.GuildId, x.CreatedById });
 
             modelBuilder
                 .Entity<TagActionEntity>()

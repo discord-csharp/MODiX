@@ -118,7 +118,7 @@ namespace Modix.Data.Models.Moderation
                 .Entity<ModerationActionEntity>()
                 .HasOne(x => x.CreatedBy)
                 .WithMany()
-                .HasForeignKey(x => x.CreatedById);
+                .HasForeignKey(x => new { x.GuildId, x.CreatedById });
         }
     }
 }

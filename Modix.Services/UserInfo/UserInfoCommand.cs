@@ -1,7 +1,11 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -63,14 +67,22 @@ namespace Modix.Services.UserInfo
                 {
                     x.FirstSeen,
                     x.LastSeen,
-                    //Infractions = x.Infractions
-                    //    .Where(d => d.DeleteActionId == null)
-                    //    .Select(d => new
-                    //    {
-                    //        Type = d.Type,
-                    //        Date = d.CreateAction.Created,
-                    //        Reason = d.Reason,
-                    //    }).ToList(),
+                    Infractions = x.Infractions
+                        .Where(d => d.DeleteActionId == null)
+                        .Select(d => new
+                        {
+                            Type = d.Type,
+                            Date = d.CreateAction.Created,
+                            Reason = d.Reason,
+                        }).ToList(),
+                    Promotions = x.PromotionCampaigns
+                        .Where(d => d.Outcome == PromotionCampaignOutcome.Accepted)
+                        .Where(d => d.CloseActionId != null)
+                        .Select(d => new
+                        {
+                            Date = d.CloseAction!.Created,
+                            TargetRoleId = d.TargetRoleId,
+                        }).ToList(),
                 })
                 .FirstOrDefaultAsync();
 
@@ -101,37 +113,35 @@ namespace Modix.Services.UserInfo
             var weekThreshold = startingThreshold.AddDays(-7);
 
             var messages = await _modixContext
-                .Messages
-                .Where(x => x.GuildId == request.GuildId)
-                .Where(x => x.AuthorId == request.UserId)
-                .Where(x => x.Channel.DesignatedChannelMappings.Any(d =>
-                    d.Type == DesignatedChannelType.CountsTowardsParticipation))
-                .Where(x => x.Timestamp > startingThreshold)
-                .GroupBy(x => new { x.Timestamp.Date, x.Channel.ChannelId })
-                .Select(x => new
-                {
-                    Date = x.Key,
-                    NumberOfMessages = x.Count(),
-                    ChannelId = x.Key.ChannelId,
-                }).ToListAsync(cancellationToken: cancellationToken);
+                    .Messages
+                    .Where(x => x.GuildId == request.GuildId)
+                    .Where(x => x.AuthorId == request.UserId)
+                    .Where(x => x.Channel.DesignatedChannelMappings.Any(d =>
+                        d.Type == DesignatedChannelType.CountsTowardsParticipation))
+                    .Where(x => x.Timestamp > startingThreshold)
+                    .GroupBy(x => x.Timestamp.DateTime)
+                    .Select(x => new
+                    {
+                        ChannelId = x.Key,
+                    }).ToListAsync(cancellationToken: cancellationToken);
 
-            //var rankedUsers = await _modixContext
-            //    .GuildUsers
-            //    .Where(x => x.Messages.Where(f => f.Channel.DesignatedChannelMappings
-            //        .Any(d => d.Type == DesignatedChannelType.CountsTowardsParticipation))
-            //        .Any(d => d.Timestamp > startingThreshold))
-            //    .Where(x => x.GuildId == request.GuildId)
-            //    .Select(x =>
-            //    new
-            //    {
-            //        x.UserId,
-            //        NumberOfMessages = x.Messages
-            //        .Where(e => e.Channel.DesignatedChannelMappings
-            //            .Any(d => d.Type == DesignatedChannelType.CountsTowardsParticipation))
-            //        .Count(d => d.Timestamp > startingThreshold),
-            //    })
-            //    .OrderByDescending(x => x.NumberOfMessages)
-            //    .ToListAsync(cancellationToken: cancellationToken);
+            var rankedUsers = await _modixContext
+                .GuildUsers
+                .Where(x => x.Messages.Where(f => f.Channel.DesignatedChannelMappings
+                    .Any(d => d.Type == DesignatedChannelType.CountsTowardsParticipation))
+                    .Any(d => d.Timestamp > startingThreshold))
+                .Where(x => x.GuildId == request.GuildId)
+                .Select(x =>
+                new
+                {
+                    x.UserId,
+                    NumberOfMessages = x.Messages
+                    .Where(e => e.Channel.DesignatedChannelMappings
+                        .Any(d => d.Type == DesignatedChannelType.CountsTowardsParticipation))
+                    .Count(d => d.Timestamp > startingThreshold),
+                })
+                .OrderByDescending(x => x.NumberOfMessages)
+                .ToListAsync(cancellationToken: cancellationToken);
 
             //var totalNumberOfMessagesInPeriod = messages.Sum(x => x.NumberOfMessages);
             //var totalNumberOfMessagesIn7Days = messages.Where(x => x.Date.Date > weekThreshold.Date).Sum(d => d.NumberOfMessages);
@@ -140,24 +150,23 @@ namespace Modix.Services.UserInfo
             //var rankedUser = rankedUsers.Single(x => x.UserId == request.UserId);
             //var userRank = rankedUsers.IndexOf(rankedUser) + 1;
 
-            // todo implement percentile based on where in the ranked user's list the user is
             //var percentile = (1 - (userRank / rankedUsers.Count)) * 100;
 
             userInfoBuilder
                 .WithId(request.UserId)
                 .WithClickableMention(request.UserId);
 
-            //if (modixUser.Infractions.Any(x => x.Type == InfractionType.Ban))
-            //{
-            //    var banReason = modixUser
-            //        .Infractions
-            //        .Where(x => x.Type == InfractionType.Ban)
-            //        .OrderByDescending(x => x.Date)
-            //        .Select(x => x.Reason)
-            //        .First();
+            if (modixUser.Infractions.Any(x => x.Type == InfractionType.Ban))
+            {
+                var banReason = modixUser
+                    .Infractions
+                    .Where(x => x.Type == InfractionType.Ban)
+                    .OrderByDescending(x => x.Date)
+                    .Select(x => x.Reason)
+                    .First();
 
-            //    userInfoBuilder.WithBan(banReason);
-            //}
+                userInfoBuilder.WithBan(banReason);
+            }
 
             if (discordUser is IGuildUser guildUser)
             {
@@ -174,27 +183,27 @@ namespace Modix.Services.UserInfo
             //averageMessagesSent,
             //percentile);
 
-            var mostPopularChannel = messages
-                .OrderByDescending(x => x.NumberOfMessages)
-                .Single();
+            //var mostPopularChannel = messages
+            //    .OrderByDescending(x => x.NumberOfMessages)
+            //    .Single();
 
-            var channel = await guild.GetChannelAsync(mostPopularChannel.ChannelId);
+            //var channel = await guild.GetChannelAsync(mostPopularChannel.ChannelId);
 
-            if (channel.IsPublic())
-            {
-                userInfoBuilder.WithChannel(mostPopularChannel.ChannelId,
-                    mostPopularChannel.NumberOfMessages);
-            }
-
-            //var promotionHistory = modixUser
-            //    .Promotions
-            //    .Select(promotion => (promotion.TargetRoleId, promotion.Date))
-            //    .ToList();
-
-            //if (promotionHistory.Any())
+            //if (channel.IsPublic())
             //{
-            //    userInfoBuilder.WithPromotions(promotionHistory);
+            //    userInfoBuilder.WithChannel(mostPopularChannel.ChannelId,
+            //        mostPopularChannel.NumberOfMessages);
             //}
+
+            var promotionHistory = modixUser
+                .Promotions
+                .Select(promotion => (promotion.TargetRoleId, promotion.Date))
+                .ToList();
+
+            if (promotionHistory.Any())
+            {
+                userInfoBuilder.WithPromotions(promotionHistory);
+            }
 
             var content = userInfoBuilder.Build();
 

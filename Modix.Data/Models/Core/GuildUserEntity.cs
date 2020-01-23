@@ -15,10 +15,6 @@ namespace Modix.Data.Models.Core
     /// </summary>
     public class GuildUserEntity
     {
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public ulong Id { get; set; }
-
         [ForeignKey(nameof(User))]
         public ulong UserId { get; set; }
         public virtual UserEntity User { get; set; } = null!;
@@ -35,8 +31,8 @@ namespace Modix.Data.Models.Core
         public DateTimeOffset LastSeen { get; set; }
 
         public ICollection<InfractionEntity> Infractions { get; set; } = new HashSet<InfractionEntity>();
-        //public ICollection<MessageEntity> Messages { get; set; } = new HashSet<MessageEntity>();
-        //public ICollection<PromotionCampaignEntity> PromotionCampaigns { get; set; } = new HashSet<PromotionCampaignEntity>();
+        public ICollection<MessageEntity> Messages { get; set; } = new HashSet<MessageEntity>();
+        public ICollection<PromotionCampaignEntity> PromotionCampaigns { get; set; } = new HashSet<PromotionCampaignEntity>();
     }
 
     public class GuildUserEntityConfiguration : IEntityTypeConfiguration<GuildUserEntity>
@@ -44,8 +40,7 @@ namespace Modix.Data.Models.Core
         public void Configure(EntityTypeBuilder<GuildUserEntity> builder)
         {
             builder
-                .Property(x => x.Id)
-                .HasConversion<long>();
+                .HasKey(x => new { x.GuildId, x.UserId });
 
             builder
                 .Property(x => x.GuildId)

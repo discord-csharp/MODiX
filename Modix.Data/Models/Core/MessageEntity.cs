@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Modix.Data.Models.Moderation;
 using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Core
@@ -33,8 +34,8 @@ namespace Modix.Data.Models.Core
     {
         public void Configure(EntityTypeBuilder<MessageEntity> builder)
         {
-            builder
-                   .HasKey(x => x.Id);
+            builder.HasKey(x => x.Id);
+
             builder
                 .Property(x => x.Id)
                 .HasConversion<long>();
@@ -52,8 +53,14 @@ namespace Modix.Data.Models.Core
                 .HasConversion<long>();
             builder
                 .HasIndex(x => new { x.GuildId, x.AuthorId });
+
             builder
                 .HasIndex(x => x.Timestamp);
+
+            builder
+                .HasOne(x => x.Author)
+                .WithMany(x => x.Messages)
+                .HasForeignKey(x => new { x.GuildId, x.AuthorId });
         }
     }
 }

@@ -39,7 +39,7 @@ namespace Modix.Data.Models.Moderation
         /// </summary>
         [Required]
         public virtual GuildChannelEntity Channel { get; set; } = null!;
-        
+
         /// <summary>
         /// The <see cref="GuildUserEntity.UserId"/> value of <see cref="Author"/>.
         /// </summary>
@@ -113,7 +113,7 @@ namespace Modix.Data.Models.Moderation
                 .Entity<DeletedMessageEntity>()
                 .HasOne(x => x.Author)
                 .WithMany()
-                .HasForeignKey(x => x.AuthorId);
+                .HasForeignKey(x => new { x.GuildId, x.AuthorId });
 
             modelBuilder
                 .Entity<DeletedMessageEntity>()
