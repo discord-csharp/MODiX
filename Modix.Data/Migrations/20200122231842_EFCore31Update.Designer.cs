@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Modix.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -9,9 +10,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    partial class ModixContextModelSnapshot : ModelSnapshot
+    [Migration("20200122231842_EFCore31Update")]
+    partial class EFCore31Update
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -281,21 +283,21 @@ namespace Modix.Data.Migrations
 
             modelBuilder.Entity("Modix.Data.Models.Core.MessageEntity", b =>
                 {
-                    b.Property<long>("Id")
+                    b.Property<decimal>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
+                        .HasColumnType("numeric(20)");
 
-                    b.Property<long>("AuthorId")
-                        .HasColumnType("bigint");
+                    b.Property<decimal>("AuthorId")
+                        .HasColumnType("numeric(20)");
 
-                    b.Property<long>("ChannelId")
-                        .HasColumnType("bigint");
+                    b.Property<decimal>("ChannelId")
+                        .HasColumnType("numeric(20)");
 
-                    b.Property<long>("GuildId")
-                        .HasColumnType("bigint");
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20)");
 
-                    b.Property<long?>("StarboardEntryId")
-                        .HasColumnType("bigint");
+                    b.Property<decimal?>("StarboardEntryId")
+                        .HasColumnType("numeric(20)");
 
                     b.Property<DateTimeOffset>("Timestamp")
                         .HasColumnType("timestamp with time zone");

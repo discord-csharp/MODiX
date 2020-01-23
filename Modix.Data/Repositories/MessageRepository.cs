@@ -293,7 +293,7 @@ namespace Modix.Data.Repositories
                         select msg.""AuthorId"", msg.""Id"" as ""MessageId"", msg.""GuildId""
                         from ""Messages"" as msg
                         left outer join ""DesignatedChannelMappings"" as dcm on msg.""ChannelId"" = dcm.""ChannelId""
-                        where msg.""GuildId"" = cast(:GuildId as numeric(20))
+                        where msg.""GuildId"" = cast(:GuildId as bigint)
                         and dcm.""Type"" = 'CountsTowardsParticipation'
                         and ""Timestamp"" >= (current_date - interval '30 day')
                     ),
@@ -319,7 +319,7 @@ namespace Modix.Data.Repositories
                     )
                     select ""AveragePerDay"", ""Percentile"", ""Rank"", ""GuildId"", ""UserId""
                     from ranked_users
-                    where ""UserId"" = cast(:UserId as numeric(20))",
+                    where ""UserId"" = cast(:UserId as bigint)",
                     new NpgsqlParameter(":GuildId", guildId.ToString()),
                     new NpgsqlParameter(":UserId", userId.ToString()))
                 .AsAsyncEnumerable()
