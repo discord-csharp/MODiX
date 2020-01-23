@@ -1,3 +1,5 @@
+import { PieChartItem } from '@/models/PieChart'
+
 export default interface GuildStatApiData
 {
     guildName: string;
@@ -5,11 +7,8 @@ export default interface GuildStatApiData
     topUserMessageCounts: PerUserMessageCount[];
 }
 
-export interface GuildRoleCount
+export interface GuildRoleCount extends PieChartItem
 {
-    name: string;
-    count: number;
-    color: string;
 }
 
 export interface PerUserMessageCount

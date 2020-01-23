@@ -81,5 +81,28 @@ namespace Modix.Controllers
 
             return Ok(mapped);
         }
+
+        [HttpGet("{userIdString}/messages")]
+        public async Task<IActionResult> GetUserMessagesPerChannelAsync(string userIdString, DateTimeOffset after = default)
+        {
+            if (!ulong.TryParse(userIdString, out var userId))
+                return Ok(null);
+
+            var timespan = DateTimeOffset.UtcNow - after;
+            var result = await MessageRepository.GetGuildUserMessageCountByChannel2(UserGuild.Id, userId, timespan);
+            var colors = ColorUtils.GetRainbowColors(result.Count);
+
+            var i = 0;
+            var mapped = result.Select(x => new
+                               {
+                                   Name = x.Key,
+                                   Count = x.Value,
+                                   Color = colors[i++].ToString()
+                               })
+                               .OrderByDescending(x => x.Count)
+                               .ToList();
+
+            return Ok(mapped);
+        }
     }
 }

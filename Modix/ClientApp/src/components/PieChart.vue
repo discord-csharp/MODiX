@@ -10,6 +10,7 @@ import { Chart } from 'chart.js';
 
 import * as store from "@/app/Store";
 import { GuildRoleCount } from '@/models/GuildStatApiData';
+import { PieChartItem } from '@/models/PieChart';
 import {config, Theme} from '@/models/PersistentConfig';
 
 @Component({
@@ -20,7 +21,7 @@ export default class PieChart extends Vue
     private pieChart: any | null = null;
 
     @Prop({default: []})
-    public stats!: GuildRoleCount[];
+    public stats!: PieChartItem[];
 
     get chartCanvas(): HTMLCanvasElement
     {
