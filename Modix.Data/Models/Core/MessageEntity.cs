@@ -32,23 +32,23 @@ namespace Modix.Data.Models.Core
 
             modelBuilder.Entity<MessageEntity>()
                 .Property(x => x.Id)
-                .HasColumnType("numeric(20)");
+                .HasConversion<long>();
 
             modelBuilder.Entity<MessageEntity>()
                 .Property(x => x.GuildId)
-                .HasColumnType("numeric(20)");
+                .HasConversion<long>();
 
             modelBuilder.Entity<MessageEntity>()
                 .Property(x => x.ChannelId)
-                .HasColumnType("numeric(20)");
+                .HasConversion<long>();
 
             modelBuilder.Entity<MessageEntity>()
                 .Property(x => x.AuthorId)
-                .HasColumnType("numeric(20)");
+                .HasConversion<long>();
 
             modelBuilder.Entity<MessageEntity>()
                 .Property(x => x.StarboardEntryId)
-                .HasColumnType("numeric(20)");
+                .HasConversion<long>();
 
             modelBuilder.Entity<MessageEntity>()
                 .HasIndex(x => new { x.GuildId, x.AuthorId });
