@@ -38,6 +38,11 @@
                         <UserProfileField fieldName="Joined" :fieldValue="formatDate(user.joinedAt)" default="Never" />
                         <UserProfileField fieldName="Roles" :fieldValue="roles" allowHtml="true" />
                     </div>
+
+                    <div class="section-title">Messages by Channel</div>
+                    <div class="box" :v-if="messages">
+                        <PieChart :stats="messages" />
+                    </div>
                 </template>
 
             </div>
@@ -48,18 +53,22 @@
 <script lang="ts">
 import { Component, Prop } from 'vue-property-decorator';
 import ModixComponent from '@/components/ModixComponent.vue';
+import PieChart from '@/components/PieChart.vue';
 import * as _ from 'lodash';
 import UserProfileSectionTitle from '@/components/UserLookup/UserProfileSectionTitle.vue';
 import UserProfileField from '@/components/UserLookup/UserProfileField.vue';
 import EphemeralUser from '@/models/EphemeralUser';
+import UserMessagePerChannelCount from '@/models/UserMessagePerChannelCount'
 import { formatDate, ordinalize, toQuantity } from '@/app/Util'
 import Role from '@/models/Role';
 import store from "@/app/Store";
+import UserService from '@/services/UserService';
 
 @Component({
     components:
     {
         UserProfileField,
+        PieChart
     },
     methods:
     {
@@ -72,6 +81,8 @@ export default class UserProfile extends ModixComponent
 {
     @Prop()
     user!: EphemeralUser | null;
+    
+    messages: UserMessagePerChannelCount[] | null = null;
 
     get roles(): string
     {
@@ -87,6 +98,7 @@ export default class UserProfile extends ModixComponent
     async mounted()
     {
         await store.retrieveRoles();
+        this.messages = await UserService.getMessageCountPerChannel(this.$store.state.modix.user.userId);
     }
 }
 </script>
