@@ -73,19 +73,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing a dictionary which contains the number of messages the given user has sent in each channel within the given timeframe.
         /// </returns>
-        Task<IReadOnlyDictionary<ulong, int>> GetGuildUserMessageCountByChannel(ulong guildId, ulong userId, TimeSpan timespan);
-
-        /// <summary>
-        /// Searches the message logs for message records matching the supplied guild ID and user ID within a given timeframe.
-        /// </summary>
-        /// <param name="guildId">The unique Discord snowflake ID of the guild to search in.</param>
-        /// <param name="userId">The unique Discord snowflake ID of the user to get a message count for.</param>
-        /// <param name="timespan">The timeframe the query should be based on.</param>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation is complete,
-        /// containing a dictionary which contains the number of messages the given user has sent in each channel within the given timeframe.
-        /// </returns>
-        Task<IReadOnlyDictionary<string, int>> GetGuildUserMessageCountByChannel2(ulong guildId, ulong userId, TimeSpan timespan);
+        Task<IReadOnlyDictionary<MessageCountPerChannel, int>> GetGuildUserMessageCountByChannel(ulong guildId, ulong userId, TimeSpan timespan);
 
         /// <summary>
         /// Calculates a given number of users contributions (through messages) in a given guild in a specific timeframe.
@@ -198,19 +186,7 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyDictionary<ulong, int>> GetGuildUserMessageCountByChannel(ulong guildId, ulong userId, TimeSpan timespan)
-        {
-            var messages = await GetGuildUserMessages(guildId, userId, timespan)
-                .Select(x => x.ChannelId)
-                .ToListAsync();
-
-            return messages
-                .GroupBy(x => x)
-                .ToDictionary(x => x.Key, x => x.Count());
-        }
-
-        /// <inheritdoc />
-        public async Task<IReadOnlyDictionary<string, int>> GetGuildUserMessageCountByChannel2(ulong guildId, ulong userId, TimeSpan timespan)
+        public async Task<IReadOnlyDictionary<MessageCountPerChannel, int>> GetGuildUserMessageCountByChannel(ulong guildId, ulong userId, TimeSpan timespan)
         {
             var messages = await GetGuildUserMessages(guildId, userId, timespan)
                                  .Select(x => new
@@ -222,7 +198,7 @@ namespace Modix.Data.Repositories
 
             return messages
                    .GroupBy(x => x.ChannelId)
-                   .ToDictionary(x => x.First().ChannelName, x => x.Count());
+                   .ToDictionary(x => new MessageCountPerChannel(x.Key, x.First().ChannelName), x => x.Count());
         }
 
         /// <inheritdoc />
