@@ -61,10 +61,9 @@ namespace Modix
             services.AddTransient<IConfigureOptions<StaticFileOptions>, StaticFilesConfiguration>();
             services.AddTransient<IStartupFilter, ModixConfigValidator>();
 
-            services.AddDbContext<ModixContext>(options =>
-            {
-                options.UseNpgsql(_configuration.GetValue<string>(nameof(ModixConfig.DbConnection)));
-            });
+            services.AddDbContext<ModixContext>(options => options
+                .UseNpgsql(_configuration.GetValue<string>(nameof(ModixConfig.DbConnection)), npgsqlOptions => npgsqlOptions
+                    .UseDateTimeOffsetTranslations()));
 
             services
                 .AddModixHttpClients()
