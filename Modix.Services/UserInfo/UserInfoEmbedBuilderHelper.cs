@@ -54,7 +54,7 @@ namespace Modix.Services.UserInfo
 
         public UserInfoEmbedBuilderHelper WithBan(string reason)
         {
-            _content.AppendLine($"🔨\\ **Banned**: {reason}");
+            _content.AppendLine($"\\🔨 **Banned**: {reason}");
             return this;
         }
 
