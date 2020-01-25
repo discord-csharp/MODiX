@@ -283,7 +283,7 @@ namespace Modix.Services.UserInfo
             {
                 var mostPopularChannel = messages
                     .OrderByDescending(x => x.NumberOfMessages)
-                    .Single();
+                    .First();
 
                 var channel = await guild.GetChannelAsync(mostPopularChannel.ChannelId);
 
