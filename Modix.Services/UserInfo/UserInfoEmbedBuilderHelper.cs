@@ -65,7 +65,7 @@ namespace Modix.Services.UserInfo
             double percentile)
         {
             _content.AppendLine("\n**\u276F Guild Participation**");
-            _content.AppendLine($"Rank: {rank} {GetParticipationEmoji(rank)}");
+            _content.AppendLine($"Rank: {rank} {GetParticipationEmoji(rank, percentile)}");
             _content.AppendLine($"Last 7 days: {numberOfMessagesIn7Days} messages");
             _content.AppendLine($"Last 30 days: {numberOfMessagesIn30Days} messages");
             _content.AppendLine($"Average/day: {averagePerDay} (top {percentile})");
@@ -91,9 +91,9 @@ namespace Modix.Services.UserInfo
 
             _content.AppendLine($"Created: {FormatUtilities.FormatTimeAgo(_nowUtc, user.CreatedAt)}");
 
-            if (user.JoinedAt != null)
+            if (user.JoinedAt is { } joinedAt)
             {
-                _content.AppendLine($"Joined: {FormatUtilities.FormatTimeAgo(_nowUtc, user.JoinedAt.Value)}");
+                _content.AppendLine($"Joined: {FormatUtilities.FormatTimeAgo(_nowUtc, joinedAt)}");
             }
 
             if (user.RoleIds?.Count > 0)
@@ -155,13 +155,14 @@ namespace Modix.Services.UserInfo
             return _content.ToString();
         }
 
-        private string GetParticipationEmoji(int rank) =>
+        private string GetParticipationEmoji(int rank, double percentile) =>
             rank switch
             {
                 1 => "🥇",
                 2 => "🥈",
                 3 => "🥉",
-                _ => "🏆",
+                _ when percentile >= 90 => "🏆",
+                _ => string.Empty
             };
     }
 }

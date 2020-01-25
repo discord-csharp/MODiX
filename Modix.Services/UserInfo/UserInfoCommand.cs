@@ -41,7 +41,6 @@ namespace Modix.Services.UserInfo
         private readonly IImageService _imageService;
         private readonly ILogger<UserInfoCommandHandler> _logger;
         private readonly ModixConfig _modixConfig;
-        private readonly Stopwatch _stopwatch = new Stopwatch();
 
         public UserInfoCommandHandler(ModixContext modixContext, IDiscordClient discordClient,
             IAutoRemoveMessageService autoRemoveMessageService, IImageService imageService, ILogger<UserInfoCommandHandler> logger,
@@ -57,25 +56,27 @@ namespace Modix.Services.UserInfo
 
         protected override async Task Handle(UserInfoCommand request, CancellationToken cancellationToken)
         {
-            _stopwatch.Start();
+            var stopwatch = new Stopwatch();
+
+            stopwatch.Start();
 
             _logger.LogDebug("Getting info for user {UserId} in guild {GuildId}", request.UserId, request.GuildId);
 
-            var guild = await _discordClient.GetGuildAsync(request.GuildId);
+            var guild = await _discordClient.GetGuildAsync(request.GuildId, options: new RequestOptions
+            {
+                CancelToken = cancellationToken,
+            });
 
             var discordUser = await guild.GetUserAsync(request.UserId);
 
-            _logger.LogDebug("Got user from Discord API");
+            _logger.LogDebug("Got user {UserId} from Discord API", request.UserId);
 
-            var modixUser = await GetUserAsync(request.UserId, request.GuildId, cancellationToken);
-
-            if (discordUser is null
-                || modixUser is null)
+            if (discordUser is null)
             {
                 // If we have nothing from Discord or from the database,
                 // we'll need to assume this user doesn't exist
 
-                _logger.LogDebug("Discord user or MODiX user is null, cannot return info, replying with retrieval error embed");
+                _logger.LogDebug("Discord user {UserId} is null, cannot return info, replying with retrieval error embed", request.UserId);
 
                 var embed = new EmbedBuilder()
                     .WithTitle("Retrieval Error")
@@ -89,12 +90,12 @@ namespace Modix.Services.UserInfo
                     async (builder) =>
                         await request.Message.ReplyAsync(string.Empty, embed: builder.Build()));
 
-                _stopwatch.Stop();
+                stopwatch.Stop();
 
                 return;
             }
 
-            var participation = await GetParticipationStatisticsAsync(guild, request.UserId, cancellationToken);
+            var modixUser = await GetUserAsync(request.UserId, request.GuildId, cancellationToken);
 
             var userInfoBuilder = UserInfoEmbedBuilderHelper.Create();
 
@@ -115,6 +116,8 @@ namespace Modix.Services.UserInfo
 
                 userInfoBuilder.WithBan(banReason);
             }
+
+            var participation = await GetParticipationStatisticsAsync(guild, request.UserId, cancellationToken);
 
             if (participation is { })
             {
@@ -158,7 +161,7 @@ namespace Modix.Services.UserInfo
 
             var colorTask = await _imageService.GetDominantColorAsync(new Uri(avatar));
 
-            _stopwatch.Stop();
+            stopwatch.Stop();
 
             var embedBuilder = new EmbedBuilder()
                 .WithUserAsAuthor(discordUser)
@@ -166,7 +169,7 @@ namespace Modix.Services.UserInfo
                 .WithThumbnailUrl(avatar)
                 .WithDescription(content)
                 .WithColor(colorTask)
-                .WithFooter($"Completed after {_stopwatch.ElapsedMilliseconds} ms");
+                .WithFooter($"Completed after {stopwatch.ElapsedMilliseconds} ms");
 
             embedBuilder.Author.IconUrl = avatar;
 
