@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Modix.Bot.Extensions
+namespace Modix.Common.Extensions
 {
     public static class UriBuilderExtensions
     {

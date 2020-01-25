@@ -4,6 +4,9 @@ using System.Linq;
 using System.Text;
 using Discord;
 using Humanizer;
+using Modix.Common.Extensions;
+using Modix.Data.Models.Moderation;
+using Modix.Services.Extensions;
 using Modix.Services.Utilities;
 
 namespace Modix.Services.UserInfo
@@ -63,8 +66,8 @@ namespace Modix.Services.UserInfo
         {
             _content.AppendLine("\n**\u276F Guild Participation**");
             _content.AppendLine($"Rank: {rank} {GetParticipationEmoji(rank)}");
-            _content.AppendLine($"Last 7 days: {numberOfMessagesIn7Days}");
-            _content.AppendLine($"Last 30 days: {numberOfMessagesIn30Days}");
+            _content.AppendLine($"Last 7 days: {numberOfMessagesIn7Days} messages");
+            _content.AppendLine($"Last 30 days: {numberOfMessagesIn30Days} messages");
             _content.AppendLine($"Average/day: {averagePerDay} (top {percentile})");
 
             return this;
@@ -112,11 +115,36 @@ namespace Modix.Services.UserInfo
 
         public UserInfoEmbedBuilderHelper WithPromotions(List<(ulong targetRoleId, DateTimeOffset date)> promotions)
         {
-            _content.AppendLine(Format.Bold("\n**\u276F Promotion History**"));
+            _content.AppendLine("\n**\u276F Promotion History**");
 
             foreach (var promotion in promotions.OrderByDescending(x => x.date))
             {
                 _content.AppendLine($"• {MentionUtils.MentionRole(promotion.targetRoleId)} {FormatUtilities.FormatTimeAgo(_nowUtc, promotion.date)}");
+            }
+
+            return this;
+        }
+
+        public UserInfoEmbedBuilderHelper WithInfractions(string websiteBaseUrl, ulong userId,
+            IGuildChannel channel, Dictionary<InfractionType, int> infractions)
+        {
+            // https://modix.gg/infractions?subject=1234
+            var url = new UriBuilder(websiteBaseUrl)
+            {
+                Path = "/infractions",
+                Query = $"subject={userId}"
+            }.RemoveDefaultPort().ToString();
+
+            _content.AppendLine();
+            _content.AppendLine($"**\u276F Infractions [See here]({url})**");
+
+            if (!channel.IsPublic())
+            {
+                _content.AppendLine(FormatUtilities.FormatInfractionCounts(infractions));
+            }
+            else
+            {
+                _content.AppendLine("Infractions cannot be listed in public channels.");
             }
 
             return this;

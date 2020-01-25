@@ -8,8 +8,10 @@ using Discord;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Modix.Data;
 using Modix.Data.Extensions;
+using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.Extensions;
@@ -38,16 +40,19 @@ namespace Modix.Services.UserInfo
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
         private readonly IImageService _imageService;
         private readonly ILogger<UserInfoCommandHandler> _logger;
+        private readonly ModixConfig _modixConfig;
         private readonly Stopwatch _stopwatch = new Stopwatch();
 
         public UserInfoCommandHandler(ModixContext modixContext, IDiscordClient discordClient,
-            IAutoRemoveMessageService autoRemoveMessageService, IImageService imageService, ILogger<UserInfoCommandHandler> logger)
+            IAutoRemoveMessageService autoRemoveMessageService, IImageService imageService, ILogger<UserInfoCommandHandler> logger,
+            IOptions<ModixConfig> modixOptions)
         {
             _modixContext = modixContext;
             _discordClient = discordClient;
             _autoRemoveMessageService = autoRemoveMessageService;
             _imageService = imageService;
             _logger = logger;
+            _modixConfig = modixOptions.Value;
         }
 
         protected override async Task Handle(UserInfoCommand request, CancellationToken cancellationToken)
@@ -95,7 +100,9 @@ namespace Modix.Services.UserInfo
 
             userInfoBuilder
                 .WithId(request.UserId)
-                .WithClickableMention(request.UserId);
+                .WithClickableMention(request.UserId)
+                .WithStatus(discordUser.Status)
+                .WithFirstAndLastSeen(modixUser.FirstSeen, modixUser.LastSeen);
 
             if (modixUser.Infractions.Any(x => x.Type == InfractionType.Ban))
             {
@@ -109,26 +116,24 @@ namespace Modix.Services.UserInfo
                 userInfoBuilder.WithBan(banReason);
             }
 
-            if (discordUser is { })
+            if (participation is { })
             {
                 userInfoBuilder
-                    .WithStatus(discordUser.Status)
-                    .WithFirstAndLastSeen(modixUser.FirstSeen, modixUser.LastSeen)
-                    .WithMemberInformation(discordUser);
+                    .WithParticipationInPeriod(participation.UserRank,
+                        participation.TotalNumberOfMessagesInPeriod,
+                        participation.TotalNumberOfMessagesIn7Days,
+                        participation.AverageMessagesSent,
+                        participation.Percentile);
+
+                if (participation.TopChannelParticipation is { })
+                {
+                    userInfoBuilder.WithChannel(participation.TopChannelParticipation.ChannelId,
+                        participation.TopChannelParticipation.NumberOfMessages);
+                }
             }
 
             userInfoBuilder
-                .WithParticipationInPeriod(participation.UserRank,
-                    participation.TotalNumberOfMessagesInPeriod,
-                    participation.TotalNumberOfMessagesIn7Days,
-                    participation.AverageMessagesSent,
-                    participation.Percentile);
-
-            if (participation.TopChannelParticipation is { })
-            {
-                userInfoBuilder.WithChannel(participation.TopChannelParticipation.ChannelId,
-                    participation.TopChannelParticipation.NumberOfMessages);
-            }
+                .WithMemberInformation(discordUser);
 
             var promotionHistory = modixUser
                 .Promotions
@@ -139,6 +144,13 @@ namespace Modix.Services.UserInfo
             {
                 userInfoBuilder.WithPromotions(promotionHistory);
             }
+
+            var infractionsDictionary = modixUser.Infractions
+                .GroupBy(x => x.Type)
+                .ToDictionary(d => d.Key, dtos => dtos.Count());
+
+            userInfoBuilder.WithInfractions(_modixConfig.WebsiteBaseUrl, request.UserId, (IGuildChannel)request.Message.Channel,
+                infractionsDictionary);
 
             var content = userInfoBuilder.Build();
 
@@ -200,7 +212,7 @@ namespace Modix.Services.UserInfo
                 .FirstOrDefaultAsync(cancellationToken);
         }
 
-        private async Task<UserInfoParticipationDto> GetParticipationStatisticsAsync(IGuild guild, ulong userId, CancellationToken cancellationToken)
+        private async Task<UserInfoParticipationDto?> GetParticipationStatisticsAsync(IGuild guild, ulong userId, CancellationToken cancellationToken)
         {
             const int NumberOfDaysInPeriodToCount = 30;
             var now = DateTimeOffset.UtcNow;
@@ -219,6 +231,11 @@ namespace Modix.Services.UserInfo
                     ChannelId = x.Key.ChannelId,
                     NumberOfMessages = x.Count(),
                 }).ToListAsync(cancellationToken: cancellationToken);
+
+            if (!messages.Any())
+            {
+                return null;
+            }
 
             var rankedUsers = await _modixContext
                 .GuildUsers
@@ -253,7 +270,7 @@ namespace Modix.Services.UserInfo
             {
                 var rankedUser = rankedUsers.Single(x => x.UserId == userId);
                 userRank = rankedUsers.IndexOf(rankedUser) + 1;
-                percentile = (userRank / rankedUsers.Count) * 100;
+                percentile = (1 - (userRank / rankedUsers.Count)) * 100;
             }
 
             var participation = new UserInfoParticipationDto(userRank, totalNumberOfMessagesInPeriod,

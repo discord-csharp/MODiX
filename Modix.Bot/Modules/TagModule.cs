@@ -7,6 +7,7 @@ using Discord;
 using Discord.Commands;
 using Microsoft.Extensions.Options;
 using Modix.Bot.Extensions;
+using Modix.Common.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Tags;
 using Modix.Services.CodePaste;

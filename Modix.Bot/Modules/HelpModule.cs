@@ -8,6 +8,7 @@ using Discord.Commands;
 using Discord.Net;
 using Microsoft.Extensions.Options;
 using Modix.Bot.Extensions;
+using Modix.Common.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Services.CommandHelp;
 using Modix.Services.Utilities;
