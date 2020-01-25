@@ -147,11 +147,11 @@ namespace Modix.Controllers
         }
 
         [HttpPost("{id}/rescind")]
-        public async Task<IActionResult> RescindInfractionAsync(long id)
+        public async Task<IActionResult> RescindInfractionAsync(long id, [FromBody] string reason = null)
         {
             try
             {
-                await ModerationService.RescindInfractionAsync(id);
+                await ModerationService.RescindInfractionAsync(id, reason);
             }
             catch (Exception ex)
             {
