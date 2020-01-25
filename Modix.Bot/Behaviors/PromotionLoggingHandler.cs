@@ -8,6 +8,7 @@ using Discord;
 using Microsoft.Extensions.Options;
 
 using Modix.Bot.Extensions;
+using Modix.Common.Extensions;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
