@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,6 +14,9 @@ using Modix.Services.Core;
 using Modix.Services.Utilities;
 
 using Serilog;
+using StatsdClient;
+
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace Modix.Bot.Behaviors
 {
@@ -20,6 +25,8 @@ namespace Modix.Bot.Behaviors
     /// </summary>
     public class CommandListeningBehavior : INotificationHandler<MessageReceivedNotification>
     {
+        private readonly IDogStatsd _stats;
+
         /// <summary>
         /// Constructs a new <see cref="CommandListeningBehavior"/>, with the given dependencies.
         /// </summary>
@@ -28,13 +35,15 @@ namespace Modix.Bot.Behaviors
             CommandService commandService,
             CommandErrorHandler commandErrorHandler,
             IDiscordClient discordClient,
-            IAuthorizationService authorizationService)
+            IAuthorizationService authorizationService,
+            IDogStatsd stats = null)
         {
             ServiceProvider = serviceProvider;
             CommandService = commandService;
             CommandErrorHandler = commandErrorHandler;
             DiscordClient = discordClient;
             AuthorizationService = authorizationService;
+            _stats = stats;
         }
 
         /// <inheritdoc />
@@ -64,7 +73,26 @@ namespace Modix.Bot.Behaviors
 
             await AuthorizationService.OnAuthenticatedAsync(author);
 
-            var commandResult = await CommandService.ExecuteAsync(commandContext, argPos, ServiceProvider);
+            IResult commandResult = null;
+            var commandTimer = Stopwatch.StartNew();
+            try
+            {
+                commandResult = await CommandService.ExecuteAsync(commandContext, argPos, ServiceProvider);
+            }
+            finally
+            {
+                commandTimer.Stop();
+                var duration = commandTimer.ElapsedMilliseconds;
+
+                if (!(_stats is null) && (commandResult.IsSuccess || !string.Equals(commandResult.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase)))
+                {
+                    var commandInfo = CommandService.Search(commandContext, argPos).Commands.FirstOrDefault();
+                    var name = commandInfo.Command?.Name.ToLowerInvariant();
+
+                    _stats?.Timer("command_duration_ms", duration,
+                        tags: new[] { $"guild:{commandContext.Guild.Name}", $"success:{commandResult.IsSuccess}", $"command:{name}" });
+                }
+            }
 
             if(!commandResult.IsSuccess)
             {
