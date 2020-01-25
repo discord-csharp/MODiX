@@ -28,17 +28,18 @@ export default class PieChart extends Vue
         return this.$refs.chart as HTMLCanvasElement;
     }
 
+    @Watch('stats')
     updateChart()
     {
-        let array = Array.from(this.stats);
+        let array = Array.from(this.stats || []);
 
         this.pieChart.data = {
-            labels: Array.from(this.stats).map(d=> d.name),
+            labels: array.map(d=> d.name),
             datasets:
             [
                 {
-                    backgroundColor: Array.from(this.stats).map(d=> d.color),
-                    data: Array.from(this.stats).map(d=> d.count)
+                    backgroundColor: array.map(d=> d.color),
+                    data: array.map(d=> d.count)
                 }
             ]
         };

@@ -39,9 +39,11 @@
                         <UserProfileField fieldName="Roles" :fieldValue="roles" allowHtml="true" />
                     </div>
 
-                    <div class="section-title">Messages by Channel</div>
-                    <div class="box" :v-if="messages">
-                        <PieChart :stats="messages" />
+                    <div :v-if="messages">
+                        <div class="section-title">Messages by Channel</div>
+                        <div class="box">
+                            <PieChart :stats="messages" />
+                        </div>
                     </div>
                 </template>
 
@@ -51,7 +53,7 @@
 </template>
 
 <script lang="ts">
-import { Component, Prop } from 'vue-property-decorator';
+import { Component, Prop, Watch } from 'vue-property-decorator';
 import ModixComponent from '@/components/ModixComponent.vue';
 import PieChart from '@/components/PieChart.vue';
 import * as _ from 'lodash';
@@ -95,10 +97,18 @@ export default class UserProfile extends ModixComponent
                 .join(", ");
     }
 
+    @Watch('user')
+    async setMessages(): Promise<void>
+    {
+        if (this.user && this.user.id)
+        {
+            this.messages = await UserService.getMessageCountPerChannel(this.user.id);
+        }
+    }
+
     async mounted()
     {
         await store.retrieveRoles();
-        this.messages = await UserService.getMessageCountPerChannel(this.$store.state.modix.user.userId);
     }
 }
 </script>
