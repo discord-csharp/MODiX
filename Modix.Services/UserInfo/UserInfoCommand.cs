@@ -1,22 +1,16 @@
 ﻿#nullable enable
 using System;
-using System.Collections.Generic;
-using System.Globalization;
+using System.Diagnostics;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Runtime.InteropServices.ComTypes;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
-using Humanizer;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Modix.Data;
-using Modix.Data.Models.Core;
+using Modix.Data.Extensions;
 using Modix.Data.Models.Moderation;
-using Modix.Data.Models.Promotions;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.Extensions;
 using Modix.Services.Images;
@@ -43,54 +37,40 @@ namespace Modix.Services.UserInfo
         private readonly IDiscordClient _discordClient;
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
         private readonly IImageService _imageService;
+        private readonly ILogger<UserInfoCommandHandler> _logger;
+        private readonly Stopwatch _stopwatch = new Stopwatch();
 
         public UserInfoCommandHandler(ModixContext modixContext, IDiscordClient discordClient,
-            IAutoRemoveMessageService autoRemoveMessageService, IImageService imageService)
+            IAutoRemoveMessageService autoRemoveMessageService, IImageService imageService, ILogger<UserInfoCommandHandler> logger)
         {
             _modixContext = modixContext;
             _discordClient = discordClient;
             _autoRemoveMessageService = autoRemoveMessageService;
             _imageService = imageService;
+            _logger = logger;
         }
 
-        protected override async Task Handle(UserInfoCommand request,
-            CancellationToken cancellationToken)
+        protected override async Task Handle(UserInfoCommand request, CancellationToken cancellationToken)
         {
-            var guild = await _discordClient.GetGuildAsync(request.GuildId);
-            var discordUser = await _discordClient.GetUserAsync(request.UserId);
+            _stopwatch.Start();
 
-            var modixUser = await _modixContext
-                .GuildUsers
-                .Where(x => x.UserId == request.UserId)
-                .Where(x => x.GuildId == request.GuildId)
-                .Select(x => new
-                {
-                    x.FirstSeen,
-                    x.LastSeen,
-                    Infractions = x.Infractions
-                        .Where(d => d.DeleteActionId == null)
-                        .Select(d => new
-                        {
-                            Type = d.Type,
-                            Date = d.CreateAction.Created,
-                            Reason = d.Reason,
-                        }).ToList(),
-                    Promotions = x.PromotionCampaigns
-                        .Where(d => d.Outcome == PromotionCampaignOutcome.Accepted)
-                        .Where(d => d.CloseActionId != null)
-                        .Select(d => new
-                        {
-                            Date = d.CloseAction!.Created,
-                            TargetRoleId = d.TargetRoleId,
-                        }).ToList(),
-                })
-                .FirstOrDefaultAsync();
+            _logger.LogDebug("Getting info for user {UserId} in guild {GuildId}", request.UserId, request.GuildId);
+
+            var guild = await _discordClient.GetGuildAsync(request.GuildId);
+
+            var discordUser = await guild.GetUserAsync(request.UserId);
+
+            _logger.LogDebug("Got user from Discord API");
+
+            var modixUser = await GetUserAsync(request.UserId, request.GuildId, cancellationToken);
 
             if (discordUser is null
-                && modixUser is null)
+                || modixUser is null)
             {
                 // If we have nothing from Discord or from the database,
                 // we'll need to assume this user doesn't exist
+
+                _logger.LogDebug("Discord user or MODiX user is null, cannot return info, replying with retrieval error embed");
 
                 var embed = new EmbedBuilder()
                     .WithTitle("Retrieval Error")
@@ -103,54 +83,15 @@ namespace Modix.Services.UserInfo
                     embed,
                     async (builder) =>
                         await request.Message.ReplyAsync(string.Empty, embed: builder.Build()));
+
+                _stopwatch.Stop();
+
                 return;
             }
 
+            var participation = await GetParticipationStatisticsAsync(guild, request.UserId, cancellationToken);
+
             var userInfoBuilder = UserInfoEmbedBuilderHelper.Create();
-
-            const int NumberOfDaysInPeriodToCount = 30;
-            var startingThreshold = DateTimeOffset.UtcNow.AddDays(-NumberOfDaysInPeriodToCount);
-            var weekThreshold = startingThreshold.AddDays(-7);
-
-            var messages = await _modixContext
-                    .Messages
-                    .Where(x => x.GuildId == request.GuildId)
-                    .Where(x => x.AuthorId == request.UserId)
-                    .Where(x => x.Channel.DesignatedChannelMappings.Any(d =>
-                        d.Type == DesignatedChannelType.CountsTowardsParticipation))
-                    .Where(x => x.Timestamp > startingThreshold)
-                    .GroupBy(x => x.Timestamp.DateTime)
-                    .Select(x => new
-                    {
-                        ChannelId = x.Key,
-                    }).ToListAsync(cancellationToken: cancellationToken);
-
-            var rankedUsers = await _modixContext
-                .GuildUsers
-                .Where(x => x.Messages.Where(f => f.Channel.DesignatedChannelMappings
-                    .Any(d => d.Type == DesignatedChannelType.CountsTowardsParticipation))
-                    .Any(d => d.Timestamp > startingThreshold))
-                .Where(x => x.GuildId == request.GuildId)
-                .Select(x =>
-                new
-                {
-                    x.UserId,
-                    NumberOfMessages = x.Messages
-                    .Where(e => e.Channel.DesignatedChannelMappings
-                        .Any(d => d.Type == DesignatedChannelType.CountsTowardsParticipation))
-                    .Count(d => d.Timestamp > startingThreshold),
-                })
-                .OrderByDescending(x => x.NumberOfMessages)
-                .ToListAsync(cancellationToken: cancellationToken);
-
-            //var totalNumberOfMessagesInPeriod = messages.Sum(x => x.NumberOfMessages);
-            //var totalNumberOfMessagesIn7Days = messages.Where(x => x.Date.Date > weekThreshold.Date).Sum(d => d.NumberOfMessages);
-            //var averageMessagesSent = totalNumberOfMessagesInPeriod / NumberOfDaysInPeriodToCount;
-
-            //var rankedUser = rankedUsers.Single(x => x.UserId == request.UserId);
-            //var userRank = rankedUsers.IndexOf(rankedUser) + 1;
-
-            //var percentile = (1 - (userRank / rankedUsers.Count)) * 100;
 
             userInfoBuilder
                 .WithId(request.UserId)
@@ -161,43 +102,37 @@ namespace Modix.Services.UserInfo
                 var banReason = modixUser
                     .Infractions
                     .Where(x => x.Type == InfractionType.Ban)
-                    .OrderByDescending(x => x.Date)
+                    .OrderByDescending(x => x.Created)
                     .Select(x => x.Reason)
                     .First();
 
                 userInfoBuilder.WithBan(banReason);
             }
 
-            if (discordUser is IGuildUser guildUser)
+            if (discordUser is { })
             {
                 userInfoBuilder
                     .WithStatus(discordUser.Status)
                     .WithFirstAndLastSeen(modixUser.FirstSeen, modixUser.LastSeen)
-                    .WithMemberInformation(guildUser);
+                    .WithMemberInformation(discordUser);
             }
 
-            //userInfoBuilder
-            //    .WithParticipationInPeriod(userRank,
-            //totalNumberOfMessagesInPeriod,
-            //totalNumberOfMessagesIn7Days,
-            //averageMessagesSent,
-            //percentile);
+            userInfoBuilder
+                .WithParticipationInPeriod(participation.UserRank,
+                    participation.TotalNumberOfMessagesInPeriod,
+                    participation.TotalNumberOfMessagesIn7Days,
+                    participation.AverageMessagesSent,
+                    participation.Percentile);
 
-            //var mostPopularChannel = messages
-            //    .OrderByDescending(x => x.NumberOfMessages)
-            //    .Single();
-
-            //var channel = await guild.GetChannelAsync(mostPopularChannel.ChannelId);
-
-            //if (channel.IsPublic())
-            //{
-            //    userInfoBuilder.WithChannel(mostPopularChannel.ChannelId,
-            //        mostPopularChannel.NumberOfMessages);
-            //}
+            if (participation.TopChannelParticipation is { })
+            {
+                userInfoBuilder.WithChannel(participation.TopChannelParticipation.ChannelId,
+                    participation.TopChannelParticipation.NumberOfMessages);
+            }
 
             var promotionHistory = modixUser
                 .Promotions
-                .Select(promotion => (promotion.TargetRoleId, promotion.Date))
+                .Select(promotion => (promotion.TargetRoleId, promotion.ClosedDate))
                 .ToList();
 
             if (promotionHistory.Any())
@@ -211,13 +146,15 @@ namespace Modix.Services.UserInfo
 
             var colorTask = await _imageService.GetDominantColorAsync(new Uri(avatar));
 
+            _stopwatch.Stop();
+
             var embedBuilder = new EmbedBuilder()
                 .WithUserAsAuthor(discordUser)
                 .WithTimestamp(DateTimeOffset.UtcNow)
                 .WithThumbnailUrl(avatar)
                 .WithDescription(content)
                 .WithColor(colorTask)
-                .WithFooter("TODO");
+                .WithFooter($"Completed after {_stopwatch.ElapsedMilliseconds} ms");
 
             embedBuilder.Author.IconUrl = avatar;
 
@@ -232,134 +169,112 @@ namespace Modix.Services.UserInfo
                 embedBuilder,
                 async (builder) => await request.Message.ReplyAsync(string.Empty, builder.Build()));
         }
-    }
 
-    public class UserInfoEmbedBuilderHelper
-    {
-        private readonly StringBuilder _content = new StringBuilder();
-        private readonly DateTimeOffset _nowUtc = DateTimeOffset.UtcNow;
-
-        public static UserInfoEmbedBuilderHelper Create()
+        private async Task<UserInfoUserDto?> GetUserAsync(ulong userId, ulong guildId, CancellationToken cancellationToken)
         {
-            return new UserInfoEmbedBuilderHelper();
-        }
-
-        private UserInfoEmbedBuilderHelper()
-        {
-            _content.AppendLine("**\u276F User Information**");
-        }
-
-        public UserInfoEmbedBuilderHelper WithId(ulong userId)
-        {
-            _content.AppendLine("ID: " + userId);
-            return this;
-        }
-
-        public UserInfoEmbedBuilderHelper WithClickableMention(ulong userId)
-        {
-            _content.AppendLine("Profile: " + MentionUtils.MentionUser(userId));
-            return this;
-        }
-
-        public UserInfoEmbedBuilderHelper WithFirstAndLastSeen(DateTimeOffset firstSeen, DateTimeOffset lastSeen)
-        {
-            _content.AppendLine($"First Seen: {FormatUtilities.FormatTimeAgo(_nowUtc, firstSeen)}");
-            _content.AppendLine($"Last Seen: {FormatUtilities.FormatTimeAgo(_nowUtc, lastSeen)}");
-
-            return this;
-        }
-
-        public UserInfoEmbedBuilderHelper WithStatus(UserStatus status)
-        {
-            _content.AppendLine($"Status: {status.Humanize()}");
-            return this;
-        }
-
-        public UserInfoEmbedBuilderHelper WithBan(string reason)
-        {
-            _content.AppendLine($"🔨\\ **Banned**: {reason}");
-            return this;
-        }
-
-        public UserInfoEmbedBuilderHelper WithParticipationInPeriod(int rank,
-            int numberOfMessagesIn30Days,
-            int numberOfMessagesIn7Days,
-            double averagePerDay,
-            int percentile)
-        {
-            _content.AppendLine("**\u276F Guild Participation**");
-            _content.AppendFormat($"Rank: {rank} {GetParticipationEmoji(rank)}");
-            _content.AppendFormat($"Last 7 days: {numberOfMessagesIn7Days}");
-            _content.AppendFormat($"Last 30 days: {numberOfMessagesIn30Days}");
-            _content.AppendFormat($"Average/day: {averagePerDay} (top {percentile})");
-
-            return this;
-        }
-
-        public UserInfoEmbedBuilderHelper WithChannel(ulong channelId,
-            int numberOfMessagesInChannel)
-        {
-            _content.AppendLine($"Most active channel: {MentionUtils.MentionChannel(channelId)} ({numberOfMessagesInChannel} messages)");
-            return this;
-        }
-
-        public UserInfoEmbedBuilderHelper WithMemberInformation(IGuildUser user)
-        {
-            _content.AppendLine("**\u276F Member Information**");
-
-            if (!string.IsNullOrEmpty(user.Nickname))
-            {
-                _content.AppendLine("Nickname: " + user.Nickname);
-            }
-
-            _content.AppendLine($"Created: {FormatUtilities.FormatTimeAgo(_nowUtc, user.CreatedAt)}");
-
-            if (user.JoinedAt != null)
-            {
-                _content.AppendLine($"Joined: {FormatUtilities.FormatTimeAgo(_nowUtc, user.JoinedAt.Value)}");
-            }
-
-            if (user.RoleIds?.Count > 0)
-            {
-                var roles = user.RoleIds.Select(x => user.Guild.Roles.Single(y => y.Id == x))
-                    .Where(x => x.Id != x.Guild.Id)
-                    .OrderByDescending(role => role)
-                    .ToArray();
-
-                if (roles.Any())
+            return await _modixContext
+                .GuildUsers
+                .WhereUserInGuild(userId, guildId)
+                .Select(x => new UserInfoUserDto
                 {
-                    _content.Append($"{"Role".ToQuantity(roles.Length, ShowQuantityAs.None)}: ");
-                    _content.AppendLine(roles.Select(r => r.Mention).Humanize());
+                    FirstSeen = x.FirstSeen,
+                    LastSeen = x.LastSeen,
+                    Infractions = x.Infractions
+                        .AsQueryable()
+                        .Where(InfractionQueryExtensions.IsActive())
+                        .Select(d => new UserInfoUserDto.UserInfoInfractionDto
+                        {
+                            Type = d.Type,
+                            Created = d.CreateAction.Created,
+                            Reason = d.Reason,
+                        }).ToList(),
+                    Promotions = x.PromotionCampaigns
+                        .AsQueryable()
+                        .Where(PromotionCampaignQueryExtensions.IsAccepted())
+                        .Select(d => new UserInfoUserDto.UserInfoPromotionCampaignDto
+                        {
+                            ClosedDate = d.CloseAction!.Created,
+                            TargetRoleId = d.TargetRoleId,
+                        }).ToList(),
+                })
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        private async Task<UserInfoParticipationDto> GetParticipationStatisticsAsync(IGuild guild, ulong userId, CancellationToken cancellationToken)
+        {
+            const int NumberOfDaysInPeriodToCount = 30;
+            var now = DateTimeOffset.UtcNow;
+            var startingThreshold = now.AddDays(-NumberOfDaysInPeriodToCount);
+            var weekThreshold = now.AddDays(-7);
+
+            var messages = await _modixContext
+                .Messages
+                .WhereIsFromGuildUser(userId, guild.Id)
+                .WhereCountsTowardsParticipation()
+                .Where(x => x.Timestamp > startingThreshold)
+                .GroupBy(x => new { x.Timestamp.ToUniversalTime().Date, x.ChannelId })
+                .Select(x => new
+                {
+                    Date = x.Key.Date,
+                    ChannelId = x.Key.ChannelId,
+                    NumberOfMessages = x.Count(),
+                }).ToListAsync(cancellationToken: cancellationToken);
+
+            var rankedUsers = await _modixContext
+                .GuildUsers
+                .Where(x => x.GuildId == guild.Id)
+                .Where(x => x.Messages
+                    .AsQueryable()
+                    .Where(MessageQueryExtensions.CountsTowardsParticipation())
+                    .Any(d => d.Timestamp > startingThreshold))
+                .Select(x =>
+                    new
+                    {
+                        x.UserId,
+                        NumberOfMessages = x.Messages
+                            .AsQueryable()
+                            .Where(MessageQueryExtensions.CountsTowardsParticipation())
+                            .Count(d => d.Timestamp > startingThreshold),
+                    })
+                .OrderByDescending(x => x.NumberOfMessages)
+                .ToListAsync(cancellationToken: cancellationToken);
+
+            var totalNumberOfMessagesInPeriod = messages.Sum(x => x.NumberOfMessages);
+            var totalNumberOfMessagesIn7Days = messages.Where(x => x.Date.Date > weekThreshold.Date).Sum(d => d.NumberOfMessages);
+            var averageMessagesSent = Math.Round((double)totalNumberOfMessagesInPeriod / NumberOfDaysInPeriodToCount, 2, MidpointRounding.ToZero);
+
+            var userRank = 1;
+            double percentile = 1;
+
+            // If we have more than one ranked user, show rank, otherwise we'll
+            // default to having the user that is being called info on, be the
+            // top user
+            if (rankedUsers.Count > 1)
+            {
+                var rankedUser = rankedUsers.Single(x => x.UserId == userId);
+                userRank = rankedUsers.IndexOf(rankedUser) + 1;
+                percentile = (userRank / rankedUsers.Count) * 100;
+            }
+
+            var participation = new UserInfoParticipationDto(userRank, totalNumberOfMessagesInPeriod,
+                totalNumberOfMessagesIn7Days, averageMessagesSent, percentile);
+
+            if (messages.Any())
+            {
+                var mostPopularChannel = messages
+                    .OrderByDescending(x => x.NumberOfMessages)
+                    .Single();
+
+                var channel = await guild.GetChannelAsync(mostPopularChannel.ChannelId);
+
+                if (channel.IsPublic())
+                {
+                    participation.TopChannelParticipation = new UserInfoParticipationDto.UserInfoParticipationTopChannelDto(mostPopularChannel.ChannelId,
+                        mostPopularChannel.NumberOfMessages);
                 }
             }
 
-            return this;
+            return participation;
         }
-
-        public UserInfoEmbedBuilderHelper WithPromotions(List<(ulong targetRoleId, DateTimeOffset date)> promotions)
-        {
-            _content.AppendLine(Format.Bold("\u276F Promotion History"));
-
-            foreach (var promotion in promotions.OrderByDescending(x => x.date))
-            {
-                _content.AppendLine($"• {MentionUtils.MentionRole(promotion.targetRoleId)} {FormatUtilities.FormatTimeAgo(_nowUtc, promotion.date)}");
-            }
-
-            return this;
-        }
-
-        public string Build()
-        {
-            return _content.ToString();
-        }
-
-        private string GetParticipationEmoji(int rank) =>
-            rank switch
-            {
-                1 => "🥇",
-                2 => "🥈",
-                3 => "🥉",
-                _ => "🏆",
-            };
     }
 }
