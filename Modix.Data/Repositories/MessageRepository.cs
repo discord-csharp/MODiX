@@ -379,14 +379,5 @@ namespace Modix.Data.Repositories
                 .GroupBy(channelId => channelId)
                 .ToDictionary(x => x.Key, x => x.Count());
         }
-
-        private IQueryable<MessageEntity> GetGuildUserMessages(ulong guildId, ulong userId, TimeSpan timespan)
-        {
-            var earliestDateTime = DateTimeOffset.UtcNow - timespan;
-
-            return ModixContext.Messages
-                .AsNoTracking()
-                .Where(x => x.GuildId == guildId && x.AuthorId == userId && x.Timestamp >= earliestDateTime);
-        }
     }
 }
