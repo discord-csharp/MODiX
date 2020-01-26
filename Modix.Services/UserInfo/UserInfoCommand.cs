@@ -14,7 +14,6 @@ using Modix.Data;
 using Modix.Data.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
-using Modix.Data.Repositories;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.Extensions;
 using Modix.Services.Images;
@@ -43,26 +42,29 @@ namespace Modix.Services.UserInfo
         private readonly IImageService _imageService;
         private readonly ILogger<UserInfoCommandHandler> _logger;
         private readonly ModixConfig _modixConfig;
-        private readonly IMessageRepository _messageRepository;
+        private readonly LappingStopwatch _lappingStopwatch = new LappingStopwatch();
 
         public UserInfoCommandHandler(ModixContext modixContext, IDiscordClient discordClient,
-            IAutoRemoveMessageService autoRemoveMessageService, IImageService imageService, ILogger<UserInfoCommandHandler> logger,
-            IOptions<ModixConfig> modixOptions, IMessageRepository messageRepository)
+            IAutoRemoveMessageService autoRemoveMessageService, IImageService imageService,
+            ILogger<UserInfoCommandHandler> logger, IOptions<ModixConfig> modixOptions)
         {
             _modixContext = modixContext;
             _discordClient = discordClient;
             _autoRemoveMessageService = autoRemoveMessageService;
             _imageService = imageService;
             _logger = logger;
-            _messageRepository = messageRepository;
             _modixConfig = modixOptions.Value;
         }
 
         protected override async Task Handle(UserInfoCommand request, CancellationToken cancellationToken)
         {
+            var embedId = Guid.NewGuid().ToString("n");
+
             var stopwatch = new Stopwatch();
 
             stopwatch.Start();
+
+            _lappingStopwatch.Start();
 
             _logger.LogDebug("Getting info for user {UserId} in guild {GuildId}", request.UserId, request.GuildId);
 
@@ -71,7 +73,11 @@ namespace Modix.Services.UserInfo
                 CancelToken = cancellationToken,
             });
 
+            _lappingStopwatch.Lap("Get guild");
+
             var discordUser = await guild.GetUserAsync(request.UserId);
+
+            _lappingStopwatch.Lap("Get guild user");
 
             _logger.LogDebug("Got user {UserId} from Discord API", request.UserId);
 
@@ -95,11 +101,14 @@ namespace Modix.Services.UserInfo
                         await request.Message.ReplyAsync(string.Empty, embed: builder.Build()));
 
                 stopwatch.Stop();
+                _lappingStopwatch.Stop();
 
                 return;
             }
 
             var modixUser = await GetUserAsync(request.UserId, request.GuildId, cancellationToken);
+
+            _lappingStopwatch.Lap("Get MODiX user");
 
             var userInfoBuilder = UserInfoEmbedBuilderHelper.Create();
 
@@ -121,6 +130,8 @@ namespace Modix.Services.UserInfo
                 userInfoBuilder.WithBan(banReason);
             }
 
+            _lappingStopwatch.Lap("Initial embed build");
+
             var participation = await GetParticipationStatisticsAsync(guild, request.UserId, cancellationToken);
 
             if (participation is { })
@@ -138,6 +149,8 @@ namespace Modix.Services.UserInfo
                         participation.TopChannelParticipation.NumberOfMessages);
                 }
             }
+
+            _lappingStopwatch.Lap("Top channel");
 
             userInfoBuilder
                 .WithMemberInformation(discordUser);
@@ -161,9 +174,13 @@ namespace Modix.Services.UserInfo
 
             var content = userInfoBuilder.Build();
 
+            _lappingStopwatch.Lap("Build embed content");
+
             var avatar = discordUser.GetDefiniteAvatarUrl();
 
             var colorTask = await _imageService.GetDominantColorAsync(new Uri(avatar));
+
+            _lappingStopwatch.Lap("Dominant colour");
 
             stopwatch.Stop();
 
@@ -173,7 +190,7 @@ namespace Modix.Services.UserInfo
                 .WithThumbnailUrl(avatar)
                 .WithDescription(content)
                 .WithColor(colorTask)
-                .WithFooter($"Completed after {stopwatch.ElapsedMilliseconds} ms");
+                .WithFooter($"Completed after {stopwatch.ElapsedMilliseconds} ms ({embedId})");
 
             embedBuilder.Author.IconUrl = avatar;
 
@@ -187,6 +204,18 @@ namespace Modix.Services.UserInfo
                 usersAbleToRemove,
                 embedBuilder,
                 async (builder) => await request.Message.ReplyAsync(string.Empty, builder.Build()));
+
+            _lappingStopwatch.Lap("Send message");
+
+            _lappingStopwatch.Stop();
+
+            var lapsDump = string.Join("\n", _lappingStopwatch.Laps.Select(x => $"{x.LapName} {x.Elapsed.TotalMilliseconds:0.####}ms\n----------"));
+
+            var statsEmbed = new EmbedBuilder()
+                .WithTitle($"Perf dump for {embedId}")
+                .WithDescription(lapsDump);
+
+            await request.Message.ReplyAsync(string.Empty, statsEmbed.Build());
         }
 
         private async Task<UserInfoUserDto?> GetUserAsync(ulong userId, ulong guildId, CancellationToken cancellationToken)
@@ -240,6 +269,8 @@ namespace Modix.Services.UserInfo
                     NumberOfMessages = x.Count(),
                 }).ToListAsync(cancellationToken: cancellationToken);
 
+            _lappingStopwatch.Lap("Messages from MODiX db");
+
             if (!messages.Any())
             {
                 return null;
@@ -291,7 +322,13 @@ namespace Modix.Services.UserInfo
                 .OrderByDescending(x => x.AveragePerDay);
 
             var totalCount = await groupedMessages.SumAsync(x => x.Count, cancellationToken);
+
+            _lappingStopwatch.Lap("Participation summed");
+
             var thisUser = await groupedMessages.SingleOrDefaultAsync(x => x.AuthorId == userId, cancellationToken);
+
+            _lappingStopwatch.Lap("Participation user queried");
+
             var percentile = thisUser.Count / totalCount * 100;
 
             // rank = number of users with an average per day higher than this
@@ -299,6 +336,8 @@ namespace Modix.Services.UserInfo
             var rank = await groupedMessages
                 .Where(x => x.AveragePerDay > thisUser.AveragePerDay)
                 .CountAsync(cancellationToken) + 1;
+
+            _lappingStopwatch.Lap("Participation rank counted");
 
             return new GuildUserParticipationStatistics
             {
