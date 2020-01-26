@@ -229,14 +229,13 @@ namespace Modix.Services.UserInfo
 
             var messages = await _modixContext
                 .Messages
-                .WhereIsUserInGuild(guild.Id, userId)
+                .WhereIsUserInGuild(userId, guild.Id)
                 .WhereCountsTowardsParticipation()
                 .Where(x => x.Timestamp > startingThreshold)
-                .GroupBy(x => new { x.Timestamp.ToUniversalTime().Date, x.ChannelId, x.AuthorId })
+                .GroupBy(x => new { x.Timestamp.ToUniversalTime().Date, x.ChannelId })
                 .Select(x => new
                 {
                     Date = x.Key.Date,
-                    UserId = x.Key.AuthorId,
                     ChannelId = x.Key.ChannelId,
                     NumberOfMessages = x.Count(),
                 }).ToListAsync(cancellationToken: cancellationToken);
@@ -255,15 +254,16 @@ namespace Modix.Services.UserInfo
             if (messages.Any())
             {
                 var mostPopularChannel = messages
-                    .OrderByDescending(x => x.NumberOfMessages)
+                    .GroupBy(x => x.ChannelId)
+                    .OrderByDescending(x => x.Sum(d => d.NumberOfMessages))
                     .First();
 
-                var channel = await guild.GetChannelAsync(mostPopularChannel.ChannelId);
+                var channel = await guild.GetChannelAsync(mostPopularChannel.Key);
 
                 if (channel.IsPublic())
                 {
-                    participation.TopChannelParticipation = new UserInfoParticipationDto.UserInfoParticipationTopChannelDto(mostPopularChannel.ChannelId,
-                        mostPopularChannel.NumberOfMessages);
+                    participation.TopChannelParticipation = new UserInfoParticipationDto.UserInfoParticipationTopChannelDto(mostPopularChannel.Key,
+                        mostPopularChannel.Sum(d => d.NumberOfMessages));
                 }
             }
 

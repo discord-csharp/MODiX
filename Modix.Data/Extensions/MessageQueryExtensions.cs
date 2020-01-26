@@ -7,9 +7,9 @@ namespace Modix.Data.Extensions
 {
     public static class MessageQueryExtensions
     {
-        public static IQueryable<MessageEntity> WhereIsUserInGuild(this IQueryable<MessageEntity> source, ulong guildId, ulong userId)
+        public static IQueryable<MessageEntity> WhereIsUserInGuild(this IQueryable<MessageEntity> source, ulong userId, ulong guildId)
         {
-            return source.Where(x => x.GuildId == guildId && x.AuthorId == userId);
+            return source.Where(x => x.AuthorId == userId && x.GuildId == guildId);
         }
 
         public static Expression<Func<MessageEntity, bool>> CountsTowardsParticipation()
