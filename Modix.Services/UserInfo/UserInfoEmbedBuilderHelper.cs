@@ -61,14 +61,14 @@ namespace Modix.Services.UserInfo
         public UserInfoEmbedBuilderHelper WithParticipationInPeriod(int rank,
             int numberOfMessagesIn30Days,
             int numberOfMessagesIn7Days,
-            double averagePerDay,
-            double percentile)
+            decimal averagePerDay,
+            int percentile)
         {
             _content.AppendLine("\n**\u276F Guild Participation**");
             _content.AppendLine($"Rank: {rank} {GetParticipationEmoji(rank, percentile)}");
             _content.AppendLine($"Last 7 days: {numberOfMessagesIn7Days} messages");
             _content.AppendLine($"Last 30 days: {numberOfMessagesIn30Days} messages");
-            _content.AppendLine($"Average/day: {averagePerDay} (top {percentile})");
+            _content.AppendLine($"Average/day: {averagePerDay:0.##} (top {percentile.Ordinalize()})");
 
             return this;
         }

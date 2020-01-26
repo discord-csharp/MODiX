@@ -7,8 +7,7 @@ namespace Modix.Data.Extensions
 {
     public static class MessageQueryExtensions
     {
-        public static IQueryable<MessageEntity> WhereIsFromGuildUser(this IQueryable<MessageEntity> source,
-            ulong userId, ulong guildId)
+        public static IQueryable<MessageEntity> WhereIsUserInGuild(this IQueryable<MessageEntity> source, ulong userId, ulong guildId)
         {
             return source.Where(x => x.AuthorId == userId && x.GuildId == guildId);
         }

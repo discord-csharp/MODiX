@@ -3,7 +3,7 @@
     internal class UserInfoParticipationDto
     {
         public UserInfoParticipationDto(int userRank, int totalNumberOfMessagesInPeriod,
-            int totalNumberOfMessagesIn7Days, double averageMessagesSent, double percentile)
+            int totalNumberOfMessagesIn7Days, decimal averageMessagesSent, int percentile)
         {
             UserRank = userRank;
             TotalNumberOfMessagesInPeriod = totalNumberOfMessagesInPeriod;
@@ -15,8 +15,8 @@
         public int UserRank { get; }
         public int TotalNumberOfMessagesInPeriod { get; }
         public int TotalNumberOfMessagesIn7Days { get; }
-        public double AverageMessagesSent { get; }
-        public double Percentile { get; }
+        public decimal AverageMessagesSent { get; }
+        public int Percentile { get; }
 
         public UserInfoParticipationTopChannelDto? TopChannelParticipation { get; set; }
 
