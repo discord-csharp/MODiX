@@ -287,39 +287,25 @@ namespace Modix.Data.Repositories
             var stats = await ModixContext
                 .Set<GuildUserParticipationStatistics>()
                 .FromSqlRaw(
-                    @"with msgs as (
-                        select msg.""AuthorId"", msg.""Id"" as ""MessageId"", msg.""GuildId""
+                    @"select ""AveragePerDay"", ""Percentile"", ""Rank"", :GuildId as ""GuildId"", ""AuthorId"" as ""UserId""
+                    from
+                    (
+                        select msg.""AuthorId"",
+                            count(msg.""Id"") as ""MessageCount"",
+                            (cast(count(msg.""Id"") as decimal) / cast(30 as decimal)) as ""AveragePerDay"",
+                            ntile(100) over (order by (cast(count(msg.""Id"") as decimal) / cast(30 as decimal))) as ""Percentile"",
+                            dense_rank() over (order by cast(count(msg.""Id"") as decimal) / cast(30 as decimal) desc) as ""Rank""
+
                         from ""Messages"" as msg
                         left outer join ""DesignatedChannelMappings"" as dcm on msg.""ChannelId"" = dcm.""ChannelId""
-                        where msg.""GuildId"" = cast(:GuildId as bigint)
+                        where msg.""GuildId"" = :GuildId
                         and dcm.""Type"" = 'CountsTowardsParticipation'
-                        and ""Timestamp"" >= (current_date - interval '30 day')
-                    ),
-                    user_count as (
-                        select ""AuthorId"", count(1) as ""MessageCount"", ""GuildId""
-                        from msgs
-                        group by ""AuthorId"", ""GuildId""
-                    ),
-                    user_avg as (
-                        select ""AuthorId"", ""MessageCount"", (cast(""MessageCount"" as decimal) / cast(30 as decimal)) as ""AveragePerDay"", ""GuildId""
-                        from user_count
-                        group by ""AuthorId"", ""GuildId"", ""MessageCount""
-                    ),
-                    ntiles as (
-                        select ""AuthorId"", ntile(100) over (order by ""AveragePerDay"") as ""Percentile"", ""GuildId""
-                        from user_avg
-                        group by ""AuthorId"", ""GuildId"", ""AveragePerDay""
-                    ),
-                    ranked_users as (
-                        select user_avg.""AuthorId"" as ""UserId"", ""AveragePerDay"", ""Percentile"", dense_rank() over (order by ""AveragePerDay"" desc) as ""Rank"", user_avg.""GuildId""
-                        from user_avg
-                        inner join ntiles on user_avg.""AuthorId"" = ntiles.""AuthorId"" and user_avg.""GuildId"" = ntiles.""GuildId""
-                    )
-                    select ""AveragePerDay"", ""Percentile"", ""Rank"", ""GuildId"", ""UserId""
-                    from ranked_users
-                    where ""UserId"" = cast(:UserId as bigint)",
-                    new NpgsqlParameter(":GuildId", guildId.ToString()),
-                    new NpgsqlParameter(":UserId", userId.ToString()))
+                        and msg.""Timestamp"" >= (current_date - interval '30 day')
+                        group by msg.""AuthorId""
+                    ) as user_avg
+                    where ""AuthorId"" = :UserId",
+                    new NpgsqlParameter(":GuildId", NpgsqlDbType.Bigint) { Value = unchecked((long)guildId) },
+                    new NpgsqlParameter(":UserId", NpgsqlDbType.Bigint) { Value = unchecked((long)userId) })
                 .AsAsyncEnumerable()
                 .OrderByDescending(x => x.AveragePerDay)
                 .FirstOrDefaultAsync() ?? new GuildUserParticipationStatistics();
