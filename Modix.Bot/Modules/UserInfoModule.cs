@@ -255,7 +255,7 @@ namespace Modix.Modules
             ulong userId,
             StringBuilder builder,
             GuildUserParticipationStatistics userRank,
-            IReadOnlyDictionary<DateTime, int> messagesByDate,
+            IReadOnlyList<MessageCountByDate> messagesByDate,
             IReadOnlyList<MessageCountPerChannel> messageCountsByChannel,
             IReadOnlyCollection<EmojiUsageStatistics> emojiCounts)
         {
@@ -263,14 +263,14 @@ namespace Modix.Modules
 
             var weekTotal = 0;
             var monthTotal = 0;
-            foreach (var kvp in messagesByDate)
+            foreach (var kvp in messagesByDate.OrderByDescending(x => x.Date))
             {
-                if (kvp.Key >= lastWeek)
+                if (kvp.Date >= lastWeek)
                 {
-                    weekTotal += kvp.Value;
+                    weekTotal += kvp.MessageCount;
                 }
 
-                monthTotal += kvp.Value;
+                monthTotal += kvp.MessageCount;
             }
 
             builder.AppendLine();
