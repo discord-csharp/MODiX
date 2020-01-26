@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using Humanizer;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -13,6 +14,7 @@ using Modix.Data;
 using Modix.Data.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
+using Modix.Data.Repositories;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.Extensions;
 using Modix.Services.Images;
@@ -41,16 +43,18 @@ namespace Modix.Services.UserInfo
         private readonly IImageService _imageService;
         private readonly ILogger<UserInfoCommandHandler> _logger;
         private readonly ModixConfig _modixConfig;
+        private readonly IMessageRepository _messageRepository;
 
         public UserInfoCommandHandler(ModixContext modixContext, IDiscordClient discordClient,
             IAutoRemoveMessageService autoRemoveMessageService, IImageService imageService, ILogger<UserInfoCommandHandler> logger,
-            IOptions<ModixConfig> modixOptions)
+            IOptions<ModixConfig> modixOptions, IMessageRepository messageRepository)
         {
             _modixContext = modixContext;
             _discordClient = discordClient;
             _autoRemoveMessageService = autoRemoveMessageService;
             _imageService = imageService;
             _logger = logger;
+            _messageRepository = messageRepository;
             _modixConfig = modixOptions.Value;
         }
 
@@ -218,19 +222,21 @@ namespace Modix.Services.UserInfo
         private async Task<UserInfoParticipationDto?> GetParticipationStatisticsAsync(IGuild guild, ulong userId, CancellationToken cancellationToken)
         {
             const int NumberOfDaysInPeriodToCount = 30;
+
             var now = DateTimeOffset.UtcNow;
             var startingThreshold = now.AddDays(-NumberOfDaysInPeriodToCount);
             var weekThreshold = now.AddDays(-7);
 
             var messages = await _modixContext
                 .Messages
-                .WhereIsFromGuildUser(userId, guild.Id)
+                .WhereIsUserInGuild(guild.Id, userId)
                 .WhereCountsTowardsParticipation()
                 .Where(x => x.Timestamp > startingThreshold)
-                .GroupBy(x => new { x.Timestamp.ToUniversalTime().Date, x.ChannelId })
+                .GroupBy(x => new { x.Timestamp.ToUniversalTime().Date, x.ChannelId, x.AuthorId })
                 .Select(x => new
                 {
                     Date = x.Key.Date,
+                    UserId = x.Key.AuthorId,
                     ChannelId = x.Key.ChannelId,
                     NumberOfMessages = x.Count(),
                 }).ToListAsync(cancellationToken: cancellationToken);
@@ -240,44 +246,11 @@ namespace Modix.Services.UserInfo
                 return null;
             }
 
-            var rankedUsers = await _modixContext
-                .GuildUsers
-                .Where(x => x.GuildId == guild.Id)
-                .Where(x => x.Messages
-                    .AsQueryable()
-                    .Where(MessageQueryExtensions.CountsTowardsParticipation())
-                    .Any(d => d.Timestamp > startingThreshold))
-                .Select(x =>
-                    new
-                    {
-                        x.UserId,
-                        NumberOfMessages = x.Messages
-                            .AsQueryable()
-                            .Where(MessageQueryExtensions.CountsTowardsParticipation())
-                            .Count(d => d.Timestamp > startingThreshold),
-                    })
-                .OrderByDescending(x => x.NumberOfMessages)
-                .ToListAsync(cancellationToken: cancellationToken);
+            var numberOfMessagesIn7DayPeriod = messages.Where(x => x.Date > weekThreshold).Sum(d => d.NumberOfMessages);
+            var participationForUser = await _messageRepository.GetGuildUserParticipationStatistics(guild.Id, userId);
 
-            var totalNumberOfMessagesInPeriod = messages.Sum(x => x.NumberOfMessages);
-            var totalNumberOfMessagesIn7Days = messages.Where(x => x.Date.Date > weekThreshold.Date).Sum(d => d.NumberOfMessages);
-            var averageMessagesSent = Math.Round((double)totalNumberOfMessagesInPeriod / NumberOfDaysInPeriodToCount, 2, MidpointRounding.ToZero);
-
-            var userRank = 1;
-            double percentile = 1;
-
-            // If we have more than one ranked user, show rank, otherwise we'll
-            // default to having the user that is being called info on, be the
-            // top user
-            if (rankedUsers.Count > 1)
-            {
-                var rankedUser = rankedUsers.Single(x => x.UserId == userId);
-                userRank = rankedUsers.IndexOf(rankedUser) + 1;
-                percentile = (1 - (userRank / rankedUsers.Count)) * 100;
-            }
-
-            var participation = new UserInfoParticipationDto(userRank, totalNumberOfMessagesInPeriod,
-                totalNumberOfMessagesIn7Days, averageMessagesSent, percentile);
+            var participation = new UserInfoParticipationDto(participationForUser.Rank, messages.Sum(d => d.NumberOfMessages),
+                numberOfMessagesIn7DayPeriod, participationForUser.AveragePerDay, participationForUser.Percentile);
 
             if (messages.Any())
             {
