@@ -62,8 +62,8 @@ namespace Modix.Controllers
                 FirstSeen = userInformation.FirstSeen,
                 LastSeen = userInformation.LastSeen,
                 Rank = userRank.Rank,
-                Last7DaysMessages = messages7.Sum(x => x.Value),
-                Last30DaysMessages = messages30.Sum(x => x.Value),
+                Last7DaysMessages = messages7.Sum(x => x.MessageCount),
+                Last30DaysMessages = messages30.Sum(x => x.MessageCount),
                 AverageMessagesPerDay = userRank.AveragePerDay,
                 Percentile = userRank.Percentile,
                 Roles = roles
@@ -95,8 +95,8 @@ namespace Modix.Controllers
             var i = 0;
             var mapped = result.Select(x => new
                                {
-                                   Name = x.Key.ChannelName,
-                                   Count = x.Value,
+                                   Name = x.ChannelName,
+                                   Count = x.MessageCount,
                                    Color = colors[i++].ToString()
                                })
                                .OrderByDescending(x => x.Count)

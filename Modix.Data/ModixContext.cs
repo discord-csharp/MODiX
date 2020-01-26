@@ -84,6 +84,8 @@ namespace Modix.Data
             modelBuilder.Entity<SingleEmojiStatsDto>().HasNoKey();
             modelBuilder.Entity<EmojiStatsDto>().HasNoKey();
             modelBuilder.Entity<GuildEmojiStats>().HasNoKey();
+            modelBuilder.Entity<MessageCountPerChannel>().HasNoKey();
+            modelBuilder.Entity<MessageCountByDate>().HasNoKey();
         }
     }
 }
