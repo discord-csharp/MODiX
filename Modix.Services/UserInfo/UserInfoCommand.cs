@@ -286,7 +286,7 @@ namespace Modix.Services.UserInfo
                 {
                     AuthorId = x.Key,
                     Count = x.Count(),
-                    AveragePerDay = x.Count() / 30
+                    AveragePerDay = x.Count() / NumberOfDays
                 })
                 .OrderByDescending(x => x.AveragePerDay);
 
