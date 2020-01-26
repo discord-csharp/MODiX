@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -14,6 +15,7 @@ using Modix.Data;
 using Modix.Data.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
+using Modix.Data.Repositories;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.Extensions;
 using Modix.Services.Images;
@@ -41,18 +43,21 @@ namespace Modix.Services.UserInfo
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
         private readonly IImageService _imageService;
         private readonly ILogger<UserInfoCommandHandler> _logger;
+        private readonly IMessageRepository _messageRepository;
         private readonly ModixConfig _modixConfig;
         private readonly LappingStopwatch _lappingStopwatch = new LappingStopwatch();
 
         public UserInfoCommandHandler(ModixContext modixContext, IDiscordClient discordClient,
             IAutoRemoveMessageService autoRemoveMessageService, IImageService imageService,
-            ILogger<UserInfoCommandHandler> logger, IOptions<ModixConfig> modixOptions)
+            ILogger<UserInfoCommandHandler> logger, IMessageRepository messageRepository,
+            IOptions<ModixConfig> modixOptions)
         {
             _modixContext = modixContext;
             _discordClient = discordClient;
             _autoRemoveMessageService = autoRemoveMessageService;
             _imageService = imageService;
             _logger = logger;
+            _messageRepository = messageRepository;
             _modixConfig = modixOptions.Value;
         }
 
@@ -277,7 +282,10 @@ namespace Modix.Services.UserInfo
             }
 
             var numberOfMessagesIn7DayPeriod = messages.Where(x => x.Date > weekThreshold).Sum(d => d.NumberOfMessages);
-            var participationForUser = await GetGuildUserParticipationStatistics(guild.Id, userId, cancellationToken);
+
+            var participationForUser = await _messageRepository.GetGuildUserParticipationStatistics(guild.Id, userId);
+
+            _lappingStopwatch.Lap("Participation queried raw");
 
             var participation = new UserInfoParticipationDto(participationForUser.Rank, messages.Sum(d => d.NumberOfMessages),
                 numberOfMessagesIn7DayPeriod, participationForUser.AveragePerDay, participationForUser.Percentile);
@@ -299,55 +307,6 @@ namespace Modix.Services.UserInfo
             }
 
             return participation;
-        }
-
-        private async Task<GuildUserParticipationStatistics> GetGuildUserParticipationStatistics(ulong guildId, ulong userId, CancellationToken cancellationToken)
-        {
-            const int NumberOfDays = 30;
-
-            var minimumTime = DateTimeOffset.UtcNow - TimeSpan.FromDays(NumberOfDays);
-
-            var groupedMessages = _modixContext.Messages
-                .Where(x => x.Channel.DesignatedChannelMappings
-                    .Any(x => x.Type == DesignatedChannelType.CountsTowardsParticipation))
-                .Where(x => x.GuildId == guildId)
-                .Where(x => x.Timestamp >= minimumTime)
-                .GroupBy(x => x.AuthorId)
-                .Select(x => new
-                {
-                    AuthorId = x.Key,
-                    Count = x.Count(),
-                    AveragePerDay = x.Count() / NumberOfDays
-                })
-                .OrderByDescending(x => x.AveragePerDay);
-
-            var totalCount = await groupedMessages.SumAsync(x => x.Count, cancellationToken);
-
-            _lappingStopwatch.Lap("Participation summed");
-
-            var thisUser = await groupedMessages.SingleOrDefaultAsync(x => x.AuthorId == userId, cancellationToken);
-
-            _lappingStopwatch.Lap("Participation user queried");
-
-            var percentile = thisUser.Count / totalCount * 100;
-
-            // rank = number of users with an average per day higher than this
-            // user plus one as it is 1-based rather than 0-based
-            var rank = await groupedMessages
-                .Where(x => x.AveragePerDay > thisUser.AveragePerDay)
-                .CountAsync(cancellationToken) + 1;
-
-            _lappingStopwatch.Lap("Participation rank counted");
-
-            return new GuildUserParticipationStatistics
-            {
-                GuildId = guildId,
-                UserId = userId,
-
-                Rank = rank,
-                AveragePerDay = thisUser.AveragePerDay,
-                Percentile = percentile
-            };
         }
     }
 }
