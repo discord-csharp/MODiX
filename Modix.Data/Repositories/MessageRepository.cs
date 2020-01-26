@@ -73,7 +73,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing a dictionary which contains the number of messages the given user has sent in each channel within the given timeframe.
         /// </returns>
-        Task<IReadOnlyDictionary<MessageCountPerChannel, int>> GetGuildUserMessageCountByChannel(ulong guildId, ulong userId, TimeSpan timespan);
+        Task<IReadOnlyList<MessageCountPerChannel>> GetGuildUserMessageCountByChannel(ulong guildId, ulong userId, TimeSpan timespan);
 
         /// <summary>
         /// Calculates a given number of users contributions (through messages) in a given guild in a specific timeframe.
@@ -186,19 +186,33 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyDictionary<MessageCountPerChannel, int>> GetGuildUserMessageCountByChannel(ulong guildId, ulong userId, TimeSpan timespan)
+        public async Task<IReadOnlyList<MessageCountPerChannel>> GetGuildUserMessageCountByChannel(ulong guildId, ulong userId, TimeSpan timespan)
         {
-            var messages = await GetGuildUserMessages(guildId, userId, timespan)
-                                 .Select(x => new
-                                 {
-                                     ChannelId = x.ChannelId,
-                                     ChannelName = ModixContext.GuildChannels.AsNoTracking().Single(y => x.ChannelId == y.ChannelId).Name
-                                 })
-                                 .ToListAsync();
+            var earliestDateTime = DateTimeOffset.UtcNow - timespan;
 
-            return messages
-                   .GroupBy(x => x.ChannelId)
-                   .ToDictionary(x => new MessageCountPerChannel(x.Key, x.First().ChannelName), x => x.Count());
+            var counts = await ModixContext
+                .Set<MessageCountPerChannel>()
+                .FromSqlRaw(
+                    @"with user_messages as
+                    (
+                        select ""ChannelId"", count(""Id"") as ""MessageCount""
+                        from ""Messages""
+                        where ""GuildId"" = :GuildId
+                        and ""AuthorId"" = :UserId
+                        and ""Timestamp"" > :StartTimestamp
+                        group by ""ChannelId""
+                    )
+                    select gc.""ChannelId"", gc.""Name"" as ""ChannelName"", um.""MessageCount""
+                    from ""GuildChannels"" as gc
+                    inner join user_messages as um on gc.""ChannelId"" = um.""ChannelId""
+                    order by um.""MessageCount"" desc",
+                    new NpgsqlParameter(":GuildId", NpgsqlDbType.Bigint) { Value = unchecked((long)guildId) },
+                    new NpgsqlParameter(":UserId", NpgsqlDbType.Bigint) { Value = unchecked((long)userId) },
+                    new NpgsqlParameter(":StartTimestamp", NpgsqlDbType.TimestampTz) { Value = earliestDateTime })
+                .AsNoTracking()
+                .ToArrayAsync();
+
+            return counts;
         }
 
         /// <inheritdoc />

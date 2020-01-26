@@ -95,8 +95,8 @@ namespace Modix.Controllers
             var i = 0;
             var mapped = result.Select(x => new
                                {
-                                   Name = x.Key.ChannelName,
-                                   Count = x.Value,
+                                   Name = x.ChannelName,
+                                   Count = x.MessageCount,
                                    Color = colors[i++].ToString()
                                })
                                .OrderByDescending(x => x.Count)

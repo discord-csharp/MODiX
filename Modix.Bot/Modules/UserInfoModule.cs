@@ -256,7 +256,7 @@ namespace Modix.Modules
             StringBuilder builder,
             GuildUserParticipationStatistics userRank,
             IReadOnlyDictionary<DateTime, int> messagesByDate,
-            IReadOnlyDictionary<MessageCountPerChannel, int> messageCountsByChannel,
+            IReadOnlyList<MessageCountPerChannel> messageCountsByChannel,
             IReadOnlyCollection<EmojiUsageStatistics> emojiCounts)
         {
             var lastWeek = _utcNow - TimeSpan.FromDays(7);
@@ -300,13 +300,13 @@ namespace Modix.Modules
 
                 try
                 {
-                    foreach (var kvp in messageCountsByChannel.OrderByDescending(x => x.Value))
+                    foreach (var channelMessageCount in messageCountsByChannel.OrderByDescending(x => x.MessageCount))
                     {
-                        var channel = await Context.Guild.GetChannelAsync(kvp.Key.ChannelId);
+                        var channel = await Context.Guild.GetChannelAsync(channelMessageCount.ChannelId);
 
                         if (channel.IsPublic())
                         {
-                            builder.AppendLine($"Most active channel: {MentionUtils.MentionChannel(channel.Id)} ({kvp.Value} messages)");
+                            builder.AppendLine($"Most active channel: {MentionUtils.MentionChannel(channel.Id)} ({channelMessageCount.MessageCount} messages)");
                             break;
                         }
                     }
