@@ -513,7 +513,7 @@ namespace Modix.Services.Moderation
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
 
-            if (reason.Length >= MaxReasonLength)
+            if (reason?.Length >= MaxReasonLength)
                 throw new ArgumentException($"Reason must be less than {MaxReasonLength} characters in length", nameof(reason));
 
             await DoRescindInfractionAsync(
