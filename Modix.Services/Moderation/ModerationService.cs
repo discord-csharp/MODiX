@@ -68,19 +68,21 @@ namespace Modix.Services.Moderation
         /// </summary>
         /// <param name="type">The <see cref="InfractionEntity.Type"/> value of the infraction to be rescinded.</param>
         /// <param name="subjectId">The <see cref="InfractionEntity.SubjectId"/> value of the infraction to be rescinded.</param>
+        /// <param name="reason">The value to use for <see cref="RequestOptions.AuditLogReason"/></param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
-        Task RescindInfractionAsync(InfractionType type, ulong subjectId);
+        Task RescindInfractionAsync(InfractionType type, ulong subjectId, string reason = null);
 
         /// <summary>
         /// Marks an existing infraction as rescinded, based on its ID.
         /// </summary>
         /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be rescinded.</param>
+        /// <param name="reason">The value to use for <see cref="RequestOptions.AuditLogReason"/></param>
         /// <param name="isAutoRescind">
         /// Indicates whether the rescind request is an AutoRescind from MODiX.
         /// This determines whether checks such as rank validation will occur.
         /// </param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
-        Task RescindInfractionAsync(long infractionId, bool isAutoRescind = false);
+        Task RescindInfractionAsync(long infractionId, string reason = null, bool isAutoRescind = false);
 
         /// <summary>
         /// Marks an existing infraction as deleted, based on its ID.
@@ -230,6 +232,8 @@ namespace Modix.Services.Moderation
         // TODO: Push this to a bot-wide config? Or maybe on a per-guild basis, but with a bot-wide default, that's pulled from config?
         public const string MuteRoleName
             = "MODiX_Moderation_Mute";
+
+        private const int MaxReasonLength = 1000;
 
         /// <summary>
         /// Creates a new <see cref="ModerationService"/>, with the given injected dependencies.
@@ -437,8 +441,8 @@ namespace Modix.Services.Moderation
             if (reason == null)
                 throw new ArgumentNullException(nameof(reason));
 
-            if (reason.Length > 1000)
-                throw new ArgumentException("Reason must be less than 1000 characters in length", nameof(reason));
+            if (reason.Length >= MaxReasonLength)
+                throw new ArgumentException($"Reason must be less than {MaxReasonLength} characters in length", nameof(reason));
 
             if (((type == InfractionType.Notice) || (type == InfractionType.Warning))
                 && string.IsNullOrWhiteSpace(reason))
@@ -503,11 +507,14 @@ namespace Modix.Services.Moderation
         }
 
         /// <inheritdoc />
-        public async Task RescindInfractionAsync(InfractionType type, ulong subjectId)
+        public async Task RescindInfractionAsync(InfractionType type, ulong subjectId, string reason = null)
         {
             AuthorizationService.RequireAuthenticatedGuild();
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
+
+            if (reason.Length >= MaxReasonLength)
+                throw new ArgumentException($"Reason must be less than {MaxReasonLength} characters in length", nameof(reason));
 
             await DoRescindInfractionAsync(
                 (await InfractionRepository.SearchSummariesAsync(
@@ -519,17 +526,17 @@ namespace Modix.Services.Moderation
                         IsRescinded = false,
                         IsDeleted = false,
                     }))
-                    .FirstOrDefault());
+                    .FirstOrDefault(), reason);
         }
 
         /// <inheritdoc />
-        public async Task RescindInfractionAsync(long infractionId, bool isAutoRescind = false)
+        public async Task RescindInfractionAsync(long infractionId, string reason = null, bool isAutoRescind = false)
         {
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
 
             await DoRescindInfractionAsync(
-                await InfractionRepository.ReadSummaryAsync(infractionId), isAutoRescind);
+                await InfractionRepository.ReadSummaryAsync(infractionId), reason, isAutoRescind);
         }
 
         /// <inheritdoc />
@@ -924,8 +931,10 @@ namespace Modix.Services.Moderation
             }
         }
 
-        private async Task DoRescindInfractionAsync(InfractionSummary infraction, bool isAutoRescind = false)
+        private async Task DoRescindInfractionAsync(InfractionSummary infraction, string reason = null, bool isAutoRescind = false)
         {
+            RequestOptions GetRequestOptions() => string.IsNullOrEmpty(reason) ? null : new RequestOptions { AuditLogReason = reason };
+
             if (infraction == null)
                 throw new InvalidOperationException("Infraction does not exist");
 
@@ -948,16 +957,17 @@ namespace Modix.Services.Moderation
                     }
 
                     var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
-                    await subject.RemoveRoleAsync(await GetDesignatedMuteRoleAsync(guild));
+                    await subject.RemoveRoleAsync(await GetDesignatedMuteRoleAsync(guild), GetRequestOptions());
                     break;
 
                 case InfractionType.Ban:
-                    await guild.RemoveBanAsync(infraction.Subject.Id);
+                    await guild.RemoveBanAsync(infraction.Subject.Id, GetRequestOptions());
                     break;
 
                 default:
                     throw new InvalidOperationException($"{infraction.Type} infractions cannot be rescinded.");
             }
+
         }
 
         private async Task<IRole> GetDesignatedMuteRoleAsync(IGuild guild)
