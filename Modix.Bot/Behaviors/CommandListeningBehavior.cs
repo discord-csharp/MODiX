@@ -86,11 +86,14 @@ namespace Modix.Bot.Behaviors
 
                 if (!(_stats is null) && (commandResult.IsSuccess || !string.Equals(commandResult.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase)))
                 {
-                    var commandInfo = CommandService.Search(commandContext, argPos).Commands.FirstOrDefault();
-                    var name = commandInfo.Command?.Name.ToLowerInvariant();
+                    var commandInfo = CommandService.Search(commandContext, argPos).Commands?.FirstOrDefault();
+                    if (commandInfo is { } match)
+                    {
+                        var name = match.Command?.Name.ToLowerInvariant();
 
-                    _stats?.Timer("command_duration_ms", duration,
-                        tags: new[] { $"guild:{commandContext.Guild.Name}", $"success:{commandResult.IsSuccess}", $"command:{name}" });
+                        _stats?.Timer("command_duration_ms", duration,
+                            tags: new[] { $"guild:{commandContext.Guild.Name}", $"success:{commandResult.IsSuccess}", $"command:{name}" });
+                    }
                 }
             }
 
