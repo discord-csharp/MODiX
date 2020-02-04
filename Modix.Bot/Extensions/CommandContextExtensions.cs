@@ -36,6 +36,19 @@ namespace Modix.Bot.Extensions
 
         public static async Task<bool> GetUserConfirmationAsync(this ICommandContext context, string mainMessage)
         {
+            if (!(context.Channel is IGuildChannel guildChannel))
+            {
+                return false;
+            }
+
+            var currentUser = await context.Guild.GetCurrentUserAsync();
+            var permissions = currentUser.GetPermissions(guildChannel);
+
+            if (!permissions.AddReactions)
+            {
+                throw new InvalidOperationException("Unable to get user confirmation, because the AddReactions permission is denied.");
+            }
+
             if (!mainMessage.EndsWith(Environment.NewLine))
                 mainMessage += Environment.NewLine;
 
