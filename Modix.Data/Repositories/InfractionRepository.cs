@@ -104,10 +104,10 @@ namespace Modix.Data.Repositories
         /// </summary>
         /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be rescinded.</param>
         /// <param name="rescindedById">The <see cref="UserEntity.Id"/> value of the user that is rescinding the infraction.</param>
+        /// <param name="rescindReason">The <see cref="InfractionEntity.RescindReason"/> value of the infraction to be rescinded.</param>
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing a flag indicating whether the update was successful (I.E. whether the specified infraction could be found).
-        /// </returns>
-        Task<bool> TryRescindAsync(long infractionId, ulong rescindedById);
+        Task<bool> TryRescindAsync(long infractionId, ulong rescindedById, string? rescindReason = null);
 
         /// <summary>
         /// Marks an existing infraction as deleted, based on its ID.
@@ -116,7 +116,6 @@ namespace Modix.Data.Repositories
         /// <param name="deletedById">The <see cref="UserEntity.Id"/> value of the user that is deleting the infraction.</param>
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing a flag indicating whether the operation was successful (I.E. whether the specified infraction could be found).
-        /// </returns>
         Task<bool> TryDeleteAsync(long infractionId, ulong deletedById);
 
         Task<bool> TryUpdateAync(long infractionId, string newReason, ulong updatedById);
@@ -248,7 +247,7 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<bool> TryRescindAsync(long infractionId, ulong rescindedById)
+        public async Task<bool> TryRescindAsync(long infractionId, ulong rescindedById, string? rescindReason = null)
         {
             var entity = await ModixContext.Infractions
                 .Where(x => x.Id == infractionId)
@@ -265,6 +264,8 @@ namespace Modix.Data.Repositories
                 CreatedById = rescindedById,
                 InfractionId = entity.Id
             };
+            entity.RescindReason = rescindReason;
+
             await ModixContext.SaveChangesAsync();
 
             await RaiseModerationActionCreatedAsync(entity.RescindAction);

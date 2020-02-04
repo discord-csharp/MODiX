@@ -56,7 +56,7 @@ namespace Modix.Services.Moderation
         /// </summary>
         /// <param name="guildId">The unique Discord snowflake ID of the guild in which the infraction will be created.</param>
         /// <param name="moderatorId">The unique Discord snowflake ID of the user who is creating the infraction.</param>
-        /// <param name="type">The value to user for <see cref="InfractionEntity.Type"/>.<</param>
+        /// <param name="type">The value to user for <see cref="InfractionEntity.Type"/>.</param>
         /// <param name="subjectId">The value to use for <see cref="InfractionEntity.SubjectId"/>.</param>
         /// <param name="reason">The value to use for <see cref="ModerationActionEntity.Reason"/></param>
         /// <param name="duration">The value to use for <see cref="InfractionEntity.Duration"/>.</param>
@@ -68,7 +68,7 @@ namespace Modix.Services.Moderation
         /// </summary>
         /// <param name="type">The <see cref="InfractionEntity.Type"/> value of the infraction to be rescinded.</param>
         /// <param name="subjectId">The <see cref="InfractionEntity.SubjectId"/> value of the infraction to be rescinded.</param>
-        /// <param name="reason">The value to use for <see cref="RequestOptions.AuditLogReason"/></param>
+        /// <param name="reason">The value to use for <see cref="InfractionEntity.RescindReason"/></param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
         Task RescindInfractionAsync(InfractionType type, ulong subjectId, string reason = null);
 
@@ -76,7 +76,7 @@ namespace Modix.Services.Moderation
         /// Marks an existing infraction as rescinded, based on its ID.
         /// </summary>
         /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be rescinded.</param>
-        /// <param name="reason">The value to use for <see cref="RequestOptions.AuditLogReason"/></param>
+        /// <param name="reason">The value to use for <see cref="InfractionEntity.RescindReason"/></param>
         /// <param name="isAutoRescind">
         /// Indicates whether the rescind request is an AutoRescind from MODiX.
         /// This determines whether checks such as rank validation will occur.
@@ -941,7 +941,7 @@ namespace Modix.Services.Moderation
             if (!isAutoRescind)
                 await RequireSubjectRankLowerThanModeratorRankAsync(infraction.GuildId, AuthorizationService.CurrentUserId.Value, infraction.Subject.Id);
 
-            await InfractionRepository.TryRescindAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
+            await InfractionRepository.TryRescindAsync(infraction.Id, AuthorizationService.CurrentUserId.Value, reason);
 
             var guild = await DiscordClient.GetGuildAsync(infraction.GuildId);
 
