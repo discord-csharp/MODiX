@@ -56,7 +56,7 @@ namespace Modix.Services.Images
 
                 if (!_cache.TryGetValue(key, out Color color))
                 {
-                    var imageBytes = await _httpClientFactory.CreateClient(HttpClientNames.TimeoutFiveSeconds).GetByteArrayAsync(location);
+                    var imageBytes = await _httpClientFactory.CreateClient(HttpClientNames.TimeoutOneSecond).GetByteArrayAsync(location);
                     color = GetDominantColor(imageBytes.AsSpan());
 
                     _cache.Set(key, color, TimeSpan.FromDays(7));

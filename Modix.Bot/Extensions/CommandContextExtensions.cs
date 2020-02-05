@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 
+using Serilog;
+
 namespace Modix.Bot.Extensions
 {
     public static class CommandContextExtensions
@@ -13,11 +15,40 @@ namespace Modix.Bot.Extensions
         private static readonly Emoji _xEmoji = new Emoji("❌");
         private const int _confirmationTimeoutSeconds = 10;
 
-        public static Task AddConfirmation(this ICommandContext context)
-            => context.Message.AddReactionAsync(_checkmarkEmoji);
+        public static async Task AddConfirmation(this ICommandContext context)
+        {
+            if (!(context.Channel is IGuildChannel guildChannel))
+            {
+                return;
+            }
+
+            var currentUser = await context.Guild.GetCurrentUserAsync();
+            var permissions = currentUser.GetPermissions(guildChannel);
+
+            if (!permissions.AddReactions)
+            {
+                Log.Information("Unable to add a confirmation reaction in {0}, because the AddReactions permission is denied.", guildChannel.Name);
+                return;
+            }
+
+            await context.Message.AddReactionAsync(_checkmarkEmoji);
+        }
 
         public static async Task<bool> GetUserConfirmationAsync(this ICommandContext context, string mainMessage)
         {
+            if (!(context.Channel is IGuildChannel guildChannel))
+            {
+                return false;
+            }
+
+            var currentUser = await context.Guild.GetCurrentUserAsync();
+            var permissions = currentUser.GetPermissions(guildChannel);
+
+            if (!permissions.AddReactions)
+            {
+                throw new InvalidOperationException("Unable to get user confirmation, because the AddReactions permission is denied.");
+            }
+
             if (!mainMessage.EndsWith(Environment.NewLine))
                 mainMessage += Environment.NewLine;
 

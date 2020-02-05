@@ -8,10 +8,12 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Humanizer;
+using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Modix.Bot.Extensions;
+using Modix.Common.Extensions;
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Emoji;
@@ -23,6 +25,7 @@ using Modix.Services.Core;
 using Modix.Services.Images;
 using Modix.Services.Moderation;
 using Modix.Services.Promotions;
+using Modix.Services.UserInfo;
 using Modix.Services.Utilities;
 
 namespace Modix.Modules
@@ -32,6 +35,18 @@ namespace Modix.Modules
     [HelpTags("userinfo", "info")]
     public class UserInfoModule : ModuleBase
     {
+        private readonly ILogger<UserInfoModule> _log;
+        private readonly IUserService _userService;
+        private readonly IModerationService _moderationService;
+        private readonly IAuthorizationService _authorizationService;
+        private readonly IMessageRepository _messageRepository;
+        private readonly IEmojiRepository _emojiRepository;
+        private readonly IPromotionsService _promotionsService;
+        private readonly IImageService _imageService;
+        private readonly ModixConfig _config;
+        private readonly IAutoRemoveMessageService _autoRemoveMessageService;
+        private readonly IMediator _mediator;
+
         //optimization: UtcNow is slow and the module is created per-request
         private readonly DateTime _utcNow = DateTime.UtcNow;
 
@@ -45,7 +60,7 @@ namespace Modix.Modules
             IPromotionsService promotionsService,
             IImageService imageService,
             IOptions<ModixConfig> config,
-            IAutoRemoveMessageService autoRemoveMessageService)
+            IAutoRemoveMessageService autoRemoveMessageService, IMediator mediator)
         {
             _log = logger ?? new NullLogger<UserInfoModule>();
             _userService = userService;
@@ -57,18 +72,20 @@ namespace Modix.Modules
             _imageService = imageService;
             _config = config.Value;
             _autoRemoveMessageService = autoRemoveMessageService;
+            _mediator = mediator;
         }
 
-        private readonly ILogger<UserInfoModule> _log;
-        private readonly IUserService _userService;
-        private readonly IModerationService _moderationService;
-        private readonly IAuthorizationService _authorizationService;
-        private readonly IMessageRepository _messageRepository;
-        private readonly IEmojiRepository _emojiRepository;
-        private readonly IPromotionsService _promotionsService;
-        private readonly IImageService _imageService;
-        private readonly ModixConfig _config;
-        private readonly IAutoRemoveMessageService _autoRemoveMessageService;
+        [Command("info2")]
+        [Alias("ompf2", "omfp2")]
+        [Summary("Retrieves information about the supplied user, or the current user if one is not provided.")]
+        public Task GetNewUserInfoAsync(
+            [Summary("The user to retrieve information about, if any.")] [Remainder]
+            DiscordUserOrMessageAuthorEntity user = null)
+        {
+            var userId = user?.UserId ?? Context.User.Id;
+            return _mediator.Send(new UserInfoCommand(Context.Message, Context.Guild.Id, userId));
+        }
+
 
         [Command("info")]
         [Alias("ompf", "omfp")]
@@ -238,22 +255,22 @@ namespace Modix.Modules
             ulong userId,
             StringBuilder builder,
             GuildUserParticipationStatistics userRank,
-            IReadOnlyDictionary<DateTime, int> messagesByDate,
-            IReadOnlyDictionary<MessageCountPerChannel, int> messageCountsByChannel,
+            IReadOnlyList<MessageCountByDate> messagesByDate,
+            IReadOnlyList<MessageCountPerChannel> messageCountsByChannel,
             IReadOnlyCollection<EmojiUsageStatistics> emojiCounts)
         {
             var lastWeek = _utcNow - TimeSpan.FromDays(7);
 
             var weekTotal = 0;
             var monthTotal = 0;
-            foreach (var kvp in messagesByDate)
+            foreach (var kvp in messagesByDate.OrderByDescending(x => x.Date))
             {
-                if (kvp.Key >= lastWeek)
+                if (kvp.Date >= lastWeek)
                 {
-                    weekTotal += kvp.Value;
+                    weekTotal += kvp.MessageCount;
                 }
 
-                monthTotal += kvp.Value;
+                monthTotal += kvp.MessageCount;
             }
 
             builder.AppendLine();
@@ -283,13 +300,13 @@ namespace Modix.Modules
 
                 try
                 {
-                    foreach (var kvp in messageCountsByChannel.OrderByDescending(x => x.Value))
+                    foreach (var channelMessageCount in messageCountsByChannel.OrderByDescending(x => x.MessageCount))
                     {
-                        var channel = await Context.Guild.GetChannelAsync(kvp.Key.ChannelId);
+                        var channel = await Context.Guild.GetChannelAsync(channelMessageCount.ChannelId);
 
                         if (channel.IsPublic())
                         {
-                            builder.AppendLine($"Most active channel: {MentionUtils.MentionChannel(channel.Id)} ({kvp.Value} messages)");
+                            builder.AppendLine($"Most active channel: {MentionUtils.MentionChannel(channel.Id)} ({channelMessageCount.MessageCount} messages)");
                             break;
                         }
                     }

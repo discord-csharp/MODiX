@@ -39,7 +39,7 @@ namespace Modix.Data.Models.Moderation
         /// </summary>
         [Required]
         public virtual GuildChannelEntity Channel { get; set; } = null!;
-        
+
         /// <summary>
         /// The <see cref="GuildUserEntity.UserId"/> value of <see cref="Author"/>.
         /// </summary>

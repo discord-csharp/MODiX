@@ -54,6 +54,12 @@ namespace Microsoft.Extensions.DependencyInjection
                     client.Timeout = TimeSpan.FromSeconds(5);
                 });
 
+            services.AddHttpClient(HttpClientNames.TimeoutOneSecond)
+                .ConfigureHttpClient(client =>
+                {
+                    client.Timeout = TimeSpan.FromSeconds(1);
+                });
+
             services.AddHttpClient(HttpClientNames.AutomaticGZipDecompression)
                 .ConfigurePrimaryHttpMessageHandler(() =>
                 new HttpClientHandler()

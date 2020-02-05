@@ -8,5 +8,6 @@
         public static string AutomaticGZipDecompression { get; } = nameof(AutomaticGZipDecompression);
 
         public static string TimeoutFiveSeconds { get; } = nameof(TimeoutFiveSeconds);
+        public static string TimeoutOneSecond { get; } = nameof(TimeoutOneSecond);
     }
 }
