@@ -34,7 +34,15 @@ namespace Modix.Data.Models.Moderation
         public long? RescindActionId { get; set; }
 
         public virtual ModerationActionEntity? RescindAction { get; set; }
+      
+        /// <summary>
+        /// A comment about why the infraction was rescinded.
+        /// </summary>
+        public string? RescindReason { get; set; }
 
+        /// <summary>
+        /// The <see cref="ModerationActionEntity.Id"/> value of <see cref="DeleteAction"/>.
+        /// </summary>
         public long? DeleteActionId { get; set; }
 
         public virtual ModerationActionEntity? DeleteAction { get; set; }

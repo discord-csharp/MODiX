@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Modix.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -9,9 +10,10 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    partial class ModixContextModelSnapshot : ModelSnapshot
+    [Migration("20200127123136_AddRescindReason")]
+    partial class AddRescindReason
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -301,8 +303,6 @@ namespace Modix.Data.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ChannelId");
 
                     b.HasIndex("Timestamp");
 
@@ -888,7 +888,7 @@ namespace Modix.Data.Migrations
             modelBuilder.Entity("Modix.Data.Models.Core.DesignatedChannelMappingEntity", b =>
                 {
                     b.HasOne("Modix.Data.Models.Core.GuildChannelEntity", "Channel")
-                        .WithMany("DesignatedChannelMappings")
+                        .WithMany()
                         .HasForeignKey("ChannelId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -928,21 +928,6 @@ namespace Modix.Data.Migrations
                     b.HasOne("Modix.Data.Models.Core.UserEntity", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Modix.Data.Models.Core.MessageEntity", b =>
-                {
-                    b.HasOne("Modix.Data.Models.Core.GuildChannelEntity", "Channel")
-                        .WithMany()
-                        .HasForeignKey("ChannelId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Modix.Data.Models.Core.GuildUserEntity", "Author")
-                        .WithMany("Messages")
-                        .HasForeignKey("GuildId", "AuthorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -1000,7 +985,7 @@ namespace Modix.Data.Migrations
                         .HasForeignKey("Modix.Data.Models.Moderation.InfractionEntity", "UpdateActionId");
 
                     b.HasOne("Modix.Data.Models.Core.GuildUserEntity", "Subject")
-                        .WithMany("Infractions")
+                        .WithMany()
                         .HasForeignKey("GuildId", "SubjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1067,7 +1052,7 @@ namespace Modix.Data.Migrations
                         .IsRequired();
 
                     b.HasOne("Modix.Data.Models.Core.GuildUserEntity", "Subject")
-                        .WithMany("PromotionCampaigns")
+                        .WithMany()
                         .HasForeignKey("GuildId", "SubjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

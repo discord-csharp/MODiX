@@ -22,9 +22,14 @@ namespace Modix.Data.Models.Moderation
         public InfractionType Type { get; set; }
 
         /// <summary>
-        /// See <see cref="InfractionEntity.Type"/>.
+        /// See <see cref="InfractionEntity.Reason"/>.
         /// </summary>
         public string Reason { get; set; } = null!;
+
+        /// <summary>
+        /// See <see cref="InfractionEntity.RescindReason"/>.
+        /// </summary>
+        public string? RescindReason { get; set; } = null!;
 
         /// <summary>
         /// See <see cref="InfractionEntity.Duration"/>.
@@ -43,6 +48,7 @@ namespace Modix.Data.Models.Moderation
                 Id = entity.Id,
                 Type = entity.Type,
                 Reason = entity.Reason,
+                RescindReason = entity.RescindReason,
                 Duration = entity.Duration,
                 Subject = entity.Subject.Project(GuildUserBrief.FromEntityProjection)
             };

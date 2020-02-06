@@ -70,7 +70,8 @@ namespace Modix.Behaviors
                 string.IsNullOrWhiteSpace(content) ? "Empty Message Content" : content,
                 moderationAction.DeletedMessages?.Count,
                 GetBatchUrl(moderationAction.DeletedMessages?.FirstOrDefault()?.BatchId),
-                moderationAction.OriginalInfractionReason);
+                moderationAction.OriginalInfractionReason,
+                string.IsNullOrEmpty(moderationAction.Infraction?.RescindReason) ? "" : $"for reason: ```\n{moderationAction.Infraction?.RescindReason}```");
 
             await DesignatedChannelService.SendToDesignatedChannelsAsync(
                 await DiscordClient.GetGuildAsync(data.GuildId), DesignatedChannelType.ModerationLog, message);
@@ -112,8 +113,8 @@ namespace Modix.Behaviors
                 { (ModerationActionType.InfractionCreated,   InfractionType.Warning), "`[{0}]` **{1}** recorded the following warning for **{3}** (`{4}`) ```\n{5}```" },
                 { (ModerationActionType.InfractionCreated,   InfractionType.Mute),    "`[{0}]` **{1}** muted **{3}** (`{4}`) for reason ```\n{5}```" },
                 { (ModerationActionType.InfractionCreated,   InfractionType.Ban),     "`[{0}]` **{1}** banned **{3}** (`{4}`) for reason ```\n{5}```" },
-                { (ModerationActionType.InfractionRescinded, InfractionType.Mute),    "`[{0}]` **{1}** un-muted ** {3}** (`{4}`)" },
-                { (ModerationActionType.InfractionRescinded, InfractionType.Ban),     "`[{0}]` **{1}** un-banned **{3}** (`{4}`)" },
+                { (ModerationActionType.InfractionRescinded, InfractionType.Mute),    "`[{0}]` **{1}** un-muted ** {3}** (`{4}`) {17}" },
+                { (ModerationActionType.InfractionRescinded, InfractionType.Ban),     "`[{0}]` **{1}** un-banned **{3}** (`{4}`) {17}" },
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Notice),  "`[{0}]` **{1}** deleted a notice (`{2}`) for **{3}** (`{4}`)" },
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Warning), "`[{0}]` **{1}** deleted a warning (`{2}`) for **{3}** (`{4}`)" },
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Mute),    "`[{0}]` **{1}** deleted a mute (`{2}`) for **{3}** (`{4}`)" },
@@ -121,7 +122,7 @@ namespace Modix.Behaviors
                 { (ModerationActionType.InfractionUpdated,   InfractionType.Notice),  "`[{0}]` **{1}** updated a note (`{2}`) for **{3}** (`{4}`) from ```\n{15}``` to ```\n{5}```" },
                 { (ModerationActionType.InfractionUpdated,   InfractionType.Warning), "`[{0}]` **{1}** updated a warning (`{2}`) for **{3}** (`{4}`) from ```\n{15}``` to ```\n{5}```" },
                 { (ModerationActionType.InfractionUpdated,   InfractionType.Mute),    "`[{0}]` **{1}** updated a mute (`{2}`) for **{3}** (`{4}`) from ```\n{15}``` to ```\n{5}```" },
-                { (ModerationActionType.InfractionUpdated,   InfractionType.Ban),      "`[{0}]` **{1}** updated a ban (`{2}`) for **{3}** (`{4}`) from ```\n{15}``` to ```\n{5}```" },
+                { (ModerationActionType.InfractionUpdated,   InfractionType.Ban),     "`[{0}]` **{1}** updated a ban (`{2}`) for **{3}** (`{4}`) from ```\n{15}``` to ```\n{5}```" },
                 { (ModerationActionType.MessageDeleted,      null),                   "`[{0}]` **{1}** deleted the following message (`{6}`) from **{7}** (`{8}`) in **#{9}** ```\n{12}``` for reason ```\n{11}```" },
                 { (ModerationActionType.MessageBatchDeleted, null),                   "`[{0}]` **{1}** deleted **{13}** messages in **#{9}** (<{14}>)" },
             };
