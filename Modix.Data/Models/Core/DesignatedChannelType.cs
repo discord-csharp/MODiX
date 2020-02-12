@@ -18,6 +18,10 @@
         /// </summary>
         PromotionLog,
         /// <summary>
+        /// Defines a channel that hosts the active campaign voting embeds.
+        /// </summary>
+        PromotionInterface,
+        /// <summary>
         /// Defines a channel to send promotion campaign creation/closing notifications.
         /// </summary>
         PromotionNotifications,

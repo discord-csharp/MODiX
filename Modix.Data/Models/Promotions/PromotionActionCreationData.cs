@@ -26,5 +26,10 @@ namespace Modix.Data.Models.Promotions
         /// See <see cref="PromotionActionEntity.CreatedById"/>.
         /// </summary>
         public ulong CreatedById { get; set; }
+
+        /// <summary>
+        ///
+        /// </summary>
+        public PromotionCampaignBrief Campaign { get; set; }
     }
 }

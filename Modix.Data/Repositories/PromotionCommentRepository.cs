@@ -40,7 +40,7 @@ namespace Modix.Data.Repositories
         /// containing the action representing the creation.
         /// </returns>
         Task<PromotionActionSummary> CreateAsync(PromotionCommentCreationData data);
-        
+
         /// <summary>
         /// Creates a modified comment within the repository.
         /// </summary>
@@ -63,6 +63,13 @@ namespace Modix.Data.Repositories
         /// containing the requested promotion comment, or null if no such comment exists.
         /// </returns>
         Task<PromotionCommentSummary> ReadSummaryAsync(long commentId);
+
+        /// <summary>
+        /// Finds a Comment based on a supplied search criteria
+        /// </summary>
+        /// <param name="criteria"></param>
+        /// <returns></returns>
+        Task<PromotionCommentSummary> SearchCommentAsync(PromotionCommentSearchCriteria criteria);
 
         /// <summary>
         /// Checks whether the repository contains any comments matching the given search criteria.
@@ -160,6 +167,14 @@ namespace Modix.Data.Repositories
 
             return actionSummary;
         }
+
+        public async Task<PromotionCommentSummary> SearchCommentAsync(PromotionCommentSearchCriteria criteria)
+            => await ModixContext.Set<PromotionCommentEntity>().AsNoTracking()
+                .FilterBy(criteria)
+                .AsExpandable()
+                .Select(PromotionCommentSummary.FromEntityProjection)
+                .FirstOrDefaultAsync();
+
 
         /// <inheritdoc />
         public async Task<PromotionCommentSummary> ReadSummaryAsync(long commentId)

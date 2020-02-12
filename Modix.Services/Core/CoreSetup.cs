@@ -50,6 +50,7 @@ namespace Modix.Services.Core
                 .AddScoped<IDesignatedChannelMappingRepository, DesignatedChannelMappingRepository>()
                 .AddScoped<IDesignatedRoleMappingRepository, DesignatedRoleMappingRepository>()
                 .AddScoped<IMessageRepository, MessageRepository>()
+                .AddScoped<IPromotionDialogRepository, PromotionDialogRepository>()
                 .AddScoped<IGuildService, GuildService>()
                 .AddScoped<IMessageService, MessageService>();
     }

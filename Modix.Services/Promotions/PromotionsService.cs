@@ -73,6 +73,15 @@ namespace Modix.Services.Promotions
         Task RejectCampaignAsync(long campaignId);
 
         /// <summary>
+        /// Updates or adds a comment to a campaign depending on if a previous one exists
+        /// </summary>
+        /// <param name="campaignId">The <see cref="PromotionCampaignEntity.Id"/> value of the campaign to which the new comment is to be added.</param>
+        /// <param name="sentiment">The <see cref="PromotionCommentEntity.Sentiment"/> value to use for the new comment.</param>
+        /// <param name="content">The <see cref="PromotionCommentEntity.Content"/> value to use for the new comment.</param>
+        /// <returns></returns>
+        Task UpdateOrAddComment(long campaignId, PromotionSentiment sentiment, string content);
+
+        /// <summary>
         /// Retrieves a collection of promotion campaign summaries, based on a given set of criteria.
         /// </summary>
         /// <param name="searchCriteria">The criteria defining which campaigns are to be returned.</param>
@@ -112,6 +121,7 @@ namespace Modix.Services.Promotions
         /// containing a collection representing the promotion progression for the supplied user.
         /// </returns>
         Task<IReadOnlyCollection<PromotionCampaignSummary>> GetPromotionsForUserAsync(ulong guildId, ulong userId);
+
     }
 
     /// <inheritdoc />
@@ -143,7 +153,6 @@ namespace Modix.Services.Promotions
             ulong subjectId, string comment, Func<ProposedPromotionCampaignBrief, Task<bool>> confirmDelegate = null)
         {
             ValidateCreateCampaignAuthorization();
-
             ValidateComment(comment);
 
             var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
@@ -197,10 +206,30 @@ namespace Modix.Services.Promotions
             }
         }
 
-        /// <inheritdoc />
-        public async Task AddCommentAsync(long campaignId, PromotionSentiment sentiment, string content)
+        public async Task UpdateOrAddComment(long campaignId, PromotionSentiment sentiment, string content)
         {
-            AuthorizationService.RequireAuthenticatedUser();
+            var comment = await PromotionCommentRepository.SearchCommentAsync(new PromotionCommentSearchCriteria
+            {
+                CampaignId = campaignId,
+                CreatedById = AuthorizationService.CurrentUserId.Value,
+                IsModified = false
+            });
+
+            if(comment != null)
+            {
+                if(comment.Sentiment == sentiment)
+                    throw new InvalidOperationException("Your previous vote was identical to this one");
+                await UpdateCommentAsync(comment.Id, sentiment, content);
+            }
+            else
+            {
+                await AddCommentAsync(campaignId, sentiment, content);
+            }
+        }
+
+        /// <inheritdoc />
+        public async Task AddCommentAsync(long campaignId,  PromotionSentiment sentiment, string content)
+        {
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsComment);
 
             ValidateComment(content);
@@ -245,6 +274,7 @@ namespace Modix.Services.Promotions
             PublishActionNotificationAsync(resultAction);
         }
 
+
         /// <inheritdoc />
         public async Task UpdateCommentAsync(long commentId, PromotionSentiment newSentiment, string newContent)
         {
@@ -262,6 +292,10 @@ namespace Modix.Services.Promotions
 
                 if (!(campaign.CloseAction is null))
                     throw new InvalidOperationException($"Campaign {oldComment.Campaign.Id} has already been closed");
+
+                if(newSentiment == oldComment.Sentiment && newContent == oldComment.Content)
+                    throw new InvalidOperationException("Comment is identical to previous commnet");
+
 
                 resultAction = await PromotionCommentRepository.TryUpdateAsync(commentId, AuthorizationService.CurrentUserId.Value,
                     x =>
@@ -458,6 +492,7 @@ namespace Modix.Services.Promotions
                     CreatedById = action.CreatedBy.Id,
                     GuildId = action.GuildId,
                     Type = action.Type,
+                    Campaign = action.Campaign,
                 }));
 
         private async Task FinalizeCreateCampaignAsync(ulong subjectId, ulong targetRoleId, string comment)
@@ -505,10 +540,11 @@ namespace Modix.Services.Promotions
                 throw new InvalidOperationException($"An active campaign already exists for {subject.GetFullUsername()} to be promoted to {targetRankRole.Name}");
 
             // JoinedAt is null, when it cannot be obtained
+            /*
             if (subject.JoinedAt.HasValue)
                 if (subject.JoinedAt.Value.DateTime > (DateTimeOffset.Now - TimeSpan.FromDays(20)))
                     throw new InvalidOperationException($"{subject.GetFullUsername()} has joined less than 20 days prior");
-
+*/
             if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value, targetRankRole.Id))
                 throw new InvalidOperationException($"Creating a promotion campaign requires a rank at least as high as the proposed target rank");
         }
