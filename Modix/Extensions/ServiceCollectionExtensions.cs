@@ -148,6 +148,9 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>();
             services.AddScoped<INotificationHandler<PromotionActionCreatedNotification>, PromotionLoggingHandler>();
 
+            services.AddScoped<INotificationHandler<ReactionAddedNotification>, PromotionDialogueBehavior>();
+            services.AddScoped<INotificationHandler<PromotionActionCreatedNotification>, PromotionDialogueBehavior>();
+
             services.AddHostedService<ModixBot>();
 
             return services;

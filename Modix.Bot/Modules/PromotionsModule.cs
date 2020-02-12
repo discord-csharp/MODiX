@@ -22,7 +22,7 @@ namespace Modix.Modules
     [Name("Promotions")]
     [Summary("Manage promotion campaigns.")]
     [Group("promotions")]
-    [Alias("promotion", "campaign", "campaigns")]
+    [Alias("promotion", "campaign", "campaigns", "promo")]
     [HelpTags("campaigns", "nominate", "nomination", "nominating")]
     public class PromotionsModule : ModuleBase
     {
@@ -42,7 +42,7 @@ namespace Modix.Modules
             var campaigns = await PromotionsService.SearchCampaignsAsync(new PromotionCampaignSearchCriteria()
             {
                 GuildId = Context.Guild.Id,
-                IsClosed = false                
+                IsClosed = false
             });
 
             // https://mod.gg/promotions

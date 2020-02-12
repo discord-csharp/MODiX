@@ -73,6 +73,15 @@ namespace Modix.Services.Promotions
         Task RejectCampaignAsync(long campaignId);
 
         /// <summary>
+        ///
+        /// </summary>
+        /// <param name="campaignId"></param>
+        /// <param name="user"></param>
+        /// <param name="sentiment"></param>
+        /// <returns></returns>
+        Task<bool> VotePromoAsync(long campaignId, IGuildUser user, PromotionSentiment sentiment);
+
+        /// <summary>
         /// Retrieves a collection of promotion campaign summaries, based on a given set of criteria.
         /// </summary>
         /// <param name="searchCriteria">The criteria defining which campaigns are to be returned.</param>
@@ -112,6 +121,7 @@ namespace Modix.Services.Promotions
         /// containing a collection representing the promotion progression for the supplied user.
         /// </returns>
         Task<IReadOnlyCollection<PromotionCampaignSummary>> GetPromotionsForUserAsync(ulong guildId, ulong userId);
+
     }
 
     /// <inheritdoc />
@@ -243,6 +253,52 @@ namespace Modix.Services.Promotions
             }
 
             PublishActionNotificationAsync(resultAction);
+        }
+
+        public async Task<bool> VotePromoAsync(long campaignId,IGuildUser user, PromotionSentiment sentiment)
+        {
+            await AuthorizationService.OnAuthenticatedAsync(user);
+            AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsComment);
+
+            if (await PromotionCommentRepository.AnyAsync(new PromotionCommentSearchCriteria
+            {
+                CampaignId = campaignId,
+                CreatedById = AuthorizationService.CurrentUserId.Value,
+                IsModified = false
+            }))
+                return false;
+
+            var campaign = await PromotionCampaignRepository.ReadDetailsAsync(campaignId);
+
+            if (campaign.Subject.Id == AuthorizationService.CurrentUserId)
+                return false;
+
+            if (!(campaign.CloseAction is null))
+                return false;
+
+            var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
+
+            if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value,
+                campaign.TargetRole.Id))
+                return false;
+
+            PromotionActionSummary resultAction;
+
+            using (var transaction = await PromotionCommentRepository.BeginCreateTransactionAsync())
+            {
+                resultAction = await PromotionCommentRepository.CreateAsync(new PromotionCommentCreationData()
+                {
+                    GuildId = campaign.GuildId,
+                    CampaignId = campaignId,
+                    Sentiment = sentiment,
+                    Content = $"This vote to {sentiment.ToString()} was cast on discord",
+                    CreatedById = AuthorizationService.CurrentUserId.Value
+                });
+                transaction.Commit();
+            }
+            PublishActionNotificationAsync(resultAction);
+
+            return true;
         }
 
         /// <inheritdoc />
@@ -458,6 +514,7 @@ namespace Modix.Services.Promotions
                     CreatedById = action.CreatedBy.Id,
                     GuildId = action.GuildId,
                     Type = action.Type,
+                    Campaign = action.Campaign,
                 }));
 
         private async Task FinalizeCreateCampaignAsync(ulong subjectId, ulong targetRoleId, string comment)
