@@ -62,6 +62,8 @@ namespace Modix.Modules
             [Summary("The code to execute.")]
                 string code)
         {
+            var filteredCode = SanitizeEvalInput(code);
+
             if (!(Context.Channel is IGuildChannel) || !(Context.User is IGuildUser guildUser))
             {
                 await ModifyOrSendErrorEmbed("The REPL can only be executed in public guild channels.");
@@ -76,7 +78,7 @@ namespace Modix.Modules
                     .WithDescription($"Compiling and Executing [your code]({Context.Message.GetJumpUrl()})...")
                     .Build());
 
-            var content = FormatUtilities.BuildContent(code);
+            var content = FormatUtilities.BuildContent(filteredCode);
 
             HttpResponseMessage res;
             try
@@ -183,5 +185,12 @@ namespace Modix.Modules
 
             return embed;
         }
+
+        private string SanitizeEvalInput(string input)
+        {
+            var filteredInput = new Regex(@"(?<=```).*?(?=```)").Match(input).Value;
+            return filteredInput != "" ? filteredInput : input;
+        }
+
     }
 }
