@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -20,7 +19,7 @@ namespace Modix.Data.Models.Promotions
 
         /// <summary>
         /// See <see cref="PromotionCampaignEntity.GuildId"/>.
-        /// </summary>
+        // </summary>
         public ulong GuildId { get; set; }
 
         /// <summary>
@@ -49,19 +48,22 @@ namespace Modix.Data.Models.Promotions
         public PromotionActionBrief? CloseAction { get; set; }
 
         /// <summary>
-        /// A summarization of <see cref="PromotionCampaignEntity.Comments"/>,
-        /// summarizing the total number of comments, grouped by <see cref="PromotionCommentEntity.Sentiment"/>.
+        /// The number of <see cref="PromotionCampaignEntity.Comments" /> records whose
+        /// <see cref="PromotionCommentEntity.Sentiment" /> value is <see cref="PromotionSentiment.Abstain" />.
         /// </summary>
-        public IReadOnlyDictionary<PromotionSentiment, int> CommentCounts => SentimentsGiven
-            .GroupBy(x => x)
-            .Select(x => new { x.Key, Count = x.Count() })
-            .ToDictionary(x => x.Key, x => x.Count);
+        public int AbstainCount { get; set; }
 
         /// <summary>
-        /// A summarization of <see cref="PromotionCampaignEntity.Comments"/>,
-        /// summarizing the overall sentiment of comments.
+        /// The number of <see cref="PromotionCampaignEntity.Comments" /> records whose
+        /// <see cref="PromotionCommentEntity.Sentiment" /> value is <see cref="PromotionSentiment.Approve" />.
         /// </summary>
-        public List<PromotionSentiment> SentimentsGiven { get; set; } = null!;
+        public int ApproveCount { get; set; }
+
+        /// <summary>
+        /// The number of <see cref="PromotionCampaignEntity.Comments" /> records whose
+        /// <see cref="PromotionCommentEntity.Sentiment" /> value is <see cref="PromotionSentiment.Oppose" />.
+        /// </summary>
+        public int OpposeCount { get; set; }
 
         [ExpansionExpression]
         internal static Expression<Func<PromotionCampaignEntity, PromotionCampaignSummary>> FromEntityProjection
@@ -76,12 +78,23 @@ namespace Modix.Data.Models.Promotions
                 CloseAction = (entity.CloseAction == null)
                     ? null
                     : entity.CloseAction.Project(PromotionActionBrief.FromEntityProjection),
-                SentimentsGiven = entity.Comments
-                    .Where(x => x.ModifyActionId == null)
-                    .Select(x => x.Sentiment)
-                    .ToList(),
+                // TODO: Retrieve these Count values with a .GroupBy(x => x.Sentiment).ToDictionary(x.Key, x => x.Count()) subquery if EF Core ever is able to support it.
+                // Right now there are a variety of issues tracking problems with .GroupBy() subqueries. E.G.
+                // https://github.com/dotnet/efcore/issues/18836
+                // https://github.com/dotnet/efcore/issues/15097
+                // https://github.com/dotnet/efcore/issues/10012
+                AbstainCount = entity.Comments
+                    .Where(y => (y.ModifyActionId == null)
+                        && (y.Sentiment == PromotionSentiment.Abstain))
+                    .Count(),
+                ApproveCount = entity.Comments
+                    .Where(y => (y.ModifyActionId == null)
+                        && (y.Sentiment == PromotionSentiment.Approve))
+                    .Count(),
+                OpposeCount = entity.Comments
+                    .Where(y => (y.ModifyActionId == null)
+                        && (y.Sentiment == PromotionSentiment.Oppose))
+                    .Count(),
             };
-
-
     }
 }
