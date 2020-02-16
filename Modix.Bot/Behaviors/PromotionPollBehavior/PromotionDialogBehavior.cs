@@ -15,7 +15,7 @@ using Modix.Services.Utilities;
 
 namespace Modix.Bot.Behaviors
 {
-    public class PromotionDialogueBehavior :
+    public class PromotionDialogBehavior :
         INotificationHandler<ReactionAddedNotification>,
         INotificationHandler<PromotionActionCreatedNotification>
     {
@@ -23,7 +23,7 @@ namespace Modix.Bot.Behaviors
 
         private static readonly Emoji _approveEmoji = new Emoji("👍");
 
-        private static readonly Emoji _disproveEmoji = new Emoji("👎");
+        private static readonly Emoji _disapproveEmoji = new Emoji("👎");
 
         private IDesignatedChannelService _designatedChannelService { get; }
 
@@ -35,7 +35,8 @@ namespace Modix.Bot.Behaviors
 
         private IImageService _imageService { get; }
 
-        public PromotionDialogueBehavior(IDesignatedChannelService designatedChannelService,
+
+        public PromotionDialogBehavior(IDesignatedChannelService designatedChannelService,
             IDiscordSocketClient discordSocketClient,
             IMemoryCache memoryCache,
             IPromotionsService promotionsService,
@@ -58,10 +59,10 @@ namespace Modix.Bot.Behaviors
             switch (notification.Data.Type)
             {
                 case PromotionActionType.CampaignCreated:
-                    await CreatePromoPoll(notification.Data);
+                    await CreatePromoDialog(notification.Data);
                     break;
                 case PromotionActionType.CampaignClosed:
-                    await DeletePromoPoll(notification.Data);
+                    await DeletePromoDialog(notification.Data);
                     break;
             }
         }
@@ -89,19 +90,19 @@ namespace Modix.Bot.Behaviors
 
                 if (reaction.Name == _approveEmoji.Name)
                     ++poll.Approve;
-                else if(reaction.Name == _disproveEmoji.Name)
+                else if(reaction.Name == _disapproveEmoji.Name)
                     ++poll.Disprove;
 
                 await poll.Message.ModifyAsync(m => m.Embed = BuildPollEmbed(poll.Campaign, poll.Approve, poll.Disprove).Build());
             }
         }
 
-        private async Task CreatePromoPoll(PromotionActionCreationData campaign)
+        private async Task CreatePromoDialog(PromotionActionCreationData campaign)
         {
             var pollChannel = await GetPollChannel(_discordSocketClient.GetGuild(campaign.GuildId));
             var message = await pollChannel.SendMessageAsync(embed: BuildPollEmbed(campaign.Campaign, 1, 0).Build());
 
-            await message.AddReactionsAsync(new[] {(IEmote)_approveEmoji, _disproveEmoji});
+            await message.AddReactionsAsync(new[] {(IEmote)_approveEmoji, _disapproveEmoji});
 
             var poll = new CachedPromoPoll
             {
@@ -115,7 +116,7 @@ namespace Modix.Bot.Behaviors
             _memoryCache.Set(message.Id, poll);
         }
 
-        private async Task DeletePromoPoll(PromotionActionCreationData campaign)
+        private async Task DeletePromoDialog(PromotionActionCreationData campaign)
         {
             if (!_memoryCache.TryGetValue(campaign.Campaign.Id, out CachedPromoPoll poll))
                 return;
@@ -143,7 +144,7 @@ namespace Modix.Bot.Behaviors
                     .WithDescription($"**{campaign.Subject.Nickname}** Has been nominated for promotion to {boldRole} ")
                     .WithColor(aviColor.Result)
                     .WithUserAsAuthor(user)
-                    .AddField("The current vote total stands at: ", $" {Approve} {_approveEmoji} / {Disprove} {_disproveEmoji}")
+                    .AddField("The current vote total stands at: ", $" {Approve} {_approveEmoji} / {Disprove} {_disapproveEmoji}")
                     .WithTimestamp(_utcNow)
                     .WithFooter("Please react with the appropriate reaction to cast your vote!");
         }
@@ -151,11 +152,11 @@ namespace Modix.Bot.Behaviors
         private async Task<ITextChannel> GetPollChannel(IGuild guild)
         {
             var getPollChannel = await _designatedChannelService
-                .GetDesignatedChannelsAsync(guild, DesignatedChannelType.PromotionPoll);
+                .GetDesignatedChannelsAsync(guild, DesignatedChannelType.PromotionInterface);
             return getPollChannel.First() as ITextChannel;
         }
 
         private static bool ValidateVoteReaction(IEmote emote)
-            => emote.Name == _approveEmoji.Name || emote.Name == _disproveEmoji.Name;
+            => emote.Name == _approveEmoji.Name || emote.Name == _disapproveEmoji.Name;
     }
 }

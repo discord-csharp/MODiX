@@ -20,7 +20,7 @@
         /// <summary>
         /// Defines a channel that hosts the active campaign voting embeds.
         /// </summary>
-        PromotionPoll,
+        PromotionInterface,
         /// <summary>
         /// Defines a channel to send promotion campaign creation/closing notifications.
         /// </summary>
