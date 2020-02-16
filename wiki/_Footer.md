@@ -1,0 +1,1 @@
+Confused? Having trouble? Join our server at https://discord.gg/csharp for help!

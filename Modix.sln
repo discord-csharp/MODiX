@@ -35,6 +35,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Common.Test", "Modix.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Bot.Test", "Modix.Bot.Test\Modix.Bot.Test.csproj", "{E9D29AA9-1B7D-4A90-839A-2E8665A8714F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wiki", "wiki", "{092916B2-32C6-4ED9-A4EA-DF31D2F91A8F}"
+	ProjectSection(SolutionItems) = preProject
+		wiki\_Footer.md = wiki\_Footer.md
+		wiki\Developers.md = wiki\Developers.md
+		wiki\Home.md = wiki\Home.md
+		wiki\Modix-Startup.md = wiki\Modix-Startup.md
+		wiki\Orchestration-(Docker).md = wiki\Orchestration-(Docker).md
+		wiki\Project-Overview.md = wiki\Project-Overview.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -168,6 +178,9 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{092916B2-32C6-4ED9-A4EA-DF31D2F91A8F} = {23DA774D-7AE9-48C1-A261-F27D15A07858}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {36BDDB86-FBAB-45BF-AA22-DD4509504772}
