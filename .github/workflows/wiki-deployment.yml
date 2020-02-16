@@ -1,0 +1,24 @@
+name: Wiki Deployment
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'wiki/**'    
+
+jobs:
+  sync-wiki-files:
+    name: Sync Wiki Files
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout /wiki
+        uses: actions/checkout@master
+      - name: Merge to .wiki
+        uses: SwiftDocOrg/github-wiki-publish-action@1.0.0
+        with:
+          path: wiki
+        env:
+          GITHUB_PERSONAL_ACCESS_TOKEN: ${{ secrets.WIKI_DEPLOYMENT_ACCESS_TOKEN }}
