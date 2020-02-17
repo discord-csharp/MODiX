@@ -282,7 +282,6 @@ namespace Modix.Data.Migrations
             modelBuilder.Entity("Modix.Data.Models.Core.MessageEntity", b =>
                 {
                     b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
                     b.Property<long>("AuthorId")
