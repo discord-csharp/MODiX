@@ -1,8 +1,9 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+
 using Microsoft.EntityFrameworkCore;
-using Modix.Data.Utilities;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Modix.Data.Models.Emoji
 {
@@ -39,53 +40,57 @@ namespace Modix.Data.Models.Emoji
 
         [Required]
         public EmojiUsageType UsageType { get; set; }
+    }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+    public class EmojiEntityConfigurator
+        : IEntityTypeConfiguration<EmojiEntity>
+    {
+        public void Configure(
+            EntityTypeBuilder<EmojiEntity> entityTypeBuilder)
         {
-            modelBuilder.Entity<EmojiEntity>()
+            entityTypeBuilder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
 
-            modelBuilder.Entity<EmojiEntity>()
+            entityTypeBuilder
                 .Property(x => x.ChannelId)
                 .HasConversion<long>();
 
-            modelBuilder.Entity<EmojiEntity>()
+            entityTypeBuilder
                 .Property(x => x.MessageId)
                 .HasConversion<long>();
 
-            modelBuilder.Entity<EmojiEntity>()
+            entityTypeBuilder
                 .Property(x => x.UserId)
                 .HasConversion<long>();
 
-            modelBuilder.Entity<EmojiEntity>()
+            entityTypeBuilder
                 .Property(x => x.EmojiId)
                 .HasConversion<long>();
 
-            modelBuilder.Entity<EmojiEntity>()
+            entityTypeBuilder
                 .Property(x => x.UsageType)
                 .HasConversion<string>();
 
-            modelBuilder.Entity<EmojiEntity>()
+            entityTypeBuilder
                 .HasIndex(x => x.GuildId);
 
-            modelBuilder.Entity<EmojiEntity>()
+            entityTypeBuilder
                 .HasIndex(x => x.MessageId);
 
-            modelBuilder.Entity<EmojiEntity>()
+            entityTypeBuilder
                 .HasIndex(x => x.UserId);
 
-            modelBuilder.Entity<EmojiEntity>()
+            entityTypeBuilder
                 .HasIndex(x => x.EmojiId);
 
-            modelBuilder.Entity<EmojiEntity>()
+            entityTypeBuilder
                 .HasIndex(x => x.EmojiName);
 
-            modelBuilder.Entity<EmojiEntity>()
+            entityTypeBuilder
                 .HasIndex(x => x.Timestamp);
 
-            modelBuilder.Entity<EmojiEntity>()
+            entityTypeBuilder
                 .HasIndex(x => x.UsageType);
         }
     }

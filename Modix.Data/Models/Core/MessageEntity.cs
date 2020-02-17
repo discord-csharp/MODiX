@@ -1,9 +1,8 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Modix.Data.Models.Moderation;
-using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Core
 {
@@ -18,11 +17,11 @@ namespace Modix.Data.Models.Core
         [Required]
         public ulong ChannelId { get; set; }
 
-        public virtual GuildChannelEntity Channel { get; set; }
+        public virtual GuildChannelEntity Channel { get; set; } = null!;
 
         [Required]
         public ulong AuthorId { get; set; }
-        public virtual GuildUserEntity Author { get; set; }
+        public virtual GuildUserEntity Author { get; set; } = null!;
 
         [Required]
         public DateTimeOffset Timestamp { get; set; }
@@ -32,32 +31,39 @@ namespace Modix.Data.Models.Core
 
     public class MessageEntityConfiguration : IEntityTypeConfiguration<MessageEntity>
     {
-        public void Configure(EntityTypeBuilder<MessageEntity> builder)
+        public void Configure(
+            EntityTypeBuilder<MessageEntity> entityTypeBuilder)
         {
-            builder.HasKey(x => x.Id);
+            entityTypeBuilder
+                .HasKey(x => x.Id);
 
-            builder
+            entityTypeBuilder
                 .Property(x => x.Id)
                 .HasConversion<long>();
-            builder
+
+            entityTypeBuilder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
-            builder
+
+            entityTypeBuilder
                 .Property(x => x.ChannelId)
                 .HasConversion<long>();
-            builder
+
+            entityTypeBuilder
                 .Property(x => x.AuthorId)
                 .HasConversion<long>();
-            builder
+
+            entityTypeBuilder
                 .Property(x => x.StarboardEntryId)
                 .HasConversion<long>();
-            builder
+
+            entityTypeBuilder
                 .HasIndex(x => new { x.GuildId, x.AuthorId });
 
-            builder
+            entityTypeBuilder
                 .HasIndex(x => x.Timestamp);
 
-            builder
+            entityTypeBuilder
                 .HasOne(x => x.Author)
                 .WithMany(x => x.Messages)
                 .HasForeignKey(x => new { x.GuildId, x.AuthorId });

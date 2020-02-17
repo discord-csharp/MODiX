@@ -3,8 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
-
-using Modix.Data.Utilities;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Modix.Data.Models.Moderation
 {
@@ -40,12 +39,15 @@ namespace Modix.Data.Models.Moderation
         /// </summary>
         [Required]
         public virtual IReadOnlyCollection<DeletedMessageEntity> DeletedMessages { get; set; } = null!;
+    }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+    public class DeletedMessageBatchEntityConfigurator
+        : IEntityTypeConfiguration<DeletedMessageBatchEntity>
+    {
+        public void Configure(
+            EntityTypeBuilder<DeletedMessageBatchEntity> entityTypeBuilder)
         {
-            modelBuilder
-                .Entity<DeletedMessageBatchEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.CreateAction)
                 .WithOne()
                 .HasForeignKey<DeletedMessageBatchEntity>(x => x.CreateActionId);

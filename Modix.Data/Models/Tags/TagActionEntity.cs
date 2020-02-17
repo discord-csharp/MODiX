@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Modix.Data.Models.Core;
-using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Tags
 {
@@ -76,39 +76,37 @@ namespace Modix.Data.Models.Tags
         /// The tag that was deleted by the action.
         /// </summary>
         public virtual TagEntity? OldTag { get; set; }
+    }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+    public class TagActionEntityConfigurator
+        : IEntityTypeConfiguration<TagActionEntity>
+    {
+        public void Configure(
+            EntityTypeBuilder<TagActionEntity> entityTypeBuilder)
         {
-            modelBuilder
-                .Entity<TagActionEntity>()
+            entityTypeBuilder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<TagActionEntity>()
+            entityTypeBuilder
                 .Property(x => x.Type)
                 .HasConversion<string>();
 
-            modelBuilder
-                .Entity<TagActionEntity>()
+            entityTypeBuilder
                 .Property(x => x.CreatedById)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<TagActionEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.CreatedBy)
                 .WithMany()
                 .HasForeignKey(x => new { x.GuildId, x.CreatedById });
 
-            modelBuilder
-                .Entity<TagActionEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.NewTag)
                 .WithOne()
                 .HasForeignKey<TagActionEntity>(x => x.NewTagId);
 
-            modelBuilder
-                .Entity<TagActionEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.OldTag)
                 .WithOne()
                 .HasForeignKey<TagActionEntity>(x => x.OldTagId);

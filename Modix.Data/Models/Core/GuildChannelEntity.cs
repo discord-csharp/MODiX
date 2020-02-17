@@ -22,15 +22,17 @@ namespace Modix.Data.Models.Core
             = new HashSet<DesignatedChannelMappingEntity>();
     }
 
-    public class GuildChannelEntityConfiguration : IEntityTypeConfiguration<GuildChannelEntity>
+    public class GuildChannelEntityConfiguration
+        : IEntityTypeConfiguration<GuildChannelEntity>
     {
-        public void Configure(EntityTypeBuilder<GuildChannelEntity> builder)
+        public void Configure(
+            EntityTypeBuilder<GuildChannelEntity> entityTypeBuilder)
         {
-            builder
+            entityTypeBuilder
                 .Property(x => x.ChannelId)
                 .HasConversion<long>();
 
-            builder
+            entityTypeBuilder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
         }

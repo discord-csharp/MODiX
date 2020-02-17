@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Modix.Data.Models.Core;
-using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Promotions
 {
@@ -37,58 +37,52 @@ namespace Modix.Data.Models.Promotions
         public virtual PromotionActionEntity? CloseAction { get; set; }
 
         public virtual ICollection<PromotionCommentEntity> Comments { get; set; } = null!;
+    }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+    public class PromotionCampaignEntityConfigurator
+        : IEntityTypeConfiguration<PromotionCampaignEntity>
+    {
+        public void Configure(
+            EntityTypeBuilder<PromotionCampaignEntity> entityTypeBuilder)
         {
-            modelBuilder
-                .Entity<PromotionCampaignEntity>()
+            entityTypeBuilder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<PromotionCampaignEntity>()
+            entityTypeBuilder
                 .Property(x => x.SubjectId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<PromotionCampaignEntity>()
+            entityTypeBuilder
                 .Property(x => x.TargetRoleId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<PromotionCampaignEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.Subject)
                 .WithMany(x => x.PromotionCampaigns)
                 .HasForeignKey(x => new { x.GuildId, x.SubjectId });
 
-            modelBuilder
-                .Entity<PromotionCampaignEntity>()
+            entityTypeBuilder
                 .Property(x => x.Outcome)
                 .HasConversion<string>();
 
-            modelBuilder
-                .Entity<PromotionCampaignEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.CreateAction)
                 .WithOne()
                 .HasForeignKey<PromotionCampaignEntity>(x => x.CreateActionId);
 
-            modelBuilder
-                .Entity<PromotionCampaignEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.CloseAction)
                 .WithOne()
                 .HasForeignKey<PromotionCampaignEntity>(x => x.CloseActionId);
 
-            modelBuilder
-                .Entity<PromotionCampaignEntity>()
+            entityTypeBuilder
                 .HasIndex(x => x.GuildId);
 
-            modelBuilder
-                .Entity<PromotionCampaignEntity>()
+            entityTypeBuilder
                 .HasIndex(x => x.SubjectId);
 
-            modelBuilder
-                .Entity<PromotionCampaignEntity>()
+            entityTypeBuilder
                 .HasIndex(x => x.Outcome);
         }
     }

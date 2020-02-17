@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Core
 {
@@ -30,24 +29,30 @@ namespace Modix.Data.Models.Core
         public virtual ConfigurationActionEntity? DeleteAction { get; set; }
     }
 
-    public class DesignatedChannelMappingEntityConfiguration : IEntityTypeConfiguration<DesignatedChannelMappingEntity>
+    public class DesignatedChannelMappingEntityConfiguration
+        : IEntityTypeConfiguration<DesignatedChannelMappingEntity>
     {
-        public void Configure(EntityTypeBuilder<DesignatedChannelMappingEntity> builder)
+        public void Configure(
+            EntityTypeBuilder<DesignatedChannelMappingEntity> entityTypeBuilder)
         {
-            builder
+            entityTypeBuilder
                 .Property(x => x.Type)
                 .HasConversion<string>();
-            builder
+
+            entityTypeBuilder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
-            builder
+
+            entityTypeBuilder
                 .Property(x => x.ChannelId)
                 .HasConversion<long>();
-            builder
+
+            entityTypeBuilder
                 .HasOne(x => x.CreateAction)
                 .WithOne()
                 .HasForeignKey<DesignatedChannelMappingEntity>(x => x.CreateActionId);
-            builder
+
+            entityTypeBuilder
                 .HasOne(x => x.DeleteAction)
                 .WithOne()
                 .HasForeignKey<DesignatedChannelMappingEntity>(x => x.DeleteActionId);
