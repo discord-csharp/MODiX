@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Modix.Data.Models.Core;
-using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Promotions
 {
@@ -87,39 +87,37 @@ namespace Modix.Data.Models.Promotions
         /// Null, if a <see cref="PromotionCommentEntity"/> was not involved in this <see cref="PromotionActionEntity"/>.
         /// </summary>
         public virtual PromotionCommentEntity? OldComment { get; set; }
+    }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+    public class PromotionActionEntityConfigurator
+        : IEntityTypeConfiguration<PromotionActionEntity>
+    {
+        public void Configure(
+            EntityTypeBuilder<PromotionActionEntity> entityTypeBuilder)
         {
-            modelBuilder
-                .Entity<PromotionActionEntity>()
+            entityTypeBuilder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<PromotionActionEntity>()
+            entityTypeBuilder
                 .Property(x => x.Type)
                 .HasConversion<string>();
 
-            modelBuilder
-                .Entity<PromotionActionEntity>()
+            entityTypeBuilder
                 .Property(x => x.CreatedById)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<PromotionActionEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.CreatedBy)
                 .WithMany()
                 .HasForeignKey(x => new { x.GuildId, x.CreatedById });
 
-            modelBuilder
-                .Entity<PromotionActionEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.OldComment)
                 .WithOne()
                 .HasForeignKey<PromotionActionEntity>(x => x.OldCommentId);
 
-            modelBuilder
-                .Entity<PromotionActionEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.NewComment)
                 .WithOne()
                 .HasForeignKey<PromotionActionEntity>(x => x.NewCommentId);

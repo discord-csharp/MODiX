@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 using Modix.Data.Models.Core;
 
 namespace Modix.Data.Models.Tags
@@ -126,53 +127,54 @@ namespace Modix.Data.Models.Tags
         }
     }
 
-    public class TagEntityConfiguration : IEntityTypeConfiguration<TagEntity>
+    public class TagEntityConfiguration
+        : IEntityTypeConfiguration<TagEntity>
     {
-        public void Configure(EntityTypeBuilder<TagEntity> builder)
+        public void Configure(
+            EntityTypeBuilder<TagEntity> entityTypeBuilder)
         {
-
-            builder
+            entityTypeBuilder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
 
-            builder
+            entityTypeBuilder
                 .Property(x => x.OwnerUserId)
                 .HasConversion<long>();
 
-            builder
+            entityTypeBuilder
                 .Property(x => x.OwnerRoleId)
                 .HasConversion<long>();
 
-            builder
+            entityTypeBuilder
                 .HasOne(x => x.CreateAction)
                 .WithOne()
                 .HasForeignKey<TagEntity>(x => x.CreateActionId);
 
-            builder
+            entityTypeBuilder
                 .HasOne(x => x.DeleteAction)
                 .WithOne()
                 .HasForeignKey<TagEntity>(x => x.DeleteActionId);
 
-            builder
+            entityTypeBuilder
                 .HasOne(x => x.OwnerUser)
                 .WithMany()
                 .HasForeignKey(x => new { x.GuildId, x.OwnerUserId });
 
-            builder
+            entityTypeBuilder
                 .HasOne(x => x.OwnerRole)
                 .WithMany()
                 .HasForeignKey(x => x.OwnerRoleId);
 
-            builder
+            entityTypeBuilder
                 .HasIndex(x => x.GuildId);
 
-            builder
+            entityTypeBuilder
                 .HasIndex(x => x.Name);
 
-            builder
+            entityTypeBuilder
                 .HasIndex(x => x.OwnerUserId);
 
-            builder
+            entityTypeBuilder
                 .HasIndex(x => x.OwnerRoleId);
         }
     }
