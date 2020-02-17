@@ -69,14 +69,6 @@ namespace Modix.Data
         {
             modelBuilder.UseSerialColumns();
 
-            var onModelCreatingMethods = Assembly.GetExecutingAssembly()
-                .GetTypes()
-                .SelectMany(x => x.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
-                .Where(x => !(x.GetCustomAttribute<OnModelCreatingAttribute>() is null));
-
-            foreach(var method in onModelCreatingMethods)
-                method.Invoke(null, new [] { modelBuilder });
-
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ModixContext).Assembly);
 
             modelBuilder.Entity<PerUserMessageCount>().HasNoKey();

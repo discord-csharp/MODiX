@@ -2,8 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
-
-using Modix.Data.Utilities;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Modix.Data.Models
 {
@@ -20,12 +19,15 @@ namespace Modix.Data.Models
 
         [Required]
         public string Value { get; set; } = null!;
+    }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+    public class BehaviourConfigurationConfigurator
+        : IEntityTypeConfiguration<BehaviourConfiguration>
+    {
+        public void Configure(
+            EntityTypeBuilder<BehaviourConfiguration> entityTypeBuilder)
         {
-            modelBuilder
-                .Entity<BehaviourConfiguration>()
+            entityTypeBuilder
                 .Property(x => x.Category)
                 .HasConversion<string>();
         }

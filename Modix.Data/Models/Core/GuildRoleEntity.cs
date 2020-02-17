@@ -2,8 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
-
-using Modix.Data.Utilities;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Modix.Data.Models.Core
 {
@@ -39,17 +38,19 @@ namespace Modix.Data.Models.Core
         /// </summary>
         [Required]
         public int Position { get; set; }
+    }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+    public class GuildRoleEntityConfiguration
+        : IEntityTypeConfiguration<GuildRoleEntity>
+    {
+        public void Configure(
+            EntityTypeBuilder<GuildRoleEntity> entityTypeBuilder)
         {
-            modelBuilder
-                .Entity<GuildRoleEntity>()
+            entityTypeBuilder
                 .Property(x => x.RoleId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<GuildRoleEntity>()
+            entityTypeBuilder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
         }

@@ -2,9 +2,9 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Modix.Data.Models.Core;
-using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Moderation
 {
@@ -85,38 +85,36 @@ namespace Modix.Data.Models.Moderation
         /// The batch that this <see cref="DeletedMessageEntity"/> belongs to.
         /// </summary>
         public virtual DeletedMessageBatchEntity? Batch { get; set; }
+    }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+    public class DeletedMessageEntityConfigurator
+        : IEntityTypeConfiguration<DeletedMessageEntity>
+    {
+        public void Configure(
+            EntityTypeBuilder<DeletedMessageEntity> entityTypeBuilder)
         {
-            modelBuilder
-                .Entity<DeletedMessageEntity>()
+            entityTypeBuilder
                 .Property(x => x.MessageId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<DeletedMessageEntity>()
+            entityTypeBuilder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<DeletedMessageEntity>()
+            entityTypeBuilder
                 .Property(x => x.ChannelId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<DeletedMessageEntity>()
+            entityTypeBuilder
                 .Property(x => x.AuthorId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<DeletedMessageEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.Author)
                 .WithMany()
                 .HasForeignKey(x => new { x.GuildId, x.AuthorId });
 
-            modelBuilder
-                .Entity<DeletedMessageEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.CreateAction)
                 .WithOne()
                 .HasForeignKey<DeletedMessageEntity>(x => x.CreateActionId);
