@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -9,6 +10,7 @@ namespace Modix.Data.Models.Core
     public class MessageEntity
     {
         [Required]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public ulong Id { get; set; }
 
         [Required]
