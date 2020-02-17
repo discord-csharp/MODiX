@@ -42,13 +42,9 @@ export default class PromotionCampaign
     createAction?:   PromotionAction;
     outcome:         CampaignOutcome = CampaignOutcome.Failed;
     closeAction?:    PromotionAction;
-
-    commentCounts: {[sentiment in PromotionSentiment]: number} =
-    {
-        "Abstain": 0,
-        "Approve": 0,
-        "Oppose": 0
-    };
+    abstainCount:    number = 5;
+    approveCount:    number = 6;
+    opposeCount:     number = 7;
 
     get isActive(): boolean
     {
@@ -57,22 +53,12 @@ export default class PromotionCampaign
 
     get sentimentRatio(): number
     {
-        if (this.votesFor > 0 || this.votesAgainst > 0)
+        if (this.approveCount > 0 || this.opposeCount > 0)
         {
-            return this.votesFor / (this.votesFor + this.votesAgainst);
+            return this.approveCount / (this.approveCount + this.opposeCount);
         }
 
         return 0;
-    }
-
-    get votesFor(): number
-    {
-        return this.commentCounts[PromotionSentiment.Approve] || 0;
-    }
-
-    get votesAgainst(): number
-    {
-        return this.commentCounts[PromotionSentiment.Oppose] || 0;
     }
 
     get startDate(): Date
