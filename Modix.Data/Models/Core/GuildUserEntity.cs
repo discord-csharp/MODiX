@@ -13,6 +13,7 @@ namespace Modix.Data.Models.Core
     /// <summary>
     /// Describes information about a user, that is tracked on a per-guild basis within the application.
     /// </summary>
+    [Table("GuildUsers")]
     public class GuildUserEntity
     {
         [ForeignKey(nameof(User))]

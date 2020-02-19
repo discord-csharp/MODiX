@@ -10,6 +10,7 @@ namespace Modix.Data.Models.Promotions
     /// Describes a comment made in reference to a <see cref="PromotionCampaignEntity"/>,
     /// regarding whether or not the proposed promotion should be accepted or rejected.
     /// </summary>
+    [Table("PromotionComments")]
     public class PromotionCommentEntity
     {
         /// <summary>

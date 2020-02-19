@@ -141,7 +141,7 @@ namespace Modix.Data.Repositories
 
             var entity = data.ToEntity();
 
-            await ModixContext.Emoji.AddAsync(entity);
+            await ModixContext.Set<EmojiEntity>().AddAsync(entity);
             await ModixContext.SaveChangesAsync();
 
             return entity.Id;
@@ -159,7 +159,7 @@ namespace Modix.Data.Repositories
             var now = DateTimeOffset.Now;
             var entities = Enumerable.Range(0, count).Select(_ => data.ToEntity(now));
 
-            await ModixContext.Emoji.AddRangeAsync(entities);
+            await ModixContext.Set<EmojiEntity>().AddRangeAsync(entities);
             await ModixContext.SaveChangesAsync();
         }
 
@@ -169,7 +169,7 @@ namespace Modix.Data.Repositories
             if (criteria is null)
                 throw new ArgumentNullException(nameof(criteria));
 
-            var entities = ModixContext.Emoji.FilterBy(criteria);
+            var entities = ModixContext.Set<EmojiEntity>().FilterBy(criteria);
 
             ModixContext.RemoveRange(entities);
             await ModixContext.SaveChangesAsync();
@@ -181,7 +181,7 @@ namespace Modix.Data.Repositories
             if (criteria is null)
                 throw new ArgumentNullException(nameof(criteria));
 
-            var emoji = await ModixContext.Emoji.AsNoTracking()
+            var emoji = await ModixContext.Set<EmojiEntity>().AsNoTracking()
                 .FilterBy(criteria)
                 .GroupBy(x => new
                 {
@@ -210,7 +210,7 @@ namespace Modix.Data.Repositories
             if (criteria is null)
                 throw new ArgumentNullException(nameof(criteria));
 
-            var emoji = await ModixContext.Emoji.AsNoTracking()
+            var emoji = await ModixContext.Set<EmojiEntity>().AsNoTracking()
                 .FilterBy(criteria)
                 .AsExpandable()
                 .Select(EmojiSummary.FromEntityProjection)

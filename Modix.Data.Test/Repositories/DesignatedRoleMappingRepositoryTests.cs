@@ -24,11 +24,11 @@ namespace Modix.Data.Test.Repositories
         {
             var modixContext = TestDataContextFactory.BuildTestDataContext(x =>
             {
-                x.Users.AddRange(Users.Entities.Clone());
-                x.GuildUsers.AddRange(GuildUsers.Entities.Clone());
-                x.GuildRoles.AddRange(GuildRoles.Entities.Clone());
-                x.DesignatedRoleMappings.AddRange(DesignatedRoleMappings.Entities.Clone());
-                x.ConfigurationActions.AddRange(ConfigurationActions.Entities.Where(y => !(y.DesignatedRoleMappingId is null)).Clone());
+                x.Set<UserEntity>().AddRange(Users.Entities.Clone());
+                x.Set<GuildUserEntity>().AddRange(GuildUsers.Entities.Clone());
+                x.Set<GuildRoleEntity>().AddRange(GuildRoles.Entities.Clone());
+                x.Set<DesignatedRoleMappingEntity>().AddRange(DesignatedRoleMappings.Entities.Clone());
+                x.Set<ConfigurationActionEntity>().AddRange(ConfigurationActions.Entities.Where(y => !(y.DesignatedRoleMappingId is null)).Clone());
             });
 
             var uut = new DesignatedRoleMappingRepository(modixContext);
@@ -187,9 +187,9 @@ namespace Modix.Data.Test.Repositories
 
             await Should.ThrowAsync<ArgumentNullException>(uut.CreateAsync(null!));
 
-            modixContext.DesignatedRoleMappings
+            modixContext.Set<DesignatedRoleMappingEntity>()
                 .AsQueryable().Select(x => x.Id).ShouldBe(DesignatedRoleMappings.Entities.Select(x => x.Id));
-            modixContext.DesignatedRoleMappings.EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.Set<DesignatedRoleMappingEntity>().EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
                 .SaveChangesAsync();
@@ -202,8 +202,8 @@ namespace Modix.Data.Test.Repositories
 
             var id = await uut.CreateAsync(data);
 
-            modixContext.DesignatedRoleMappings.ShouldContain(x => x.Id == id);
-            var designatedRoleMapping = modixContext.DesignatedRoleMappings.First(x => x.Id == id);
+            modixContext.Set<DesignatedRoleMappingEntity>().ShouldContain(x => x.Id == id);
+            var designatedRoleMapping = modixContext.Set<DesignatedRoleMappingEntity>().First(x => x.Id == id);
 
             designatedRoleMapping.GuildId.ShouldBe(data.GuildId);
             designatedRoleMapping.Type.ShouldBe(data.Type);
@@ -211,11 +211,11 @@ namespace Modix.Data.Test.Repositories
             designatedRoleMapping.CreateActionId.ShouldNotBeNull();
             designatedRoleMapping.DeleteActionId.ShouldBeNull();
 
-            modixContext.DesignatedRoleMappings.Where(x => x.Id != designatedRoleMapping.Id).Select(x => x.Id).ShouldBe(DesignatedRoleMappings.Entities.Select(x => x.Id));
-            modixContext.DesignatedRoleMappings.Where(x => x.Id != designatedRoleMapping.Id).EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.Set<DesignatedRoleMappingEntity>().Where(x => x.Id != designatedRoleMapping.Id).Select(x => x.Id).ShouldBe(DesignatedRoleMappings.Entities.Select(x => x.Id));
+            modixContext.Set<DesignatedRoleMappingEntity>().Where(x => x.Id != designatedRoleMapping.Id).EachShould(x => x.ShouldNotHaveChanged());
 
-            modixContext.ConfigurationActions.ShouldContain(x => x.Id == designatedRoleMapping.CreateActionId);
-            var createAction = modixContext.ConfigurationActions.First(x => x.Id == designatedRoleMapping.CreateActionId);
+            modixContext.Set<ConfigurationActionEntity>().ShouldContain(x => x.Id == designatedRoleMapping.CreateActionId);
+            var createAction = modixContext.Set<ConfigurationActionEntity>().First(x => x.Id == designatedRoleMapping.CreateActionId);
 
             createAction.GuildId.ShouldBe(data.GuildId);
             createAction.Type.ShouldBe(ConfigurationActionType.DesignatedRoleMappingCreated);
@@ -227,8 +227,8 @@ namespace Modix.Data.Test.Repositories
             createAction.DesignatedRoleMappingId.ShouldNotBeNull();
             createAction.DesignatedRoleMappingId.ShouldBe(designatedRoleMapping.Id);
 
-            modixContext.ConfigurationActions.Where(x => x.Id != createAction.Id).Select(x => x.Id).ShouldBe(ConfigurationActions.Entities.Where(x => !(x.DesignatedRoleMappingId is null)).Select(x => x.Id));
-            modixContext.ConfigurationActions.Where(x => x.Id != createAction.Id).EachShould(x => x.ShouldNotHaveChanged());
+            modixContext.Set<ConfigurationActionEntity>().Where(x => x.Id != createAction.Id).Select(x => x.Id).ShouldBe(ConfigurationActions.Entities.Where(x => !(x.DesignatedRoleMappingId is null)).Select(x => x.Id));
+            modixContext.Set<ConfigurationActionEntity>().Where(x => x.Id != createAction.Id).EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldHaveReceived(2)
                 .SaveChangesAsync();
@@ -301,12 +301,12 @@ namespace Modix.Data.Test.Repositories
                     .Any(y => (y.Id == x) && (y.DeleteActionId == null)))
                 .Count());
 
-            modixContext.DesignatedRoleMappings
+            modixContext.Set<DesignatedRoleMappingEntity>()
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(DesignatedRoleMappings.Entities.Select(x => x.Id));
 
-            modixContext.DesignatedRoleMappings
+            modixContext.Set<DesignatedRoleMappingEntity>()
                 .Where(x => designatedRoleMappingIds.Contains(x.Id) && (x.DeleteActionId == null))
                 .EachShould(entity =>
                 {
@@ -318,8 +318,8 @@ namespace Modix.Data.Test.Repositories
                     entity.CreateActionId.ShouldBe(originalEntity.CreateActionId);
                     entity.DeleteActionId.ShouldNotBeNull();
 
-                    modixContext.ConfigurationActions.ShouldContain(x => x.Id == entity.DeleteActionId);
-                    var deleteAction = modixContext.ConfigurationActions.First(x => x.Id == entity.DeleteActionId);
+                    modixContext.Set<ConfigurationActionEntity>().ShouldContain(x => x.Id == entity.DeleteActionId);
+                    var deleteAction = modixContext.Set<ConfigurationActionEntity>().First(x => x.Id == entity.DeleteActionId);
 
                     deleteAction.GuildId.ShouldBe(entity.GuildId);
                     deleteAction.Type.ShouldBe(ConfigurationActionType.DesignatedRoleMappingDeleted);
@@ -332,13 +332,13 @@ namespace Modix.Data.Test.Repositories
                     deleteAction.DesignatedRoleMappingId.ShouldBeNull();
                 });
 
-            modixContext.DesignatedRoleMappings
+            modixContext.Set<DesignatedRoleMappingEntity>()
                 .AsEnumerable()
                 .Where(x => !designatedRoleMappingIds.Contains(x.Id) || DesignatedRoleMappings.Entities
                     .Any(y => (y.Id == x.Id) && (x.DeleteActionId == null)))
                 .EachShould(x => x.ShouldNotHaveChanged());
 
-            modixContext.ConfigurationActions
+            modixContext.Set<ConfigurationActionEntity>()
                 .AsEnumerable()
                 .Where(x => DesignatedRoleMappings.Entities
                     .Any(y => (y.DeleteActionId == x.Id) && designatedRoleMappingIds.Contains(y.Id)))
@@ -357,23 +357,23 @@ namespace Modix.Data.Test.Repositories
 
             result.ShouldBe(0);
 
-            modixContext.DesignatedRoleMappings
+            modixContext.Set<DesignatedRoleMappingEntity>()
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(DesignatedRoleMappings.Entities
                     .Select(x => x.Id));
 
-            modixContext.DesignatedRoleMappings
+            modixContext.Set<DesignatedRoleMappingEntity>()
                 .EachShould(x => x.ShouldNotHaveChanged());
 
-            modixContext.ConfigurationActions
+            modixContext.Set<ConfigurationActionEntity>()
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(ConfigurationActions.Entities
                     .Where(x => x.DesignatedRoleMappingId != null)
                     .Select(x => x.Id));
 
-            modixContext.ConfigurationActions
+            modixContext.Set<ConfigurationActionEntity>()
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldHaveReceived(1)
@@ -393,9 +393,9 @@ namespace Modix.Data.Test.Repositories
 
             result.ShouldBeTrue();
 
-            modixContext.DesignatedRoleMappings
+            modixContext.Set<DesignatedRoleMappingEntity>()
                 .ShouldContain(x => x.Id == designatedRoleMappingId);
-            var designatedRoleMapping = modixContext.DesignatedRoleMappings
+            var designatedRoleMapping = modixContext.Set<DesignatedRoleMappingEntity>()
                 .First(x => x.Id == designatedRoleMappingId);
 
             var originalDesignatedRoleMapping = DesignatedRoleMappings.Entities
@@ -407,19 +407,19 @@ namespace Modix.Data.Test.Repositories
             designatedRoleMapping.CreateActionId.ShouldBe(originalDesignatedRoleMapping.CreateActionId);
             designatedRoleMapping.DeleteActionId.ShouldNotBeNull();
 
-            modixContext.DesignatedRoleMappings
+            modixContext.Set<DesignatedRoleMappingEntity>()
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(DesignatedRoleMappings.Entities
                     .Select(x => x.Id));
 
-            modixContext.DesignatedRoleMappings
+            modixContext.Set<DesignatedRoleMappingEntity>()
                 .Where(x => x.Id != designatedRoleMappingId)
                 .EachShould(x => x.ShouldNotHaveChanged());
 
-            modixContext.ConfigurationActions
+            modixContext.Set<ConfigurationActionEntity>()
                 .ShouldContain(x => x.Id == designatedRoleMapping.DeleteActionId);
-            var deleteAction = modixContext.ConfigurationActions
+            var deleteAction = modixContext.Set<ConfigurationActionEntity>()
                 .First(x => x.Id == designatedRoleMapping.DeleteActionId);
 
             deleteAction.GuildId.ShouldBe(designatedRoleMapping.GuildId);
@@ -432,14 +432,14 @@ namespace Modix.Data.Test.Repositories
             deleteAction.DesignatedRoleMappingId.ShouldNotBeNull();
             deleteAction.DesignatedRoleMappingId.ShouldBe(designatedRoleMapping.Id);
 
-            modixContext.ConfigurationActions
+            modixContext.Set<ConfigurationActionEntity>()
                 .Where(x => x.Id != deleteAction.Id)
                 .Select(x => x.Id)
                 .ShouldBe(ConfigurationActions.Entities
                     .Where(x => !(x.DesignatedRoleMappingId is null))
                     .Select(x => x.Id));
 
-            modixContext.ConfigurationActions
+            modixContext.Set<ConfigurationActionEntity>()
                 .Where(x => x.Id != deleteAction.Id)
                 .EachShould(x => x.ShouldNotHaveChanged());
 
@@ -457,23 +457,23 @@ namespace Modix.Data.Test.Repositories
 
             result.ShouldBeFalse();
 
-            modixContext.DesignatedRoleMappings
+            modixContext.Set<DesignatedRoleMappingEntity>()
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(DesignatedRoleMappings.Entities
                     .Select(x => x.Id));
 
-            modixContext.DesignatedRoleMappings
+            modixContext.Set<DesignatedRoleMappingEntity>()
                 .EachShould(x => x.ShouldNotHaveChanged());
 
-            modixContext.ConfigurationActions
+            modixContext.Set<ConfigurationActionEntity>()
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(ConfigurationActions.Entities
                     .Where(x => !(x.DesignatedRoleMappingId is null))
                     .Select(x => x.Id));
 
-            modixContext.ConfigurationActions
+            modixContext.Set<ConfigurationActionEntity>()
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()

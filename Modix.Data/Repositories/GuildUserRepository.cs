@@ -80,11 +80,11 @@ namespace Modix.Data.Repositories
             var guildDataEntity = data.ToGuildDataEntity();
 
             guildDataEntity.User = await ModixContext
-                .Users
+                .Set<UserEntity>()
                 .FirstOrDefaultAsync(x => x.Id == data.UserId)
                 ?? data.ToUserEntity();
 
-            await ModixContext.GuildUsers.AddAsync(guildDataEntity);
+            await ModixContext.Set<GuildUserEntity>().AddAsync(guildDataEntity);
 
             if ((guildDataEntity.User.Username != data.Username) && !(data.Username is null))
                 guildDataEntity.User.Username = data.Username;
@@ -98,7 +98,8 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public Task<GuildUserSummary> ReadSummaryAsync(ulong userId, ulong guildId)
         {
-            return ModixContext.GuildUsers.AsNoTracking()
+            return ModixContext.Set<GuildUserEntity>()
+                .AsNoTracking()
                 .Where(x => x.UserId == userId)
                 .Where(x => x.GuildId == guildId)
                 .AsExpandable()
@@ -112,7 +113,7 @@ namespace Modix.Data.Repositories
             if (updateAction == null)
                 throw new ArgumentNullException(nameof(updateAction));
 
-            var entity = await ModixContext.GuildUsers
+            var entity = await ModixContext.Set<GuildUserEntity>()
                 .Where(x => x.UserId == userId)
                 .Where(x => x.GuildId == guildId)
                 .Include(x => x.User)

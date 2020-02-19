@@ -9,6 +9,7 @@ using Modix.Data.Models.Core;
 
 namespace Modix.Data.Models.Promotions
 {
+    [Table("PromotionCampaigns")]
     public class PromotionCampaignEntity
     {
         [Key]

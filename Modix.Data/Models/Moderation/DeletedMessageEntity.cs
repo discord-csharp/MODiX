@@ -11,6 +11,7 @@ namespace Modix.Data.Models.Moderation
     /// <summary>
     /// Describes a message that was automatically deleted by the application.
     /// </summary>
+    [Table("DeletedMessages")]
     public class DeletedMessageEntity
     {
         /// <summary>

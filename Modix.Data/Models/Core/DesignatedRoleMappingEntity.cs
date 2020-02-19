@@ -9,6 +9,7 @@ namespace Modix.Data.Models.Core
     /// <summary>
     /// Describes a mapping that assigns an arbitrary designation to a particular role within a guild.
     /// </summary>
+    [Table("DesignatedRoleMappings")]
     public class DesignatedRoleMappingEntity
     {
         /// <summary>

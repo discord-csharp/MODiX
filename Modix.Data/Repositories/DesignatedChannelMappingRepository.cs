@@ -119,7 +119,7 @@ namespace Modix.Data.Repositories
 
             var entity = data.ToEntity();
 
-            await ModixContext.DesignatedChannelMappings.AddAsync(entity);
+            await ModixContext.Set<DesignatedChannelMappingEntity>().AddAsync(entity);
             await ModixContext.SaveChangesAsync();
 
             entity.CreateAction.DesignatedChannelMappingId = entity.Id;
@@ -130,20 +130,20 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public Task<bool> AnyAsync(DesignatedChannelMappingSearchCriteria criteria)
-            => ModixContext.DesignatedChannelMappings.AsNoTracking()
+            => ModixContext.Set<DesignatedChannelMappingEntity>().AsNoTracking()
                 .FilterBy(criteria)
                 .AnyAsync();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<ulong>> SearchChannelIdsAsync(DesignatedChannelMappingSearchCriteria searchCriteria)
-            => await ModixContext.DesignatedChannelMappings.AsNoTracking()
+            => await ModixContext.Set<DesignatedChannelMappingEntity>().AsNoTracking()
                 .FilterBy(searchCriteria)
                 .Select(x => x.ChannelId)
                 .ToArrayAsync();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<DesignatedChannelMappingBrief>> SearchBriefsAsync(DesignatedChannelMappingSearchCriteria searchCriteria)
-            => await ModixContext.DesignatedChannelMappings.AsNoTracking()
+            => await ModixContext.Set<DesignatedChannelMappingEntity>().AsNoTracking()
                 .FilterBy(searchCriteria)
                 .AsExpandable()
                 .Select(DesignatedChannelMappingBrief.FromEntityProjection)
@@ -152,7 +152,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<int> DeleteAsync(DesignatedChannelMappingSearchCriteria criteria, ulong deletedById)
         {
-            var entities = await ModixContext.DesignatedChannelMappings
+            var entities = await ModixContext.Set<DesignatedChannelMappingEntity>()
                 .Where(x => x.DeleteActionId == null)
                 .FilterBy(criteria)
                 .ToArrayAsync();
@@ -168,7 +168,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<bool> TryDeleteAsync(long mappingId, ulong deletedById)
         {
-            var entity = await ModixContext.DesignatedChannelMappings
+            var entity = await ModixContext.Set<DesignatedChannelMappingEntity>()
                 .Where(x => x.Id == mappingId)
                 .FirstOrDefaultAsync();
 

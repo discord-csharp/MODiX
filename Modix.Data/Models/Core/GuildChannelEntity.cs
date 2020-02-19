@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Modix.Data.Models.Core
 {
+    [Table("GuildChannels")]
     public class GuildChannelEntity
     {
         [Key]

@@ -9,6 +9,7 @@ namespace Modix.Data.Models.Core
     /// <summary>
     /// Describes a user of the application, that has previously joined a Discord guild managed by MODiX.
     /// </summary>
+    [Table("Users")]
     public class UserEntity
     {
         /// <summary>

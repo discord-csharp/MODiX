@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 
+using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Data.Test.TestData;
 
@@ -19,14 +20,14 @@ namespace Modix.Data.Test.Repositories
         {
             var modixContext = TestDataContextFactory.BuildTestDataContext(x =>
             {
-                x.Users.AddRange(Users.Entities.Clone());
-                x.GuildUsers.AddRange(GuildUsers.Entities.Clone());
-                x.GuildRoles.AddRange(GuildRoles.Entities.Clone());
-                x.GuildChannels.AddRange(GuildChannels.Entities.Clone());
-                x.ClaimMappings.AddRange(ClaimMappings.Entities.Clone());
-                x.DesignatedChannelMappings.AddRange(DesignatedChannelMappings.Entities.Clone());
-                x.DesignatedRoleMappings.AddRange(DesignatedRoleMappings.Entities.Clone());
-                x.ConfigurationActions.AddRange(ConfigurationActions.Entities.Clone());
+                x.Set<UserEntity>().AddRange(Users.Entities.Clone());
+                x.Set<GuildUserEntity>().AddRange(GuildUsers.Entities.Clone());
+                x.Set<GuildRoleEntity>().AddRange(GuildRoles.Entities.Clone());
+                x.Set<GuildChannelEntity>().AddRange(GuildChannels.Entities.Clone());
+                x.Set<ClaimMappingEntity>().AddRange(ClaimMappings.Entities.Clone());
+                x.Set<DesignatedChannelMappingEntity>().AddRange(DesignatedChannelMappings.Entities.Clone());
+                x.Set<DesignatedRoleMappingEntity>().AddRange(DesignatedRoleMappings.Entities.Clone());
+                x.Set<ConfigurationActionEntity>().AddRange(ConfigurationActions.Entities.Clone());
             });
 
             var uut = new ConfigurationActionRepository(modixContext);

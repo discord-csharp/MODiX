@@ -47,7 +47,7 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public Task<ModerationActionSummary> ReadSummaryAsync(long moderationActionId)
-            => ModixContext.ModerationActions.AsNoTracking()
+            => ModixContext.Set<ModerationActionEntity>().AsNoTracking()
                 .Where(x => x.Id == moderationActionId)
                 .AsExpandable()
                 .Select(ModerationActionSummary.FromEntityProjection)
@@ -56,7 +56,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<ModerationActionSummary>> SearchSummariesAsync(ModerationActionSearchCriteria searchCriteria)
         {
-            return await ModixContext.ModerationActions.AsNoTracking()
+            return await ModixContext.Set<ModerationActionEntity>().AsNoTracking()
                 .FilterBy(searchCriteria)
                 .AsExpandable()
                 .Select(ModerationActionSummary.FromEntityProjection)

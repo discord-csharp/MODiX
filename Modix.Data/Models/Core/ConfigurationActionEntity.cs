@@ -10,6 +10,7 @@ namespace Modix.Data.Models.Core
     /// <summary>
     /// Describes an action that was performed, that somehow changed the application's configuration.
     /// </summary>
+    [Table("ConfigurationActions")]
     public class ConfigurationActionEntity
     {
         /// <summary>
