@@ -226,7 +226,7 @@ namespace Modix.Services.UserInfo
         private async Task<UserInfoUserDto?> GetUserAsync(ulong userId, ulong guildId, CancellationToken cancellationToken)
         {
             return await _modixContext
-                .GuildUsers
+                .Set<GuildUserEntity>()
                 .WhereUserInGuild(userId, guildId)
                 .Select(x => new UserInfoUserDto
                 {
@@ -262,7 +262,7 @@ namespace Modix.Services.UserInfo
             var weekThreshold = now.AddDays(-7);
 
             var messages = await _modixContext
-                .Messages
+                .Set<MessageEntity>()
                 .WhereIsUserInGuild(userId, guild.Id)
                 .WhereCountsTowardsParticipation()
                 .Where(x => x.Timestamp > startingThreshold)

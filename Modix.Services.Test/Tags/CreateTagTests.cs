@@ -56,7 +56,7 @@ namespace Modix.Services.Test.Tags
         {
             (var autoMocker, var sut, var db) = GetSut();
 
-            db.Tags.Add(new Data.Models.Tags.TagEntity
+            db.Set<TagEntity>().Add(new Data.Models.Tags.TagEntity
             {
                 Name = "modix"
             });
@@ -71,7 +71,7 @@ namespace Modix.Services.Test.Tags
         {
             (var autoMocker, var sut, var db) = GetSut();
 
-            db.Tags.Add(new Data.Models.Tags.TagEntity
+            db.Set<TagEntity>().Add(new Data.Models.Tags.TagEntity
             {
                 Name = "modix"
             });
@@ -88,9 +88,9 @@ namespace Modix.Services.Test.Tags
 
             await sut.CreateTagAsync(1, 1, "MODiX", "Content");
 
-            db.Tags.Count().ShouldBe(1);
+            db.Set<TagEntity>().Count().ShouldBe(1);
 
-            var tag = db.Tags.Single();
+            var tag = db.Set<TagEntity>().Single();
 
             tag.GuildId.ShouldBe((ulong)1);
             tag.OwnerUserId.ShouldBe((ulong)1);
@@ -105,9 +105,9 @@ namespace Modix.Services.Test.Tags
 
             await sut.CreateTagAsync(1, 1, "MODiX", "Content");
 
-            db.TagActions.Count().ShouldBe(1);
+            db.Set<TagActionEntity>().Count().ShouldBe(1);
 
-            var action = db.TagActions.Single();
+            var action = db.Set<TagActionEntity>().Single();
 
             action.GuildId.ShouldBe((ulong)1);
             action.CreatedById.ShouldBe((ulong)1);
@@ -121,7 +121,7 @@ namespace Modix.Services.Test.Tags
 
             await sut.CreateTagAsync(1, 1, "MODiX", "Content");
 
-            var tag = db.Tags.Single();
+            var tag = db.Set<TagEntity>().Single();
 
             tag.CreateAction.ShouldNotBeNull();
         }

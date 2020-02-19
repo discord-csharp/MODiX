@@ -146,7 +146,7 @@ namespace Modix.Data.Repositories
 
             var entity = data.ToEntity();
 
-            await ModixContext.Infractions.AddAsync(entity);
+            await ModixContext.Set<InfractionEntity>().AddAsync(entity);
             await ModixContext.SaveChangesAsync();
 
             entity.CreateAction.InfractionId = entity.Id;
@@ -161,7 +161,7 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public Task<InfractionSummary> ReadSummaryAsync(long infractionId)
-            => ModixContext.Infractions.AsNoTracking()
+            => ModixContext.Set<InfractionEntity>().AsNoTracking()
                 .Where(x => x.Id == infractionId)
                 .AsExpandable()
                 .Select(InfractionSummary.FromEntityProjection)
@@ -169,13 +169,13 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public Task<bool> AnyAsync(InfractionSearchCriteria criteria)
-            => ModixContext.Infractions.AsNoTracking()
+            => ModixContext.Set<InfractionEntity>().AsNoTracking()
                 .FilterBy(criteria)
                 .AnyAsync();
 
         /// <inheritdoc />
         public Task<DateTimeOffset?> ReadExpiresFirstOrDefaultAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria>? sortingCriteria = null)
-            => ModixContext.Infractions.AsNoTracking()
+            => ModixContext.Set<InfractionEntity>().AsNoTracking()
                 .FilterBy(searchCriteria)
                 .AsExpandable()
                 .Select(InfractionSummary.FromEntityProjection)
@@ -185,14 +185,14 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<long>> SearchIdsAsync(InfractionSearchCriteria searchCriteria)
-            => await ModixContext.Infractions.AsNoTracking()
+            => await ModixContext.Set<InfractionEntity>().AsNoTracking()
                 .FilterBy(searchCriteria)
                 .Select(x => x.Id)
                 .ToArrayAsync();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<InfractionSummary>> SearchSummariesAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria>? sortingCriteria = null)
-            => await ModixContext.Infractions.AsNoTracking()
+            => await ModixContext.Set<InfractionEntity>().AsNoTracking()
                 .FilterBy(searchCriteria)
                 .AsExpandable()
                 .Select(InfractionSummary.FromEntityProjection)
@@ -203,7 +203,7 @@ namespace Modix.Data.Repositories
         public async Task<IDictionary<InfractionType, int>> GetInfractionCountsAsync(InfractionSearchCriteria searchCriteria)
         {
             // TODO: Group by here is not supported server side right now, should be refactored
-            var infractions = await ModixContext.Infractions
+            var infractions = await ModixContext.Set<InfractionEntity>()
                 .AsNoTracking()
                 .FilterBy(searchCriteria)
                 .ToArrayAsync();
@@ -226,7 +226,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<RecordsPage<InfractionSummary>> SearchSummariesPagedAsync(InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
         {
-            var sourceQuery = ModixContext.Infractions.AsNoTracking().AsExpandable();
+            var sourceQuery = ModixContext.Set<InfractionEntity>().AsNoTracking().AsExpandable();
 
             var filteredQuery = sourceQuery
                 .FilterBy(searchCriteria);
@@ -249,7 +249,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<bool> TryRescindAsync(long infractionId, ulong rescindedById, string? rescindReason = null)
         {
-            var entity = await ModixContext.Infractions
+            var entity = await ModixContext.Set<InfractionEntity>()
                 .Where(x => x.Id == infractionId)
                 .FirstOrDefaultAsync();
 
@@ -276,7 +276,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<bool> TryDeleteAsync(long infractionId, ulong deletedById)
         {
-            var entity = await ModixContext.Infractions
+            var entity = await ModixContext.Set<InfractionEntity>()
                 .Where(x => x.Id == infractionId)
                 .FirstOrDefaultAsync();
 
@@ -300,7 +300,7 @@ namespace Modix.Data.Repositories
 
         public async Task<bool> TryUpdateAync(long infractionId, string newReason, ulong updatedById)
         {
-            var entity = await ModixContext.Infractions
+            var entity = await ModixContext.Set<InfractionEntity>()
                 .Where(x => x.Id == infractionId)
                 .FirstOrDefaultAsync();
 

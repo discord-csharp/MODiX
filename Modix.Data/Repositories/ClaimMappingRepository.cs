@@ -115,7 +115,7 @@ namespace Modix.Data.Repositories
 
             var entity = data.ToEntity();
 
-            await ModixContext.ClaimMappings.AddAsync(entity);
+            await ModixContext.Set<ClaimMappingEntity>().AddAsync(entity);
             await ModixContext.SaveChangesAsync();
 
             entity.CreateAction.ClaimMappingId = entity.Id;
@@ -126,27 +126,27 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public Task<ClaimMappingSummary> ReadAsync(long claimMappingId)
-            => ModixContext.ClaimMappings.AsNoTracking()
+            => ModixContext.Set<ClaimMappingEntity>().AsNoTracking()
                 .AsExpandable()
                 .Select(ClaimMappingSummary.FromEntityProjection)
                 .FirstOrDefaultAsync(x => x.Id == claimMappingId);
 
         /// <inheritdoc />
         public Task<bool> AnyAsync(ClaimMappingSearchCriteria criteria)
-            => ModixContext.ClaimMappings.AsNoTracking()
+            => ModixContext.Set<ClaimMappingEntity>().AsNoTracking()
                 .FilterBy(criteria)
                 .AnyAsync();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<long>> SearchIdsAsync(ClaimMappingSearchCriteria criteria)
-            => await ModixContext.ClaimMappings.AsNoTracking()
+            => await ModixContext.Set<ClaimMappingEntity>().AsNoTracking()
                 .FilterBy(criteria)
                 .Select(x => x.Id)
                 .ToArrayAsync();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<ClaimMappingBrief>> SearchBriefsAsync(ClaimMappingSearchCriteria criteria)
-            => await ModixContext.ClaimMappings.AsNoTracking()
+            => await ModixContext.Set<ClaimMappingEntity>().AsNoTracking()
                 .FilterBy(criteria)
                 .AsExpandable()
                 .Select(ClaimMappingBrief.FromEntityProjection)
@@ -155,7 +155,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<bool> TryDeleteAsync(long claimMappingId, ulong rescindedById)
         {
-            var entity = await ModixContext.ClaimMappings
+            var entity = await ModixContext.Set<ClaimMappingEntity>()
                 .Where(x => x.Id == claimMappingId)
                 .FirstOrDefaultAsync();
 

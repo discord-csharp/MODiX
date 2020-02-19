@@ -144,20 +144,20 @@ namespace Modix.Data.Repositories
         public async Task CreateAsync(MessageCreationData data)
         {
             var entity = data.ToEntity();
-            await ModixContext.Messages.AddAsync(entity);
+            await ModixContext.Set<MessageEntity>().AddAsync(entity);
             await ModixContext.SaveChangesAsync();
         }
 
         /// <inheritdoc />
         public async Task DeleteAsync(ulong messageId)
         {
-            var entity = await ModixContext.Messages
+            var entity = await ModixContext.Set<MessageEntity>()
                 .Where(x => x.Id == messageId)
                 .FirstOrDefaultAsync();
 
             if (entity is MessageEntity)
             {
-                ModixContext.Messages.Remove(entity);
+                ModixContext.Set<MessageEntity>().Remove(entity);
                 await ModixContext.SaveChangesAsync();
             }
         }
@@ -167,7 +167,7 @@ namespace Modix.Data.Repositories
         {
             var earliestDateTime = DateTimeOffset.UtcNow - timespan;
 
-            return await ModixContext.Messages
+            return await ModixContext.Set<MessageEntity>()
                 .AsNoTracking()
                 .Where(x => x.GuildId == guildId && x.AuthorId == userId && x.Timestamp >= earliestDateTime)
                 .CountAsync();
@@ -333,7 +333,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<MessageBrief> GetMessage(ulong messageId)
         {
-            return await ModixContext.Messages
+            return await ModixContext.Set<MessageEntity>()
                 .AsNoTracking()
                 .Where(x => x.Id == messageId)
                 .Select(MessageBrief.FromEntityProjection)
@@ -343,13 +343,13 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task UpdateStarboardColumn(ulong messageId, ulong? starboardEntryId)
         {
-            var entity = await ModixContext.Messages
+            var entity = await ModixContext.Set<MessageEntity>()
                 .Where(x => x.Id == messageId)
                 .FirstOrDefaultAsync();
 
             entity.StarboardEntryId = starboardEntryId;
 
-            ModixContext.Messages.Update(entity);
+            ModixContext.Set<MessageEntity>().Update(entity);
             await ModixContext.SaveChangesAsync();
         }
 
@@ -358,7 +358,7 @@ namespace Modix.Data.Repositories
         {
             var earliestDateTime = DateTimeOffset.UtcNow - timespan;
 
-            return await ModixContext.Messages.AsNoTracking()
+            return await ModixContext.Set<MessageEntity>().AsNoTracking()
                 .Where(x => x.GuildId == guildId
                     && x.Timestamp >= earliestDateTime)
                 .CountAsync();
@@ -369,7 +369,7 @@ namespace Modix.Data.Repositories
         {
             var earliestDateTime = DateTimeOffset.UtcNow - timespan;
 
-            var messages = await ModixContext.Messages
+            var messages = await ModixContext.Set<MessageEntity>()
                 .AsNoTracking()
                 .Where(x => x.GuildId == guildId && x.Timestamp >= earliestDateTime)
                 .Select(x => x.ChannelId)

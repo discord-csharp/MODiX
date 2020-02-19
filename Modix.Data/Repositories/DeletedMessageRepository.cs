@@ -69,7 +69,7 @@ namespace Modix.Data.Repositories
 
             var entity = data.ToEntity();
 
-            await ModixContext.DeletedMessages.AddAsync(entity);
+            await ModixContext.Set<DeletedMessageEntity>().AddAsync(entity);
             await ModixContext.SaveChangesAsync();
 
             entity.CreateAction.DeletedMessageId = entity.MessageId;
@@ -82,7 +82,7 @@ namespace Modix.Data.Repositories
         public async Task<RecordsPage<DeletedMessageSummary>> SearchSummariesPagedAsync(
             DeletedMessageSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
         {
-            var sourceQuery = ModixContext.DeletedMessages.AsNoTracking();
+            var sourceQuery = ModixContext.Set<DeletedMessageEntity>().AsNoTracking();
 
             var filteredQuery = sourceQuery
                 .FilterBy(searchCriteria);

@@ -70,7 +70,7 @@ namespace Modix.Data.Repositories
 
             var entity = data.ToEntity();
 
-            await ModixContext.GuildChannels.AddAsync(entity, cancellationToken);
+            await ModixContext.Set<GuildChannelEntity>().AddAsync(entity, cancellationToken);
             await ModixContext.SaveChangesAsync(cancellationToken);
         }
 
@@ -80,7 +80,7 @@ namespace Modix.Data.Repositories
             if (updateAction == null)
                 throw new ArgumentNullException(nameof(updateAction));
 
-            var entity = await ModixContext.GuildChannels
+            var entity = await ModixContext.Set<GuildChannelEntity>()
                 .Where(x => x.ChannelId == channelId)
                 .FirstOrDefaultAsync(cancellationToken);
 

@@ -9,6 +9,7 @@ namespace Modix.Data.Models.Core
     /// <summary>
     /// Describes a permission mapping that assigns a claim to a particular role or user within a guild, for use in application authorization.
     /// </summary>
+    [Table("ClaimMappings")]
     public class ClaimMappingEntity
     {
         /// <summary>

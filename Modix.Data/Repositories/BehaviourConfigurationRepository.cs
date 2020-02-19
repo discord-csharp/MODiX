@@ -21,7 +21,7 @@ namespace Modix.Data.Repositories
 
         public async Task<IEnumerable<BehaviourConfiguration>> GetBehaviours()
         {
-            return await _modixContext.BehaviourConfigurations.ToListAsync();
+            return await _modixContext.Set<BehaviourConfiguration>().ToListAsync();
         }
     }
 }

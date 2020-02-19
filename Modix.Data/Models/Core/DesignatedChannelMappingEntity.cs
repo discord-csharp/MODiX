@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Modix.Data.Models.Core
 {
+    [Table("DesignatedChannelMappings")]
     public class DesignatedChannelMappingEntity
     {
         [Required, Key, DatabaseGenerated(DatabaseGeneratedOption.Identity)]

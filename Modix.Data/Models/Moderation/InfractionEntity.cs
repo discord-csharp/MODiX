@@ -9,6 +9,7 @@ using Modix.Data.Models.Core;
 
 namespace Modix.Data.Models.Moderation
 {
+    [Table("Infractions")]
     public class InfractionEntity
     {
         [Key, Required, DatabaseGenerated(DatabaseGeneratedOption.Identity)]

@@ -80,7 +80,7 @@ namespace Modix.Services.Tags
 
             name = name.Trim().ToLower();
 
-            if (await _modixContext.Tags.Where(x => x.GuildId == guildId).Where(x => x.DeleteActionId == null).AnyAsync(x => x.Name == name))
+            if (await _modixContext.Set<TagEntity>().Where(x => x.GuildId == guildId).Where(x => x.DeleteActionId == null).AnyAsync(x => x.Name == name))
                 throw new InvalidOperationException($"A tag with the name '{name}' already exists.");
 
             var tag = new TagEntity
@@ -101,7 +101,7 @@ namespace Modix.Services.Tags
 
             tag.CreateAction = createAction;
 
-            _modixContext.Tags.Add(tag);
+            _modixContext.Set<TagEntity>().Add(tag);
 
             await _modixContext.SaveChangesAsync();
         }
@@ -121,7 +121,7 @@ namespace Modix.Services.Tags
                 throw new InvalidOperationException($"The channel '{channel.Name}' is not a message channel.");
 
             var tag = await _modixContext
-                .Tags
+                .Set<TagEntity>()
                 .Where(x => x.GuildId == guildId)
                 .Where(x => x.DeleteActionId == null)
                 .Where(x => x.Name == name)
@@ -150,7 +150,7 @@ namespace Modix.Services.Tags
             name = name.Trim().ToLower();
 
             var tag = await _modixContext
-                .Tags
+                .Set<TagEntity>()
                 .Where(x => x.GuildId == guildId)
                 .Where(x => x.DeleteActionId == null)
                 .Where(x => x.Name == name)
@@ -174,7 +174,7 @@ namespace Modix.Services.Tags
             name = name.Trim().ToLower();
 
             var tag = await _modixContext
-                .Tags
+                .Set<TagEntity>()
                 .Where(x => x.GuildId == guildId)
                 .Where(x => x.DeleteActionId == null)
                 .Where(x => x.Name == name)
@@ -198,7 +198,7 @@ namespace Modix.Services.Tags
             name = name.Trim().ToLower();
 
             return await _modixContext
-                .Tags
+                .Set<TagEntity>()
                 .Where(x => x.GuildId == guildId)
                 .Where(x => x.DeleteActionId == null)
                 .Where(x => x.Name == name)
@@ -212,7 +212,7 @@ namespace Modix.Services.Tags
             if (criteria is null)
                 throw new ArgumentNullException(nameof(criteria));
 
-            return await _modixContext.Tags
+            return await _modixContext.Set<TagEntity>()
                 .Where(x => x.DeleteActionId == null)
                 .FilterTagsBy(criteria)
                 .OrderBy(x => x.Name)
@@ -247,7 +247,7 @@ namespace Modix.Services.Tags
             name = name.Trim().ToLower();
 
             var tag = await _modixContext
-                .Tags
+                .Set<TagEntity>()
                 .Where(x => x.GuildId == guildId)
                 .Where(x => x.DeleteActionId == null)
                 .Where(x => x.Name == name)
@@ -271,7 +271,7 @@ namespace Modix.Services.Tags
             name = name.Trim().ToLower();
 
             var tag = await _modixContext
-                .Tags
+                .Set<TagEntity>()
                 .Where(x => x.GuildId == guildId)
                 .Where(x => x.DeleteActionId == null)
                 .Where(x => x.Name == name)
@@ -383,7 +383,7 @@ namespace Modix.Services.Tags
             name = name.Trim().ToLower();
 
             return await _modixContext
-                .Tags
+                .Set<TagEntity>()
                 .Where(x => x.GuildId == guildId)
                 .Where(x => x.Name == name)
                 .Where(x => x.DeleteActionId == null)

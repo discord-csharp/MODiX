@@ -12,6 +12,7 @@ namespace Modix.Data.Models.Promotions
     /// <summary>
     /// Describes an action performed within the promotions system.
     /// </summary>
+    [Table("PromotionActions")]
     public class PromotionActionEntity
     {
         /// <summary>

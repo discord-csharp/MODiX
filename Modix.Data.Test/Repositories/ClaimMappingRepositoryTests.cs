@@ -25,10 +25,10 @@ namespace Modix.Data.Test.Repositories
         {
             var modixContext = TestDataContextFactory.BuildTestDataContext(x =>
             {
-                x.Users.AddRange(Users.Entities.Clone());
-                x.GuildUsers.AddRange(GuildUsers.Entities.Clone());
-                x.ClaimMappings.AddRange(ClaimMappings.Entities.Clone());
-                x.ConfigurationActions.AddRange(ConfigurationActions.Entities.Where(y => !(y.ClaimMappingId is null)).Clone());
+                x.Set<UserEntity>().AddRange(Users.Entities.Clone());
+                x.Set<GuildUserEntity>().AddRange(GuildUsers.Entities.Clone());
+                x.Set<ClaimMappingEntity>().AddRange(ClaimMappings.Entities.Clone());
+                x.Set<ConfigurationActionEntity>().AddRange(ConfigurationActions.Entities.Where(y => !(y.ClaimMappingId is null)).Clone());
             });
 
             var uut = new ClaimMappingRepository(modixContext);
@@ -183,8 +183,8 @@ namespace Modix.Data.Test.Repositories
 
             var id = await uut.CreateAsync(data);
 
-            modixContext.ClaimMappings.ShouldContain(x => x.Id == id);
-            var claimMapping = modixContext.ClaimMappings.First(x => x.Id == id);
+            modixContext.Set<ClaimMappingEntity>().ShouldContain(x => x.Id == id);
+            var claimMapping = modixContext.Set<ClaimMappingEntity>().First(x => x.Id == id);
 
             claimMapping.GuildId.ShouldBe(data.GuildId);
             claimMapping.Type.ShouldBe(data.Type);
@@ -192,9 +192,9 @@ namespace Modix.Data.Test.Repositories
             claimMapping.UserId.ShouldBe(data.UserId);
             claimMapping.Claim.ShouldBe(data.Claim);
 
-            modixContext.ConfigurationActions
+            modixContext.Set<ConfigurationActionEntity>()
                 .ShouldContain(x => x.Id == claimMapping.CreateActionId);
-            var createAction = modixContext.ConfigurationActions
+            var createAction = modixContext.Set<ConfigurationActionEntity>()
                 .First(x => x.Id == claimMapping.CreateActionId);
 
             createAction.GuildId.ShouldBe(data.GuildId);
@@ -325,9 +325,9 @@ namespace Modix.Data.Test.Repositories
 
             result.ShouldBeTrue();
 
-            modixContext.ClaimMappings
+            modixContext.Set<ClaimMappingEntity>()
                 .ShouldContain(x => x.Id == claimMappingId);
-            var claimMapping = modixContext.ClaimMappings
+            var claimMapping = modixContext.Set<ClaimMappingEntity>()
                 .First(x => x.Id == claimMappingId);
 
             var originalClaimMapping = ClaimMappings.Entities
@@ -341,19 +341,19 @@ namespace Modix.Data.Test.Repositories
             claimMapping.CreateActionId.ShouldBe(originalClaimMapping.CreateActionId);
             claimMapping.DeleteActionId.ShouldNotBeNull();
 
-            modixContext.ClaimMappings
+            modixContext.Set<ClaimMappingEntity>()
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(ClaimMappings.Entities
                     .Select(x => x.Id));
 
-            modixContext.ClaimMappings
+            modixContext.Set<ClaimMappingEntity>()
                 .Where(x => x.Id != claimMappingId)
                 .EachShould(x => x.ShouldNotHaveChanged());
 
-            modixContext.ConfigurationActions
+            modixContext.Set<ConfigurationActionEntity>()
                 .ShouldContain(x => x.Id == claimMapping.DeleteActionId);
-            var deleteAction = modixContext.ConfigurationActions
+            var deleteAction = modixContext.Set<ConfigurationActionEntity>()
                 .First(x => x.Id == claimMapping.DeleteActionId);
 
             deleteAction.GuildId.ShouldBe(claimMapping.GuildId);
@@ -366,14 +366,14 @@ namespace Modix.Data.Test.Repositories
             deleteAction.DesignatedChannelMappingId.ShouldBeNull();
             deleteAction.DesignatedRoleMappingId.ShouldBeNull();
 
-            modixContext.ConfigurationActions
+            modixContext.Set<ConfigurationActionEntity>()
                 .Where(x => x.Id != deleteAction.Id)
                 .Select(x => x.Id)
                 .ShouldBe(ConfigurationActions.Entities
                     .Where(x => !(x.ClaimMappingId is null))
                     .Select(x => x.Id));
 
-            modixContext.ConfigurationActions
+            modixContext.Set<ConfigurationActionEntity>()
                 .Where(x => x.Id != deleteAction.Id)
                 .EachShould(x => x.ShouldNotHaveChanged());
 
@@ -391,24 +391,24 @@ namespace Modix.Data.Test.Repositories
 
             result.ShouldBeFalse();
 
-            modixContext.ClaimMappings
+            modixContext.Set<ClaimMappingEntity>()
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(ClaimMappings.Entities
                     .Select(x => x.Id));
 
-            modixContext.ClaimMappings
+            modixContext.Set<ClaimMappingEntity>()
                 .Where(x => x.Id != claimMappingId)
                 .EachShould(x => x.ShouldNotHaveChanged());
 
-            modixContext.ConfigurationActions
+            modixContext.Set<ConfigurationActionEntity>()
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(ConfigurationActions.Entities
                     .Where(x => !(x.ClaimMappingId is null))
                     .Select(x => x.Id));
 
-            modixContext.ConfigurationActions
+            modixContext.Set<ConfigurationActionEntity>()
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()

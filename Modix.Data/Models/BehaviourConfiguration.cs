@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Modix.Data.Models
 {
+    [Table("BehaviourConfigurations")]
     public class BehaviourConfiguration
     {
         [Key, Required, DatabaseGenerated(DatabaseGeneratedOption.Identity)]

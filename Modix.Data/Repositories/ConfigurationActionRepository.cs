@@ -36,7 +36,7 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public Task<ConfigurationActionSummary> ReadAsync(long actionId)
-            => ModixContext.ConfigurationActions.AsNoTracking()
+            => ModixContext.Set<ConfigurationActionEntity>().AsNoTracking()
                 .AsExpandable()
                 .Select(ConfigurationActionSummary.FromEntityProjection)
                 .FirstOrDefaultAsync(x => x.Id == actionId);

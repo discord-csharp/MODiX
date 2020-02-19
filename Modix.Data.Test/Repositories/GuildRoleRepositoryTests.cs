@@ -24,7 +24,7 @@ namespace Modix.Data.Test.Repositories
         {
             var modixContext = TestDataContextFactory.BuildTestDataContext(x =>
             {
-                x.GuildRoles.AddRange(GuildRoles.Entities.Clone());
+                x.Set<GuildRoleEntity>().AddRange(GuildRoles.Entities.Clone());
             });
 
             var uut = new GuildRoleRepository(modixContext);
@@ -103,13 +103,13 @@ namespace Modix.Data.Test.Repositories
 
             await Should.ThrowAsync<ArgumentNullException>(uut.CreateAsync(null!));
 
-            modixContext.GuildRoles
+            modixContext.Set<GuildRoleEntity>()
                 .AsQueryable()
                 .Select(x => x.RoleId)
                 .ShouldBe(GuildRoles.Entities
                     .Select(x => x.RoleId));
 
-            modixContext.GuildRoles
+            modixContext.Set<GuildRoleEntity>()
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
@@ -123,20 +123,20 @@ namespace Modix.Data.Test.Repositories
 
             await uut.CreateAsync(data);
 
-            modixContext.GuildRoles.ShouldContain(x => x.RoleId == data.RoleId);
-            var role = modixContext.GuildRoles.First(x => x.RoleId == data.RoleId);
+            modixContext.Set<GuildRoleEntity>().ShouldContain(x => x.RoleId == data.RoleId);
+            var role = modixContext.Set<GuildRoleEntity>().First(x => x.RoleId == data.RoleId);
 
             role.GuildId.ShouldBe(data.GuildId);
             role.Name.ShouldBe(data.Name);
             role.Position.ShouldBe(data.Position);
 
-            modixContext.GuildRoles
+            modixContext.Set<GuildRoleEntity>()
                 .Where(x => x.RoleId != role.RoleId)
                 .Select(x => x.RoleId)
                 .ShouldBe(GuildRoles.Entities
                     .Select(x => x.RoleId));
 
-            modixContext.GuildRoles
+            modixContext.Set<GuildRoleEntity>()
                 .Where(x => x.RoleId != role.RoleId)
                 .EachShould(x => x.ShouldNotHaveChanged());
 
@@ -151,13 +151,13 @@ namespace Modix.Data.Test.Repositories
 
             await Should.ThrowAsync<InvalidOperationException>(uut.CreateAsync(data));
 
-            modixContext.GuildRoles
+            modixContext.Set<GuildRoleEntity>()
                 .AsQueryable()
                 .Select(x => x.RoleId)
                 .ShouldBe(GuildRoles.Entities
                     .Select(x => x.RoleId));
 
-            modixContext.GuildRoles
+            modixContext.Set<GuildRoleEntity>()
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
@@ -176,13 +176,13 @@ namespace Modix.Data.Test.Repositories
             await Should.ThrowAsync<ArgumentNullException>(async () =>
                 await uut.TryUpdateAsync(1, null!));
 
-            modixContext.GuildRoles
+            modixContext.Set<GuildRoleEntity>()
                 .AsQueryable()
                 .Select(x => x.RoleId)
                 .ShouldBe(GuildRoles.Entities
                     .Select(x => x.RoleId));
 
-            modixContext.GuildRoles
+            modixContext.Set<GuildRoleEntity>()
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
@@ -194,7 +194,7 @@ namespace Modix.Data.Test.Repositories
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            var guildRole = modixContext.GuildRoles.Single(x => x.RoleId == roleId);
+            var guildRole = modixContext.Set<GuildRoleEntity>().Single(x => x.RoleId == roleId);
 
             var mutatedData = new GuildRoleMutationData()
             {
@@ -216,13 +216,13 @@ namespace Modix.Data.Test.Repositories
             guildRole.Name.ShouldBe(mutatedData.Name);
             guildRole.Position.ShouldBe(mutatedData.Position);
 
-            modixContext.GuildRoles
+            modixContext.Set<GuildRoleEntity>()
                 .AsQueryable()
                 .Select(x => x.RoleId)
                 .ShouldBe(GuildRoles.Entities
                     .Select(x => x.RoleId));
 
-            modixContext.GuildRoles
+            modixContext.Set<GuildRoleEntity>()
                 .Where(x => x.RoleId != roleId)
                 .EachShould(x => x.ShouldNotHaveChanged());
 
@@ -244,13 +244,13 @@ namespace Modix.Data.Test.Repositories
             updateAction.ShouldNotHaveReceived()
                 .Invoke(Arg.Any<GuildRoleMutationData>());
 
-            modixContext.GuildRoles
+            modixContext.Set<GuildRoleEntity>()
                 .AsQueryable()
                 .Select(x => x.RoleId)
                 .ShouldBe(GuildRoles.Entities
                     .Select(x => x.RoleId));
 
-            modixContext.GuildRoles
+            modixContext.Set<GuildRoleEntity>()
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()

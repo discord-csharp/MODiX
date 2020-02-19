@@ -11,6 +11,7 @@ namespace Modix.Data.Models.Core
     /// Tracking this information locally, helps us avoid calls to the Discord API,
     /// and to keep a history for roles that have been deleted from the Discord API.
     /// </summary>
+    [Table("GuildRoles")]
     public class GuildRoleEntity
     {
         /// <summary>

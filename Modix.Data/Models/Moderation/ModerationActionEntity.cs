@@ -12,6 +12,7 @@ namespace Modix.Data.Models.Moderation
     /// <summary>
     /// Describes a moderation action performed by an authorized staff member.
     /// </summary>
+    [Table("ModerationActions")]
     public class ModerationActionEntity
     {
         /// <summary>

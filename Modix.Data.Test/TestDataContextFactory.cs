@@ -1,8 +1,12 @@
 ﻿using System;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 using NSubstitute;
+
+using Modix.Data.Models.Core;
+using Modix.Data.Models.Tags;
 
 namespace Modix.Data.Test
 {
@@ -23,27 +27,27 @@ namespace Modix.Data.Test
                 initializeAction.Invoke(modixContext);
 
                 modixContext.ResetSequenceToMaxValue(
-                    x => x.ClaimMappings,
+                    x => x.Set<ClaimMappingEntity>(),
                     x => x.Id);
 
                 modixContext.ResetSequenceToMaxValue(
-                    x => x.DesignatedChannelMappings,
+                    x => x.Set<DesignatedChannelMappingEntity>(),
                     x => x.Id);
 
                 modixContext.ResetSequenceToMaxValue(
-                    x => x.DesignatedRoleMappings,
+                    x => x.Set<DesignatedRoleMappingEntity>(),
                     x => x.Id);
 
                 modixContext.ResetSequenceToMaxValue(
-                    x => x.ConfigurationActions,
+                    x => x.Set<ConfigurationActionEntity>(),
                     x => x.Id);
 
                 modixContext.ResetSequenceToMaxValue(
-                    x => x.Tags,
+                    x => x.Set<TagEntity>(),
                     x => x.Id);
 
                 modixContext.ResetSequenceToMaxValue(
-                    x => x.TagActions,
+                    x => x.Set<TagActionEntity>(),
                     x => x.Id);
 
                 modixContext.SaveChanges();

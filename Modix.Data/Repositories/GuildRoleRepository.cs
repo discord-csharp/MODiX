@@ -66,7 +66,7 @@ namespace Modix.Data.Repositories
 
             var entity = data.ToEntity();
 
-            await ModixContext.GuildRoles.AddAsync(entity);
+            await ModixContext.Set<GuildRoleEntity>().AddAsync(entity);
             await ModixContext.SaveChangesAsync();
         }
 
@@ -76,7 +76,7 @@ namespace Modix.Data.Repositories
             if (updateAction == null)
                 throw new ArgumentNullException(nameof(updateAction));
 
-            var entity = await ModixContext.GuildRoles
+            var entity = await ModixContext.Set<GuildRoleEntity>()
                 .Where(x => x.RoleId == roleId)
                 .FirstOrDefaultAsync();
 
