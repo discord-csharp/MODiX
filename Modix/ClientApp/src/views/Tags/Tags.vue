@@ -62,6 +62,7 @@ import TagCreationData from '../../models/Tags/TagCreationData';
 import TagMutationData from '../../models/Tags/TagMutationData';
 import ModixComponent from '@/components/ModixComponent.vue';
 import { GuildRoleBrief } from '@/models/promotions/PromotionCampaign';
+import { dateFormat, dateInputFormat } from '../../app/Util';
 
 type TagOwner = GuildUserIdentity & GuildRoleBrief;
 
@@ -136,8 +137,8 @@ export default class Tags extends ModixComponent
                 label: 'Last Modified',
                 field: 'date',
                 type: 'date',
-                dateInputFormat: 'YYYY-MM-DDTHH:mm:ss',
-                dateOutputFormat: 'MM/DD/YY, h:mm:ss a',
+                dateInputFormat: dateInputFormat,
+                dateOutputFormat: dateFormat,
                 width: '160px'
             },
             {
