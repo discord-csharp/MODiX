@@ -33,9 +33,13 @@
     "@types/webpack-env": "^1.15.1",
     "@vue/cli-plugin-typescript": "^4.2.2",
     "@vue/cli-service": "^4.2.2",
-    "node-sass": "^4.13.1",
+    "node-sass": "4.12.0",
     "sass-loader": "^8.0.2",
     "typescript": "^3.8.2",
     "vue-template-compiler": "^2.6.11"
-  }
+  },
+  "optionalDependencies": {
+    "fsevents": "1.2.9"
+  },
+  "_comment": "fsevent@1.2.9 is locked in to prevent broken builds on windows for v1.2.11"
 }
