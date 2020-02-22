@@ -18,7 +18,6 @@ using Microsoft.Extensions.Options;
 using Modix.Data;
 using Modix.Data.Models.Core;
 using Modix.Services;
-using Modix.Services.BehaviourConfiguration;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
@@ -95,10 +94,6 @@ namespace Modix
                 Log.LogInformation("Running database migrations.");
                 scope.ServiceProvider.GetRequiredService<ModixContext>()
                     .Database.Migrate();
-
-                Log.LogInformation("Starting behaviors.");
-                await scope.ServiceProvider.GetRequiredService<IBehaviourConfigurationService>()
-                    .LoadBehaviourConfiguration();
 
                 foreach (var behavior in scope.ServiceProvider.GetServices<IBehavior>())
                 {
