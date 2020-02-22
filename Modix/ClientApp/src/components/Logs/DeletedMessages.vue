@@ -67,6 +67,7 @@ import BatchDeleteContext from '@/components/Logs/BatchDeleteContext.vue';
 import DeletedMessageAbstraction from '@/models/logs/DeletedMessageAbstraction';
 import ModixComponent from '@/components/ModixComponent.vue';
 import { AxiosError } from 'axios';
+import { dateFormat, dateInputFormat } from '../../app/Util';
 
 const messageResolvingRegex = /<#(\d+)>/gm;
 
@@ -142,8 +143,8 @@ export default class DeletedMessages extends ModixComponent
                 field: 'created',
                 type: 'date',
                 width: '10%',
-                dateInputFormat: 'YYYY-MM-DDTHH:mm:ss',
-                dateOutputFormat: 'MM/DD/YY, h:mm:ss a'
+                dateInputFormat: dateInputFormat,
+                dateOutputFormat: dateFormat
             },
             {
                 label: 'Deleted By',
