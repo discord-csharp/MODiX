@@ -33,7 +33,7 @@ export const setConfig = (setter: (conf: PersistentConfig) => void) =>
 };
 export const ensureConfig = () =>
 {
-    let config = PersistentKeyValueService.get("persistentConfig");
+    let config = PersistentKeyValueService.get<PersistentConfig>("persistentConfig");
 
     if (config == null)
     {
