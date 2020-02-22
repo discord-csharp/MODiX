@@ -209,7 +209,7 @@ export default class Infractions extends ModixComponent
 {
     get infractionTypes(): string[]
     {
-        return Object.keys(InfractionType).map(c => InfractionType[<any>c]);
+        return Object.values(InfractionType);
     }
 
     showState: boolean = false;

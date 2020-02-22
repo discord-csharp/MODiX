@@ -69,7 +69,7 @@ const guildUserFilter = (subject: TagOwner, filter: string) =>
 {
     filter = _.lowerCase(filter);
 
-    return subject.id.toString().startsWith(filter) ||
+    return (subject ? subject.id : "").toString().startsWith(filter) ||
         _.lowerCase(getFullUsername(subject)).indexOf(filter) >= 0;
 };
 
