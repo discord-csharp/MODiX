@@ -138,7 +138,7 @@ export default class InfractionTable extends ModixComponent
                 field: 'created',
                 type: 'date', //Needed to bypass vue-good-table regression
                 width: '20%',
-                dateInputFormat: 'yyyy-MM-dd\'T\'HH:mm:ss',
+                dateInputFormat: 'YYYY-MM-DDTHH:mm:ss',
                 dateOutputFormat: 'MM/DD/YY, h:mm:ss a'
             },
             {
