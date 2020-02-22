@@ -20,14 +20,6 @@ namespace Modix.Data
             modelBuilder.UseSerialColumns();
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ModixContext).Assembly);
-
-            modelBuilder.Entity<PerUserMessageCount>().HasNoKey();
-            modelBuilder.Entity<GuildUserParticipationStatistics>().HasNoKey();
-            modelBuilder.Entity<SingleEmojiStatsDto>().HasNoKey();
-            modelBuilder.Entity<EmojiStatsDto>().HasNoKey();
-            modelBuilder.Entity<GuildEmojiStats>().HasNoKey();
-            modelBuilder.Entity<MessageCountPerChannel>().HasNoKey();
-            modelBuilder.Entity<MessageCountByDate>().HasNoKey();
         }
     }
 }
