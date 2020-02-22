@@ -142,7 +142,7 @@ export default class DeletedMessages extends ModixComponent
                 field: 'created',
                 type: 'date',
                 width: '10%',
-                dateInputFormat: 'yyyy-MM-dd\'T\'HH:mm:ss',
+                dateInputFormat: 'YYYY-MM-DDTHH:mm:ss',
                 dateOutputFormat: 'MM/DD/YY, h:mm:ss a'
             },
             {
