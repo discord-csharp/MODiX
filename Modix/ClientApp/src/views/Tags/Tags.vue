@@ -172,12 +172,14 @@ export default class Tags extends ModixComponent
                 field: 'uses',
                 type: 'number'
             },
+            /*
             {
                 label: 'Actions',
                 field: 'actions',
                 width: '32px',
                 sortable: false
             }
+            */
         ];
     }
 

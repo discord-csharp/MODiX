@@ -5,8 +5,6 @@
                 <button class="button" v-if="canCreate" v-on:click="showCreateModal = true">Create</button>
                 &nbsp;
                 <button class="button" @click="refresh()" :class="{'is-loading': isLoading}">Refresh</button>
-                &nbsp;
-                <button class="button" disabled title="Coming Soon™" @click="showModal = true">Import</button>
             </div>
             <div class="level-right">
                 <label>
@@ -24,54 +22,6 @@
             :recordsPage="recordsPage" :showActions="true"
             :showState="showState" :showDeleted="showDeleted" :staticFilters="staticFilters">
         </InfractionTable>
-
-        <div class="modal" :class="{'is-active': showModal}">
-            <div class="modal-background" @click="showModal = !showModal"></div>
-            <div class="modal-card">
-                <header class="modal-card-head">
-                    <p class="modal-card-title">
-                        Import Rowboat Infractions
-                    </p>
-                    <button class="delete" aria-label="close" @click="showModal = false"></button>
-                </header>
-                <section class="modal-card-body">
-                    <div class="notification">
-                        <label class="label">
-                            A JSON backup of your infractions can be retrieved from Rowboat's API. Input your guild ID below to
-                            have the download link generated, and make sure you're logged in
-                            <a href="https://dashboard.rowboat.party/login">here</a>
-
-                            <input class="input is-small" type="number" placeholder="Guild ID" v-model="importGuildId" />
-                        </label>
-
-                        <template v-if="importGuildId">
-                            Download the JSON
-                            <a :href="rowboatDownloadUrl" target="_blank">here</a>.
-                        </template>
-                    </div>
-
-                    <input type="file" name="jsonFile" @change="fileChange($event.target)" ref="fileInput" />
-
-                    <br /><br />
-
-                    <div class="notification is-primary" v-if="message">
-                        {{message}}
-                    </div>
-
-                    <div class="notification is-danger" v-if="loadError">
-                        {{loadError.toString()}}
-                    </div>
-                </section>
-                <footer class="modal-card-foot level">
-                    <div class="level-left">
-                        <button class="button is-success" :disabled="!message" @click="uploadFile()">Import</button>
-                    </div>
-                    <div class="level-right">
-                        <button class="button is-danger" @click="showModal = false">Cancel</button>
-                    </div>
-                </footer>
-            </div>
-        </div>
 
         <div class="modal" v-bind:class="{'is-active': showCreateModal}">
             <div class="modal-background" v-on:click="closeCreateModal"></div>

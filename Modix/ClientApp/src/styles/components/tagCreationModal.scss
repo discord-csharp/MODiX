@@ -2,15 +2,15 @@ $discordText: #dcddde;
 $discordUrl: #0096cf;
 $discordBackground: #36393f;
 
-$discordCodeBackground: rgb(54, 57, 63);
-$discordCodeBorder: rgba(32, 34, 37, 0.3);
-$discordCodeText: #839496;
+$discordCodeBackground: #2f3136;
+$discordCodeBorder: rgb(32, 34, 37);
+$discordCodeText: rgb(185, 187, 190);
 
 .markdownPreview
 {
     color: $discordText;
     background-color: $discordBackground;
-    font-size: 15px;
+    font-size: 16px;
 
     padding: 1em;
 
@@ -26,17 +26,18 @@ $discordCodeText: #839496;
 
     pre
     {
+        font-family: "Consolas", "Andale Mono WT", "Andale Mono", "Lucida Console", "Lucida Sans Typewriter", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Liberation Mono", "Nimbus Mono L", Monaco, "Courier New", Courier, monospace;
         color: $discordCodeText;
-        padding: 0.5em;
+        padding: 7px;
         background: $discordCodeBackground;
+        font-size: 14px;
 
-        border-radius: 5px;
+        border-radius: 4px;
         border-style: solid;
-        border-width: 2px;
+        border-width: 1px;
         border-color: $discordCodeBorder;
 
-        margin-top: 0.5em;
-        margin-bottom: 1em;
+        margin: 0;
     }
 }
 
