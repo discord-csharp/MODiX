@@ -39,10 +39,11 @@
                         <UserProfileField fieldName="Roles" :fieldValue="roles" allowHtml="true" />
                     </div>
 
-                    <div :v-if="messages">
+                    <div>
                         <div class="section-title">Messages by Channel</div>
                         <div class="box">
-                            <PieChart :stats="messages" />
+                            <PieChart v-if="messages && messages.length > 0" :stats="messages" />
+                            <h2 v-else class="subtitle">There are no records for this user</h2>
                         </div>
                     </div>
                 </template>

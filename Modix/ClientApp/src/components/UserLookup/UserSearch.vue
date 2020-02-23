@@ -49,8 +49,9 @@ export default class UserSearch extends ModixComponent
     {
         if (this.selectedUser && this.selectedUser.userId)
         {
+            this.$emit('userSelected', this.selectedUser);
             let ephemeralUser = await UserService.getUserInformation(this.selectedUser.userId);
-            this.$emit('userSelected', ephemeralUser);
+            this.$emit('userLoaded', ephemeralUser);
         }
     }
 

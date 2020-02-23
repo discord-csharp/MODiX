@@ -2,10 +2,25 @@
     <section class="container section">
         <h1 class="title">User Lookup</h1>
         <div>
-            <UserSearch @userSelected="selectedUser = $event" />
+            <UserSearch @userSelected="loading = true; selectedUser = $event" @userLoaded="selectedUser = $event; loading = false" />
         </div>
+        <template v-if="loading">
+            <h1 class="subtitle">Loading details for {{selectedUser.name}}...</h1>
+            <div class="sk-cube-grid">
+                <div class="sk-cube sk-cube1"></div>
+                <div class="sk-cube sk-cube2"></div>
+                <div class="sk-cube sk-cube3"></div>
+                <div class="sk-cube sk-cube4"></div>
+                <div class="sk-cube sk-cube5"></div>
+                <div class="sk-cube sk-cube6"></div>
+                <div class="sk-cube sk-cube7"></div>
+                <div class="sk-cube sk-cube8"></div>
+                <div class="sk-cube sk-cube9"></div>
+            </div>
+        </template>
+
         <div>
-            <UserProfile :user="selectedUser" />
+            <UserProfile v-if="selectedUser && !loading" :user="selectedUser" />
         </div>
     </section>
 </template>
@@ -30,6 +45,7 @@ import UserService from '@/services/UserService';
 export default class UserLookup extends ModixComponent
 {
     selectedUser: EphemeralUser | null = null;
+    loading: boolean = false;
 
     async mounted()
     {
