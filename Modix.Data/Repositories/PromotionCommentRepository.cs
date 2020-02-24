@@ -107,13 +107,13 @@ namespace Modix.Data.Repositories
 
             var entity = data.ToEntity();
 
-            await ModixContext.PromotionComments.AddAsync(entity);
+            await ModixContext.Set<PromotionCommentEntity>().AddAsync(entity);
             await ModixContext.SaveChangesAsync();
 
             entity.CreateAction.NewCommentId = entity.Id;
             await ModixContext.SaveChangesAsync();
 
-            var action = await ModixContext.PromotionActions.AsNoTracking()
+            var action = await ModixContext.Set<PromotionActionEntity>().AsNoTracking()
                 .Where(x => x.Id == entity.CreateActionId)
                 .AsExpandable()
                 .Select(PromotionActionSummary.FromEntityProjection)
@@ -128,7 +128,7 @@ namespace Modix.Data.Repositories
             if (updateAction is null)
                 throw new ArgumentNullException(nameof(updateAction));
 
-            var oldComment = await ModixContext.PromotionComments
+            var oldComment = await ModixContext.Set<PromotionCommentEntity>()
                                                .Include(x => x.Campaign)
                                                .SingleAsync(x => x.Id == commentId);
 
@@ -141,7 +141,7 @@ namespace Modix.Data.Repositories
                 Type = PromotionActionType.CommentModified,
             };
 
-            await ModixContext.PromotionActions.AddAsync(modifyAction);
+            await ModixContext.Set<PromotionActionEntity>().AddAsync(modifyAction);
             await ModixContext.SaveChangesAsync();
 
             var data = PromotionCommentMutationData.FromEntity(oldComment);
@@ -150,7 +150,7 @@ namespace Modix.Data.Repositories
             var newComment = data.ToEntity();
             newComment.CreateActionId = modifyAction.Id;
 
-            await ModixContext.PromotionComments.AddAsync(newComment);
+            await ModixContext.Set<PromotionCommentEntity>().AddAsync(newComment);
             await ModixContext.SaveChangesAsync();
 
             modifyAction.OldCommentId = oldComment.Id;
@@ -159,7 +159,7 @@ namespace Modix.Data.Repositories
             newComment.CreateActionId = modifyAction.Id;
             await ModixContext.SaveChangesAsync();
 
-            var actionSummary = await ModixContext.PromotionActions.AsNoTracking()
+            var actionSummary = await ModixContext.Set<PromotionActionEntity>().AsNoTracking()
                 .Where(x => x.Id == modifyAction.Id)
                 .AsExpandable()
                 .Select(PromotionActionSummary.FromEntityProjection)
@@ -178,7 +178,7 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public async Task<PromotionCommentSummary> ReadSummaryAsync(long commentId)
-            => await ModixContext.PromotionComments.AsNoTracking()
+            => await ModixContext.Set<PromotionCommentEntity>().AsNoTracking()
                 .Where(x => x.Id == commentId)
                 .AsExpandable()
                 .Select(PromotionCommentSummary.FromEntityProjection)
@@ -186,7 +186,7 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public Task<bool> AnyAsync(PromotionCommentSearchCriteria searchCriteria)
-            => ModixContext.PromotionComments.AsNoTracking()
+            => ModixContext.Set<PromotionCommentEntity>().AsNoTracking()
                 .FilterBy(searchCriteria)
                 .AnyAsync();
 

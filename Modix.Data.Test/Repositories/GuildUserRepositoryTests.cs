@@ -24,8 +24,8 @@ namespace Modix.Data.Test.Repositories
         {
             var modixContext = TestDataContextFactory.BuildTestDataContext(x =>
             {
-                x.Users.AddRange(Users.Entities.Clone());
-                x.GuildUsers.AddRange(GuildUsers.Entities.Clone());
+                x.Set<UserEntity>().AddRange(Users.Entities.Clone());
+                x.Set<GuildUserEntity>().AddRange(GuildUsers.Entities.Clone());
             });
 
             var uut = new GuildUserRepository(modixContext);
@@ -105,21 +105,21 @@ namespace Modix.Data.Test.Repositories
             await Should.ThrowAsync<ArgumentNullException>(async () => 
                 await uut.CreateAsync(null!));
 
-            modixContext.GuildUsers.AsEnumerable()
+            modixContext.Set<GuildUserEntity>().AsEnumerable()
                 .Select(x => (x.UserId, x.GuildId))
                 .ShouldBe(GuildUsers.Entities
                     .Select(x => (x.UserId, x.GuildId)));
 
-            modixContext.GuildUsers
+            modixContext.Set<GuildUserEntity>()
                 .EachShould(x => x.ShouldNotHaveChanged());
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(Users.Entities
                     .Select(x => x.Id));
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
@@ -133,19 +133,19 @@ namespace Modix.Data.Test.Repositories
 
             await uut.CreateAsync(data);
 
-            modixContext.Users.ShouldContain(x => x.Id == data.UserId);
-            var user = modixContext.Users.First(x => x.Id == data.UserId);
+            modixContext.Set<UserEntity>().ShouldContain(x => x.Id == data.UserId);
+            var user = modixContext.Set<UserEntity>().First(x => x.Id == data.UserId);
 
             user.Username.ShouldBe(data.Username);
             user.Discriminator.ShouldBe(data.Discriminator);
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .Where(x => x.Id != user.Id)
                 .Select(x => x.Id)
                 .ShouldBe(Users.Entities
                     .Select(x => x.Id));
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .Where(x => x.Id != user.Id)
                 .EachShould(x => x.ShouldNotHaveChanged());
 
@@ -158,23 +158,23 @@ namespace Modix.Data.Test.Repositories
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            var userCount = modixContext.Users.Count();
+            var userCount = modixContext.Set<UserEntity>().Count();
 
             await uut.CreateAsync(data);
 
-            modixContext.Users.Count().ShouldBe(userCount);
-            var user = modixContext.Users.First(x => x.Id == data.UserId);
+            modixContext.Set<UserEntity>().Count().ShouldBe(userCount);
+            var user = modixContext.Set<UserEntity>().First(x => x.Id == data.UserId);
 
             user.Username.ShouldBe(data.Username);
             user.Discriminator.ShouldBe(data.Discriminator);
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(Users.Entities
                     .Select(x => x.Id));
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .Where(x => x.Id != user.Id)
                 .EachShould(x => x.ShouldNotHaveChanged());
 
@@ -189,23 +189,23 @@ namespace Modix.Data.Test.Repositories
 
             data.Username = null!;
 
-            var userCount = modixContext.Users.Count();
-            var previousUser = modixContext.Users.First(x => x.Id == data.UserId);
+            var userCount = modixContext.Set<UserEntity>().Count();
+            var previousUser = modixContext.Set<UserEntity>().First(x => x.Id == data.UserId);
 
             await uut.CreateAsync(data);
 
-            modixContext.Users.Count().ShouldBe(userCount);
-            var user = modixContext.Users.First(x => x.Id == data.UserId);
+            modixContext.Set<UserEntity>().Count().ShouldBe(userCount);
+            var user = modixContext.Set<UserEntity>().First(x => x.Id == data.UserId);
 
             user.Username.ShouldBe(previousUser.Username);
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(Users.Entities
                     .Select(x => x.Id));
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .Where(x => x.Id != user.Id)
                 .EachShould(x => x.ShouldNotHaveChanged());
 
@@ -220,23 +220,23 @@ namespace Modix.Data.Test.Repositories
 
             data.Discriminator = null!;
 
-            var userCount = modixContext.Users.Count();
-            var previousUser = modixContext.Users.First(x => x.Id == data.UserId);
+            var userCount = modixContext.Set<UserEntity>().Count();
+            var previousUser = modixContext.Set<UserEntity>().First(x => x.Id == data.UserId);
 
             await uut.CreateAsync(data);
 
-            modixContext.Users.Count().ShouldBe(userCount);
-            var user = modixContext.Users.First(x => x.Id == data.UserId);
+            modixContext.Set<UserEntity>().Count().ShouldBe(userCount);
+            var user = modixContext.Set<UserEntity>().First(x => x.Id == data.UserId);
 
             user.Discriminator.ShouldBe(previousUser.Discriminator);
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(Users.Entities
                     .Select(x => x.Id));
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .Where(x => x.Id != user.Id)
                 .EachShould(x => x.ShouldNotHaveChanged());
 
@@ -251,20 +251,23 @@ namespace Modix.Data.Test.Repositories
 
             await uut.CreateAsync(data);
 
-            modixContext.GuildUsers.ShouldContain(x => (x.GuildId == data.GuildId) && (x.UserId == data.UserId));
-            var guildUser = modixContext.GuildUsers.First(x => (x.GuildId == data.GuildId) && (x.UserId == data.UserId));
+            modixContext.Set<GuildUserEntity>()
+                .ShouldContain(x => (x.GuildId == data.GuildId) && (x.UserId == data.UserId));
+            var guildUser = modixContext.Set<GuildUserEntity>()
+                .First(x => (x.GuildId == data.GuildId) && (x.UserId == data.UserId));
 
             guildUser.Nickname.ShouldBe(data.Nickname);
             guildUser.FirstSeen.ShouldBe(data.FirstSeen);
             guildUser.LastSeen.ShouldBe(data.LastSeen);
 
-            modixContext.GuildUsers.AsEnumerable()
+            modixContext.Set<GuildUserEntity>()
+                .AsEnumerable()
                 .Where(x => (x.GuildId != guildUser.GuildId) || (x.UserId != guildUser.UserId))
                 .Select(x => (x.UserId, x.GuildId))
                 .ShouldBe(GuildUsers.Entities
                     .Select(x => (x.UserId, x.GuildId)));
 
-            modixContext.GuildUsers
+            modixContext.Set<GuildUserEntity>()
                 .Where(x => (x.UserId != guildUser.UserId) || (x.GuildId != guildUser.GuildId))
                 .EachShould(x => x.ShouldNotHaveChanged());
 
@@ -279,21 +282,21 @@ namespace Modix.Data.Test.Repositories
 
             await Should.ThrowAsync<InvalidOperationException>(uut.CreateAsync(data));
 
-            modixContext.GuildUsers.AsEnumerable()
+            modixContext.Set<GuildUserEntity>().AsEnumerable()
                 .Select(x => (x.UserId, x.GuildId))
                 .ShouldBe(GuildUsers.Entities
                     .Select(x => (x.UserId, x.GuildId)));
 
-            modixContext.GuildUsers
+            modixContext.Set<GuildUserEntity>()
                 .EachShould(x => x.ShouldNotHaveChanged());
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(Users.Entities
                     .Select(x => x.Id));
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
@@ -338,21 +341,21 @@ namespace Modix.Data.Test.Repositories
             await Should.ThrowAsync<ArgumentNullException>(async () =>
                 await uut.TryUpdateAsync(1, 1, null!));
 
-            modixContext.GuildUsers.AsEnumerable()
+            modixContext.Set<GuildUserEntity>().AsEnumerable()
                 .Select(x => (x.UserId, x.GuildId))
                 .ShouldBe(GuildUsers.Entities
                     .Select(x => (x.UserId, x.GuildId)));
 
-            modixContext.GuildUsers
+            modixContext.Set<GuildUserEntity>()
                 .EachShould(x => x.ShouldNotHaveChanged());
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(Users.Entities
                     .Select(x => x.Id));
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()
@@ -364,8 +367,8 @@ namespace Modix.Data.Test.Repositories
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            var user = modixContext.Users.Single(x => x.Id == userId);
-            var guildUser = modixContext.GuildUsers.Single(x => (x.UserId == userId) && (x.GuildId == guildId));
+            var user = modixContext.Set<UserEntity>().Single(x => x.Id == userId);
+            var guildUser = modixContext.Set<GuildUserEntity>().Single(x => (x.UserId == userId) && (x.GuildId == guildId));
 
             var mutatedData = new GuildUserMutationData()
             {
@@ -395,22 +398,22 @@ namespace Modix.Data.Test.Repositories
             guildUser.Nickname.ShouldBe(mutatedData.Nickname);
             guildUser.LastSeen.ShouldBe(mutatedData.LastSeen);
 
-            modixContext.GuildUsers.AsEnumerable()
+            modixContext.Set<GuildUserEntity>().AsEnumerable()
                 .Select(x => (x.UserId, x.GuildId))
                 .ShouldBe(GuildUsers.Entities
                     .Select(x => (x.UserId, x.GuildId)));
 
-            modixContext.GuildUsers
+            modixContext.Set<GuildUserEntity>()
                 .Where(x => (x.UserId != userId) || (x.GuildId != guildId))
                 .EachShould(x => x.ShouldNotHaveChanged());
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(Users.Entities
                     .Select(x => x.Id));
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .Where(x => x.Id != userId)
                 .EachShould(x => x.ShouldNotHaveChanged());
 
@@ -432,21 +435,21 @@ namespace Modix.Data.Test.Repositories
             updateAction.ShouldNotHaveReceived()
                 .Invoke(Arg.Any<GuildUserMutationData>());
 
-            modixContext.GuildUsers.AsEnumerable()
+            modixContext.Set<GuildUserEntity>().AsEnumerable()
                 .Select(x => (x.UserId, x.GuildId))
                 .ShouldBe(GuildUsers.Entities
                     .Select(x => (x.UserId, x.GuildId)));
 
-            modixContext.GuildUsers
+            modixContext.Set<GuildUserEntity>()
                 .EachShould(x => x.ShouldNotHaveChanged());
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(Users.Entities
                     .Select(x => x.Id));
 
-            modixContext.Users
+            modixContext.Set<UserEntity>()
                 .EachShould(x => x.ShouldNotHaveChanged());
 
             await modixContext.ShouldNotHaveReceived()

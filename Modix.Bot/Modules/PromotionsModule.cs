@@ -63,9 +63,8 @@ namespace Modix.Modules
             foreach (var campaign in campaigns)
             {
                 var idLabel = $"#{campaign.Id}";
-                var votesLabel = (campaign.GetTotalVotes() == 1) ? "Vote" : "Votes";
 
-                var approvalLabel = $"👍 {campaign.GetNumberOfApprovals()} / 👎 {campaign.GetNumberOfOppositions()}";
+                var approvalLabel = $"👍 {campaign.ApproveCount} / 👎 {campaign.OpposeCount}";
                 var timeRemaining = campaign.GetTimeUntilCampaignCanBeClosed();
                 var timeRemainingLabel = timeRemaining < TimeSpan.FromSeconds(1) ? "Can be closed now" : $"{timeRemaining.Humanize(precision: 2, minUnit: TimeUnit.Minute)} until close";
 

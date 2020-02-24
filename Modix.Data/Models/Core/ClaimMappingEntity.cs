@@ -2,14 +2,14 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
-
-using Modix.Data.Utilities;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Modix.Data.Models.Core
 {
     /// <summary>
     /// Describes a permission mapping that assigns a claim to a particular role or user within a guild, for use in application authorization.
     /// </summary>
+    [Table("ClaimMappings")]
     public class ClaimMappingEntity
     {
         /// <summary>
@@ -67,43 +67,40 @@ namespace Modix.Data.Models.Core
         /// The configuration action (if any) that deleted this mapping.
         /// </summary>
         public virtual ConfigurationActionEntity? DeleteAction { get; set; }
+    }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+    public class ClaimMappingEntityConfigurator
+        : IEntityTypeConfiguration<ClaimMappingEntity>
+    {
+        public void Configure(
+            EntityTypeBuilder<ClaimMappingEntity> entityTypeBuilder)
         {
-            modelBuilder
-                .Entity<ClaimMappingEntity>()
+            entityTypeBuilder
                 .Property(x => x.Type)
                 .HasConversion<string>();
 
-            modelBuilder
-                .Entity<ClaimMappingEntity>()
+            entityTypeBuilder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<ClaimMappingEntity>()
+            entityTypeBuilder
                 .Property(x => x.RoleId)
                 .HasConversion<long?>();
 
-            modelBuilder
-                .Entity<ClaimMappingEntity>()
+            entityTypeBuilder
                 .Property(x => x.UserId)
                 .HasConversion<long?>();
 
-            modelBuilder
-                .Entity<ClaimMappingEntity>()
+            entityTypeBuilder
                 .Property(x => x.Claim)
                 .HasConversion<string>();
 
-            modelBuilder
-                .Entity<ClaimMappingEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.CreateAction)
                 .WithOne()
                 .HasForeignKey<ClaimMappingEntity>(x => x.CreateActionId);
 
-            modelBuilder
-                .Entity<ClaimMappingEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.DeleteAction)
                 .WithOne()
                 .HasForeignKey<ClaimMappingEntity>(x => x.DeleteActionId);

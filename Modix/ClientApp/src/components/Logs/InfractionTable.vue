@@ -54,6 +54,7 @@ import TableParameters from '@/models/TableParameters';
 import { SortDirection } from '@/models/SortDirection';
 import ModixComponent from '@/components/ModixComponent.vue';
 import { InfractionType, infractionTypeToEmoji } from '@/models/infractions/InfractionType';
+import { dateFormat, dateInputFormat } from '../../app/Util';
 
 function getSortDirection(direction: string): SortDirection
 {
@@ -138,8 +139,8 @@ export default class InfractionTable extends ModixComponent
                 field: 'created',
                 type: 'date', //Needed to bypass vue-good-table regression
                 width: '20%',
-                dateInputFormat: 'YYYY-MM-DDTHH:mm:ss',
-                dateOutputFormat: 'MM/DD/YY, h:mm:ss a'
+                dateInputFormat: dateInputFormat,
+                dateOutputFormat: dateFormat
             },
             {
                 label: 'Subject',

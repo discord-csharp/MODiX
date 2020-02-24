@@ -19,7 +19,6 @@ using Modix.Data.Repositories;
 using Modix.DataDog;
 using Modix.Services;
 using Modix.Services.AutoRemoveMessage;
-using Modix.Services.BehaviourConfiguration;
 using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
@@ -140,10 +139,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<WikipediaService>();
             services.AddScoped<StackExchangeService>();
             services.AddScoped<DocumentationService>();
-
-            services.AddScoped<IBehaviourConfigurationRepository, BehaviourConfigurationRepository>();
-            services.AddScoped<IBehaviourConfigurationService, BehaviourConfigurationService>();
-            services.AddSingleton<IBehaviourConfiguration, BehaviourConfiguration>();
 
             services.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>();
             services.AddScoped<INotificationHandler<PromotionActionCreatedNotification>, PromotionLoggingHandler>();

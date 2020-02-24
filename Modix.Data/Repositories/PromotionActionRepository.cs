@@ -32,7 +32,7 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public Task<PromotionActionSummary> ReadSummaryAsync(long promotionActionId)
-            => ModixContext.PromotionActions.AsNoTracking()
+            => ModixContext.Set<PromotionActionEntity>().AsNoTracking()
                 .Where(x => x.Id == promotionActionId)
                 .AsExpandable()
                 .Select(PromotionActionSummary.FromEntityProjection)

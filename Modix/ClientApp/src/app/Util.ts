@@ -1,7 +1,10 @@
-import * as dateformat from "dateformat";
 import * as _ from 'lodash';
 import ModixState from '@/models/ModixState';
 import toHTML from '@/app/discord-markdown';
+import * as dateformat from 'date-fns';
+
+export const dateInputFormat = "YYYY-MM-DDTHH:mm:ss";
+export const dateFormat = "MM/DD/YY, h:MM:ss A";
 
 export const formatDate = (date: Date): string =>
 {
@@ -10,7 +13,7 @@ export const formatDate = (date: Date): string =>
         return '';
     }
 
-    return dateformat(date, "mm/dd/yy, h:MM:ss TT");
+    return dateformat.format(date, dateFormat);
 }
 
 export const toTitleCase = (str: string): string =>

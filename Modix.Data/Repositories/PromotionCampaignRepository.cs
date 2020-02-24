@@ -126,13 +126,13 @@ namespace Modix.Data.Repositories
 
             var entity = data.ToEntity();
 
-            await ModixContext.PromotionCampaigns.AddAsync(entity);
+            await ModixContext.Set<PromotionCampaignEntity>().AddAsync(entity);
             await ModixContext.SaveChangesAsync();
 
             entity.CreateAction.CampaignId = entity.Id;
             await ModixContext.SaveChangesAsync();
 
-            var action = await ModixContext.PromotionActions.AsNoTracking()
+            var action = await ModixContext.Set<PromotionActionEntity>().AsNoTracking()
                 .Where(x => x.Id == entity.CreateActionId)
                 .AsExpandable()
                 .Select(PromotionActionSummary.FromEntityProjection)
@@ -143,13 +143,13 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public Task<bool> AnyAsync(PromotionCampaignSearchCriteria searchCriteria)
-            => ModixContext.PromotionCampaigns.AsNoTracking()
+            => ModixContext.Set<PromotionCampaignEntity>().AsNoTracking()
                 .FilterBy(searchCriteria)
                 .AnyAsync();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<PromotionCampaignSummary>> SearchSummariesAsync(PromotionCampaignSearchCriteria searchCriteria)
-            => await ModixContext.PromotionCampaigns.AsNoTracking()
+            => await ModixContext.Set<PromotionCampaignEntity>().AsNoTracking()
                 .FilterBy(searchCriteria)
                 .AsExpandable()
                 .Select(PromotionCampaignSummary.FromEntityProjection)
@@ -157,7 +157,7 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public Task<PromotionCampaignDetails> ReadDetailsAsync(long campaignId)
-            => ModixContext.PromotionCampaigns.AsNoTracking()
+            => ModixContext.Set<PromotionCampaignEntity>().AsNoTracking()
                 .Where(x => x.Id == campaignId)
                 .AsExpandable()
                 .Select(PromotionCampaignDetails.FromEntityProjection)
@@ -166,7 +166,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<PromotionActionSummary?> TryCloseAsync(long campaignId, ulong closedById, PromotionCampaignOutcome outcome)
         {
-            var entity = await ModixContext.PromotionCampaigns
+            var entity = await ModixContext.Set<PromotionCampaignEntity>()
                 .Where(x => x.Id == campaignId)
                 .FirstOrDefaultAsync();
 
@@ -184,7 +184,7 @@ namespace Modix.Data.Repositories
             };
             await ModixContext.SaveChangesAsync();
 
-            var action = await ModixContext.PromotionActions.AsNoTracking()
+            var action = await ModixContext.Set<PromotionActionEntity>().AsNoTracking()
                 .Where(x => x.Id == entity.CloseActionId)
                 .AsExpandable()
                 .Select(PromotionActionSummary.FromEntityProjection)
@@ -195,7 +195,7 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<PromotionCampaignSummary>> GetPromotionsForUserAsync(ulong guildId, ulong userId)
-            => await ModixContext.PromotionCampaigns.AsNoTracking()
+            => await ModixContext.Set<PromotionCampaignEntity>().AsNoTracking()
                 .Where(x => x.GuildId == guildId
                     && x.SubjectId == userId
                     && x.Outcome == PromotionCampaignOutcome.Accepted)

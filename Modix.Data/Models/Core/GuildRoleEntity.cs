@@ -2,8 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
-
-using Modix.Data.Utilities;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Modix.Data.Models.Core
 {
@@ -12,6 +11,7 @@ namespace Modix.Data.Models.Core
     /// Tracking this information locally, helps us avoid calls to the Discord API,
     /// and to keep a history for roles that have been deleted from the Discord API.
     /// </summary>
+    [Table("GuildRoles")]
     public class GuildRoleEntity
     {
         /// <summary>
@@ -39,17 +39,19 @@ namespace Modix.Data.Models.Core
         /// </summary>
         [Required]
         public int Position { get; set; }
+    }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+    public class GuildRoleEntityConfiguration
+        : IEntityTypeConfiguration<GuildRoleEntity>
+    {
+        public void Configure(
+            EntityTypeBuilder<GuildRoleEntity> entityTypeBuilder)
         {
-            modelBuilder
-                .Entity<GuildRoleEntity>()
+            entityTypeBuilder
                 .Property(x => x.RoleId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<GuildRoleEntity>()
+            entityTypeBuilder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
         }

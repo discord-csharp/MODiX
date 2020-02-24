@@ -2,8 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
-
-using Modix.Data.Utilities;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Modix.Data.Models.Promotions
 {
@@ -11,6 +10,7 @@ namespace Modix.Data.Models.Promotions
     /// Describes a comment made in reference to a <see cref="PromotionCampaignEntity"/>,
     /// regarding whether or not the proposed promotion should be accepted or rejected.
     /// </summary>
+    [Table("PromotionComments")]
     public class PromotionCommentEntity
     {
         /// <summary>
@@ -67,23 +67,24 @@ namespace Modix.Data.Models.Promotions
         /// The <see cref="PromotionActionEntity"/> that modified this comment.
         /// </summary>
         public virtual PromotionActionEntity? ModifyAction { get; set; }
+    }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+    public class PromotionCommentEntityConfigurator
+        : IEntityTypeConfiguration<PromotionCommentEntity>
+    {
+        public void Configure(
+            EntityTypeBuilder<PromotionCommentEntity> entityTypeBuilder)
         {
-            modelBuilder
-                .Entity<PromotionCommentEntity>()
+            entityTypeBuilder
                 .Property(x => x.Sentiment)
                 .HasConversion<string>();
 
-            modelBuilder
-                .Entity<PromotionCommentEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.CreateAction)
                 .WithOne()
                 .HasForeignKey<PromotionCommentEntity>(x => x.CreateActionId);
 
-            modelBuilder
-                .Entity<PromotionCommentEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.ModifyAction)
                 .WithOne()
                 .HasForeignKey<PromotionCommentEntity>(x => x.ModifyActionId);

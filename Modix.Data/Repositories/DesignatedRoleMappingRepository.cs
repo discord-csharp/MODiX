@@ -112,7 +112,7 @@ namespace Modix.Data.Repositories
 
             var entity = data.ToEntity();
 
-            await ModixContext.DesignatedRoleMappings.AddAsync(entity);
+            await ModixContext.Set<DesignatedRoleMappingEntity>().AddAsync(entity);
             await ModixContext.SaveChangesAsync();
 
             entity.CreateAction.DesignatedRoleMappingId = entity.Id;
@@ -123,13 +123,13 @@ namespace Modix.Data.Repositories
 
         /// <inheritdoc />
         public Task<bool> AnyAsync(DesignatedRoleMappingSearchCriteria criteria)
-            => ModixContext.DesignatedRoleMappings.AsNoTracking()
+            => ModixContext.Set<DesignatedRoleMappingEntity>().AsNoTracking()
                 .FilterBy(criteria)
                 .AnyAsync();
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<DesignatedRoleMappingBrief>> SearchBriefsAsync(DesignatedRoleMappingSearchCriteria criteria)
-            => await ModixContext.DesignatedRoleMappings.AsNoTracking()
+            => await ModixContext.Set<DesignatedRoleMappingEntity>().AsNoTracking()
                 .FilterBy(criteria)
                 .AsExpandable()
                 .Select(DesignatedRoleMappingBrief.FromEntityProjection)
@@ -138,7 +138,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<int> DeleteAsync(DesignatedRoleMappingSearchCriteria criteria, ulong deletedById)
         {
-            var entities = await ModixContext.DesignatedRoleMappings
+            var entities = await ModixContext.Set<DesignatedRoleMappingEntity>()
                 .Where(x => x.DeleteActionId == null)
                 .FilterBy(criteria)
                 .ToArrayAsync();
@@ -154,7 +154,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<bool> TryDeleteAsync(long mappingId, ulong deletedById)
         {
-            var entity = await ModixContext.DesignatedRoleMappings
+            var entity = await ModixContext.Set<DesignatedRoleMappingEntity>()
                 .Where(x => x.Id == mappingId)
                 .FirstOrDefaultAsync();
 

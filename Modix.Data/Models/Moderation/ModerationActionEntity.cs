@@ -3,15 +3,16 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Modix.Data.Models.Core;
-using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Moderation
 {
     /// <summary>
     /// Describes a moderation action performed by an authorized staff member.
     /// </summary>
+    [Table("ModerationActions")]
     public class ModerationActionEntity
     {
         /// <summary>
@@ -90,32 +91,31 @@ namespace Modix.Data.Models.Moderation
         /// Null, if a <see cref="DeletedMessageBatch"/> was not involved in this <see cref="ModerationActionEntity"/>.
         /// </summary>
         public virtual DeletedMessageBatchEntity? DeletedMessageBatch { get; set; }
+    }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+    public class ModerationActionEntityConfigurator
+        : IEntityTypeConfiguration<ModerationActionEntity>
+    {
+        public void Configure(
+            EntityTypeBuilder<ModerationActionEntity> entityTypeBuilder)
         {
-            modelBuilder
-                .Entity<ModerationActionEntity>()
+            entityTypeBuilder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<ModerationActionEntity>()
+            entityTypeBuilder
                 .Property(x => x.Type)
                 .HasConversion<string>();
 
-            modelBuilder
-                .Entity<ModerationActionEntity>()
+            entityTypeBuilder
                 .Property(x => x.CreatedById)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<ModerationActionEntity>()
+            entityTypeBuilder
                 .Property(x => x.DeletedMessageId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<ModerationActionEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.CreatedBy)
                 .WithMany()
                 .HasForeignKey(x => new { x.GuildId, x.CreatedById });

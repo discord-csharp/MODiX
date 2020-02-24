@@ -3,12 +3,13 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Modix.Data.Models.Core;
-using Modix.Data.Utilities;
 
 namespace Modix.Data.Models.Moderation
 {
+    [Table("Infractions")]
     public class InfractionEntity
     {
         [Key, Required, DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -50,51 +51,47 @@ namespace Modix.Data.Models.Moderation
         public long? UpdateActionId { get; set; }
 
         public virtual ModerationActionEntity? UpdateAction { get; set; }
+    }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+    public class InfractionEntityConfigurator
+        : IEntityTypeConfiguration<InfractionEntity>
+    {
+        public void Configure(
+            EntityTypeBuilder<InfractionEntity> entityTypeBuilder)
         {
-            modelBuilder
-                .Entity<InfractionEntity>()
+            entityTypeBuilder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<InfractionEntity>()
+            entityTypeBuilder
                 .Property(x => x.Type)
                 .HasConversion<string>();
 
-            modelBuilder
-                .Entity<InfractionEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.Subject)
                 .WithMany(x => x.Infractions)
                 .HasForeignKey(x => new { x.GuildId, x.SubjectId });
 
-            modelBuilder
-                .Entity<InfractionEntity>()
+            entityTypeBuilder
                 .Property(x => x.SubjectId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<InfractionEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.CreateAction)
                 .WithOne()
                 .HasForeignKey<InfractionEntity>(x => x.CreateActionId);
 
-            modelBuilder
-                .Entity<InfractionEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.RescindAction)
                 .WithOne()
                 .HasForeignKey<InfractionEntity>(x => x.RescindActionId);
 
-            modelBuilder
-                .Entity<InfractionEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.DeleteAction)
                 .WithOne()
                 .HasForeignKey<InfractionEntity>(x => x.DeleteActionId);
 
-            modelBuilder
-                .Entity<InfractionEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.UpdateAction)
                 .WithOne()
                 .HasForeignKey<InfractionEntity>(x => x.UpdateActionId);

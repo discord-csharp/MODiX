@@ -34,10 +34,10 @@
             <div class="column is-narrow-tablet ratings">
                 <div class="columns is-mobile">
                     <div class="column rating" @click.stop="expandWithSentiment('Approve')">
-                        <span v-html="sentimentIcon('Approve')"></span> {{forCurrentUser ? '?' : campaign.votesFor}}
+                        <span v-html="sentimentIcon('Approve')"></span> {{forCurrentUser ? '?' : campaign.approveCount}}
                     </div>
                     <div class="column rating" @click.stop="expandWithSentiment('Oppose')">
-                        <span v-html="sentimentIcon('Oppose')"></span> {{forCurrentUser ? '?' : campaign.votesAgainst}}
+                        <span v-html="sentimentIcon('Oppose')"></span> {{forCurrentUser ? '?' : campaign.opposeCount}}
                     </div>
                 </div>
 

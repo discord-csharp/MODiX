@@ -3,14 +3,14 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
-
-using Modix.Data.Utilities;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Modix.Data.Models.Core
 {
     /// <summary>
     /// Describes an action that was performed, that somehow changed the application's configuration.
     /// </summary>
+    [Table("ConfigurationActions")]
     public class ConfigurationActionEntity
     {
         /// <summary>
@@ -81,27 +81,27 @@ namespace Modix.Data.Models.Core
         /// The designated role mapping that was affected by this action, if any.
         /// </summary>
         public DesignatedRoleMappingEntity? DesignatedRoleMapping { get; set; }
+    }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+    public class ConfigurationActionEntityConfigurator
+        : IEntityTypeConfiguration<ConfigurationActionEntity>
+    {
+        public void Configure(
+            EntityTypeBuilder<ConfigurationActionEntity> entityTypeBuilder)
         {
-            modelBuilder
-                .Entity<ConfigurationActionEntity>()
+            entityTypeBuilder
                 .Property(x => x.Type)
                 .HasConversion<string>();
 
-            modelBuilder
-                .Entity<ConfigurationActionEntity>()
+            entityTypeBuilder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<ConfigurationActionEntity>()
+            entityTypeBuilder
                 .Property(x => x.CreatedById)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<ConfigurationActionEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.CreatedBy)
                 .WithMany()
                 .HasForeignKey(x => new { x.GuildId, x.CreatedById });

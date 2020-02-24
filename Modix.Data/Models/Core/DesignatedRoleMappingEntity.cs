@@ -2,14 +2,14 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
-
-using Modix.Data.Utilities;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Modix.Data.Models.Core
 {
     /// <summary>
     /// Describes a mapping that assigns an arbitrary designation to a particular role within a guild.
     /// </summary>
+    [Table("DesignatedRoleMappings")]
     public class DesignatedRoleMappingEntity
     {
         /// <summary>
@@ -65,33 +65,32 @@ namespace Modix.Data.Models.Core
         /// The <see cref="ConfigurationActionEntity"/> (if any) that deleted this <see cref="DesignatedRoleMappingEntity"/>.
         /// </summary>
         public virtual ConfigurationActionEntity? DeleteAction { get; set; }
+    }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+    public class DesignatedRoleMappingEntityConfiguration
+        : IEntityTypeConfiguration<DesignatedRoleMappingEntity>
+    {
+        public void Configure(
+            EntityTypeBuilder<DesignatedRoleMappingEntity> entityTypeBuilder)
         {
-            modelBuilder
-                .Entity<DesignatedRoleMappingEntity>()
+            entityTypeBuilder
                 .Property(x => x.Type)
                 .HasConversion<string>();
 
-            modelBuilder
-                .Entity<DesignatedRoleMappingEntity>()
+            entityTypeBuilder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<DesignatedRoleMappingEntity>()
+            entityTypeBuilder
                 .Property(x => x.RoleId)
                 .HasConversion<long>();
 
-            modelBuilder
-                .Entity<DesignatedRoleMappingEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.CreateAction)
                 .WithOne()
                 .HasForeignKey<DesignatedRoleMappingEntity>(x => x.CreateActionId);
 
-            modelBuilder
-                .Entity<DesignatedRoleMappingEntity>()
+            entityTypeBuilder
                 .HasOne(x => x.DeleteAction)
                 .WithOne()
                 .HasForeignKey<DesignatedRoleMappingEntity>(x => x.DeleteActionId);

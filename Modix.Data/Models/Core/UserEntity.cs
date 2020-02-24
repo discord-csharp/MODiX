@@ -2,14 +2,14 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
-
-using Modix.Data.Utilities;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Modix.Data.Models.Core
 {
     /// <summary>
     /// Describes a user of the application, that has previously joined a Discord guild managed by MODiX.
     /// </summary>
+    [Table("Users")]
     public class UserEntity
     {
         /// <summary>
@@ -31,12 +31,15 @@ namespace Modix.Data.Models.Core
         /// </summary>
         [Required]
         public string Discriminator { get; set; } = null!;
+    }
 
-        [OnModelCreating]
-        internal static void OnModelCreating(ModelBuilder modelBuilder)
+    public class UserEntityConfigurator
+        : IEntityTypeConfiguration<UserEntity>
+    {
+        public void Configure(
+            EntityTypeBuilder<UserEntity> entityTypeBuilder)
         {
-            modelBuilder
-                .Entity<UserEntity>()
+            entityTypeBuilder
                 .Property(x => x.Id)
                 .HasConversion<long>();
         }

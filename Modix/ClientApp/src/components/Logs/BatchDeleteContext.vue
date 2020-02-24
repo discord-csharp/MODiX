@@ -10,7 +10,7 @@
                 <span class="sentTime">
                     <template v-if="msg.sentTime != null">
                         <a :href="msg.url" target="_blank">
-                            {{formatDate(msg.sentTime)}}
+                            {{formatTime(msg.sentTime)}}
                         </a>
                     </template>
                     <template v-else>
@@ -31,12 +31,13 @@
 
 <script lang="ts">
 import * as _ from 'lodash';
-import * as dateformat from "dateformat";
+import * as dateformat from "date-fns";
 import { Component, Prop, Vue, Watch } from 'vue-property-decorator';
 import store from "@/app/Store";
 import LogService from '@/services/LogService';
 import DeletedMessageAbstraction from '@/models/logs/DeletedMessageAbstraction';
 import ModixComponent from '../ModixComponent.vue';
+import { formatDate } from '../../app/Util';
 
 @Component({
     components:
@@ -49,16 +50,16 @@ export default class BatchDeleteContext extends ModixComponent
     @Prop({required: true, default: []})
     deletedMessages!: DeletedMessageAbstraction [];
 
-    formatDate(date: Date)
+    formatTime(date: Date)
     {
-        return dateformat(date, "hh:MM");
+        return dateformat.format(date, "hh:MM");
     }
 
     get startDate()
     {
-        if (this.deletedMessages.length > 0)
+        if (this.deletedMessages.length > 0 && this.deletedMessages[0].sentTime)
         {
-            return dateformat(this.deletedMessages[0].sentTime, "dddd, mmmm dS, yyyy");
+            return formatDate(this.deletedMessages[0].sentTime);
         }
 
         return "No messages";

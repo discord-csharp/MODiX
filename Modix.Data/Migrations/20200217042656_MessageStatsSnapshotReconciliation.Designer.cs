@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Modix.Data;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -9,15 +10,40 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    partial class ModixContextModelSnapshot : ModelSnapshot
+    [Migration("20200217042656_MessageStatsSnapshotReconciliation")]
+    partial class MessageStatsSnapshotReconciliation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
                 .HasAnnotation("ProductVersion", "3.1.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            modelBuilder.Entity("Modix.Data.Models.BehaviourConfiguration", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn);
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BehaviourConfigurations");
+                });
 
             modelBuilder.Entity("Modix.Data.Models.Core.ClaimMappingEntity", b =>
                 {
@@ -235,6 +261,52 @@ namespace Modix.Data.Migrations
                     b.ToTable("GuildUsers");
                 });
 
+            modelBuilder.Entity("Modix.Data.Models.Core.GuildUserParticipationStatistics", b =>
+                {
+                    b.Property<decimal>("AveragePerDay")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal>("GuildId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<int>("Percentile")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Rank")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("UserId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.ToTable("GuildUserParticipationStatistics");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Core.MessageCountByDate", b =>
+                {
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("MessageCount")
+                        .HasColumnType("integer");
+
+                    b.ToTable("MessageCountByDate");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Core.MessageCountPerChannel", b =>
+                {
+                    b.Property<decimal>("ChannelId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<string>("ChannelName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("MessageCount")
+                        .HasColumnType("integer");
+
+                    b.ToTable("MessageCountPerChannel");
+                });
+
             modelBuilder.Entity("Modix.Data.Models.Core.MessageEntity", b =>
                 {
                     b.Property<long>("Id")
@@ -264,6 +336,28 @@ namespace Modix.Data.Migrations
                     b.HasIndex("GuildId", "AuthorId");
 
                     b.ToTable("Messages");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Core.PerUserMessageCount", b =>
+                {
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsCurrentUser")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MessageCount")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Rank")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.ToTable("PerUserMessageCount");
                 });
 
             modelBuilder.Entity("Modix.Data.Models.Core.UserEntity", b =>
@@ -337,6 +431,68 @@ namespace Modix.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Emoji");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Emoji.EmojiStatsDto", b =>
+                {
+                    b.Property<decimal?>("EmojiId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<string>("EmojiName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsAnimated")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Rank")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Uses")
+                        .HasColumnType("integer");
+
+                    b.ToTable("EmojiStatsDto");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Emoji.GuildEmojiStats", b =>
+                {
+                    b.Property<DateTimeOffset>("OldestTimestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("TotalUses")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UniqueEmojis")
+                        .HasColumnType("integer");
+
+                    b.ToTable("GuildEmojiStats");
+                });
+
+            modelBuilder.Entity("Modix.Data.Models.Emoji.SingleEmojiStatsDto", b =>
+                {
+                    b.Property<decimal?>("EmojiId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<string>("EmojiName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsAnimated")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Rank")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("TopUserId")
+                        .HasColumnType("numeric(20,0)");
+
+                    b.Property<int>("TopUserUses")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Uses")
+                        .HasColumnType("integer");
+
+                    b.ToTable("SingleEmojiStatsDto");
                 });
 
             modelBuilder.Entity("Modix.Data.Models.Moderation.DeletedMessageBatchEntity", b =>

@@ -52,7 +52,7 @@ namespace Modix.Data.Repositories
 
             var entity = data.ToEntity();
 
-            await ModixContext.DeletedMessageBatches.AddAsync(entity);
+            await ModixContext.Set<DeletedMessageBatchEntity>().AddAsync(entity);
             await ModixContext.SaveChangesAsync();
 
             entity.CreateAction.DeletedMessageBatchId = entity.Id;
@@ -64,7 +64,7 @@ namespace Modix.Data.Repositories
                 return x.ToBatchEntity();
             });
 
-            await ModixContext.DeletedMessages.AddRangeAsync(deletedMessageEntities);
+            await ModixContext.Set<DeletedMessageEntity>().AddRangeAsync(deletedMessageEntities);
             await ModixContext.SaveChangesAsync();
 
             await RaiseModerationActionCreatedAsync(entity.CreateAction);

@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 using Modix.Data.Models.Moderation;
 using Modix.Data.Models.Promotions;
 
@@ -13,6 +13,7 @@ namespace Modix.Data.Models.Core
     /// <summary>
     /// Describes information about a user, that is tracked on a per-guild basis within the application.
     /// </summary>
+    [Table("GuildUsers")]
     public class GuildUserEntity
     {
         [ForeignKey(nameof(User))]
@@ -35,18 +36,20 @@ namespace Modix.Data.Models.Core
         public ICollection<PromotionCampaignEntity> PromotionCampaigns { get; set; } = new HashSet<PromotionCampaignEntity>();
     }
 
-    public class GuildUserEntityConfiguration : IEntityTypeConfiguration<GuildUserEntity>
+    public class GuildUserEntityConfiguration
+        : IEntityTypeConfiguration<GuildUserEntity>
     {
-        public void Configure(EntityTypeBuilder<GuildUserEntity> builder)
+        public void Configure(
+            EntityTypeBuilder<GuildUserEntity> entityTypeBuilder)
         {
-            builder
+            entityTypeBuilder
                 .HasKey(x => new { x.GuildId, x.UserId });
 
-            builder
+            entityTypeBuilder
                 .Property(x => x.GuildId)
                 .HasConversion<long>();
 
-            builder
+            entityTypeBuilder
                 .Property(x => x.UserId)
                 .HasConversion<long>();
         }
