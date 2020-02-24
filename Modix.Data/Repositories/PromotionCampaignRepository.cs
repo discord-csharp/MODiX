@@ -92,6 +92,13 @@ namespace Modix.Data.Repositories
         /// containing a collection representing the promotion progression for the supplied user.
         /// </returns>
         Task<IReadOnlyCollection<PromotionCampaignSummary>> GetPromotionsForUserAsync(ulong guildId, ulong userId);
+
+        /// <summary>
+        /// Retrieves the specified campaign by id
+        /// </summary>
+        /// <param name="campaignId"></param>
+        /// <returns></returns>
+        Task<PromotionCampaignSummary> GetCampignSummaryByIdAsync(long campaignId);
     }
 
     /// <inheritdoc />
@@ -195,6 +202,13 @@ namespace Modix.Data.Repositories
                 .AsExpandable()
                 .Select(PromotionCampaignSummary.FromEntityProjection)
                 .ToArrayAsync();
+
+        public async Task<PromotionCampaignSummary> GetCampignSummaryByIdAsync(long campaignId)
+            => await ModixContext.PromotionCampaigns.AsNoTracking()
+                .Where(x => x.Id == campaignId)
+                .AsExpandable()
+                .Select(PromotionCampaignSummary.FromEntityProjection)
+                .FirstOrDefaultAsync();
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
             = new RepositoryTransactionFactory();
