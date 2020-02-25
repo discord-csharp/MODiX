@@ -169,7 +169,7 @@ namespace Modix.Data.Repositories
         }
 
         public async Task<PromotionCommentSummary> SearchCommentAsync(PromotionCommentSearchCriteria criteria)
-            => await ModixContext.PromotionComments.AsNoTracking()
+            => await ModixContext.Set<PromotionCommentEntity>().AsNoTracking()
                 .FilterBy(criteria)
                 .AsExpandable()
                 .Select(PromotionCommentSummary.FromEntityProjection)

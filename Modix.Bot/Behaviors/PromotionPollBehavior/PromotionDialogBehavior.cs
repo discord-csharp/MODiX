@@ -5,13 +5,12 @@ using System.Linq;
 using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Caching.Memory;
-using Modix.Bot.Extensions;
+using Microsoft.Extensions.Hosting;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
-using Modix.Services.Extensions;
 using Modix.Services.Images;
 using Modix.Services.Promotions;
 using Modix.Services.Utilities;
@@ -45,13 +44,17 @@ namespace Modix.Bot.Behaviors
 
         private IAuthorizationService _authorizationService { get; }
 
+        private IServiceProvider _serviceProvider { get; }
+
         public PromotionDialogBehavior(IDesignatedChannelService designatedChannelService,
             IDiscordSocketClient discordSocketClient,
             IMemoryCache memoryCache,
             IPromotionsService promotionsService,
             IImageService imageService,
             IAuthorizationService authorizationService,
-            IPromotionCampaignRepository promotionCampaignRepository)
+            IPromotionCampaignRepository promotionCampaignRepository,
+            IServiceProvider serviceProvider
+            )
         {
             _designatedChannelService = designatedChannelService;
             _discordSocketClient = discordSocketClient;
@@ -60,6 +63,7 @@ namespace Modix.Bot.Behaviors
             _imageService = imageService;
             _promotionCampaignRepository = promotionCampaignRepository;
             _authorizationService = authorizationService;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task HandleNotificationAsync(PromotionActionCreatedNotification notification,
@@ -111,19 +115,21 @@ namespace Modix.Bot.Behaviors
 
                 var campaign = await _promotionCampaignRepository.GetCampignSummaryByIdAsync(poll.CampaignId);
 
-                if(!campaign.CommentCounts.TryGetValue(PromotionSentiment.Approve, out var approveCount))
+                /*
+                if(!campaign.ApproveCount.TryGetValue(PromotionSentiment.Approve, out var approveCount))
                     approveCount = 0;
-                if(!campaign.CommentCounts.TryGetValue(PromotionSentiment.Oppose, out var opposeCount))
+                if(!campaign.OpposeCount.TryGetValue(PromotionSentiment.Oppose, out var opposeCount))
                     opposeCount = 0;
+                */
 
                 await message.ModifyAsync(m =>
-                    m.Embed = BuildPollEmbed(campaign, approveCount, opposeCount, voteError).Build());
+                    m.Embed = BuildPollEmbed(campaign, campaign.ApproveCount, campaign.OpposeCount, voteError).Build());
 
                 await Task.Delay(ErrorRemoveDelay, cancellationToken);
 
                 if(voteError != null)
                     await message.ModifyAsync(m =>
-                        m.Embed = BuildPollEmbed(campaign, approveCount, opposeCount).Build());
+                        m.Embed = BuildPollEmbed(campaign, campaign.ApproveCount, campaign.OpposeCount).Build());
             }
         }
 
@@ -147,7 +153,7 @@ namespace Modix.Bot.Behaviors
                 CampaignId = campaignSummary.Id,
             };
 
-            SetDialogCache(campaign, message, poll);
+            SetDialogCache(campaign.Campaign.Id, message.Id, poll);
         }
 
         private async Task DeletePromoDialog(PromotionActionCreationData campaign)
@@ -195,13 +201,14 @@ namespace Modix.Bot.Behaviors
             return getPollChannel.First() as ITextChannel;
         }
 
-        private void SetDialogCache(PromotionActionCreationData campaign, IUserMessage message, CachedPromoDialog dialog)
+        private void SetDialogCache(long campaign, ulong message, CachedPromoDialog dialog)
         {
-            _memoryCache.Set(campaign.Campaign.Id, dialog);
-            _memoryCache.Set(message.Id, dialog);
+            _memoryCache.Set(campaign, dialog);
+            _memoryCache.Set(message, dialog);
         }
 
         private static bool ValidateVoteReaction(IEmote emote)
             => emote.Name == _approveEmoji.Name || emote.Name == _disapproveEmoji.Name;
+
     }
 }

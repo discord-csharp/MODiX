@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Modix.Data.Utilities;
+using Modix.Data.Migrations;
 
 namespace Modix.Data.Models.Promotions
 {
@@ -14,6 +14,18 @@ namespace Modix.Data.Models.Promotions
         public ulong MessageId { get; set; }
 
         public long CampaignId { get; set; }
+
+        /// <summary>
+        /// The <see cref="PromotionCampaignEntity"/> to which this comment belongs.
+        /// </summary>
+        [ForeignKey(nameof(CampaignId))]
+        public virtual PromotionCampaignEntity Campaign { get; set; } = null!;
+
+        /// <summary>
+        /// The <see cref="MessageEntity"/> to which this comment belongs.
+        /// </summary>
+        [ForeignKey(nameof(MessageId))]
+        public virtual MessageEntity Message { get; set; } = null!;
     }
 
     public class PromotionDialogConfiguration : IEntityTypeConfiguration<PromotionDialogEntity>
@@ -26,6 +38,16 @@ namespace Modix.Data.Models.Promotions
 
             builder
                 .Property(x => x.CampaignId);
+
+            builder
+                .HasOne(x => x.Campaign)
+                .WithOne()
+                .HasForeignKey<PromotionDialogEntity>(x => x.CampaignId);
+
+            builder
+                .HasOne(x => x.Message)
+                .WithOne()
+                .HasForeignKey<PromotionDialogEntity>(x => x.MessageId);
         }
     }
 }

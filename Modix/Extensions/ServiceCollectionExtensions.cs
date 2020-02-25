@@ -143,6 +143,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>();
             services.AddScoped<INotificationHandler<PromotionActionCreatedNotification>, PromotionLoggingHandler>();
 
+            services.AddSingleton<IHostedService, PromotionDialogStartupBehavior>();
             services.AddScoped<INotificationHandler<ReactionAddedNotification>, PromotionDialogBehavior>();
             services.AddScoped<INotificationHandler<PromotionActionCreatedNotification>, PromotionDialogBehavior>();
 

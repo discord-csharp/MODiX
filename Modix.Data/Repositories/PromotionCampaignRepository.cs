@@ -204,7 +204,7 @@ namespace Modix.Data.Repositories
                 .ToArrayAsync();
 
         public async Task<PromotionCampaignSummary> GetCampignSummaryByIdAsync(long campaignId)
-            => await ModixContext.PromotionCampaigns.AsNoTracking()
+            => await ModixContext.Set<PromotionCampaignEntity>().AsNoTracking()
                 .Where(x => x.Id == campaignId)
                 .AsExpandable()
                 .Select(PromotionCampaignSummary.FromEntityProjection)
