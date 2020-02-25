@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Modix.Data.Migrations;
+using Modix.Data.Models.Core;
 
 namespace Modix.Data.Models.Promotions
 {
