@@ -98,7 +98,7 @@ export default class UserProfile extends ModixComponent
                 .join(", ");
     }
 
-    @Watch('user')
+    @Watch('user', {immediate: true})
     async setMessages(): Promise<void>
     {
         if (this.user && this.user.id)
