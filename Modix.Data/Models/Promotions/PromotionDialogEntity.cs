@@ -20,12 +20,6 @@ namespace Modix.Data.Models.Promotions
         /// </summary>
         [ForeignKey(nameof(CampaignId))]
         public virtual PromotionCampaignEntity Campaign { get; set; } = null!;
-
-        /// <summary>
-        /// The <see cref="MessageEntity"/> to which this comment belongs.
-        /// </summary>
-        [ForeignKey(nameof(MessageId))]
-        public virtual MessageEntity Message { get; set; } = null!;
     }
 
     public class PromotionDialogConfiguration : IEntityTypeConfiguration<PromotionDialogEntity>
@@ -43,11 +37,6 @@ namespace Modix.Data.Models.Promotions
                 .HasOne(x => x.Campaign)
                 .WithOne()
                 .HasForeignKey<PromotionDialogEntity>(x => x.CampaignId);
-
-            builder
-                .HasOne(x => x.Message)
-                .WithOne()
-                .HasForeignKey<PromotionDialogEntity>(x => x.MessageId);
         }
     }
 }

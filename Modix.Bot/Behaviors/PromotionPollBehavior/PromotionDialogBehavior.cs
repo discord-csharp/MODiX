@@ -7,6 +7,7 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Hosting;
 using Modix.Common.Messaging;
+using Modix.Data;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
 using Modix.Data.Repositories;
@@ -46,6 +47,8 @@ namespace Modix.Bot.Behaviors
 
         private IServiceProvider _serviceProvider { get; }
 
+        private IPromotionDialogRepository _promotionDialogRepository { get;  }
+
         public PromotionDialogBehavior(IDesignatedChannelService designatedChannelService,
             IDiscordSocketClient discordSocketClient,
             IMemoryCache memoryCache,
@@ -53,7 +56,8 @@ namespace Modix.Bot.Behaviors
             IImageService imageService,
             IAuthorizationService authorizationService,
             IPromotionCampaignRepository promotionCampaignRepository,
-            IServiceProvider serviceProvider
+            IServiceProvider serviceProvider,
+            IPromotionDialogRepository promotionDialogRepository
             )
         {
             _designatedChannelService = designatedChannelService;
@@ -64,6 +68,7 @@ namespace Modix.Bot.Behaviors
             _promotionCampaignRepository = promotionCampaignRepository;
             _authorizationService = authorizationService;
             _serviceProvider = serviceProvider;
+            _promotionDialogRepository = promotionDialogRepository;
         }
 
         public async Task HandleNotificationAsync(PromotionActionCreatedNotification notification,
@@ -115,13 +120,6 @@ namespace Modix.Bot.Behaviors
 
                 var campaign = await _promotionCampaignRepository.GetCampignSummaryByIdAsync(poll.CampaignId);
 
-                /*
-                if(!campaign.ApproveCount.TryGetValue(PromotionSentiment.Approve, out var approveCount))
-                    approveCount = 0;
-                if(!campaign.OpposeCount.TryGetValue(PromotionSentiment.Oppose, out var opposeCount))
-                    opposeCount = 0;
-                */
-
                 await message.ModifyAsync(m =>
                     m.Embed = BuildPollEmbed(campaign, campaign.ApproveCount, campaign.OpposeCount, voteError).Build());
 
@@ -154,6 +152,7 @@ namespace Modix.Bot.Behaviors
             };
 
             SetDialogCache(campaign.Campaign.Id, message.Id, poll);
+            await _promotionDialogRepository.CreateAsync(message.Id, campaign.Campaign.Id);
         }
 
         private async Task DeletePromoDialog(PromotionActionCreationData campaign)
@@ -161,9 +160,13 @@ namespace Modix.Bot.Behaviors
             if (!_memoryCache.TryGetValue(campaign.Campaign.Id, out CachedPromoDialog poll))
                 return;
             var pollChannel = await GetPollChannel(_discordSocketClient.GetGuild(campaign.GuildId));
-            var message =  await pollChannel.GetMessageAsync(poll.MessageId);
-            await message.DeleteAsync();
 
+            var message =  await pollChannel.GetMessageAsync(poll.MessageId);
+
+            if (!await _promotionDialogRepository.TryDeleteAsync(message.Id))
+                throw new InvalidOperationException("Dialog to be deleted does not exist");
+
+            await message.DeleteAsync();
         }
 
         private EmbedBuilder BuildPollEmbed(PromotionCampaignSummary campaign, int Approve, int Oppose, string error = null)

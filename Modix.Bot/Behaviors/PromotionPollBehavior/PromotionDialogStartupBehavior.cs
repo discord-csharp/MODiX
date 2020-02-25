@@ -8,35 +8,46 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Modix.Data;
 using Modix.Data.Models.Promotions;
+using Modix.Data.Repositories;
+using Npgsql;
 
 namespace Modix.Bot.Behaviors
 {
     public class PromotionDialogStartupBehavior :IHostedService
     {
-        private IServiceProvider _serviceProvider { get; }
 
         private IMemoryCache _memoryCache { get; }
 
-        public PromotionDialogStartupBehavior(IServiceProvider serviceProvider, IMemoryCache memoryCache)
+        private IServiceProvider _serviceProvider { get; }
+
+        private IPromotionDialogRepository _promotionDialogRepository { get; set; }
+
+        public PromotionDialogStartupBehavior(IMemoryCache memoryCache,
+            IServiceProvider serviceProvider
+            )
         {
-            _serviceProvider = serviceProvider;
             _memoryCache = memoryCache;
+            _serviceProvider = serviceProvider;
         }
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            using var serviceScope = _serviceProvider.CreateScope();
-            var context = serviceScope.ServiceProvider.GetRequiredService<ModixContext>();
-            var dialogs = await context.Set<PromotionDialogEntity>().AsNoTracking()
-                .Where(x => x.Campaign.Outcome != null)
-                .ToListAsync();
-
-            foreach (var dialog in dialogs)
+            try
             {
-                SetDialogCache(dialog.CampaignId, dialog.MessageId, new CachedPromoDialog
+                using var serviceScope = _serviceProvider.CreateScope();
+                _promotionDialogRepository = serviceScope.ServiceProvider.GetRequiredService<IPromotionDialogRepository>();
+                var dialogs = await _promotionDialogRepository.GetDialogsAsync();
+                foreach (var dialog in dialogs)
                 {
-                    CampaignId = dialog.CampaignId,
-                    MessageId = dialog.MessageId
-                });
+                    SetDialogCache(dialog.CampaignId, dialog.MessageId, new CachedPromoDialog
+                    {
+                        CampaignId = dialog.CampaignId,
+                        MessageId = dialog.MessageId
+                    });
+                }
+            }
+            catch(PostgresException e)
+            {
+                Console.WriteLine(e);
             }
         }
 
@@ -46,7 +57,11 @@ namespace Modix.Bot.Behaviors
             _memoryCache.Set(message, dialog);
         }
 
-        public Task StopAsync(CancellationToken cancellationToken) => throw new NotImplementedException();
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+
+        }
 
     }
 }
