@@ -38,11 +38,23 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wiki", "wiki", "{092916B2-32C6-4ED9-A4EA-DF31D2F91A8F}"
 	ProjectSection(SolutionItems) = preProject
 		wiki\_Footer.md = wiki\_Footer.md
+		wiki\Application-Architecture.csv = wiki\Application-Architecture.csv
+		wiki\Application-Architecture.md = wiki\Application-Architecture.md
+		wiki\Application-Architecture.svg = wiki\Application-Architecture.svg
+		wiki\Bot-Fontend.md = wiki\Bot-Fontend.md
+		wiki\Contributor's-Guidelines.md = wiki\Contributor's-Guidelines.md
+		wiki\Data-Access-Modeling.md = wiki\Data-Access-Modeling.md
+		wiki\Data-Modeling.md = wiki\Data-Modeling.md
+		wiki\Data-Storage.md = wiki\Data-Storage.md
 		wiki\Developers.md = wiki\Developers.md
 		wiki\Home.md = wiki\Home.md
+		wiki\Host-Process.md = wiki\Host-Process.md
+		wiki\How-to-contribute.md = wiki\How-to-contribute.md
 		wiki\Modix-Startup.md = wiki\Modix-Startup.md
 		wiki\Orchestration-(Docker).md = wiki\Orchestration-(Docker).md
-		wiki\Project-Overview.md = wiki\Project-Overview.md
+		wiki\Testing.md = wiki\Testing.md
+		wiki\Web-API.md = wiki\Web-API.md
+		wiki\Web-Frontend.md = wiki\Web-Frontend.md
 	EndProjectSection
 EndProject
 Global
