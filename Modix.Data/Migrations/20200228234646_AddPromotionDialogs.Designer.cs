@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    [Migration("20200225044525_AddPromotionDialogs")]
+    [Migration("20200228234646_AddPromotionDialogs")]
     partial class AddPromotionDialogs
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -634,7 +634,6 @@ namespace Modix.Data.Migrations
             modelBuilder.Entity("Modix.Data.Models.Promotions.PromotionDialogEntity", b =>
                 {
                     b.Property<long>("MessageId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
                     b.Property<long>("CampaignId")

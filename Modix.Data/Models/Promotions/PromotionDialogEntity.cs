@@ -10,7 +10,7 @@ namespace Modix.Data.Models.Promotions
     public class PromotionDialogEntity
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public ulong MessageId { get; set; }
 
         public long CampaignId { get; set; }

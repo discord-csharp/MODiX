@@ -632,7 +632,6 @@ namespace Modix.Data.Migrations
             modelBuilder.Entity("Modix.Data.Models.Promotions.PromotionDialogEntity", b =>
                 {
                     b.Property<long>("MessageId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
                     b.Property<long>("CampaignId")
