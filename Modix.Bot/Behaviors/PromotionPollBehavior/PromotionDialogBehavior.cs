@@ -113,13 +113,13 @@ namespace Modix.Bot.Behaviors
 
                 var campaign = await _promotionCampaignRepository.GetCampaignSummaryByIdAsync(poll.CampaignId);
                 await message.ModifyAsync(async m =>
-                    m.Embed = (await BuildPollEmbed(campaign, campaign.ApproveCount, campaign.OpposeCount, voteError)).Build());
+                    m.Embed = (await BuildPollEmbedAsync(campaign, campaign.ApproveCount, campaign.OpposeCount, voteError)).Build());
 
                 if(voteError != null)
                 {
                     await Task.Delay(ErrorRemoveDelay, cancellationToken);
                     await message.ModifyAsync(async m =>
-                        m.Embed = (await BuildPollEmbed(campaign, campaign.ApproveCount, campaign.OpposeCount)).Build());
+                        m.Embed = (await BuildPollEmbedAsync(campaign, campaign.ApproveCount, campaign.OpposeCount)).Build());
                 }
             }
         }
@@ -130,11 +130,11 @@ namespace Modix.Bot.Behaviors
                 DesignatedChannelType.PromotionInterface))
                 return;
 
-            var pollChannel = await GetPollChannel(_discordSocketClient.GetGuild(campaign.GuildId));
+            var pollChannel = await GetPollChannelAsync(_discordSocketClient.GetGuild(campaign.GuildId));
 
             var campaignSummary = await _promotionCampaignRepository.GetCampaignSummaryByIdAsync(campaign.Campaign.Id);
 
-            var message = await pollChannel.SendMessageAsync(embed: (await BuildPollEmbed(campaignSummary, 1, 0)).Build());
+            var message = await pollChannel.SendMessageAsync(embed: (await BuildPollEmbedAsync(campaignSummary, 1, 0)).Build());
 
             await message.AddReactionsAsync(new[] {(IEmote)_approveEmoji, _disapproveEmoji});
 
@@ -151,7 +151,7 @@ namespace Modix.Bot.Behaviors
         {
             if (!_memoryCache.TryGetValue(GetKey(campaign.Campaign.Id), out CachedPromoDialog poll))
                 return;
-            var pollChannel = await GetPollChannel(_discordSocketClient.GetGuild(campaign.GuildId));
+            var pollChannel = await GetPollChannelAsync(_discordSocketClient.GetGuild(campaign.GuildId));
 
             var message =  await pollChannel.GetMessageAsync(poll.MessageId);
 
@@ -163,7 +163,7 @@ namespace Modix.Bot.Behaviors
             await message.DeleteAsync();
         }
 
-        private async Task<EmbedBuilder> BuildPollEmbed(PromotionCampaignSummary campaign, int Approve, int Oppose, string error = null)
+        private async Task<EmbedBuilder> BuildPollEmbedAsync(PromotionCampaignSummary campaign, int Approve, int Oppose, string error = null)
         {
                 var boldRole = $"**{MentionUtils.MentionRole(campaign.TargetRole.Id)}**";
                 var user = _discordSocketClient.GetUser(campaign.Subject.Id);
@@ -191,7 +191,7 @@ namespace Modix.Bot.Behaviors
                 return error == null ? embed : embed.AddField("⚠️ Vote Error: ⚠️", error);
         }
 
-        private async Task<ITextChannel> GetPollChannel(IGuild guild)
+        private async Task<ITextChannel> GetPollChannelAsync(IGuild guild)
         {
             var getPollChannel = await _designatedChannelService
                 .GetDesignatedChannelsAsync(guild, DesignatedChannelType.PromotionInterface);
