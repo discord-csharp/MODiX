@@ -293,10 +293,6 @@ namespace Modix.Services.Promotions
                 if (!(campaign.CloseAction is null))
                     throw new InvalidOperationException($"Campaign {oldComment.Campaign.Id} has already been closed");
 
-                if(newSentiment == oldComment.Sentiment && newContent == oldComment.Content)
-                    throw new InvalidOperationException("Comment is identical to previous commnet");
-
-
                 resultAction = await PromotionCommentRepository.TryUpdateAsync(commentId, AuthorizationService.CurrentUserId.Value,
                     x =>
                     {
@@ -540,11 +536,10 @@ namespace Modix.Services.Promotions
                 throw new InvalidOperationException($"An active campaign already exists for {subject.GetFullUsername()} to be promoted to {targetRankRole.Name}");
 
             // JoinedAt is null, when it cannot be obtained
-            /*
             if (subject.JoinedAt.HasValue)
                 if (subject.JoinedAt.Value.DateTime > (DateTimeOffset.Now - TimeSpan.FromDays(20)))
                     throw new InvalidOperationException($"{subject.GetFullUsername()} has joined less than 20 days prior");
-*/
+
             if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value, targetRankRole.Id))
                 throw new InvalidOperationException($"Creating a promotion campaign requires a rank at least as high as the proposed target rank");
         }
