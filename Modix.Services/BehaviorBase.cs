@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
+using System.Threading;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 using Serilog;
 
@@ -27,14 +29,16 @@ namespace Modix.Services
             => Dispose(false);
 
         /// <inheritdoc />
-        public async Task StartAsync()
+        public async Task StartAsync(
+            CancellationToken cancellationToken)
         {
             await OnStartingAsync();
             IsRunning = true;
         }
 
         /// <inheritdoc />
-        public async Task StopAsync()
+        public async Task StopAsync(
+            CancellationToken cancellationToken)
         {
             IsRunning = false;
             await OnStoppedAsync();

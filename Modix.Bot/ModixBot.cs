@@ -91,16 +91,6 @@ namespace Modix
                 // shutting down or being disposed.
                 stoppingToken.Register(OnStopping);
 
-                Log.LogInformation("Running database migrations.");
-                scope.ServiceProvider.GetRequiredService<ModixContext>()
-                    .Database.Migrate();
-
-                foreach (var behavior in scope.ServiceProvider.GetServices<IBehavior>())
-                {
-                    await behavior.StartAsync();
-                    stoppingToken.Register(() => behavior.StopAsync().GetAwaiter().GetResult());
-                }
-
                 // The only thing that could go wrong at this point is the client failing to login and start. Promote
                 // our local service scope to a field so that it's available to the HandleCommand method once events
                 // start firing after we've connected.

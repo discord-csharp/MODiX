@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
+using System.Threading;
+
+using Microsoft.Extensions.Hosting;
 
 using Discord;
 using Discord.WebSocket;
@@ -31,7 +33,8 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public Task StartAsync()
+        public Task StartAsync(
+            CancellationToken cancellationToken)
         {
             DiscordSocketClient.ChannelCreated += OnChannelCreatedAsync;
             DiscordSocketClient.ChannelUpdated += OnChannelUpdatedAsync;
@@ -51,7 +54,8 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public Task StopAsync()
+        public Task StopAsync(
+            CancellationToken cancellationToken)
         {
             DiscordSocketClient.ChannelCreated -= OnChannelCreatedAsync;
             DiscordSocketClient.ChannelUpdated -= OnChannelUpdatedAsync;

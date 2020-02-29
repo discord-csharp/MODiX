@@ -15,4 +15,7 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Modix.Common\Modix.Common.csproj" />
+  </ItemGroup>
 </Project>
