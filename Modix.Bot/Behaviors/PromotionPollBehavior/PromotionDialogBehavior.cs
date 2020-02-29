@@ -21,7 +21,7 @@ namespace Modix.Bot.Behaviors
         INotificationHandler<ReactionAddedNotification>,
         INotificationHandler<PromotionActionCreatedNotification>
     {
-        private readonly TimeSpan ErrorRemoveDelay = TimeSpan.FromSeconds(5);
+        private static readonly TimeSpan ErrorRemoveDelay = TimeSpan.FromSeconds(5);
 
         private readonly DateTime _utcNow = DateTime.UtcNow;
 
@@ -29,23 +29,24 @@ namespace Modix.Bot.Behaviors
 
         private static readonly Emoji _disapproveEmoji = new Emoji("👎");
 
-        private IDesignatedChannelService _designatedChannelService { get; }
+        private readonly IDesignatedChannelService _designatedChannelService;
 
-        private IDiscordSocketClient _discordSocketClient { get; }
+        private readonly IDiscordSocketClient _discordSocketClient;
 
-        private IMemoryCache _memoryCache { get; }
+        private readonly IMemoryCache _memoryCache;
 
-        private IPromotionsService _promotionsService { get; }
+        private readonly IPromotionsService _promotionsService;
 
-        private IImageService _imageService { get; }
+        private readonly IImageService _imageService;
 
-        private IPromotionCampaignRepository _promotionCampaignRepository { get; }
+        private readonly IPromotionCampaignRepository _promotionCampaignRepository;
 
-        private IAuthorizationService _authorizationService { get; }
+        private readonly IAuthorizationService _authorizationService;
 
-        private IPromotionDialogRepository _promotionDialogRepository { get;  }
+        private readonly IPromotionDialogRepository _promotionDialogRepository;
 
-        public PromotionDialogBehavior(IDesignatedChannelService designatedChannelService,
+        public PromotionDialogBehavior(
+            IDesignatedChannelService designatedChannelService,
             IDiscordSocketClient discordSocketClient,
             IMemoryCache memoryCache,
             IPromotionsService promotionsService,
@@ -89,13 +90,11 @@ namespace Modix.Bot.Behaviors
             var user = (IGuildUser)notification.Reaction.User.Value;
             var message = await notification.Message.GetOrDownloadAsync();
 
-            if (cancellationToken.IsCancellationRequested
-                || notification.Reaction.User.Value.IsBot
-                || message.Embeds.Count < 1)
+            if (notification.Reaction.User.Value.IsBot || message.Embeds.Count < 1)
                 return;
 
             if (_memoryCache.TryGetValue(message.Id, out CachedPromoDialog poll)
-            && ValidateVoteReaction(reaction))
+            && IsRelevantReaction(reaction))
             {
                 string voteError = null;
                 var sentiment = reaction.Name == _approveEmoji.Name ? PromotionSentiment.Approve : PromotionSentiment.Oppose;
@@ -105,23 +104,23 @@ namespace Modix.Bot.Behaviors
                 try
                 {
                     await _authorizationService.OnAuthenticatedAsync(user);
-                    await _promotionsService.UpdateOrAddComment(poll.CampaignId, sentiment, "This vote was cast from Discord");
+                    await _promotionsService.UpdateOrAddCommentAsync(poll.CampaignId, sentiment, "This vote was cast from Discord");
                 }
                 catch (Exception e)
                 {
                     voteError = e.Message;
                 }
 
-                var campaign = await _promotionCampaignRepository.GetCampignSummaryByIdAsync(poll.CampaignId);
-
-                await message.ModifyAsync(m =>
-                    m.Embed = BuildPollEmbed(campaign, campaign.ApproveCount, campaign.OpposeCount, voteError).Build());
-
-                await Task.Delay(ErrorRemoveDelay, cancellationToken);
+                var campaign = await _promotionCampaignRepository.GetCampaignSummaryByIdAsync(poll.CampaignId);
+                await message.ModifyAsync(async m =>
+                    m.Embed = (await BuildPollEmbed(campaign, campaign.ApproveCount, campaign.OpposeCount, voteError)).Build());
 
                 if(voteError != null)
-                    await message.ModifyAsync(m =>
-                        m.Embed = BuildPollEmbed(campaign, campaign.ApproveCount, campaign.OpposeCount).Build());
+                {
+                    await Task.Delay(ErrorRemoveDelay, cancellationToken);
+                    await message.ModifyAsync(async m =>
+                        m.Embed = (await BuildPollEmbed(campaign, campaign.ApproveCount, campaign.OpposeCount)).Build());
+                }
             }
         }
 
@@ -133,25 +132,24 @@ namespace Modix.Bot.Behaviors
 
             var pollChannel = await GetPollChannel(_discordSocketClient.GetGuild(campaign.GuildId));
 
-            var campaignSummary = await _promotionCampaignRepository.GetCampignSummaryByIdAsync(campaign.Campaign.Id);
+            var campaignSummary = await _promotionCampaignRepository.GetCampaignSummaryByIdAsync(campaign.Campaign.Id);
 
-            var message = await pollChannel.SendMessageAsync(embed: BuildPollEmbed(campaignSummary, 1, 0).Build());
+            var message = await pollChannel.SendMessageAsync(embed: (await BuildPollEmbed(campaignSummary, 1, 0)).Build());
 
             await message.AddReactionsAsync(new[] {(IEmote)_approveEmoji, _disapproveEmoji});
 
-            var poll = new CachedPromoDialog
+            SetDialogCache( new CachedPromoDialog
             {
                 MessageId = message.Id,
                 CampaignId = campaignSummary.Id,
-            };
+            });
 
-            SetDialogCache(campaign.Campaign.Id, message.Id, poll);
             await _promotionDialogRepository.CreateAsync(message.Id, campaign.Campaign.Id);
         }
 
         private async Task DeletePromoDialog(PromotionActionCreationData campaign)
         {
-            if (!_memoryCache.TryGetValue(campaign.Campaign.Id, out CachedPromoDialog poll))
+            if (!_memoryCache.TryGetValue(GetKey(campaign.Campaign.Id), out CachedPromoDialog poll))
                 return;
             var pollChannel = await GetPollChannel(_discordSocketClient.GetGuild(campaign.GuildId));
 
@@ -160,10 +158,12 @@ namespace Modix.Bot.Behaviors
             if (!await _promotionDialogRepository.TryDeleteAsync(message.Id))
                 throw new InvalidOperationException("Dialog to be deleted does not exist");
 
+            _memoryCache.Remove(GetKey(poll.CampaignId));
+            _memoryCache.Remove(poll.MessageId);
             await message.DeleteAsync();
         }
 
-        private EmbedBuilder BuildPollEmbed(PromotionCampaignSummary campaign, int Approve, int Oppose, string error = null)
+        private async Task<EmbedBuilder> BuildPollEmbed(PromotionCampaignSummary campaign, int Approve, int Oppose, string error = null)
         {
                 var boldRole = $"**{MentionUtils.MentionRole(campaign.TargetRole.Id)}**";
                 var user = _discordSocketClient.GetUser(campaign.Subject.Id);
@@ -181,8 +181,8 @@ namespace Modix.Bot.Behaviors
 
                 var embed = new EmbedBuilder()
                     .WithTitle($"#{campaign.Id}")
-                    .WithDescription($"**{campaign.Subject.Nickname}** has been nominated for promotion to {boldRole}")
-                    .WithColor(aviColor.Result)
+                    .WithDescription($"**{campaign.Subject.Nickname}** has been nominated for promotion to {boldRole} ")
+                    .WithColor(await aviColor)
                     .WithUserAsAuthor(user)
                     .AddField("The current vote total stands at: ", $" {Approve} {_approveEmoji} / {Oppose} {_disapproveEmoji}")
                     .WithTimestamp(_utcNow)
@@ -198,14 +198,15 @@ namespace Modix.Bot.Behaviors
             return getPollChannel.First() as ITextChannel;
         }
 
-        private void SetDialogCache(long campaign, ulong message, CachedPromoDialog dialog)
+        private void SetDialogCache(CachedPromoDialog dialog)
         {
-            _memoryCache.Set(campaign, dialog);
-            _memoryCache.Set(message, dialog);
+            _memoryCache.Set(GetKey(dialog.CampaignId), dialog);
+            _memoryCache.Set(dialog.MessageId, dialog);
         }
 
-        private static bool ValidateVoteReaction(IEmote emote)
-            => emote.Name == _approveEmoji.Name || emote.Name == _disapproveEmoji.Name;
+        private static object GetKey(long id) => new { Target = "PromotionDialogBehavior", id };
 
+        private static bool IsRelevantReaction(IEmote emote)
+            => emote.Name == _approveEmoji.Name || emote.Name == _disapproveEmoji.Name;
     }
 }
