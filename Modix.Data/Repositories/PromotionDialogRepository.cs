@@ -20,7 +20,7 @@ namespace Modix.Data.Repositories
         /// gets the current active dialogs
         /// </summary>
         /// <returns></returns>
-        Task<IReadOnlyCollection<PromotionDialogBrief>> GetDialogsAsync();
+        Task<IReadOnlyList<PromotionDialogBrief>> GetDialogsAsync();
 
         /// <summary>
         /// Attempts to delete a poll by its message id
@@ -44,17 +44,15 @@ namespace Modix.Data.Repositories
             await ModixContext.SaveChangesAsync();
         }
 
-        public async Task<IReadOnlyCollection<PromotionDialogBrief>> GetDialogsAsync()
+        public async Task<IReadOnlyList<PromotionDialogBrief>> GetDialogsAsync()
             => await ModixContext.Set<PromotionDialogEntity>().AsNoTracking()
-                .OrderBy(x => x.CampaignId)
                 .Select(PromotionDialogBrief.FromEntityExpression)
                 .ToListAsync();
 
         public async Task<bool> TryDeleteAsync(ulong messageId)
         {
             var entity = await ModixContext.Set<PromotionDialogEntity>()
-                .Where(x => x.MessageId == messageId)
-                .FirstOrDefaultAsync();
+                .FindAsync(messageId);
 
             if (entity == null )
                 return false;

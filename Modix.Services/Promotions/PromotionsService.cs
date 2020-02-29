@@ -79,7 +79,7 @@ namespace Modix.Services.Promotions
         /// <param name="sentiment">The <see cref="PromotionCommentEntity.Sentiment"/> value to use for the new comment.</param>
         /// <param name="content">The <see cref="PromotionCommentEntity.Content"/> value to use for the new comment.</param>
         /// <returns></returns>
-        Task UpdateOrAddComment(long campaignId, PromotionSentiment sentiment, string content);
+        Task UpdateOrAddCommentAsync(long campaignId, PromotionSentiment sentiment, string content);
 
         /// <summary>
         /// Retrieves a collection of promotion campaign summaries, based on a given set of criteria.
@@ -206,9 +206,9 @@ namespace Modix.Services.Promotions
             }
         }
 
-        public async Task UpdateOrAddComment(long campaignId, PromotionSentiment sentiment, string content)
+        public async Task UpdateOrAddCommentAsync(long campaignId, PromotionSentiment sentiment, string content)
         {
-            var comment = await PromotionCommentRepository.SearchCommentAsync(new PromotionCommentSearchCriteria
+            var comment = await PromotionCommentRepository.SearchForCommentAsync(new PromotionCommentSearchCriteria
             {
                 CampaignId = campaignId,
                 CreatedById = AuthorizationService.CurrentUserId.Value,

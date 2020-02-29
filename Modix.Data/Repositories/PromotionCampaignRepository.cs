@@ -98,7 +98,7 @@ namespace Modix.Data.Repositories
         /// </summary>
         /// <param name="campaignId"></param>
         /// <returns></returns>
-        Task<PromotionCampaignSummary> GetCampignSummaryByIdAsync(long campaignId);
+        Task<PromotionCampaignSummary?> GetCampaignSummaryByIdAsync(long campaignId);
     }
 
     /// <inheritdoc />
@@ -203,7 +203,7 @@ namespace Modix.Data.Repositories
                 .Select(PromotionCampaignSummary.FromEntityProjection)
                 .ToArrayAsync();
 
-        public async Task<PromotionCampaignSummary> GetCampignSummaryByIdAsync(long campaignId)
+        public async Task<PromotionCampaignSummary> GetCampaignSummaryByIdAsync(long campaignId)
             => await ModixContext.Set<PromotionCampaignEntity>().AsNoTracking()
                 .Where(x => x.Id == campaignId)
                 .AsExpandable()

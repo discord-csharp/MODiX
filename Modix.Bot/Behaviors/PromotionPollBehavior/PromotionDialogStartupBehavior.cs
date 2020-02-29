@@ -14,10 +14,7 @@ namespace Modix.Bot.Behaviors
 
         private IServiceProvider _serviceProvider { get; }
 
-        private IPromotionDialogRepository _promotionDialogRepository { get; set; }
-
-        public PromotionDialogStartupBehavior(IMemoryCache memoryCache,
-            IServiceProvider serviceProvider)
+        public PromotionDialogStartupBehavior(IMemoryCache memoryCache, IServiceProvider serviceProvider)
         {
             _memoryCache = memoryCache;
             _serviceProvider = serviceProvider;
@@ -26,17 +23,17 @@ namespace Modix.Bot.Behaviors
         public async Task StartAsync()
         {
             using var serviceScope = _serviceProvider.CreateScope();
-            _promotionDialogRepository = serviceScope.ServiceProvider.GetRequiredService<IPromotionDialogRepository>();
-            var dialogs = await _promotionDialogRepository.GetDialogsAsync();
+            var promotionDialogRepository = serviceScope.ServiceProvider.GetRequiredService<IPromotionDialogRepository>();
+            var dialogs = await promotionDialogRepository.GetDialogsAsync();
             foreach (var dialog in dialogs)
             {
-                if (dialog.IsCampaignOpen == false)
+                if(!dialog.IsCampaignOpen)
                 {
-                    await _promotionDialogRepository.TryDeleteAsync(dialog.MessageId);
+                    await promotionDialogRepository.TryDeleteAsync(dialog.MessageId);
                     break;
                 }
 
-                SetDialogCache(dialog.CampaignId, dialog.MessageId, new CachedPromoDialog
+                SetDialogCache(new CachedPromoDialog
                 {
                     CampaignId = dialog.CampaignId,
                     MessageId = dialog.MessageId
@@ -44,11 +41,13 @@ namespace Modix.Bot.Behaviors
             }
         }
 
-        private void SetDialogCache(long campaign, ulong message, CachedPromoDialog dialog)
+        private void SetDialogCache(CachedPromoDialog dialog)
         {
-            _memoryCache.Set(campaign, dialog);
-            _memoryCache.Set(message, dialog);
+            _memoryCache.Set(GetKey(dialog.CampaignId), dialog);
+            _memoryCache.Set(dialog.MessageId, dialog);
         }
+
+        private static object GetKey(long id) => new { Target = "PromotionDialogBehavior", id };
 
         public Task StopAsync()
         {

@@ -69,7 +69,7 @@ namespace Modix.Data.Repositories
         /// </summary>
         /// <param name="criteria"></param>
         /// <returns></returns>
-        Task<PromotionCommentSummary> SearchCommentAsync(PromotionCommentSearchCriteria criteria);
+        Task<PromotionCommentSummary?> SearchForCommentAsync(PromotionCommentSearchCriteria criteria);
 
         /// <summary>
         /// Checks whether the repository contains any comments matching the given search criteria.
@@ -168,7 +168,7 @@ namespace Modix.Data.Repositories
             return actionSummary;
         }
 
-        public async Task<PromotionCommentSummary> SearchCommentAsync(PromotionCommentSearchCriteria criteria)
+        public async Task<PromotionCommentSummary> SearchForCommentAsync(PromotionCommentSearchCriteria criteria)
             => await ModixContext.Set<PromotionCommentEntity>().AsNoTracking()
                 .FilterBy(criteria)
                 .AsExpandable()

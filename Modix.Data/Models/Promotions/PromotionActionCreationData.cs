@@ -30,6 +30,6 @@ namespace Modix.Data.Models.Promotions
         /// <summary>
         ///
         /// </summary>
-        public PromotionCampaignBrief Campaign { get; set; }
+        public PromotionCampaignBrief? Campaign { get; set; }
     }
 }
