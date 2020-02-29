@@ -181,7 +181,7 @@ namespace Modix.Bot.Behaviors
 
                 var embed = new EmbedBuilder()
                     .WithTitle($"#{campaign.Id}")
-                    .WithDescription($"**{campaign.Subject.Nickname}** Has been nominated for promotion to {boldRole} ")
+                    .WithDescription($"**{campaign.Subject.Nickname}** has been nominated for promotion to {boldRole}")
                     .WithColor(aviColor.Result)
                     .WithUserAsAuthor(user)
                     .AddField("The current vote total stands at: ", $" {Approve} {_approveEmoji} / {Oppose} {_disapproveEmoji}")
