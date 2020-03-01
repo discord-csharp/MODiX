@@ -31,11 +31,13 @@ const modixState: ModixState =
     commands: [],
     campaigns: [],
     channelDesignations: [],
+    channelDesignationTypes: [],
     claims: {},
     roles: [],
     channels: {},
     guilds: [],
-    roleMappings: []
+    roleMappings: [],
+    roleDesignationTypes: []
 };
 
 const storeBuilder = getStoreBuilder<RootState>();
@@ -51,7 +53,9 @@ namespace modix
     const setChannels = (state: ModixState, channels: Channel[]) => state.channels = _.keyBy(channels, channel => channel.id);
 
     const setChannelDesignations = (state: ModixState, mappings: DesignatedChannelMapping[]) => state.channelDesignations = mappings;
+    const setChannelDesignationTypes = (state: ModixState, types: string[]) => state.channelDesignationTypes = types.sort((a, b) => a.localeCompare(b));
     const setRoleDesignations = (state: ModixState, mappings: DesignatedRoleMapping[]) => state.roleMappings = mappings;
+    const setRoleDesignationTypes = (state: ModixState, types: string[]) => state.roleDesignationTypes = types.sort((a, b) => a.localeCompare(b));
     const setClaims = (state: ModixState, claims: {[claim: string]: Claim[]}) => state.claims = claims;
 
     const getHasTriedAuth = (state: ModixState) => state.user != null;
@@ -86,14 +90,18 @@ namespace modix
     const updateChannels = async (context: ModixContext) => mutatingServiceCall(GeneralService.getChannels, setChannels, context);
 
     const updateChannelDesignations = async (context: ModixContext) => mutatingServiceCall(ConfigurationService.getChannelDesignations, setChannelDesignations, context);
+    const updateChannelDesignationTypes = async (context: ModixContext) => mutatingServiceCall(ConfigurationService.getChannelDesignationTypes, setChannelDesignationTypes, context);
     const updateRoleDesignations = async (context: ModixContext) => mutatingServiceCall(ConfigurationService.getRoleDesignations, setRoleDesignations, context);
+    const updateRoleDesignationTypes = async (context: ModixContext) => mutatingServiceCall(ConfigurationService.getRoleDesignationTypes, setRoleDesignationTypes, context);
     const updateClaims = async (context: ModixContext) => mutatingServiceCall(GeneralService.getClaims, setClaims, context);
 
     export const retrieveUserInfo = moduleBuilder.dispatch(updateUserInfo);
     export const retrieveCommands = moduleBuilder.dispatch(updateCommands);
     export const retrieveCampaigns = moduleBuilder.dispatch(updateCampaigns);
     export const retrieveChannelDesignations = moduleBuilder.dispatch(updateChannelDesignations);
+    export const retrieveChannelDesignationTypes = moduleBuilder.dispatch(updateChannelDesignationTypes);
     export const retrieveRoleDesignations = moduleBuilder.dispatch(updateRoleDesignations);
+    export const retrieveRoleDesignationTypes = moduleBuilder.dispatch(updateRoleDesignationTypes);
     export const retrieveClaims = moduleBuilder.dispatch(updateClaims);
     export const retrieveRoles = moduleBuilder.dispatch(updateRoles);
     export const retrieveChannels = moduleBuilder.dispatch(updateChannels);

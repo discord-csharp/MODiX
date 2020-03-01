@@ -15,6 +15,29 @@
 
 </template>
 
+<style lang="scss" scoped>
+.tags
+{
+    white-space: nowrap;
+    flex-wrap: nowrap;
+
+    .tag
+    {
+        margin: 0.16em 0 0.16em 0 !important;
+    }
+
+    &:not(:first-child):not(:last-child)
+    {
+        margin-bottom: 0;
+    }
+
+    &:first-child
+    {
+        margin-bottom: 0;
+    }
+}
+</style>
+
 <script lang="ts">
 import { Component, Prop, Vue } from 'vue-property-decorator';
 import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';

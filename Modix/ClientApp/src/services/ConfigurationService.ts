@@ -16,6 +16,12 @@ export default class ConfigurationService
         return response;
     }
 
+    static async getChannelDesignationTypes(): Promise<string[]>
+    {
+        let response = (await client.get("config/channels/types")).data;
+        return response;
+    }
+
     static async assignChannel(data: DesignatedChannelCreationData): Promise<void>
     {
         await client.put("config/channels", data);
@@ -29,6 +35,12 @@ export default class ConfigurationService
     static async getRoleDesignations(): Promise<DesignatedRoleMapping[]>
     {
         let response = (await client.get("config/roles")).data;
+        return response;
+    }
+
+    static async getRoleDesignationTypes(): Promise<string[]>
+    {
+        let response = (await client.get("config/roles/types")).data;
         return response;
     }
 

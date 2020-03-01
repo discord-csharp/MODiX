@@ -27,7 +27,7 @@
                         </aside>
                     </div>
 
-                    <div class="column">
+                    <div class="column is-four-fifths">
                         <router-view />
                     </div>
 
