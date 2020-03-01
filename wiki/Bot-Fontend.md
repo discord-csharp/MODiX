@@ -43,7 +43,7 @@ public class InfractionModule
 
 ### Logs
 
-A log element is a Discord message sent by MODiX that is not directly triggered by an user command in that channel, containing renered data about some action that a user performed elsewhere, or in the Web Frontend, or that MODiX performed automatically, without user input. Like command results, logs are almost always generated in the form of an embed.
+A log element is a Discord message sent by MODiX that is not directly triggered by a user command in that channel, containing rendered data about some action that a user performed elsewhere, or in the Web Frontend, or that MODiX performed automatically, without user input. Like command results, logs are almost always generated in the form of an embed.
 
 Logs are usually closely related to the Channel Designations system, which allows specific types of logs to be designated for sending to a specific channel or channels. 
 
