@@ -18,7 +18,7 @@ Commands are implemented in Discord.NET by subclassing `ModuleBase`, implementin
 
 Generally, command methods should contain almost exclusively rendering code. Commands should generally invoke the [Business Logic](Business-Logic) layer to perform all the real work, by invoking service methods, or publishing request objects. Command results are also generally rendered into embeds.
 
-Commands should always provide some kind of feedback to the user, especially when it does not produce any result data. This can be accomplished by attaching a reaction to the command message itself, indicating success or failure. The MODiX command system already implements rudimentary error handling and response for exceptions thrown by a command, in the form of an attached reaction that can be clicked to reveal a more detailed error message. Commands that may be long-running should also provide immediate confirmation that the command was received, by attaching a reaction that indicates the command was received, and is processing.
+Commands should always provide some kind of feedback to the user, especially when they do not produce any result data. This can be accomplished by attaching a reaction to the command message itself, indicating success or failure. The MODiX command system already implements rudimentary error handling and response for exceptions thrown by a command, in the form of an attached reaction that can be clicked to reveal a more detailed error message. Commands that may be long-running should also provide immediate confirmation that the command was received and is processing by attaching a reaction.
 
 E.G.
 ```cs
