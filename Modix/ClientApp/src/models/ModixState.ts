@@ -20,7 +20,10 @@ export default interface ModixState
     campaigns: PromotionCampaign[];
 
     channelDesignations: DesignatedChannelMapping[];
+    channelDesignationTypes: string[];
+
     roleMappings: DesignatedRoleMapping[];
+    roleDesignationTypes: string[];
 
     claims: {[claim: string]: Claim[]};
 

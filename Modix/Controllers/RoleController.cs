@@ -1,7 +1,9 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
+using Modix.Data.Models.Core;
 using Modix.Models;
 using Modix.Services.Core;
 
@@ -15,6 +17,12 @@ namespace Modix.Controllers
         public RoleController(DiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedRoleService roleService) : base(client, modixAuth)
         {
             RoleService = roleService;
+        }
+
+        [HttpGet("types")]
+        public IActionResult RoleDesignationTypes()
+        {
+            return Ok(Enum.GetNames(typeof(DesignatedRoleType)));
         }
 
         [HttpGet]

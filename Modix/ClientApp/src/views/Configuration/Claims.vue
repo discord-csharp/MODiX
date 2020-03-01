@@ -100,7 +100,6 @@ import * as _ from 'lodash';
 import DesignatedChannelMapping from '@/models/moderation/DesignatedChannelMapping';
 import Channel from '@/models/Channel';
 import Role from '@/models/Role';
-import { ChannelDesignation } from '@/models/moderation/ChannelDesignation';
 import DesignatedChannelCreationData from '@/models/moderation/DesignatedChannelCreationData';
 import GeneralService from '@/services/GeneralService';
 import Autocomplete from '@/components/Autocomplete.vue';

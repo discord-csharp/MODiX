@@ -2,30 +2,25 @@
     <section class="content">
         <h1 class="title">Role Designations</h1>
 
-        <div class="tabs is-small">
-            <ul>
-                <li v-for="designation in possibleDesignations" :key="designation" :class="{'is-active': viewedDesignation == designation}"
-                    @click="viewedDesignation = designation">
-                    <a>{{designation}}</a>
-                </li>
-            </ul>
-        </div>
-
         <a v-if="loading" class="button is-loading roleLoader"></a>
 
-        <div v-else class="field is-grouped is-grouped-multiline">
-            <div class="control" v-for="role in selectedRoles" :key="role.id">
-                <IndividualDesignation :designation="role" :canDelete="canDelete()" @confirm="confirmDelete(role)" />
+        <div v-else class="panel">
+            <div class="panel-block designationRow is-active" v-for="designation in $store.state.modix.roleDesignationTypes" :key="designation" :class="{'is-active': viewedDesignation == designation}">
+                <div class="designationGroup">
+                    <div class="title is-6">
+                        {{designation}}
+                        <small class="heading" v-if="!designationHasRoles(designation)">None Assigned</small>
+                    </div>
+
+                    <div class="designationList" v-if="designationHasRoles(designation)">
+                        <IndividualDesignation class="designation" v-for="role in rolesForDesignation(designation)" :key="role.id" :designation="role" :canDelete="canDelete()" @confirm="confirmDelete(role)" />
+                    </div>
+                </div>
+                <div>
+                    <button class="button assign is-success" @click="openModal(designation)" title="Assign" :disabled="!canAssign() || loading">+</button>
+                </div>
             </div>
         </div>
-
-        <h1 class="title is-size-4" v-if="selectedRoles.length == 0">
-            No roles assigned
-        </h1>
-
-        <a class="button is-success is-pulled-right" @click="openModal()" :disabled="!canAssign()">
-            Assign Role
-        </a>
 
         <div class="modal" :class="{'is-active': showModal}">
             <div class="modal-background" @click="cancel()"></div>
@@ -57,7 +52,7 @@
                             <label class="label">Designation</label>
                             <div class="select is-multiple is-small">
                                 <select multiple v-model="designationCreationData.roleDesignations">
-                                    <option v-for="designation in possibleDesignations" :key="designation"
+                                    <option v-for="designation in $store.state.modix.roleDesignationTypes" :key="designation"
                                             :disabled="roleHasDesignation(designation)">
                                         {{designation}}
                                     </option>
@@ -84,11 +79,6 @@
 
 <style scoped lang="scss">
 
-.designation
-{
-    margin-bottom: 1em;
-}
-
 select, .select
 {
     margin: 0;
@@ -110,7 +100,6 @@ import {toTitleCase} from '@/app/Util';
 import store from "@/app/Store";
 import * as _ from 'lodash';
 import Role from '@/models/Role';
-import { RoleDesignation } from '@/models/moderation/RoleDesignation';
 import DesignatedRoleCreationData from '@/models/moderation/DesignatedRoleCreationData';
 import GeneralService from '@/services/GeneralService';
 import Autocomplete from '@/components/Autocomplete.vue';
@@ -129,7 +118,8 @@ export default class RoleDesignations extends Vue
 {
     selectedAutocomplete: Role | null = null;
     showModal: boolean = false;
-    viewedDesignation: RoleDesignation = RoleDesignation.Rank;
+
+    viewedDesignation: string | null = null;
 
     designationCreationData: DesignatedRoleCreationData = {roleId: '', roleDesignations: []};
     createLoading: boolean = false;
@@ -140,6 +130,17 @@ export default class RoleDesignations extends Vue
     {
         let allDesignations: DesignatedRoleMapping[] = this.$store.state.modix.roleMappings;
         return _.filter(allDesignations, d => d.roleDesignation == this.viewedDesignation);
+    }
+
+    rolesForDesignation(designation: string)
+    {
+        let allDesignations: DesignatedRoleMapping[] = this.$store.state.modix.roleMappings;
+        return _.filter(allDesignations, d => d.roleDesignation == designation);
+    }
+
+    designationHasRoles(designation: string): boolean
+    {
+        return this.rolesForDesignation(designation).length > 0;
     }
 
     get serviceCall()
@@ -172,27 +173,29 @@ export default class RoleDesignations extends Vue
 
     async confirmDelete(role: DesignatedRoleMapping)
     {
+        this.loading = true;
         await ConfigurationService.unassignRole(role.id);
         await this.refresh();
     }
 
-    openModal()
+    openModal(designation: string)
     {
-        this.designationCreationData.roleDesignations = [this.viewedDesignation];
+        this.viewedDesignation = designation;
+        this.designationCreationData.roleDesignations = [designation];
         this.showModal = true;
     }
 
     cancel()
     {
         this.designationCreationData.roleDesignations = [];
+        this.designationCreationData.roleId = '';
+
         this.showModal = false;
     }
 
-    roleHasDesignation(designation: RoleDesignation): boolean
+    roleHasDesignation(designation: string): boolean
     {
         if (this.designationCreationData.roleId == '') { return true; }
-
-        console.log(this.$store.state.modix.roleMappings);
 
         return _.some(this.$store.state.modix.roleMappings, (role: DesignatedRoleMapping) =>
                 role.roleId == this.designationCreationData.roleId &&
@@ -228,13 +231,15 @@ export default class RoleDesignations extends Vue
     async refresh()
     {
         this.loading = true;
+        await store.retrieveRoleDesignationTypes();
+
+        if (!this.viewedDesignation)
+        {
+            this.viewedDesignation = this.$store.state.modix.roleDesignationTypes[0];
+        }
+
         await store.retrieveRoleDesignations();
         this.loading = false;
-    }
-
-    get possibleDesignations() : string[]
-    {
-        return Object.getOwnPropertyNames(RoleDesignation);
     }
 }
 </script>

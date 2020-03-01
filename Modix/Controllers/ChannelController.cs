@@ -1,7 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
+using Modix.Data.Models.Core;
 using Modix.Models;
 using Modix.Services.Core;
 
@@ -15,6 +18,12 @@ namespace Modix.Controllers
         public ChannelController(DiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedChannelService channelService) : base(client, modixAuth)
         {
             ChannelService = channelService;
+        }
+
+        [HttpGet("types")]
+        public IActionResult ChannelDesignationTypes()
+        {
+            return Ok(Enum.GetNames(typeof(DesignatedChannelType)));
         }
 
         [HttpGet]
