@@ -92,7 +92,7 @@ Suffice it to say that operations within the Business Logic or Data Access layer
 
 ### Testing
 
-MODiX utilizes the EF Core InMemory database provider to perform testing. This provider simulates the presence of a real underlying database provider, by maintaining entities within in-memory collections. This provider does have several drawbacks, though. It does not support raw SQL queries at all, and is not simulate a "Relational" database. This last bit is important, because it means that constraints enforced by a real RDBMS, such as Foriegn Key constraints, are not enforced by the InMemory provider. Thus there are categories of bugs that cannot be caught through use of the InMemory provider.
+MODiX utilizes the EF Core InMemory database provider to perform testing. This provider simulates the presence of a real underlying database provider, by maintaining entities within in-memory collections. This provider does have several drawbacks, though. It does not support raw SQL queries at all, and does not simulate a "Relational" database. This last bit is important, because it means that constraints enforced by a real RDBMS, such as Foriegn Key constraints, are not enforced by the InMemory provider. Thus there are categories of bugs that cannot be caught through use of the InMemory provider.
 
 Testing of repository operations generally involves A) modeling fake data to be setup within an InMemory database, B) defining the parameters of operations to be executed upon these fake data entities, and C) defining the expected results for each set of parameters.
 
