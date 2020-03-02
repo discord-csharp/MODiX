@@ -15,7 +15,7 @@ There are many definitions of the "Repository Pattern" in the programming world,
 
 Operations defined within repositories should be business-agnostic whenever possible. Each operation should generally be classified as one of the basic types of CRUD operations (CREATE, READ, UPDATE, or DELETE), and should also generally be named as such. Repository operations can perform validation, or perform many inner operations (such as multiple CREATEs, DELETEs, or combinations thereof), when appropriate to maintain data integrity. However, these should always serve the interest of "data" integrity, rather than "business" integrity.
 
-Repositories, like Business Services, should alwas be defined through an `interface`, to support mockability during consumer testing.
+Repositories, like Business Services, should always be defined through an `interface`, to support mockability during consumer testing.
 
 E.G.
 ```cs
