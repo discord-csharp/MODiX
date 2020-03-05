@@ -38,6 +38,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wiki", "wiki", "{092916B2-32C6-4ED9-A4EA-DF31D2F91A8F}"
 	ProjectSection(SolutionItems) = preProject
 		wiki\_Footer.md = wiki\_Footer.md
+		wiki\_Sidebar.md = wiki\_Sidebar.md
 		wiki\Application-Architecture.csv = wiki\Application-Architecture.csv
 		wiki\Application-Architecture.md = wiki\Application-Architecture.md
 		wiki\Application-Architecture.svg = wiki\Application-Architecture.svg
