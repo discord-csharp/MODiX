@@ -1,0 +1,34 @@
+Id,Name,Shape Library,Page ID,Contained By,Group,Line Source,Line Destination,Source Arrow,Destination Arrow,Text Area 1
+1,Page,,,,,,,,, Blank UML
+2,Text,Standard,1,,,,,,,
+3,Text,Standard,1,,,,,,,
+4,Text,Standard,1,,,,,,,
+5,Text,Standard,1,,,,,,,`
+6,Text,Standard,1,,22,,,,,Application Architecture
+7,Text,Standard,1,,22,,,,,"Jake Meiergerd  |  February 9, 2020"
+8,Node,UML,1,,,,,,,Discord
+9,Node,UML,1,,,,,,,"Data Storage
+(PostgreSQL)"
+10,Node,UML,1,,,,,,,Browser
+11,Node,UML,1,,,,,,,"Bot Frontend
+(Modix.Bot)"
+12,Node,UML,1,,,,,,,"Host Process
+(Modix)"
+13,Node,UML,1,,,,,,,"Web Frontend
+(Modix/ClientApp)"
+14,Node,UML,1,,,,,,,"Web API
+(Modix/Controllers)"
+15,Node,UML,1,,,,,,,"Business Logic
+(Modix.Services)"
+16,Node,UML,1,,,,,,,"HTTP Application
+(ASP.NET Core)"
+17,Node,UML,1,,,,,,,"Discord Client
+(Discord.NET)"
+18,Node,UML,1,,,,,,,"Data Modeling
+(Modix.Data)"
+19,Node,UML,1,,,,,,,"Data Access Modeling
+(Modix.Data)"
+20,Node,UML,1,,,,,,,"Data Access
+(EntityFrameworkCore)"
+21,Line,,1,,22,,6,None,None,
+22,Group 1,,1,,,,,,,
