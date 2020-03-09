@@ -14,6 +14,7 @@ using Modix.Services.Core;
 namespace Modix.Services
 {
     /// <inheritdoc />
+    [Obsolete]
     public abstract class BehaviorBase : IBehavior, IDisposable
     {
         /// <summary>
