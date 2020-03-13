@@ -10,9 +10,7 @@ using Microsoft.Extensions.Logging;
 namespace Modix.Data
 {
     public interface IModixContextAutoMigrationStartupAction
-    {
-        Task WhenDone { get; }
-    }
+        : IScopedStartupAction { }
 
     public class ModixContextAutoMigrationStartupAction
         : ScopedStartupActionBase,

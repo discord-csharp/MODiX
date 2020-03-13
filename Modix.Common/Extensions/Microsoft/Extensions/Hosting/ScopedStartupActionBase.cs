@@ -7,8 +7,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.Hosting
 {
-    public abstract class ScopedStartupActionBase
+    public interface IScopedStartupAction
         : IBehavior
+    {
+        Task WhenDone { get; }
+    }
+
+    public abstract class ScopedStartupActionBase
+        : IScopedStartupAction
     {
         #region Construction
 
