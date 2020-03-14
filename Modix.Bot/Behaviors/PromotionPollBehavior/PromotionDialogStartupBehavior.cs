@@ -43,11 +43,9 @@ namespace Modix.Bot.Behaviors
 
         private void SetDialogCache(CachedPromoDialog dialog)
         {
-            _memoryCache.Set(GetKey(dialog.CampaignId), dialog);
-            _memoryCache.Set(dialog.MessageId, dialog);
+            _memoryCache.Set(PromotionDialogBehavior.GetKey(dialog.CampaignId), dialog);
+            _memoryCache.Set(PromotionDialogBehavior.GetKey(dialog.MessageId), dialog);
         }
-
-        private static object GetKey(long id) => new { Target = "PromotionDialogBehavior", id };
 
         public Task StopAsync()
         {

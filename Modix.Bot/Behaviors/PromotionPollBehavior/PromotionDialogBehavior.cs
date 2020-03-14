@@ -93,7 +93,7 @@ namespace Modix.Bot.Behaviors
             if (notification.Reaction.User.Value.IsBot || message.Embeds.Count < 1)
                 return;
 
-            if (_memoryCache.TryGetValue(message.Id, out CachedPromoDialog poll)
+            if (_memoryCache.TryGetValue(GetKey(message.Id), out CachedPromoDialog poll)
             && IsRelevantReaction(reaction))
             {
                 string voteError = null;
@@ -159,7 +159,7 @@ namespace Modix.Bot.Behaviors
                 throw new InvalidOperationException("Dialog to be deleted does not exist");
 
             _memoryCache.Remove(GetKey(poll.CampaignId));
-            _memoryCache.Remove(poll.MessageId);
+            _memoryCache.Remove(GetKey(poll.MessageId));
             await message.DeleteAsync();
         }
 
@@ -201,10 +201,11 @@ namespace Modix.Bot.Behaviors
         private void SetDialogCache(CachedPromoDialog dialog)
         {
             _memoryCache.Set(GetKey(dialog.CampaignId), dialog);
-            _memoryCache.Set(dialog.MessageId, dialog);
+            _memoryCache.Set(GetKey(dialog.MessageId), dialog);
         }
 
-        private static object GetKey(long id) => new { Target = "PromotionDialogBehavior", id };
+        internal static object GetKey<T>(T id)
+            => new { Target = "PromotionDialogBehavior", id };
 
         private static bool IsRelevantReaction(IEmote emote)
             => emote.Name == _approveEmoji.Name || emote.Name == _disapproveEmoji.Name;
