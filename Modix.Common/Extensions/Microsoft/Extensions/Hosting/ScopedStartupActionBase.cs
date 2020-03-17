@@ -16,8 +16,6 @@ namespace Microsoft.Extensions.Hosting
     public abstract class ScopedStartupActionBase
         : IScopedStartupAction
     {
-        #region Construction
-
         protected ScopedStartupActionBase(
             ILogger logger,
             IServiceScopeFactory serviceScopeFactory)
@@ -26,16 +24,8 @@ namespace Microsoft.Extensions.Hosting
             _serviceScopeFactory = serviceScopeFactory;
         }
 
-        #endregion Construction
-
-        #region Public Properties
-
         public Task WhenDone
             => _whenDone.Task;
-
-        #endregion Public Properties
-
-        #region IBehavior
 
         public async Task StartAsync(
             CancellationToken cancellationToken)
@@ -58,24 +48,14 @@ namespace Microsoft.Extensions.Hosting
                 CancellationToken cancellationToken)
             => Task.CompletedTask;
 
-        #endregion IBehavior
-
-        #region Protected Members
-
         internal protected abstract Task OnStartingAsync(
             IServiceProvider serviceProvider,
             CancellationToken cancellationToken);
-
-        #endregion Protected Members
-
-        #region State
 
         internal protected readonly ILogger _logger;
         private readonly IServiceScopeFactory _serviceScopeFactory;
 
         private readonly TaskCompletionSource<object?> _whenDone
             = new TaskCompletionSource<object?>();
-
-        #endregion State
     }
 }

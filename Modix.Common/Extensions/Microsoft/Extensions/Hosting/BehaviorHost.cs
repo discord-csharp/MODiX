@@ -10,8 +10,6 @@ namespace Microsoft.Extensions.Hosting
     public class BehaviorHost
         : IHostedService
     {
-        #region Construction
-
         public BehaviorHost(
             IEnumerable<IBehavior> behaviors,
             ILogger<BehaviorHost> logger)
@@ -19,10 +17,6 @@ namespace Microsoft.Extensions.Hosting
             _behaviors = behaviors;
             _logger = logger;
         }
-
-        #endregion Construction
-
-        #region IHostedService
 
         public async Task StartAsync(
             CancellationToken cancellationToken)
@@ -58,13 +52,7 @@ namespace Microsoft.Extensions.Hosting
             HostingLogMessages.BehaviorsStopped(_logger);
         }
 
-        #endregion IHostedService
-
-        #region State
-
         private readonly IEnumerable<IBehavior> _behaviors;
         private readonly ILogger _logger;
-
-        #endregion State
     }
 }
