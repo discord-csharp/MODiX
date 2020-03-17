@@ -115,6 +115,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<DiscordSerilogAdapter>();
 
             services
+                .AddSingleton<IHostedService, BehaviorHost>()
                 .AddModixCore()
                 .AddModixMessaging()
                 .AddModixModeration()

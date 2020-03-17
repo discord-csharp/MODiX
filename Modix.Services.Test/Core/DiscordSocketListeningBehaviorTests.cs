@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using System.Threading;
 
 using Moq;
 using Moq.AutoMock;
@@ -332,13 +333,15 @@ namespace Modix.Services.Test.Core
         [Test]
         public void StartAsync_Always_CompletesImmediately()
         {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
             var autoMocker = new AutoMocker();
             var fakeDiscordSocketClient = new FakeDiscordSocketClient();
             autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
 
             var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
 
-            uut.StartAsync().IsCompleted.ShouldBeTrue();
+            uut.StartAsync(cancellationTokenSource.Token).IsCompleted.ShouldBeTrue();
 
             fakeDiscordSocketClient.FakeChannelCreatedEvent.Handlers.Count.ShouldBe(1);
             fakeDiscordSocketClient.FakeChannelUpdatedEvent.Handlers.Count.ShouldBe(1);
@@ -361,14 +364,16 @@ namespace Modix.Services.Test.Core
         [Test]
         public async Task StopAsync_Always_CompletesImmediately()
         {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
             var autoMocker = new AutoMocker();
             var fakeDiscordSocketClient = new FakeDiscordSocketClient();
             autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
 
             var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
 
-            await uut.StartAsync();
-            uut.StopAsync().IsCompleted.ShouldBeTrue();
+            await uut.StartAsync(cancellationTokenSource.Token);
+            uut.StopAsync(cancellationTokenSource.Token).IsCompleted.ShouldBeTrue();
 
             fakeDiscordSocketClient.FakeChannelCreatedEvent.Handlers.ShouldBeEmpty();
             fakeDiscordSocketClient.FakeChannelUpdatedEvent.Handlers.ShouldBeEmpty();
@@ -392,6 +397,8 @@ namespace Modix.Services.Test.Core
         [Test]
         public async Task DiscordSocketClientChannelCreated_Always_DispatchesNotification()
         {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
             var autoMocker = new AutoMocker();
             var fakeDiscordSocketClient = new FakeDiscordSocketClient();
             autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
@@ -399,7 +406,7 @@ namespace Modix.Services.Test.Core
 
             var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
 
-            await uut.StartAsync();
+            await uut.StartAsync(cancellationTokenSource.Token);
 
             var mockChannel = new Mock<ISocketChannel>();
 
@@ -417,6 +424,8 @@ namespace Modix.Services.Test.Core
         [Test]
         public async Task DiscordSocketClientChannelUpdated_Always_DispatchesNotification()
         {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
             var autoMocker = new AutoMocker();
             var fakeDiscordSocketClient = new FakeDiscordSocketClient();
             autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
@@ -424,7 +433,7 @@ namespace Modix.Services.Test.Core
 
             var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
 
-            await uut.StartAsync();
+            await uut.StartAsync(cancellationTokenSource.Token);
 
             var mockOldChannel = new Mock<ISocketChannel>();
             var mockNewChannel = new Mock<ISocketChannel>();
@@ -444,6 +453,8 @@ namespace Modix.Services.Test.Core
         [Test]
         public async Task DiscordSocketClientGuildAvailable_Always_DispatchesNotification()
         {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
             var autoMocker = new AutoMocker();
             var fakeDiscordSocketClient = new FakeDiscordSocketClient();
             autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
@@ -451,7 +462,7 @@ namespace Modix.Services.Test.Core
 
             var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
 
-            await uut.StartAsync();
+            await uut.StartAsync(cancellationTokenSource.Token);
 
             var mockGuild = new Mock<ISocketGuild>();
 
@@ -469,6 +480,8 @@ namespace Modix.Services.Test.Core
         [Test]
         public async Task DiscordSocketClientJoinedGuild_Always_DispatchesNotification()
         {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
             var autoMocker = new AutoMocker();
             var fakeDiscordSocketClient = new FakeDiscordSocketClient();
             autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
@@ -476,7 +489,7 @@ namespace Modix.Services.Test.Core
 
             var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
 
-            await uut.StartAsync();
+            await uut.StartAsync(cancellationTokenSource.Token);
 
             var mockGuild = new Mock<ISocketGuild>();
 
@@ -494,6 +507,8 @@ namespace Modix.Services.Test.Core
         [Test]
         public async Task DiscordSocketClientMessageDeleted_Always_DispatchesNotification()
         {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
             var autoMocker = new AutoMocker();
             var fakeDiscordSocketClient = new FakeDiscordSocketClient();
             autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
@@ -501,7 +516,7 @@ namespace Modix.Services.Test.Core
 
             var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
 
-            await uut.StartAsync();
+            await uut.StartAsync(cancellationTokenSource.Token);
 
             var mockMessage = new Mock<ICacheable<IMessage, ulong>>();
             var mockChannel = new Mock<IISocketMessageChannel>();
@@ -521,6 +536,8 @@ namespace Modix.Services.Test.Core
         [Test]
         public async Task DiscordSocketClientMessageReceived_Always_DispatchesNotification()
         {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
             var autoMocker = new AutoMocker();
             var fakeDiscordSocketClient = new FakeDiscordSocketClient();
             autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
@@ -528,7 +545,7 @@ namespace Modix.Services.Test.Core
 
             var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
 
-            await uut.StartAsync();
+            await uut.StartAsync(cancellationTokenSource.Token);
 
             var mockMessage = new Mock<ISocketMessage>();
 
@@ -546,6 +563,8 @@ namespace Modix.Services.Test.Core
         [Test]
         public async Task DiscordSocketClientMessageUpdated_Always_DispatchesNotification()
         {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
             var autoMocker = new AutoMocker();
             var fakeDiscordSocketClient = new FakeDiscordSocketClient();
             autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
@@ -553,7 +572,7 @@ namespace Modix.Services.Test.Core
 
             var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
 
-            await uut.StartAsync();
+            await uut.StartAsync(cancellationTokenSource.Token);
 
             var mockOldMessage = new Mock<ICacheable<IMessage, ulong>>();
             var mockNewMessage = new Mock<ISocketMessage>();
@@ -575,6 +594,8 @@ namespace Modix.Services.Test.Core
         [Test]
         public async Task DiscordSocketClientReactionAdded_Always_DispatchesNotification()
         {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
             var autoMocker = new AutoMocker();
             var fakeDiscordSocketClient = new FakeDiscordSocketClient();
             autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
@@ -582,7 +603,7 @@ namespace Modix.Services.Test.Core
 
             var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
 
-            await uut.StartAsync();
+            await uut.StartAsync(cancellationTokenSource.Token);
 
             var mockMessage = new Mock<ICacheable<IUserMessage, ulong>>();
             var mockChannel = new Mock<IISocketMessageChannel>();
@@ -604,6 +625,8 @@ namespace Modix.Services.Test.Core
         [Test]
         public async Task DiscordSocketClientReactionRemoved_Always_DispatchesNotification()
         {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
             var autoMocker = new AutoMocker();
             var fakeDiscordSocketClient = new FakeDiscordSocketClient();
             autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
@@ -611,7 +634,7 @@ namespace Modix.Services.Test.Core
 
             var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
 
-            await uut.StartAsync();
+            await uut.StartAsync(cancellationTokenSource.Token);
 
             var mockMessage = new Mock<ICacheable<IUserMessage, ulong>>();
             var mockChannel = new Mock<IISocketMessageChannel>();
@@ -633,6 +656,8 @@ namespace Modix.Services.Test.Core
         [Test]
         public async Task DiscordSocketClientReady_Always_DispatchesNotification()
         {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
             var autoMocker = new AutoMocker();
             var fakeDiscordSocketClient = new FakeDiscordSocketClient();
             autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
@@ -640,7 +665,7 @@ namespace Modix.Services.Test.Core
 
             var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
 
-            await uut.StartAsync();
+            await uut.StartAsync(cancellationTokenSource.Token);
 
             fakeDiscordSocketClient.FakeReadyEvent.InvokeAsync()
                 .IsCompleted.ShouldBeTrue();
@@ -655,6 +680,8 @@ namespace Modix.Services.Test.Core
         [Test]
         public async Task DiscordSocketClientUserBanned_Always_DispatchesNotification()
         {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
             var autoMocker = new AutoMocker();
             var fakeDiscordSocketClient = new FakeDiscordSocketClient();
             autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
@@ -662,7 +689,7 @@ namespace Modix.Services.Test.Core
 
             var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
 
-            await uut.StartAsync();
+            await uut.StartAsync(cancellationTokenSource.Token);
 
             var mockUser = new Mock<ISocketUser>();
             var mockGuild = new Mock<ISocketGuild>();
@@ -682,6 +709,8 @@ namespace Modix.Services.Test.Core
         [Test]
         public async Task DiscordSocketClientUserJoined_Always_DispatchesNotification()
         {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
             var autoMocker = new AutoMocker();
             var fakeDiscordSocketClient = new FakeDiscordSocketClient();
             autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
@@ -689,7 +718,7 @@ namespace Modix.Services.Test.Core
 
             var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
 
-            await uut.StartAsync();
+            await uut.StartAsync(cancellationTokenSource.Token);
 
             var mockGuildUser = new Mock<ISocketGuildUser>();
 
@@ -707,6 +736,8 @@ namespace Modix.Services.Test.Core
         [Test]
         public async Task DiscordSocketClientUserLeft_Always_DispatchesNotification()
         {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
             var autoMocker = new AutoMocker();
             var fakeDiscordSocketClient = new FakeDiscordSocketClient();
             autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
@@ -714,7 +745,7 @@ namespace Modix.Services.Test.Core
 
             var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
 
-            await uut.StartAsync();
+            await uut.StartAsync(cancellationTokenSource.Token);
 
             var mockGuildUser = new Mock<ISocketGuildUser>();
 

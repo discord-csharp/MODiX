@@ -1,6 +1,7 @@
 ﻿using Discord;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 using Modix.Common.Messaging;
 using Modix.Data.Repositories;
