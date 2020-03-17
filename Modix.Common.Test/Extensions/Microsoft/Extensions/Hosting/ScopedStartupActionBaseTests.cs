@@ -46,6 +46,7 @@ namespace Modix.Common.Test.Extensions.Microsoft.Extensions.Hosting
 
         #region StartAsync() Tests
 
+        [Test]
         public async Task StartAsync_Always_InvokesOnStartingAsyncAndCompletesWhenDone()
         {
             using var testContext = new TestContext();
@@ -71,6 +72,7 @@ namespace Modix.Common.Test.Extensions.Microsoft.Extensions.Hosting
 
         #region StopAsync() Tests
 
+        [Test]
         public void StopAsync_Always_DoesNothing()
         {
             using var testContext = new TestContext();
