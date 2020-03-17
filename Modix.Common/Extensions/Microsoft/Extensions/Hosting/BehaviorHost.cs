@@ -32,9 +32,10 @@ namespace Microsoft.Extensions.Hosting
             await Task.WhenAll(_behaviors
                 .Select(async behavior =>
                 {
-                    HostingLogMessages.BehaviorStarting(_logger, behavior);
+                    using var logScope = HostingLogMessages.BeginBehaviorScope(_logger, behavior);
+                    HostingLogMessages.BehaviorStarting(_logger);
                     await behavior.StartAsync(cancellationToken);
-                    HostingLogMessages.BehaviorStarted(_logger, behavior);
+                    HostingLogMessages.BehaviorStarted(_logger);
                 }));
 
             HostingLogMessages.BehaviorsStarted(_logger);
@@ -48,9 +49,10 @@ namespace Microsoft.Extensions.Hosting
             await Task.WhenAll(_behaviors
                 .Select(async behavior =>
                 {
-                    HostingLogMessages.BehaviorStopping(_logger, behavior);
+                    using var logScope = HostingLogMessages.BeginBehaviorScope(_logger, behavior);
+                    HostingLogMessages.BehaviorStopping(_logger);
                     await behavior.StopAsync(cancellationToken);
-                    HostingLogMessages.BehaviorStopped(_logger, behavior);
+                    HostingLogMessages.BehaviorStopped(_logger);
                 }));
 
             HostingLogMessages.BehaviorsStopped(_logger);
