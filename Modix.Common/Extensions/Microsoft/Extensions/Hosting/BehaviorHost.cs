@@ -10,8 +10,6 @@ namespace Microsoft.Extensions.Hosting
     public class BehaviorHost
         : IHostedService
     {
-        #region Construction
-
         public BehaviorHost(
             IEnumerable<IBehavior> behaviors,
             ILogger<BehaviorHost> logger)
@@ -19,10 +17,6 @@ namespace Microsoft.Extensions.Hosting
             _behaviors = behaviors;
             _logger = logger;
         }
-
-        #endregion Construction
-
-        #region IHostedService
 
         public async Task StartAsync(
             CancellationToken cancellationToken)
@@ -32,9 +26,10 @@ namespace Microsoft.Extensions.Hosting
             await Task.WhenAll(_behaviors
                 .Select(async behavior =>
                 {
-                    HostingLogMessages.BehaviorStarting(_logger, behavior);
+                    using var logScope = HostingLogMessages.BeginBehaviorScope(_logger, behavior);
+                    HostingLogMessages.BehaviorStarting(_logger);
                     await behavior.StartAsync(cancellationToken);
-                    HostingLogMessages.BehaviorStarted(_logger, behavior);
+                    HostingLogMessages.BehaviorStarted(_logger);
                 }));
 
             HostingLogMessages.BehaviorsStarted(_logger);
@@ -48,21 +43,16 @@ namespace Microsoft.Extensions.Hosting
             await Task.WhenAll(_behaviors
                 .Select(async behavior =>
                 {
-                    HostingLogMessages.BehaviorStopping(_logger, behavior);
+                    using var logScope = HostingLogMessages.BeginBehaviorScope(_logger, behavior);
+                    HostingLogMessages.BehaviorStopping(_logger);
                     await behavior.StopAsync(cancellationToken);
-                    HostingLogMessages.BehaviorStopped(_logger, behavior);
+                    HostingLogMessages.BehaviorStopped(_logger);
                 }));
 
             HostingLogMessages.BehaviorsStopped(_logger);
         }
 
-        #endregion IHostedService
-
-        #region State
-
         private readonly IEnumerable<IBehavior> _behaviors;
         private readonly ILogger _logger;
-
-        #endregion State
     }
 }

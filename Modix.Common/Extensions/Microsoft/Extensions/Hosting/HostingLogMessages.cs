@@ -6,6 +6,26 @@ namespace Microsoft.Extensions.Hosting
 {
     public static class HostingLogMessages
     {
+        public static IDisposable BeginBehaviorScope(
+                ILogger logger,
+                IBehavior behavior)
+            => _beginBehaviorScope.Invoke(
+                logger,
+                behavior);
+        private static readonly Func<ILogger, IBehavior, IDisposable> _beginBehaviorScope
+            = LoggerMessage.DefineScope<IBehavior>(
+                "Behavior: {Behavior}");
+
+        public static IDisposable BeginStartupActionScope(
+                ILogger logger,
+                IScopedStartupAction startupAction)
+            => _beginStartupActionScope.Invoke(
+                logger,
+                startupAction);
+        private static readonly Func<ILogger, IScopedStartupAction, IDisposable> _beginStartupActionScope
+            = LoggerMessage.DefineScope<IScopedStartupAction>(
+                "StartupAction: {StartupAction}");
+
         public static void BehaviorsStarting(
                 ILogger logger)
             => _behaviorsStarting.Invoke(
@@ -73,55 +93,47 @@ namespace Microsoft.Extensions.Hosting
                 .WithoutException();
 
         public static void BehaviorStarting(
-                ILogger logger,
-                IBehavior behavior)
+                ILogger logger)
             => _behaviorStarting.Invoke(
-                logger,
-                behavior);
-        private static readonly Action<ILogger, IBehavior> _behaviorStarting
-            = LoggerMessage.Define<IBehavior>(
+                logger);
+        private static readonly Action<ILogger> _behaviorStarting
+            = LoggerMessage.Define(
                     LogLevel.Debug,
-                    new EventId(4001, nameof(BehaviorsStarting)),
-                    $"Starting {nameof(IBehavior)}: {{Behavior}}")
+                    new EventId(4001, nameof(BehaviorStarting)),
+                    $"Starting {nameof(IBehavior)}")
                 .WithoutException();
 
         public static void BehaviorStarted(
-                ILogger logger,
-                IBehavior behavior)
+                ILogger logger)
             => _behaviorStarted.Invoke(
-                logger,
-                behavior);
-        private static readonly Action<ILogger, IBehavior> _behaviorStarted
-            = LoggerMessage.Define<IBehavior>(
+                logger);
+        private static readonly Action<ILogger> _behaviorStarted
+            = LoggerMessage.Define(
                     LogLevel.Debug,
                     new EventId(4002, nameof(BehaviorStarted)),
-                    $"{nameof(IBehavior)} started: {{Behavior}}")
+                    $"{nameof(IBehavior)} started")
                 .WithoutException();
 
         public static void BehaviorStopping(
-                ILogger logger,
-                IBehavior behavior)
+                ILogger logger)
             => _behaviorStoping.Invoke(
-                logger,
-                behavior);
-        private static readonly Action<ILogger, IBehavior> _behaviorStoping
-            = LoggerMessage.Define<IBehavior>(
+                logger);
+        private static readonly Action<ILogger> _behaviorStoping
+            = LoggerMessage.Define(
                     LogLevel.Debug,
-                    new EventId(4003, nameof(BehaviorsStopping)),
-                    $"Stoping {nameof(IBehavior)}: {{Behavior}}")
+                    new EventId(4003, nameof(BehaviorStopping)),
+                    $"Stoping {nameof(IBehavior)}")
                 .WithoutException();
 
         public static void BehaviorStopped(
-                ILogger logger,
-                IBehavior behavior)
+                ILogger logger)
             => _behaviorStoped.Invoke(
-                logger,
-                behavior);
-        private static readonly Action<ILogger, IBehavior> _behaviorStoped
-            = LoggerMessage.Define<IBehavior>(
+                logger);
+        private static readonly Action<ILogger> _behaviorStoped
+            = LoggerMessage.Define(
                     LogLevel.Debug,
                     new EventId(4004, nameof(BehaviorStopped)),
-                    $"{nameof(IBehavior)} stoped: {{Behavior}}")
+                    $"{nameof(IBehavior)} stoped")
                 .WithoutException();
     }
 }
