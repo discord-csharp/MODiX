@@ -13,6 +13,7 @@ using Modix;
 using Modix.Behaviors;
 using Modix.Bot;
 using Modix.Bot.Behaviors;
+using Modix.Common;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
@@ -69,7 +70,9 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddModix(this IServiceCollection services)
+        public static IServiceCollection AddModix(
+            this IServiceCollection services,
+            IConfiguration configuration)
         {
             services.AddSingleton(
                 provider => new DiscordSocketClient(config: new DiscordSocketConfig
@@ -115,9 +118,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<DiscordSerilogAdapter>();
 
             services
-                .AddSingleton<IHostedService, BehaviorHost>()
+                .AddModixCommon(configuration)
                 .AddModixCore()
-                .AddModixMessaging()
                 .AddModixModeration()
                 .AddModixPromotions()
                 .AddCodePaste()

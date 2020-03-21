@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    internal static class ServiceScopeLogMessages
+    public static class DependencyInjectionLogMessages
     {
         public static void ServiceScopeCreated(
                 ILogger logger,

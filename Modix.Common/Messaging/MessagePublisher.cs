@@ -35,6 +35,7 @@ namespace Modix.Common.Messaging
     }
 
     /// <inheritdoc />
+    [ServiceBinding(ServiceLifetime.Scoped)]
     public class MessagePublisher : IMessagePublisher
     {
         /// <summary>

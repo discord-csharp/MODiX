@@ -34,7 +34,7 @@ namespace Microsoft.Extensions.Hosting
             HostingLogMessages.StartupActionExecuting(_logger);
 
             using var serviceScope = _serviceScopeFactory.CreateScope();
-            ServiceScopeLogMessages.ServiceScopeCreated(_logger, serviceScope);
+            DependencyInjectionLogMessages.ServiceScopeCreated(_logger, serviceScope);
 
             await OnStartingAsync(
                 serviceScope.ServiceProvider,

@@ -3,10 +3,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.Hosting
 {
+    [ServiceBinding(ServiceLifetime.Singleton)]
     public class BehaviorHost
         : IHostedService
     {

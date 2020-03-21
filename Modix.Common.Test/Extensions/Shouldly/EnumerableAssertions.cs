@@ -16,5 +16,8 @@ namespace Shouldly
             foreach (var item in sequence)
                 action.Invoke(item);
         }
+
+        public static void ShouldBeSetEqualTo<T>(this IEnumerable<T> actual, IEnumerable<T> expected)
+            => actual.ShouldBe(expected, ignoreOrder: true);
     }
 }

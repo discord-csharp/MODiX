@@ -71,7 +71,7 @@ namespace Modix
 
             services
                 .AddModixHttpClients()
-                .AddModix();
+                .AddModix(_configuration);
 
             services.AddMvc(d => d.EnableEndpointRouting = false)
                 .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
