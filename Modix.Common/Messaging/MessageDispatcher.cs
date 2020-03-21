@@ -25,6 +25,7 @@ namespace Modix.Common.Messaging
     }
 
     /// <inheritdoc />
+    [ServiceBinding(ServiceLifetime.Singleton)]
     public class MessageDispatcher : IMessageDispatcher
     {
         /// <summary>
