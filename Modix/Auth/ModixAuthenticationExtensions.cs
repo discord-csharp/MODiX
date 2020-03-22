@@ -15,6 +15,7 @@ namespace Modix.Auth
         {
             return builder.AddOAuth<DiscordAuthenticationOptions, ModixAuthenticationHandler>(DiscordAuthenticationDefaults.AuthenticationScheme, options =>
             {
+                options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
                 options.ClaimActions.MapJsonKey(claimType: "avatarHash", jsonKey: "avatar");
 
                 options.Events.OnRemoteFailure = context =>
