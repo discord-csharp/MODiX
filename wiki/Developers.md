@@ -3,7 +3,7 @@ Below is a guide on how to start developing Modix. Depending on the nature of th
 # Prerequisites
 To work on Modix, you need a few things:
 - A Discord application set up - [go here to create one](https://discordapp.com/developers/applications/), add a bot to it, and copy the **token** from the page. You can then add the bot to your server by going to ` https://discordapp.com/oauth2/authorize?scope=bot&permissions=0&client_id=[ID HERE]`, replacing `[ID HERE]` with the **Client ID** of your bot (not the token).
-- Under `https://discordapp.com/developers/applications/{CLIENT ID HERE}/oauth` make sure to add redirect to your domain such as `http://localhost:5000/signin-discord` and make sure it is appended with `/signin-discord`
+- Under `https://discordapp.com/developers/applications/{CLIENT ID HERE}/oauth` make sure to add redirect to your domain such as `https://localhost:5000/signin-discord` and make sure it is appended with `/signin-discord`
 - [The latest .NET Core SDK for your chosen platform](https://www.microsoft.com/net/download) (currently 2.2)
 - [NodeJS 10.x LTS for your chosen platform](https://nodejs.org/en/download/)
 - [PostgreSQL database server](https://www.postgresql.org/download/). A docker container also works.
