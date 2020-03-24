@@ -50,11 +50,10 @@ namespace Modix.Data.Test.Repositories
             modixContext.Set<PromotionDialogEntity>().ShouldContain(
                 x => x.CampaignId == data.CampaignId
                      && x.MessageId == data.MessageId);
-            var user = modixContext.Set<PromotionDialogEntity>().First(x => x.CampaignId == data.CampaignId);
 
             modixContext.Set<PromotionDialogEntity>()
                 .AsEnumerable()
-                .Where(x => (x.CampaignId != user.CampaignId) || (x.MessageId != user.MessageId))
+                .Where(x => (x.CampaignId != data.CampaignId) || (x.MessageId != data.MessageId))
                 .Select(x => (x.CampaignId, x.MessageId))
                 .ShouldBe(PromotionDialogs.Entities
                     .Select(x => (x.CampaignId, x.MessageId)));
