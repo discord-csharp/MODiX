@@ -36,7 +36,7 @@ namespace Modix.Data.Repositories
 
         public async Task CreateAsync(ulong messageId, long campaignId)
         {
-            await ModixContext.Set<PromotionDialogEntity>().AddAsync(new PromotionDialogEntity
+            ModixContext.Set<PromotionDialogEntity>().Add(new PromotionDialogEntity
             {
                 MessageId = messageId,
                 CampaignId = campaignId
