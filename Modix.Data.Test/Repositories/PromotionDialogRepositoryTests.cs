@@ -41,7 +41,7 @@ namespace Modix.Data.Test.Repositories
         }
 
         [TestCaseSource(nameof(NewDialogCreationTestCases))]
-        public async Task CreateAsync_InsertsDialog(PromotionDialogEntity data)
+        public async Task CreateAsync_Always_InsertsDialog(PromotionDialogEntity data)
         {
             var (modixContext, uut) = BuildTestContext();
 
