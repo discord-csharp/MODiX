@@ -26,7 +26,7 @@ namespace Modix.Data.Test.Repositories
         }
 
         [Test]
-        public async Task GetAsync_DialogsExist()
+        public async Task GetDialogsAsync_Always_ReturnsExistingDialogs()
         {
             var (modixContext, uut) = BuildTestContext();
 
