@@ -120,7 +120,7 @@ namespace Modix.Services.Quote
             embed = message.Embeds
                     .First()
                     .ToEmbedBuilder()
-                    .AddField("Quoted by", $"{executingUser.Mention} from **[#{message.Channel.Name}]({message.GetJumpUrl()})**", true);
+                    .AddField("Quoted by", $"{executingUser.Mention} from **{message.GetJumpUrlForEmbed()}**", true);
 
             if (firstEmbed.Color == null)
             {
@@ -159,7 +159,7 @@ namespace Modix.Services.Quote
                 .WithUserAsAuthor(message.Author)
                 .WithTimestamp(message.Timestamp)
                 .WithColor(new Color(95, 186, 125))
-                .AddField("Quoted by", $"{executingUser.Mention} from **[#{message.Channel.Name}]({message.GetJumpUrl()})**", true);
+                .AddField("Quoted by", $"{executingUser.Mention} from **{message.GetJumpUrlForEmbed()}**", true);
         }
 
         private bool IsQuote(IMessage message)
