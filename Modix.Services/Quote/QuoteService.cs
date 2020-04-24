@@ -43,7 +43,12 @@ namespace Modix.Services.Quote
                 return embed;
             }
 
-            if (!TryAddImageAttachment(message, embed))
+            if (message.Attachments.Any(x => x.IsSpoiler())
+                || message.Embeds.Any() && FormatUtilities.ContainsSpoiler(message.Content))
+            {
+                embed.AddField("Spoiler warning", "The quoted message contains spoilered content.");
+            }
+            else if (!TryAddImageAttachment(message, embed))
                 if (!TryAddImageEmbed(message, embed))
                     if (!TryAddThumbnailEmbed(message, embed))
                         TryAddOtherAttachment(message, embed);

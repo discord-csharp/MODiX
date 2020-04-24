@@ -75,6 +75,11 @@ namespace Modix.Services.Quote
                     {
                         var channel = DiscordClient.GetChannel(channelId);
 
+                        if (channel is ITextChannel { IsNsfw: true })
+                        {
+                            return;
+                        }
+
                         if (channel is IGuildChannel guildChannel &&
                             channel is ISocketMessageChannel messageChannel)
                         {

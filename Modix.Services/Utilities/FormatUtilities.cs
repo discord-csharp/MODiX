@@ -220,5 +220,11 @@ namespace Modix.Services.Utilities
 
             return $"{humanizedTimeAgo} ago ({ago.UtcDateTime:yyyy-MM-ddTHH:mm:ssK})";
         }
+
+        public static bool ContainsSpoiler(string text)
+            => _containsSpoilerRegex.IsMatch(text);
+
+        private static readonly Regex _containsSpoilerRegex
+            = new Regex(@"\|\|.+\|\|", RegexOptions.Compiled);
     }
 }
