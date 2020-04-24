@@ -1,9 +1,6 @@
-﻿using Discord;
-
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
-
+using Discord;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Services.Core;
@@ -116,17 +113,11 @@ namespace Modix.Services.Starboard
 
             embed.WithTimestamp(message.Timestamp)
                 .WithColor(color)
-                .WithUserAsAuthor(author);
+                .WithUserAsAuthor(author)
+                .WithFooter(string.Empty)
+                .AddField("Posted in", $"**{message.GetJumpUrlForEmbed()}**");
 
-            embed.Description = new StringBuilder()
-                .AppendLine($"_Posted in **{message.GetJumpUrlForEmbed()}**_")
-                .AppendLine()
-                .AppendLine("**Message**")
-                .AppendLine(embed.Description)
-                .ToString();
-
-            embed.Fields.RemoveAt(embed.Fields.Count - 1); //Remove the "Quoted by" field
-            embed.Footer = null;
+            embed.Fields.RemoveAll(x => x.Name == "Quoted by");
 
             return embed.Build();
         }
