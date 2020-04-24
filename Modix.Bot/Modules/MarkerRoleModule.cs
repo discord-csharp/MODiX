@@ -137,8 +137,7 @@ namespace Modix.Modules
                 return;
             }
 
-            var targetRole = await Context.Guild.CreateRoleAsync(targetRoleName);
-            await targetRole.ModifyAsync(f => f.Mentionable = true);
+            var targetRole = await Context.Guild.CreateRoleAsync(targetRoleName, isMentionable: true);
 
             await _designatedRoleService.AddDesignatedRoleAsync(Context.Guild.Id, targetRole.Id, DesignatedRoleType.Pingable);
 
