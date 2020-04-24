@@ -119,7 +119,7 @@ namespace Modix.Services.Starboard
                 .WithUserAsAuthor(author);
 
             embed.Description = new StringBuilder()
-                .AppendLine($"_Posted in **[#{message.Channel.Name}]({message.GetJumpUrl()})**_")
+                .AppendLine($"_Posted in **{message.GetJumpUrlForEmbed()}**_")
                 .AppendLine()
                 .AppendLine("**Message**")
                 .AppendLine(embed.Description)
