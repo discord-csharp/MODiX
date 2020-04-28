@@ -53,6 +53,9 @@ namespace Discord.Rest
             => RestMessage.Application
                 .Abstract();
 
+        public MessageReference Reference
+            => RestMessage.Reference;
+
         /// <inheritdoc />
         MessageApplication IMessage.Application
             => RestMessage.Application;

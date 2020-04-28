@@ -54,6 +54,9 @@ namespace Discord.WebSocket
                 .Abstract();
 
         /// <inheritdoc />
+        public MessageReference Reference => SocketMessage.Reference;
+
+        /// <inheritdoc />
         MessageApplication IMessage.Application
             => SocketMessage.Application;
 

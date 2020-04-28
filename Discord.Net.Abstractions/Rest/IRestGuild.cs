@@ -315,18 +315,20 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
-        async Task<IGuildIntegration> IGuild.CreateIntegrationAsync(ulong id, string type, RequestOptions options)
-            => (await (RestGuild as IGuild).CreateIntegrationAsync(id, type, options))
-                .Abstract();
+        async Task<IGuildIntegration> IGuild.CreateIntegrationAsync(ulong id, string type, RequestOptions options) =>
+            (await RestGuild.CreateIntegrationAsync(id, type, options)).Abstract();
 
         /// <inheritdoc />
         public async Task<IRestRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, RequestOptions options = null)
             => (await RestGuild.CreateRoleAsync(name, permissions, color, isHoisted, options))
                 .Abstract();
 
-        /// <inheritdoc />
-        async Task<IRole> IGuild.CreateRoleAsync(string name, GuildPermissions? permissions, Color? color, bool isHoisted, RequestOptions options)
-            => (await (RestGuild as IGuild).CreateRoleAsync(name, permissions, color, isHoisted, options))
+        Task<IRole> IGuild.CreateRoleAsync(string name, GuildPermissions? permissions, Color? color, bool isHoisted,
+            RequestOptions options) => (RestGuild as IGuild).CreateRoleAsync(name, permissions, color, isHoisted, options);
+
+        public async Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false,
+            bool isMentionable = false, RequestOptions options = null)
+            => (await(RestGuild as IGuild).CreateRoleAsync(name, permissions, color, isHoisted, options))
                 .Abstract();
 
         /// <inheritdoc />

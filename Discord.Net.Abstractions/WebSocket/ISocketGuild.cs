@@ -426,8 +426,11 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public async Task<IRestRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false, RequestOptions options = null)
-            => RestRoleAbstractionExtensions.Abstract(
-                await SocketGuild.CreateRoleAsync(name, permissions, color, isHoisted, options));
+            => RestRoleAbstractionExtensions.Abstract(await SocketGuild.CreateRoleAsync(name, permissions, color, isHoisted, options));
+
+        public async Task<IRole> CreateRoleAsync(string name, GuildPermissions? permissions = null, Color? color = null, bool isHoisted = false,
+            bool isMentionable = false, RequestOptions options = null)
+            => RestRoleAbstractionExtensions.Abstract(await SocketGuild.CreateRoleAsync(name, permissions, color, isHoisted, isMentionable, options));
 
         /// <inheritdoc />
         async Task<IRole> IGuild.CreateRoleAsync(string name, GuildPermissions? permissions, Color? color, bool isHoisted, RequestOptions options)
@@ -436,8 +439,7 @@ namespace Discord.WebSocket
 
         /// <inheritdoc />
         public async Task<IRestTextChannel> CreateTextChannelAsync(string name, Action<TextChannelProperties> func = null, RequestOptions options = null)
-            => RestTextChannelAbstractionExtensions.Abstract(
-                await SocketGuild.CreateTextChannelAsync(name, func, options));
+            => RestTextChannelAbstractionExtensions.Abstract(await SocketGuild.CreateTextChannelAsync(name, func, options));
 
         /// <inheritdoc />
         async Task<ITextChannel> IGuild.CreateTextChannelAsync(string name, Action<TextChannelProperties> func, RequestOptions options)
