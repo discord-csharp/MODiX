@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <UserSecretsId>5B9ECED8-0E0C-443E-98B1-F1E508AB292B</UserSecretsId>
     <RestoreSources>
       https://api.nuget.org/v3/index.json;
