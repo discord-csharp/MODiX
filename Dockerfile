@@ -14,4 +14,5 @@ WORKDIR /app
 COPY --from=dotnet-build /app .
 COPY --from=dotnet-build /src/healthcheck.sh .
 
+RUN apt-get update && apt-get install -y ca-certificates
 ENTRYPOINT ["dotnet", "Modix.dll"]
