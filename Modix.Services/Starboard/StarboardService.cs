@@ -155,7 +155,7 @@ namespace Modix.Services.Starboard
 
         /// <inheritdoc />
         public bool IsAboveReactionThreshold(int reactionCount)
-            => reactionCount >= 2;
+            => reactionCount >= 3;
 
         /// <inheritdoc />
         public string GetStarEmote(int reactionCount)
