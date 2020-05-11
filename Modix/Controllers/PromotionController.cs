@@ -16,7 +16,7 @@ namespace Modix.Controllers
     {
         private readonly IPromotionsService _promotionsService;
 
-        public PromotionController(DiscordSocketClient client, IPromotionsService promotionService, IAuthorizationService auth) : base(client, auth)
+        public PromotionController(IDiscordSocketClient client, IPromotionsService promotionService, IAuthorizationService auth) : base(client, auth)
         {
             _promotionsService = promotionService;
         }

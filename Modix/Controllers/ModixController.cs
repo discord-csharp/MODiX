@@ -13,14 +13,14 @@ namespace Modix.Controllers
     [Authorize]
     public class ModixController : Controller
     {
-        protected DiscordSocketClient DiscordSocketClient { get; private set; }
+        protected IDiscordSocketClient DiscordSocketClient { get; private set; }
         protected ModixUser ModixUser { get; private set; }
-        protected SocketGuildUser SocketUser { get; private set; }
-        protected SocketGuild UserGuild => SocketUser.Guild;
+        protected ISocketGuildUser SocketUser { get; private set; }
+        protected ISocketGuild UserGuild => SocketUser.Guild;
 
         protected Services.Core.IAuthorizationService ModixAuth { get; private set; }
 
-        public ModixController(DiscordSocketClient client, Services.Core.IAuthorizationService modixAuth)
+        public ModixController(IDiscordSocketClient client, Services.Core.IAuthorizationService modixAuth)
         {
             DiscordSocketClient = client;
             ModixAuth = modixAuth;
@@ -35,7 +35,7 @@ namespace Modix.Controllers
             ModixUser = ModixUser.FromClaimsPrincipal(HttpContext.User);
 
             var guildCookie = Request.Cookies["SelectedGuild"];
-            SocketGuild guildToSearch;
+            ISocketGuild guildToSearch;
 
             if (!string.IsNullOrWhiteSpace(guildCookie))
             {
