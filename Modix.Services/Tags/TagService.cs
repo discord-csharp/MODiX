@@ -151,6 +151,8 @@ namespace Modix.Services.Tags
 
             var tag = await _modixContext
                 .Set<TagEntity>()
+                .Include(x => x.OwnerRole)
+                .Include(x => x.OwnerUser)
                 .Where(x => x.GuildId == guildId)
                 .Where(x => x.DeleteActionId == null)
                 .Where(x => x.Name == name)
@@ -175,6 +177,8 @@ namespace Modix.Services.Tags
 
             var tag = await _modixContext
                 .Set<TagEntity>()
+                .Include(x => x.OwnerRole)
+                .Include(x => x.OwnerUser)
                 .Where(x => x.GuildId == guildId)
                 .Where(x => x.DeleteActionId == null)
                 .Where(x => x.Name == name)
@@ -248,6 +252,8 @@ namespace Modix.Services.Tags
 
             var tag = await _modixContext
                 .Set<TagEntity>()
+                .Include(x => x.OwnerRole)
+                .Include(x => x.OwnerUser)
                 .Where(x => x.GuildId == guildId)
                 .Where(x => x.DeleteActionId == null)
                 .Where(x => x.Name == name)
@@ -272,6 +278,8 @@ namespace Modix.Services.Tags
 
             var tag = await _modixContext
                 .Set<TagEntity>()
+                .Include(x => x.OwnerRole)
+                .Include(x => x.OwnerUser)
                 .Where(x => x.GuildId == guildId)
                 .Where(x => x.DeleteActionId == null)
                 .Where(x => x.Name == name)
