@@ -23,7 +23,7 @@ namespace Modix.Controllers
     {
         private IModerationService ModerationService { get; }
 
-        public LogController(DiscordSocketClient client, IAuthorizationService modixAuth, IModerationService moderationService) : base(client, modixAuth)
+        public LogController(IDiscordSocketClient client, IAuthorizationService modixAuth, IModerationService moderationService) : base(client, modixAuth)
         {
             ModerationService = moderationService;
         }

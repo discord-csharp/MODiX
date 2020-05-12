@@ -17,7 +17,7 @@ namespace Modix.Controllers
     {
         private ITagService TagService { get; }
 
-        public TagController(DiscordSocketClient client, IAuthorizationService modixAuth, ITagService tagService) : base(client, modixAuth)
+        public TagController(IDiscordSocketClient client, IAuthorizationService modixAuth, ITagService tagService) : base(client, modixAuth)
         {
             TagService = tagService;
         }

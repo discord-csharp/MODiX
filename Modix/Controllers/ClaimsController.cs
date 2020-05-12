@@ -13,7 +13,7 @@ namespace Modix.Controllers
     {
         private IClaimMappingRepository ClaimMappingRepository { get; }
 
-        public ClaimsController(DiscordSocketClient client, IAuthorizationService modixAuth, IClaimMappingRepository claimMappingRepository) : base(client, modixAuth)
+        public ClaimsController(IDiscordSocketClient client, IAuthorizationService modixAuth, IClaimMappingRepository claimMappingRepository) : base(client, modixAuth)
         {
             ClaimMappingRepository = claimMappingRepository;
         }

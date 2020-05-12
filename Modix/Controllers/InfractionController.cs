@@ -22,7 +22,7 @@ namespace Modix.Controllers
         private IModerationService ModerationService { get; }
         private RowboatInfractionImporterService ImporterService { get; }
 
-        public InfractionController(DiscordSocketClient client, IAuthorizationService modixAuth, IModerationService moderationService, RowboatInfractionImporterService importerService) : base(client, modixAuth)
+        public InfractionController(IDiscordSocketClient client, IAuthorizationService modixAuth, IModerationService moderationService, RowboatInfractionImporterService importerService) : base(client, modixAuth)
         {
             ModerationService = moderationService;
             ImporterService = importerService;

@@ -8,7 +8,7 @@ namespace Modix.Controllers
 {
     public class ApiController : ModixController
     {
-        public ApiController(DiscordSocketClient client, IAuthorizationService auth) : base(client, auth)
+        public ApiController(IDiscordSocketClient client, IAuthorizationService auth) : base(client, auth)
         {
             
         }

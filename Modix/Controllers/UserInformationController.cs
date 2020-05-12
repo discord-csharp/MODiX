@@ -18,7 +18,7 @@ namespace Modix.Controllers
         private IMessageRepository MessageRepository { get; }
 
         public UserInformationController(
-            DiscordSocketClient client,
+            IDiscordSocketClient client,
             IAuthorizationService modixAuth,
             IUserService userService,
             IMessageRepository messageRepository)

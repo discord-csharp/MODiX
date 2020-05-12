@@ -15,7 +15,7 @@ namespace Modix.Controllers
     {
         private IDesignatedChannelService ChannelService { get; }
 
-        public ChannelController(DiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedChannelService channelService) : base(client, modixAuth)
+        public ChannelController(IDiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedChannelService channelService) : base(client, modixAuth)
         {
             ChannelService = channelService;
         }

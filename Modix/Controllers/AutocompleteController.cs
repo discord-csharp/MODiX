@@ -17,7 +17,7 @@ namespace Modix.Controllers
         private IDesignatedRoleService RoleService { get; }
         private readonly IUserService _userService;
 
-        public AutocompleteController(DiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedRoleService roleService, IUserService userService) : base(client, modixAuth)
+        public AutocompleteController(IDiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedRoleService roleService, IUserService userService) : base(client, modixAuth)
         {
             RoleService = roleService;
             _userService = userService;
