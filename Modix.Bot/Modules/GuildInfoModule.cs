@@ -27,18 +27,18 @@ namespace Modix.Modules
         private readonly DateTime _utcNow = DateTime.UtcNow;
 
         public GuildInfoModule(
-            IGuildService guildService,
+            IDiscordSocketClient discordClient,
             IMessageRepository messageRepository,
             IEmojiRepository emojiRepository,
             IImageService imageService)
         {
-            _guildService = guildService;
+            _discordClient = discordClient;
             _messageRepository = messageRepository;
             _emojiRepository = emojiRepository;
             _imageService = imageService;
         }
 
-        private readonly IGuildService _guildService;
+        private readonly IDiscordSocketClient _discordClient;
         private readonly IMessageRepository _messageRepository;
         private readonly IEmojiRepository _emojiRepository;
         private readonly IImageService _imageService;
@@ -54,49 +54,42 @@ namespace Modix.Modules
 
             var resolvedGuildId = guildId ?? Context.Guild.Id;
 
-            var guildResult = await _guildService.GetGuildInformationAsync(resolvedGuildId);
+            var guild = _discordClient.GetGuild(resolvedGuildId);
 
-            if (guildResult.IsError)
+            if (guild is null)
             {
-                var errorDescription = guildResult.IsError
-                    ? guildResult.Error
-                    : "Sorry, we don't have any data for that guild - and we couldn't find any, either.";
-
                 await ReplyAsync(embed: new EmbedBuilder()
                     .WithTitle("Retrieval Error")
                     .WithColor(Color.Red)
-                    .WithDescription(errorDescription)
+                    .WithDescription("Sorry, I have no information about that guild")
                     .AddField("Guild Id", resolvedGuildId)
                     .Build());
-
-                return;
             }
-
-            var embedBuilder = new EmbedBuilder()
-                .WithAuthor(guildResult.Guild.Name, guildResult.Guild.IconUrl)
-                .WithThumbnailUrl(guildResult.Guild.IconUrl)
-                .WithTimestamp(_utcNow);
-
-            await WithDominantColorAsync(embedBuilder, guildResult.Guild);
-
-            var stringBuilder = new StringBuilder();
-
-            AppendGuildInformation(stringBuilder, guildResult.Guild);
-
-            if (guildResult.Guild is SocketGuild socketGuild)
+            else
             {
-                await AppendGuildParticipationAsync(stringBuilder, socketGuild);
-                AppendMemberInformation(stringBuilder, socketGuild);
+                var embedBuilder = new EmbedBuilder()
+                    .WithAuthor(guild.Name, guild.IconUrl)
+                    .WithThumbnailUrl(guild.IconUrl)
+                    .WithTimestamp(_utcNow);
+
+                await WithDominantColorAsync(embedBuilder, guild);
+
+                var stringBuilder = new StringBuilder();
+
+                AppendGuildInformation(stringBuilder, guild);
+
+                await AppendGuildParticipationAsync(stringBuilder, guild);
+                AppendMemberInformation(stringBuilder, guild);
+
+                AppendRoleInformation(stringBuilder, guild);
+
+                embedBuilder.WithDescription(stringBuilder.ToString());
+
+                timer.Stop();
+                embedBuilder.WithFooter($"Completed after {timer.ElapsedMilliseconds} ms");
+
+                await ReplyAsync(embed: embedBuilder.Build());
             }
-
-            AppendRoleInformation(stringBuilder, guildResult.Guild);
-
-            embedBuilder.WithDescription(stringBuilder.ToString());
-
-            timer.Stop();
-            embedBuilder.WithFooter($"Completed after {timer.ElapsedMilliseconds} ms");
-
-            await ReplyAsync(embed: embedBuilder.Build());
         }
 
         public async Task WithDominantColorAsync(EmbedBuilder embedBuilder, IGuild guild)
@@ -108,7 +101,7 @@ namespace Modix.Modules
             }
         }
 
-        public void AppendGuildInformation(StringBuilder stringBuilder, IGuild guild)
+        public void AppendGuildInformation(StringBuilder stringBuilder, ISocketGuild guild)
         {
             stringBuilder
                 .AppendLine(Format.Bold("\u276F Guild Information"))
@@ -118,7 +111,7 @@ namespace Modix.Modules
                 .AppendLine();
         }
 
-        public async Task AppendGuildParticipationAsync(StringBuilder stringBuilder, SocketGuild guild)
+        public async Task AppendGuildParticipationAsync(StringBuilder stringBuilder, ISocketGuild guild)
         {
             var weekTotal = await _messageRepository.GetTotalMessageCountAsync(guild.Id, TimeSpan.FromDays(7));
             var monthTotal = await _messageRepository.GetTotalMessageCountAsync(guild.Id, TimeSpan.FromDays(30));
@@ -155,7 +148,7 @@ namespace Modix.Modules
             stringBuilder.AppendLine();
         }
 
-        public void AppendMemberInformation(StringBuilder stringBuilder, SocketGuild guild)
+        public void AppendMemberInformation(StringBuilder stringBuilder, ISocketGuild guild)
         {
             var onlineMembers = guild.Users.Count(x => x.Status != UserStatus.Offline);
             var members = guild.Users.Count;
@@ -170,7 +163,7 @@ namespace Modix.Modules
                 .AppendLine();
         }
 
-        public void AppendRoleInformation(StringBuilder stringBuilder, IGuild guild)
+        public void AppendRoleInformation(StringBuilder stringBuilder, ISocketGuild guild)
         {
             var roles = guild.Roles
                 .Where(x => x.Id != guild.EveryoneRole.Id && x.Color != Color.Default)
