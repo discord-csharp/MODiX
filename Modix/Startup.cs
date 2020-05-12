@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -12,9 +13,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Modix.Auth;
+using Modix.Authentication;
 using Modix.Configuration;
 using Modix.Data;
 using Modix.Data.Models.Core;
@@ -37,9 +37,10 @@ namespace Modix
             Log.Information("Configuration loaded. ASP.NET Startup is a go.");
         }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddServices(Assembly.GetExecutingAssembly(), _configuration);
+
             services.Configure<ModixConfig>(_configuration);
 
             services.AddDataProtection()
@@ -53,7 +54,7 @@ namespace Modix
                     options.ExpireTimeSpan = new TimeSpan(7, 0, 0, 0);
 
                 })
-                .AddModixAuth(_configuration);
+                .AddDiscordAuthentication();
 
             services.AddAntiforgery(options => options.HeaderName = "X-XSRF-TOKEN");
             services.AddResponseCompression();
