@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+
 using Discord;
 using Discord.WebSocket;
 
@@ -14,7 +14,6 @@ using Modix.Models;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
 using Modix.Services.Utilities;
-using Newtonsoft.Json;
 
 namespace Modix.Controllers
 {
@@ -50,9 +49,8 @@ namespace Modix.Controllers
             }
 
             var batchChannelId = deletedMessages.Records.First().Channel.Id;
-            var foundChannel = UserGuild.GetChannel(batchChannelId) as ISocketMessageChannel;
 
-            if (foundChannel == null)
+            if (!(UserGuild.GetChannel(batchChannelId) is IISocketMessageChannel foundChannel))
             {
                 return NotFound($"Couldn't recreate context - text channel with id {batchChannelId} not found");
             }

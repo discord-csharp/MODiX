@@ -32,7 +32,7 @@ namespace Modix.Controllers
             }
 
             var result = UserGuild.Channels
-                .Where(d => d is SocketTextChannel)
+                .Where(d => d is ISocketTextChannel)
                 .Where(d => d.Name.OrdinalContains(query))
                 .Take(10)
                 .Select(d => new { d.Id, d.Name });
