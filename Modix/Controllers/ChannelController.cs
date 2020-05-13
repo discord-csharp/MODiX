@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord.WebSocket;
@@ -56,7 +55,7 @@ namespace Modix.Controllers
                 ?.GetGuild(ModixAuth.CurrentGuildId.Value)
                 ?.GetChannel(creationData.ChannelId);
 
-            if (foundChannel == null || !(foundChannel is ISocketMessageChannel messageChannel))
+            if (foundChannel == null || !(foundChannel is IISocketMessageChannel messageChannel))
             {
                 return BadRequest($"A message channel was not found with id {creationData.ChannelId} in guild with id {ModixAuth.CurrentGuildId}");
             }
