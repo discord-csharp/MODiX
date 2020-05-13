@@ -74,25 +74,27 @@ namespace Microsoft.Extensions.DependencyInjection
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            services.AddSingleton(
-                provider => new DiscordSocketClient(config: new DiscordSocketConfig
-                {
-                    AlwaysDownloadUsers = true,
-                    LogLevel = LogSeverity.Debug,
-                    MessageCacheSize = provider
-                        .GetRequiredService<IOptions<ModixConfig>>()
-                        .Value
-                        .MessageCacheSize //needed to log deletions
-                }));
+            services
+                .AddSingleton(
+                    provider => new DiscordSocketClient(config: new DiscordSocketConfig
+                    {
+                        AlwaysDownloadUsers = true,
+                        LogLevel = LogSeverity.Debug,
+                        MessageCacheSize = provider
+                            .GetRequiredService<IOptions<ModixConfig>>()
+                            .Value
+                            .MessageCacheSize //needed to log deletions
+                    }))
+                .AddSingleton<IDiscordClient>(provider => provider.GetRequiredService<DiscordSocketClient>())
+                .AddSingleton(provider => provider.GetRequiredService<DiscordSocketClient>().Abstract());
 
-            services.AddSingleton<IDiscordSocketClient>(provider => provider.GetRequiredService<DiscordSocketClient>().Abstract());
-            services.AddSingleton<IDiscordClient>(provider => provider.GetRequiredService<DiscordSocketClient>());
-
-            services.AddSingleton(
-                provider => new DiscordRestClient(config: new DiscordRestConfig
-                {
-                    LogLevel = LogSeverity.Debug,
-                }));
+            services
+                .AddSingleton(
+                    provider => new DiscordRestClient(config: new DiscordRestConfig
+                    {
+                        LogLevel = LogSeverity.Debug,
+                    }))
+                .AddSingleton(provider => provider.GetRequiredService<DiscordRestClient>().Abstract());
 
             services.AddSingleton(_ =>
                 {
@@ -119,6 +121,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services
                 .AddModixCommon(configuration)
+                .AddModixServices(configuration)
                 .AddModixCore()
                 .AddModixModeration()
                 .AddModixPromotions()
