@@ -39,22 +39,22 @@ namespace Modix.Modules
                 .Select(async x => (x.DisplayName, Latency: await x.GetLatencyAsync(cancellationTokenSource.Token))));
 
             var availabilityResults = await Task.WhenAll(_availabilityEndpoints
-                .Select(async x => (x.DisplayName, Latency: await x.GetAvailabilityAsync(cancellationTokenSource.Token))));
+                .Select(async x => (x.DisplayName, IsAvailable: await x.GetAvailabilityAsync(cancellationTokenSource.Token))));
 
             var average = latencyResults
-                .Select(x => x.Latency)
-                .Where(x => x > -1)
-                .Average();
+                .Where(x => x.Latency.HasValue)
+                .Select(x => x.Latency.Value)
+                .AverageOrNull();
 
             embed = embed
                 .WithCurrentTimestamp()
                 .WithColor(LatencyColor(average));
 
-            foreach (var (name, latency) in latencyResults)
-                embed.AddField(name, FormatLatency(latency, "📶"), true);
+            foreach (var result in latencyResults)
+                embed.AddField(result.DisplayName, FormatLatency(result.Latency, "📶"), true);
 
-            foreach (var (name, isUp) in availabilityResults)
-                embed.AddField(name, FormatAvailability(isUp), true);
+            foreach (var result in availabilityResults)
+                embed.AddField(result.DisplayName, FormatAvailability(result.IsAvailable), true);
 
             embed.AddField("Average", FormatLatency(average, "📈"), true);
 
@@ -66,7 +66,7 @@ namespace Modix.Modules
         }
 
         private string FormatLatency(
-            double latency,
+            double? latency,
             string icon)
         {
             if (latency == -1)
@@ -74,25 +74,29 @@ namespace Modix.Modules
 
             var suffix = latency switch
             {
-                _ when (latency > 300)  => "💔",
-                _ when (latency > 100)  => "💛", //Yellow heart - trust me
-                _ when (latency <= 100) => "💚", //Green heart - trust me again
-                _                       => "❓"
+                _ when (latency is null)    => "💔",
+                _ when (latency > 300)      => "💔",
+                _ when (latency > 100)      => "💛", //Yellow heart - trust me
+                _ when (latency <= 100)     => "💚", //Green heart - trust me again
+                _                           => "❓"
             };
 
             return $"{icon} {latency: 0}ms {suffix}";
         }
 
-        private string FormatAvailability(bool isUp)
-            => isUp ? "🌐 Up 💚" : "🌐 Down 💔";
+        private string FormatAvailability(
+                bool isAvailable)
+            => isAvailable ? "🌐 Up 💚" : "🌐 Down 💔";
 
-        private Color LatencyColor(double latency)
+        private Color LatencyColor(
+                double? latency)
             => latency switch
             {
-                _ when (latency > 300) || (latency < 0) => Color.Red,
-                _ when (latency > 100)                  => Color.Gold,
-                _ when (latency <= 100)                 => Color.Green,
-                _                                       => Color.Default
+                _ when (latency is null)    => Color.Red,
+                _ when (latency > 300)      => Color.Red,
+                _ when (latency > 100)      => Color.Gold,
+                _ when (latency <= 100)     => Color.Green,
+                _                           => Color.Default
             };
 
         private const int Timeout

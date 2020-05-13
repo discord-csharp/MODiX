@@ -21,9 +21,9 @@ namespace Modix.Services.Diagnostics
         public string DisplayName
             => "Discord Gateway";
 
-        public Task<long> GetLatencyAsync(
+        public Task<long?> GetLatencyAsync(
                 CancellationToken cancellationToken)
-            => Task.FromResult(Convert.ToInt64(_discordClient.Latency));
+            => Task.FromResult<long?>(Convert.ToInt64(_discordClient.Latency));
 
         private readonly IDiscordSocketClient _discordClient;
     }

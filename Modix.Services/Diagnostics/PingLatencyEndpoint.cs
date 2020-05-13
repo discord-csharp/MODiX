@@ -28,14 +28,20 @@ namespace Modix.Services.Diagnostics
         public void Dispose()
             => _ping.Dispose();
 
-        public async Task<long> GetLatencyAsync(
+        public async Task<long?> GetLatencyAsync(
             CancellationToken cancellationToken)
         {
             cancellationToken.Register(_ping.SendAsyncCancel);
 
-            var reply = await _ping.SendPingAsync(_url);
-
-            return reply.RoundtripTime;
+            try
+            {
+                return (await _ping.SendPingAsync(_url))
+                    .RoundtripTime;
+            }
+            catch (PingException)
+            {
+                return null;
+            }
         }
 
         private readonly string _displayName;
