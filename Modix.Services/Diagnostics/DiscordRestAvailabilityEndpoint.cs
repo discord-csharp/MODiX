@@ -6,6 +6,7 @@ using Discord;
 using Discord.Rest;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Modix.Services.Diagnostics
 {
@@ -14,9 +15,11 @@ namespace Modix.Services.Diagnostics
         : IAvailabilityEndpoint
     {
         public DiscordRestAvailabilityEndpoint(
-            IDiscordRestClient discordClient)
+            IDiscordRestClient discordClient,
+            ILogger<DiscordRestAvailabilityEndpoint> logger)
         {
             _discordClient = discordClient;
+            _logger = logger;
         }
 
         public string DisplayName
@@ -30,16 +33,19 @@ namespace Modix.Services.Diagnostics
                 var options = RequestOptions.Default.Clone();
                 options.CancelToken = cancellationToken;
 
-                var user = await _discordClient.GetUserAsync(_discordClient.CurrentUser.Id, options);
+                await _discordClient.GetUserAsync(_discordClient.CurrentUser.Id, options);
 
-                return user.Id == _discordClient.CurrentUser.Id;
+                return true;
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "The Discord REST service appears to be unavailable");
+
                 return false;
             }
         }
 
         private readonly IDiscordRestClient _discordClient;
+        private readonly ILogger _logger;
     }
 }
