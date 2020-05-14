@@ -41,7 +41,9 @@ namespace Modix.Services.Diagnostics
                         cancellationToken))
                     .IsSuccessStatusCode;
             }
-            catch (HttpRequestException)
+            catch (Exception ex) when (
+                    (ex is HttpRequestException)
+                ||  (ex is TaskCanceledException))
             {
                 return false;
             }
