@@ -6,6 +6,12 @@ namespace Modix.Data
 {
     public static class ModixContextLogMessages
     {
+        public enum EventType
+        {
+            ContextMigrating    = DataLogEventType.DbContext + 0x0001,
+            ContextMigrated     = DataLogEventType.DbContext + 0x0002
+        }
+
         public static void ContextMigrating(
                 ILogger logger)
             => _contextMigrating.Invoke(
@@ -13,7 +19,7 @@ namespace Modix.Data
         private static readonly Action<ILogger> _contextMigrating
             = LoggerMessage.Define(
                     LogLevel.Information,
-                    new EventId(3101, nameof(ContextMigrating)),
+                    EventType.ContextMigrating.ToEventId(),
                     $"Applying {nameof(ModixContext)} migrations")
                 .WithoutException();
 
@@ -24,7 +30,7 @@ namespace Modix.Data
         private static readonly Action<ILogger> _contextMigrated
             = LoggerMessage.Define(
                     LogLevel.Information,
-                    new EventId(3102, nameof(ContextMigrated)),
+                    EventType.ContextMigrated.ToEventId(),
                     $"{nameof(ModixContext)} migrations applied")
                 .WithoutException();
     }
