@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Modix.Services.Diagnostics
 {
@@ -14,9 +15,11 @@ namespace Modix.Services.Diagnostics
     {
         public PingLatencyEndpoint(
             string displayName,
-            string url)
+            string url,
+            ILogger<PingLatencyEndpoint> logger)
         {
             _displayName = displayName;
+            _logger = logger;
             _url = url;
 
             _ping = new Ping();
@@ -38,13 +41,16 @@ namespace Modix.Services.Diagnostics
                 return (await _ping.SendPingAsync(_url))
                     .RoundtripTime;
             }
-            catch (PingException)
+            catch (PingException ex)
             {
+                _logger.LogWarning(ex, "Unable to ping endpoint: {Url}", _url);
+
                 return null;
             }
         }
 
         private readonly string _displayName;
+        private readonly ILogger _logger;
         private readonly Ping _ping;
         private readonly string _url;
     }
@@ -57,7 +63,7 @@ namespace Modix.Services.Diagnostics
                 IServiceCollection services,
                 IConfiguration configuration)
             => services
-                .AddSingleton<ILatencyEndpoint>(serviceProvider => new PingLatencyEndpoint("Google",     "8.8.8.8"))
-                .AddSingleton<ILatencyEndpoint>(serviceProvider => new PingLatencyEndpoint("Cloudflare", "1.1.1.1"));
+                .AddSingleton<ILatencyEndpoint>(serviceProvider => new PingLatencyEndpoint("Google",     "8.8.8.8", serviceProvider.GetRequiredService<ILogger<PingLatencyEndpoint>>()))
+                .AddSingleton<ILatencyEndpoint>(serviceProvider => new PingLatencyEndpoint("Cloudflare", "1.1.1.1", serviceProvider.GetRequiredService<ILogger<PingLatencyEndpoint>>()));
     }
 }
