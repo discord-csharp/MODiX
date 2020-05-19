@@ -15,7 +15,7 @@ using Modix.Services.Core;
 namespace Modix.Modules
 {
     [Group("pingrole")]
-    [Alias("pingroles")]
+    [Alias("pingroles", "pr")]
     [Name("Topic Roles")]
     [Summary("Provides functionality for maintaining and registering or unregistering topic roles.")]
     [HelpTags("marker", "pingroles", "pingable", "topicroles")]
@@ -67,6 +67,7 @@ namespace Modix.Modules
         }
 
         [Command("register")]
+        [Alias("join")]
         [RequireContext(ContextType.Guild)]
         [Summary("Registers the user as a member of the supplied pingrole.")]
         public async Task RegisterAsync(
@@ -93,6 +94,7 @@ namespace Modix.Modules
         }
 
         [Command("unregister")]
+        [Alias("leave")]
         [RequireContext(ContextType.Guild)]
         [Summary("Unregisters the user from being a member of the supplied pingrole.")]
         public async Task UnregisterAsync(
