@@ -46,6 +46,8 @@ namespace Modix.Services.Core
             DiscordSocketClient.ReactionAdded += OnReactionAddedAsync;
             DiscordSocketClient.ReactionRemoved += OnReactionRemovedAsync;
             DiscordSocketClient.Ready += OnReadyAsync;
+            DiscordSocketClient.RoleCreated += OnRoleCreatedAsync;
+            DiscordSocketClient.RoleUpdated += OnRoleUpdatedAsync;
             DiscordSocketClient.UserBanned += OnUserBannedAsync;
             DiscordSocketClient.UserJoined += OnUserJoinedAsync;
             DiscordSocketClient.UserLeft += OnUserLeftAsync;
@@ -150,6 +152,20 @@ namespace Modix.Services.Core
         private Task OnReadyAsync()
         {
             MessageDispatcher.Dispatch(ReadyNotification.Default);
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnRoleCreatedAsync(ISocketRole role)
+        {
+            MessageDispatcher.Dispatch(new RoleCreatedNotification(role));
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnRoleUpdatedAsync(ISocketRole oldRole, ISocketRole newRole)
+        {
+            MessageDispatcher.Dispatch(new RoleUpdatedNotification(oldRole, newRole));
 
             return Task.CompletedTask;
         }
