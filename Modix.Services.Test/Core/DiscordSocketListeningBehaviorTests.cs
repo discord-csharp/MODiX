@@ -87,11 +87,23 @@ namespace Modix.Services.Test.Core
             public readonly FakeAsyncEvent FakeReadyEvent
                 = new FakeAsyncEvent();
 
-            public event Func<ISocketRole, Task> RoleCreated;
+            public event Func<ISocketRole, Task> RoleCreated
+            {
+                add => FakeRoleCreatedEvent.AddHandler(value);
+                remove => FakeRoleCreatedEvent.RemoveHandler(value);
+            }
+            public readonly FakeAsyncEvent<ISocketRole> FakeRoleCreatedEvent
+                = new FakeAsyncEvent<ISocketRole>();
 
             public event Func<ISocketRole, Task> RoleDeleted;
 
-            public event Func<ISocketRole, ISocketRole, Task> RoleUpdated;
+            public event Func<ISocketRole, ISocketRole, Task> RoleUpdated
+            {
+                add => FakeRoleUpdatedEvent.AddHandler(value);
+                remove => FakeRoleUpdatedEvent.RemoveHandler(value);
+            }
+            public readonly FakeAsyncEvent<ISocketRole, ISocketRole> FakeRoleUpdatedEvent
+                = new FakeAsyncEvent<ISocketRole, ISocketRole>();
 
             public event Func<ISocketGuild, Task> JoinedGuild
             {
@@ -674,6 +686,62 @@ namespace Modix.Services.Test.Core
         }
 
         #endregion DiscordSocketClient.Ready Tests
+
+        #region DiscordSocketClient.ChannelCreated Tests
+
+        [Test]
+        public async Task DiscordSocketClientRoleCreated_Always_DispatchesNotification()
+        {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
+            var autoMocker = new AutoMocker();
+            var fakeDiscordSocketClient = new FakeDiscordSocketClient();
+            autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
+            var mockMessageDispatcher = autoMocker.GetMock<IMessageDispatcher>();
+
+            var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
+
+            await uut.StartAsync(cancellationTokenSource.Token);
+
+            var mockRole = new Mock<ISocketRole>();
+
+            fakeDiscordSocketClient.FakeRoleCreatedEvent.InvokeAsync(mockRole.Object)
+                .IsCompleted.ShouldBeTrue();
+
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<RoleCreatedNotification>(y =>
+                ReferenceEquals(y.Role, mockRole.Object))));
+        }
+
+        #endregion DiscordSocketClient.RoleCreated Tests
+
+        #region DiscordSocketClient.RoleUpdated Tests
+
+        [Test]
+        public async Task DiscordSocketClientRoleUpdated_Always_DispatchesNotification()
+        {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
+            var autoMocker = new AutoMocker();
+            var fakeDiscordSocketClient = new FakeDiscordSocketClient();
+            autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
+            var mockMessageDispatcher = autoMocker.GetMock<IMessageDispatcher>();
+
+            var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
+
+            await uut.StartAsync(cancellationTokenSource.Token);
+
+            var mockOldRole = new Mock<ISocketRole>();
+            var mockNewRole = new Mock<ISocketRole>();
+
+            fakeDiscordSocketClient.FakeRoleUpdatedEvent.InvokeAsync(mockOldRole.Object, mockNewRole.Object)
+                .IsCompleted.ShouldBeTrue();
+
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<RoleUpdatedNotification>(y =>
+                ReferenceEquals(y.OldRole, mockOldRole.Object)
+                && ReferenceEquals(y.NewRole, mockNewRole.Object))));
+        }
+
+        #endregion DiscordSocketClient.RoleUpdated Tests
 
         #region DiscordSocketClient.UserBanned Tests
 

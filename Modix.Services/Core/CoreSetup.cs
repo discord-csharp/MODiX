@@ -20,7 +20,6 @@ namespace Modix.Services.Core
         /// <returns><paramref name="services"/></returns>
         public static IServiceCollection AddModixCore(this IServiceCollection services)
             => services
-                .AddSingleton<IBehavior, RoleTrackingBehavior>()
                 .AddSingleton<IBehavior, UserTrackingBehavior>()
                 .AddSingleton<IBehavior, MessageLogBehavior>()
                 .AddSingleton<IBehavior, StatsBehavior>()
@@ -39,7 +38,6 @@ namespace Modix.Services.Core
                 .AddScoped<INotificationHandler<ChannelUpdatedNotification>>(x => x.GetService<ChannelTrackingBehavior>())
                 .AddScoped<INotificationHandler<GuildAvailableNotification>>(x => x.GetService<ChannelTrackingBehavior>())
                 .AddScoped<INotificationHandler<JoinedGuildNotification>>(x => x.GetService<ChannelTrackingBehavior>())
-                .AddScoped<IRoleService, RoleService>()
                 .AddScoped<IUserService, UserService>()
                 .AddScoped<IGuildChannelRepository, GuildChannelRepository>()
                 .AddScoped<IGuildRoleRepository, GuildRoleRepository>()

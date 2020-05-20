@@ -1,4 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿#nullable enable
+
+using System.Threading;
+using System.Threading.Tasks;
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 using Discord;
 
@@ -7,64 +13,66 @@ using Modix.Data.Repositories;
 
 namespace Modix.Services.Core
 {
-    /// <summary>
-    /// Provides methods for managing and interacting with Discord roles, within the application.
-    /// </summary>
     public interface IRoleService
     {
-        /// <summary>
-        /// Updates information about the given role within the role tracking feature.
-        /// </summary>
-        /// <param name="role">The role whose info is to be tracked.</param>
-        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task TrackRoleAsync(IRole role);
+        Task TrackRoleAsync(
+            IRole role,
+            CancellationToken cancellationToken);
     }
 
-    /// <inheritdoc />
-    public class RoleService : IRoleService
+    [ServiceBinding(ServiceLifetime.Scoped)]
+    public class RoleService
+        : IRoleService
     {
-        /// <summary>
-        /// Constructs a new <see cref="RoleService"/> with the given injected dependencies.
-        /// </summary>
-        /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
-        public RoleService(IDiscordClient discordClient, IGuildRoleRepository guildRoleRepository)
+        public RoleService(
+            IGuildRoleRepository guildRoleRepository,
+            ILogger<RoleService> logger)
         {
-            DiscordClient = discordClient;
-            GuildRoleRepository = guildRoleRepository;
+            _guildRoleRepository = guildRoleRepository;
+            _logger = logger;
         }
 
-        /// <inheritdoc />
-        public async Task TrackRoleAsync(IRole role)
+        public async Task TrackRoleAsync(
+            IRole role,
+            CancellationToken cancellationToken)
         {
-            using (var transaction = await GuildRoleRepository.BeginCreateTransactionAsync())
+            using var logScope = RolesLogMessages.BeginRoleScope(_logger, role.Guild.Id, role.Id);
+
+            RolesLogMessages.RoleTracking(_logger);
+
+            RolesLogMessages.TransactionBeginning(_logger);
+            using var transaction = await _guildRoleRepository.BeginCreateTransactionAsync();
+
+            RolesLogMessages.RoleUpdating(_logger);
+            var wasUpdateSuccessful = await _guildRoleRepository.TryUpdateAsync(role.Id, data =>
             {
-                if (!await GuildRoleRepository.TryUpdateAsync(role.Id, data =>
-                {
-                    data.Name = role.Name;
-                    data.Position = role.Position;
-                }))
-                {
-                    await GuildRoleRepository.CreateAsync(new GuildRoleCreationData()
-                    {
-                        RoleId = role.Id,
-                        GuildId = role.Guild.Id,
-                        Name = role.Name,
-                        Position = role.Position
-                    });
-                }
+                data.Name = role.Name;
+                data.Position = role.Position;
+            });
 
-                transaction.Commit();
+            if (wasUpdateSuccessful)
+                RolesLogMessages.RoleUpdated(_logger);
+            else
+            {
+                RolesLogMessages.RoleUpdateFailed(_logger);
+                RolesLogMessages.RoleCreating(_logger);
+                await _guildRoleRepository.CreateAsync(new GuildRoleCreationData()
+                {
+                    RoleId = role.Id,
+                    GuildId = role.Guild.Id,
+                    Name = role.Name,
+                    Position = role.Position
+                });
+                RolesLogMessages.RoleCreated(_logger);
             }
+
+            RolesLogMessages.TransactionCommitting(_logger);
+            transaction.Commit();
+
+            RolesLogMessages.RoleTracked(_logger);
         }
 
-        /// <summary>
-        /// An <see cref="IDiscordClient"/> to be used to interact with the Discord API.
-        /// </summary>
-        internal protected IDiscordClient DiscordClient { get; }
-
-        /// <summary>
-        /// An <see cref="IGuildRoleRepository"/> to be used to interact with role data within a datastore.
-        /// </summary>
-        internal protected IGuildRoleRepository GuildRoleRepository { get; }
+        private readonly IGuildRoleRepository _guildRoleRepository;
+        private readonly ILogger _logger;
     }
 }

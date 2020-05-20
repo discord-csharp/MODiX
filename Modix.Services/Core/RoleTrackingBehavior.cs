@@ -1,83 +1,60 @@
-﻿using System;
+﻿#nullable enable
+
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Discord;
 using Discord.WebSocket;
 
+using Microsoft.Extensions.DependencyInjection;
+
+using Modix.Common.Messaging;
+
 namespace Modix.Services.Core
 {
-    /// <summary>
-    /// Implements a behavior for keeping the role data within the local datastore synchronized with the Discord API.
-    /// </summary>
-    public class RoleTrackingBehavior : BehaviorBase
+    [ServiceBinding(ServiceLifetime.Scoped)]
+    public class RoleTrackingBehavior
+        : INotificationHandler<JoinedGuildNotification>,
+            INotificationHandler<ReadyNotification>,
+            INotificationHandler<RoleCreatedNotification>,
+            INotificationHandler<RoleUpdatedNotification>
     {
-        // TODO: Abstract DiscordSocketClient to IDiscordSocketClient, or something, to make this testable
-        /// <summary>
-        /// Constructs a new <see cref="RoleTrackingBehavior"/> object, with the given injected dependencies.
-        /// See <see cref="BehaviorBase"/> for more details.
-        /// </summary>
-        public RoleTrackingBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
-            : base(serviceProvider)
+        public RoleTrackingBehavior(
+            IDiscordSocketClient discordSocketClient,
+            IRoleService roleService)
         {
-            DiscordClient = discordClient;
+            _discordSocketClient = discordSocketClient;
+            _roleService = roleService;
         }
 
-        /// <inheritdoc />
-        internal protected override Task OnStartingAsync()
+        public async Task HandleNotificationAsync(
+            JoinedGuildNotification notification,
+            CancellationToken cancellationToken)
         {
-            DiscordClient.Ready += OnReady;
-            DiscordClient.JoinedGuild += OnJoinedGuild;
-            DiscordClient.RoleCreated += OnRoleCreated;
-            DiscordClient.RoleUpdated += OnRoleUpdated;
-
-            return Task.CompletedTask;
+            foreach (var role in notification.Guild.Roles)
+                await _roleService.TrackRoleAsync(role, cancellationToken);
         }
 
-        /// <inheritdoc />
-        internal protected override Task OnStoppedAsync()
+        public async Task HandleNotificationAsync(
+            ReadyNotification notification,
+            CancellationToken cancellationToken)
         {
-            DiscordClient.Ready -= OnReady;
-            DiscordClient.JoinedGuild -= OnJoinedGuild;
-            DiscordClient.RoleCreated -= OnRoleCreated;
-            DiscordClient.RoleUpdated -= OnRoleUpdated;
-
-            return Task.CompletedTask;
+            foreach (var role in _discordSocketClient.Guilds.SelectMany(guild => guild.Roles))
+                await _roleService.TrackRoleAsync(role, cancellationToken);
         }
 
-        /// <inheritdoc />
-        internal protected override void Dispose(bool disposeManaged)
-        {
-            if (disposeManaged && IsRunning)
-                OnStoppedAsync();
+        public Task HandleNotificationAsync(
+                RoleCreatedNotification notification,
+                CancellationToken cancellationToken)
+            => _roleService.TrackRoleAsync(notification.Role, cancellationToken);
 
-            base.Dispose(disposeManaged);
-        }
+        public Task HandleNotificationAsync(
+                RoleUpdatedNotification notification,
+                CancellationToken cancellationToken)
+            => _roleService.TrackRoleAsync(notification.NewRole, cancellationToken);
 
-        /// <summary>
-        /// A <see cref="DiscordSocketClient"/> to be used for interacting with the Discord API.
-        /// </summary>
-        // TODO: Abstract DiscordSocketClient to IDiscordSocketClient, or something, to make this testable
-        internal protected DiscordSocketClient DiscordClient { get; }
-
-        private Task OnReady()
-            => SelfExecuteRequest<IRoleService>(async roleService =>
-            {
-                foreach (var role in DiscordClient.Guilds.SelectMany(guild => guild.Roles))
-                    await roleService.TrackRoleAsync(role);
-            });
-
-        private Task OnJoinedGuild(IGuild guild)
-            => SelfExecuteRequest<IRoleService>(async roleService =>
-            {
-                foreach (var role in guild.Roles)
-                    await roleService.TrackRoleAsync(role);
-            });
-
-        private Task OnRoleCreated(IRole role)
-            => SelfExecuteRequest<IRoleService>(roleService => roleService.TrackRoleAsync(role));
-
-        private Task OnRoleUpdated(IRole oldRole, IRole newRole)
-            => SelfExecuteRequest<IRoleService>(roleService => roleService.TrackRoleAsync(newRole));
+        private readonly IDiscordSocketClient _discordSocketClient;
+        private readonly IRoleService _roleService;
     }
 }
