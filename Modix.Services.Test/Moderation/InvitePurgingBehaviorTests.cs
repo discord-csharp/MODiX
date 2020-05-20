@@ -127,6 +127,7 @@ namespace Modix.Services.Test.Moderation
                 "https://www.discord.gg/111111",
                 "http://discord.gg/111111",
                 "https://discordapp.com/invite/111111",
+                "https://discord.com/invite/111111",
                 "discord.gg/111111",
                 "Yo, check out this server https://discord.gg/111111, it's totally lit"
             };

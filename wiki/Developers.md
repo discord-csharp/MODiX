@@ -2,8 +2,8 @@ Below is a guide on how to start developing Modix. Depending on the nature of th
 
 # Prerequisites
 To work on Modix, you need a few things:
-- A Discord application set up - [go here to create one](https://discordapp.com/developers/applications/), add a bot to it, and copy the **token** from the page. You can then add the bot to your server by going to ` https://discordapp.com/oauth2/authorize?scope=bot&permissions=0&client_id=[ID HERE]`, replacing `[ID HERE]` with the **Client ID** of your bot (not the token).
-- Under `https://discordapp.com/developers/applications/{CLIENT ID HERE}/oauth` make sure to add redirect to your domain such as `https://localhost:5000/signin-discord` and make sure it is appended with `/signin-discord`
+- A Discord application set up - [go here to create one](https://discord.com/developers/applications/), add a bot to it, and copy the **token** from the page. You can then add the bot to your server by going to ` https://discord.com/oauth2/authorize?scope=bot&permissions=0&client_id=[ID HERE]`, replacing `[ID HERE]` with the **Client ID** of your bot (not the token).
+- Under `https://discord.com/developers/applications/{CLIENT ID HERE}/oauth` make sure to add redirect to your domain such as `https://localhost:5000/signin-discord` and make sure it is appended with `/signin-discord`
 - [The latest .NET Core SDK for your chosen platform](https://www.microsoft.com/net/download) (currently 2.2)
 - [NodeJS 10.x LTS for your chosen platform](https://nodejs.org/en/download/)
 - [PostgreSQL database server](https://www.postgresql.org/download/). A docker container also works.
@@ -29,9 +29,9 @@ If you prefer to use environment variables for configuration, they must all be p
 - **Optional**
   - `MessageCacheSize` - An integer value defining the internal Discord.Net message cache size - used for logging deleted messages. Should be around 10 or more, and will default to that if unset, but you don't need it unless you're testing message deletion.
   - `LogWebhookId` - The ID of the Discord webhook to log to. Only necessary if you want log messages to appear in a channel on the server. 
-    - `https://discordapp.com/api/webhooks/[this part]/asda2ed2klkm5lkn42n34jk`
+    - `https://discord.com/api/webhooks/[this part]/asda2ed2klkm5lkn42n34jk`
   - `LogWebhookToken` - Same as above, but the token of the webhook.
-    - `https://discordapp.com/api/webhooks/000000000000000000/[this part]`
+    - `https://discord.com/api/webhooks/000000000000000000/[this part]`
   - `StackoverflowToken` - A token for the StackOverflow API, if you need to use the StackOverflow module.
   - `ReplUrl` - The URL of the endpoint that will be receiving REPL (`!eval`/`!exec`) requests - required if you want to test the REPL, and requires you to host it separately elsewhere.
   - `IlUrl` - The URL of the endpoint that will be receiving IL (`!il`) requests. Same as above, and will likely be the same URL.

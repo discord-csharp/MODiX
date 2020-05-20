@@ -127,7 +127,7 @@ namespace Modix.Services.Moderation
 
         private static readonly Regex _inviteLinkMatcher
             = new Regex(
-                pattern: @"(https?://)?(www\.)?(discord\.(gg|io|me|li)|discordapp\.com/invite)/(?<Code>\w+)",
+                pattern: @"(https?://)?(www\.)?(discord\.(gg|io|me|li)|discord(app)?\.com/invite)/(?<Code>\w+)",
                 options: RegexOptions.Compiled | RegexOptions.IgnoreCase,
                 matchTimeout: TimeSpan.FromSeconds(2));
     }
