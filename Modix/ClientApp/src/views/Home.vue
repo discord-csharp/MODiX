@@ -13,7 +13,7 @@
         </p>
 
         <a href="http://aka.ms/csharp-discord" class="inviteButton">
-            <img src="https://discordapp.com/api/guilds/143867839282020352/widget.png?style=banner1" />
+            <img src="https://discord.com/api/guilds/143867839282020352/widget.png?style=banner1" />
         </a>
     </section>
 </template>
