@@ -122,6 +122,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services
                 .AddModixCommon(configuration)
                 .AddModixServices(configuration)
+                .AddModixBot(configuration)
                 .AddModixCore()
                 .AddModixModeration()
                 .AddModixPromotions()

@@ -3,14 +3,14 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Modix.Services
+namespace Modix.Bot
 {
-    public static class ServicesSetup
+    public static class BotSetup
     {
-        public static IServiceCollection AddModixServices(
+        public static IServiceCollection AddModixBot(
                 this IServiceCollection services,
                 IConfiguration configuration)
             => services
-                .AddServices(typeof(ServicesSetup).Assembly, configuration);
+                .AddServices(typeof(BotSetup).Assembly, configuration);
     }
 }

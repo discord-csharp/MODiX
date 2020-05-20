@@ -31,6 +31,7 @@ namespace Modix.Bot.Behaviors
         /// Constructs a new <see cref="CommandListeningBehavior"/>, with the given dependencies.
         /// </summary>
         public CommandListeningBehavior(
+            ICommandPrefixParser commandPrefixParser,
             IServiceProvider serviceProvider,
             CommandService commandService,
             CommandErrorHandler commandErrorHandler,
@@ -38,6 +39,7 @@ namespace Modix.Bot.Behaviors
             IAuthorizationService authorizationService,
             IDogStatsd stats = null)
         {
+            _commandPrefixParser = commandPrefixParser;
             ServiceProvider = serviceProvider;
             CommandService = commandService;
             CommandErrorHandler = commandErrorHandler;
@@ -62,11 +64,11 @@ namespace Modix.Bot.Behaviors
                 || author.IsWebhook)
                 return;
 
-            var argPos = 0;
-            if (!userMessage.HasCharPrefix('!', ref argPos) && !userMessage.HasMentionPrefix(DiscordClient.CurrentUser, ref argPos))
+            if (userMessage.Content.Length <= 1)
                 return;
 
-            if (userMessage.Content.Length <= 1)
+            var argPos = await _commandPrefixParser.TryFindCommandArgPosAsync(userMessage, cancellationToken);
+            if (argPos is null)
                 return;
 
             var commandContext = new CommandContext(DiscordClient, userMessage);
@@ -77,7 +79,7 @@ namespace Modix.Bot.Behaviors
             var commandTimer = Stopwatch.StartNew();
             try
             {
-                commandResult = await CommandService.ExecuteAsync(commandContext, argPos, ServiceProvider);
+                commandResult = await CommandService.ExecuteAsync(commandContext, argPos.Value, ServiceProvider);
             }
             finally
             {
@@ -86,7 +88,7 @@ namespace Modix.Bot.Behaviors
 
                 if (!(_stats is null) && (commandResult.IsSuccess || !string.Equals(commandResult.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase)))
                 {
-                    var commandInfo = CommandService.Search(commandContext, argPos).Commands?.FirstOrDefault();
+                    var commandInfo = CommandService.Search(commandContext, argPos.Value).Commands?.FirstOrDefault();
                     if (commandInfo is { } match)
                     {
                         var name = match.Command?.Name.ToLowerInvariant();
@@ -140,5 +142,7 @@ namespace Modix.Bot.Behaviors
         /// An <see cref="IAuthorizationService"/> used to interact with the application authorization system.
         /// </summary>
         internal protected IAuthorizationService AuthorizationService { get; }
+
+        private readonly ICommandPrefixParser _commandPrefixParser;
    }
 }
