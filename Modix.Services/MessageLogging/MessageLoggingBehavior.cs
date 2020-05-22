@@ -100,15 +100,22 @@ namespace Modix.Services.MessageLogging
                 {
                     var content = $":pencil:Message Edited in {MentionUtils.MentionChannel(notification.Channel.Id)} `{notification.Channel.Id}`";
 
-                    var descriptionBuilder = new StringBuilder(4096);
+                    var descriptionBuilder = new StringBuilder(2048);
                     descriptionBuilder.Append($"**[Original]({notification.NewMessage.GetJumpUrl()})**\n");
                     descriptionBuilder.Append($"```{FormatMessageContent(notification.OldMessage.HasValue ? notification.OldMessage.Value.Content : null)}```\n");
                     descriptionBuilder.Append("**Updated**\n");
                     descriptionBuilder.Append($"```{FormatMessageContent(notification.NewMessage.Content)}```");
 
+                    var description = descriptionBuilder.ToString();
+
+                    if (description.Length > 2048)
+                    {
+                        description = description[..2048];
+                    }
+
                     var embed = new EmbedBuilder()
                         .WithUserAsAuthor(notification.NewMessage.Author, notification.NewMessage.Author.Id.ToString())
-                        .WithDescription(descriptionBuilder.ToString())
+                        .WithDescription(description)
                         .WithCurrentTimestamp()
                         .Build();
 
