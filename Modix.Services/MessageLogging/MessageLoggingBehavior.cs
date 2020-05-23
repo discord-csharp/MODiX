@@ -1,6 +1,7 @@
 ﻿#nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -98,25 +99,74 @@ namespace Modix.Services.MessageLogging
                 notification.Channel,
                 () =>
                 {
-                    var content = $":pencil:Message Edited in {MentionUtils.MentionChannel(notification.Channel.Id)} `{notification.Channel.Id}`";
-
-                    var descriptionBuilder = new StringBuilder(4096);
-                    descriptionBuilder.Append($"**[Original]({notification.NewMessage.GetJumpUrl()})**\n");
-                    descriptionBuilder.Append($"```{FormatMessageContent(notification.OldMessage.HasValue ? notification.OldMessage.Value.Content : null)}```\n");
-                    descriptionBuilder.Append("**Updated**\n");
-                    descriptionBuilder.Append($"```{FormatMessageContent(notification.NewMessage.Content)}```");
+                    var fields = GetFields(notification);
 
                     var embed = new EmbedBuilder()
                         .WithUserAsAuthor(notification.NewMessage.Author, notification.NewMessage.Author.Id.ToString())
-                        .WithDescription(descriptionBuilder.ToString())
+                        .WithDescription($"\\📝 **Message edited in {notification.NewMessage.GetJumpUrlForEmbed()}**")
                         .WithCurrentTimestamp()
+                        .WithFields(fields)
                         .Build();
 
-                    return (content, embed);
+                    return ("", embed);
                 },
                 cancellationToken);
 
             MessageLoggingLogMessages.MessageUpdatedHandled(_logger);
+
+            static IEnumerable<EmbedFieldBuilder> GetFields(MessageUpdatedNotification notification)
+            {
+                var oldMessageContent = notification.OldMessage.HasValue ? notification.OldMessage.Value.Content : string.Empty;
+                var oldMessageFields = GetSplitFields("**Original**", oldMessageContent);
+
+                foreach (var field in oldMessageFields)
+                {
+                    yield return field;
+                }
+
+                var newMessageFields = GetSplitFields("**Updated**", notification.NewMessage.Content);
+
+                foreach (var field in newMessageFields)
+                {
+                    yield return field;
+                }
+
+                yield return new EmbedFieldBuilder()
+                    .WithName("Channel ID")
+                    .WithValue(notification.Channel.Id)
+                    .WithIsInline(true);
+
+                yield return new EmbedFieldBuilder()
+                    .WithName("Message ID")
+                    .WithValue(notification.NewMessage.Id)
+                    .WithIsInline(true);
+
+                static IEnumerable<EmbedFieldBuilder> GetSplitFields(string fieldName, string content)
+                {
+                    if (content.Length > 1024)
+                    {
+                        yield return new EmbedFieldBuilder()
+                            .WithName(fieldName)
+                            .WithValue(content[..1024]);
+
+                        yield return new EmbedFieldBuilder()
+                            .WithName("(continued)")
+                            .WithValue(content[1024..]);
+                    }
+                    else if (string.IsNullOrEmpty(content))
+                    {
+                        yield return new EmbedFieldBuilder()
+                            .WithName(fieldName)
+                            .WithValue("[N/A]");
+                    }
+                    else
+                    {
+                        yield return new EmbedFieldBuilder()
+                            .WithName(fieldName)
+                            .WithValue(content);
+                    }
+                }
+            }
         }
 
         private string FormatMessageContent(
