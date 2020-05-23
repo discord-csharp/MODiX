@@ -1,9 +1,7 @@
 ﻿#nullable enable
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -52,12 +50,21 @@ namespace Modix.Services.MessageLogging
                 notification.Channel,
                 () =>
                 {
-                    var content = $":wastebasket:Message Deleted in {MentionUtils.MentionChannel(notification.Channel.Id)} `{notification.Channel.Id}`";
+                    var fields = Enumerable.Empty<EmbedFieldBuilder>()
+                        .Concat(FormatMessageContent(notification.Message.HasValue
+                                ? notification.Message.Value.Content
+                                : null)
+                            .EnumerateLongTextAsFieldBuilders("**Content**"))
+                        .Append(new EmbedFieldBuilder()
+                            .WithName("Channel ID")
+                            .WithValue(notification.Channel.Id)
+                            .WithIsInline(true))
+                        .Append(new EmbedFieldBuilder()
+                            .WithName("Message ID")
+                            .WithValue(notification.Message.Id)
+                            .WithIsInline(true));
 
                     var embedBuilder = new EmbedBuilder();
-
-                    embedBuilder = embedBuilder
-                            .WithDescription($"**Content**\n```{FormatMessageContent(notification.Message.HasValue ? notification.Message.Value.Content : null)}```");
 
                     if (notification.Message.HasValue)
                     {
@@ -65,17 +72,18 @@ namespace Modix.Services.MessageLogging
                             .WithUserAsAuthor(notification.Message.Value.Author, notification.Message.Value.Author.Id.ToString());
 
                         if (notification.Message.Value.Attachments.Any())
-                            embedBuilder = embedBuilder
-                                .AddField(field => field
+                            fields = fields
+                                .Append(new EmbedFieldBuilder()
                                     .WithName("Attachments")
                                     .WithValue(string.Join(", ", notification.Message.Value.Attachments.Select(attachment => $"{attachment.Filename} ({attachment.Size}b)"))));
                     }
 
-                    var embed = embedBuilder
+                    return embedBuilder
+                        //                   ↓ This character is a "wastebasket", don't worry
+                        .WithDescription($"\\🗑️ **Message deleted in {MentionUtils.MentionChannel(notification.Channel.Id)}**")
                         .WithCurrentTimestamp()
+                        .WithFields(fields)
                         .Build();
-
-                    return (content, embed);
                 },
                 cancellationToken);
 
@@ -97,79 +105,32 @@ namespace Modix.Services.MessageLogging
                 notification.OldMessage.HasValue ? notification.OldMessage.Value : null,
                 notification.NewMessage,
                 notification.Channel,
-                () =>
-                {
-                    var fields = GetFields(notification);
-
-                    var embed = new EmbedBuilder()
-                        .WithUserAsAuthor(notification.NewMessage.Author, notification.NewMessage.Author.Id.ToString())
-                        .WithDescription($"\\📝 **Message edited in {notification.NewMessage.GetJumpUrlForEmbed()}**")
-                        .WithCurrentTimestamp()
-                        .WithFields(fields)
-                        .Build();
-
-                    return ("", embed);
-                },
+                () => new EmbedBuilder()
+                    .WithUserAsAuthor(notification.NewMessage.Author, notification.NewMessage.Author.Id.ToString())
+                    .WithDescription($"\\📝 **Message edited in {notification.NewMessage.GetJumpUrlForEmbed()}**")
+                    .WithCurrentTimestamp()
+                    .WithFields(Enumerable.Empty<EmbedFieldBuilder>()
+                        .Concat(FormatMessageContent(notification.OldMessage.HasValue
+                                ? notification.OldMessage.Value.Content
+                                : null)
+                            .EnumerateLongTextAsFieldBuilders("**Original**"))
+                        .Concat(FormatMessageContent(notification.NewMessage.Content)
+                            .EnumerateLongTextAsFieldBuilders("**Updated**"))
+                        .Append(new EmbedFieldBuilder()
+                            .WithName("Channel ID")
+                            .WithValue(notification.Channel.Id)
+                            .WithIsInline(true))
+                        .Append(new EmbedFieldBuilder()
+                            .WithName("Message ID")
+                            .WithValue(notification.NewMessage.Id)
+                            .WithIsInline(true)))
+                    .Build(),
                 cancellationToken);
 
             MessageLoggingLogMessages.MessageUpdatedHandled(_logger);
-
-            static IEnumerable<EmbedFieldBuilder> GetFields(MessageUpdatedNotification notification)
-            {
-                var oldMessageContent = notification.OldMessage.HasValue ? notification.OldMessage.Value.Content : string.Empty;
-                var oldMessageFields = GetSplitFields("**Original**", oldMessageContent);
-
-                foreach (var field in oldMessageFields)
-                {
-                    yield return field;
-                }
-
-                var newMessageFields = GetSplitFields("**Updated**", notification.NewMessage.Content);
-
-                foreach (var field in newMessageFields)
-                {
-                    yield return field;
-                }
-
-                yield return new EmbedFieldBuilder()
-                    .WithName("Channel ID")
-                    .WithValue(notification.Channel.Id)
-                    .WithIsInline(true);
-
-                yield return new EmbedFieldBuilder()
-                    .WithName("Message ID")
-                    .WithValue(notification.NewMessage.Id)
-                    .WithIsInline(true);
-
-                static IEnumerable<EmbedFieldBuilder> GetSplitFields(string fieldName, string content)
-                {
-                    if (content.Length > 1024)
-                    {
-                        yield return new EmbedFieldBuilder()
-                            .WithName(fieldName)
-                            .WithValue(content[..1024]);
-
-                        yield return new EmbedFieldBuilder()
-                            .WithName("(continued)")
-                            .WithValue(content[1024..]);
-                    }
-                    else if (string.IsNullOrEmpty(content))
-                    {
-                        yield return new EmbedFieldBuilder()
-                            .WithName(fieldName)
-                            .WithValue("[N/A]");
-                    }
-                    else
-                    {
-                        yield return new EmbedFieldBuilder()
-                            .WithName(fieldName)
-                            .WithValue(content);
-                    }
-                }
-            }
         }
 
-        private string FormatMessageContent(
+        private static string FormatMessageContent(
                 string? messageContent)
             => string.IsNullOrWhiteSpace(messageContent)
                 ? "[N/A]"
@@ -181,7 +142,7 @@ namespace Modix.Services.MessageLogging
             IMessage? oldMessage,
             IMessage? newMessage,
             IISocketMessageChannel channel,
-            Func<(string content, Embed embed)> renderLogMessage,
+            Func<Embed> renderLogMessage,
             CancellationToken cancellationToken)
         {
             if (guild is null)
@@ -229,12 +190,12 @@ namespace Modix.Services.MessageLogging
             }
             MessageLoggingLogMessages.MessageLogChannelsFetched(_logger, messageLogChannels.Count);
 
-            var (content, embed) = renderLogMessage.Invoke();
+            var embed = renderLogMessage.Invoke();
 
             foreach (var messageLogChannel in messageLogChannels)
             {
                 MessageLoggingLogMessages.MessageLogMessageSending(_logger, messageLogChannel.Id);
-                var logMessage = await messageLogChannel.SendMessageAsync(content, false, embed);
+                var logMessage = await messageLogChannel.SendMessageAsync(string.Empty, false, embed);
                 MessageLoggingLogMessages.MessageLogMessageSent(_logger, messageLogChannel.Id, logMessage.Id);
             }
         }
