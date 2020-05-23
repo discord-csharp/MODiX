@@ -67,6 +67,9 @@ namespace Modix.Data.Models.Core
                 .HasIndex(x => x.Timestamp);
 
             entityTypeBuilder
+                .HasIndex(x => new { x.ChannelId, x.Timestamp, x.AuthorId });
+
+            entityTypeBuilder
                 .HasOne(x => x.Author)
                 .WithMany(x => x.Messages)
                 .HasForeignKey(x => new { x.GuildId, x.AuthorId });
