@@ -17,6 +17,7 @@ using Shouldly;
 using Modix.Data.Models.Core;
 using Modix.Services.Core;
 using Modix.Services.MessageLogging;
+using Modix.Services.Utilities;
 
 using Modix.Common.Test;
 
@@ -234,10 +235,11 @@ namespace Modix.Services.Test.MessageLogging
 
         public static readonly ImmutableArray<TestCaseData> HandleNotificationAsync_MessageDeletedNotification_MessageShouldNotBeIgnored_TestCaseData
             = ImmutableArray.Create(
-                BuildTestCaseData_HandleNotificationAsync_MessageDeletedNotification(selfUserId: 1UL,   isChannelUnmoderated: false,    messageLogChannelIds: new[] { 2UL },                messageId: 3UL,     message: (authorId: 4UL,    content: "5",   attachments: Array.Empty<(string, int)>()),     channelId: 6UL,     guildId: 7UL    ).SetName("{m}(Unique Values 1)"),
-                BuildTestCaseData_HandleNotificationAsync_MessageDeletedNotification(selfUserId: 8UL,   isChannelUnmoderated: false,    messageLogChannelIds: new[] { 9UL, 10UL },          messageId: 11UL,    message: (authorId: 12UL,   content: "13",  attachments: new[] { ("14", 15) }),             channelId: 16UL,    guildId: 17UL   ).SetName("{m}(Unique Values 2)"),
-                BuildTestCaseData_HandleNotificationAsync_MessageDeletedNotification(selfUserId: 18UL,  isChannelUnmoderated: false,    messageLogChannelIds: new[] { 19UL, 20UL, 21UL },   messageId: 22UL,    message: (authorId: 23UL,   content: "24",  attachments: new[] { ("25", 26), ("27", 28) }), channelId: 29UL,    guildId: 30UL   ).SetName("{m}(Unique Values 3)"),
-                BuildTestCaseData_HandleNotificationAsync_MessageDeletedNotification(selfUserId: 31UL,  isChannelUnmoderated: false,    messageLogChannelIds: new[] { 32UL },               messageId: 33UL,    message: null,                                                                              channelId: 34UL,    guildId: 35UL   ).SetName("{m}(Message is not cached)"));
+                BuildTestCaseData_HandleNotificationAsync_MessageDeletedNotification(selfUserId: 1UL,   isChannelUnmoderated: false,    messageLogChannelIds: new[] { 2UL },                messageId: 3UL,     message: (authorId: 4UL,    content: "5",                       attachments: Array.Empty<(string, int)>()),     channelId: 6UL,     guildId: 7UL    ).SetName("{m}(Unique Values 1)"),
+                BuildTestCaseData_HandleNotificationAsync_MessageDeletedNotification(selfUserId: 8UL,   isChannelUnmoderated: false,    messageLogChannelIds: new[] { 9UL, 10UL },          messageId: 11UL,    message: (authorId: 12UL,   content: "13",                      attachments: new[] { ("14", 15) }),             channelId: 16UL,    guildId: 17UL   ).SetName("{m}(Unique Values 2)"),
+                BuildTestCaseData_HandleNotificationAsync_MessageDeletedNotification(selfUserId: 18UL,  isChannelUnmoderated: false,    messageLogChannelIds: new[] { 19UL, 20UL, 21UL },   messageId: 22UL,    message: (authorId: 23UL,   content: "24",                      attachments: new[] { ("25", 26), ("27", 28) }), channelId: 29UL,    guildId: 30UL   ).SetName("{m}(Unique Values 3)"),
+                BuildTestCaseData_HandleNotificationAsync_MessageDeletedNotification(selfUserId: 31UL,  isChannelUnmoderated: false,    messageLogChannelIds: new[] { 32UL },               messageId: 33UL,    message: null,                                                                                                  channelId: 34UL,    guildId: 35UL   ).SetName("{m}(Message is not cached)"),
+                BuildTestCaseData_HandleNotificationAsync_MessageDeletedNotification(selfUserId: 36UL,  isChannelUnmoderated: false,    messageLogChannelIds: new[] { 37UL },               messageId: 38UL,    message: (authorId: 38UL,   content: new string('A', 2000),     attachments: Array.Empty<(string, int)>()),     channelId: 39UL,    guildId: 40UL   ).SetName("{m}(Message content is max length)"));
 
         [TestCaseSource(nameof(HandleNotificationAsync_MessageDeletedNotification_MessageShouldNotBeIgnored_TestCaseData))]
         public async Task HandleNotificationAsync_MessageDeletedNotification_MessageShouldNotBeIgnored_LogsDeletedMessageToMessageLogChannels(
@@ -284,13 +286,16 @@ namespace Modix.Services.Test.MessageLogging
                     .Select(x => ((string)x.Arguments[0], (Embed)x.Arguments[2]))
                     .First();
 
-                content.ShouldContain(notification.Channel.Id.ToString());
-                content.ShouldContain("deleted", Case.Insensitive);
+
+                content.ShouldBe(string.Empty);
+
+                embed.Description.ShouldContain("deleted", Case.Insensitive);
+                embed.Fields.ShouldContain(x => x.Value == notification.Channel.Id.ToString());
 
                 if (notification.Message.HasValue)
                 {
                     embed.Author.HasValue.ShouldBeTrue();
-                    embed.Description.ShouldContain(notification.Message.Value.Content);
+                    embed.Fields.ShouldContain(x => x.Value == notification.Message.Value.Content.TruncateTo(EmbedFieldBuilder.MaxFieldValueLength));
                     if (notification.Message.Value.Attachments.Any())
                     {
                         embed.Fields.ShouldContain(x => x.Name == "Attachments");
@@ -304,7 +309,7 @@ namespace Modix.Services.Test.MessageLogging
                     }
                 }
                 else
-                    embed.Description.ShouldContain("[N/A]");
+                    embed.Fields.ShouldContain(x => x.Value == "[N/A]");
 
                 embed.Timestamp.ShouldNotBeNull();
             }
@@ -471,13 +476,14 @@ namespace Modix.Services.Test.MessageLogging
 
         public static readonly ImmutableArray<TestCaseData> HandleNotificationAsync_MessageUpdatedNotification_MessageShouldNotBeIgnored_TestCaseData
             = ImmutableArray.Create(
-                BuildTestCaseData_HandleNotificationAsync_MessageUpdatedNotification(selfUserId: 1UL,   isChannelUnmoderated: false,    messageLogChannelIds: new[] { 2UL },        authorId: 3UL,  messageId: 4UL,     oldContent: "5",    newContent: "6",    channelId: 7UL,     guildId: 8UL    ).SetName("{m}(Unique Values 1)"),
-                BuildTestCaseData_HandleNotificationAsync_MessageUpdatedNotification(selfUserId: 9UL,   isChannelUnmoderated: false,    messageLogChannelIds: new[] { 10UL },       authorId: 11UL, messageId: 12UL,    oldContent: "13",   newContent: "14",   channelId: 15UL,    guildId: 16UL   ).SetName("{m}(Unique Values 2)"),
-                BuildTestCaseData_HandleNotificationAsync_MessageUpdatedNotification(selfUserId: 17UL,  isChannelUnmoderated: false,    messageLogChannelIds: new[] { 18UL },       authorId: 19UL, messageId: 20UL,    oldContent: "21",   newContent: "22",   channelId: 23UL,    guildId: 24UL   ).SetName("{m}(Unique Values 3)"),
-                BuildTestCaseData_HandleNotificationAsync_MessageUpdatedNotification(selfUserId: 25UL,  isChannelUnmoderated: false,    messageLogChannelIds: Array.Empty<ulong>(), authorId: 26UL, messageId: 27UL,    oldContent: "28",   newContent: "29",   channelId: 30UL,    guildId: 31UL   ).SetName("{m}(OldMessage is not cached)"));
+                BuildTestCaseData_HandleNotificationAsync_MessageUpdatedNotification(selfUserId: 1UL,   isChannelUnmoderated: false,    messageLogChannelIds: new[] { 2UL },                authorId: 3UL,  messageId: 4UL,     oldContent: "5",                    newContent: "6",                    channelId: 7UL,     guildId: 8UL    ).SetName("{m}(Unique Values 1)"),
+                BuildTestCaseData_HandleNotificationAsync_MessageUpdatedNotification(selfUserId: 9UL,   isChannelUnmoderated: false,    messageLogChannelIds: new[] { 10UL, 11UL },         authorId: 12UL, messageId: 13UL,    oldContent: "14",                   newContent: "15",                   channelId: 16UL,    guildId: 17UL   ).SetName("{m}(Unique Values 2)"),
+                BuildTestCaseData_HandleNotificationAsync_MessageUpdatedNotification(selfUserId: 18UL,  isChannelUnmoderated: false,    messageLogChannelIds: new[] { 19UL, 20UL, 21UL },   authorId: 22UL, messageId: 23UL,    oldContent: "24",                   newContent: "25",                   channelId: 26UL,    guildId: 27UL   ).SetName("{m}(Unique Values 3)"),
+                BuildTestCaseData_HandleNotificationAsync_MessageUpdatedNotification(selfUserId: 28UL,  isChannelUnmoderated: false,    messageLogChannelIds: new[] { 29UL },               authorId: 30UL, messageId: 31UL,    oldContent: null,                   newContent: "32",                   channelId: 33UL,    guildId: 34UL   ).SetName("{m}(OldMessage is not cached)"),
+                BuildTestCaseData_HandleNotificationAsync_MessageUpdatedNotification(selfUserId: 35UL,  isChannelUnmoderated: false,    messageLogChannelIds: new[] { 36UL },               authorId: 37UL, messageId: 38UL,    oldContent: new string('A', 2000),  newContent: "39",                   channelId: 40UL,    guildId: 41UL   ).SetName("{m}(OldMessage content is max length)"),
+                BuildTestCaseData_HandleNotificationAsync_MessageUpdatedNotification(selfUserId: 42UL,  isChannelUnmoderated: false,    messageLogChannelIds: new[] { 43UL },               authorId: 44UL, messageId: 45UL,    oldContent: "46",                   newContent: new string('B', 2000),  channelId: 47UL,    guildId: 48UL   ).SetName("{m}(NewMessage content is max length)"));
 
-        //skip, temporarily
-        //[TestCaseSource(nameof(HandleNotificationAsync_MessageUpdatedNotification_MessageShouldNotBeIgnored_TestCaseData))]
+        [TestCaseSource(nameof(HandleNotificationAsync_MessageUpdatedNotification_MessageShouldNotBeIgnored_TestCaseData))]
         public async Task HandleNotificationAsync_MessageUpdatedNotification_MessageShouldNotBeIngored_LogsUpdatedMessageToMessageLogChannels(
             ulong selfUserId,
             bool isChannelUnmoderated,
@@ -522,16 +528,18 @@ namespace Modix.Services.Test.MessageLogging
                     .Select(x => ((string)x.Arguments[0], (Embed)x.Arguments[2]))
                     .First();
 
-                content.ShouldContain(notification.Channel.Id.ToString());
-                content.ShouldContain("edited", Case.Insensitive);
+                content.ShouldBe(string.Empty);
 
                 embed.Author.HasValue.ShouldBeTrue();
-                embed.Description.ShouldContain(notification.NewMessage.Content);
+                embed.Description.ShouldContain("edited", Case.Insensitive);
+                embed.Fields.ShouldContain(x => x.Value == notification.Channel.Id.ToString());
+                embed.Fields.ShouldContain(x => x.Value == notification.NewMessage.Id.ToString());
+                embed.Fields.ShouldContain(x => x.Value == notification.NewMessage.Content.TruncateTo(EmbedFieldBuilder.MaxFieldValueLength));
 
                 if (notification.OldMessage.HasValue)
-                    embed.Description.ShouldContain(notification.OldMessage.Value.Content);
+                    embed.Fields.ShouldContain(x => x.Value == notification.OldMessage.Value.Content.TruncateTo(EmbedFieldBuilder.MaxFieldValueLength));
                 else
-                    embed.Description.ShouldContain("[N/A]");
+                    embed.Fields.ShouldContain(x => x.Value == "[N/A]");
 
                 embed.Timestamp.ShouldNotBeNull();
             }

@@ -17,7 +17,6 @@
     <PackageReference Include="Serilog.Sinks.Sentry" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Discord.Net.Abstractions\Discord.Net.Abstractions.csproj" />
     <ProjectReference Include="..\Modix.Services\Modix.Services.csproj" />
     <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
   </ItemGroup>
