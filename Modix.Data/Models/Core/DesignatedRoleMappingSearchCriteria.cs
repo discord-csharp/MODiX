@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Modix.Data.Utilities;
@@ -24,6 +25,12 @@ namespace Modix.Data.Models.Core
         /// A <see cref="DesignatedRoleMappingEntity.RoleId"/> value, defining the <see cref="DesignatedRoleMappingEntity"/> entities to be returned.
         /// </summary>
         public ulong? RoleId { get; set; }
+
+        /// <summary>
+        /// A set of <see cref="DesignatedRoleMappingEntity.RoleId"/> values, defining the <see cref="DesignatedRoleMappingEntity"/> entities to be returned.
+        /// A <see cref="DesignatedRoleMappingEntity"/> is considered a match if it matches any of these values.
+        /// </summary>
+        public IReadOnlyCollection<ulong>? RoleIds { get; set; }
 
         /// <summary>
         /// A <see cref="DesignatedRoleMappingEntity.Type"/> value, defining the <see cref="Type"/> of the <see cref="DesignatedRoleMappingEntity"/> entities to be returned.
@@ -63,6 +70,9 @@ namespace Modix.Data.Models.Core
                 .FilterBy(
                     x => x.RoleId == criteria.RoleId,
                     !(criteria.RoleId is null))
+                .FilterBy(
+                    x => criteria.RoleIds!.Contains(x.RoleId),
+                    !(criteria.RoleIds is null))
                 .FilterBy(
                     x => x.Type == criteria.Type,
                     !(criteria.Type is null))
