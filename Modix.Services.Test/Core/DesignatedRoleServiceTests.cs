@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -90,11 +92,69 @@ namespace Modix.Services.Test.Core
             criteria.IsDeleted.ShouldBe(false);
 
             criteria.Id.ShouldBeNull();
+            criteria.RoleIds.ShouldBeNull();
             criteria.CreatedById.ShouldBeNull();
 
             result.ShouldBe(expectedResult);
         }
 
         #endregion RoleHasDesignationAsync() Tests
+
+        #region RolesHaveDesignationAsync() Tests
+
+        public static readonly ImmutableArray<TestCaseData> RolesHaveDesignationAsync_TestCaseData
+            = ImmutableArray.Create(
+                /*                  guildId,        roleIds,                    designation,                                    expectedResult  */
+                new TestCaseData(   default(ulong), new[] { default(ulong) },   default(DesignatedRoleType),                    default(bool)   ).SetName("{m}(Default Values)"),
+                new TestCaseData(   ulong.MinValue, new[] { ulong.MinValue },   DesignatedRoleType.Rank,                        false           ).SetName("{m}(Min Values)"),
+                new TestCaseData(   ulong.MaxValue, new[] { ulong.MaxValue },   DesignatedRoleType.Pingable,                    true            ).SetName("{m}(Max Values)"),
+                new TestCaseData(   1UL,            Array.Empty<ulong>(),       DesignatedRoleType.Rank,                        false           ).SetName("{m}(Unique Values 1)"),
+                new TestCaseData(   2UL,            new[] { 3UL },              DesignatedRoleType.ModerationMute,              true            ).SetName("{m}(Unique Values 2)"),
+                new TestCaseData(   4UL,            new[] { 5UL, 6UL },         DesignatedRoleType.RestrictedMentionability,    false           ).SetName("{m}(Unique Values 3)"));
+
+        [TestCaseSource(nameof(RolesHaveDesignationAsync_TestCaseData))]
+        public async Task RolesHaveDesignationAsync_Always_ReturnsDesignatedRoleMappingRepositoryAnyAsync(
+            ulong guildId,
+            IReadOnlyCollection<ulong> roleIds,
+            DesignatedRoleType designation,
+            bool expectedResult)
+        {
+            using var testContext = new TestContext();
+
+            testContext.MockDesignatedRoleMappingRepository
+                .Setup(x => x.AnyAsync(It.IsAny<DesignatedRoleMappingSearchCriteria>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedResult);
+
+            var uut = testContext.BuildUut();
+
+            var result = await uut.RolesHaveDesignationAsync(
+                guildId,
+                roleIds,
+                designation,
+                testContext.CancellationToken);
+
+            testContext.MockAuthorizationService.Invocations.ShouldBeEmpty();
+
+            testContext.MockDesignatedRoleMappingRepository.ShouldHaveReceived(x => x
+                .AnyAsync(It.IsNotNull<DesignatedRoleMappingSearchCriteria>(), It.IsAny<CancellationToken>()));
+
+            var criteria = testContext.MockDesignatedRoleMappingRepository.Invocations
+                .Where(x => x.Method.Name == nameof(IDesignatedRoleMappingRepository.AnyAsync))
+                .Select(x => (DesignatedRoleMappingSearchCriteria)x.Arguments[0])
+                .First();
+
+            criteria.GuildId.ShouldBe(guildId);
+            criteria.RoleIds.ShouldBeSetEqualTo(roleIds);
+            criteria.Type.ShouldBe(designation);
+            criteria.IsDeleted.ShouldBe(false);
+
+            criteria.Id.ShouldBeNull();
+            criteria.RoleId.ShouldBeNull();
+            criteria.CreatedById.ShouldBeNull();
+
+            result.ShouldBe(expectedResult);
+        }
+
+        #endregion RolesHaveDesignationAsync() Tests
     }
 }

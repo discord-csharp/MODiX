@@ -70,6 +70,19 @@ namespace Modix.Services.Core
             ulong roleId,
             DesignatedRoleType designation,
             CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Checks if the given set of roles has the given designation
+        /// </summary>
+        /// <param name="guild">The Id of the guild where the role is located</param>
+        /// <param name="roleIds">The Id values of the roles to check the designation for</param>
+        /// <param name="designation">The <see cref="DesignatedRoleType"/> to check for</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+        Task<bool> RolesHaveDesignationAsync(
+            ulong guildId,
+            IReadOnlyCollection<ulong> roleIds,
+            DesignatedRoleType designation,
+            CancellationToken cancellationToken);
     }
 
     public class DesignatedRoleService : IDesignatedRoleService
@@ -178,6 +191,19 @@ namespace Modix.Services.Core
             {
                 GuildId = guildId,
                 RoleId = roleId,
+                IsDeleted = false,
+                Type = designation
+            }, default);
+
+        public Task<bool> RolesHaveDesignationAsync(
+                ulong guildId,
+                IReadOnlyCollection<ulong> roleIds,
+                DesignatedRoleType designation,
+                CancellationToken cancellationToken)
+            => DesignatedRoleMappingRepository.AnyAsync(new DesignatedRoleMappingSearchCriteria()
+            {
+                GuildId = guildId,
+                RoleIds = roleIds,
                 IsDeleted = false,
                 Type = designation
             }, default);

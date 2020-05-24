@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 
 using Modix.Data.Models.Core;
@@ -123,6 +124,31 @@ namespace Modix.Data.Test.TestData
                 (
                     "RoleId Invalid",
                     new DesignatedRoleMappingSearchCriteria() { RoleId = 4 },
+                    new long[] { }
+                ),
+                (
+                    "RoleIds Valid(1)",
+                    new DesignatedRoleMappingSearchCriteria() { RoleIds = new[] { 1UL } },
+                    new long[] { 1 }
+                ),
+                (
+                    "RoleIds Valid(2)",
+                    new DesignatedRoleMappingSearchCriteria() { RoleIds = new[] { 3UL } },
+                    new long[] { 2, 4 }
+                ),
+                (
+                    "RoleIds Valid(3)",
+                    new DesignatedRoleMappingSearchCriteria() { RoleIds = new[] { 1UL, 3UL } },
+                    new long[] { 1, 2, 4 }
+                ),
+                (
+                    "RoleIds Invalid(1)",
+                    new DesignatedRoleMappingSearchCriteria() { RoleIds = Array.Empty<ulong>() },
+                    new long[] { }
+                ),
+                (
+                    "RoleIds Invalid(2)",
+                    new DesignatedRoleMappingSearchCriteria() { RoleIds = new[] { 4UL } },
                     new long[] { }
                 ),
                 (
