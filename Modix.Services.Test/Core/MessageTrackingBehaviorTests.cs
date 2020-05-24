@@ -237,6 +237,11 @@ namespace Modix.Services.Test.Core
             bool authorIsBot,
             bool authorIsWebhook)
         {
+            var mockChannel = new Mock<IISocketMessageChannel>();
+            mockChannel
+                .Setup(x => x.Id)
+                .Returns(channelId);
+
             Mock<ISocketGuild>? mockGuild = null;
             if (guildId.HasValue)
             {
@@ -244,14 +249,7 @@ namespace Modix.Services.Test.Core
                 mockGuild
                     .Setup(x => x.Id)
                     .Returns(guildId.Value);
-            }
 
-            var mockChannel = new Mock<IISocketMessageChannel>();
-            mockChannel
-                .Setup(x => x.Id)
-                .Returns(channelId);
-            if (guildId.HasValue)
-            {
                 mockChannel.As<IGuildChannel>()
                     .Setup(x => x.Guild)
                     .Returns(mockGuild.Object);
