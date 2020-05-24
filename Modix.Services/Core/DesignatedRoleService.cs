@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 
@@ -61,9 +62,14 @@ namespace Modix.Services.Core
         /// Checks if the given role has the given designation
         /// </summary>
         /// <param name="guild">The Id of the guild where the role is located</param>
-        /// <param name="channel">The Id of the role to check the designation for</param>
+        /// <param name="roleId">The Id of the role to check the designation for</param>
         /// <param name="designation">The <see cref="DesignatedRoleType"/> to check for</param>
-        Task<bool> RoleHasDesignationAsync(ulong guildId, ulong roleId, DesignatedRoleType designation);
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+        Task<bool> RoleHasDesignationAsync(
+            ulong guildId,
+            ulong roleId,
+            DesignatedRoleType designation,
+            CancellationToken cancellationToken);
     }
 
     public class DesignatedRoleService : IDesignatedRoleService
@@ -88,7 +94,7 @@ namespace Modix.Services.Core
                     RoleId = roleId,
                     Type = type,
                     IsDeleted = false
-                }))
+                }, default))
                     throw new InvalidOperationException($"Role {roleId} already has a {type} designation");
 
                 await DesignatedRoleMappingRepository.CreateAsync(new DesignatedRoleMappingCreationData()
@@ -163,16 +169,18 @@ namespace Modix.Services.Core
         public Task<IReadOnlyCollection<DesignatedRoleMappingBrief>> SearchDesignatedRolesAsync(DesignatedRoleMappingSearchCriteria searchCriteria)
             => DesignatedRoleMappingRepository.SearchBriefsAsync(searchCriteria);
 
-        public async Task<bool> RoleHasDesignationAsync(ulong guildId, ulong roleId, DesignatedRoleType designation)
-        {
-            return (await SearchDesignatedRolesAsync(new DesignatedRoleMappingSearchCriteria
+        public Task<bool> RoleHasDesignationAsync(
+                ulong guildId,
+                ulong roleId,
+                DesignatedRoleType designation,
+                CancellationToken cancellationToken)
+            => DesignatedRoleMappingRepository.AnyAsync(new DesignatedRoleMappingSearchCriteria
             {
                 GuildId = guildId,
                 RoleId = roleId,
                 IsDeleted = false,
                 Type = designation
-            })).Any();
-        }
+            }, default);
 
         /// <summary>
         /// A <see cref="IAuthorizationService"/> to be used to perform authorization.

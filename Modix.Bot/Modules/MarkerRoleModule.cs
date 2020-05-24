@@ -83,7 +83,7 @@ namespace Modix.Modules
                 return;
             }
 
-            if (!await _designatedRoleService.RoleHasDesignationAsync(Context.Guild.Id, targetRole.Id, DesignatedRoleType.Pingable))
+            if (!await _designatedRoleService.RoleHasDesignationAsync(Context.Guild.Id, targetRole.Id, DesignatedRoleType.Pingable, default))
             {
                 await ReplyAsync("Can't register to a role that isn't pingable.");
                 return;
@@ -111,7 +111,7 @@ namespace Modix.Modules
             }
 
             if (!await _designatedRoleService
-                .RoleHasDesignationAsync(Context.Guild.Id, targetRole.Id, DesignatedRoleType.Pingable))
+                .RoleHasDesignationAsync(Context.Guild.Id, targetRole.Id, DesignatedRoleType.Pingable, default))
             {
                 await ReplyAsync("Can't unregister from a role that isn't pingable.");
                 return;

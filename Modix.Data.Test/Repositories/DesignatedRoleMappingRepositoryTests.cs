@@ -243,7 +243,7 @@ namespace Modix.Data.Test.Repositories
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            var result = await uut.AnyAsync(criteria);
+            var result = await uut.AnyAsync(criteria, default);
 
             result.ShouldBeTrue();
         }
@@ -253,7 +253,7 @@ namespace Modix.Data.Test.Repositories
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            var result = await uut.AnyAsync(criteria);
+            var result = await uut.AnyAsync(criteria, default);
 
             result.ShouldBeFalse();
         }

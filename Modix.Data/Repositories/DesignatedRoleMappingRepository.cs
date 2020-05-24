@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
@@ -49,11 +50,14 @@ namespace Modix.Data.Repositories
         /// Checks whether any mappings exist within the repository, according to an arbitrary set of criteria.
         /// </summary>
         /// <param name="criteria">A set of criteria defining the mappings to check for.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation has completed,
         /// containing a flag indicating whether any matching mappings were found.
         /// </returns>
-        Task<bool> AnyAsync(DesignatedRoleMappingSearchCriteria criteria);
+        Task<bool> AnyAsync(
+            DesignatedRoleMappingSearchCriteria criteria,
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Searches the repository for mappings, based on an arbitrary set of criteria.
@@ -122,10 +126,12 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public Task<bool> AnyAsync(DesignatedRoleMappingSearchCriteria criteria)
+        public Task<bool> AnyAsync(
+                DesignatedRoleMappingSearchCriteria criteria,
+                CancellationToken cancellationToken)
             => ModixContext.Set<DesignatedRoleMappingEntity>().AsNoTracking()
                 .FilterBy(criteria)
-                .AnyAsync();
+                .AnyAsync(cancellationToken);
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<DesignatedRoleMappingBrief>> SearchBriefsAsync(DesignatedRoleMappingSearchCriteria criteria)
