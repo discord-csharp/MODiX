@@ -157,7 +157,13 @@ namespace Modix.Services.Test.Core
 
             public event Func<ISocketUser, ISocketUser, Task> UserUpdated;
 
-            public event Func<ISocketGuildUser, ISocketGuildUser, Task> GuildMemberUpdated;
+            public event Func<ISocketGuildUser, ISocketGuildUser, Task> GuildMemberUpdated
+            {
+                add => FakeGuildMemberUpdatedEvent.AddHandler(value);
+                remove => FakeGuildMemberUpdatedEvent.RemoveHandler(value);
+            }
+            public readonly FakeAsyncEvent<ISocketGuildUser, ISocketGuildUser> FakeGuildMemberUpdatedEvent
+                = new FakeAsyncEvent<ISocketGuildUser, ISocketGuildUser>();
 
             public event Func<ISocketUser, ISocketVoiceState, ISocketVoiceState, Task> UserVoiceStateUpdated;
 
@@ -486,6 +492,35 @@ namespace Modix.Services.Test.Core
         }
 
         #endregion DiscordSocketClient.GuildAvailable Tests
+
+        #region DiscordSocketClient.GuildMemberUpdated Tests
+
+        [Test]
+        public async Task DiscordSocketClientGuildMemberUpdated_Always_DispatchesNotification()
+        {
+            using var cancellationTokenSource = new CancellationTokenSource();
+
+            var autoMocker = new AutoMocker();
+            var fakeDiscordSocketClient = new FakeDiscordSocketClient();
+            autoMocker.Use<IDiscordSocketClient>(fakeDiscordSocketClient);
+            var mockMessageDispatcher = autoMocker.GetMock<IMessageDispatcher>();
+
+            var uut = autoMocker.CreateInstance<DiscordSocketListeningBehavior>();
+
+            await uut.StartAsync(cancellationTokenSource.Token);
+
+            var mockOldMember = new Mock<ISocketGuildUser>();
+            var mockNewMember = new Mock<ISocketGuildUser>();
+
+            fakeDiscordSocketClient.FakeGuildMemberUpdatedEvent.InvokeAsync(mockOldMember.Object, mockNewMember.Object)
+                .IsCompleted.ShouldBeTrue();
+
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<GuildMemberUpdatedNotification>(y =>
+                ReferenceEquals(y.OldMember, mockOldMember.Object)
+                && ReferenceEquals(y.NewMember, mockNewMember.Object))));
+        }
+
+        #endregion DiscordSocketClient.GuildMemberUpdated Tests
 
         #region DiscordSocketClient.JoinedGuild Tests
 

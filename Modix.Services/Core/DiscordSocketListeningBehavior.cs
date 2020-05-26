@@ -34,6 +34,7 @@ namespace Modix.Services.Core
             DiscordSocketClient.ChannelCreated += OnChannelCreatedAsync;
             DiscordSocketClient.ChannelUpdated += OnChannelUpdatedAsync;
             DiscordSocketClient.GuildAvailable += OnGuildAvailableAsync;
+            DiscordSocketClient.GuildMemberUpdated += OnGuildMemberUpdatedAsync;
             DiscordSocketClient.JoinedGuild += OnJoinedGuildAsync;
             DiscordSocketClient.MessageDeleted += OnMessageDeletedAsync;
             DiscordSocketClient.MessageReceived += OnMessageReceivedAsync;
@@ -57,6 +58,7 @@ namespace Modix.Services.Core
             DiscordSocketClient.ChannelCreated -= OnChannelCreatedAsync;
             DiscordSocketClient.ChannelUpdated -= OnChannelUpdatedAsync;
             DiscordSocketClient.GuildAvailable -= OnGuildAvailableAsync;
+            DiscordSocketClient.GuildMemberUpdated -= OnGuildMemberUpdatedAsync;
             DiscordSocketClient.JoinedGuild -= OnJoinedGuildAsync;
             DiscordSocketClient.MessageDeleted -= OnMessageDeletedAsync;
             DiscordSocketClient.MessageReceived -= OnMessageReceivedAsync;
@@ -98,6 +100,13 @@ namespace Modix.Services.Core
         private Task OnGuildAvailableAsync(ISocketGuild guild)
         {
             MessageDispatcher.Dispatch(new GuildAvailableNotification(guild));
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnGuildMemberUpdatedAsync(ISocketGuildUser oldMember, ISocketGuildUser newMember)
+        {
+            MessageDispatcher.Dispatch(new GuildMemberUpdatedNotification(oldMember, newMember));
 
             return Task.CompletedTask;
         }
