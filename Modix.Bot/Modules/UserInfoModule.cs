@@ -201,7 +201,7 @@ namespace Modix.Modules
 
             if (!string.IsNullOrEmpty(member.Nickname))
             {
-                builder.AppendLine("Nickname: " + member.Nickname);
+                builder.AppendLine("Nickname: " + Format.Sanitize(member.Nickname));
             }
 
             builder.AppendLine($"Created: {FormatUtilities.FormatTimeAgo(_utcNow, member.CreatedAt)}");
