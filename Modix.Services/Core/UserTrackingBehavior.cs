@@ -1,82 +1,67 @@
-﻿using System;
+﻿#nullable enable
+
+using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.DependencyInjection;
+
 using Discord;
-using Discord.WebSocket;
+
+using Modix.Common.Messaging;
 
 namespace Modix.Services.Core
 {
-    /// <summary>
-    /// Implements a behavior for keeping the data within an <see cref="IUserRepository"/> synchronized with Discord.NET.
-    /// </summary>
-    public class UserTrackingBehavior : BehaviorBase
+    [ServiceBinding(ServiceLifetime.Scoped)]
+    public class UserTrackingBehavior
+        : INotificationHandler<GuildAvailableNotification>,
+            INotificationHandler<GuildMemberUpdatedNotification>,
+            INotificationHandler<MessageReceivedNotification>,
+            INotificationHandler<UserJoinedNotification>
     {
-        // TODO: Abstract DiscordSocketClient to IDiscordSocketClient, or something, to make this testable
-        /// <summary>
-        /// Constructs a new <see cref="UserTrackingBehavior"/> object, with the given injected dependencies.
-        /// See <see cref="BehaviorBase"/> for more details.
-        /// </summary>
-        /// <param name="discordClient">The value to use for <see cref="DiscordClient"/>.</param>
-        /// <param name="serviceProvider">See <see cref="BehaviorBase"/>.</param>
-        public UserTrackingBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
-            : base(serviceProvider)
+        public UserTrackingBehavior(
+            ISelfUserProvider selfUserProvider,
+            IUserService userService)
         {
-            DiscordClient = discordClient;
+            _selfUserProvider = selfUserProvider;
+            _userService = userService;
         }
 
-        /// <inheritdoc />
-        internal protected override Task OnStartingAsync()
+        public async Task HandleNotificationAsync(
+            GuildAvailableNotification notification,
+            CancellationToken cancellationToken)
         {
-            DiscordClient.GuildAvailable += OnGuildAvailableAsync;
-            DiscordClient.UserJoined += OnUserJoinedAsync;
-            DiscordClient.GuildMemberUpdated += OnGuildMemberUpdatedAsync;
-            DiscordClient.MessageReceived += OnMessageReceivedAsync;
+            var selfUser = await _selfUserProvider.GetSelfUserAsync(cancellationToken);
 
-            return Task.CompletedTask;
+            await _userService.TrackUserAsync(
+                notification.Guild.GetUser(selfUser.Id),
+                cancellationToken);
         }
 
-        /// <inheritdoc />
-        internal protected override Task OnStoppedAsync()
-        {
-            DiscordClient.GuildAvailable -= OnGuildAvailableAsync;
-            DiscordClient.UserJoined -= OnUserJoinedAsync;
-            DiscordClient.GuildMemberUpdated -= OnGuildMemberUpdatedAsync;
-            DiscordClient.MessageReceived -= OnMessageReceivedAsync;
+        public Task HandleNotificationAsync(
+                GuildMemberUpdatedNotification notification,
+                CancellationToken cancellationToken)
+            => _userService.TrackUserAsync(
+                notification.NewMember,
+                cancellationToken);
 
-            return Task.CompletedTask;
-        }
+        public Task HandleNotificationAsync(
+                MessageReceivedNotification notification,
+                CancellationToken cancellationToken)
+            // Yes, there are cases where `IGuildUser.Guild` can be `null`. Webhooks, IIRC
+            => ((notification.Message.Author is IGuildUser author) && (author.Guild is { }))
+                ? _userService.TrackUserAsync(
+                    author,
+                    cancellationToken)
+                : Task.CompletedTask;
 
-        /// <inheritdoc />
-        internal protected override void Dispose(bool disposeManaged)
-        {
-            if (disposeManaged && IsRunning)
-                OnStoppedAsync();
+        public Task HandleNotificationAsync(
+                UserJoinedNotification notification,
+                CancellationToken cancellationToken)
+            => _userService.TrackUserAsync(
+                notification.GuildUser,
+                cancellationToken);
 
-            base.Dispose(disposeManaged);
-        }
-
-        /// <summary>
-        /// A <see cref="DiscordSocketClient"/> to be used for interacting with the Discord API.
-        /// </summary>
-        // TODO: Abstract DiscordSocketClient to IDiscordSocketClient, or something, to make this testable
-        internal protected DiscordSocketClient DiscordClient { get; }
-
-        private Task OnGuildAvailableAsync(IGuild guild)
-            => SelfExecuteRequest<IUserService>(async x =>
-                await x.TrackUserAsync(
-                    await guild.GetUserAsync(DiscordClient.CurrentUser.Id)));
-
-        private Task OnUserJoinedAsync(IGuildUser guildUser)
-            => SelfExecuteRequest<IUserService>(x => x.TrackUserAsync(guildUser));
-
-        private Task OnGuildMemberUpdatedAsync(IGuildUser oldUser, IGuildUser newUser)
-            => SelfExecuteRequest<IUserService>(x => x.TrackUserAsync(newUser));
-
-        private Task OnMessageReceivedAsync(IMessage message)
-            => SelfExecuteRequest<IUserService>(async x =>
-            {
-                if(message.Author is IGuildUser author && !(author.Guild is null))
-                    await x.TrackUserAsync(author);
-            });
+        private readonly ISelfUserProvider _selfUserProvider;
+        private readonly IUserService _userService;
     }
 }

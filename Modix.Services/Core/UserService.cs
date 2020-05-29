@@ -1,6 +1,8 @@
 ﻿#nullable enable
+
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Discord;
@@ -66,8 +68,11 @@ namespace Modix.Services.Core
         /// Updates information about the given user within the user tracking system of a guild.
         /// </summary>
         /// <param name="user">The user whose info is to be tracked.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task TrackUserAsync(IGuildUser user);
+        Task TrackUserAsync(
+            IGuildUser user,
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Updates information about the given user within the user tracking system of a guild.
@@ -91,12 +96,14 @@ namespace Modix.Services.Core
             IDiscordClient discordClient,
             DiscordRestClient discordRestClient,
             IAuthorizationService authorizationService,
-            IGuildUserRepository guildUserRepository)
+            IGuildUserRepository guildUserRepository,
+            ISystemClock systemClock)
         {
             DiscordClient = discordClient;
             DiscordRestClient = discordRestClient;
             AuthorizationService = authorizationService;
             GuildUserRepository = guildUserRepository;
+            _systemClock = systemClock;
         }
 
         /// <inheritdoc />
@@ -110,7 +117,7 @@ namespace Modix.Services.Core
             if (user == null)
             { return false; }
 
-            await TrackUserAsync(user);
+            await TrackUserAsync(user, default);
 
             return true;
         }
@@ -126,7 +133,7 @@ namespace Modix.Services.Core
             if (user == null)
                 throw new InvalidOperationException($"Discord user {userId} does not exist");
 
-            await TrackUserAsync(user);
+            await TrackUserAsync(user, default);
 
             return user;
         }
@@ -158,7 +165,7 @@ namespace Modix.Services.Core
             var ban = bans.FirstOrDefault(x => x.User.Id == userId);
 
             if (guildUser is { })
-                await TrackUserAsync(guildUser);
+                await TrackUserAsync(guildUser, default);
 
             var buildUser = new EphemeralUser()
                 .WithGuildUserSummaryData(guildUserSummary)
@@ -189,8 +196,12 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task TrackUserAsync(IGuildUser user)
+        public async Task TrackUserAsync(
+            IGuildUser user,
+            CancellationToken cancellationToken)
         {
+            var now = _systemClock.UtcNow;
+
             using (var transaction = await GuildUserRepository.BeginCreateTransactionAsync())
             {
                 if (!await GuildUserRepository.TryUpdateAsync(user.Id, user.GuildId, data =>
@@ -202,8 +213,8 @@ namespace Modix.Services.Core
                         data.Discriminator = user.Discriminator;
                     if ((user.Username != null) && (user.DiscriminatorValue != 0))
                         data.Nickname = user.Nickname;
-                    data.LastSeen = DateTimeOffset.Now;
-                }))
+                    data.LastSeen = now;
+                }, cancellationToken))
                 {
                     await GuildUserRepository.CreateAsync(new GuildUserCreationData()
                     {
@@ -212,9 +223,9 @@ namespace Modix.Services.Core
                         Username = user.Username ?? "[UNKNOWN USERNAME]",
                         Discriminator = (user.DiscriminatorValue == 0) ? "????" : user.Discriminator,
                         Nickname = user.Nickname,
-                        FirstSeen = DateTimeOffset.Now,
-                        LastSeen = DateTimeOffset.Now
-                    });
+                        FirstSeen = now,
+                        LastSeen = now
+                    }, cancellationToken);
                 }
 
                 transaction.Commit();
@@ -224,7 +235,8 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task TrackUserAsync(IGuild guild, ulong userId)
             => await TrackUserAsync(
-                    await guild.GetUserAsync(userId));
+                    await guild.GetUserAsync(userId),
+                    default);
 
         /// <summary>
         /// A <see cref="IDiscordClient"/> to be used to interact with the Discord API.
@@ -245,5 +257,7 @@ namespace Modix.Services.Core
         /// A <see cref="IGuildUserRepository"/> to be used to interact with user data within a datastore.
         /// </summary>
         internal protected IGuildUserRepository GuildUserRepository { get; }
+
+        private readonly ISystemClock _systemClock;
     }
 }

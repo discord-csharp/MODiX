@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
@@ -28,9 +29,12 @@ namespace Modix.Data.Repositories
         /// Creates a new set of guild data for a user within the repository.
         /// </summary>
         /// <param name="data">The initial set of guild data to be created.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="data"/>.</exception>
         /// <returns>A <see cref="Task"/> which will complete when th+e operation is complete.</returns>
-        Task CreateAsync(GuildUserCreationData data);
+        Task CreateAsync(
+            GuildUserCreationData data,
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Retrieves summary information about a user.
@@ -49,12 +53,17 @@ namespace Modix.Data.Repositories
         /// <param name="userId">The <see cref="GuildUserEntity.UserId"/> value of the user guild data to be updated.</param>
         /// <param name="guildId">The <see cref="GuildUserEntity.GuildId"/> value of the user guild data to be updated.</param>
         /// <param name="updateAction">An action to be invoked to perform the requested update.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="updateAction"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation has completed,
         /// containing a flag indicating whether the requested update succeeded (I.E. whether the specified data record exists).
         /// </returns>
-        Task<bool> TryUpdateAsync(ulong userId, ulong guildId, Action<GuildUserMutationData> updateAction);
+        Task<bool> TryUpdateAsync(
+            ulong userId,
+            ulong guildId,
+            Action<GuildUserMutationData> updateAction,
+            CancellationToken cancellationToken);
     }
 
     /// <inheritdoc />
@@ -72,7 +81,9 @@ namespace Modix.Data.Repositories
             => _createTransactionFactory.BeginTransactionAsync(ModixContext.Database);
 
         /// <inheritdoc />
-        public async Task CreateAsync(GuildUserCreationData data)
+        public async Task CreateAsync(
+            GuildUserCreationData data,
+            CancellationToken cancellationToken)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
@@ -84,7 +95,7 @@ namespace Modix.Data.Repositories
                 .FirstOrDefaultAsync(x => x.Id == data.UserId)
                 ?? data.ToUserEntity();
 
-            await ModixContext.Set<GuildUserEntity>().AddAsync(guildDataEntity);
+            await ModixContext.Set<GuildUserEntity>().AddAsync(guildDataEntity, cancellationToken);
 
             if ((guildDataEntity.User.Username != data.Username) && !(data.Username is null))
                 guildDataEntity.User.Username = data.Username;
@@ -92,7 +103,7 @@ namespace Modix.Data.Repositories
             if ((guildDataEntity.User.Discriminator != data.Discriminator) && !(data.Discriminator is null))
                 guildDataEntity.User.Discriminator = data.Discriminator;
 
-            await ModixContext.SaveChangesAsync();
+            await ModixContext.SaveChangesAsync(cancellationToken);
         }
 
         /// <inheritdoc />
@@ -108,7 +119,11 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<bool> TryUpdateAsync(ulong userId, ulong guildId, Action<GuildUserMutationData> updateAction)
+        public async Task<bool> TryUpdateAsync(
+            ulong userId,
+            ulong guildId,
+            Action<GuildUserMutationData> updateAction,
+            CancellationToken cancellationToken)
         {
             if (updateAction == null)
                 throw new ArgumentNullException(nameof(updateAction));
@@ -117,7 +132,7 @@ namespace Modix.Data.Repositories
                 .Where(x => x.UserId == userId)
                 .Where(x => x.GuildId == guildId)
                 .Include(x => x.User)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
 
             if(entity == null)
                 return false;
@@ -131,7 +146,7 @@ namespace Modix.Data.Repositories
             ModixContext.UpdateProperty(entity, x => x.Nickname);
             ModixContext.UpdateProperty(entity, x => x.LastSeen);
 
-            await ModixContext.SaveChangesAsync();
+            await ModixContext.SaveChangesAsync(cancellationToken);
 
             return true;
         }

@@ -20,7 +20,6 @@ namespace Modix.Services.Core
         /// <returns><paramref name="services"/></returns>
         public static IServiceCollection AddModixCore(this IServiceCollection services)
             => services
-                .AddSingleton<IBehavior, UserTrackingBehavior>()
                 .AddSingleton<IBehavior, DiscordSocketListeningBehavior>()
                 .AddSingleton<ReadySynchronizationProvider>()
                 .AddSingleton<IReadySynchronizationProvider>(x => x.GetService<ReadySynchronizationProvider>())
