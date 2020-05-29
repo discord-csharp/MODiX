@@ -202,7 +202,7 @@ namespace Modix.Services.Core
         {
             var now = _systemClock.UtcNow;
 
-            using (var transaction = await GuildUserRepository.BeginCreateTransactionAsync())
+            using (var transaction = await GuildUserRepository.BeginCreateTransactionAsync(cancellationToken))
             {
                 if (!await GuildUserRepository.TryUpdateAsync(user.Id, user.GuildId, data =>
                 {

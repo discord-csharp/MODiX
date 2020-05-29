@@ -19,11 +19,13 @@ namespace Modix.Data.Repositories
         /// <summary>
         /// Begins a new transaction to create users within the repository.
         /// </summary>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// A <see cref="Task"/> that will complete, with the requested transaction object,
         /// when no other transactions are active upon the repository.
         /// </returns>
-        Task<IRepositoryTransaction> BeginCreateTransactionAsync();
+        Task<IRepositoryTransaction> BeginCreateTransactionAsync(
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Creates a new set of guild data for a user within the repository.
@@ -77,8 +79,9 @@ namespace Modix.Data.Repositories
             : base(modixContext) { }
 
         /// <inheritdoc />
-        public Task<IRepositoryTransaction> BeginCreateTransactionAsync()
-            => _createTransactionFactory.BeginTransactionAsync(ModixContext.Database);
+        public Task<IRepositoryTransaction> BeginCreateTransactionAsync(
+                CancellationToken cancellationToken)
+            => _createTransactionFactory.BeginTransactionAsync(ModixContext.Database, cancellationToken);
 
         /// <inheritdoc />
         public async Task CreateAsync(
@@ -91,8 +94,9 @@ namespace Modix.Data.Repositories
             var guildDataEntity = data.ToGuildDataEntity();
 
             guildDataEntity.User = await ModixContext
-                .Set<UserEntity>()
-                .FirstOrDefaultAsync(x => x.Id == data.UserId)
+                    .Set<UserEntity>()
+                    .AsQueryable()
+                    .FirstOrDefaultAsync(x => x.Id == data.UserId, cancellationToken)
                 ?? data.ToUserEntity();
 
             await ModixContext.Set<GuildUserEntity>().AddAsync(guildDataEntity, cancellationToken);

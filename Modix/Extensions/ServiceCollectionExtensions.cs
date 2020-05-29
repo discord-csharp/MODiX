@@ -138,7 +138,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddScoped<IQuoteService, QuoteService>();
             services.AddSingleton<IBehavior, MessageLinkBehavior>();
-            services.AddSingleton<IBehavior, AttachmentBlacklistBehavior>();
             services.AddScoped<DocsMasterRetrievalService>();
             services.AddMemoryCache();
 

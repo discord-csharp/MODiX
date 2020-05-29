@@ -91,7 +91,7 @@ namespace Modix.Services.Moderation
             if (!matches.Any())
                 return;
 
-            if (await DesignatedChannelService.ChannelHasDesignationAsync(channel.Guild, channel, DesignatedChannelType.Unmoderated))
+            if (await DesignatedChannelService.ChannelHasDesignationAsync(channel.Guild, channel, DesignatedChannelType.Unmoderated, default))
                 return;
 
             if (await AuthorizationService.HasClaimsAsync(author, AuthorizationClaim.PostInviteLink))
@@ -118,7 +118,7 @@ namespace Modix.Services.Moderation
 
             Log.Debug("Message {MessageId} is going to be deleted", message.Id);
 
-            await ModerationService.DeleteMessageAsync(message, "Unauthorized Invite Link", selfUser.Id);
+            await ModerationService.DeleteMessageAsync(message, "Unauthorized Invite Link", selfUser.Id, default);
 
             Log.Debug("Message {MessageId} was deleted because it contains an invite link", message.Id);
 

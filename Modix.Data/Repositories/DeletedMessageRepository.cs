@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
@@ -20,22 +21,27 @@ namespace Modix.Data.Repositories
         /// <summary>
         /// Begins a new transaction to create deleted messages within the repository.
         /// </summary>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>
         /// A <see cref="Task"/> that will complete, with the requested transaction object,
         /// when no other transactions are active upon the repository.
         /// </returns>
-        Task<IRepositoryTransaction> BeginCreateTransactionAsync();
+        Task<IRepositoryTransaction> BeginCreateTransactionAsync(
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Creates a new deleted message within the repository.
         /// </summary>
         /// <param name="data">The data for the deleted message to be created.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="data"/>.</exception>
         /// <returns>
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing the auto-generated <see cref="DeletedMessageEntity.Id"/> value assigned to the new deleted message.
         /// </returns>
-        Task CreateAsync(DeletedMessageCreationData data);
+        Task CreateAsync(
+            DeletedMessageCreationData data,
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Searches the repository for deleted message information, based on an arbitrary set of criteria, and pages the results.
@@ -58,22 +64,27 @@ namespace Modix.Data.Repositories
             : base(modixContext, moderationActionEventHandlers) { }
 
         /// <inheritdoc />
-        public Task<IRepositoryTransaction> BeginCreateTransactionAsync()
-            => _createTransactionFactory.BeginTransactionAsync(ModixContext.Database);
+        public Task<IRepositoryTransaction> BeginCreateTransactionAsync(
+                CancellationToken cancellationToken)
+            => _createTransactionFactory.BeginTransactionAsync(
+                ModixContext.Database,
+                cancellationToken);
 
         /// <inheritdoc />
-        public async Task CreateAsync(DeletedMessageCreationData data)
+        public async Task CreateAsync(
+            DeletedMessageCreationData data,
+            CancellationToken cancellationToken)
         {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
 
             var entity = data.ToEntity();
 
-            await ModixContext.Set<DeletedMessageEntity>().AddAsync(entity);
-            await ModixContext.SaveChangesAsync();
+            await ModixContext.Set<DeletedMessageEntity>().AddAsync(entity, cancellationToken);
+            await ModixContext.SaveChangesAsync(cancellationToken);
 
             entity.CreateAction.DeletedMessageId = entity.MessageId;
-            await ModixContext.SaveChangesAsync();
+            await ModixContext.SaveChangesAsync(cancellationToken);
 
             await RaiseModerationActionCreatedAsync(entity.CreateAction);
         }

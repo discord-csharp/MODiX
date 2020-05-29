@@ -55,9 +55,9 @@ namespace Modix.Data.Test.Repositories
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            var existingTransaction = await uut.BeginCreateTransactionAsync();
+            var existingTransaction = await uut.BeginCreateTransactionAsync(default);
 
-            var result = uut.BeginCreateTransactionAsync();
+            var result = uut.BeginCreateTransactionAsync(default);
 
             result.IsCompleted.ShouldBeFalse();
 
@@ -71,7 +71,7 @@ namespace Modix.Data.Test.Repositories
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            var result = uut.BeginCreateTransactionAsync();
+            var result = uut.BeginCreateTransactionAsync(default);
 
             result.IsCompleted.ShouldBeTrue();
 
@@ -87,7 +87,7 @@ namespace Modix.Data.Test.Repositories
             var database = Substitute.ForPartsOf<DatabaseFacade>(modixContext);
             modixContext.Database.Returns(database);
 
-            using (var transaction = await uut.BeginCreateTransactionAsync()) { }
+            using (var transaction = await uut.BeginCreateTransactionAsync(default)) { }
 
             await database.ShouldHaveReceived(1)
                 .BeginTransactionAsync();

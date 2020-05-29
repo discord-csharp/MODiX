@@ -48,7 +48,7 @@ namespace Modix.Services.Starboard
             }
 
             var isIgnoredFromStarboard = await _designatedChannelService
-                .ChannelHasDesignationAsync(channel.Guild, channel, DesignatedChannelType.IgnoredFromStarboard);
+                .ChannelHasDesignationAsync(channel.Guild, channel, DesignatedChannelType.IgnoredFromStarboard, default);
 
             var starboardExists = await _designatedChannelService
                 .AnyDesignatedChannelAsync(channel.GuildId, DesignatedChannelType.Starboard);
