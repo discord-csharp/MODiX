@@ -284,7 +284,8 @@ namespace Modix.Services.Test.Moderation
                 .Setup(x => x.ChannelHasDesignationAsync(
                     autoMocker.Get<IGuild>(),
                     autoMocker.Get<IMessageChannel>(),
-                    DesignatedChannelType.Unmoderated))
+                    DesignatedChannelType.Unmoderated,
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
 
             await uut.HandleNotificationAsync(notification);
@@ -339,7 +340,8 @@ namespace Modix.Services.Test.Moderation
                     DeleteMessageAsync(
                         notification.Message,
                         It.Is<string>(y => y.Contains("invite", StringComparison.OrdinalIgnoreCase)),
-                        autoMocker.Get<ISocketSelfUser>().Id));
+                        autoMocker.Get<ISocketSelfUser>().Id,
+                        It.IsAny<CancellationToken>()));
         }
 
         [Test]
@@ -490,7 +492,8 @@ namespace Modix.Services.Test.Moderation
                 .Setup(x => x.ChannelHasDesignationAsync(
                     autoMocker.Get<IGuild>(),
                     autoMocker.Get<IMessageChannel>(),
-                    DesignatedChannelType.Unmoderated))
+                    DesignatedChannelType.Unmoderated,
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
 
             await uut.HandleNotificationAsync(notification);
@@ -551,7 +554,8 @@ namespace Modix.Services.Test.Moderation
                     DeleteMessageAsync(
                         notification.NewMessage,
                         It.Is<string>(y => y.Contains("invite", StringComparison.OrdinalIgnoreCase)),
-                        autoMocker.Get<ISocketSelfUser>().Id));
+                        autoMocker.Get<ISocketSelfUser>().Id,
+                        It.IsAny<CancellationToken>()));
         }
 
         [Test]
@@ -587,7 +591,8 @@ namespace Modix.Services.Test.Moderation
                     DeleteMessageAsync(
                         It.IsAny<IMessage>(),
                         It.IsAny<string>(),
-                        It.IsAny<ulong>()));
+                        It.IsAny<ulong>(),
+                        It.IsAny<CancellationToken>()));
 
             autoMocker.GetMock<IMessageChannel>()
                 .ShouldNotHaveReceived(x => x.

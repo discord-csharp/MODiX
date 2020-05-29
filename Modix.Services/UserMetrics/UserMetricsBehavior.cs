@@ -97,7 +97,8 @@ namespace Modix.Services.UserMetrics
                 isOnTopic = await _designatedChannelService.ChannelHasDesignationAsync(
                     guild,
                     channel,
-                    DesignatedChannelType.CountsTowardsParticipation);
+                    DesignatedChannelType.CountsTowardsParticipation,
+                    cancellationToken);
                 UserMetricsLogMessages.ChannelParticipationFetched(_logger, isOnTopic);
             }
             catch (Exception ex)

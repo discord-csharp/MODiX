@@ -39,7 +39,8 @@ namespace Modix.Services.Test.UserMetrics
                     .Setup(x => x.ChannelHasDesignationAsync(
                         It.IsAny<IGuild>(),
                         It.IsAny<IChannel>(),
-                        DesignatedChannelType.CountsTowardsParticipation))
+                        DesignatedChannelType.CountsTowardsParticipation,
+                        It.IsAny<CancellationToken>()))
                     .ReturnsAsync(() => IsChannelOnTopic);
 
                 MockDesignatedRoleService = new Mock<IDesignatedRoleService>();
@@ -230,7 +231,8 @@ namespace Modix.Services.Test.UserMetrics
                     .ChannelHasDesignationAsync(
                         guild,
                         notification.Message.Channel,
-                        DesignatedChannelType.CountsTowardsParticipation),
+                        DesignatedChannelType.CountsTowardsParticipation,
+                        testContext.CancellationToken),
                 Times.AtMostOnce());
 
             if (guild is { })
@@ -276,7 +278,8 @@ namespace Modix.Services.Test.UserMetrics
                 .ChannelHasDesignationAsync(
                     guild,
                     notification.Message.Channel,
-                    DesignatedChannelType.CountsTowardsParticipation));
+                    DesignatedChannelType.CountsTowardsParticipation,
+                    testContext.CancellationToken));
 
             testContext.MockDesignatedRoleService.ShouldHaveReceived(x => x
                 .RolesHaveDesignationAsync(
@@ -321,7 +324,8 @@ namespace Modix.Services.Test.UserMetrics
                 .Setup(x => x.ChannelHasDesignationAsync(
                     It.IsAny<IGuild>(),
                     It.IsAny<IChannel>(),
-                    It.IsAny<DesignatedChannelType>()))
+                    It.IsAny<DesignatedChannelType>(),
+                    It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new Exception());
 
             var uut = testContext.BuildUut();
@@ -334,7 +338,8 @@ namespace Modix.Services.Test.UserMetrics
                 .ChannelHasDesignationAsync(
                     guild,
                     notification.Message.Channel,
-                    DesignatedChannelType.CountsTowardsParticipation));
+                    DesignatedChannelType.CountsTowardsParticipation,
+                    testContext.CancellationToken));
 
             testContext.MockDesignatedRoleService.ShouldHaveReceived(x => x
                 .RolesHaveDesignationAsync(
@@ -392,7 +397,8 @@ namespace Modix.Services.Test.UserMetrics
                 .ChannelHasDesignationAsync(
                     guild,
                     notification.Message.Channel,
-                    DesignatedChannelType.CountsTowardsParticipation));
+                    DesignatedChannelType.CountsTowardsParticipation,
+                    testContext.CancellationToken));
 
             testContext.MockDesignatedRoleService.ShouldHaveReceived(x => x
                 .RolesHaveDesignationAsync(

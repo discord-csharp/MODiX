@@ -9,6 +9,7 @@ using Serilog;
 
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
+using System.Threading;
 
 namespace Modix.Services.Core
 {
@@ -85,8 +86,13 @@ namespace Modix.Services.Core
         /// <param name="guild">The <see cref="IGuild"/> where the channel is located</param>
         /// <param name="channel">The <see cref="IChannel"/> to check the designation for</param>
         /// <param name="designation">The <see cref="DesignatedChannelType"/> to check for</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns></returns>
-        Task<bool> ChannelHasDesignationAsync(IGuild guild, IChannel channel, DesignatedChannelType designation);
+        Task<bool> ChannelHasDesignationAsync(
+            IGuild guild,
+            IChannel channel,
+            DesignatedChannelType designation,
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Sends the given message (and embed) to the <see cref="IMessageChannel"/>s assigned to the given designation, for a given guild.
@@ -124,7 +130,7 @@ namespace Modix.Services.Core
                     ChannelId = logChannel.Id,
                     IsDeleted = false,
                     Type = type
-                }))
+                }, default))
                 {
                     throw new InvalidOperationException($"{logChannel.Name} in {guild.Name} is already assigned to {type}");
                 }
@@ -194,7 +200,7 @@ namespace Modix.Services.Core
                 GuildId = guildId,
                 Type = type,
                 IsDeleted = false
-            });
+            }, default);
 
         /// <inheritdoc />
         public Task<IReadOnlyCollection<ulong>> GetDesignatedChannelIdsAsync(ulong guildId, DesignatedChannelType type)
@@ -244,17 +250,17 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task<bool> ChannelHasDesignationAsync(IGuild guild, IChannel channel, DesignatedChannelType designation)
-        {
-            var foundChannels = await DesignatedChannelMappingRepository.SearchBriefsAsync(new DesignatedChannelMappingSearchCriteria()
+        public Task<bool> ChannelHasDesignationAsync(
+                IGuild guild,
+                IChannel channel,
+                DesignatedChannelType designation,
+                CancellationToken cancellationToken)
+            => DesignatedChannelMappingRepository.AnyAsync(new DesignatedChannelMappingSearchCriteria()
             {
                 GuildId = guild.Id,
                 Type = designation,
                 ChannelId = channel.Id,
                 IsDeleted = false
-            });
-
-            return foundChannels.Any();
-        }
+            }, cancellationToken);
     }
 }

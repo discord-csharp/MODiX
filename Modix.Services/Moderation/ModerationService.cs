@@ -13,6 +13,7 @@ using Modix.Services.Core;
 using Modix.Services.Utilities;
 using Serilog;
 using StatsdClient;
+using System.Threading;
 
 namespace Modix.Services.Moderation
 {
@@ -96,8 +97,13 @@ namespace Modix.Services.Moderation
         /// <param name="message">The message to be deleted.</param>
         /// <param name="reason">A description of the reason the message was deleted.</param>
         /// <param name="deletedById">The <see cref="GuildUserEntity.UserId"/> value of the user that is deleting the message.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task DeleteMessageAsync(IMessage message, string reason, ulong deletedById);
+        Task DeleteMessageAsync(
+            IMessage message,
+            string reason,
+            ulong deletedById,
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Mass-deletes a specified number of messages.
@@ -367,7 +373,7 @@ namespace Modix.Services.Moderation
             if (channel is IGuildChannel guildChannel)
             {
                 var isUnmoderated = await DesignatedChannelService.ChannelHasDesignationAsync(guildChannel.Guild,
-                    channel, DesignatedChannelType.Unmoderated);
+                    channel, DesignatedChannelType.Unmoderated, default);
 
                 if (isUnmoderated)
                 {
@@ -607,16 +613,20 @@ namespace Modix.Services.Moderation
         }
 
         /// <inheritdoc />
-        public async Task DeleteMessageAsync(IMessage message, string reason, ulong deletedById)
+        public async Task DeleteMessageAsync(
+            IMessage message,
+            string reason,
+            ulong deletedById,
+            CancellationToken cancellationToken)
         {
             if (!(message.Channel is IGuildChannel guildChannel))
                 throw new InvalidOperationException(
                     $"Cannot delete message {message.Id} because it is not a guild message");
 
-            await UserService.TrackUserAsync(message.Author as IGuildUser, default);
-            await ChannelService.TrackChannelAsync(guildChannel);
+            await UserService.TrackUserAsync(message.Author as IGuildUser, cancellationToken);
+            await ChannelService.TrackChannelAsync(guildChannel, cancellationToken);
 
-            using (var transaction = await DeletedMessageRepository.BeginCreateTransactionAsync())
+            using (var transaction = await DeletedMessageRepository.BeginCreateTransactionAsync(cancellationToken))
             {
                 await DeletedMessageRepository.CreateAsync(new DeletedMessageCreationData()
                 {
@@ -627,9 +637,9 @@ namespace Modix.Services.Moderation
                     Content = message.Content,
                     Reason = reason,
                     CreatedById = deletedById
-                });
+                }, cancellationToken);
 
-                await message.DeleteAsync();
+                await message.DeleteAsync(new RequestOptions() { CancelToken = cancellationToken });
 
                 transaction.Commit();
             }

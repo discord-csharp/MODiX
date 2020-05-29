@@ -172,7 +172,8 @@ namespace Modix.Services.MessageLogging
             var channelIsUnmoderated = await _designatedChannelService.ChannelHasDesignationAsync(
                 guild,
                 channel,
-                DesignatedChannelType.Unmoderated);
+                DesignatedChannelType.Unmoderated,
+                cancellationToken);
             if (channelIsUnmoderated)
             {
                 MessageLoggingLogMessages.IgnoringUnmoderatedChannel(_logger);
