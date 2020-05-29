@@ -446,7 +446,7 @@ namespace Modix.Services.Moderation
                 if (subject == null)
                     throw new InvalidOperationException($"The given subject was not valid, ID: {subjectId}");
 
-                await UserService.TrackUserAsync(subject);
+                await UserService.TrackUserAsync(subject, default);
             }
             else
             {
@@ -613,7 +613,7 @@ namespace Modix.Services.Moderation
                 throw new InvalidOperationException(
                     $"Cannot delete message {message.Id} because it is not a guild message");
 
-            await UserService.TrackUserAsync(message.Author as IGuildUser);
+            await UserService.TrackUserAsync(message.Author as IGuildUser, default);
             await ChannelService.TrackChannelAsync(guildChannel);
 
             using (var transaction = await DeletedMessageRepository.BeginCreateTransactionAsync())

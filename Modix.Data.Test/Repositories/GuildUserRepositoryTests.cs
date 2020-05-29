@@ -103,7 +103,7 @@ namespace Modix.Data.Test.Repositories
             (var modixContext, var uut) = BuildTestContext();
 
             await Should.ThrowAsync<ArgumentNullException>(async () => 
-                await uut.CreateAsync(null!));
+                await uut.CreateAsync(null!, default));
 
             modixContext.Set<GuildUserEntity>().AsEnumerable()
                 .Select(x => (x.UserId, x.GuildId))
@@ -131,7 +131,7 @@ namespace Modix.Data.Test.Repositories
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            await uut.CreateAsync(data);
+            await uut.CreateAsync(data, default);
 
             modixContext.Set<UserEntity>().ShouldContain(x => x.Id == data.UserId);
             var user = modixContext.Set<UserEntity>().First(x => x.Id == data.UserId);
@@ -160,7 +160,7 @@ namespace Modix.Data.Test.Repositories
 
             var userCount = modixContext.Set<UserEntity>().Count();
 
-            await uut.CreateAsync(data);
+            await uut.CreateAsync(data, default);
 
             modixContext.Set<UserEntity>().Count().ShouldBe(userCount);
             var user = modixContext.Set<UserEntity>().First(x => x.Id == data.UserId);
@@ -192,7 +192,7 @@ namespace Modix.Data.Test.Repositories
             var userCount = modixContext.Set<UserEntity>().Count();
             var previousUser = modixContext.Set<UserEntity>().First(x => x.Id == data.UserId);
 
-            await uut.CreateAsync(data);
+            await uut.CreateAsync(data, default);
 
             modixContext.Set<UserEntity>().Count().ShouldBe(userCount);
             var user = modixContext.Set<UserEntity>().First(x => x.Id == data.UserId);
@@ -223,7 +223,7 @@ namespace Modix.Data.Test.Repositories
             var userCount = modixContext.Set<UserEntity>().Count();
             var previousUser = modixContext.Set<UserEntity>().First(x => x.Id == data.UserId);
 
-            await uut.CreateAsync(data);
+            await uut.CreateAsync(data, default);
 
             modixContext.Set<UserEntity>().Count().ShouldBe(userCount);
             var user = modixContext.Set<UserEntity>().First(x => x.Id == data.UserId);
@@ -249,7 +249,7 @@ namespace Modix.Data.Test.Repositories
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            await uut.CreateAsync(data);
+            await uut.CreateAsync(data, default);
 
             modixContext.Set<GuildUserEntity>()
                 .ShouldContain(x => (x.GuildId == data.GuildId) && (x.UserId == data.UserId));
@@ -280,7 +280,7 @@ namespace Modix.Data.Test.Repositories
         {
             (var modixContext, var uut) = BuildTestContext();
 
-            await Should.ThrowAsync<InvalidOperationException>(uut.CreateAsync(data));
+            await Should.ThrowAsync<InvalidOperationException>(uut.CreateAsync(data, default));
 
             modixContext.Set<GuildUserEntity>().AsEnumerable()
                 .Select(x => (x.UserId, x.GuildId))
@@ -339,7 +339,7 @@ namespace Modix.Data.Test.Repositories
             (var modixContext, var uut) = BuildTestContext();
 
             await Should.ThrowAsync<ArgumentNullException>(async () =>
-                await uut.TryUpdateAsync(1, 1, null!));
+                await uut.TryUpdateAsync(1, 1, null!, default));
 
             modixContext.Set<GuildUserEntity>().AsEnumerable()
                 .Select(x => (x.UserId, x.GuildId))
@@ -389,7 +389,7 @@ namespace Modix.Data.Test.Repositories
                 data.Discriminator = mutatedData.Discriminator;
                 data.Nickname = mutatedData.Nickname;
                 data.LastSeen = mutatedData.LastSeen;
-            });
+            }, default);
 
             result.ShouldBeTrue();
 
@@ -428,7 +428,7 @@ namespace Modix.Data.Test.Repositories
 
             var updateAction = Substitute.For<Action<GuildUserMutationData>>();
 
-            var result = await uut.TryUpdateAsync(userId, guildId, updateAction);
+            var result = await uut.TryUpdateAsync(userId, guildId, updateAction, default);
 
             result.ShouldBeFalse();
 
