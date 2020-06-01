@@ -10,10 +10,12 @@ using Newtonsoft.Json;
 
 namespace Modix.Services.Utilities
 {
-    public class DiscordWebhookSink : ILogEventSink
+    public sealed class DiscordWebhookSink
+        : ILogEventSink,
+            IDisposable
     {
-        private readonly ulong _webhookId;
-        private readonly string _webhookToken;
+        private readonly CodePasteService _codePasteService;
+        private readonly DiscordWebhookClient _discordWebhookClient;
         private readonly IFormatProvider _formatProvider;
         private readonly JsonSerializerSettings _jsonSerializerSettings;
         public DiscordWebhookSink(
@@ -22,10 +24,9 @@ namespace Modix.Services.Utilities
             IFormatProvider formatProvider,
             CodePasteService codePasteService)
         {
-            _webhookId = webhookId;
-            _webhookToken = webhookToken;
+            _codePasteService = codePasteService;
+            _discordWebhookClient = new DiscordWebhookClient(webhookId, webhookToken);
             _formatProvider = formatProvider;
-            CodePasteService = codePasteService;
 
             _jsonSerializerSettings = new JsonSerializerSettings
             {
@@ -39,7 +40,6 @@ namespace Modix.Services.Utilities
             const int DiscordStringTruncateLength = 1000;
 
             var formattedMessage = logEvent.RenderMessage(_formatProvider);
-            var webhookClient = new DiscordWebhookClient(_webhookId, _webhookToken);
 
             var message = new EmbedBuilder()
                     .WithAuthor("DiscordLogger")
@@ -58,7 +58,7 @@ namespace Modix.Services.Utilities
 
                 var eventAsJson = JsonConvert.SerializeObject(logEvent, _jsonSerializerSettings);
 
-                var url = CodePasteService.UploadCodeAsync(eventAsJson, "json").GetAwaiter().GetResult();
+                var url = _codePasteService.UploadCodeAsync(eventAsJson, "json").GetAwaiter().GetResult();
 
                 message.AddField(new EmbedFieldBuilder()
                     .WithIsInline(false)
@@ -81,10 +81,11 @@ namespace Modix.Services.Utilities
                     .WithName("Upload Failure Exception")
                     .WithValue(Format.Code($"{ex.ToString().TruncateTo(DiscordStringTruncateLength)}")));
             }
-            webhookClient.SendMessageAsync(string.Empty, embeds: new[] { message.Build() }, username: "Modix Logger");
+            _discordWebhookClient.SendMessageAsync(string.Empty, embeds: new[] { message.Build() }, username: "Modix Logger");
         }
 
-        protected CodePasteService CodePasteService { get; }
+        public void Dispose()
+            => _discordWebhookClient.Dispose();
     }
 
     public static class DiscordWebhookSinkExtensions
