@@ -4,6 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using Discord;
@@ -17,6 +18,7 @@ using Modix.Services.Core;
 
 namespace Modix.Services.UserMetrics
 {
+    [ServiceBinding(ServiceLifetime.Scoped)]
     public class UserMetricsBehavior
         : INotificationHandler<GuildAvailableNotification>,
             INotificationHandler<MessageReceivedNotification>,
