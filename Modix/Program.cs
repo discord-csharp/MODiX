@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
+
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -9,6 +11,7 @@ using Modix.Services.CodePaste;
 using Modix.Services.Utilities;
 using Serilog;
 using Serilog.Events;
+using Serilog.Formatting.Compact;
 
 namespace Modix
 {
@@ -34,11 +37,19 @@ namespace Modix
 
             var loggerConfig = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
-                .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                 .MinimumLevel.Override("Modix.DiscordSerilogAdapter", LogEventLevel.Information)
                 .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .WriteTo.RollingFile(@"logs\{Date}", restrictedToMinimumLevel: LogEventLevel.Debug);
+                .WriteTo.Console(
+                    restrictedToMinimumLevel: LogEventLevel.Information)
+                .WriteTo.RollingFile(
+                    Path.Combine("logs", "{Date}.log"),
+                    restrictedToMinimumLevel: LogEventLevel.Information)
+                .WriteTo.RollingFile(
+                    new RenderedCompactJsonFormatter(),
+                    Path.Combine("logs", "{Date}.clef"),
+                    restrictedToMinimumLevel: LogEventLevel.Verbose,
+                    retainedFileCountLimit: 2);
 
             var webhookId = config.GetValue<ulong>(nameof(ModixConfig.LogWebhookId));
             var webhookToken = config.GetValue<string>(nameof(ModixConfig.LogWebhookToken));
