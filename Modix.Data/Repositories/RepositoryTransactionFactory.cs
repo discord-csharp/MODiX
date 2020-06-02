@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Logging;
 
 using Nito.AsyncEx;
 
@@ -53,16 +55,31 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the requested transaction object can be created,
         /// containing the requested transaction object.
         /// </returns>
-        public async Task<IRepositoryTransaction> BeginTransactionAsync(DatabaseFacade database, CancellationToken cancellationToken)
+        public async Task<IRepositoryTransaction> BeginTransactionAsync(DatabaseFacade database, CancellationToken cancellationToken, ILogger<RepositoryTransactionFactory>? logger = null)
         {
             if (database == null)
                 throw new ArgumentNullException(nameof(database));
 
+            var databaseTransaction = (database.CurrentTransaction is null)
+                ? await database.BeginTransactionAsync(cancellationToken)
+                : null;
+
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            var asyncLock = await _lockProvider.LockAsync(cancellationToken);
+            stopwatch.Stop();
+
+            // TODO: Temporary debugging measure, remove this later
+            logger?.Log(
+                (stopwatch.Elapsed > TimeSpan.FromSeconds(1))
+                    ? LogLevel.Warning
+                    : LogLevel.Debug,
+                "RepositoryTransactionLockWaitTime: {RepositoryTransactionLockWaitTime}",
+                stopwatch.Elapsed);
+
             return new RepositoryTransaction(
-                (database.CurrentTransaction is null)
-                    ? await database.BeginTransactionAsync(cancellationToken)
-                    : null,
-                await _lockProvider.LockAsync(cancellationToken));
+                databaseTransaction,
+                asyncLock);
         }
 
         private AsyncLock _lockProvider { get; }

@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
@@ -75,13 +76,18 @@ namespace Modix.Data.Repositories
         /// Creates a new <see cref="GuildUserRepository"/>.
         /// See <see cref="RepositoryBase(ModixContext)"/> for details.
         /// </summary>
-        public GuildUserRepository(ModixContext modixContext)
-            : base(modixContext) { }
+        public GuildUserRepository(
+                ModixContext modixContext,
+                ILogger<RepositoryTransactionFactory>? repositoryTransactionFactoryLogger = null)
+            : base(modixContext)
+        {
+            _repositoryTransactionFactoryLogger = repositoryTransactionFactoryLogger;
+        }
 
         /// <inheritdoc />
         public Task<IRepositoryTransaction> BeginCreateTransactionAsync(
                 CancellationToken cancellationToken)
-            => _createTransactionFactory.BeginTransactionAsync(ModixContext.Database, cancellationToken);
+            => _createTransactionFactory.BeginTransactionAsync(ModixContext.Database, cancellationToken, _repositoryTransactionFactoryLogger);
 
         /// <inheritdoc />
         public async Task CreateAsync(
@@ -157,5 +163,7 @@ namespace Modix.Data.Repositories
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
             = new RepositoryTransactionFactory();
+
+        private readonly ILogger<RepositoryTransactionFactory>? _repositoryTransactionFactoryLogger;
     }
 }
