@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Modix.Authentication;
@@ -27,6 +28,9 @@ namespace Modix
 {
     public class Startup
     {
+        private const string _logFilesRequestPath
+            = "/logfiles";
+
         private readonly IConfiguration _configuration;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
@@ -115,6 +119,25 @@ namespace Modix
                     handler.Response.Redirect("https://aka.ms/csharp-discord");
                     return Task.CompletedTask;
                 });
+            });
+
+            // Serve up log files for maintainers only
+            app.MapWhen(x => x.Request.Path.Value.StartsWith(_logFilesRequestPath), builder =>
+            {
+                var fileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "logs"));
+                builder
+                    .UseMiddleware<LogFilesAuthorizationMiddleware>()
+                    .UseDirectoryBrowser(new DirectoryBrowserOptions()
+                    {
+                        FileProvider = fileProvider,
+                        RequestPath = _logFilesRequestPath
+                    })
+                    .UseStaticFiles(new StaticFileOptions()
+                    {
+                        FileProvider = fileProvider,
+                        RequestPath = _logFilesRequestPath,
+                        ServeUnknownFileTypes = true
+                    });
             });
 
             //Map to static files when not hitting the API
