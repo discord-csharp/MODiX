@@ -59,14 +59,14 @@ namespace Modix.Services.Test.Core
                     .Setup(x => x.GetService(typeof(IUserService)))
                     .Returns(Get<IUserService>());
 
-                var mockSelfUser = GetMock<ISocketSelfUser>();
-                mockSelfUser
+                var mockCurrentUser = GetMock<ISocketSelfUser>();
+                mockCurrentUser
                     .Setup(x => x.Id)
                     .Returns(SelfUserId);
 
-                GetMock<ISelfUserProvider>()
-                    .Setup(x => x.GetSelfUserAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(mockSelfUser.Object);
+                GetMock<IDiscordSocketClient>()
+                    .Setup(x => x.CurrentUser)
+                    .Returns(mockCurrentUser.Object);
 
                 GetMock<IGuild>()
                     .Setup(x => x.Id)
@@ -149,9 +149,6 @@ namespace Modix.Services.Test.Core
 
                 testContext.ClaimMappingRepositoryShouldHaveReceivedAnyAsync();
 
-                testContext.GetMock<ISelfUserProvider>()
-                    .Invocations.ShouldBeEmpty();
-
                 testContext.GetMock<IUserService>()
                     .Invocations.ShouldBeEmpty();
 
@@ -177,9 +174,6 @@ namespace Modix.Services.Test.Core
                 await uut.AutoConfigureGuildAsync(testContext.Get<IGuild>(), testContext.CancellationToken);
 
                 testContext.ClaimMappingRepositoryShouldHaveReceivedAnyAsync();
-
-                testContext.GetMock<ISelfUserProvider>()
-                    .ShouldHaveReceived(x => x.GetSelfUserAsync(testContext.CancellationToken), Times.Once());
 
                 testContext.GetMock<IUserService>()
                     .ShouldHaveReceived(x => x.TrackUserAsync(testContext.Get<IGuild>(), testContext.SelfUserId), Times.Once());

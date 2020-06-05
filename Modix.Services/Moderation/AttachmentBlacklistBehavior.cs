@@ -79,14 +79,14 @@ namespace Modix.Services.Moderation
 
         public AttachmentBlacklistBehavior(
             IDesignatedChannelService designatedChannelService,
+            IDiscordSocketClient discordSocketClient,
             ILogger<AttachmentBlacklistBehavior> logger,
-            IModerationService moderationService,
-            ISelfUserProvider selfUserProvider)
+            IModerationService moderationService)
         {
             _designatedChannelService = designatedChannelService;
+            _discordSocketClient = discordSocketClient;
             _logger = logger;
             _moderationService = moderationService;
-            _selfUserProvider = selfUserProvider;
         }
 
         public async Task HandleNotificationAsync(
@@ -145,9 +145,8 @@ namespace Modix.Services.Moderation
             }
             AttachmentBlacklistLogMessages.SuspiciousAttachmentsFound(_logger, blacklistedFilenames.Length);
 
-            AttachmentBlacklistLogMessages.SelfUserFetching(_logger);
-            var selfUser = await _selfUserProvider.GetSelfUserAsync(cancellationToken);
-            AttachmentBlacklistLogMessages.SelfUserFetched(_logger);
+            var selfUser = _discordSocketClient.CurrentUser;
+            AttachmentBlacklistLogMessages.SelfUserFetched(_logger, selfUser.Id);
 
             AttachmentBlacklistLogMessages.SuspiciousMessageDeleting(_logger);
             await _moderationService.DeleteMessageAsync(
@@ -165,8 +164,8 @@ namespace Modix.Services.Moderation
         }
 
         private readonly IDesignatedChannelService _designatedChannelService;
+        private readonly IDiscordSocketClient _discordSocketClient;
         private readonly ILogger _logger;
         private readonly IModerationService _moderationService;
-        private readonly ISelfUserProvider _selfUserProvider;
     }
 }

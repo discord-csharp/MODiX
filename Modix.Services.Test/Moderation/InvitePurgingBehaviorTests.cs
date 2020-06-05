@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using Modix.Data.Models.Core;
 using Modix.Services.Core;
@@ -30,15 +31,15 @@ namespace Modix.Services.Test.Moderation
                 .Setup(x => x.Id)
                 .Returns(1);
 
-            autoMocker.GetMock<ISelfUserProvider>()
-                .Setup(x => x.GetSelfUserAsync(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(mockSelfUser.Object));
+            autoMocker.GetMock<IDiscordSocketClient>()
+                .Setup(x => x.CurrentUser)
+                .Returns(() => mockSelfUser.Object);
 
-            autoMocker.GetMock<IDiscordClient>()
+            autoMocker.GetMock<IDiscordSocketClient>()
                 .Setup(x => x.GetInviteAsync(It.IsIn(GuildInviteCodes), It.IsAny<RequestOptions>()))
                 .ReturnsAsync((string code, RequestOptions _) =>
                 {
-                    var mockInvite = autoMocker.GetMock<IInvite>();
+                    var mockInvite = autoMocker.GetMock<IRestInviteMetadata>();
 
                     mockInvite
                         .SetupGet(x => x.Code)
@@ -51,11 +52,11 @@ namespace Modix.Services.Test.Moderation
                     return mockInvite.Object;
                 });
 
-            autoMocker.GetMock<IDiscordClient>()
+            autoMocker.GetMock<IDiscordSocketClient>()
                 .Setup(x => x.GetInviteAsync(It.IsNotIn(GuildInviteCodes), It.IsAny<RequestOptions>()))
                 .ReturnsAsync((string code, RequestOptions _) =>
                 {
-                    var mockInvite = autoMocker.GetMock<IInvite>();
+                    var mockInvite = autoMocker.GetMock<IRestInviteMetadata>();
 
                     mockInvite
                         .SetupGet(x => x.Code)
@@ -166,7 +167,6 @@ namespace Modix.Services.Test.Moderation
             uut.DesignatedChannelService.ShouldBeSameAs(autoMocker.Get<IDesignatedChannelService>());
             uut.AuthorizationService.ShouldBeSameAs(autoMocker.Get<IAuthorizationService>());
             uut.ModerationService.ShouldBeSameAs(autoMocker.Get<IModerationService>());
-            uut.SelfUserProvider.ShouldBeSameAs(autoMocker.Get<ISelfUserProvider>());
         }
 
         #endregion Constructor() Tests

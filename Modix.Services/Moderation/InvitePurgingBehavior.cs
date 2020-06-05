@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Discord;
+using Discord.WebSocket;
 
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
@@ -28,16 +29,14 @@ namespace Modix.Services.Moderation
         /// </summary>
         public InvitePurgingBehavior(
             IDesignatedChannelService designatedChannelService,
+            IDiscordSocketClient discordSocketClient,
             IAuthorizationService authorizationService,
-            IModerationService moderationService,
-            ISelfUserProvider selfUserProvider,
-            IDiscordClient discordClient)
+            IModerationService moderationService)
         {
             DesignatedChannelService = designatedChannelService;
+            _discordSocketClient = discordSocketClient;
             AuthorizationService = authorizationService;
             ModerationService = moderationService;
-            SelfUserProvider = selfUserProvider;
-            DiscordClient = discordClient;
         }
 
         /// <inheritdoc />
@@ -63,13 +62,6 @@ namespace Modix.Services.Moderation
         /// </summary>
         internal protected IModerationService ModerationService { get; }
 
-        /// <summary>
-        /// An <see cref="ISelfUserProvider"/> used to interact with the current bot user.
-        /// </summary>
-        internal protected ISelfUserProvider SelfUserProvider { get; }
-
-        internal protected IDiscordClient DiscordClient { get; }
-
         private async Task TryPurgeInviteLinkAsync(IMessage message)
         {
             if
@@ -83,8 +75,7 @@ namespace Modix.Services.Moderation
                 return;
             }
 
-            var selfUser = await SelfUserProvider.GetSelfUserAsync();
-            if (author.Id == selfUser.Id)
+            if (author.Id == _discordSocketClient.CurrentUser.Id)
                 return;
 
             var matches = _inviteLinkMatcher.Matches(message.Content);
@@ -105,7 +96,7 @@ namespace Modix.Services.Moderation
 
             foreach (var code in matches.Select(x => x.Groups["Code"].Value))
             {
-                var invite = await DiscordClient.GetInviteAsync(code);
+                var invite = await _discordSocketClient.GetInviteAsync(code);
                 invites.Add(invite);
             }
 
@@ -118,7 +109,7 @@ namespace Modix.Services.Moderation
 
             Log.Debug("Message {MessageId} is going to be deleted", message.Id);
 
-            await ModerationService.DeleteMessageAsync(message, "Unauthorized Invite Link", selfUser.Id, default);
+            await ModerationService.DeleteMessageAsync(message, "Unauthorized Invite Link", _discordSocketClient.CurrentUser.Id, default);
 
             Log.Debug("Message {MessageId} was deleted because it contains an invite link", message.Id);
 
@@ -130,5 +121,7 @@ namespace Modix.Services.Moderation
                 pattern: @"(https?://)?(www\.)?(discord\.(gg|io|me|li)|discord(app)?\.com/invite)/(?<Code>\w+)",
                 options: RegexOptions.Compiled | RegexOptions.IgnoreCase,
                 matchTimeout: TimeSpan.FromSeconds(2));
+
+        private readonly IDiscordSocketClient _discordSocketClient;
     }
 }

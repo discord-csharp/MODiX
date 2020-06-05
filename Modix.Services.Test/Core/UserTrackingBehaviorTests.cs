@@ -27,26 +27,26 @@ namespace Modix.Services.Test.Core
         {
             public TestContext()
             {
-                MockSelfUser = new Mock<ISocketSelfUser>();
-                MockSelfUser
+                MockCurrentUser = new Mock<ISocketSelfUser>();
+                MockCurrentUser
                     .Setup(x => x.Id)
                     .Returns(() => SelfUserId);
 
-                MockSelfUserProvider = new Mock<ISelfUserProvider>();
-                MockSelfUserProvider
-                    .Setup(x => x.GetSelfUserAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(() => MockSelfUser.Object);
+                MockDiscordSocketClient = new Mock<IDiscordSocketClient>();
+                MockDiscordSocketClient
+                    .Setup(x => x.CurrentUser)
+                    .Returns(() => MockCurrentUser.Object);
 
                 MockUserService = new Mock<IUserService>();
             }
 
             public UserTrackingBehavior BuildUut()
                 => new UserTrackingBehavior(
-                    MockSelfUserProvider.Object,
+                    MockDiscordSocketClient.Object,
                     MockUserService.Object);
 
-            public readonly Mock<ISocketSelfUser> MockSelfUser;
-            public readonly Mock<ISelfUserProvider> MockSelfUserProvider;
+            public readonly Mock<IDiscordSocketClient> MockDiscordSocketClient;
+            public readonly Mock<ISocketSelfUser> MockCurrentUser;
             public readonly Mock<IUserService> MockUserService;
 
             public ulong SelfUserId;

@@ -25,12 +25,12 @@ namespace Modix.Services.MessageLogging
     {
         public MessageLoggingBehavior(
             IDesignatedChannelService designatedChannelService,
-            ILogger<MessageLoggingBehavior> logger,
-            ISelfUserProvider selfUserProvider)
+            IDiscordSocketClient discordSocketClient,
+            ILogger<MessageLoggingBehavior> logger)
         {
             _designatedChannelService = designatedChannelService;
+            _discordSocketClient = discordSocketClient;
             _logger = logger;
-            _selfUserProvider = selfUserProvider;
         }
 
         public async Task HandleNotificationAsync(
@@ -160,7 +160,7 @@ namespace Modix.Services.MessageLogging
                 return;
             }
 
-            var selfUser = await _selfUserProvider.GetSelfUserAsync(cancellationToken);
+            var selfUser = _discordSocketClient.CurrentUser;
             MessageLoggingLogMessages.SelfUserFetched(_logger, selfUser.Id);
 
             if ((oldMessage?.Author ?? newMessage?.Author)?.Id == selfUser.Id)
@@ -202,7 +202,7 @@ namespace Modix.Services.MessageLogging
         }
 
         private readonly IDesignatedChannelService _designatedChannelService;
+        private readonly IDiscordSocketClient _discordSocketClient;
         private readonly ILogger _logger;
-        private readonly ISelfUserProvider _selfUserProvider;
     }
 }

@@ -18,8 +18,8 @@ namespace Modix.Services.Moderation
     public class MutePersistingHandler :
         INotificationHandler<UserJoinedNotification>
     {
+        private readonly IDiscordSocketClient _discordSocketClient;
         private readonly IModerationService _moderationService;
-        private readonly ISelfUserProvider _selfUserProvider;
 
         /// <summary>
         /// Constructs a new <see cref="MutePersistingHandler"/> object with the given injected dependencies.
@@ -27,11 +27,11 @@ namespace Modix.Services.Moderation
         /// <param name="moderationService">A moderation service to interact with the infractions system.</param>
         /// <param name="selfUserProvider">The Discord user that the bot is running as.</param>
         public MutePersistingHandler(
-            IModerationService moderationService,
-            ISelfUserProvider selfUserProvider)
+            IDiscordSocketClient discordSocketClient,
+            IModerationService moderationService)
         {
+            _discordSocketClient = discordSocketClient;
             _moderationService = moderationService;
-            _selfUserProvider = selfUserProvider;
         }
 
         public Task HandleNotificationAsync(UserJoinedNotification notification, CancellationToken cancellationToken)
@@ -62,7 +62,7 @@ namespace Modix.Services.Moderation
                 return;
             }
 
-            var muteRole = await _moderationService.GetOrCreateDesignatedMuteRoleAsync(guildUser.Guild, (await _selfUserProvider.GetSelfUserAsync()).Id);
+            var muteRole = await _moderationService.GetOrCreateDesignatedMuteRoleAsync(guildUser.Guild, _discordSocketClient.CurrentUser.Id);
 
             Log.Debug("User {0} was muted, because they have an active mute infraction.", guildUser.Id);
 

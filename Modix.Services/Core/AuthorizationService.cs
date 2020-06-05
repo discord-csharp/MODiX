@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
 using Discord;
+using Discord.WebSocket;
 
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
@@ -175,12 +176,13 @@ namespace Modix.Services.Core
     /// <inheritdoc />
     public class AuthorizationService : IAuthorizationService
     {
-        public AuthorizationService(IServiceProvider serviceProvider, IClaimMappingRepository claimMappingRepository, ISelfUserProvider selfUserProvider)
+        public AuthorizationService(IDiscordSocketClient discordSocketClient, IServiceProvider serviceProvider, IClaimMappingRepository claimMappingRepository)
         {
             // Workaround for circular dependency.
             _lazyUserService = new Lazy<IUserService>(() => serviceProvider.GetRequiredService<IUserService>());
+
             ClaimMappingRepository = claimMappingRepository;
-            SelfUserProvider = selfUserProvider;
+            _discordSocketClient = discordSocketClient;
         }
 
         /// <inheritdoc />
@@ -204,7 +206,7 @@ namespace Modix.Services.Core
                 return;
             }
 
-            var selfUser = await SelfUserProvider.GetSelfUserAsync(cancellationToken);
+            var selfUser = _discordSocketClient.CurrentUser;
 
             // Need the bot user to exist, before we start adding claims, created by the bot user.
             await UserService.TrackUserAsync(guild, selfUser.Id);
@@ -384,20 +386,18 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(IGuildUser guildUser, params AuthorizationClaim[] filterClaims)
+        public Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(IGuildUser guildUser, params AuthorizationClaim[] filterClaims)
         {
             if (guildUser == null)
-                throw new ArgumentNullException(nameof(guildUser));
+                return Task.FromException<IReadOnlyCollection<AuthorizationClaim>>(new ArgumentNullException(nameof(guildUser)));
 
             if (guildUser.Id == CurrentUserId)
-                return CurrentClaims;
+                return Task.FromResult(CurrentClaims);
 
-            var selfUser = await SelfUserProvider.GetSelfUserAsync();
+            if ((guildUser.Id == _discordSocketClient.CurrentUser.Id) || guildUser.GuildPermissions.Administrator)
+                return Task.FromResult<IReadOnlyCollection<AuthorizationClaim>>(Enum.GetValues(typeof(AuthorizationClaim)).Cast<AuthorizationClaim>().ToArray());
 
-            if (guildUser.Id == selfUser.Id || guildUser.GuildPermissions.Administrator)
-                return Enum.GetValues(typeof(AuthorizationClaim)).Cast<AuthorizationClaim>().ToArray();
-
-            return await LookupPosessedClaimsAsync(guildUser.GuildId, guildUser.RoleIds, guildUser.Id, filterClaims);
+            return LookupPosessedClaimsAsync(guildUser.GuildId, guildUser.RoleIds, guildUser.Id, filterClaims);
         }
 
         /// <inheritdoc />
@@ -489,16 +489,12 @@ namespace Modix.Services.Core
             => _lazyUserService.Value;
         // Workaround for circular dependency.
         private readonly Lazy<IUserService> _lazyUserService;
+        private readonly IDiscordSocketClient _discordSocketClient;
 
         /// <summary>
         /// An <see cref="IClaimMappingRepository"/> for storing and retrieving claim mapping data.
         /// </summary>
         internal protected IClaimMappingRepository ClaimMappingRepository { get; }
-
-        /// <summary>
-        /// An <see cref="ISelfUserProvider"/> for interacting with the current bot user.
-        /// </summary>
-        internal protected ISelfUserProvider SelfUserProvider { get; }
 
         private async Task<IReadOnlyCollection<AuthorizationClaim>> LookupPosessedClaimsAsync(ulong guildId, IEnumerable<ulong> roleIds, ulong userId, IEnumerable<AuthorizationClaim> claimsFilter = null)
         {

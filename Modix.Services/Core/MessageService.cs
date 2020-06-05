@@ -30,11 +30,9 @@ namespace Modix.Services.Core
     {
         public MessageService(
             IDiscordSocketClient discordSocketClient,
-            ISelfUserProvider selfUserProvider,
             IMessageRepository messageRepository)
         {
             _discordSocketClient = discordSocketClient;
-            _selfUserProvider = selfUserProvider;
             _messageRepository = messageRepository;
         }
 
@@ -44,9 +42,7 @@ namespace Modix.Services.Core
             var guild = _discordSocketClient.GetGuild(guildId);
             var trackedMessage = await _messageRepository.GetMessage(messageId);
 
-            var selfGuildUser = guild.GetUser(
-                (await _selfUserProvider.GetSelfUserAsync())
-                    .Id);
+            var selfGuildUser = guild.GetUser(_discordSocketClient.CurrentUser.Id);
 
             var channels = guild.TextChannels
                 .AsEnumerable();
@@ -74,7 +70,6 @@ namespace Modix.Services.Core
         }
 
         private readonly IDiscordSocketClient _discordSocketClient;
-        private readonly ISelfUserProvider _selfUserProvider;
         private readonly IMessageRepository _messageRepository;
     }
 }

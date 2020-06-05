@@ -4,10 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Discord;
+using Discord.WebSocket;
 
 using Microsoft.Extensions.Options;
 
-using Modix.Bot.Extensions;
 using Modix.Common.Extensions;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
@@ -29,19 +29,17 @@ namespace Modix.Behaviors
         /// </summary>
         public PromotionLoggingHandler(
             IAuthorizationService authorizationService,
-            IDiscordClient discordClient,
+            IDiscordSocketClient discordSocketClient,
             IDesignatedChannelService designatedChannelService,
             IUserService userService,
             IPromotionsService promotionsService,
-            ISelfUserProvider selfUserProvider,
             IOptions<ModixConfig> modixConfig)
         {
             AuthorizationService = authorizationService;
-            DiscordClient = discordClient;
+            DiscordSocketClient = discordSocketClient;
             DesignatedChannelService = designatedChannelService;
             UserService = userService;
             PromotionsService = promotionsService;
-            SelfUserProvider = selfUserProvider;
             ModixConfig = modixConfig.Value;
         }
 
@@ -49,7 +47,7 @@ namespace Modix.Behaviors
         {
             // TODO: Temporary workaround, remove as part of auth rework.
             if (AuthorizationService.CurrentUserId is null)
-                await AuthorizationService.OnAuthenticatedAsync(await SelfUserProvider.GetSelfUserAsync());
+                await AuthorizationService.OnAuthenticatedAsync(DiscordSocketClient.CurrentUser);
 
             if (await DesignatedChannelService.AnyDesignatedChannelAsync(notification.Data.GuildId, DesignatedChannelType.PromotionLog))
             {
@@ -59,7 +57,7 @@ namespace Modix.Behaviors
                     return;
 
                 await DesignatedChannelService.SendToDesignatedChannelsAsync(
-                    await DiscordClient.GetGuildAsync(notification.Data.GuildId), DesignatedChannelType.PromotionLog, message);
+                    await DiscordSocketClient.GetGuildAsync(notification.Data.GuildId), DesignatedChannelType.PromotionLog, message);
             }
 
             if (await DesignatedChannelService.AnyDesignatedChannelAsync(notification.Data.GuildId, DesignatedChannelType.PromotionNotifications))
@@ -70,7 +68,7 @@ namespace Modix.Behaviors
                     return;
 
                 await DesignatedChannelService.SendToDesignatedChannelsAsync(
-                    await DiscordClient.GetGuildAsync(notification.Data.GuildId), DesignatedChannelType.PromotionNotifications, "", embed);
+                    await DiscordSocketClient.GetGuildAsync(notification.Data.GuildId), DesignatedChannelType.PromotionNotifications, "", embed);
             }
         }
 
@@ -137,7 +135,7 @@ namespace Modix.Behaviors
         /// <summary>
         /// An <see cref="IDiscordClient"/> for interacting with the Discord API.
         /// </summary>
-        internal protected IDiscordClient DiscordClient { get; }
+        internal protected IDiscordClient DiscordSocketClient { get; }
 
         /// <summary>
         /// An <see cref="IDesignatedChannelService"/> for logging moderation actions.
@@ -153,11 +151,6 @@ namespace Modix.Behaviors
         /// An <see cref="IPromotionsService"/> for performing moderation actions.
         /// </summary>
         internal protected IPromotionsService PromotionsService { get; }
-
-        /// <summary>
-        /// An <see cref="ISelfUserProvider"/> for interacting with the current bot user.
-        /// </summary>
-        internal protected ISelfUserProvider SelfUserProvider { get; }
 
         /// <summary>
         /// A <see cref="ModixConfig"/> for interacting with the bot configuration.
