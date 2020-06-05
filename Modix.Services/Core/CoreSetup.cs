@@ -21,10 +21,6 @@ namespace Modix.Services.Core
         public static IServiceCollection AddModixCore(this IServiceCollection services)
             => services
                 .AddSingleton<IBehavior, DiscordSocketListeningBehavior>()
-                .AddSingleton<ReadySynchronizationProvider>()
-                .AddSingleton<IReadySynchronizationProvider>(x => x.GetService<ReadySynchronizationProvider>())
-                .AddSingleton<INotificationHandler<ReadyNotification>>(x => x.GetService<ReadySynchronizationProvider>())
-                .AddSingleton<ISelfUserProvider, SelfUserProvider>()
                 .AddScoped<IAuthorizationService, AuthorizationService>()
                 .AddScoped<AuthorizationAutoConfigBehavior>()
                 .AddScoped<INotificationHandler<GuildAvailableNotification>>(x => x.GetService<AuthorizationAutoConfigBehavior>())

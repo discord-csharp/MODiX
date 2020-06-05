@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,12 +18,12 @@ namespace Modix.Bot.Behaviors
         : ICommandPrefixParser
     {
         public CommandPrefixParser(
-            ISelfUserProvider selfUserProvider)
+            IDiscordSocketClient discordSocketClient)
         {
-            _selfUserProvider = selfUserProvider;
+            _discordSocketClient = discordSocketClient;
         }
 
-        public async Task<int?> TryFindCommandArgPosAsync(
+        public Task<int?> TryFindCommandArgPosAsync(
             IUserMessage message,
             CancellationToken cancellationToken)
         {
@@ -30,21 +31,21 @@ namespace Modix.Bot.Behaviors
             // so we can cache the result.
             if (_lastResult.HasValue
                     && _lastResult.Value.message.Id == message.Id)
-                return _lastResult.Value.argPos;
+                return Task.FromResult(_lastResult.Value.argPos);
 
             var argPos = default(int);
 
             _lastResult = (
                 message,
                 (message.HasCharPrefix('!', ref argPos)
-                        || message.HasMentionPrefix(await _selfUserProvider.GetSelfUserAsync(cancellationToken), ref argPos))
+                        || message.HasMentionPrefix(_discordSocketClient.CurrentUser, ref argPos))
                     ? argPos
                     : null as int?);
 
-            return _lastResult.Value.argPos;
+            return Task.FromResult(_lastResult.Value.argPos);
         }
 
-        private readonly ISelfUserProvider _selfUserProvider;
+        private readonly IDiscordSocketClient _discordSocketClient;
 
         private (IUserMessage message, int? argPos)? _lastResult;
     }

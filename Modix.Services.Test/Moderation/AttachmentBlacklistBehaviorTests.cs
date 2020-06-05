@@ -46,28 +46,28 @@ namespace Modix.Services.Test.Moderation
 
                 MockModerationService = new Mock<IModerationService>();
 
-                MockSelfUser = new Mock<ISocketSelfUser>();
-                MockSelfUser
+                MockCurrentUser = new Mock<ISocketSelfUser>();
+                MockCurrentUser
                     .Setup(x => x.Id)
                     .Returns(selfUserId);
 
-                MockSelfUserProvider = new Mock<ISelfUserProvider>();
-                MockSelfUserProvider
-                    .Setup(x => x.GetSelfUserAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(() => MockSelfUser.Object);
+                MockDiscordSocketClient = new Mock<IDiscordSocketClient>();
+                MockDiscordSocketClient
+                    .Setup(x => x.CurrentUser)
+                    .Returns(() => MockCurrentUser.Object);
             }
 
             public AttachmentBlacklistBehavior BuildUut()
                 => new AttachmentBlacklistBehavior(
                     MockDesignatedChannelService.Object,
+                    MockDiscordSocketClient.Object,
                     LoggerFactory.CreateLogger<AttachmentBlacklistBehavior>(),
-                    MockModerationService.Object,
-                    MockSelfUserProvider.Object);
+                    MockModerationService.Object);
 
             public readonly Mock<IDesignatedChannelService> MockDesignatedChannelService;
+            public readonly Mock<IDiscordSocketClient> MockDiscordSocketClient;
             public readonly Mock<IModerationService> MockModerationService;
-            public readonly Mock<ISocketSelfUser> MockSelfUser;
-            public readonly Mock<ISelfUserProvider> MockSelfUserProvider;
+            public readonly Mock<ISocketSelfUser> MockCurrentUser;
         }
 
         #endregion Test Context
@@ -196,8 +196,6 @@ namespace Modix.Services.Test.Moderation
                             testContext.CancellationToken),
                     Times.AtMostOnce());
 
-            testContext.MockSelfUserProvider.Invocations.ShouldBeEmpty();
-
             testContext.MockModerationService.Invocations.ShouldBeEmpty();
 
             mockChannel.ShouldNotHaveReceived(x => x
@@ -238,9 +236,6 @@ namespace Modix.Services.Test.Moderation
                     mockChannel.Object,
                     DesignatedChannelType.Unmoderated,
                     testContext.CancellationToken));
-
-            testContext.MockSelfUserProvider.ShouldHaveReceived(x => x
-                .GetSelfUserAsync(testContext.CancellationToken));
 
             testContext.MockModerationService.ShouldHaveReceived(x => x
                 .DeleteMessageAsync(

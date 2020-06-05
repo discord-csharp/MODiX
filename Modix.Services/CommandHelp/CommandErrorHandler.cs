@@ -30,12 +30,12 @@ namespace Modix.Services.CommandHelp
 
         private const string _emoji = "⚠";
         private readonly IEmote _emote = new Emoji(_emoji);
-        private readonly ISelfUserProvider _selfUserProvider;
+        private readonly IDiscordSocketClient _discordSocketClient;
         private readonly IMemoryCache _memoryCache;
 
-        public CommandErrorHandler(ISelfUserProvider selfUserProvider, IMemoryCache memoryCache)
+        public CommandErrorHandler(IDiscordSocketClient discordSocketClient, IMemoryCache memoryCache)
         {
-            _selfUserProvider = selfUserProvider;
+            _discordSocketClient = discordSocketClient;
             _memoryCache = memoryCache;
         }
 
@@ -138,7 +138,7 @@ namespace Modix.Services.CommandHelp
                     await originalMessage.RemoveReactionAsync(_emote, reaction.User.Value);
                 }
 
-                await originalMessage.RemoveReactionAsync(_emote, await _selfUserProvider.GetSelfUserAsync());
+                await originalMessage.RemoveReactionAsync(_emote, _discordSocketClient.CurrentUser);
             }
         }
     }

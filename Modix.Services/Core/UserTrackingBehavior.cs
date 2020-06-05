@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
 using Discord;
+using Discord.WebSocket;
 
 using Modix.Common.Messaging;
 
@@ -19,23 +20,19 @@ namespace Modix.Services.Core
             INotificationHandler<UserJoinedNotification>
     {
         public UserTrackingBehavior(
-            ISelfUserProvider selfUserProvider,
+            IDiscordSocketClient discordSocketClient,
             IUserService userService)
         {
-            _selfUserProvider = selfUserProvider;
+            _discordSocketClient = discordSocketClient;
             _userService = userService;
         }
 
-        public async Task HandleNotificationAsync(
-            GuildAvailableNotification notification,
-            CancellationToken cancellationToken)
-        {
-            var selfUser = await _selfUserProvider.GetSelfUserAsync(cancellationToken);
-
-            await _userService.TrackUserAsync(
-                notification.Guild.GetUser(selfUser.Id),
+        public Task HandleNotificationAsync(
+                GuildAvailableNotification notification,
+                CancellationToken cancellationToken)
+            => _userService.TrackUserAsync(
+                notification.Guild.GetUser(_discordSocketClient.CurrentUser.Id),
                 cancellationToken);
-        }
 
         public Task HandleNotificationAsync(
                 GuildMemberUpdatedNotification notification,
@@ -61,7 +58,7 @@ namespace Modix.Services.Core
                 notification.GuildUser,
                 cancellationToken);
 
-        private readonly ISelfUserProvider _selfUserProvider;
+        private readonly IDiscordSocketClient _discordSocketClient;
         private readonly IUserService _userService;
     }
 }

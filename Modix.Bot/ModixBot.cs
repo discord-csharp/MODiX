@@ -193,6 +193,8 @@ namespace Modix
 
         private async Task StartClient(CancellationToken cancellationToken)
         {
+            var whenReadySource = new TaskCompletionSource<object>();
+
             try
             {
                 _client.Ready += OnClientReady;
@@ -203,6 +205,8 @@ namespace Modix
                 await _client.StartAsync();
 
                 await _restClient.LoginAsync(TokenType.Bot, _config.DiscordToken);
+
+                await whenReadySource.Task;
             }
             catch (Exception)
             {
@@ -216,6 +220,8 @@ namespace Modix
                 Log.LogTrace("Discord client is ready. Setting game status.");
                 _client.Ready -= OnClientReady;
                 await _client.SetGameAsync(_config.WebsiteBaseUrl);
+
+                whenReadySource.SetResult(null);
             }
         }
     }

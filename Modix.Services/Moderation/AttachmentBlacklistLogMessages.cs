@@ -21,7 +21,6 @@ namespace Modix.Services.Moderation
             SuspiciousAttachmentsFound          = ModerationLogEventType.AttachmentBlacklist + 0x07,
             ChannelModerationStatusFetching     = ModerationLogEventType.AttachmentBlacklist + 0x08,
             ChannelModerationStatusFetched      = ModerationLogEventType.AttachmentBlacklist + 0x09,
-            SelfUserFetching                    = ModerationLogEventType.AttachmentBlacklist + 0x0A,
             SelfUserFetched                     = ModerationLogEventType.AttachmentBlacklist + 0x0B,
             SuspiciousMessageDeleting           = ModerationLogEventType.AttachmentBlacklist + 0x0C,
             SuspiciousMessageDeleted            = ModerationLogEventType.AttachmentBlacklist + 0x0D,
@@ -134,25 +133,16 @@ namespace Modix.Services.Moderation
                 .WithoutException();
 
         public static void SelfUserFetched(
-                ILogger logger)
+                ILogger logger,
+                ulong selfUserId)
             => _selfUserFetched.Invoke(
-                logger);
-        private static readonly Action<ILogger> _selfUserFetched
-            = LoggerMessage.Define(
+                logger,
+                selfUserId);
+        private static readonly Action<ILogger, ulong> _selfUserFetched
+            = LoggerMessage.Define<ulong>(
                     LogLevel.Debug,
                     EventType.SelfUserFetched.ToEventId(),
-                    $"{nameof(ISelfUser)} fetched")
-                .WithoutException();
-
-        public static void SelfUserFetching(
-                ILogger logger)
-            => _selfUserFetching.Invoke(
-                logger);
-        private static readonly Action<ILogger> _selfUserFetching
-            = LoggerMessage.Define(
-                    LogLevel.Debug,
-                    EventType.SelfUserFetching.ToEventId(),
-                    $"Fetching {nameof(ISelfUser)}")
+                    $"{nameof(ISelfUser)} fetched: SelfUserId: {{SelfUserId}}")
                 .WithoutException();
 
         public static void SuspiciousAttachmentsFound(

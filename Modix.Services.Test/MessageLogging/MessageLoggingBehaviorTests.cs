@@ -69,27 +69,27 @@ namespace Modix.Services.Test.MessageLogging
                     })
                     .ToImmutableArray();
 
-                MockSelfUser = new Mock<ISocketSelfUser>();
-                MockSelfUser
+                MockCurrentUser = new Mock<ISocketSelfUser>();
+                MockCurrentUser
                     .Setup(x => x.Id)
                     .Returns(selfUserId);
 
-                MockSelfUserProvider = new Mock<ISelfUserProvider>();
-                MockSelfUserProvider
-                    .Setup(x => x.GetSelfUserAsync(It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(() => MockSelfUser.Object);
+                MockDiscordSocketClient = new Mock<IDiscordSocketClient>();
+                MockDiscordSocketClient
+                    .Setup(x => x.CurrentUser)
+                    .Returns(() => MockCurrentUser.Object);
             }
 
             public MessageLoggingBehavior BuildUut()
                 => new MessageLoggingBehavior(
                     MockDesignatedChannelService.Object,
-                    LoggerFactory.CreateLogger<MessageLoggingBehavior>(),
-                    MockSelfUserProvider.Object);
+                    MockDiscordSocketClient.Object,
+                    LoggerFactory.CreateLogger<MessageLoggingBehavior>());
 
             public readonly Mock<IDesignatedChannelService> MockDesignatedChannelService;
+            public readonly Mock<IDiscordSocketClient> MockDiscordSocketClient;
             public readonly ImmutableArray<Mock<IMessageChannel>> MockMessageLogChannels;
-            public readonly Mock<ISelfUserProvider> MockSelfUserProvider;
-            public readonly Mock<ISocketSelfUser> MockSelfUser;
+            public readonly Mock<ISocketSelfUser> MockCurrentUser;
         }
 
         #endregion Test Context
@@ -223,10 +223,6 @@ namespace Modix.Services.Test.MessageLogging
                     Times.AtMostOnce());
             }
 
-            testContext.MockSelfUserProvider.ShouldHaveReceived(x => x
-                    .GetSelfUserAsync(testContext.CancellationToken),
-                Times.AtMostOnce());
-
             foreach(var mockMessageLogChannel in testContext.MockMessageLogChannels)
                 mockMessageLogChannel.Invocations.ShouldBeEmpty();
 
@@ -274,9 +270,6 @@ namespace Modix.Services.Test.MessageLogging
                 .GetDesignatedChannelsAsync(
                     mockGuild.Object,
                     DesignatedChannelType.MessageLog));
-
-            testContext.MockSelfUserProvider.ShouldHaveReceived(x => x
-                .GetSelfUserAsync(testContext.CancellationToken));
 
             foreach (var mockMessageLogChannel in testContext.MockMessageLogChannels)
             {
@@ -466,10 +459,6 @@ namespace Modix.Services.Test.MessageLogging
                     Times.AtMostOnce());
             }
 
-            testContext.MockSelfUserProvider.ShouldHaveReceived(x => x
-                    .GetSelfUserAsync(testContext.CancellationToken),
-                Times.AtMostOnce());
-
             foreach(var mockMessageLogChannel in testContext.MockMessageLogChannels)
                 mockMessageLogChannel.Invocations.ShouldBeEmpty();
 
@@ -518,9 +507,6 @@ namespace Modix.Services.Test.MessageLogging
                 .GetDesignatedChannelsAsync(
                     mockGuild.Object,
                     DesignatedChannelType.MessageLog));
-
-            testContext.MockSelfUserProvider.ShouldHaveReceived(x => x
-                .GetSelfUserAsync(testContext.CancellationToken));
 
             foreach (var mockMessageLogChannel in testContext.MockMessageLogChannels)
             {
