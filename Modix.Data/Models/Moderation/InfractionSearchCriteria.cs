@@ -91,7 +91,7 @@ namespace Modix.Data.Models.Moderation
                     x => x.GuildId == criteria!.GuildId,
                     criteria?.GuildId != null)
                 .FilterBy(
-                    x => criteria!.Types.Contains(x.Type),
+                    x => criteria!.Types!.Contains(x.Type),
                     criteria?.Types?.Any() ?? false)
                 .FilterBy(
                     x => ReusableQueries.StringContainsUser.Invoke(x.Subject, criteria!.Subject!),

@@ -57,7 +57,7 @@ namespace Modix.Services.IsUp
             var client = _httpClientFactory.CreateClient();
             var response = await client.GetAsync(apiQueryUrl, cancellationToken);
 
-            if (!response.IsSuccessStatusCode)
+            if (!response.IsSuccessStatusCode || response.Content is null)
             {
                 await message.DeleteAsync();
                 await request.Message.ReplyAsync($"Failed looking up {_apiBaseURl} - {response.ReasonPhrase}");

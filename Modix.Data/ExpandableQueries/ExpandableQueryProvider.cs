@@ -41,7 +41,7 @@ namespace Modix.Data.ExpandableQueries
         public TResult Execute<TResult>(Expression expression)
             => _provider.Execute<TResult>(Visit(expression));
 
-        public object Execute(Expression expression)
+        public object? Execute(Expression expression)
             => _provider.Execute(Visit(expression));
 
         TResult IAsyncQueryProvider.ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
