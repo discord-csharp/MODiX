@@ -120,7 +120,7 @@ namespace Modix.Data.Models.Core
         public string? GetDefaultAvatarUrl()
             => _user?.GetDefaultAvatarUrl();
 
-        public EphemeralUser WithIEntityData(IEntity<ulong> user)
+        public EphemeralUser WithIEntityData(IEntity<ulong>? user)
         {
             if (user is null)
                 return this;
@@ -131,7 +131,7 @@ namespace Modix.Data.Models.Core
             return this;
         }
 
-        public EphemeralUser WithISnowflakeEntityData(ISnowflakeEntity user)
+        public EphemeralUser WithISnowflakeEntityData(ISnowflakeEntity? user)
         {
             if (user is null)
                 return this;
@@ -142,7 +142,7 @@ namespace Modix.Data.Models.Core
             return WithIEntityData(user);
         }
 
-        public EphemeralUser WithIPresenceData(IPresence user)
+        public EphemeralUser WithIPresenceData(IPresence? user)
         {
             if (user is null)
                 return this;
@@ -156,7 +156,7 @@ namespace Modix.Data.Models.Core
             return this;
         }
 
-        public EphemeralUser WithIUserData(IUser user)
+        public EphemeralUser WithIUserData(IUser? user)
         {
             if (user is null)
                 return this;
@@ -188,7 +188,7 @@ namespace Modix.Data.Models.Core
                 .WithIPresenceData(user);
         }
 
-        public EphemeralUser WithIVoiceStateData(IVoiceState user)
+        public EphemeralUser WithIVoiceStateData(IVoiceState? user)
         {
             if (user is null)
                 return this;
@@ -217,7 +217,7 @@ namespace Modix.Data.Models.Core
             return this;
         }
 
-        public EphemeralUser WithIGuildUserData(IGuildUser user)
+        public EphemeralUser WithIGuildUserData(IGuildUser? user)
         {
             if (user is null)
                 return this;
@@ -246,7 +246,7 @@ namespace Modix.Data.Models.Core
                 .WithIVoiceStateData(user);
         }
 
-        public EphemeralUser WithGuildUserSummaryData(GuildUserSummary user)
+        public EphemeralUser WithGuildUserSummaryData(GuildUserSummary? user)
         {
             if (user is null)
                 return this;
@@ -275,7 +275,7 @@ namespace Modix.Data.Models.Core
             return this;
         }
 
-        public EphemeralUser WithGuildContext(IGuild guild)
+        public EphemeralUser WithGuildContext(IGuild? guild)
         {
             if (guild is { })
             {
@@ -286,7 +286,7 @@ namespace Modix.Data.Models.Core
             return this;
         }
 
-        public EphemeralUser WithBanData(IBan ban)
+        public EphemeralUser WithBanData(IBan? ban)
         {
             if (ban is null)
                 return this;

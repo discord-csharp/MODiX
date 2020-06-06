@@ -60,22 +60,22 @@ namespace Modix.Data.Models.Core
         internal static IQueryable<ClaimMappingEntity> FilterBy(this IQueryable<ClaimMappingEntity> query, ClaimMappingSearchCriteria criteria)
             => query
                 .FilterBy(
-                    x => criteria.Types.Contains(x.Type),
+                    x => criteria.Types!.Contains(x.Type),
                     criteria?.Types?.Any() ?? false)
                 .FilterBy(
                     x => x.GuildId == criteria!.GuildId,
                     criteria?.GuildId != null)
                 .FilterBy(
-                    x => ((x.RoleId != null) && criteria!.RoleIds.Contains(x.RoleId.Value)) || (x.UserId == criteria!.UserId),
+                    x => ((x.RoleId != null) && criteria!.RoleIds!.Contains(x.RoleId.Value)) || (x.UserId == criteria!.UserId),
                     (criteria?.RoleIds?.Any() ?? false) && (criteria?.UserId != null))
                 .FilterBy(
-                    x => (x.RoleId != null) && criteria!.RoleIds.Contains(x.RoleId.Value),
+                    x => (x.RoleId != null) && criteria!.RoleIds!.Contains(x.RoleId.Value),
                     (criteria?.RoleIds?.Any() ?? false) && (criteria?.UserId == null))
                 .FilterBy(
                     x => x.UserId == criteria!.UserId,
                     ((criteria?.RoleIds == null) || !criteria.RoleIds.Any()) && (criteria?.UserId != null))
                 .FilterBy(
-                    x => criteria!.Claims.Contains(x.Claim),
+                    x => criteria!.Claims!.Contains(x.Claim),
                     criteria?.Claims?.Any() ?? false)
                 .FilterBy(
                     x => x.CreateAction.Created >= criteria!.CreatedRange!.Value.From!.Value,
