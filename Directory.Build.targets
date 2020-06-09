@@ -45,6 +45,7 @@
     <PackageReference Update="Serilog" Version="2.9.1-dev-01167" />
     <PackageReference Update="Serilog.AspNetCore" Version="3.3.0-dev-00152" />
     <PackageReference Update="Serilog.Extensions.Logging" Version="3.0.2-dev-10272" />
+    <PackageReference Update="Serilog.Filters.Expressions" Version="2.1.0" />
     <PackageReference Update="Serilog.Sinks.Literate" Version="3.0.0" />
     <PackageReference Update="Serilog.Sinks.Sentry" Version="2.4.1" />
     <PackageReference Update="Serilog.Sinks.Console" Version="3.1.1" />

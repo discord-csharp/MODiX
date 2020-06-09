@@ -6,6 +6,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+
 using Modix.Data.Models.Core;
 using Modix.Services.CodePaste;
 using Modix.Services.Utilities;
@@ -40,15 +41,15 @@ namespace Modix
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                 .MinimumLevel.Override("Modix.DiscordSerilogAdapter", LogEventLevel.Information)
                 .Enrich.FromLogContext()
-                .WriteTo.Console(
-                    restrictedToMinimumLevel: LogEventLevel.Information)
-                .WriteTo.RollingFile(
-                    Path.Combine("logs", "{Date}.log"),
-                    restrictedToMinimumLevel: LogEventLevel.Information)
+                .WriteTo.Logger(subLoggerConfig => subLoggerConfig
+                    .MinimumLevel.Information()
+                    // .MinimumLevel.Override() is not supported for sub-loggers, even though the docs don't specify this. See https://github.com/serilog/serilog/pull/1033
+                    .Filter.ByExcluding("SourceContext like 'Microsoft.%' and @Level in ['Information', 'Debug', 'Verbose']")
+                    .WriteTo.Console()
+                    .WriteTo.RollingFile(Path.Combine("logs", "{Date}.log")))
                 .WriteTo.RollingFile(
                     new RenderedCompactJsonFormatter(),
                     Path.Combine("logs", "{Date}.clef"),
-                    restrictedToMinimumLevel: LogEventLevel.Verbose,
                     retainedFileCountLimit: 2);
 
             var webhookId = config.GetValue<ulong>(nameof(ModixConfig.LogWebhookId));
