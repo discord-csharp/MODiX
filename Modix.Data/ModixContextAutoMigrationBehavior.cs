@@ -9,15 +9,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Modix.Data
 {
-    public interface IModixContextAutoMigrationStartupAction
-        : IScopedStartupAction { }
-
-    public class ModixContextAutoMigrationStartupAction
-        : ScopedStartupActionBase,
-            IModixContextAutoMigrationStartupAction
+    [ServiceBinding(ServiceLifetime.Transient)]
+    public class ModixContextAutoMigrationBehavior
+        : ScopedBehaviorBase
     {
-        public ModixContextAutoMigrationStartupAction(
-                ILogger<ModixContextAutoMigrationStartupAction> logger,
+        public ModixContextAutoMigrationBehavior(
+                ILogger<ModixContextAutoMigrationBehavior> logger,
                 IServiceScopeFactory serviceScopeFactory)
             : base(
                 logger,
@@ -31,5 +28,14 @@ namespace Modix.Data
             await serviceProvider.GetRequiredService<ModixContext>().Database.MigrateAsync(cancellationToken);
             ModixContextLogMessages.ContextMigrated(_logger);
         }
+
+        public override Task StopAsync(
+                CancellationToken cancellationToken)
+            => Task.CompletedTask;
+
+        protected override Task OnStoppingAsync(
+                IServiceProvider serviceProvider,
+                CancellationToken cancellationToken)
+            => Task.CompletedTask;
     }
 }

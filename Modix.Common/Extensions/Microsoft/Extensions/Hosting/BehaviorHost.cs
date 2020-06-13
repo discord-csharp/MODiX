@@ -8,7 +8,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.Hosting
 {
-    [ServiceBinding(ServiceLifetime.Singleton)]
+    /// <summary>
+    /// Acts as the host for all registered <see cref="IBehavior"/>s within the application.
+    /// <see cref="IBehavior"/>s are started when the host starts, and stopped when the host stops.
+    /// Starting and stopping routines for <see cref="IBehavior"/>s are executed in parallel.
+    /// </summary>
+    [ServiceBinding(ServiceLifetime.Transient)]
     public class BehaviorHost
         : IHostedService
     {
@@ -20,6 +25,7 @@ namespace Microsoft.Extensions.Hosting
             _logger = logger;
         }
 
+        /// <inheritdoc/>
         public async Task StartAsync(
             CancellationToken cancellationToken)
         {
@@ -37,6 +43,7 @@ namespace Microsoft.Extensions.Hosting
             HostingLogMessages.BehaviorsStarted(_logger);
         }
 
+        /// <inheritdoc/>
         public async Task StopAsync(
             CancellationToken cancellationToken)
         {

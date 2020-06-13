@@ -10,16 +10,14 @@ namespace Microsoft.Extensions.Hosting
     {
         public enum EventType
         {
-            BehaviorsStarting       = CommonLogEventType.Hosting + 0x0001,
-            BehaviorsStarted        = CommonLogEventType.Hosting + 0x0002,
-            BehaviorsStopping       = CommonLogEventType.Hosting + 0x0003,
-            BehaviorsStopped        = CommonLogEventType.Hosting + 0x0004,
-            StartupActionExecuting  = CommonLogEventType.Hosting + 0x0005,
-            StartupActionExecuted   = CommonLogEventType.Hosting + 0x0006,
-            BehaviorStarting        = CommonLogEventType.Hosting + 0x0007,
-            BehaviorStarted         = CommonLogEventType.Hosting + 0x0008,
-            BehaviorStopping        = CommonLogEventType.Hosting + 0x0009,
-            BehaviorStopped         = CommonLogEventType.Hosting + 0x000A
+            BehaviorsStarting   = CommonLogEventType.Hosting + 0x0001,
+            BehaviorsStarted    = CommonLogEventType.Hosting + 0x0002,
+            BehaviorsStopping   = CommonLogEventType.Hosting + 0x0003,
+            BehaviorsStopped    = CommonLogEventType.Hosting + 0x0004,
+            BehaviorStarting    = CommonLogEventType.Hosting + 0x0005,
+            BehaviorStarted     = CommonLogEventType.Hosting + 0x0006,
+            BehaviorStopping    = CommonLogEventType.Hosting + 0x0007,
+            BehaviorStopped     = CommonLogEventType.Hosting + 0x0008
         }
 
         public static IDisposable BeginBehaviorScope(
@@ -31,16 +29,6 @@ namespace Microsoft.Extensions.Hosting
         private static readonly Func<ILogger, IBehavior, IDisposable> _beginBehaviorScope
             = LoggerMessage.DefineScope<IBehavior>(
                 "Behavior: {Behavior}");
-
-        public static IDisposable BeginStartupActionScope(
-                ILogger logger,
-                IScopedStartupAction startupAction)
-            => _beginStartupActionScope.Invoke(
-                logger,
-                startupAction);
-        private static readonly Func<ILogger, IScopedStartupAction, IDisposable> _beginStartupActionScope
-            = LoggerMessage.DefineScope<IScopedStartupAction>(
-                "StartupAction: {StartupAction}");
 
         public static void BehaviorsStarting(
                 ILogger logger)
@@ -84,28 +72,6 @@ namespace Microsoft.Extensions.Hosting
                     LogLevel.Information,
                     EventType.BehaviorsStopped.ToEventId(),
                     $"All {nameof(IBehavior)}'s stoped")
-                .WithoutException();
-
-        public static void StartupActionExecuting(
-                ILogger logger)
-            => _startupActionExecuting.Invoke(
-                logger);
-        private static readonly Action<ILogger> _startupActionExecuting
-            = LoggerMessage.Define(
-                    LogLevel.Information,
-                    EventType.StartupActionExecuting.ToEventId(),
-                    $"Executing {nameof(ScopedStartupActionBase)}")
-                .WithoutException();
-
-    public static void StartupActionExecuted(
-                ILogger logger)
-            => _startupActionExecuted.Invoke(
-                logger);
-        private static readonly Action<ILogger> _startupActionExecuted
-            = LoggerMessage.Define(
-                    LogLevel.Information,
-                    EventType.StartupActionExecuted.ToEventId(),
-                    $"{nameof(ScopedStartupActionBase)} executed")
                 .WithoutException();
 
         public static void BehaviorStarting(
