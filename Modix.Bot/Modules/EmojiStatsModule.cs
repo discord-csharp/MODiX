@@ -162,7 +162,6 @@ namespace Modix.Modules
                 : Enumerable.Empty<ulong>();
 
             var emojiStats = await _emojiRepository.GetEmojiStatsAsync(guildId, sortDirection, 10, emojiIds: emojiFilter);
-            var emojiStats30 = await _emojiRepository.GetEmojiStatsAsync(guildId, sortDirection, 10, TimeSpan.FromDays(30), emojiIds: emojiFilter);
             var guildStats = await _emojiRepository.GetGuildStatsAsync(guildId, emojiIds: emojiFilter);
 
             var sb = new StringBuilder();
@@ -170,8 +169,7 @@ namespace Modix.Modules
             BuildEmojiStatString(sb, guildStats.TotalUses, emojiStats, (emoji) =>
             {
                 var numberOfDays = Math.Clamp((DateTime.Now - guildStats.OldestTimestamp).Days, 1, 30);
-                var uses30 = emojiStats30.FirstOrDefault(x => x.Emoji.Equals(emoji.Emoji))?.Uses ?? 0;
-                return (double)uses30 / numberOfDays;
+                return (double)emoji.Uses / numberOfDays;
             });
 
             var daysSinceOldestEmojiUse = Math.Max((DateTime.Now - guildStats.OldestTimestamp).Days, 1);
