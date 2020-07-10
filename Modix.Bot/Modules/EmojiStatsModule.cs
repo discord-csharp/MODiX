@@ -128,7 +128,8 @@ namespace Modix.Modules
             if (double.IsNaN(percentUsage))
                 percentUsage = 0;
 
-            var numberOfDays = Math.Clamp((DateTime.Now - guildStats.OldestTimestamp).Days, 1, 30);
+            var emojiCreated = ephemeralEmoji.CreatedAt ?? guildStats.OldestTimestamp;
+            var numberOfDays = Math.Max((DateTimeOffset.Now - emojiCreated).Days, 1);
             var perDay = (double)emojiStats.Uses / numberOfDays;
 
             var sb = new StringBuilder(emojiFormatted);
@@ -167,7 +168,8 @@ namespace Modix.Modules
 
             BuildEmojiStatString(sb, guildStats.TotalUses, emojiStats, (emoji) =>
             {
-                var numberOfDays = Math.Clamp((DateTime.Now - guildStats.OldestTimestamp).Days, 1, 30);
+                var emojiCreated = emoji.Emoji.CreatedAt ?? guildStats.OldestTimestamp;
+                var numberOfDays = Math.Max((DateTimeOffset.Now - emojiCreated).Days, 1);
                 return (double)emoji.Uses / numberOfDays;
             });
 
