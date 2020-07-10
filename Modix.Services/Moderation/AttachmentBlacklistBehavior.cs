@@ -74,7 +74,8 @@ namespace Modix.Services.Moderation
                 ".potm",
                 ".ppam",
                 ".ppsm",
-                ".sldn"
+                ".sldn",
+                ".sb"
         };
 
         public AttachmentBlacklistBehavior(
