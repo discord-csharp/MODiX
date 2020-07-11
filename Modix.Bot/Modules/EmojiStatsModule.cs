@@ -107,7 +107,7 @@ namespace Modix.Modules
 
             var emojiStats = await _emojiRepository.GetEmojiStatsAsync(guildId, ephemeralEmoji);
 
-            if (emojiStats == default || emojiStats.Uses == 0)
+            if (emojiStats.Uses == 0)
             {
                 await ReplyAsync(embed: new EmbedBuilder()
                     .WithTitle("Unknown Emoji")
@@ -118,7 +118,6 @@ namespace Modix.Modules
                 return;
             }
 
-            var emojiStats30 = await _emojiRepository.GetEmojiStatsAsync(guildId, ephemeralEmoji, TimeSpan.FromDays(30));
             var guildStats = await _emojiRepository.GetGuildStatsAsync(guildId);
 
             var emojiFormatted = ((SocketSelfUser)Context.Client.CurrentUser).CanAccessEmoji(ephemeralEmoji)
@@ -129,8 +128,9 @@ namespace Modix.Modules
             if (double.IsNaN(percentUsage))
                 percentUsage = 0;
 
-            var numberOfDays = Math.Clamp((DateTime.Now - guildStats.OldestTimestamp).Days, 1, 30);
-            var perDay = (double)emojiStats30.Uses / numberOfDays;
+            var emojiCreated = ephemeralEmoji.CreatedAt ?? guildStats.OldestTimestamp;
+            var numberOfDays = Math.Max((DateTimeOffset.Now - emojiCreated).Days, 1);
+            var perDay = (double)emojiStats.Uses / numberOfDays;
 
             var sb = new StringBuilder(emojiFormatted);
 
@@ -162,16 +162,15 @@ namespace Modix.Modules
                 : Enumerable.Empty<ulong>();
 
             var emojiStats = await _emojiRepository.GetEmojiStatsAsync(guildId, sortDirection, 10, emojiIds: emojiFilter);
-            var emojiStats30 = await _emojiRepository.GetEmojiStatsAsync(guildId, sortDirection, 10, TimeSpan.FromDays(30), emojiIds: emojiFilter);
             var guildStats = await _emojiRepository.GetGuildStatsAsync(guildId, emojiIds: emojiFilter);
 
             var sb = new StringBuilder();
 
             BuildEmojiStatString(sb, guildStats.TotalUses, emojiStats, (emoji) =>
             {
-                var numberOfDays = Math.Clamp((DateTime.Now - guildStats.OldestTimestamp).Days, 1, 30);
-                var uses30 = emojiStats30.FirstOrDefault(x => x.Emoji.Equals(emoji.Emoji))?.Uses ?? 0;
-                return (double)uses30 / numberOfDays;
+                var emojiCreated = emoji.Emoji.CreatedAt ?? guildStats.OldestTimestamp;
+                var numberOfDays = Math.Max((DateTimeOffset.Now - emojiCreated).Days, 1);
+                return (double)emoji.Uses / numberOfDays;
             });
 
             var daysSinceOldestEmojiUse = Math.Max((DateTime.Now - guildStats.OldestTimestamp).Days, 1);
