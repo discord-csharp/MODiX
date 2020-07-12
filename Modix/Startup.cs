@@ -67,12 +67,10 @@ namespace Modix
             services.AddTransient<IStartupFilter, ModixConfigValidator>();
 
             services
+                .AddServices(typeof(ModixContext).Assembly, _configuration)
                 .AddDbContext<ModixContext>(options => options
                     .UseNpgsql(_configuration.GetValue<string>(nameof(ModixConfig.DbConnection)), npgsqlOptions => npgsqlOptions
-                        .UseDateTimeOffsetTranslations()))
-                .AddSingleton<ModixContextAutoMigrationStartupAction>()
-                .AddSingleton<IBehavior>(serviceProvider => serviceProvider.GetRequiredService<ModixContextAutoMigrationStartupAction>())
-                .AddSingleton<IModixContextAutoMigrationStartupAction>(serviceProvider => serviceProvider.GetRequiredService<ModixContextAutoMigrationStartupAction>());
+                        .UseDateTimeOffsetTranslations()));
 
             services
                 .AddModixHttpClients()
