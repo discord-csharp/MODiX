@@ -43,8 +43,8 @@ namespace Modix.Modules
                 if (message == null)
                     message = await FindMessageInUnknownChannelAsync(messageId);
 
-                var user = Context.User as IGuildUser;
-                var channel = message.Channel as ITextChannel;
+                var user = (IGuildUser)Context.User;
+                var channel = (ITextChannel)message.Channel;
                 var permissions = user.GetPermissions(channel);
 
                 if (!permissions.ViewChannel)
@@ -73,7 +73,7 @@ namespace Modix.Modules
             {
                 message = await GetMessage(messageId, channel);
 
-                var user = Context.User as IGuildUser;
+                var user = (IGuildUser)Context.User;
                 var permissions = user.GetPermissions(channel);
 
                 if (!permissions.ViewChannel)
