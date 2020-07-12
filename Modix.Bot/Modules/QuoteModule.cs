@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
+
 using Modix.Data.Repositories;
 using Modix.Services.CommandHelp;
 using Modix.Services.Quote;
