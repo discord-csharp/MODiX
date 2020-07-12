@@ -15,6 +15,7 @@ namespace Modix.Modules
     [Name("Quoting")]
     [Summary("Quote a message from the guild with its ID.")]
     [HelpTags("quotes")]
+    [RequireContext(ContextType.Guild)]
     public class QuoteModule : ModuleBase
     {
         private readonly IQuoteService _quoteService;
@@ -47,7 +48,7 @@ namespace Modix.Modules
                 var permissions = user.GetPermissions(channel);
 
                 if (!permissions.ViewChannel)
-                    return;
+                    await ReplyFailure(messageId);
 
             }
             catch (Exception e)
@@ -76,7 +77,7 @@ namespace Modix.Modules
                 var permissions = user.GetPermissions(channel);
 
                 if (!permissions.ViewChannel)
-                    return;
+                    await ReplyFailure(messageId);
             }
             catch (Exception e)
             {
@@ -154,5 +155,7 @@ namespace Modix.Modules
             => channel.GetMessageAsync(messageId);
 
         private Task ReplyFailure() => ReplyAsync($"I couldn't find the message you're referring to {Context.User.Mention}");
+
+        private Task ReplyFailure(ulong id) => ReplyAsync($"Sorry, you don't have permission to view this message (`{id}`) {Context.User.Mention}");
     }
 }
