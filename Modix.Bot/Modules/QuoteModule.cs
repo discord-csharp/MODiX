@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
-
+using Discord.WebSocket;
 using Modix.Data.Repositories;
 using Modix.Services.CommandHelp;
 using Modix.Services.Quote;
@@ -41,6 +41,14 @@ namespace Modix.Modules
 
                 if (message == null)
                     message = await FindMessageInUnknownChannelAsync(messageId);
+
+                var user = Context.User as IGuildUser;
+                var channel = message.Channel as ITextChannel;
+                var permissions = user.GetPermissions(channel);
+
+                if (!permissions.ViewChannel)
+                    return;
+
             }
             catch (Exception e)
             {
@@ -63,6 +71,12 @@ namespace Modix.Modules
             try
             {
                 message = await GetMessage(messageId, channel);
+
+                var user = Context.User as IGuildUser;
+                var permissions = user.GetPermissions(channel);
+
+                if (!permissions.ViewChannel)
+                    return;
             }
             catch (Exception e)
             {
