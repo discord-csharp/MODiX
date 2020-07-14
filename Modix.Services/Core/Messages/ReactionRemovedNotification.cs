@@ -2,14 +2,12 @@
 
 using Discord.WebSocket;
 
-using Modix.Common.Messaging;
-
 namespace Discord
 {
     /// <summary>
     /// Describes an application-wide notification that occurs when <see cref="IBaseSocketClient.ReactionRemoved"/> is raised.
     /// </summary>
-    public class ReactionRemovedNotification : INotification
+    public class ReactionRemovedNotification
     {
         /// <summary>
         /// Constructs a new <see cref="ReactionRemovedNotification"/> object from the given data values.

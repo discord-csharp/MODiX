@@ -2,14 +2,12 @@
 
 using Discord.WebSocket;
 
-using Modix.Common.Messaging;
-
 namespace Discord
 {
     /// <summary>
     /// Describes an application-wide notification that occurs when <see cref="IBaseSocketClient.MessageReceived"/> is raised.
     /// </summary>
-    public class MessageReceivedNotification : INotification
+    public class MessageReceivedNotification
     {
         /// <summary>
         /// Constructs a new <see cref="MessageReceivedNotification"/> from the given values.

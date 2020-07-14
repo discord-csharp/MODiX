@@ -5,157 +5,195 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.DependencyInjection;
-
-using Modix.Common.Messaging;
+using Microsoft.Extensions.Options;
 
 using Moq;
 using NUnit.Framework;
-using Serilog;
 using Shouldly;
+
+using Modix.Common.Messaging;
+using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
 
 namespace Modix.Common.Test.Messaging
 {
     [TestFixture]
     public class MessageDispatcherTests
     {
-        #region TestContext
+        #region Test Context
 
-        private static (Mock<IServiceScopeFactory> mockServiceScopeFactory, MessageDispatcher uut) BuildTestContext()
+        public class TestContext
+            : AsyncMethodWithLoggerTestContext
         {
-            var mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
-
-            var uut = new MessageDispatcher(mockServiceScopeFactory.Object);
-
-            return (mockServiceScopeFactory, uut);
-        }
-
-        #endregion TestContext
-
-        #region Constructor Tests
-
-        [Test]
-        public void Constructor_Always_ServiceProviderIsGiven()
-        {
-            (var mockServiceScopeFactory, var uut) = BuildTestContext();
-
-            uut.ServiceScopeFactory.ShouldBeSameAs(mockServiceScopeFactory.Object);
-        }
-
-        #endregion Constructor Tests
-
-        #region Dispatch() Tests
-
-        [Test]
-        public void Dispatch_NotificationIsNull_ThrowsException()
-        {
-            (var mockServiceScopeFactory, var uut) = BuildTestContext();
-
-            Should.Throw<ArgumentNullException>(() =>
-                uut.Dispatch((null as INotification)!));
-        }
-
-        [Test]
-        public async Task Dispatch_HandlersAreRegistered_CreatesServiceScope()
-        {
-            (var mockServiceScopeFactory, var uut) = BuildTestContext();
-
-            var mockServiceScope = new Mock<IServiceScope>();
-            mockServiceScopeFactory
-                .Setup(x => x.CreateScope())
-                .Returns(mockServiceScope.Object);
-
-            var mockScopedServiceProvider = new Mock<IServiceProvider>();
-            mockServiceScope
-                .Setup(x => x.ServiceProvider)
-                .Returns(mockScopedServiceProvider.Object);
-
-            mockScopedServiceProvider
-                .Setup(x => x.GetService(typeof(IEnumerable<INotificationHandler<INotification>>)))
-                .Returns(Enumerable.Empty<INotificationHandler<INotification>>());
-
-            var mockNotification = new Mock<INotification>();
-
-            await uut.DispatchAsync(mockNotification.Object);
-
-            mockServiceScopeFactory
-                .ShouldHaveReceived(x => x.CreateScope());
-        }
-
-        [Test]
-        public async Task Dispatch_HandlersAreRegistered_PublishesNotification()
-        {
-            (var mockServiceScopeFactory, var uut) = BuildTestContext();
-
-            var mockServiceScope = new Mock<IServiceScope>();
-            mockServiceScopeFactory
-                .Setup(x => x.CreateScope())
-                .Returns(mockServiceScope.Object);
-
-            var mockScopedServiceProvider = new Mock<IServiceProvider>();
-            mockServiceScope
-                .Setup(x => x.ServiceProvider)
-                .Returns(mockScopedServiceProvider.Object);
-
-            var mockHandlers = new[]
+            public TestContext()
             {
-                new Mock<INotificationHandler<INotification>>(),
-                new Mock<INotificationHandler<INotification>>(),
-                new Mock<INotificationHandler<INotification>>()
-            };
-            mockScopedServiceProvider
-                .Setup(x => x.GetService(typeof(IEnumerable<INotificationHandler<INotification>>)))
+                Logger = LoggerFactory.CreateLogger<MessageDispatcher>();
+
+                MockCancellationTokenSource = new Mock<ICancellationTokenSource>();
+                MockCancellationTokenSource
+                    .Setup(x => x.Token)
+                    .Returns(() => CancellationToken);
+
+                MockCancellationTokenSourceFactory = new Mock<ICancellationTokenSourceFactory>();
+                MockCancellationTokenSourceFactory
+                    .Setup(x => x.Create(It.IsAny<TimeSpan>()))
+                    .Returns(() => MockCancellationTokenSource.Object);
+
+                MockServiceProvider = new Mock<IServiceProvider>();
+
+                MockServiceScope = new Mock<IServiceScope>();
+                MockServiceScope
+                    .Setup(x => x.ServiceProvider)
+                    .Returns(() => MockServiceProvider.Object);
+
+                MockServiceScopeFactory = new Mock<IServiceScopeFactory>();
+                MockServiceScopeFactory
+                    .Setup(x => x.CreateScope())
+                    .Returns(() => MockServiceScope.Object);
+
+                Options = Microsoft.Extensions.Options.Options.Create(new MessagingOptions());
+            }
+
+            public MessageDispatcher BuildUut()
+                => new MessageDispatcher(
+                    MockCancellationTokenSourceFactory.Object,
+                    Logger,
+                    Options,
+                    MockServiceScopeFactory.Object);
+
+            public readonly ILogger<MessageDispatcher> Logger;
+
+            public readonly Mock<ICancellationTokenSource> MockCancellationTokenSource;
+            public readonly Mock<ICancellationTokenSourceFactory> MockCancellationTokenSourceFactory;
+            public readonly Mock<IServiceProvider> MockServiceProvider;
+            public readonly Mock<IServiceScope> MockServiceScope;
+            public readonly Mock<IServiceScopeFactory> MockServiceScopeFactory;
+
+            public readonly IOptions<MessagingOptions> Options;
+        }
+
+        #endregion Test Context
+
+        #region DispatchAsync() Tests
+
+        public static readonly ImmutableArray<TestCaseData> DispatchAsync_TestCaseData
+            = ImmutableArray.Create(
+                /*                  dispatchTimeout,            handlerCount,   timeout,                    cancellationTokenSourceDelay    */
+                new TestCaseData(   TimeSpan.Zero,              0,              TimeSpan.Zero,              TimeSpan.Zero                   ).SetName("{m}(No handlers registered)"),
+                new TestCaseData(   TimeSpan.Zero,              1,              TimeSpan.Zero,              TimeSpan.Zero                   ).SetName("{m}(One handler registered)"),
+                new TestCaseData(   TimeSpan.Zero,              3,              TimeSpan.Zero,              TimeSpan.Zero                   ).SetName("{m}(Many handlers registered)"),
+                new TestCaseData(   TimeSpan.FromSeconds(1),    1,              null,                       TimeSpan.FromSeconds(1)         ).SetName("{m}(Timeout not given)"),
+                new TestCaseData(   TimeSpan.FromSeconds(2),    1,              TimeSpan.FromSeconds(3),    TimeSpan.FromSeconds(3)         ).SetName("{m}(Timeout given)"));
+
+        [TestCaseSource(nameof(DispatchAsync_TestCaseData))]
+        public async Task DispatchAsync_Always_InvokesHandlersInServiceScopeWithTimeout(
+            TimeSpan dispatchTimeout,
+            int handlerCount,
+            TimeSpan? timeout,
+            TimeSpan cancellationTokenSourceDelay)
+        {
+            using var testContext = new TestContext();
+            testContext.Options.Value.DispatchTimeout = dispatchTimeout;
+
+            var mockHandlers = Enumerable.Range(0, handlerCount)
+                .Select(_ => new Mock<INotificationHandler<object>>())
+                .ToArray();
+
+            testContext.MockServiceProvider
+                .Setup(x => x.GetService(typeof(IEnumerable<INotificationHandler<object>>)))
                 .Returns(mockHandlers.Select(x => x.Object));
 
-            var mockNotification = new Mock<INotification>();
+            var uut = testContext.BuildUut();
 
-            await uut.DispatchAsync(mockNotification.Object);
+            var notification = new object();
 
-            mockHandlers
-                .EachShould(x => x
-                    .ShouldHaveReceived(y => y
-                        .HandleNotificationAsync(mockNotification.Object, default(CancellationToken))));
+            await uut.DispatchAsync(notification, timeout);
+
+            testContext.MockCancellationTokenSourceFactory.ShouldHaveReceived(x => x
+                .Create(cancellationTokenSourceDelay));
+
+            testContext.MockServiceScopeFactory.ShouldHaveReceived(x => x
+                .CreateScope());
+
+            foreach (var mockHandler in mockHandlers)
+                mockHandler.ShouldHaveReceived(x => x
+                    .HandleNotificationAsync(notification, testContext.CancellationToken));
+
+            testContext.MockServiceScope.ShouldHaveReceived(x => x
+                .Dispose());
         }
 
         [Test]
-        public async Task Dispatch_HandlerThrowsException_PublishesNotificationToOtherHandlers()
+        public async Task DispatchAsync_NotificationIsLogScopeProvider_CreatesLogScope()
         {
-            (var mockServiceScopeFactory, var uut) = BuildTestContext();
+            using var testContext = new TestContext();
 
-            var mockServiceScope = new Mock<IServiceScope>();
-            mockServiceScopeFactory
-                .Setup(x => x.CreateScope())
-                .Returns(mockServiceScope.Object);
+            var mockHandler = new Mock<INotificationHandler<object>>();
 
-            var mockScopedServiceProvider = new Mock<IServiceProvider>();
-            mockServiceScope
-                .Setup(x => x.ServiceProvider)
-                .Returns(mockScopedServiceProvider.Object);
+            testContext.MockServiceProvider
+                .Setup(x => x.GetService(typeof(IEnumerable<INotificationHandler<object>>)))
+                .Returns(EnumerableEx.From(mockHandler.Object));
 
-            var mockHandlers = new[]
-            {
-                new Mock<INotificationHandler<INotification>>(),
-                new Mock<INotificationHandler<INotification>>(),
-                new Mock<INotificationHandler<INotification>>()
-            };
-            mockScopedServiceProvider
-                .Setup(x => x.GetService(typeof(IEnumerable<INotificationHandler<INotification>>)))
+            var uut = testContext.BuildUut();
+
+            var mockNotificationLogScope = new Mock<IDisposable>();
+
+            var mockNotification = new Mock<ILogScopeProvider>();
+            mockNotification
+                .Setup(x => x.BeginLogScope(It.IsAny<ILogger>()))
+                .Returns(() => mockNotificationLogScope.Object);
+
+            await uut.DispatchAsync(mockNotification.Object);
+
+            mockNotification.ShouldHaveReceived(x => x
+                .BeginLogScope(testContext.Logger));
+
+            mockNotificationLogScope.ShouldHaveReceived(x => x
+                .Dispose());
+        }
+
+        public static readonly ImmutableArray<TestCaseData> DispatchAsync_HandlerThrowsException_TestCaseData
+            = ImmutableArray.Create(
+                /*                  handlerCount,   handlerExceptionIndex   */
+                new TestCaseData(   1,              0                       ).SetName("{m}(Single handler)"),
+                new TestCaseData(   3,              0                       ).SetName("{m}(First handler)"),
+                new TestCaseData(   3,              1                       ).SetName("{m}(Second handler)"),
+                new TestCaseData(   3,              2                       ).SetName("{m}(Third handler)"));
+
+        [TestCaseSource(nameof(DispatchAsync_HandlerThrowsException_TestCaseData))]
+        public async Task DispatchAsync_HandlerThrowsException_InvokesOtherHandlers(
+            int handlerCount,
+            int handlerExceptionIndex)
+        {
+            using var testContext = new TestContext();
+
+            var mockHandlers = Enumerable.Range(0, handlerCount)
+                .Select(_ => new Mock<INotificationHandler<object>>())
+                .ToArray();
+
+            testContext.MockServiceProvider
+                .Setup(x => x.GetService(typeof(IEnumerable<INotificationHandler<object>>)))
                 .Returns(mockHandlers.Select(x => x.Object));
 
             var exception = new Exception();
-            mockHandlers[1]
-                .Setup(x => x.HandleNotificationAsync(It.IsAny<INotification>(), It.IsAny<CancellationToken>()))
+            mockHandlers[handlerExceptionIndex]
+                .Setup(x => x.HandleNotificationAsync(It.IsAny<object>(), It.IsAny<CancellationToken>()))
                 .Throws(exception);
 
-            var mockNotification = new Mock<INotification>();
+            var uut = testContext.BuildUut();
 
-            await uut.DispatchAsync(mockNotification.Object);
+            var notification = new object();
 
-            mockHandlers
-                .EachShould(x => x
-                    .ShouldHaveReceived(y => y
-                        .HandleNotificationAsync(mockNotification.Object, default(CancellationToken))));
+            await uut.DispatchAsync(notification);
+
+            foreach (var mockHandler in mockHandlers)
+                mockHandler.ShouldHaveReceived(x => x
+                    .HandleNotificationAsync(notification, testContext.CancellationToken));
+
+            testContext.MockServiceScope.ShouldHaveReceived(x => x
+                .Dispose());
         }
 
-        #endregion Dispatch() Tests
+        #endregion DispatchAsync() Tests
     }
 }

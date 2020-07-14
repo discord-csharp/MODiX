@@ -2,14 +2,12 @@
 
 using Discord.WebSocket;
 
-using Modix.Common.Messaging;
-
 namespace Discord
 {
     /// <summary>
     /// Describes an application-wide notification that occurs when <see cref="IBaseSocketClient.MessageDeleted"/> is raised.
     /// </summary>
-    public class MessageDeletedNotification : INotification
+    public class MessageDeletedNotification
     {
         /// <summary>
         /// Constructs a new <see cref="MessageDeletedNotification"/> from the given values.

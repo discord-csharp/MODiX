@@ -1,20 +1,15 @@
 ﻿using Discord.WebSocket;
 
-using Modix.Common.Messaging;
-
 namespace Discord
 {
     /// <summary>
     /// Describes an application-wide notification that occurs when <see cref="IDiscordSocketClient.Ready"/> is raised.
     /// </summary>
-    public class ReadyNotification : INotification
+    public class ReadyNotification
     {
         /// <summary>
-        /// A default, reusable instance of the <see cref="ReadyNotification"/> class.
+        /// Constructs a new <see cref="ReadyNotification"/> object.
         /// </summary>
-        public static readonly ReadyNotification Default
-            = new ReadyNotification();
-
-        private ReadyNotification() { }
+        public ReadyNotification() { }
     }
 }
