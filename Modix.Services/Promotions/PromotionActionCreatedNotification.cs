@@ -1,6 +1,5 @@
 ﻿using System;
 
-using Modix.Common.Messaging;
 using Modix.Data.Models.Promotions;
 
 namespace Modix.Services.Promotions
@@ -8,7 +7,7 @@ namespace Modix.Services.Promotions
     /// <summary>
     /// Describes an application-wide notification that occurs when a new <see cref="PromotionActionEntity"/> is created.-
     /// </summary>
-    public class PromotionActionCreatedNotification : INotification
+    public class PromotionActionCreatedNotification
     {
         /// <summary>
         /// Constructs a new <see cref="PromotionActionCreatedNotification"/> from the given values.

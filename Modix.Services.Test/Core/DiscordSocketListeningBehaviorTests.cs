@@ -431,8 +431,9 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeChannelCreatedEvent.InvokeAsync(mockChannel.Object)
                 .IsCompleted.ShouldBeTrue();
 
-            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<ChannelCreatedNotification>(y =>
-                ReferenceEquals(y.Channel, mockChannel.Object))));
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(
+                It.Is<ChannelCreatedNotification>(y => ReferenceEquals(y.Channel, mockChannel.Object)),
+                default));
         }
 
         #endregion DiscordSocketClient.ChannelCreated Tests
@@ -459,9 +460,10 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeChannelUpdatedEvent.InvokeAsync(mockOldChannel.Object, mockNewChannel.Object)
                 .IsCompleted.ShouldBeTrue();
 
-            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<ChannelUpdatedNotification>(y =>
-                ReferenceEquals(y.OldChannel, mockOldChannel.Object)
-                && ReferenceEquals(y.NewChannel, mockNewChannel.Object))));
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(
+                It.Is<ChannelUpdatedNotification>(y => ReferenceEquals(y.OldChannel, mockOldChannel.Object)
+                    && ReferenceEquals(y.NewChannel, mockNewChannel.Object)),
+                default));
         }
 
         #endregion DiscordSocketClient.ChannelUpdated Tests
@@ -487,8 +489,9 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeGuildAvailableEvent.InvokeAsync(mockGuild.Object)
                 .IsCompleted.ShouldBeTrue();
 
-            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<GuildAvailableNotification>(y =>
-                ReferenceEquals(y.Guild, mockGuild.Object))));
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(
+                It.Is<GuildAvailableNotification>(y => ReferenceEquals(y.Guild, mockGuild.Object)),
+                default));
         }
 
         #endregion DiscordSocketClient.GuildAvailable Tests
@@ -515,9 +518,10 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeGuildMemberUpdatedEvent.InvokeAsync(mockOldMember.Object, mockNewMember.Object)
                 .IsCompleted.ShouldBeTrue();
 
-            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<GuildMemberUpdatedNotification>(y =>
-                ReferenceEquals(y.OldMember, mockOldMember.Object)
-                && ReferenceEquals(y.NewMember, mockNewMember.Object))));
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(
+                It.Is<GuildMemberUpdatedNotification>(y => ReferenceEquals(y.OldMember, mockOldMember.Object)
+                    && ReferenceEquals(y.NewMember, mockNewMember.Object)),
+                default));
         }
 
         #endregion DiscordSocketClient.GuildMemberUpdated Tests
@@ -543,8 +547,9 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeJoinedGuildEvent.InvokeAsync(mockGuild.Object)
                 .IsCompleted.ShouldBeTrue();
 
-            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<JoinedGuildNotification>(y =>
-                ReferenceEquals(y.Guild, mockGuild.Object))));
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(
+                It.Is<JoinedGuildNotification>(y => ReferenceEquals(y.Guild, mockGuild.Object)),
+                default));
         }
 
         #endregion DiscordSocketClient.JoinedGuild Tests
@@ -571,9 +576,10 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeMessageDeletedEvent.InvokeAsync(mockMessage.Object, mockChannel.Object)
                 .IsCompleted.ShouldBeTrue();
 
-            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<MessageDeletedNotification>(y =>
-                ReferenceEquals(y.Message, mockMessage.Object)
-                && ReferenceEquals(y.Channel, mockChannel.Object))));
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(
+                It.Is<MessageDeletedNotification>(y => ReferenceEquals(y.Message, mockMessage.Object)
+                    && ReferenceEquals(y.Channel, mockChannel.Object)),
+                default));
         }
 
         #endregion DiscordSocketClient.MessageDeleted Tests
@@ -599,8 +605,9 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeMessageReceivedEvent.InvokeAsync(mockMessage.Object)
                 .IsCompleted.ShouldBeTrue();
 
-            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<MessageReceivedNotification>(y =>
-                ReferenceEquals(y.Message, mockMessage.Object))));
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(
+                It.Is<MessageReceivedNotification>(y => ReferenceEquals(y.Message, mockMessage.Object)),
+                default));
         }
 
         #endregion DiscordSocketClient.MessageReceived Tests
@@ -628,10 +635,11 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeMessageUpdatedEvent.InvokeAsync(mockOldMessage.Object, mockNewMessage.Object, mockChannel.Object)
                 .IsCompleted.ShouldBeTrue();
 
-            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<MessageUpdatedNotification>(y =>
-                ReferenceEquals(y.OldMessage, mockOldMessage.Object)
-                && ReferenceEquals(y.NewMessage, mockNewMessage.Object)
-                && ReferenceEquals(y.Channel, mockChannel.Object))));
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(
+                It.Is<MessageUpdatedNotification>(y => ReferenceEquals(y.OldMessage, mockOldMessage.Object)
+                    && ReferenceEquals(y.NewMessage, mockNewMessage.Object)
+                    && ReferenceEquals(y.Channel, mockChannel.Object)),
+                default));
         }
 
         #endregion DiscordSocketClient.MessageUpdated Tests
@@ -659,10 +667,11 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeReactionAddedEvent.InvokeAsync(mockMessage.Object, mockChannel.Object, mockReaction.Object)
                 .IsCompleted.ShouldBeTrue();
 
-            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<ReactionAddedNotification>(y =>
-                ReferenceEquals(y.Message, mockMessage.Object)
-                && ReferenceEquals(y.Channel, mockChannel.Object)
-                && ReferenceEquals(y.Reaction, mockReaction.Object))));
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(
+                It.Is<ReactionAddedNotification>(y => ReferenceEquals(y.Message, mockMessage.Object)
+                    && ReferenceEquals(y.Channel, mockChannel.Object)
+                    && ReferenceEquals(y.Reaction, mockReaction.Object)),
+                default));
         }
 
         #endregion DiscordSocketClient.ReactionAdded Tests
@@ -690,10 +699,11 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeReactionRemovedEvent.InvokeAsync(mockMessage.Object, mockChannel.Object, mockReaction.Object)
                 .IsCompleted.ShouldBeTrue();
 
-            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<ReactionRemovedNotification>(y =>
-                ReferenceEquals(y.Message, mockMessage.Object)
-                && ReferenceEquals(y.Channel, mockChannel.Object)
-                && ReferenceEquals(y.Reaction, mockReaction.Object))));
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(
+                It.Is<ReactionRemovedNotification>(y => ReferenceEquals(y.Message, mockMessage.Object)
+                    && ReferenceEquals(y.Channel, mockChannel.Object)
+                    && ReferenceEquals(y.Reaction, mockReaction.Object)),
+                default));
         }
 
         #endregion DiscordSocketClient.ReactionRemoved Tests
@@ -717,7 +727,9 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeReadyEvent.InvokeAsync()
                 .IsCompleted.ShouldBeTrue();
 
-            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(ReadyNotification.Default));
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(
+                It.IsNotNull<ReadyNotification>(),
+                default));
         }
 
         #endregion DiscordSocketClient.Ready Tests
@@ -743,8 +755,9 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeRoleCreatedEvent.InvokeAsync(mockRole.Object)
                 .IsCompleted.ShouldBeTrue();
 
-            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<RoleCreatedNotification>(y =>
-                ReferenceEquals(y.Role, mockRole.Object))));
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(
+                It.Is<RoleCreatedNotification>(y => ReferenceEquals(y.Role, mockRole.Object)),
+                default));
         }
 
         #endregion DiscordSocketClient.RoleCreated Tests
@@ -771,9 +784,10 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeRoleUpdatedEvent.InvokeAsync(mockOldRole.Object, mockNewRole.Object)
                 .IsCompleted.ShouldBeTrue();
 
-            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<RoleUpdatedNotification>(y =>
-                ReferenceEquals(y.OldRole, mockOldRole.Object)
-                && ReferenceEquals(y.NewRole, mockNewRole.Object))));
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(
+                It.Is<RoleUpdatedNotification>(y => ReferenceEquals(y.OldRole, mockOldRole.Object)
+                    && ReferenceEquals(y.NewRole, mockNewRole.Object)),
+                default));
         }
 
         #endregion DiscordSocketClient.RoleUpdated Tests
@@ -800,9 +814,10 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeUserBannedEvent.InvokeAsync(mockUser.Object, mockGuild.Object)
                 .IsCompleted.ShouldBeTrue();
 
-            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<UserBannedNotification>(y =>
-                ReferenceEquals(y.User, mockUser.Object)
-                && ReferenceEquals(y.Guild, mockGuild.Object))));
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(
+                It.Is<UserBannedNotification>(y => ReferenceEquals(y.User, mockUser.Object)
+                    && ReferenceEquals(y.Guild, mockGuild.Object)),
+                default));
         }
 
         #endregion DiscordSocketClient.UserBanned Tests
@@ -828,8 +843,9 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeUserJoinedEvent.InvokeAsync(mockGuildUser.Object)
                 .IsCompleted.ShouldBeTrue();
 
-            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<UserJoinedNotification>(y =>
-                ReferenceEquals(y.GuildUser, mockGuildUser.Object))));
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(
+                It.Is<UserJoinedNotification>(y => ReferenceEquals(y.GuildUser, mockGuildUser.Object)),
+                default));
         }
 
         #endregion DiscordSocketClient.UserJoined Tests
@@ -855,8 +871,9 @@ namespace Modix.Services.Test.Core
             fakeDiscordSocketClient.FakeUserLeftEvent.InvokeAsync(mockGuildUser.Object)
                 .IsCompleted.ShouldBeTrue();
 
-            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(It.Is<UserLeftNotification>(y =>
-                ReferenceEquals(y.GuildUser, mockGuildUser.Object))));
+            mockMessageDispatcher.ShouldHaveReceived(x => x.Dispatch(
+                It.Is<UserLeftNotification>(y => ReferenceEquals(y.GuildUser, mockGuildUser.Object)),
+                default));
         }
 
         #endregion DiscordSocketClient.UserLeft Tests

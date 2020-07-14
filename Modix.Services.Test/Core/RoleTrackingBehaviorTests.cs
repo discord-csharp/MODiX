@@ -138,7 +138,7 @@ namespace Modix.Services.Test.Core
                 })
                 .ToArray();
 
-            var notification = ReadyNotification.Default;
+            var notification = new ReadyNotification();
 
             return new TestCaseData(guilds, notification);
         }

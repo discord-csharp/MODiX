@@ -1,176 +1,108 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-
-using Microsoft.Extensions.DependencyInjection;
-
-using Modix.Common.Messaging;
 
 using Moq;
 using NUnit.Framework;
-using Serilog;
 using Shouldly;
+
+using Modix.Common.Messaging;
+using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
 
 namespace Modix.Common.Test.Messaging
 {
     [TestFixture]
     public class MessagePublisherTests
     {
-        #region TestContext
+        #region Test Context
 
-        private static (Mock<IServiceProvider> mockServiceProvider, MessagePublisher uut) BuildTestContext()
+        public class TestContext
+            : AsyncMethodWithLoggerTestContext
         {
-            var mockServiceProvider = new Mock<IServiceProvider>();
-
-            var uut = new MessagePublisher(mockServiceProvider.Object);
-
-            return (mockServiceProvider, uut);
-        }
-
-        #endregion TestContext
-
-        #region Constructor Tests
-
-        [Test]
-        public void Constructor_Always_ServiceProviderIsGiven()
-        {
-            (var mockServiceProvider, var uut) = BuildTestContext();
-
-            uut.ServiceProvider.ShouldBeSameAs(mockServiceProvider.Object);
-        }
-
-        #endregion Constructor Tests
-
-        #region PublishAsync(notification) Tests
-
-        [Test]
-        public async Task PublishAsync_NotificationIsNull_ThrowsException()
-        {
-            (var mockServiceProvider, var uut) = BuildTestContext();
-
-            var cancellationTokenSource = new CancellationTokenSource();
-
-            await Should.ThrowAsync<ArgumentNullException>(async () =>
-                await uut.PublishAsync((null as INotification)!, cancellationTokenSource.Token));
-        }
-
-        [Test]
-        public async Task PublishAsync_HandlersAreRegistered_PublishesNotification()
-        {
-            (var mockServiceProvider, var uut) = BuildTestContext();
-
-            var mockHandlers = new[]
+            public TestContext()
             {
-                new Mock<INotificationHandler<INotification>>(),
-                new Mock<INotificationHandler<INotification>>(),
-                new Mock<INotificationHandler<INotification>>()
-            };
-            mockServiceProvider
-                .Setup(x => x.GetService(typeof(IEnumerable<INotificationHandler<INotification>>)))
+                Logger = LoggerFactory.CreateLogger<MessagePublisher>();
+
+                MockServiceProvider = new Mock<IServiceProvider>();
+            }
+
+            public MessagePublisher BuildUut()
+                => new MessagePublisher(
+                    Logger,
+                    MockServiceProvider.Object);
+
+            public readonly ILogger<MessagePublisher> Logger;
+
+            public readonly Mock<IServiceProvider> MockServiceProvider;
+        }
+
+        #endregion Test Context
+
+        #region PublishAsync() Tests
+
+        public static readonly ImmutableArray<TestCaseData> PublishAsync_TestCaseData
+            = ImmutableArray.Create(
+                /*                  handlerCount    */
+                new TestCaseData(   0               ).SetName("{m}(No handlers)"),
+                new TestCaseData(   1               ).SetName("{m}(Single handler)"),
+                new TestCaseData(   3               ).SetName("{m}(Many handlers)"));
+
+        [TestCaseSource(nameof(PublishAsync_TestCaseData))]
+        public async Task PublishAsync_Always_InvokesHandlers(
+            int handlerCount)
+        {
+            using var testContext = new TestContext();
+
+            var mockHandlers = Enumerable.Range(0, handlerCount)
+                .Select(_ => new Mock<INotificationHandler<object>>())
+                .ToArray();
+
+            testContext.MockServiceProvider
+                .Setup(x => x.GetService(typeof(IEnumerable<INotificationHandler<object>>)))
                 .Returns(mockHandlers.Select(x => x.Object));
 
-            var mockNotification = new Mock<INotification>();
-            var cancellationTokenSource = new CancellationTokenSource();
+            var uut = testContext.BuildUut();
 
-            await uut.PublishAsync(mockNotification.Object, cancellationTokenSource.Token);
+            var notification = new object();
 
-            mockHandlers
-                .EachShould(x => x
-                    .ShouldHaveReceived(y => y
-                        .HandleNotificationAsync(mockNotification.Object, cancellationTokenSource.Token)));
+            await uut.PublishAsync(notification, testContext.CancellationToken);
+
+            foreach(var mockHandler in mockHandlers)
+                mockHandler.ShouldHaveReceived(x => x
+                    .HandleNotificationAsync(notification, testContext.CancellationToken));
         }
 
         [Test]
-        public void PublishAsync_HandlersAreNotRegistered_CompletesImmediately()
+        public async Task DispatchAsync_NotificationIsLogScopeProvider_CreatesLogScope()
         {
-            (var mockServiceProvider, var uut) = BuildTestContext();
+            using var testContext = new TestContext();
 
-            mockServiceProvider.Setup(x => x.GetService(typeof(IEnumerable<INotificationHandler<INotification>>)))
-                .Returns(Enumerable.Empty<INotificationHandler<INotification>>());
+            var mockHandler = new Mock<INotificationHandler<object>>();
 
-            var mockNotification = new Mock<INotification>();
-            var cancellationTokenSource = new CancellationTokenSource();
+            testContext.MockServiceProvider
+                .Setup(x => x.GetService(typeof(IEnumerable<INotificationHandler<object>>)))
+                .Returns(EnumerableEx.From(mockHandler.Object));
 
-            var result = uut.PublishAsync(mockNotification.Object, cancellationTokenSource.Token);
+            var uut = testContext.BuildUut();
 
-            result.IsCompleted.ShouldBeTrue();
+            var mockNotificationLogScope = new Mock<IDisposable>();
+
+            var mockNotification = new Mock<ILogScopeProvider>();
+            mockNotification
+                .Setup(x => x.BeginLogScope(It.IsAny<ILogger>()))
+                .Returns(() => mockNotificationLogScope.Object);
+
+            await uut.PublishAsync(mockNotification.Object as object, testContext.CancellationToken);
+
+            mockNotification.ShouldHaveReceived(x => x
+                .BeginLogScope(testContext.Logger));
+
+            mockNotificationLogScope.ShouldHaveReceived(x => x
+                .Dispose());
         }
 
-        #endregion PublishAsync(notification) Tests
-
-        #region PublishAsync(request) Tests
-
-        [Test]
-        public async Task PublishAsync_RequestIsNull_ThrowsException()
-        {
-            (var mockServiceProvider, var uut) = BuildTestContext();
-
-            var cancellationTokenSource = new CancellationTokenSource();
-
-            await Should.ThrowAsync<ArgumentNullException>(async () =>
-                await uut.PublishAsync<IRequest<object>, object>(null!, cancellationTokenSource.Token));
-        }
-
-        [Test]
-        public async Task PublishAsync_HandlerIsRegistered_PublishesRequest()
-        {
-            (var mockServiceProvider, var uut) = BuildTestContext();
-
-            var mockHandler = new Mock<IRequestHandler<IRequest<object>, object>>();
-            mockServiceProvider
-                .Setup(x => x.GetService(typeof(IRequestHandler<IRequest<object>, object>)))
-                .Returns(mockHandler.Object);
-
-            var mockRequest = new Mock<IRequest<object>>();
-            var cancellationTokenSource = new CancellationTokenSource();
-
-            await uut.PublishAsync<IRequest<object>, object>(mockRequest.Object, cancellationTokenSource.Token);
-
-            mockHandler
-                .ShouldHaveReceived(y => y
-                    .HandleRequestAsync(mockRequest.Object, cancellationTokenSource.Token));
-        }
-
-        [Test]
-        public async Task PublishAsync_HandlerIsRegistered_ReturnsResponse()
-        {
-            (var mockServiceProvider, var uut) = BuildTestContext();
-
-            var mockHandler = new Mock<IRequestHandler<IRequest<object>, object>>();
-            var handlerResult = new object();
-            mockHandler
-                .Setup(x => x.HandleRequestAsync(It.IsAny<IRequest<object>>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(handlerResult));
-            mockServiceProvider
-                .Setup(x => x.GetService(typeof(IRequestHandler<IRequest<object>, object>)))
-                .Returns(mockHandler.Object);
-
-            var mockRequest = new Mock<IRequest<object>>();
-            var cancellationTokenSource = new CancellationTokenSource();
-
-            var result = await uut.PublishAsync<IRequest<object>, object>(mockRequest.Object, cancellationTokenSource.Token);
-
-            result.ShouldBeSameAs(handlerResult);
-        }
-
-        [Test]
-        public async Task PublishAsync_HandlerIsNotRegistered_ThrowsException()
-        {
-            (var mockServiceProvider, var uut) = BuildTestContext();
-
-            mockServiceProvider
-                .Setup(x => x.GetService(typeof(IRequestHandler<IRequest<object>, object>)))
-                .Returns(null);
-
-            var mockRequest = new Mock<IRequest<object>>();
-            var cancellationTokenSource = new CancellationTokenSource();
-
-            await Should.ThrowAsync<Exception>(async () =>
-                await uut.PublishAsync<IRequest<object>, object>(mockRequest.Object, cancellationTokenSource.Token));
-        }
-
-        #endregion PublishAsync(request) Tests
+        #endregion PublishAsync() Tests
     }
 }

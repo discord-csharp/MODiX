@@ -3,8 +3,8 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.DependencyInjection;
-
-using Serilog;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Modix.Common.Messaging
 {
@@ -21,7 +21,11 @@ namespace Modix.Common.Messaging
         /// </summary>
         /// <typeparam name="TNotification">The type of notification to be dispatched.</typeparam>
         /// <param name="notification">The notification data to be dispatched.</param>
-        void Dispatch<TNotification>(TNotification notification) where TNotification : notnull, INotification;
+        /// <param name="timeout">The amount of time to wait for the dispatch operation to complete, before cancelling it. Defaults to whatever is configured by </param>
+        void Dispatch<TNotification>(
+                TNotification notification,
+                TimeSpan? timeout = default)
+            where TNotification : class;
     }
 
     /// <inheritdoc />
@@ -31,51 +35,70 @@ namespace Modix.Common.Messaging
         /// <summary>
         /// Constructs a new <see cref="MessageDispatcher"/> with the given dependencies.
         /// </summary>
-        public MessageDispatcher(IServiceScopeFactory serviceScopeFactory)
+        public MessageDispatcher(
+            ICancellationTokenSourceFactory cancellationTokenSourceFactory,
+            ILogger<MessageDispatcher> logger,
+            IOptions<MessagingOptions> options,
+            IServiceScopeFactory serviceScopeFactory)
         {
-            ServiceScopeFactory = serviceScopeFactory;
+            _cancellationTokenSourceFactory = cancellationTokenSourceFactory;
+            _logger = logger;
+            _options = options;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         /// <inheritdoc />
-        public void Dispatch<TNotification>(TNotification notification) where TNotification : notnull, INotification
+        public void Dispatch<TNotification>(
+                TNotification notification,
+                TimeSpan? timeout = default)
+            where TNotification : class
         {
-            if (notification == null)
-                throw new ArgumentNullException(nameof(notification));
-
-            #pragma warning disable CS4014
-            DispatchAsync(notification);
-            #pragma warning restore CS4014
+            _ = DispatchAsync(notification);
         }
 
-        /// <summary>
-        /// An <see cref="IServiceScopeFactory"/> used to generate service scopes for dispatched messages to be processed within.
-        /// </summary>
-        internal protected IServiceScopeFactory ServiceScopeFactory { get; }
-
-        // For testing
-        internal async Task DispatchAsync<TNotification>(TNotification notification) where TNotification : notnull, INotification
+        // internal for testing
+        internal async Task DispatchAsync<TNotification>(
+                TNotification notification,
+                TimeSpan? timeout = default)
+            where TNotification : class
         {
             try
             {
-                using (var serviceScope = ServiceScopeFactory.CreateScope())
+                using var cancellationTokenSource = _cancellationTokenSourceFactory.Create(timeout ?? _options.Value.DispatchTimeout ?? Timeout.InfiniteTimeSpan);
+                using var serviceScope = _serviceScopeFactory.CreateScope();
+                using var notificationLogScope = MessagingLogMessages.BeginNotificationScope(_logger, notification);
+
+                using var providedLogScope = (notification is ILogScopeProvider logScopeProvider)
+                    ? logScopeProvider.BeginLogScope(_logger)
+                    : null;
+
+                MessagingLogMessages.HandlersInvoking(_logger);
+                foreach (var handler in serviceScope.ServiceProvider.GetServices<INotificationHandler<TNotification>>())
                 {
-                    foreach (var handler in serviceScope.ServiceProvider.GetServices<INotificationHandler<TNotification>>())
+                    using var handlerLogScope = MessagingLogMessages.BeginHandlerScope(_logger, handler);
+
+                    try
                     {
-                        try
-                        {
-                            await handler.HandleNotificationAsync(notification);
-                        }
-                        catch (Exception ex)
-                        {
-                            Log.Error(ex, "An unexpected error occurred within a handler for a dispatched message: {notification}", notification);
-                        }
+                        MessagingLogMessages.HandlerInvoking(_logger);
+                        await handler.HandleNotificationAsync(notification, cancellationTokenSource.Token);
+                        MessagingLogMessages.HandlerInvoked(_logger);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessagingLogMessages.HandlerFailed(_logger, ex);
                     }
                 }
+                MessagingLogMessages.HandlersInvoked(_logger);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "An unexpected error occurred while dispatching a notification: {notification}", notification);
+                MessagingLogMessages.DispatchFailed(_logger, ex);
             }
         }
+
+        private readonly ICancellationTokenSourceFactory _cancellationTokenSourceFactory;
+        private readonly ILogger _logger;
+        private readonly IOptions<MessagingOptions> _options;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
     }
 }

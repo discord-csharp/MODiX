@@ -155,7 +155,7 @@ namespace Modix.Services.Core
 
         private Task OnReadyAsync()
         {
-            MessageDispatcher.Dispatch(ReadyNotification.Default);
+            MessageDispatcher.Dispatch(new ReadyNotification());
 
             return Task.CompletedTask;
         }

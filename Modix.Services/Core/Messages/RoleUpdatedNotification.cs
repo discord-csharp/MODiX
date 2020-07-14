@@ -2,15 +2,12 @@
 
 using Discord.WebSocket;
 
-using Modix.Common.Messaging;
-
 namespace Discord
 {
     /// <summary>
     /// Describes an application-wide notification that occurs when <see cref="IBaseSocketClient.RoleUpdated"/> is raised.
     /// </summary>
     public class RoleUpdatedNotification
-        : INotification
     {
         /// <summary>
         /// Constructs a new <see cref="RoleUpdatedNotification"/> from the given values.

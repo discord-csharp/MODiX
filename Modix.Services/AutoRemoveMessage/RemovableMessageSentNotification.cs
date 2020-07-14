@@ -2,11 +2,9 @@
 
 using Discord;
 
-using Modix.Common.Messaging;
-
 namespace Modix.Services.AutoRemoveMessage
 {
-    public class RemovableMessageSentNotification : INotification
+    public class RemovableMessageSentNotification
     {
         public RemovableMessageSentNotification(IMessage message, IUser[] users)
         {

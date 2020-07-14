@@ -2,14 +2,12 @@
 
 using Discord.WebSocket;
 
-using Modix.Common.Messaging;
-
 namespace Discord
 {
     /// <summary>
     /// Describes an application-wide notification that occurs when <see cref="IBaseSocketClient.UserLeft"/> is raised.
     /// </summary>
-    public class UserLeftNotification : INotification
+    public class UserLeftNotification
     {
         /// <summary>
         /// Constructs a new <see cref="UserLeftNotification"/> from the given values.
