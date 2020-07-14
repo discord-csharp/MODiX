@@ -84,14 +84,15 @@ namespace Modix.Services.Quote
                             channel is ISocketMessageChannel messageChannel)
                         {
                             var currentUser = await guildChannel.Guild.GetCurrentUserAsync();
-                            var channelPermissions = currentUser.GetPermissions(guildChannel);
+                            var botChannelPermissions = currentUser.GetPermissions(guildChannel);
+                            var userChannelPermissions = guildUser.GetPermissions(guildChannel);
 
-                            if (!channelPermissions.ViewChannel)
+                            if (!botChannelPermissions.ViewChannel || !userChannelPermissions.ViewChannel)
                             {
                                 return;
                             }
 
-                            var cacheMode = channelPermissions.ReadMessageHistory
+                            var cacheMode = botChannelPermissions.ReadMessageHistory
                                 ? CacheMode.AllowDownload
                                 : CacheMode.CacheOnly;
 
