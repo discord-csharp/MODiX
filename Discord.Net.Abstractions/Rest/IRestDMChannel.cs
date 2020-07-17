@@ -39,14 +39,14 @@ namespace Discord.Rest
         /// <inheritdoc cref="RestDMChannel.GetUser(ulong)" />
         IRestUser GetUser(ulong id);
 
-        /// <inheritdoc cref="RestDMChannel.SendFileAsync(string, string, bool, Embed, RequestOptions, bool)" />
-        new Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false);
+        /// <inheritdoc cref="RestDMChannel.SendFileAsync(string, string, bool, Embed, RequestOptions, bool, AllowedMentions)" />
+        new Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null);
 
-        /// <inheritdoc cref="RestDMChannel.SendFileAsync(Stream, string, string, bool, Embed, RequestOptions, bool)" />
-        new Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false);
+        /// <inheritdoc cref="RestDMChannel.SendFileAsync(Stream, string, string, bool, Embed, RequestOptions, bool, AllowedMentions)" />
+        new Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null);
 
-        /// <inheritdoc cref="RestDMChannel.SendMessageAsync(string, bool, Embed, RequestOptions)" />
-        new Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null);
+        /// <inheritdoc cref="RestDMChannel.SendMessageAsync(string, bool, Embed, RequestOptions, AllowedMentions)" />
+        new Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null);
     }
 
     /// <summary>
@@ -180,33 +180,33 @@ namespace Discord.Rest
                 ?.Abstract();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false)
-            => (await RestDMChannel.SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler))
+        public async Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null)
+            => (await RestDMChannel.SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler)
-            => (await (RestDMChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler))
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler, AllowedMentions allowedMentions)
+            => (await (RestDMChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false)
-            => (await RestDMChannel.SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler))
+        public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null)
+            => (await RestDMChannel.SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler)
-            => (await (RestDMChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler))
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler, AllowedMentions allowedMentions)
+            => (await (RestDMChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
-            => (await RestDMChannel.SendMessageAsync(text, isTTS, embed, options))
+        public async Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null)
+            => (await RestDMChannel.SendMessageAsync(text, isTTS, embed, options, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options)
-            => (await (RestDMChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options))
+        async Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options, AllowedMentions allowedMentions)
+            => (await (RestDMChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />

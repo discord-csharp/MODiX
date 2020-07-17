@@ -360,7 +360,8 @@ namespace Modix.Services.Test.Moderation
                         It.Is<string>(y => y.Contains("invite", StringComparison.OrdinalIgnoreCase)),
                         It.IsAny<bool>(),
                         It.IsAny<Embed>(),
-                        It.IsAny<RequestOptions>()));
+                        It.IsAny<RequestOptions>(),
+                        It.IsAny<AllowedMentions>()));
         }
 
         #endregion HandleNotificationAsync(MessageReceivedNotification) Tests
@@ -576,7 +577,8 @@ namespace Modix.Services.Test.Moderation
                         It.Is<string>(y => y.Contains("invite", StringComparison.OrdinalIgnoreCase)),
                         It.IsAny<bool>(),
                         It.IsAny<Embed>(),
-                        It.IsAny<RequestOptions>()));
+                        It.IsAny<RequestOptions>(),
+                        It.IsAny<AllowedMentions>()));
         }
 
         #endregion HandleNotificationAsync(MessageUpdatedNotification) Tests
@@ -600,7 +602,8 @@ namespace Modix.Services.Test.Moderation
                         It.IsAny<string>(),
                         It.IsAny<bool>(),
                         It.IsAny<Embed>(),
-                        It.IsAny<RequestOptions>()));
+                        It.IsAny<RequestOptions>(),
+                        It.IsAny<AllowedMentions>()));
         }
     }
 }

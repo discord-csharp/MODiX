@@ -50,14 +50,14 @@ namespace Discord.WebSocket
         /// <inheritdoc cref="SocketDMChannel.GetUser(ulong)" />
         new ISocketUser GetUser(ulong id);
 
-        /// <inheritdoc cref="SocketDMChannel.SendFileAsync(Stream, string, string, bool, Embed, RequestOptions, bool)" />
-        new Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false);
+        /// <inheritdoc cref="SocketDMChannel.SendFileAsync(Stream, string, string, bool, Embed, RequestOptions, bool, AllowedMentions)" />
+        new Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null);
 
-        /// <inheritdoc cref="SocketDMChannel.SendFileAsync(string, string, bool, Embed, RequestOptions, bool)" />
-        new Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false);
+        /// <inheritdoc cref="SocketDMChannel.SendFileAsync(string, string, bool, Embed, RequestOptions, bool, AllowedMentions)" />
+        new Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null);
 
-        /// <inheritdoc cref="SocketDMChannel.SendMessageAsync(string, bool, Embed, RequestOptions)" />
-        new Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null);
+        /// <inheritdoc cref="SocketDMChannel.SendMessageAsync(string, bool, Embed, RequestOptions, AllowedMentions)" />
+        new Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null);
     }
 
     /// <summary>
@@ -205,33 +205,33 @@ namespace Discord.WebSocket
                 .ToArray();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false)
+        public async Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null)
             => RestUserMessageAbstractionExtensions.Abstract(
-                await SocketDMChannel.SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler));
+                await SocketDMChannel.SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler, allowedMentions));
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler)
-            => (await (SocketDMChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler))
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler, AllowedMentions allowedMentions)
+            => (await (SocketDMChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false)
+        public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null)
             => RestUserMessageAbstractionExtensions.Abstract(
-                await SocketDMChannel.SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler));
+                await SocketDMChannel.SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler, allowedMentions));
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler)
-            => (await (SocketDMChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler))
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler, AllowedMentions allowedMentions)
+            => (await (SocketDMChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
+        public async Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null)
             => RestUserMessageAbstractionExtensions.Abstract(
-                await SocketDMChannel.SendMessageAsync(text, isTTS, embed, options));
+                await SocketDMChannel.SendMessageAsync(text, isTTS, embed, options, allowedMentions));
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options)
-            => (await (SocketDMChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options))
+        async Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options, AllowedMentions allowedMentions)
+            => (await (SocketDMChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />

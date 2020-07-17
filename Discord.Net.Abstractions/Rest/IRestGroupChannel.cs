@@ -35,14 +35,14 @@ namespace Discord.Rest
         /// <inheritdoc cref="RestGroupChannel.GetUser(ulong)" />
         IRestUser GetUser(ulong id);
 
-        /// <inheritdoc cref="RestGroupChannel.SendFileAsync(string, string, bool, Embed, RequestOptions, bool)" />
-        new Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false);
+        /// <inheritdoc cref="RestGroupChannel.SendFileAsync(string, string, bool, Embed, RequestOptions, bool, AllowedMentions)" />
+        new Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null);
 
-        /// <inheritdoc cref="RestGroupChannel.SendFileAsync(Stream, string, string, bool, Embed, RequestOptions, bool)" />
-        new Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false);
+        /// <inheritdoc cref="RestGroupChannel.SendFileAsync(Stream, string, string, bool, Embed, RequestOptions, bool, AllowedMentions)" />
+        new Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null);
 
-        /// <inheritdoc cref="RestGroupChannel.SendMessageAsync(string, bool, Embed, RequestOptions)" />
-        new Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null);
+        /// <inheritdoc cref="RestGroupChannel.SendMessageAsync(string, bool, Embed, RequestOptions, AllowedMentions)" />
+        new Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null);
     }
 
     /// <summary>
@@ -176,33 +176,33 @@ namespace Discord.Rest
             => RestGroupChannel.LeaveAsync(options);
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false)
-            => (await RestGroupChannel.SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler))
+        public async Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null)
+            => (await RestGroupChannel.SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler)
-            => (await (RestGroupChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler))
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler, AllowedMentions allowedMentions)
+            => (await (RestGroupChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false)
-            => (await RestGroupChannel.SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler))
+        public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null)
+            => (await RestGroupChannel.SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler)
-            => (await (RestGroupChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler))
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler, AllowedMentions allowedMentions)
+            => (await (RestGroupChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
-            => (await RestGroupChannel.SendMessageAsync(text, isTTS, embed, options))
+        public async Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null)
+            => (await RestGroupChannel.SendMessageAsync(text, isTTS, embed, options, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options)
-            => (await (RestGroupChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options))
+        async Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options, AllowedMentions allowedMentions)
+            => (await (RestGroupChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />

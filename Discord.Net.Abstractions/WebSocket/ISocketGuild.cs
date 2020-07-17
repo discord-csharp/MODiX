@@ -734,6 +734,14 @@ namespace Discord.WebSocket
         public Task ReorderRolesAsync(IEnumerable<ReorderRoleProperties> args, RequestOptions options = null)
             => SocketGuild.ReorderRolesAsync(args, options);
 
+        /// <inheritdoc />
+        public Task<IReadOnlyCollection<RestGuildUser>> SearchUsersAsync(string query, int limit = 1000, RequestOptions options = null)
+            => SocketGuild.SearchUsersAsync(query, limit, options);
+
+        /// <inheritdoc />
+        Task<IReadOnlyCollection<IGuildUser>> IGuild.SearchUsersAsync(string query, int limit, CacheMode mode, RequestOptions options)
+            => ((IGuild)SocketGuild).SearchUsersAsync(query, limit, mode, options);
+
         /// <inheritdoc cref="SocketGuild.ToString" />
         public override string ToString()
             => SocketGuild.ToString();

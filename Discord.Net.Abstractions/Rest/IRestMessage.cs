@@ -151,6 +151,9 @@ namespace Discord.Rest
         public Task AddReactionAsync(IEmote emote, RequestOptions options = null)
             => RestMessage.AddReactionAsync(emote, options);
 
+        public Task RemoveAllReactionsForEmoteAsync(IEmote emote, RequestOptions options = null)
+            => RestMessage.RemoveAllReactionsForEmoteAsync(emote, options);
+
         public Task RemoveReactionAsync(IEmote emote, IUser user, RequestOptions options = null)
             => RestMessage.RemoveReactionAsync(emote, user, options);
 
