@@ -45,7 +45,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing the requested infraction, or null if no such infraction exists.
         /// </returns>
-        Task<InfractionSummary> ReadSummaryAsync(long infractionId);
+        Task<InfractionSummary?> ReadSummaryAsync(long infractionId);
 
         /// <summary>
         /// Checks whether the repository contains any infractions matching the given search criteria.
@@ -160,12 +160,12 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public Task<InfractionSummary> ReadSummaryAsync(long infractionId)
+        public Task<InfractionSummary?> ReadSummaryAsync(long infractionId)
             => ModixContext.Set<InfractionEntity>().AsNoTracking()
                 .Where(x => x.Id == infractionId)
                 .AsExpandable()
                 .Select(InfractionSummary.FromEntityProjection)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync<InfractionSummary?>();
 
         /// <inheritdoc />
         public Task<bool> AnyAsync(InfractionSearchCriteria criteria)

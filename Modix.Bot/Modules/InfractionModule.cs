@@ -127,11 +127,15 @@ namespace Modix.Modules
             [Summary("The ID value of the infraction to be update.")] long infractionId,
                 [Summary("New reason for the infraction"), Remainder] string reason)
         {
-            var success = await ModerationService.UpdateInfractionAsync(infractionId, reason, Context.User.Id);
+            var (success, errorMessage) = await ModerationService.UpdateInfractionAsync(infractionId, reason, Context.User.Id);
 
             if (!success)
             {
-                await ReplyAsync("Failed updating infraction");
+                var replyMessage = string.IsNullOrWhiteSpace(errorMessage)
+                    ? "Failed updating infraction."
+                    : $"Failed updating infraction. {errorMessage}";
+
+                await ReplyAsync(replyMessage);
                 return;
             }
 
