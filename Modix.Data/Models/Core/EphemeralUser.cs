@@ -72,6 +72,8 @@ namespace Modix.Data.Models.Core
 
         public IImmutableSet<ClientType>? ActiveClients { get; private set; }
 
+        public IImmutableList<IActivity>? Activities { get; private set; }
+
         public bool IsStreaming { get; private set; }
 
         public async Task AddRoleAsync(IRole role, RequestOptions? options = null)
@@ -146,6 +148,12 @@ namespace Modix.Data.Models.Core
         {
             if (user is null)
                 return this;
+
+            if (user.ActiveClients is not null)
+                ActiveClients = user.ActiveClients;
+
+            if (user.Activities is not null)
+                Activities = user.Activities;
 
             if (user.Activity != default)
                 Activity = user.Activity;

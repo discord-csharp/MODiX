@@ -101,6 +101,8 @@ namespace Discord.WebSocket
         protected SocketUser SocketUser { get; }
 
         public IImmutableSet<ClientType> ActiveClients => SocketUser.ActiveClients;
+
+        public IImmutableList<IActivity> Activities => SocketUser.Activities;
     }
 
     /// <summary>
