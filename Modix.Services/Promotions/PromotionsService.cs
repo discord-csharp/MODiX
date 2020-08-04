@@ -197,9 +197,11 @@ namespace Modix.Services.Promotions
             }
         }
 
+#nullable enable
         /// <inheritdoc />
         public async Task AddCommentAsync(long campaignId, PromotionSentiment sentiment, string content)
         {
+            AuthorizationService.RequireAuthenticatedGuild();
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsComment);
 
@@ -215,16 +217,19 @@ namespace Modix.Services.Promotions
 
             var campaign = await PromotionCampaignRepository.ReadDetailsAsync(campaignId);
 
+            if (campaign is null)
+                throw new InvalidOperationException($"Campaign {campaignId} could not be found.");
+
             if (campaign.Subject.Id == AuthorizationService.CurrentUserId)
                 throw new InvalidOperationException("You aren't allowed to comment on your own campaign");
 
-            if (!(campaign.CloseAction is null))
+            if (campaign.CloseAction is not null)
                 throw new InvalidOperationException($"Campaign {campaignId} has already been closed");
 
             var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
 
             if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value, campaign.TargetRole.Id))
-                throw new InvalidOperationException($"Commenting on a promotion campaign requires a rank at least as high as the proposed target rank");
+                throw new InvalidOperationException("Commenting on a promotion campaign requires a rank at least as high as the proposed target rank");
 
             PromotionActionSummary resultAction;
 
@@ -244,6 +249,7 @@ namespace Modix.Services.Promotions
 
             PublishActionNotificationAsync(resultAction);
         }
+#nullable restore
 
         /// <inheritdoc />
         public async Task UpdateCommentAsync(long commentId, PromotionSentiment newSentiment, string newContent)
