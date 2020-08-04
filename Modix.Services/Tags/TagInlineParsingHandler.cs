@@ -38,7 +38,7 @@ namespace Modix.Services.Tags
             if (message.Content.StartsWith('!')) { return; }
 
             //Remove code blocks from the message we are processing
-            var content = Regex.Replace(message.Content, @"(`{1,3}).*(.\1)", string.Empty, RegexOptions.Singleline);
+            var content = Regex.Replace(message.Content, @"(`{1,3}).*?(.\1)", string.Empty, RegexOptions.Singleline);
             //Remove quotes from the message we are processing
             content = Regex.Replace(content, "^>.*$", string.Empty, RegexOptions.Multiline);
 
