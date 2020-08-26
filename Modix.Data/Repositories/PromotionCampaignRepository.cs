@@ -69,7 +69,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing the requested campaign, or null if no such campaign exists.
         /// </returns>
-        Task<PromotionCampaignDetails> ReadDetailsAsync(long campaignId);
+        Task<PromotionCampaignDetails?> ReadDetailsAsync(long campaignId);
 
         /// <summary>
         /// Marks an existing campaign as closed, based on its ID.
@@ -149,12 +149,12 @@ namespace Modix.Data.Repositories
                 .ToArrayAsync();
 
         /// <inheritdoc />
-        public Task<PromotionCampaignDetails> ReadDetailsAsync(long campaignId)
+        public Task<PromotionCampaignDetails?> ReadDetailsAsync(long campaignId)
             => ModixContext.Set<PromotionCampaignEntity>().AsNoTracking()
                 .Where(x => x.Id == campaignId)
                 .AsExpandable()
                 .Select(PromotionCampaignDetails.FromEntityProjection)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync<PromotionCampaignDetails?>();
 
         /// <inheritdoc />
         public async Task<PromotionActionSummary?> TryCloseAsync(long campaignId, ulong closedById, PromotionCampaignOutcome outcome)
