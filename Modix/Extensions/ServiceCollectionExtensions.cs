@@ -79,6 +79,15 @@ namespace Microsoft.Extensions.DependencyInjection
                     provider => new DiscordSocketClient(config: new DiscordSocketConfig
                     {
                         AlwaysDownloadUsers = true,
+                        GatewayIntents =
+                            GatewayIntents.GuildBans |              // GUILD_BAN_ADD, GUILD_BAN_REMOVE
+                            GatewayIntents.GuildMembers |           // GUILD_MEMBER_ADD, GUILD_MEMBER_UPDATE, GUILD_MEMBER_REMOVE
+                            GatewayIntents.GuildMessageReactions |  // MESSAGE_REACTION_ADD, MESSAGE_REACTION_REMOVE,
+                                                                    //     MESSAGE_REACTION_REMOVE_ALL, MESSAGE_REACTION_REMOVE_EMOJI
+                            GatewayIntents.GuildMessages |          // MESSAGE_CREATE, MESSAGE_UPDATE, MESSAGE_DELETE, MESSAGE_DELETE_BULK
+                            GatewayIntents.Guilds,                  // GUILD_CREATE, GUILD_UPDATE, GUILD_DELETE, GUILD_ROLE_CREATE,
+                                                                    //     GUILD_ROLE_UPDATE, GUILD_ROLE_DELETE, CHANNEL_CREATE,
+                                                                    //     CHANNEL_UPDATE, CHANNEL_DELETE, CHANNEL_PINS_UPDATE
                         LogLevel = LogSeverity.Debug,
                         MessageCacheSize = provider
                             .GetRequiredService<IOptions<ModixConfig>>()

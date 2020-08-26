@@ -203,7 +203,8 @@ namespace Modix.Services.Test.Moderation
                     It.IsAny<string>(),
                     It.IsAny<bool>(),
                     It.IsAny<Embed>(),
-                    It.IsAny<RequestOptions>()));
+                    It.IsAny<RequestOptions>(),
+                    It.IsAny<AllowedMentions?>()));
         }
 
         public static readonly ImmutableArray<TestCaseData> HandleNotificationAsync_MessageHasAnySuspiciousAttachments_TestCaseData
@@ -258,7 +259,8 @@ namespace Modix.Services.Test.Moderation
                     It.Is<string>(y => (y != null) && y.Contains(notification.Message.Author.Id.ToString())),
                     It.IsAny<bool>(),
                     It.IsAny<Embed>(),
-                    It.Is<RequestOptions>(y => (y != null) && (y.CancelToken == testContext.CancellationToken))));
+                    It.Is<RequestOptions>(y => (y != null) && (y.CancelToken == testContext.CancellationToken)),
+                    null));
         }
 
         #endregion HandleNotificationAsync() Tests

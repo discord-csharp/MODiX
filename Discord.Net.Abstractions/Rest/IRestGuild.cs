@@ -680,6 +680,14 @@ namespace Discord.Rest
             => RestGuild.ReorderRolesAsync(args, options);
 
         /// <inheritdoc />
+        public Task<IReadOnlyCollection<RestGuildUser>> SearchUsersAsync(string query, int limit = 1000, RequestOptions options = null)
+            => RestGuild.SearchUsersAsync(query, limit, options);
+
+        /// <inheritdoc />
+        Task<IReadOnlyCollection<IGuildUser>> IGuild.SearchUsersAsync(string query, int limit, CacheMode mode, RequestOptions options)
+            => ((IGuild)RestGuild).SearchUsersAsync(query, limit, mode, options);
+
+        /// <inheritdoc />
         public Task UpdateAsync(RequestOptions options = null)
             => RestGuild.UpdateAsync(options);
 

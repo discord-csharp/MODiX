@@ -102,6 +102,8 @@ namespace Discord.Rest
         protected RestUser RestUser { get; }
 
         public IImmutableSet<ClientType> ActiveClients => RestUser.ActiveClients;
+
+        public IImmutableList<IActivity> Activities => RestUser.Activities;
     }
 
     /// <summary>

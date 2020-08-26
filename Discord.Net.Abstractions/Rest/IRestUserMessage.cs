@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Discord.Rest
@@ -22,6 +20,9 @@ namespace Discord.Rest
         /// <exception cref="ArgumentNullException">Throws for <paramref name="restUserMessage"/>.</exception>
         public RestUserMessageAbstraction(RestUserMessage restUserMessage)
             : base(restUserMessage) { }
+
+        public Task CrosspostAsync(RequestOptions options = null)
+            => RestUserMessage.CrosspostAsync(options);
 
         /// <inheritdoc />
         public Task ModifyAsync(Action<MessageProperties> func, RequestOptions options = null)

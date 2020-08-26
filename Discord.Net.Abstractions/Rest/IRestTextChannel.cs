@@ -42,14 +42,14 @@ namespace Discord.Rest
         /// <inheritdoc cref="RestTextChannel.GetWebhooksAsync(RequestOptions)" />
         new Task<IReadOnlyCollection<IRestWebhook>> GetWebhooksAsync(RequestOptions options = null);
 
-        /// <inheritdoc cref="RestTextChannel.SendFileAsync(string, string, bool, Embed, RequestOptions, bool)" />
-        new Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false);
+        /// <inheritdoc cref="RestTextChannel.SendFileAsync(string, string, bool, Embed, RequestOptions, bool, AllowedMentions)" />
+        new Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null);
 
-        /// <inheritdoc cref="RestTextChannel.SendFileAsync(Stream, string, string, bool, Embed, RequestOptions, bool)" />
-        new Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false);
+        /// <inheritdoc cref="RestTextChannel.SendFileAsync(Stream, string, string, bool, Embed, RequestOptions, bool, AllowedMentions)" />
+        new Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null);
 
-        /// <inheritdoc cref="RestTextChannel.SendMessageAsync(string, bool, Embed, RequestOptions)" />
-        new Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null);
+        /// <inheritdoc cref="RestTextChannel.SendMessageAsync(string, bool, Embed, RequestOptions, AllowedMentions)" />
+        new Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null);
     }
 
     /// <summary>
@@ -239,23 +239,23 @@ namespace Discord.Rest
             => RestTextChannel.ModifyAsync(func, options);
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false)
-            => (await RestTextChannel.SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler))
+        public async Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null)
+            => (await RestTextChannel.SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler)
-            => (await (RestTextChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler))
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler, AllowedMentions allowedMentions)
+            => (await (RestTextChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false)
-            => (await RestTextChannel.SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler))
+        public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null)
+            => (await RestTextChannel.SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null)
-            => (await RestTextChannel.SendMessageAsync(text, isTTS, embed, options))
+        public async Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null)
+            => (await RestTextChannel.SendMessageAsync(text, isTTS, embed, options, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />
@@ -263,8 +263,8 @@ namespace Discord.Rest
             => RestTextChannel.SyncPermissionsAsync(options);
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler)
-            => (await (RestTextChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler))
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler, AllowedMentions allowedMentions)
+            => (await (RestTextChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler, allowedMentions))
                 .Abstract();
 
         /// <inheritdoc />
@@ -272,8 +272,8 @@ namespace Discord.Rest
             => (RestTextChannel as ITextChannel).TriggerTypingAsync(options);
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options)
-            => (await (RestTextChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options))
+        async Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options, AllowedMentions allowedMentions)
+            => (await (RestTextChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options, allowedMentions))
                 .Abstract();
 
         /// <summary>

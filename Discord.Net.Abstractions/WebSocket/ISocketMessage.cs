@@ -168,6 +168,9 @@ namespace Discord.WebSocket
         public Task RemoveAllReactionsAsync(RequestOptions options = null)
             => SocketMessage.RemoveAllReactionsAsync(options);
 
+        public Task RemoveAllReactionsForEmoteAsync(IEmote emote, RequestOptions options = null)
+            => SocketMessage.RemoveAllReactionsForEmoteAsync(emote, options);
+
         public IAsyncEnumerable<IReadOnlyCollection<IUser>> GetReactionUsersAsync(IEmote emoji, int limit, RequestOptions options = null)
             => SocketMessage.GetReactionUsersAsync(emoji, limit, options);
 

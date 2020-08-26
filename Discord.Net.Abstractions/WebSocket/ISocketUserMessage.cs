@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Discord.WebSocket
@@ -22,6 +20,10 @@ namespace Discord.WebSocket
         /// <exception cref="ArgumentNullException">Throws for <paramref name="socketUserMessage"/>.</exception>
         public SocketUserMessageAbstraction(SocketUserMessage socketUserMessage)
             : base(socketUserMessage) { }
+
+        /// <inheritdoc />
+        public Task CrosspostAsync(RequestOptions options = null)
+            => SocketUserMessage.CrosspostAsync(options);
 
         /// <inheritdoc />
         public Task ModifyAsync(Action<MessageProperties> func, RequestOptions options = null)

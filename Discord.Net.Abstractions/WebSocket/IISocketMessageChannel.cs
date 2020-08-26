@@ -28,14 +28,14 @@ namespace Discord.WebSocket
         /// <inheritdoc cref="ISocketMessageChannel.GetPinnedMessagesAsync(RequestOptions)" />
         new Task<IReadOnlyCollection<IRestMessage>> GetPinnedMessagesAsync(RequestOptions options = null);
 
-        /// <inheritdoc cref="ISocketMessageChannel.SendFileAsync(string, string, bool, Embed, RequestOptions, bool)" />
-        new Task<IRestUserMessage> SendFileAsync(string filePath, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false);
+        /// <inheritdoc cref="ISocketMessageChannel.SendFileAsync(string, string, bool, Embed, RequestOptions, bool, AllowedMentions)" />
+        new Task<IRestUserMessage> SendFileAsync(string filePath, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null);
 
-        /// <inheritdoc cref="ISocketMessageChannel.SendFileAsync(Stream, string, string, bool, Embed, RequestOptions, bool)" />
-        new Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false);
+        /// <inheritdoc cref="ISocketMessageChannel.SendFileAsync(Stream, string, string, bool, Embed, RequestOptions, bool, AllowedMentions)" />
+        new Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null);
 
-        /// <inheritdoc cref="ISocketMessageChannel.SendMessageAsync(string, bool, Embed, RequestOptions)" />
-        new Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null);
+        /// <inheritdoc cref="ISocketMessageChannel.SendMessageAsync(string, bool, Embed, RequestOptions, AllowedMentions)" />
+        new Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null);
     }
 
     /// <summary>
