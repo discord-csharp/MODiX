@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Net;
 using Discord.WebSocket;
+using Humanizer;
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
@@ -229,7 +230,9 @@ namespace Modix.Services.Moderation
         /// </returns>
         Task<IRole> GetOrCreateDesignatedMuteRoleAsync(IGuild guild, ulong currentUserId);
 
-        Task<bool> UpdateInfractionAsync(long infractionId, string newReason, ulong currentUserId);
+#nullable enable
+        Task<(bool success, string? errorMessage)> UpdateInfractionAsync(long infractionId, string newReason, ulong currentUserId);
+#nullable restore
     }
 
     /// <inheritdoc />
@@ -852,14 +855,19 @@ namespace Modix.Services.Moderation
             }
         }
 
-        public async Task<bool> UpdateInfractionAsync(long infractionId, string newReason, ulong currentUserId)
+#nullable enable
+
+        public async Task<(bool success, string? errorMessage)> UpdateInfractionAsync(long infractionId, string newReason, ulong currentUserId)
         {
             var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
 
-            var editCutoff = DateTimeOffset.Now.AddDays(-1);
+            if (infraction is null)
+                return (false, $"An infraction with an ID of {infractionId} could not be found.");
 
-            if (infraction.CreateAction.Created <= editCutoff)
-                return false;
+            var infractionAge = DateTimeOffset.Now - infraction.CreateAction.Created;
+
+            if (infractionAge > TimeSpan.FromDays(1))
+                return (false, $"Infractions older than 1 day cannot be updated. This infraction is {infractionAge.Humanize(2)} old.");
 
             AuthorizationService.RequireClaims(_createInfractionClaimsByType[infraction.Type]);
 
@@ -867,14 +875,16 @@ namespace Modix.Services.Moderation
             // validation and update their own infraction
             if (infraction.CreateAction.CreatedBy.Id == currentUserId)
             {
-                return await InfractionRepository.TryUpdateAync(infractionId, newReason, currentUserId);
+                return (await InfractionRepository.TryUpdateAync(infractionId, newReason, currentUserId), null);
             }
 
             // Else we know it's not the user's infraction
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationUpdateInfraction);
 
-            return await InfractionRepository.TryUpdateAync(infractionId, newReason, currentUserId);
+            return (await InfractionRepository.TryUpdateAync(infractionId, newReason, currentUserId), null);
         }
+
+#nullable restore
 
         /// <summary>
         /// An <see cref="IDiscordClient"/> for interacting with the Discord API.
