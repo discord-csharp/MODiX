@@ -81,7 +81,6 @@ namespace Microsoft.Extensions.DependencyInjection
                         AlwaysDownloadUsers = true,
                         GatewayIntents =
                             GatewayIntents.GuildBans |              // GUILD_BAN_ADD, GUILD_BAN_REMOVE
-                            GatewayIntents.GuildMembers |           // GUILD_MEMBER_ADD, GUILD_MEMBER_UPDATE, GUILD_MEMBER_REMOVE
                             GatewayIntents.GuildMessageReactions |  // MESSAGE_REACTION_ADD, MESSAGE_REACTION_REMOVE,
                                                                     //     MESSAGE_REACTION_REMOVE_ALL, MESSAGE_REACTION_REMOVE_EMOJI
                             GatewayIntents.GuildMessages |          // MESSAGE_CREATE, MESSAGE_UPDATE, MESSAGE_DELETE, MESSAGE_DELETE_BULK
