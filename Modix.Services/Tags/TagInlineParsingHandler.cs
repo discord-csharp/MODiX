@@ -37,7 +37,14 @@ namespace Modix.Services.Tags
             //TODO: Refactor when we have a configurable prefix
             if (message.Content.StartsWith('!')) { return; }
 
-            var match = _inlineTagRegex.Match(message.Content);
+            //Remove code blocks from the message we are processing
+            var content = Regex.Replace(message.Content, @"(`{1,3}).*?(.\1)", string.Empty, RegexOptions.Singleline);
+            //Remove quotes from the message we are processing
+            content = Regex.Replace(content, "^>.*$", string.Empty, RegexOptions.Multiline);
+
+            if (string.IsNullOrWhiteSpace(content)) { return; }
+
+            var match = _inlineTagRegex.Match(content);
             if (!match.Success) { return; }
 
             var tagName = match.Groups[1].Value;
