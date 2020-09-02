@@ -8,7 +8,6 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Humanizer;
-using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -45,7 +44,6 @@ namespace Modix.Modules
         private readonly IImageService _imageService;
         private readonly ModixConfig _config;
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
-        private readonly IMediator _mediator;
 
         //optimization: UtcNow is slow and the module is created per-request
         private readonly DateTime _utcNow = DateTime.UtcNow;
@@ -60,7 +58,7 @@ namespace Modix.Modules
             IPromotionsService promotionsService,
             IImageService imageService,
             IOptions<ModixConfig> config,
-            IAutoRemoveMessageService autoRemoveMessageService, IMediator mediator)
+            IAutoRemoveMessageService autoRemoveMessageService)
         {
             _log = logger ?? new NullLogger<UserInfoModule>();
             _userService = userService;
@@ -72,20 +70,7 @@ namespace Modix.Modules
             _imageService = imageService;
             _config = config.Value;
             _autoRemoveMessageService = autoRemoveMessageService;
-            _mediator = mediator;
         }
-
-        [Command("info2")]
-        [Alias("ompf2", "omfp2")]
-        [Summary("Retrieves information about the supplied user, or the current user if one is not provided.")]
-        public Task GetNewUserInfoAsync(
-            [Summary("The user to retrieve information about, if any.")] [Remainder]
-            DiscordUserOrMessageAuthorEntity user = null)
-        {
-            var userId = user?.UserId ?? Context.User.Id;
-            return _mediator.Send(new UserInfoCommand(Context.Message, Context.Guild.Id, userId));
-        }
-
 
         [Command("info")]
         [Alias("ompf", "omfp")]

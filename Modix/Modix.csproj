@@ -20,13 +20,11 @@
   <ItemGroup>
     <PackageReference Include="AspNet.Security.OAuth.Discord" />
     <PackageReference Include="DogStatsD-CSharp-Client" />
-    <PackageReference Include="MediatR" />
-    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
     <PackageReference Include="Serilog.AspNetCore" />
-    <PackageReference Include="Serilog.Filters.Expressions"/>
+    <PackageReference Include="Serilog.Filters.Expressions" />
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Serilog.Sinks.RollingFile" />
     <PackageReference Include="Serilog.Sinks.Sentry" />
