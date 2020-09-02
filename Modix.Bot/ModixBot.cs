@@ -218,8 +218,10 @@ namespace Modix
             async Task OnClientReady()
             {
                 Log.LogTrace("Discord client is ready. Setting game status.");
+
                 _client.Ready -= OnClientReady;
-                await _client.SetGameAsync(_config.WebsiteBaseUrl);
+
+                await _client.SetActivityAsync(new Game("for prefix !", ActivityType.Watching));
 
                 whenReadySource.SetResult(null);
             }
