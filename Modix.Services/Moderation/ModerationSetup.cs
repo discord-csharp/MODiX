@@ -33,8 +33,8 @@ namespace Modix.Services.Moderation
                 .AddScoped<IInfractionRepository, InfractionRepository>()
                 .AddScoped<IDeletedMessageRepository, DeletedMessageRepository>()
                 .AddScoped<IDeletedMessageBatchRepository, DeletedMessageBatchRepository>()
-                .AddScoped<INotificationHandler<MessageReceivedNotification>, InvitePurgingBehavior>()
-                .AddScoped<INotificationHandler<MessageUpdatedNotification>, InvitePurgingBehavior>()
+                .AddScoped<INotificationHandler<MessageReceivedNotification>, MessageContentCheckBehaviour>()
+                .AddScoped<INotificationHandler<MessageUpdatedNotification>, MessageContentCheckBehaviour>()
                 .AddScoped<INotificationHandler<UserJoinedNotification>, MutePersistingHandler>()
                 .AddScoped<INotificationHandler<UserBannedNotification>, InfractionSyncingHandler>();
     }

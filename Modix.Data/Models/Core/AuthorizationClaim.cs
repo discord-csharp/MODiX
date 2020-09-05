@@ -74,10 +74,10 @@ namespace Modix.Data.Models.Core
         [ClaimInfo(Log, "Authorizes a request to view deleted message logs.")]
         LogViewDeletedMessages,
         /// <summary>
-        /// Authorizes a request to post a message to a guild, containing a Discord invite link.
+        /// Authorizes a request to post a message to a guild, containing content that is in a pattern check.
         /// </summary>
-        [ClaimInfo(Misc, "Authorizes a request to post a message to a guild, containing a Discord invite link.")]
-        PostInviteLink,
+        [ClaimInfo(Misc, "Authorizes a request to post a message to a guild, containing blocked content.")]
+        BypassMessageContentPatternCheck,
         /// <summary>
         /// Authorizes a request to create a designated channel mapping.
         /// </summary>
@@ -158,5 +158,10 @@ namespace Modix.Data.Models.Core
         /// </summary>
         [ClaimInfo(Misc, "Authorizes a request to create a giveaway and determine its winners.")]
         ExecuteGiveaway,
+        /// <summary>
+        /// Authorizes a request to manage message patterns.
+        /// </summary>
+        [ClaimInfo(ModerationActions, "Authorizes a request to manage message patterns.")]
+        ManageMessageContentPatterns,
     }
 }
