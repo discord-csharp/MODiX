@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -8,8 +7,8 @@ using Discord;
 using Discord.WebSocket;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
-using Modix.Services.Blocklist;
 using Modix.Services.Core;
+using Modix.Services.MessageContentPatterns;
 using Serilog;
 
 namespace Modix.Services.Moderation
@@ -61,13 +60,6 @@ namespace Modix.Services.Moderation
             if (author.Id == _discordSocketClient.CurrentUser.Id)
                 return;
 
-            var isContentBlocked = await IsContentBlocked(channel, message);
-
-            if (!isContentBlocked)
-            {
-                return;
-            }
-
             if (await _designatedChannelService.ChannelHasDesignationAsync(channel.Guild,
                 channel, DesignatedChannelType.Unmoderated, default))
             {
@@ -81,14 +73,22 @@ namespace Modix.Services.Moderation
                 return;
             }
 
+            var isContentBlocked = await IsContentBlocked(channel, message);
+
+            if (!isContentBlocked)
+            {
+                return;
+            }
+
             Log.Debug("Message {MessageId} is going to be deleted", message.Id);
 
-            await _moderationService.DeleteMessageAsync(message, "Unauthorized Message Content Link",
+            await _moderationService.DeleteMessageAsync(message, "Unauthorized Message Content",
                 _discordSocketClient.CurrentUser.Id, default);
 
             Log.Debug("Message {MessageId} was deleted because it contains blocked content", message.Id);
 
-            await message.Channel.SendMessageAsync($"Sorry {author.Mention} your link has been removed!");
+            await message.Channel.SendMessageAsync(
+                $"Sorry {author.Mention} your message contained blocked content and has been removed!");
         }
 
         private async Task<bool> IsContentBlocked(IGuildChannel channel, IMessage message)
@@ -99,32 +99,47 @@ namespace Modix.Services.Moderation
             {
                 // If the content is not blocked, we can just continue to check the next
                 // blocked pattern
-                if (!DoesContentMatchPattern(patternToCheck.Pattern))
+
+                var (containsBlockedPattern, blockedMatches) = GetContentMatches(message.Content, patternToCheck.Pattern);
+
+                if (!containsBlockedPattern)
                 {
                     continue;
                 }
 
-                // if we find a block match, we need to check for any exemptions
-                foreach (var allowPattern in patterns.Where(x => x.Type == MessageContentPatternType.Allowed))
+                var allowedPatterns = patterns.Where(x => x.Type == MessageContentPatternType.Allowed).ToList();
+
+                if (!allowedPatterns.Any())
                 {
-                    if (DoesContentMatchPattern(allowPattern.Pattern))
-                    {
-                        return false;
-                    }
+                    return true;
                 }
 
-                return true;
+                foreach (Match blockedMatch in blockedMatches)
+                {
+                    var didFindAllowedPattern = false;
 
-                bool DoesContentMatchPattern(string pattern)
+                    foreach (var allowPattern in allowedPatterns)
+                    {
+                        var (hasAllowedMatch, _) = GetContentMatches(blockedMatch.Value, allowPattern.Pattern);
+                        didFindAllowedPattern = hasAllowedMatch;
+                    }
+
+                    if (!didFindAllowedPattern)
+                        return true;
+                }
+
+                return false;
+
+                (bool, MatchCollection) GetContentMatches(string content, string pattern)
                 {
                     var regex = new Regex(
                         pattern: pattern,
                         options: RegexOptions.IgnoreCase,
                         matchTimeout: TimeSpan.FromSeconds(2));
 
-                    var blockMatches = regex.Matches(message.Content);
+                    var matches = regex.Matches(content);
 
-                    return blockMatches.Any();
+                    return (matches.Any(), matches);
                 }
             }
 

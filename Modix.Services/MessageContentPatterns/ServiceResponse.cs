@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Modix.Services.Blocklist
+namespace Modix.Services.MessageContentPatterns
 {
     public class ServiceResponse
     {

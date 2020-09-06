@@ -1,6 +1,6 @@
 ﻿using Modix.Data.Models.Core;
 
-namespace Modix.Services.Blocklist
+namespace Modix.Services.MessageContentPatterns
 {
     public class MessageContentPatternDto
     {

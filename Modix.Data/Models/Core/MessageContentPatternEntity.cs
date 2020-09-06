@@ -33,6 +33,10 @@ namespace Modix.Data.Models.Core
             entityTypeBuilder
                 .Property(x => x.PatternType)
                 .HasConversion<string>();
+
+            entityTypeBuilder
+                .HasIndex(p => new { p.GuildId, p.Pattern })
+                .IsUnique();
         }
     }
 }

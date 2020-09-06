@@ -23,12 +23,17 @@ namespace Modix.Data.Migrations
                 });
 
             migrationBuilder.Sql("UPDATE public.\"ClaimMappings\" SET \"Claim\"='BypassMessageContentPatternCheck' WHERE \"Claim\"='PostInviteLink';");
+
+            migrationBuilder.Sql(
+                "INSERT INTO \"MessageContentPatterns\" (\"Pattern\", \"PatternType\", \"GuildId\") SELECT DISTINCT '(https?://)?(www\\.)?(discord\\.(gg|io|me|li)|discord(app)?\\.com/invite)/(?<Code>\\w+)' as \"Pattern\", 'Blocked' as \"PatternType\", \"GuildId\" as \"GuildId\" FROM \"GuildRoles\"");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
                 name: "MessageContentPatterns");
+
+            migrationBuilder.Sql("UPDATE public.\"ClaimMappings\" SET \"Claim\"='PostInviteLink' WHERE \"Claim\"='BypassMessageContentPatternCheck';");
         }
     }
 }

@@ -6,8 +6,8 @@ using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
 using Modix.Data.Models.Core;
-using Modix.Services.Blocklist;
 using Modix.Services.Core;
+using Modix.Services.MessageContentPatterns;
 using Modix.Services.Moderation;
 using Moq;
 using Moq.AutoMock;
@@ -76,44 +76,6 @@ namespace Modix.Services.Test.Moderation
                 .ReturnsAsync(new List<MessageContentPatternDto>());
 
             return (autoMocker, uut);
-        }
-
-        private static ISocketMessage BuildTestMessage(AutoMocker autoMocker, string content)
-        {
-            var mockMessage = autoMocker.GetMock<ISocketMessage>();
-            var mockGuild = autoMocker.GetMock<IGuild>();
-
-            var mockAuthor = autoMocker.GetMock<IGuildUser>();
-            mockAuthor
-                .Setup(x => x.Guild)
-                .Returns(mockGuild.Object);
-            mockAuthor
-                .Setup(x => x.GuildId)
-                .Returns(42);
-            mockAuthor
-                .Setup(x => x.Id)
-                .Returns(2);
-            mockAuthor
-                .Setup(x => x.Mention)
-                .Returns("<@2>");
-            mockMessage
-                .Setup(x => x.Author)
-                .Returns(mockAuthor.Object);
-
-            var mockChannel = autoMocker.GetMock<IMessageChannel>();
-            mockChannel
-                .As<IGuildChannel>()
-                .Setup(x => x.Guild)
-                .Returns(mockGuild.Object);
-            mockMessage
-                .Setup(x => x.Channel)
-                .Returns(mockChannel.Object);
-
-            mockMessage
-                .Setup(x => x.Content)
-                .Returns(content);
-
-            return mockMessage.Object;
         }
 
         private static ISocketMessage BuildRandomContentTestMessage(AutoMocker autoMocker)
@@ -489,7 +451,7 @@ namespace Modix.Services.Test.Moderation
                 .ShouldHaveReceived(x => x.
                     DeleteMessageAsync(
                         notification.Message,
-                        It.Is<string>(y => y.Contains("Message Content Link", StringComparison.OrdinalIgnoreCase)),
+                        It.Is<string>(y => y.Contains("Message Content", StringComparison.OrdinalIgnoreCase)),
                         autoMocker.Get<ISocketSelfUser>().Id,
                         It.IsAny<CancellationToken>()));
         }
@@ -680,7 +642,7 @@ namespace Modix.Services.Test.Moderation
                 .ShouldHaveReceived(x => x.
                     DeleteMessageAsync(
                         notification.NewMessage,
-                        It.Is<string>(y => y.Contains("Message Content Link", StringComparison.OrdinalIgnoreCase)),
+                        It.Is<string>(y => y.Contains("Message Content", StringComparison.OrdinalIgnoreCase)),
                         autoMocker.Get<ISocketSelfUser>().Id,
                         It.IsAny<CancellationToken>()));
         }
