@@ -2,7 +2,6 @@
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
-using MediatR;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -85,7 +84,6 @@ namespace Modix
                 });
 
             services.AddStatsD(_webHostEnvironment, _configuration);
-            services.AddMediatR(config => config.AsScoped(),typeof(MentionCommand).Assembly);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using MediatR;
 using Modix.Services.CommandHelp;
 using Modix.Services.Mentions;
 
@@ -12,25 +11,19 @@ namespace Modix.Bot.Modules
     [HelpTags("announce", "$")]
     public class AnnounceModule : ModuleBase
     {
-        private readonly IMediator _mediator;
+        private readonly IMentionService _mentionService;
 
-        public AnnounceModule(IMediator mediator)
+        public AnnounceModule(IMentionService mentionService)
         {
-            _mediator = mediator;
+            _mentionService = mentionService;
         }
 
         [Command("announce")]
         [Alias("$")]
         [Summary("Makes an announcement in the current channel")]
         public async Task MakeAnnouncementAsync([Summary("The role to mention")] IRole role,
-            [Summary("The message to send as part of the announcement.")]
-            [Remainder]
-            string message)
-        {
-            if (await _mediator.Send(new MentionCommand(role, Context.Channel, message)))
-            {
-                await Context.Message.DeleteAsync();
-            }
-        }
+            [Summary("The message to send as part of the announcement.")] [Remainder]
+            string message) =>
+            await _mentionService.MentionRole(role, Context.Channel, message);
     }
 }
