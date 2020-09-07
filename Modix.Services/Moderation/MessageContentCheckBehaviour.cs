@@ -60,6 +60,13 @@ namespace Modix.Services.Moderation
             if (author.Id == _discordSocketClient.CurrentUser.Id)
                 return;
 
+            var isContentBlocked = await IsContentBlocked(channel, message);
+
+            if (!isContentBlocked)
+            {
+                return;
+            }
+
             if (await _designatedChannelService.ChannelHasDesignationAsync(channel.Guild,
                 channel, DesignatedChannelType.Unmoderated, default))
             {
@@ -70,13 +77,6 @@ namespace Modix.Services.Moderation
             {
                 Log.Debug("Message {MessageId} was skipped because the author {Author} has the {Claim} claim",
                     message.Id, message.Author.Id, AuthorizationClaim.BypassMessageContentPatternCheck);
-                return;
-            }
-
-            var isContentBlocked = await IsContentBlocked(channel, message);
-
-            if (!isContentBlocked)
-            {
                 return;
             }
 
@@ -100,7 +100,7 @@ namespace Modix.Services.Moderation
                 // If the content is not blocked, we can just continue to check the next
                 // blocked pattern
 
-                var (containsBlockedPattern, blockedMatches) = GetContentMatches(message.Content, patternToCheck.Pattern);
+                var (containsBlockedPattern, blockedMatches) = GetContentMatches(message.Content, patternToCheck);
 
                 if (!containsBlockedPattern)
                 {
@@ -120,7 +120,7 @@ namespace Modix.Services.Moderation
 
                     foreach (var allowPattern in allowedPatterns)
                     {
-                        var (hasAllowedMatch, _) = GetContentMatches(blockedMatch.Value, allowPattern.Pattern);
+                        var (hasAllowedMatch, _) = GetContentMatches(blockedMatch.Value, allowPattern);
                         didFindAllowedPattern = hasAllowedMatch;
                     }
 
@@ -130,15 +130,9 @@ namespace Modix.Services.Moderation
 
                 return false;
 
-                (bool, MatchCollection) GetContentMatches(string content, string pattern)
+                static (bool, MatchCollection) GetContentMatches(string content, MessageContentPatternDto pattern)
                 {
-                    var regex = new Regex(
-                        pattern: pattern,
-                        options: RegexOptions.IgnoreCase,
-                        matchTimeout: TimeSpan.FromSeconds(2));
-
-                    var matches = regex.Matches(content);
-
+                    var matches = pattern.Regex.Matches(content);
                     return (matches.Any(), matches);
                 }
             }

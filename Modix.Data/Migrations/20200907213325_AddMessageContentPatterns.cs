@@ -22,6 +22,12 @@ namespace Modix.Data.Migrations
                     table.PrimaryKey("PK_MessageContentPatterns", x => x.Id);
                 });
 
+            migrationBuilder.CreateIndex(
+                name: "IX_MessageContentPatterns_GuildId_Pattern",
+                table: "MessageContentPatterns",
+                columns: new[] { "GuildId", "Pattern" },
+                unique: true);
+
             migrationBuilder.Sql("UPDATE public.\"ClaimMappings\" SET \"Claim\"='BypassMessageContentPatternCheck' WHERE \"Claim\"='PostInviteLink';");
 
             migrationBuilder.Sql(

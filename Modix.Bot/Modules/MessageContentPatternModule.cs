@@ -26,7 +26,7 @@ namespace Modix.Bot.Modules
         [Summary("Lists all added patterns.")]
         public async Task ListAsync()
         {
-            var canViewPatterns = _messageContentPatternService.CanViewPatterns(Context.Guild.Id);
+            var canViewPatterns = _messageContentPatternService.CanViewPatterns();
 
             if (!canViewPatterns)
             {

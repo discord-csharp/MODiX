@@ -172,6 +172,56 @@ namespace Modix.Services.Test.Moderation
             return mockMessage.Object;
         }
 
+        private static ISocketMessage BuildBlockedAndAllowedContentTestMessage(AutoMocker autoMocker)
+        {
+            var mockMessage = autoMocker.GetMock<ISocketMessage>();
+            var mockGuild = autoMocker.GetMock<IGuild>();
+
+            var mockAuthor = autoMocker.GetMock<IGuildUser>();
+            mockAuthor
+                .Setup(x => x.Guild)
+                .Returns(mockGuild.Object);
+            mockAuthor
+                .Setup(x => x.GuildId)
+                .Returns(42);
+            mockAuthor
+                .Setup(x => x.Id)
+                .Returns(2);
+            mockAuthor
+                .Setup(x => x.Mention)
+                .Returns("<@2>");
+            mockMessage
+                .Setup(x => x.Author)
+                .Returns(mockAuthor.Object);
+
+            var mockChannel = autoMocker.GetMock<IMessageChannel>();
+            mockChannel
+                .As<IGuildChannel>()
+                .Setup(x => x.Guild)
+                .Returns(mockGuild.Object);
+            mockMessage
+                .Setup(x => x.Channel)
+                .Returns(mockChannel.Object);
+
+            mockMessage
+                .Setup(x => x.Content)
+                .Returns($"{BlockedContent.url} discord.gg/allowed");
+
+            var patternServiceMock = autoMocker.GetMock<IMessageContentPatternService>();
+            patternServiceMock.Setup(x => x.GetPatterns(It.IsAny<ulong>()))
+                .ReturnsAsync(new List<MessageContentPatternDto>
+                {
+                    new MessageContentPatternDto(
+                        "(https?://)?(www\\.)?(discord\\.(gg|io|me|li)|discord(app)?\\.com/invite)/(?<Code>\\w+)",
+                        MessageContentPatternType.Blocked),
+                    new MessageContentPatternDto(
+                        "(https?://)?(www\\.)?(discord\\.(gg|io|me|li)|discord(app)?\\.com/invite)/(allowed)",
+                        MessageContentPatternType.Allowed),
+                });
+
+            return mockMessage.Object;
+        }
+
         private static ISocketMessage BuildBlockedButSupersededContentTestMessage(AutoMocker autoMocker)
         {
             var mockMessage = autoMocker.GetMock<ISocketMessage>();
@@ -444,6 +494,25 @@ namespace Modix.Services.Test.Moderation
 
             var notification = new MessageReceivedNotification(
                 message: BuildBlockedContentTestMessage(autoMocker));
+
+            await uut.HandleNotificationAsync(notification);
+
+            autoMocker.GetMock<IModerationService>()
+                .ShouldHaveReceived(x => x.
+                    DeleteMessageAsync(
+                        notification.Message,
+                        It.Is<string>(y => y.Contains("Message Content", StringComparison.OrdinalIgnoreCase)),
+                        autoMocker.Get<ISocketSelfUser>().Id,
+                        It.IsAny<CancellationToken>()));
+        }
+
+        [TestCaseSource(nameof(InviteLinkMessages))]
+        public async Task HandleNotificationAsync_MessageReceivedNotification_ContainsBlockedAndAllowedContent_DeletesMessage(string messageContent)
+        {
+            (var autoMocker, var uut) = BuildTestContext();
+
+            var notification = new MessageReceivedNotification(
+                message: BuildBlockedAndAllowedContentTestMessage(autoMocker));
 
             await uut.HandleNotificationAsync(notification);
 

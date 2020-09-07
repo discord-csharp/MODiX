@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Modix.Data.Migrations
 {
     [DbContext(typeof(ModixContext))]
-    [Migration("20200905130436_AddMessageContentPatterns")]
+    [Migration("20200907213325_AddMessageContentPatterns")]
     partial class AddMessageContentPatterns
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -256,6 +256,9 @@ namespace Modix.Data.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GuildId", "Pattern")
+                        .IsUnique();
 
                     b.ToTable("MessageContentPatterns");
                 });

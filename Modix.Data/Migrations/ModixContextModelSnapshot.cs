@@ -255,6 +255,9 @@ namespace Modix.Data.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("GuildId", "Pattern")
+                        .IsUnique();
+
                     b.ToTable("MessageContentPatterns");
                 });
 
