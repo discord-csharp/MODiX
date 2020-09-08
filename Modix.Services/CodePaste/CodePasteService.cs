@@ -20,7 +20,6 @@ namespace Modix.Services.CodePaste
 {4}";
 
         private const string ApiReferenceUrl = "https://paste.mod.gg/";
-        private const string FallbackApiReferenceUrl = "https://haste.charlesmilette.net/";
         private readonly IHttpClientFactory _httpClientFactory;
 
         public CodePasteService(IHttpClientFactory httpClientFactory)
@@ -35,33 +34,22 @@ namespace Modix.Services.CodePaste
         /// <returns>The URL to the newly created post</returns>
         public async Task<string> UploadCodeAsync(string code, string language = null)
         {
-            var usingFallback = false;
             var content = FormatUtilities.BuildContent(code);
-            HttpResponseMessage response;
 
             var client = _httpClientFactory.CreateClient(HttpClientNames.TimeoutFiveSeconds);
 
-            try
-            {
-                response = await client.PostAsync($"{ApiReferenceUrl}documents", content);
-            }
-            catch (TaskCanceledException)
-            {
-                usingFallback = true;
-                response = await client.PostAsync($"{FallbackApiReferenceUrl}documents", content);
-            }
+            var response = await client.PostAsync($"{ApiReferenceUrl}documents", content);
 
             if (!response.IsSuccessStatusCode)
             {
                 var body = await response.Content?.ReadAsStringAsync();
-                throw new Exception($"{response.StatusCode} returned when calling {response.RequestMessage.RequestUri}. Response body: {body}");
+                throw new Exception($"{response.StatusCode} returned when calling {response.RequestMessage?.RequestUri}. Response body: {body}");
             }
 
             var urlResponse = await response.Content.ReadAsStringAsync();
-            var pasteKey = JObject.Parse(urlResponse)["key"].Value<string>();
+            var pasteKey = JObject.Parse(urlResponse)["key"]?.Value<string>();
 
-            var domain = usingFallback ? FallbackApiReferenceUrl : ApiReferenceUrl;
-            return $"{domain}{pasteKey}.{language ?? FormatUtilities.GetCodeLanguage(code) ?? "cs"}";
+            return $"{ApiReferenceUrl}{pasteKey}.{language ?? FormatUtilities.GetCodeLanguage(code) ?? "cs"}";
         }
 
         /// <summary>
@@ -74,7 +62,7 @@ namespace Modix.Services.CodePaste
         {
             var formatted = string.Format(Header,
                 $"{msg.Author.Username}#{msg.Author.DiscriminatorValue}", msg.Channel.Name,
-                DateTimeOffset.UtcNow.ToString("dddd, MMMM d yyyy @ H:mm:ss"), msg.Id, 
+                DateTimeOffset.UtcNow.ToString("dddd, MMMM d yyyy @ H:mm:ss"), msg.Id,
                 FormatUtilities.FixIndentation(code ?? msg.Content));
 
             return await UploadCodeAsync(formatted);
