@@ -66,6 +66,7 @@ namespace Modix.Modules
             {
                 Id = infraction.Id,
                 Created = infraction.CreateAction.Created.ToUniversalTime().ToString("yyyy MMM dd"),
+                Author = infraction.CreateAction.CreatedBy.GetFullUsername(),
                 Type = infraction.Type,
                 Reason = infraction.Reason,
                 Rescinded = infraction.RescindAction != null
@@ -98,7 +99,7 @@ namespace Modix.Modules
                 var emoji = GetEmojiForInfractionType(infraction.Type);
 
                 builder.AddField(
-                    $"#{infraction.Id} - \\{emoji} {infraction.Type} - Created: {infraction.Created}{(infraction.Rescinded ? " - [RESCINDED]" : "")}",
+                    $"#{infraction.Id} - \\{emoji} {infraction.Type} - Created by {infraction.Author} on {infraction.Created}{(infraction.Rescinded ? " - [RESCINDED]" : "")}",
                     Format.Url($"Reason: {infraction.Reason}", infractionUrl)
                 );
             }
