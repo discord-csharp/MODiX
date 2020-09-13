@@ -66,7 +66,7 @@ namespace Modix.Modules
             {
                 Id = infraction.Id,
                 Created = infraction.CreateAction.Created.ToUniversalTime().ToString("yyyy MMM dd"),
-                Author = $"{infraction.CreateAction.CreatedBy.Username}#{infraction.CreateAction.CreatedBy.Discriminator}",
+                Author = infraction.CreateAction.CreatedBy.GetFullUsername(),
                 Type = infraction.Type,
                 Reason = infraction.Reason,
                 Rescinded = infraction.RescindAction != null
