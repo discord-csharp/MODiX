@@ -56,7 +56,6 @@ namespace Modix.Controllers
                 Nickname = userInformation.Nickname,
                 Discriminator = userInformation.Discriminator,
                 AvatarUrl = userInformation.AvatarId != null ? userInformation.GetAvatarUrl(ImageFormat.Auto, 256) : userInformation.GetDefaultAvatarUrl(),
-                Status = userInformation.Status.ToString(),
                 CreatedAt = userInformation.CreatedAt,
                 JoinedAt = userInformation.JoinedAt,
                 FirstSeen = userInformation.FirstSeen,

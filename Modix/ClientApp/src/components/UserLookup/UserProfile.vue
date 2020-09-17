@@ -12,7 +12,6 @@
                 <div class="userInfoSection">
                     <div class="box info">
                         <UserProfileField fieldName="ID" :fieldValue="user.id" />
-                        <UserProfileField fieldName="Status" :fieldValue="user.status" />
                         <UserProfileField fieldName="First seen" :fieldValue="formatDate(user.firstSeen)" default="Never" />
                         <UserProfileField fieldName="Last seen" :fieldValue="formatDate(user.lastSeen)" default="Never" />
                     </div>
