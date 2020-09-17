@@ -128,22 +128,23 @@ namespace Modix.Modules
         {
             embed = null;
 
-            if (queries.HasFlag(HelpDataType.Command))
-            {
-                var byCommand = _commandHelpService.GetCommandHelpData(query);
-                if (byCommand != null)
-                {
-                    embed = GetEmbedForCommand(byCommand);
-                    return true;
-                }
-            }
-
+            // Prioritize module over command.
             if (queries.HasFlag(HelpDataType.Module))
             {
                 var byModule = _commandHelpService.GetModuleHelpData(query);
                 if (byModule != null)
                 {
                     embed = GetEmbedForModule(byModule);
+                    return true;
+                }
+            }
+
+            if (queries.HasFlag(HelpDataType.Command))
+            {
+                var byCommand = _commandHelpService.GetCommandHelpData(query);
+                if (byCommand != null)
+                {
+                    embed = GetEmbedForCommand(byCommand);
                     return true;
                 }
             }
