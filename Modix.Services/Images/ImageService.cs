@@ -56,7 +56,7 @@ namespace Modix.Services.Images
 
                 if (!_cache.TryGetValue(key, out Color color))
                 {
-                    var imageBytes = await _httpClientFactory.CreateClient(HttpClientNames.TimeoutOneSecond).GetByteArrayAsync(location);
+                    var imageBytes = await _httpClientFactory.CreateClient(HttpClientNames.Timeout300ms).GetByteArrayAsync(location);
                     color = GetDominantColor(imageBytes.AsSpan());
 
                     _cache.Set(key, color, TimeSpan.FromDays(7));
@@ -66,7 +66,7 @@ namespace Modix.Services.Images
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "An error occurred while attempting to determine the dominant color of an image.");
+                Log.Information(ex, "An error occurred while attempting to determine the dominant color of an image.");
                 return Color.Default;
             }
         }
