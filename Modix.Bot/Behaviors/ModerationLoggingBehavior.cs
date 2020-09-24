@@ -109,10 +109,10 @@ namespace Modix.Behaviors
         private static readonly Dictionary<(ModerationActionType, InfractionType?), string> _renderTemplates
             = new Dictionary<(ModerationActionType, InfractionType?), string>()
             {
-                { (ModerationActionType.InfractionCreated,   InfractionType.Notice),  "`[{0}]` **{1}** recorded the following note for **{3}** (`{4}`) ```\n{5}```" },
-                { (ModerationActionType.InfractionCreated,   InfractionType.Warning), "`[{0}]` **{1}** recorded the following warning for **{3}** (`{4}`) ```\n{5}```" },
-                { (ModerationActionType.InfractionCreated,   InfractionType.Mute),    "`[{0}]` **{1}** muted **{3}** (`{4}`) for reason ```\n{5}```" },
-                { (ModerationActionType.InfractionCreated,   InfractionType.Ban),     "`[{0}]` **{1}** banned **{3}** (`{4}`) for reason ```\n{5}```" },
+                { (ModerationActionType.InfractionCreated,   InfractionType.Notice),  "`[{0}] [{2}]` **{1}** recorded the following note for **{3}** (`{4}`) ```\n{5}```" },
+                { (ModerationActionType.InfractionCreated,   InfractionType.Warning), "`[{0}] [{2}]` **{1}** recorded the following warning for **{3}** (`{4}`) ```\n{5}```" },
+                { (ModerationActionType.InfractionCreated,   InfractionType.Mute),    "`[{0}] [{2}]` **{1}** muted **{3}** (`{4}`) for reason ```\n{5}```" },
+                { (ModerationActionType.InfractionCreated,   InfractionType.Ban),     "`[{0}] [{2}]` **{1}** banned **{3}** (`{4}`) for reason ```\n{5}```" },
                 { (ModerationActionType.InfractionRescinded, InfractionType.Mute),    "`[{0}]` **{1}** un-muted ** {3}** (`{4}`) {16}" },
                 { (ModerationActionType.InfractionRescinded, InfractionType.Ban),     "`[{0}]` **{1}** un-banned **{3}** (`{4}`) {16}" },
                 { (ModerationActionType.InfractionDeleted,   InfractionType.Notice),  "`[{0}]` **{1}** deleted a notice (`{2}`) for **{3}** (`{4}`)" },
