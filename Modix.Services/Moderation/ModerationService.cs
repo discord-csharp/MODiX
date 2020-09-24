@@ -864,11 +864,6 @@ namespace Modix.Services.Moderation
             if (infraction is null)
                 return (false, $"An infraction with an ID of {infractionId} could not be found.");
 
-            var infractionAge = DateTimeOffset.Now - infraction.CreateAction.Created;
-
-            if (infractionAge > TimeSpan.FromDays(1))
-                return (false, $"Infractions older than 1 day cannot be updated. This infraction is {infractionAge.Humanize(2)} old.");
-
             AuthorizationService.RequireClaims(_createInfractionClaimsByType[infraction.Type]);
 
             // Allow users who created the infraction to bypass any further
