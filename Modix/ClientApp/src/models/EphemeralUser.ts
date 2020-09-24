@@ -7,7 +7,6 @@ export default interface EphemeralUser
     nickname: string;
     discriminator: string;
     avatarUrl: string;
-    status: string;
     createdAt: Date;
     joinedAt: Date;
     firstSeen: Date;

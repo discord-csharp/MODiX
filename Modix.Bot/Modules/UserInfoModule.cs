@@ -133,10 +133,6 @@ namespace Modix.Modules
                     builder.AppendLine($"Ban Reason: {userInfo.BanReason}");
                 }
             }
-            else
-            {
-                builder.AppendLine($"Status: {userInfo.Status.Humanize()}");
-            }
 
             if (userInfo.FirstSeen is DateTimeOffset firstSeen)
                 builder.AppendLine($"First Seen: {FormatUtilities.FormatTimeAgo(_utcNow, firstSeen)}");
