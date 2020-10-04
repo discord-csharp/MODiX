@@ -56,7 +56,7 @@ namespace Modix.Modules
             _replUrl = string.IsNullOrWhiteSpace(modixConfig.Value.ReplUrl) ? DefaultReplRemoteUrl : modixConfig.Value.ReplUrl;
         }
 
-        [Command("exec"), Alias("eval"), Summary("Executes the given C# code and returns the result.")]
+        [Command("exec"), Alias("eval", "e"), Summary("Executes the given C# code and returns the result.")]
         public async Task ReplInvokeAsync(
             [Remainder]
             [Summary("The code to execute.")]
