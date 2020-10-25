@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -15,6 +16,8 @@ namespace Modix.Modules
     [HelpTags("jumbo")]
     public class FunModule : ModuleBase
     {
+        private static string[] _owoFaces = {"(・`ω´・)", ";;w;;", "owo", "UwU", ">w<", "^w^"};
+
         public FunModule(IHttpClientFactory httpClientFactory)
         {
             HttpClientFactory = httpClientFactory;
@@ -116,6 +119,24 @@ namespace Modix.Modules
                 Log.Warning(ex, "Failed getting avatar for user {userId}", user.Id);
                 await ReplyAsync($"Sorry {Context.User.Mention}, I couldn't get the avatar!");
             }
+        }
+
+        [Command("owoify")]
+        [Alias("owo")]
+        [Summary("Owoifies the given message.")]
+        public async Task OwoifyAsync([Remainder][Summary("The message to owoify.")] string message)
+        {
+            var owoMessage = message;
+
+            owoMessage = Regex.Replace(owoMessage, "(?:r|l)", "w");
+            owoMessage = Regex.Replace(owoMessage, "(?:R|L)", "W");
+            owoMessage = Regex.Replace(owoMessage, "n([aeiou])", "ny$1");
+            owoMessage = Regex.Replace(owoMessage, "N([aeiou])", "Ny$1");
+            owoMessage = Regex.Replace(owoMessage, "N([AEIOU])", "Ny$1");
+            owoMessage = Regex.Replace(owoMessage, "ove", "uv");
+            owoMessage = Regex.Replace(owoMessage, "\\!+", " " + _owoFaces[new Random().Next(0, _owoFaces.Length - 1)] + " ");
+
+            await ReplyAsync(owoMessage);
         }
 
         protected IHttpClientFactory HttpClientFactory { get; }
