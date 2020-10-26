@@ -36,6 +36,8 @@ namespace Modix
     {
         public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
         {
+            input = input.Trim(',', '.');
+
             var baseResult = await base.ReadAsync(context, input, services);
 
             if (baseResult.IsSuccess)
