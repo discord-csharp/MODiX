@@ -16,7 +16,7 @@ namespace Modix.Modules
     [HelpTags("jumbo")]
     public class FunModule : ModuleBase
     {
-        private static string[] _owoFaces = {"(・`ω´・)", ";;w;;", "owo", "UwU", ">w<", "^w^"};
+        private static readonly string[] _owoFaces = {"(・`ω´・)", ";;w;;", "owo", "UwU", ">w<", "^w^"};
 
         public FunModule(IHttpClientFactory httpClientFactory)
         {
@@ -134,9 +134,15 @@ namespace Modix.Modules
             owoMessage = Regex.Replace(owoMessage, "N([aeiou])", "Ny$1");
             owoMessage = Regex.Replace(owoMessage, "N([AEIOU])", "Ny$1");
             owoMessage = Regex.Replace(owoMessage, "ove", "uv");
-            owoMessage = Regex.Replace(owoMessage, "\\!+", " " + _owoFaces[new Random().Next(0, _owoFaces.Length - 1)] + " ");
+            owoMessage = Regex.Replace(owoMessage, "(?<!\\@)\\!+", " " + _owoFaces[new Random().Next(_owoFaces.Length)] + " ");
 
-            await ReplyAsync(owoMessage);
+            await ReplyAsync(embed: new EmbedBuilder()
+                .WithDescription(owoMessage)
+                .WithUserAsAuthor(Context.User)
+                .WithColor(Color.Blue)
+                .WithCurrentTimestamp()
+                .Build());
+            await Context.Message.DeleteAsync();
         }
 
         protected IHttpClientFactory HttpClientFactory { get; }
