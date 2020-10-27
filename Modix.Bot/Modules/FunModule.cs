@@ -140,7 +140,7 @@ namespace Modix.Modules
                 .WithDescription(owoMessage)
                 .WithUserAsAuthor(Context.User)
                 .WithColor(Color.Blue)
-                .WithTimestamp(DateTime.UtcNow)
+                .WithCurrentTimestamp()
                 .Build());
             await Context.Message.DeleteAsync();
         }
