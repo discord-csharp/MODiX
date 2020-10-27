@@ -136,7 +136,13 @@ namespace Modix.Modules
             owoMessage = Regex.Replace(owoMessage, "ove", "uv");
             owoMessage = Regex.Replace(owoMessage, "(?<!\\@)\\!+", " " + _owoFaces[new Random().Next(_owoFaces.Length)] + " ");
 
-            await ReplyAsync(owoMessage);
+            await ReplyAsync(embed: new EmbedBuilder()
+                .WithDescription(owoMessage)
+                .WithAuthor(Context.Message.Author)
+                .WithColor(Color.Blue)
+                .WithTimestamp(DateTime.UtcNow)
+                .Build());
+            await Context.Message.DeleteAsync();
         }
 
         protected IHttpClientFactory HttpClientFactory { get; }
