@@ -138,7 +138,7 @@ namespace Modix.Modules
 
             await ReplyAsync(embed: new EmbedBuilder()
                 .WithDescription(owoMessage)
-                .WithAuthor(Context.Message.Author)
+                .WithUserAsAuthor(Context.User)
                 .WithColor(Color.Blue)
                 .WithTimestamp(DateTime.UtcNow)
                 .Build());
