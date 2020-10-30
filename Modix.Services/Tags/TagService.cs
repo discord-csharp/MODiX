@@ -295,29 +295,6 @@ namespace Modix.Services.Tags
             await _modixContext.SaveChangesAsync();
         }
 
-        public async Task<bool> CanUserMaintainTagAsync(TagEntity tag, ulong userId)
-        {
-            if (tag is null)
-                throw new ArgumentNullException(nameof(tag));
-
-            var currentUser = await _userService.GetGuildUserAsync(tag.GuildId, userId);
-
-            if (!await CanTriviallyMaintainTagAsync(currentUser))
-            {
-                if (tag.OwnerUser is null)
-                {
-                    if (!await CanUserMaintainTagOwnedByRoleAsync(currentUser, tag.OwnerRole))
-                        return false;
-                }
-                else if (userId != tag.OwnerUser.UserId)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
         private async Task EnsureUserCanMaintainTagAsync(TagEntity tag, ulong currentUserId)
         {
             var currentUser = await _userService.GetGuildUserAsync(tag.GuildId, currentUserId);

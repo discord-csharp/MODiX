@@ -252,69 +252,6 @@ export default class Infractions extends ModixComponent
         return this.newInfractionUser != null && this.newInfractionType != null && (!requiresReason || this.newInfractionReason != "") && this.userOutranksSubject;
     }
 
-
-    get fileInput(): HTMLInputElement
-    {
-        return <HTMLInputElement>this.$refs.fileInput;
-    }
-
-    async uploadFile()
-    {
-        let formData = new FormData();
-        formData.append("file", this.fileInput.files![0]);
-
-        if (formData)
-        {
-            try
-            {
-                let result = await GeneralService.uploadRowboatJson(formData);
-                this.message = `${result} rows imported`;
-            }
-            catch (err)
-            {
-                this.loadError = err;
-            }
-        }
-    }
-
-    fileChange(input: HTMLInputElement)
-    {
-        let files = input.files;
-        if (!files || files.length == 0) { return; }
-
-        let reader = new FileReader();
-
-        reader.onloadend = () =>
-        {
-            try
-            {
-                let data = JSON.parse(<string>reader.result);
-
-                if (!Array.isArray(data))
-                {
-                    throw Error("JSON was not valid - should be an array of Rowboat infractions.");
-                }
-
-                this.loadError = null;
-                this.message = `${data.length} infractions found. Ready to import.`;
-            }
-            catch (err)
-            {
-                console.log(err);
-
-                this.loadError = err;
-                this.message = null;
-            }
-        };
-
-        reader.readAsText(files[0]);
-    }
-
-    get rowboatDownloadUrl()
-    {
-        return `https://dashboard.rowboat.party/api/guilds/${this.importGuildId}/infractions`;
-    }
-
     async tableChange(object: any)
     {
         Object.assign(this.tableParams, object);

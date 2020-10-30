@@ -5,7 +5,6 @@ using Microsoft.Extensions.Hosting;
 
 using Modix.Common.Messaging;
 using Modix.Data.Repositories;
-using Modix.Services.RowboatImporter;
 
 namespace Modix.Services.Moderation
 {
@@ -28,7 +27,6 @@ namespace Modix.Services.Moderation
                 .AddSingleton<IInfractionEventHandler>(serviceProvider =>
                     serviceProvider.GetRequiredService<ModerationAutoRescindBehavior>())
                 .AddScoped<IModerationService, ModerationService>()
-                .AddScoped<RowboatInfractionImporterService>()
                 .AddScoped<IModerationActionRepository, ModerationActionRepository>()
                 .AddScoped<IInfractionRepository, InfractionRepository>()
                 .AddScoped<IDeletedMessageRepository, DeletedMessageRepository>()

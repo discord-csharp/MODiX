@@ -24,7 +24,6 @@ using Modix.Services.Core;
 using Modix.Services.Images;
 using Modix.Services.Moderation;
 using Modix.Services.Promotions;
-using Modix.Services.UserInfo;
 using Modix.Services.Utilities;
 
 namespace Modix.Modules
