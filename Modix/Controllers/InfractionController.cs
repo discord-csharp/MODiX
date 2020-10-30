@@ -12,7 +12,6 @@ using Modix.Mappings;
 using Modix.Models;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
-using Modix.Services.RowboatImporter;
 
 namespace Modix.Controllers
 {
@@ -20,12 +19,10 @@ namespace Modix.Controllers
     public class InfractionController : ModixController
     {
         private IModerationService ModerationService { get; }
-        private RowboatInfractionImporterService ImporterService { get; }
 
-        public InfractionController(IDiscordSocketClient client, IAuthorizationService modixAuth, IModerationService moderationService, RowboatInfractionImporterService importerService) : base(client, modixAuth)
+        public InfractionController(IDiscordSocketClient client, IAuthorizationService modixAuth, IModerationService moderationService) : base(client, modixAuth)
         {
             ModerationService = moderationService;
-            ImporterService = importerService;
         }
 
         [HttpPut]
@@ -118,7 +115,7 @@ namespace Modix.Controllers
                     && minutes is null
                     && seconds is null)
                     return null;
-                
+
                 var now = DateTimeOffset.UtcNow;
                 var daysInMonth = DateTime.DaysInMonth(now.Year, now.Month);
 
@@ -179,36 +176,5 @@ namespace Modix.Controllers
         [HttpGet("{subjectId}/doesModeratorOutrankUser")]
         public async Task<IActionResult> DoesModeratorOutrankUserAsync(ulong subjectId)
             => Ok(await ModerationService.DoesModeratorOutrankUserAsync(ModixAuth.CurrentGuildId.Value, ModixAuth.CurrentUserId.Value, subjectId));
-
-        [HttpPut("import")]
-        public Task<IActionResult> Import()
-        {
-            throw new NotImplementedException();
-
-            //if (Request.Form.Files.Count == 0 || Request.Form.Files.First().ContentType != "application/json")
-            //{
-            //    return BadRequest("Must submit a JSON file");
-            //}
-
-            //int importCount = 0;
-
-            //try
-            //{
-            //    using (var httpStream = Request.Form.Files.First().OpenReadStream())
-            //    using (var streamReader = new StreamReader(httpStream))
-            //    {
-            //        var content = await streamReader.ReadToEndAsync();
-            //        var loaded = JsonConvert.DeserializeObject<IEnumerable<RowboatInfraction>>(content);
-
-            //        importCount = await ImporterService.ImportInfractionsAsync(loaded);
-            //    }
-            //}
-            //catch (Exception ex)
-            //{
-            //    return BadRequest(ex.Message);
-            //}
-
-            //return Ok(importCount);
-        }
     }
 }
