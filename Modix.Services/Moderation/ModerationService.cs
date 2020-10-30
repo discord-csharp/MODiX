@@ -67,23 +67,34 @@ namespace Modix.Services.Moderation
         /// <summary>
         /// Marks an existing, active, infraction of a given type, upon a given user, as rescinded.
         /// </summary>
+        /// <param name="infractionId">.</param>
+        /// <param name="reason">The value to use for <see cref="InfractionEntity.RescindReason"/></param>
+        /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
+        Task RescindInfractionAsync(long infractionId, string reason = null);
+
+        /// <summary>
+        /// Marks an existing, active, infraction of a given type, upon a given user, as rescinded.
+        /// </summary>
         /// <param name="type">The <see cref="InfractionEntity.Type"/> value of the infraction to be rescinded.</param>
+        /// <param name="guildId"></param>
         /// <param name="subjectId">The <see cref="InfractionEntity.SubjectId"/> value of the infraction to be rescinded.</param>
         /// <param name="reason">The value to use for <see cref="InfractionEntity.RescindReason"/></param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
-        Task RescindInfractionAsync(InfractionType type, ulong subjectId, string reason = null);
+        Task RescindInfractionAsync(InfractionType type, ulong guildId, ulong subjectId, string reason = null);
 
         /// <summary>
         /// Marks an existing infraction as rescinded, based on its ID.
         /// </summary>
         /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be rescinded.</param>
+        /// <param name="guildId">The Id of the guild targeted.</param>
+        /// <param name="subjectId">The Id of the subject targeted.</param>
         /// <param name="reason">The value to use for <see cref="InfractionEntity.RescindReason"/></param>
         /// <param name="isAutoRescind">
         /// Indicates whether the rescind request is an AutoRescind from MODiX.
         /// This determines whether checks such as rank validation will occur.
         /// </param>
         /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
-        Task RescindInfractionAsync(long infractionId, string reason = null, bool isAutoRescind = false);
+        Task RescindInfractionAsync(long infractionId, ulong guildId, ulong subjectId, string reason = null, bool isAutoRescind = false);
 
         /// <summary>
         /// Marks an existing infraction as deleted, based on its ID.
@@ -394,7 +405,7 @@ namespace Modix.Services.Moderation
         /// <inheritdoc />
         public async Task AutoRescindExpiredInfractions()
         {
-            var expiredInfractionIds = await InfractionRepository.SearchIdsAsync(new InfractionSearchCriteria()
+            var expiredInfractions = await InfractionRepository.SearchSummariesAsync(new InfractionSearchCriteria()
             {
                 ExpiresRange = new DateTimeOffsetRange()
                 {
@@ -404,8 +415,10 @@ namespace Modix.Services.Moderation
                 IsDeleted = false
             });
 
-            foreach (var expiredInfractionId in expiredInfractionIds)
-                await RescindInfractionAsync(expiredInfractionId, isAutoRescind: true);
+            foreach (var expiredInfraction in expiredInfractions)
+            {
+                await RescindInfractionAsync(expiredInfraction.Id, expiredInfraction.GuildId, expiredInfraction.Subject.Id, isAutoRescind: true);
+            }
         }
 
         /// <inheritdoc />
@@ -533,7 +546,21 @@ namespace Modix.Services.Moderation
         }
 
         /// <inheritdoc />
-        public async Task RescindInfractionAsync(InfractionType type, ulong subjectId, string reason = null)
+        public async Task RescindInfractionAsync(long infractionId,
+            string reason = null)
+        {
+            AuthorizationService.RequireAuthenticatedUser();
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
+
+            var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
+            await DoRescindInfractionAsync(infraction!.Type, infraction.GuildId, infraction.Subject.Id, infraction, reason);
+        }
+
+        /// <inheritdoc />
+        public async Task RescindInfractionAsync(InfractionType type,
+            ulong guildId,
+            ulong subjectId,
+            string reason = null)
         {
             AuthorizationService.RequireAuthenticatedGuild();
             AuthorizationService.RequireAuthenticatedUser();
@@ -543,8 +570,7 @@ namespace Modix.Services.Moderation
                 throw new ArgumentException($"Reason must be less than {MaxReasonLength} characters in length",
                     nameof(reason));
 
-            await DoRescindInfractionAsync(
-                (await InfractionRepository.SearchSummariesAsync(
+            var infraction = (await InfractionRepository.SearchSummariesAsync(
                     new InfractionSearchCriteria()
                     {
                         GuildId = AuthorizationService.CurrentGuildId.Value,
@@ -552,18 +578,20 @@ namespace Modix.Services.Moderation
                         SubjectId = subjectId,
                         IsRescinded = false,
                         IsDeleted = false,
-                    }))
-                .FirstOrDefault(), reason);
+                    })).FirstOrDefault();
+
+            await DoRescindInfractionAsync(type, guildId, subjectId, infraction, reason);
         }
 
         /// <inheritdoc />
-        public async Task RescindInfractionAsync(long infractionId, string reason = null, bool isAutoRescind = false)
+        public async Task RescindInfractionAsync(long infractionId, ulong guildId, ulong subjectId, string reason = null, bool isAutoRescind = false)
         {
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
 
-            await DoRescindInfractionAsync(
-                await InfractionRepository.ReadSummaryAsync(infractionId), reason, isAutoRescind);
+            var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
+
+            await DoRescindInfractionAsync(infraction!.Type, guildId, subjectId, infraction, reason, isAutoRescind);
         }
 
         /// <inheritdoc />
@@ -742,8 +770,8 @@ namespace Modix.Services.Moderation
 
             return await InfractionRepository.GetInfractionCountsAsync(new InfractionSearchCriteria
             {
-                GuildId = AuthorizationService.CurrentGuildId, 
-                SubjectId = subjectId, 
+                GuildId = AuthorizationService.CurrentGuildId,
+                SubjectId = subjectId,
                 IsDeleted = false
             });
         }
@@ -768,7 +796,7 @@ namespace Modix.Services.Moderation
                     IsDeleted = false,
                     ExpiresRange = new DateTimeOffsetRange()
                     {
-                        From = DateTimeOffset.MinValue, 
+                        From = DateTimeOffset.MinValue,
                         To = DateTimeOffset.MaxValue,
                     }
                 },
@@ -776,7 +804,7 @@ namespace Modix.Services.Moderation
                 {
                     new SortingCriteria()
                     {
-                        PropertyName = nameof(InfractionSummary.Expires), 
+                        PropertyName = nameof(InfractionSummary.Expires),
                         Direction = SortDirection.Ascending
                     }
                 });
@@ -829,8 +857,8 @@ namespace Modix.Services.Moderation
                 var mapping = (await DesignatedRoleMappingRepository.SearchBriefsAsync(
                     new DesignatedRoleMappingSearchCriteria()
                     {
-                        GuildId = guild.Id, 
-                        Type = DesignatedRoleType.ModerationMute, 
+                        GuildId = guild.Id,
+                        Type = DesignatedRoleType.ModerationMute,
                         IsDeleted = false
                     })).FirstOrDefault();
 
@@ -985,55 +1013,64 @@ namespace Modix.Services.Moderation
             }
         }
 
-        private async Task DoRescindInfractionAsync(InfractionSummary infraction, string reason = null,
+#nullable enable
+
+        private async Task DoRescindInfractionAsync(InfractionType type,
+            ulong guildId,
+            ulong subjectId,
+            InfractionSummary? infraction,
+            string? reason = null,
             bool isAutoRescind = false)
         {
-            RequestOptions GetRequestOptions() =>
+            RequestOptions? GetRequestOptions() =>
                 string.IsNullOrEmpty(reason) ? null : new RequestOptions {AuditLogReason = reason};
 
-            if (infraction == null)
-                throw new InvalidOperationException("Infraction does not exist");
-
             if (!isAutoRescind)
-                await RequireSubjectRankLowerThanModeratorRankAsync(infraction.GuildId,
-                    AuthorizationService.CurrentUserId.Value, infraction.Subject.Id);
+            {
+                await RequireSubjectRankLowerThanModeratorRankAsync(guildId, AuthorizationService.CurrentUserId!.Value, subjectId);
+            }
 
-            await InfractionRepository.TryRescindAsync(infraction.Id, AuthorizationService.CurrentUserId.Value, reason);
+            var guild = await DiscordClient.GetGuildAsync(guildId);
 
-            var guild = await DiscordClient.GetGuildAsync(infraction.GuildId);
-
-            switch (infraction.Type)
+            switch (type)
             {
                 case InfractionType.Mute:
-                    if (!await UserService.GuildUserExistsAsync(guild.Id, infraction.Subject.Id))
+                    if (!await UserService.GuildUserExistsAsync(guild.Id, subjectId))
                     {
                         Log.Information(
                             "Attempted to remove the mute role from {0} ({1}), but they were not in the server.",
-                            infraction.Subject.GetFullUsername(),
-                            infraction.Subject.Id);
+                            infraction?.Subject.GetFullUsername() ?? "Unknown user",
+                            subjectId);
                         break;
                     }
 
-                    var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
+                    var subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
                     await subject.RemoveRoleAsync(await GetDesignatedMuteRoleAsync(guild), GetRequestOptions());
                     break;
 
                 case InfractionType.Ban:
-                    await guild.RemoveBanAsync(infraction.Subject.Id, GetRequestOptions());
+                    await guild.RemoveBanAsync(subjectId, GetRequestOptions());
                     break;
 
                 default:
-                    throw new InvalidOperationException($"{infraction.Type} infractions cannot be rescinded.");
+                    throw new InvalidOperationException($"{type} infractions cannot be rescinded.");
+            }
+
+            if (infraction != null)
+            {
+                await InfractionRepository.TryRescindAsync(infraction.Id, AuthorizationService.CurrentUserId!.Value, reason);
             }
         }
+
+#nullable restore
 
         private async Task<IRole> GetDesignatedMuteRoleAsync(IGuild guild)
         {
             var mapping = (await DesignatedRoleMappingRepository.SearchBriefsAsync(
                 new DesignatedRoleMappingSearchCriteria()
                 {
-                    GuildId = guild.Id, 
-                    Type = DesignatedRoleType.ModerationMute, 
+                    GuildId = guild.Id,
+                    Type = DesignatedRoleType.ModerationMute,
                     IsDeleted = false
                 })).FirstOrDefault();
 
@@ -1048,8 +1085,8 @@ namespace Modix.Services.Moderation
             => (await DesignatedRoleMappingRepository
                     .SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria
                     {
-                        GuildId = guildId, 
-                        Type = DesignatedRoleType.Rank, 
+                        GuildId = guildId,
+                        Type = DesignatedRoleType.Rank,
                         IsDeleted = false,
                     }))
                 .Select(r => r.Role);

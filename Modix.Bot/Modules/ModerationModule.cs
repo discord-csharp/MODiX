@@ -155,7 +155,7 @@ namespace Modix.Modules
                 return;
             }
 
-            await ModerationService.RescindInfractionAsync(InfractionType.Mute, subject.UserId, reason);
+            await ModerationService.RescindInfractionAsync(InfractionType.Mute, Context.Guild.Id, subject.UserId, reason);
             await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
 
@@ -196,7 +196,7 @@ namespace Modix.Modules
 
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
-            await ModerationService.RescindInfractionAsync(InfractionType.Ban, subject.UserId, reasonWithUrls);
+            await ModerationService.RescindInfractionAsync(InfractionType.Ban, Context.Guild.Id, subject.UserId, reasonWithUrls);
             await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
 
