@@ -549,6 +549,9 @@ namespace Modix.Services.Moderation
         public async Task RescindInfractionAsync(long infractionId,
             string reason = null)
         {
+            AuthorizationService.RequireAuthenticatedUser();
+            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
+
             var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
             await DoRescindInfractionAsync(infraction!.Type, infraction.GuildId, infraction.Subject.Id, infraction, reason);
         }
@@ -1022,6 +1025,11 @@ namespace Modix.Services.Moderation
             RequestOptions? GetRequestOptions() =>
                 string.IsNullOrEmpty(reason) ? null : new RequestOptions {AuditLogReason = reason};
 
+            if (!isAutoRescind)
+            {
+                await RequireSubjectRankLowerThanModeratorRankAsync(guildId, AuthorizationService.CurrentUserId!.Value, subjectId);
+            }
+
             var guild = await DiscordClient.GetGuildAsync(guildId);
 
             switch (type)
@@ -1050,13 +1058,7 @@ namespace Modix.Services.Moderation
 
             if (infraction != null)
             {
-                if (!isAutoRescind)
-                {
-                    await RequireSubjectRankLowerThanModeratorRankAsync(guildId,
-                        AuthorizationService.CurrentUserId.Value, subjectId);
-                }
-
-                await InfractionRepository.TryRescindAsync(infraction.Id, AuthorizationService.CurrentUserId.Value, reason);
+                await InfractionRepository.TryRescindAsync(infraction.Id, AuthorizationService.CurrentUserId!.Value, reason);
             }
         }
 
