@@ -71,7 +71,7 @@ namespace Modix.Bot.Modules
             try
             {
                 // Decode the compressed code from the URL payload
-                string base64Text = Url.Substring(Url.IndexOf("#v2:") + "#v2:".Length);
+                string base64Text = url.Substring(url.IndexOf("#v2:") + "#v2:".Length);
                 string plainText = LZString.DecompressFromBase64(base64Text);
 
                 // Extract the option and get the target language
