@@ -13,6 +13,7 @@
     <PackageReference Include="Serilog.Sinks.Literate" />
     <PackageReference Include="Serilog.Sinks.RollingFile" />
     <PackageReference Include="Serilog.Sinks.Sentry" />
+    <PackageReference Include="LZStringCSharp" Version="1.4.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Modix.Services\Modix.Services.csproj" />
