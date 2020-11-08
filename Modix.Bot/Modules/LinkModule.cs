@@ -98,6 +98,26 @@ namespace Modix.Bot.Modules
                 // Trim, for good measure
                 sourceCode = sourceCode.Trim();
 
+                // Clip to avoid Discord errors.
+                // - 2048 is the maximum length
+                // - 20 is the approximate length of the markdown URL and message
+                // - 10 is the approximate length of the code highlight markdown
+                int maximumLength = 2048 - (url.Length + 20 + 10);
+
+                if (sourceCode.Length > maximumLength)
+                {
+                    // Clip at the maximum length
+                    sourceCode = sourceCode.Substring(0, maximumLength);
+
+                    int lastCarriageIndex = sourceCode.LastIndexOf('\r');
+
+                    // Remove the last line to avoid having code cut mid-statements
+                    if (lastCarriageIndex > 0)
+                    {
+                        sourceCode = sourceCode.Substring(0, lastCarriageIndex).Trim();
+                    }
+                }
+
                 preview = $"```{language}\r{sourceCode}\r```";
 
                 return true;
