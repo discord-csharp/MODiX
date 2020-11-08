@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 using Discord;
 using Discord.Commands;
 
 using Modix.Services.Utilities;
+
+using LZStringCSharp;
 
 namespace Modix.Bot.Modules
 {
