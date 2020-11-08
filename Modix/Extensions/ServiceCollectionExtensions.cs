@@ -121,6 +121,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     service.AddTypeReader<AnyGuildMessage<IUserMessage>>(new AnyGuildMessageTypeReader<IUserMessage>());
                     service.AddTypeReader<TimeSpan>(new TimeSpanTypeReader(), true);
                     service.AddTypeReader<DiscordUserOrMessageAuthorEntity>(new UserOrMessageAuthorEntityTypeReader());
+                    service.AddTypeReader<Uri>(new UriTypeReader());
 
                     return service;
                 })
