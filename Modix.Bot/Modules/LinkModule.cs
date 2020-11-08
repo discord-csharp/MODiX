@@ -89,8 +89,14 @@ namespace Modix.Bot.Modules
 
                         return _sharplabCSTokens[int.Parse(match.Groups[1].Value)];
                     });
+
+                    // Strip using directives
+                    sourceCode = Regex.Replace(sourceCode, @"using \w+(?:\.\w+)*;", string.Empty);
                 }
                 else sourceCode = sourceCode.Replace("@@", "@");
+
+                // Trim, for good measure
+                sourceCode = sourceCode.Trim();
 
                 preview = $"```{language}\r{sourceCode}\r```";
 
