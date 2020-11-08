@@ -87,7 +87,7 @@ namespace Modix.Bot.Modules
                     {
                         if (match.Value is "@@") return "@";
 
-                        return Tokens[int.Parse(match.Groups[1].Value)];
+                        return _sharplabCSTokens[int.Parse(match.Groups[1].Value)];
                     });
                 }
                 else sourceCode = sourceCode.Replace("@@", "@");
