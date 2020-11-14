@@ -74,6 +74,9 @@ namespace Discord.Rest
             => RestMessage.Channel
                 .Abstract();
 
+        public bool MentionedEveryone
+            => RestMessage.MentionedEveryone;
+
         /// <inheritdoc />
         public string Content
             => RestMessage.Content;

@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace Modix.Data.ExpandableQueries
@@ -22,7 +23,7 @@ namespace Modix.Data.ExpandableQueries
 
         public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
 #pragma warning disable EF1001 // Internal EF Core API usage.
-            => ((IAsyncQueryProvider)_provider).ExecuteAsync<IAsyncEnumerable<T>>(Expression).GetAsyncEnumerator();
+            => ((IAsyncQueryProvider)_provider).ExecuteAsync<IAsyncEnumerable<T>>(Expression).GetAsyncEnumerator(cancellationToken);
 #pragma warning restore EF1001 // Internal EF Core API usage.
 
         IEnumerator IEnumerable.GetEnumerator()
