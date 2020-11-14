@@ -35,10 +35,11 @@ namespace Modix
             = new HashSet<ulong>()
             {
                 135910101667020800, // Cisien#9278
-                297508715408654336, // distilled#1111
+                297508715408654336, // distilld#1111
                 137791696325836800, // JakenVeina#1758
                 123668790155280384, // jmazouri#1277
-                213437573618597888  // Scott#9000
+                213437573618597888, // Scott#9000
+                104975006542372864, // patrickk#0001
             };
 
         private readonly RequestDelegate _next;
