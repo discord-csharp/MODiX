@@ -367,10 +367,6 @@ namespace Discord.Rest
         public Task DownloadUsersAsync()
             => (RestGuild as IGuild).DownloadUsersAsync();
 
-        public Task<int> PruneUsersAsync(int days = 30, bool simulate = false, RequestOptions options = null,
-            IEnumerable<ulong> includeRoleIds = null) =>
-            RestGuild.PruneUsersAsync(days, simulate, options, includeRoleIds);
-
         /// <inheritdoc />
         public async Task<IRestVoiceChannel> GetAFKChannelAsync(RequestOptions options = null)
             => (await RestGuild.GetAFKChannelAsync(options))
@@ -662,6 +658,10 @@ namespace Discord.Rest
         /// <inheritdoc />
         public Task<GuildEmote> ModifyEmoteAsync(GuildEmote emote, Action<EmoteProperties> func, RequestOptions options = null)
             => (RestGuild as IGuild).ModifyEmoteAsync(emote, func, options);
+
+        /// <inheritdoc />
+        public Task<int> PruneUsersAsync(int days = 30, bool simulate = false, RequestOptions options = null)
+            => RestGuild.PruneUsersAsync(days, simulate, options);
 
         /// <inheritdoc />
         public Task RemoveBanAsync(ulong userId, RequestOptions options = null)

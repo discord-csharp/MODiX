@@ -13,7 +13,7 @@ namespace Modix.Data.Models.Core
         public long Id { get; set; }
 
         [Required]
-        public string Pattern { get; set; } = null!;
+        public string Pattern { get; set; }
 
         public MessageContentPatternType PatternType { get; set; }
 
