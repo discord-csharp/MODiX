@@ -476,6 +476,10 @@ namespace Discord.WebSocket
         public Task DownloadUsersAsync()
             => SocketGuild.DownloadUsersAsync();
 
+        public Task<int> PruneUsersAsync(int days = 30, bool simulate = false, RequestOptions options = null,
+            IEnumerable<ulong> includeRoleIds = null) =>
+            throw new NotImplementedException();
+
         /// <inheritdoc />
         public async Task<IVoiceChannel> GetAFKChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (SocketGuild as IGuild).GetAFKChannelAsync(mode, options))
@@ -713,10 +717,6 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         Task<GuildEmote> IGuild.ModifyEmoteAsync(GuildEmote emote, Action<EmoteProperties> func, RequestOptions options)
             => (SocketGuild as IGuild).ModifyEmoteAsync(emote, func, options);
-
-        /// <inheritdoc />
-        public Task<int> PruneUsersAsync(int days = 30, bool simulate = false, RequestOptions options = null)
-            => SocketGuild.PruneUsersAsync(days, simulate, options);
 
         /// <inheritdoc />
         public Task RemoveBanAsync(ulong userId, RequestOptions options = null)

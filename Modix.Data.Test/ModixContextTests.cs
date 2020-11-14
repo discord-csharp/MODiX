@@ -20,8 +20,8 @@ namespace Modix.Data.Test
             var context = new ModixContext(optionsBuilder.Options);
 
             var differences = context.GetService<IMigrationsModelDiffer>().GetDifferences(
-                    context.GetService<IMigrationsAssembly>().ModelSnapshot.Model,
-                    context.Model);
+                    context.GetService<IMigrationsAssembly>().ModelSnapshot.Model.GetRelationalModel(),
+                    context.Model.GetRelationalModel());
 
             differences.ShouldBeEmpty();
         }
