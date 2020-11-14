@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 using NUnit.Framework;
@@ -19,11 +21,27 @@ namespace Modix.Data.Test
 
             var context = new ModixContext(optionsBuilder.Options);
 
-            var differences = context.GetService<IMigrationsModelDiffer>().GetDifferences(
-                    context.GetService<IMigrationsAssembly>().ModelSnapshot.Model.GetRelationalModel(),
-                    context.Model.GetRelationalModel());
+            var migrationsAssembly = context.GetService<IMigrationsAssembly>();
+            var dependencies = context.GetService<ProviderConventionSetBuilderDependencies>();
+            var relationalDependencies = context.GetService<RelationalConventionSetBuilderDependencies>();
+            var modelDiffer = context.GetService<IMigrationsModelDiffer>();
 
-            differences.ShouldBeEmpty();
+            var hasDifferences = false;
+
+            if (migrationsAssembly.ModelSnapshot != null)
+            {
+                var typeMappingConvention = new TypeMappingConvention(dependencies);
+                typeMappingConvention.ProcessModelFinalizing(((IConventionModel)migrationsAssembly.ModelSnapshot.Model).Builder, null!);
+
+                var relationalModelConvention = new RelationalModelConvention(dependencies, relationalDependencies);
+                var sourceModel = relationalModelConvention.ProcessModelFinalized(migrationsAssembly.ModelSnapshot.Model);
+
+                hasDifferences = modelDiffer.HasDifferences(
+                    ((IMutableModel)sourceModel).FinalizeModel().GetRelationalModel(),
+                    context.Model.GetRelationalModel());
+            }
+
+            hasDifferences.ShouldBeFalse();
         }
     }
 }
