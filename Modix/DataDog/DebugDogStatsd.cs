@@ -73,12 +73,6 @@ namespace Modix.DataDog
         {
         }
 
-        public void Dispose()
-        {
-        }
-
-        public ITelemetryCounters TelemetryCounters { get; }
-
         private class EmptyDisposable : IDisposable
         {
             public void Dispose()

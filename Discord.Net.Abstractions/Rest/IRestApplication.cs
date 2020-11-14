@@ -41,15 +41,6 @@ namespace Discord.Rest
         public string IconUrl
             => RestApplication.IconUrl;
 
-        public bool IsBotPublic
-            => RestApplication.IsBotPublic;
-
-        public bool BotRequiresCodeGrant
-            => RestApplication.BotRequiresCodeGrant;
-
-        public ITeam Team
-            => RestApplication.Team;
-
         /// <inheritdoc />
         public ulong Id
             => RestApplication.Id;

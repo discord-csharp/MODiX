@@ -74,9 +74,6 @@ namespace Discord.WebSocket
             => (SocketMessage as IMessage).Channel
                 .Abstract();
 
-        public bool MentionedEveryone
-            => SocketMessage.MentionedEveryone;
-
         /// <inheritdoc />
         public string Content
             => SocketMessage.Content;

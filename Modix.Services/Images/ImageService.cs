@@ -11,27 +11,43 @@ using Modix.Services.Images.ColorQuantization;
 using Modix.Services.Utilities;
 
 using Serilog;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace Modix.Services.Images
 {
+    /// <summary>
+    /// Desribes a service that performs actions related to images.
+    /// </summary>
     public interface IImageService
     {
+        /// <summary>
+        /// Identifies a dominant color from the image at the supplied location.
+        /// </summary>
+        /// <param name="location">The location of the image.</param>
+        /// <returns>
+        /// A <see cref="ValueTask"/> that will complete when the operation completes,
+        /// containing a dominant color in the image.
+        /// </returns>
         ValueTask<Color> GetDominantColorAsync(Uri location);
+
+        /// <summary>
+        /// Identifies a dominant color from the provided image.
+        /// </summary>
+        /// <param name="imageBytes">The bytes that compose the image for which the dominant color is to be retrieved.</param>
+        /// <returns>A dominant color in the provided image.</returns>
+        Color GetDominantColor(ReadOnlySpan<byte> imageBytes);
     }
 
     internal sealed class ImageService : IImageService
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly IMemoryCache _cache;
-
-        public ImageService(IHttpClientFactory httpClientFactory,
+        public ImageService(
+            IHttpClientFactory httpClientFactory,
             IMemoryCache memoryCache)
         {
             _httpClientFactory = httpClientFactory;
             _cache = memoryCache;
         }
 
+        /// <inheritdoc />
         public async ValueTask<Color> GetDominantColorAsync(Uri location)
         {
             try
@@ -55,11 +71,12 @@ namespace Modix.Services.Images
             }
         }
 
-        private static Color GetDominantColor(ReadOnlySpan<byte> imageBytes)
+        /// <inheritdoc />
+        public Color GetDominantColor(ReadOnlySpan<byte> imageBytes)
         {
             var colorTree = new Octree();
 
-            using var img = SixLabors.ImageSharp.Image.Load<Rgba32>(imageBytes);
+            using var img = SixLabors.ImageSharp.Image.Load(imageBytes);
 
             for (var x = 0; x < img.Width; x++)
             {
@@ -89,5 +106,8 @@ namespace Modix.Services.Images
         }
 
         private object GetKey(Uri uri) => new { Target = "DominantColor", uri.AbsoluteUri };
+
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IMemoryCache _cache;
     }
 }
