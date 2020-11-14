@@ -478,7 +478,7 @@ namespace Discord.WebSocket
 
         public Task<int> PruneUsersAsync(int days = 30, bool simulate = false, RequestOptions options = null,
             IEnumerable<ulong> includeRoleIds = null) =>
-            throw new NotImplementedException();
+            SocketGuild.PruneUsersAsync(days, simulate, options, includeRoleIds);
 
         /// <inheritdoc />
         public async Task<IVoiceChannel> GetAFKChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
@@ -492,21 +492,12 @@ namespace Discord.WebSocket
                     .Select(RestAuditLogEntryAbstractionExtensions.Abstract)
                     .ToArray());
 
-        /// <inheritdoc />
-        public async Task<IReadOnlyCollection<IAuditLogEntry>> GetAuditLogsAsync(int limit = 100, CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
-            => (await (SocketGuild as IGuild).GetAuditLogsAsync(limit, mode, options))
-                .Select(AuditLogEntryAbstractionExtensions.Abstract)
-                .ToArray();
-
-        /// <inheritdoc />
         public async Task<IBan> GetBanAsync(ulong userId, RequestOptions options = null)
             => await SocketGuild.GetBanAsync(userId, options);
 
-        /// <inheritdoc />
         public async Task<IBan> GetBanAsync(IUser user, RequestOptions options = null)
             => await SocketGuild.GetBanAsync(user, options);
 
-        /// <inheritdoc />
         public async Task<IReadOnlyCollection<IBan>> GetBansAsync(RequestOptions options = null)
             => await SocketGuild.GetBansAsync(options);
 
@@ -734,7 +725,6 @@ namespace Discord.WebSocket
         public Task ReorderRolesAsync(IEnumerable<ReorderRoleProperties> args, RequestOptions options = null)
             => SocketGuild.ReorderRolesAsync(args, options);
 
-        /// <inheritdoc />
         public Task<IReadOnlyCollection<RestGuildUser>> SearchUsersAsync(string query, int limit = 1000, RequestOptions options = null)
             => SocketGuild.SearchUsersAsync(query, limit, options);
 
