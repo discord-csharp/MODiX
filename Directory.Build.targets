@@ -17,7 +17,7 @@
     <PackageReference Update="Microsoft.EntityFrameworkCore" Version="5.0.0" />
     <PackageReference Update="Microsoft.EntityFrameworkCore.Design" Version="5.0.0"/>
     <PackageReference Update="Microsoft.EntityFrameworkCore.InMemory" Version="5.0.0" />
-    <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.0-rc2" />
+    <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.0" />
     
     <PackageReference Update="Nito.AsyncEx.Coordination" Version="5.1.0" />
     <PackageReference Update="DogStatsD-CSharp-Client" Version="5.1.0" />
