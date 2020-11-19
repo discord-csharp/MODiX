@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Query;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
-
+using Npgsql.EntityFrameworkCore.PostgreSQL.Query;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Query.Internal;
 
 namespace Npgsql.EntityFrameworkCore.PostgreSQL.DateTimeOffsetTranslations
@@ -22,7 +23,8 @@ namespace Npgsql.EntityFrameworkCore.PostgreSQL.DateTimeOffsetTranslations
         public SqlExpression? Translate(
                 SqlExpression instance,
                 MethodInfo method,
-                IReadOnlyList<SqlExpression> arguments)
+                IReadOnlyList<SqlExpression> arguments,
+                IDiagnosticsLogger<DbLoggerCategory.Query> logger)
             => ((method.DeclaringType == typeof(DateTimeOffset))
                     && (method.Name == nameof(DateTimeOffset.ToUniversalTime))
                     && _sqlExpressionFactory is NpgsqlSqlExpressionFactory npgsqlSqlExpressionFactory)
