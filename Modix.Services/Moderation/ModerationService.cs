@@ -1,11 +1,11 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Net;
 using Discord.WebSocket;
-using Humanizer;
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
@@ -18,249 +18,77 @@ using System.Threading;
 
 namespace Modix.Services.Moderation
 {
-    /// <summary>
-    /// Describes a service for performing moderation actions, within the application, within the context of a single incoming request.
-    /// </summary>
     public interface IModerationService
     {
-        /// <summary>
-        /// Automatically configures role and channel permissions, related to moderation, for a given guild.
-        /// </summary>
-        /// <param name="guild">The guild to be configured.</param>
-        /// <returns>A <see cref="Task"/> which will complete when the operation has complete.</returns>
         Task AutoConfigureGuildAsync(IGuild guild);
 
-        /// <summary>
-        /// Automatically configures role and channel permissions, related to moderation, for a given channel.
-        /// </summary>
-        /// <param name="channel">The channel to be configured.</param>
-        /// <returns>A <see cref="Task"/> which will complete when the operation has complete.</returns>
         Task AutoConfigureChannelAsync(IChannel channel);
 
-        /// <summary>
-        /// Automatically rescinds any infractions that have expired.,
-        /// based on <see cref="InfractionEntity.Duration"/>.
-        /// </summary>
-        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
         Task AutoRescindExpiredInfractions();
 
-        /// <summary>
-        /// Removes all moderation configuration settings for a guild, by deleting all of its <see cref="ModerationMuteRoleMappingEntity"/> entries.
-        /// </summary>
-        /// <param name="guild">The guild to be un-configured.</param>
-        /// <returns>A <see cref="Task"/> which will complete when the operation has complete.</returns>
         Task UnConfigureGuildAsync(IGuild guild);
 
-        /// <summary>
-        /// Creates an infraction upon a specified user, and logs an associated moderation action.
-        /// </summary>
-        /// <param name="guildId">The unique Discord snowflake ID of the guild in which the infraction will be created.</param>
-        /// <param name="moderatorId">The unique Discord snowflake ID of the user who is creating the infraction.</param>
-        /// <param name="type">The value to user for <see cref="InfractionEntity.Type"/>.</param>
-        /// <param name="subjectId">The value to use for <see cref="InfractionEntity.SubjectId"/>.</param>
-        /// <param name="reason">The value to use for <see cref="ModerationActionEntity.Reason"/></param>
-        /// <param name="duration">The value to use for <see cref="InfractionEntity.Duration"/>.</param>
-        /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
         Task CreateInfractionAsync(ulong guildId, ulong moderatorId, InfractionType type, ulong subjectId,
             string reason, TimeSpan? duration);
 
-        /// <summary>
-        /// Marks an existing, active, infraction of a given type, upon a given user, as rescinded.
-        /// </summary>
-        /// <param name="infractionId">.</param>
-        /// <param name="reason">The value to use for <see cref="InfractionEntity.RescindReason"/></param>
-        /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
-        Task RescindInfractionAsync(long infractionId, string reason = null);
+        Task RescindInfractionAsync(long infractionId, string? reason = null);
 
-        /// <summary>
-        /// Marks an existing, active, infraction of a given type, upon a given user, as rescinded.
-        /// </summary>
-        /// <param name="type">The <see cref="InfractionEntity.Type"/> value of the infraction to be rescinded.</param>
-        /// <param name="guildId"></param>
-        /// <param name="subjectId">The <see cref="InfractionEntity.SubjectId"/> value of the infraction to be rescinded.</param>
-        /// <param name="reason">The value to use for <see cref="InfractionEntity.RescindReason"/></param>
-        /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
-        Task RescindInfractionAsync(InfractionType type, ulong guildId, ulong subjectId, string reason = null);
+        Task RescindInfractionAsync(InfractionType type, ulong guildId, ulong subjectId, string? reason = null);
 
-        /// <summary>
-        /// Marks an existing infraction as rescinded, based on its ID.
-        /// </summary>
-        /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be rescinded.</param>
-        /// <param name="guildId">The Id of the guild targeted.</param>
-        /// <param name="subjectId">The Id of the subject targeted.</param>
-        /// <param name="reason">The value to use for <see cref="InfractionEntity.RescindReason"/></param>
-        /// <param name="isAutoRescind">
-        /// Indicates whether the rescind request is an AutoRescind from MODiX.
-        /// This determines whether checks such as rank validation will occur.
-        /// </param>
-        /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
-        Task RescindInfractionAsync(long infractionId, ulong guildId, ulong subjectId, string reason = null, bool isAutoRescind = false);
-
-        /// <summary>
-        /// Marks an existing infraction as deleted, based on its ID.
-        /// </summary>
-        /// <param name="infractionId">The <see cref="InfractionEntity.Id"/> value of the infraction to be deleted.</param>
-        /// <returns>A <see cref="Task"/> which will complete when the operation has completed.</returns>
         Task DeleteInfractionAsync(long infractionId);
 
-        /// <summary>
-        /// Deletes a message and creates a record of the deletion within the database.
-        /// </summary>
-        /// <param name="message">The message to be deleted.</param>
-        /// <param name="reason">A description of the reason the message was deleted.</param>
-        /// <param name="deletedById">The <see cref="GuildUserEntity.UserId"/> value of the user that is deleting the message.</param>
-        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
-        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task DeleteMessageAsync(
-            IMessage message,
-            string reason,
-            ulong deletedById,
+        Task DeleteMessageAsync(IMessage message, string reason, ulong deletedById,
             CancellationToken cancellationToken);
 
-        /// <summary>
-        /// Mass-deletes a specified number of messages.
-        /// </summary>
-        /// <param name="channel">The channel in which the messages are to be deleted.</param>
-        /// <param name="count">The number of messages to delete.</param>
-        /// <param name="skipOne">Indicates whether to skip one message (i.e. the command message) before deleting.</param>
-        /// <param name="confirmDelegate">A delegate that is invoked to confirm whether to proceed with the operation.</param>
-        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
         Task DeleteMessagesAsync(ITextChannel channel, int count, bool skipOne, Func<Task<bool>> confirmDelegate);
 
-        /// <summary>
-        /// Mass-deletes a specified number of messages.
-        /// </summary>
-        /// <param name="channel">The channel in which the messages are to be deleted.</param>
-        /// <param name="user">The user whose messages are to be deleted.</param>
-        /// <param name="count">The number of messages to delete.</param>
-        /// <param name="confirmDelegate">A delegate that is invoked to confirm whether to proceed with the operation.</param>
-        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
         Task DeleteMessagesAsync(ITextChannel channel, IGuildUser user, int count, Func<Task<bool>> confirmDelegate);
 
-        /// <summary>
-        /// Retrieves a collection of deleted messages based on a given set of criteria, and returns a paged subset of the results based on a given set of paging criteria.
-        /// </summary>
-        /// <param name="searchCriteria">The criteria defining which deleted messages are to be returned.</param>
-        /// <param name="sortingCriteria">The criteria defining how to sort the deleted messages to be returned.</param>
-        /// <param name="pagingCriteria">The criteria defining how to page the deleted messages to be returned.</param>
-        /// <returns>A <see cref="Task"/> which will complete when the operation has completed, containing the requested set of deleted messages.</returns>
         Task<RecordsPage<DeletedMessageSummary>> SearchDeletedMessagesAsync(DeletedMessageSearchCriteria searchCriteria,
             IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria);
 
-        /// <summary>
-        /// Retrieves a collection of infractions, based on a given set of criteria.
-        /// </summary>
-        /// <param name="searchCriteria">The criteria defining which infractions are to be returned.</param>
-        /// <param name="sortingCriterias">The criteria defining how to sort the infractions to be returned.</param>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation has completed,
-        /// containing the requested set of infractions.
-        /// </returns>
         Task<IReadOnlyCollection<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria,
-            IEnumerable<SortingCriteria> sortingCriterias = null);
+            IEnumerable<SortingCriteria>? sortingCriterias = null);
 
-
-        /// <summary>
-        /// Retrieves a collection of infractions, based on a given set of criteria, and returns a paged subset of the results, based on a given set of paging criteria.
-        /// </summary>
-        /// <param name="searchCriteria">The criteria defining which infractions are to be returned.</param>
-        /// <param name="sortingCriterias">The criteria defining how to sort the infractions to be returned.</param>
-        /// <returns>A <see cref="Task"/> which will complete when the operation has completed, containing the requested set of infractions.</returns>
         Task<RecordsPage<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria,
             IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria);
 
-        /// <summary>
-        /// Retrieves a count of the types of infractions the given user has recieved.
-        /// </summary>
-        /// <param name="subjectId">The ID of the user to retrieve counts for</param>
-        /// <returns>A <see cref="Task"/> which results in a Dictionary of infraction type to counts. Will return zeroes for types for which there are no infractions.</returns>
         Task<IDictionary<InfractionType, int>> GetInfractionCountsForUserAsync(ulong subjectId);
 
-        /// <summary>
-        /// Retrieves a moderation action, based on its ID.
-        /// </summary>
-        /// <param name="moderationActionId">The <see cref="ModerationActionEntity.Id"/> value of the moderation action to be retrieved.</param>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation has completed,
-        /// containing the requested moderation action.
-        /// </returns>
         Task<ModerationActionSummary> GetModerationActionSummaryAsync(long moderationActionId);
 
-        /// <summary>
-        /// Retrieves a collection of moderation actions, based on a given set of criteria.
-        /// </summary>
-        /// <param name="searchCriteria">The criteria defining which moderation actions are to be returned.</param>
-        /// <returns>
-        /// A <see cref="Task"/> which will complete when the operation has completed,
-        /// containing the requested set of moderation actions.
-        /// </returns>
-        Task<IReadOnlyCollection<ModerationActionSummary>> SearchModerationActionsAsync(
-            ModerationActionSearchCriteria searchCriteria);
-
-        /// <summary>
-        /// Retrieves a timestamp indicating the next time an existing infraction will be expiring.
-        /// </summary>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation is complete,
-        /// containing the requested timestamp value.
-        /// </returns>
         Task<DateTimeOffset?> GetNextInfractionExpiration();
 
-        /// <summary>
-        /// Determines whether the supplied moderator outranks the supplied subject.
-        /// </summary>
-        /// <param name="guildId">The guild in which the moderation would be performed.</param>
-        /// <param name="moderatorId">The moderator that would perform the moderation.</param>
-        /// <param name="subjectId">The subject of the moderation.</param>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation is complete,
-        /// containing a flag indicating whether the moderator outranks the subject.
-        /// </returns>
         Task<bool> DoesModeratorOutrankUserAsync(ulong guildId, ulong moderatorId, ulong subjectId);
 
-        /// <summary>
-        /// Determines whether there are any infractions that meet the supplied criteria.
-        /// </summary>
-        /// <param name="criteria">The criteria defining which infractions are to be searched.</param>
-        /// <exception cref="ArgumentNullException">Throws for <paramref name="criteria"/>.</exception>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operaiton is complete,
-        /// with a flag indicating whether there are any infractions meeting the supplied criteria.
-        /// </returns>
         Task<bool> AnyInfractionsAsync(InfractionSearchCriteria criteria);
 
-        /// <summary>
-        /// Retrieves the designated mute role for the supplied guild or creates the role if it does not
-        /// already exist.
-        /// </summary>
-        /// <param name="guild">The guild to which the mute role belongs.</param>
-        /// <param name="currentUserId">The Discord snowflake ID of the current user.</param>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation completes,
-        /// containing the designated mute role in the guild.
-        /// </returns>
         Task<IRole> GetOrCreateDesignatedMuteRoleAsync(IGuild guild, ulong currentUserId);
 
-#nullable enable
-        Task<(bool success, string? errorMessage)> UpdateInfractionAsync(long infractionId, string newReason, ulong currentUserId);
-#nullable restore
+        Task<(bool success, string? errorMessage)> UpdateInfractionAsync(long infractionId, string newReason,
+            ulong currentUserId);
     }
 
-    /// <inheritdoc />
     public class ModerationService : IModerationService
     {
-        /// <summary>
-        /// The name to be used for the role in each guild that mutes users.
-        /// </summary>
+        private readonly IDiscordClient _discordClient;
+        private readonly IAuthorizationService _authorizationService;
+        private readonly IChannelService _channelService;
+        private readonly IUserService _userService;
+        private readonly IModerationActionRepository _moderationActionRepository;
+        private readonly IInfractionRepository _infractionRepository;
+        private readonly IDesignatedRoleMappingRepository _designatedRoleMappingRepository;
+        private readonly IDeletedMessageRepository _deletedMessageRepository;
+        private readonly IDeletedMessageBatchRepository _deletedMessageBatchRepository;
+        private readonly IRoleService _roleService;
+        private readonly IDesignatedChannelService _designatedChannelService;
+        private readonly IDogStatsd _dogStatsd;
+
         // TODO: Push this to a bot-wide config? Or maybe on a per-guild basis, but with a bot-wide default, that's pulled from config?
-        public const string MuteRoleName
-            = "MODiX_Moderation_Mute";
+        private const string MuteRoleName = "MODiX_Moderation_Mute";
 
         private const int MaxReasonLength = 1000;
 
-        /// <summary>
-        /// Creates a new <see cref="ModerationService"/>, with the given injected dependencies.
-        /// </summary>
         public ModerationService(
             IDiscordClient discordClient,
             IAuthorizationService authorizationService,
@@ -273,27 +101,26 @@ namespace Modix.Services.Moderation
             IDeletedMessageBatchRepository deletedMessageBatchRepository,
             IRoleService roleService,
             IDesignatedChannelService designatedChannelService,
-            IDogStatsd stats = null)
+            IDogStatsd dogStatsd)
         {
-            DiscordClient = discordClient;
-            AuthorizationService = authorizationService;
-            ChannelService = channelService;
-            UserService = userService;
-            ModerationActionRepository = moderationActionRepository;
-            DesignatedRoleMappingRepository = designatedRoleMappingRepository;
-            InfractionRepository = infractionRepository;
-            DeletedMessageRepository = deletedMessageRepository;
-            DeletedMessageBatchRepository = deletedMessageBatchRepository;
-            RoleService = roleService;
-            DesignatedChannelService = designatedChannelService;
-            Stats = stats;
+            _discordClient = discordClient;
+            _authorizationService = authorizationService;
+            _channelService = channelService;
+            _userService = userService;
+            _moderationActionRepository = moderationActionRepository;
+            _designatedRoleMappingRepository = designatedRoleMappingRepository;
+            _infractionRepository = infractionRepository;
+            _deletedMessageRepository = deletedMessageRepository;
+            _deletedMessageBatchRepository = deletedMessageBatchRepository;
+            _roleService = roleService;
+            _designatedChannelService = designatedChannelService;
+            _dogStatsd = dogStatsd;
         }
 
-        /// <inheritdoc />
         public async Task AutoConfigureGuildAsync(IGuild guild)
         {
-            AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
+            _authorizationService.RequireAuthenticatedUser();
+            _authorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
 
             await SetUpMuteRole(guild);
             await SetUpMentionableRoles(guild);
@@ -301,12 +128,10 @@ namespace Modix.Services.Moderation
 
         private async Task SetUpMentionableRoles(IGuild guild)
         {
-            var mentionableRoleMappings = await DesignatedRoleMappingRepository.SearchBriefsAsync(
+            var mentionableRoleMappings = await _designatedRoleMappingRepository.SearchBriefsAsync(
                 new DesignatedRoleMappingSearchCriteria
                 {
-                    GuildId = guild.Id,
-                    Type = DesignatedRoleType.RestrictedMentionability,
-                    IsDeleted = false
+                    GuildId = guild.Id, Type = DesignatedRoleType.RestrictedMentionability, IsDeleted = false
                 });
 
             Log.Information("Roles with RestrictedMentionability are: {Roles}",
@@ -341,10 +166,10 @@ namespace Modix.Services.Moderation
 
         private async Task SetUpMuteRole(IGuild guild)
         {
-            var muteRole = await GetOrCreateDesignatedMuteRoleAsync(guild, AuthorizationService.CurrentUserId.Value);
+            var muteRole = await GetOrCreateDesignatedMuteRoleAsync(guild, _authorizationService.CurrentUserId!.Value);
 
             var unmoderatedChannels =
-                await DesignatedChannelService.GetDesignatedChannelIdsAsync(guild.Id,
+                await _designatedChannelService.GetDesignatedChannelIdsAsync(guild.Id,
                     DesignatedChannelType.Unmoderated);
 
             var nonCategoryChannels =
@@ -378,15 +203,14 @@ namespace Modix.Services.Moderation
                 muteRole.Name, nonCategoryChannels.Count, nonCategoryChannels.Select(c => c.Name));
         }
 
-        /// <inheritdoc />
         public async Task AutoConfigureChannelAsync(IChannel channel)
         {
-            AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
+            _authorizationService.RequireAuthenticatedUser();
+            _authorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
 
             if (channel is IGuildChannel guildChannel)
             {
-                var isUnmoderated = await DesignatedChannelService.ChannelHasDesignationAsync(guildChannel.Guild,
+                var isUnmoderated = await _designatedChannelService.ChannelHasDesignationAsync(guildChannel.Guild,
                     channel, DesignatedChannelType.Unmoderated, default);
 
                 if (isUnmoderated)
@@ -396,49 +220,43 @@ namespace Modix.Services.Moderation
 
                 var muteRole =
                     await GetOrCreateDesignatedMuteRoleAsync(guildChannel.Guild,
-                        AuthorizationService.CurrentUserId.Value);
+                        _authorizationService.CurrentUserId.Value);
 
                 await ConfigureChannelMuteRolePermissionsAsync(guildChannel, muteRole);
             }
         }
 
-        /// <inheritdoc />
         public async Task AutoRescindExpiredInfractions()
         {
-            var expiredInfractions = await InfractionRepository.SearchSummariesAsync(new InfractionSearchCriteria()
+            var expiredInfractions = await _infractionRepository.SearchSummariesAsync(new InfractionSearchCriteria()
             {
-                ExpiresRange = new DateTimeOffsetRange()
-                {
-                    To = DateTimeOffset.Now
-                },
+                ExpiresRange = new DateTimeOffsetRange() {To = DateTimeOffset.Now},
                 IsRescinded = false,
                 IsDeleted = false
             });
 
             foreach (var expiredInfraction in expiredInfractions)
             {
-                await RescindInfractionAsync(expiredInfraction.Id, expiredInfraction.GuildId, expiredInfraction.Subject.Id, isAutoRescind: true);
+                await RescindInfractionAsync(expiredInfraction.Id, expiredInfraction.GuildId,
+                    expiredInfraction.Subject.Id, isAutoRescind: true);
             }
         }
 
-        /// <inheritdoc />
         public async Task UnConfigureGuildAsync(IGuild guild)
         {
-            AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingDelete);
+            _authorizationService.RequireAuthenticatedUser();
+            _authorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingDelete);
 
-            using (var transaction = await DesignatedRoleMappingRepository.BeginDeleteTransactionAsync())
+            using (var transaction = await _designatedRoleMappingRepository.BeginDeleteTransactionAsync())
             {
-                foreach (var mapping in await DesignatedRoleMappingRepository
+                foreach (var mapping in await _designatedRoleMappingRepository
                     .SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria()
                     {
-                        GuildId = guild.Id,
-                        Type = DesignatedRoleType.ModerationMute,
-                        IsDeleted = false,
+                        GuildId = guild.Id, Type = DesignatedRoleType.ModerationMute, IsDeleted = false,
                     }))
                 {
-                    await DesignatedRoleMappingRepository.TryDeleteAsync(mapping.Id,
-                        AuthorizationService.CurrentUserId.Value);
+                    await _designatedRoleMappingRepository.TryDeleteAsync(mapping.Id,
+                        _authorizationService.CurrentUserId.Value);
 
                     var role = guild.Roles.FirstOrDefault(x => x.Id == mapping.Role.Id);
                     if ((role != null) && (role.Name == MuteRoleName) && (role is IDeletable deletable))
@@ -449,30 +267,29 @@ namespace Modix.Services.Moderation
             }
         }
 
-        /// <inheritdoc />
         public async Task CreateInfractionAsync(ulong guildId, ulong moderatorId, InfractionType type, ulong subjectId,
             string reason, TimeSpan? duration)
         {
-            AuthorizationService.RequireClaims(_createInfractionClaimsByType[type]);
+            _authorizationService.RequireClaims(_createInfractionClaimsByType[type]);
 
             await RequireSubjectRankLowerThanModeratorRankAsync(guildId, moderatorId, subjectId);
 
-            var guild = await DiscordClient.GetGuildAsync(guildId);
+            var guild = await _discordClient.GetGuildAsync(guildId);
 
             IGuildUser subject;
 
-            if (!await UserService.GuildUserExistsAsync(guildId, subjectId))
+            if (!await _userService.GuildUserExistsAsync(guildId, subjectId))
             {
-                subject = await UserService.GetUserInformationAsync(guildId, subjectId);
+                var existingUserInformation = await _userService.GetUserInformationAsync(guildId, subjectId);
 
-                if (subject == null)
-                    throw new InvalidOperationException($"The given subject was not valid, ID: {subjectId}");
+                subject = existingUserInformation ??
+                          throw new InvalidOperationException($"The given subject was not valid, ID: {subjectId}");
 
-                await UserService.TrackUserAsync(subject, default);
+                await _userService.TrackUserAsync(subject, default);
             }
             else
             {
-                subject = await UserService.GetGuildUserAsync(guildId, subjectId);
+                subject = await _userService.GetGuildUserAsync(guildId, subjectId);
             }
 
             if (reason == null)
@@ -486,14 +303,14 @@ namespace Modix.Services.Moderation
                 && string.IsNullOrWhiteSpace(reason))
                 throw new InvalidOperationException($"{type.ToString()} infractions require a reason to be given");
 
-            using (var transaction = await InfractionRepository.BeginCreateTransactionAsync())
+            using (var transaction = await _infractionRepository.BeginCreateTransactionAsync())
             {
                 if ((type == InfractionType.Mute) || (type == InfractionType.Ban))
                 {
-                    if (await InfractionRepository.AnyAsync(new InfractionSearchCriteria()
+                    if (await _infractionRepository.AnyAsync(new InfractionSearchCriteria()
                     {
                         GuildId = guildId,
-                        Types = new[] { type },
+                        Types = new[] {type},
                         SubjectId = subjectId,
                         IsRescinded = false,
                         IsDeleted = false
@@ -502,7 +319,7 @@ namespace Modix.Services.Moderation
                             $"Discord user {subjectId} already has an active {type} infraction");
                 }
 
-                await InfractionRepository.CreateAsync(
+                await _infractionRepository.CreateAsync(
                     new InfractionCreationData()
                     {
                         GuildId = guildId,
@@ -517,8 +334,7 @@ namespace Modix.Services.Moderation
 
                 try
                 {
-                    var guildName = await DiscordClient.GetGuildAsync(guildId);
-                    Stats.Increment("infractions", tags: new[] {$"infraction_type:{type}", $"guild:{guild.Name}"});
+                    _dogStatsd.Increment("infractions", tags: new[] {$"infraction_type:{type}", $"guild:{guild.Name}"});
                 }
                 catch (Exception)
                 {
@@ -545,80 +361,76 @@ namespace Modix.Services.Moderation
             }
         }
 
-        /// <inheritdoc />
-        public async Task RescindInfractionAsync(long infractionId,
-            string reason = null)
+        public async Task RescindInfractionAsync(long infractionId, string? reason = null)
         {
-            AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
+            _authorizationService.RequireAuthenticatedUser();
+            _authorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
 
-            var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
-            await DoRescindInfractionAsync(infraction!.Type, infraction.GuildId, infraction.Subject.Id, infraction, reason);
+            var infraction = await _infractionRepository.ReadSummaryAsync(infractionId);
+            await DoRescindInfractionAsync(infraction!.Type, infraction.GuildId, infraction.Subject.Id, infraction,
+                reason);
         }
 
         /// <inheritdoc />
-        public async Task RescindInfractionAsync(InfractionType type,
-            ulong guildId,
-            ulong subjectId,
-            string reason = null)
+        public async Task RescindInfractionAsync(InfractionType type, ulong guildId, ulong subjectId,
+            string? reason = null)
         {
-            AuthorizationService.RequireAuthenticatedGuild();
-            AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
+            _authorizationService.RequireAuthenticatedGuild();
+            _authorizationService.RequireAuthenticatedUser();
+            _authorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
 
             if (reason?.Length >= MaxReasonLength)
                 throw new ArgumentException($"Reason must be less than {MaxReasonLength} characters in length",
                     nameof(reason));
 
-            var infraction = (await InfractionRepository.SearchSummariesAsync(
-                    new InfractionSearchCriteria()
-                    {
-                        GuildId = AuthorizationService.CurrentGuildId.Value,
-                        Types = new[] {type},
-                        SubjectId = subjectId,
-                        IsRescinded = false,
-                        IsDeleted = false,
-                    })).FirstOrDefault();
+            var infraction = (await _infractionRepository.SearchSummariesAsync(
+                new InfractionSearchCriteria()
+                {
+                    GuildId = _authorizationService.CurrentGuildId.Value,
+                    Types = new[] {type},
+                    SubjectId = subjectId,
+                    IsRescinded = false,
+                    IsDeleted = false,
+                })).FirstOrDefault();
 
             await DoRescindInfractionAsync(type, guildId, subjectId, infraction, reason);
         }
 
-        /// <inheritdoc />
-        public async Task RescindInfractionAsync(long infractionId, ulong guildId, ulong subjectId, string reason = null, bool isAutoRescind = false)
+        private async Task RescindInfractionAsync(long infractionId, ulong guildId, ulong subjectId,
+            string? reason = null, bool isAutoRescind = false)
         {
-            AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
+            _authorizationService.RequireAuthenticatedUser();
+            _authorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
 
-            var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
+            var infraction = await _infractionRepository.ReadSummaryAsync(infractionId);
 
             await DoRescindInfractionAsync(infraction!.Type, guildId, subjectId, infraction, reason, isAutoRescind);
         }
 
-        /// <inheritdoc />
         public async Task DeleteInfractionAsync(long infractionId)
         {
-            AuthorizationService.RequireAuthenticatedUser();
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationDeleteInfraction);
+            _authorizationService.RequireAuthenticatedUser();
+            _authorizationService.RequireClaims(AuthorizationClaim.ModerationDeleteInfraction);
 
-            var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
+            var infraction = await _infractionRepository.ReadSummaryAsync(infractionId);
 
             if (infraction == null)
                 throw new InvalidOperationException($"Infraction {infractionId} does not exist");
 
             await RequireSubjectRankLowerThanModeratorRankAsync(infraction.GuildId,
-                AuthorizationService.CurrentUserId.Value, infraction.Subject.Id);
+                _authorizationService.CurrentUserId.Value, infraction.Subject.Id);
 
-            await InfractionRepository.TryDeleteAsync(infraction.Id, AuthorizationService.CurrentUserId.Value);
+            await _infractionRepository.TryDeleteAsync(infraction.Id, _authorizationService.CurrentUserId.Value);
 
-            var guild = await DiscordClient.GetGuildAsync(infraction.GuildId);
+            var guild = await _discordClient.GetGuildAsync(infraction.GuildId);
 
             switch (infraction.Type)
             {
                 case InfractionType.Mute:
 
-                    if (await UserService.GuildUserExistsAsync(guild.Id, infraction.Subject.Id))
+                    if (await _userService.GuildUserExistsAsync(guild.Id, infraction.Subject.Id))
                     {
-                        var subject = await UserService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
+                        var subject = await _userService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
                         await subject.RemoveRoleAsync(await GetDesignatedMuteRoleAsync(guild));
                     }
                     else
@@ -634,7 +446,7 @@ namespace Modix.Services.Moderation
 
                     //If the infraction has already been rescinded, we don't need to actually perform the unmute/unban
                     //Doing so will return a 404 from Discord (trying to remove a nonexistant ban)
-                    if (infraction.RescindAction == null)
+                    if (infraction.RescindAction is null)
                     {
                         await guild.RemoveBanAsync(infraction.Subject.Id);
                     }
@@ -643,23 +455,20 @@ namespace Modix.Services.Moderation
             }
         }
 
-        /// <inheritdoc />
-        public async Task DeleteMessageAsync(
-            IMessage message,
-            string reason,
-            ulong deletedById,
+        public async Task DeleteMessageAsync(IMessage message, string reason, ulong deletedById,
             CancellationToken cancellationToken)
         {
             if (!(message.Channel is IGuildChannel guildChannel))
                 throw new InvalidOperationException(
                     $"Cannot delete message {message.Id} because it is not a guild message");
 
-            await UserService.TrackUserAsync(message.Author as IGuildUser, cancellationToken);
-            await ChannelService.TrackChannelAsync(guildChannel, cancellationToken);
+            await _userService.TrackUserAsync((IGuildUser)message.Author, cancellationToken);
+            await _channelService.TrackChannelAsync(guildChannel, cancellationToken);
 
-            using (var transaction = await DeletedMessageRepository.BeginCreateTransactionAsync(cancellationToken))
-            {
-                await DeletedMessageRepository.CreateAsync(new DeletedMessageCreationData()
+            using var transaction = await _deletedMessageRepository.BeginCreateTransactionAsync(cancellationToken);
+
+            await _deletedMessageRepository.CreateAsync(
+                new DeletedMessageCreationData()
                 {
                     GuildId = guildChannel.GuildId,
                     ChannelId = guildChannel.Id,
@@ -670,17 +479,15 @@ namespace Modix.Services.Moderation
                     CreatedById = deletedById
                 }, cancellationToken);
 
-                await message.DeleteAsync(new RequestOptions() { CancelToken = cancellationToken });
+            await message.DeleteAsync(new RequestOptions() {CancelToken = cancellationToken});
 
-                transaction.Commit();
-            }
+            transaction.Commit();
         }
 
-        /// <inheritdoc />
         public async Task DeleteMessagesAsync(ITextChannel channel, int count, bool skipOne,
             Func<Task<bool>> confirmDelegate)
         {
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationMassDeleteMessages);
+            _authorizationService.RequireClaims(AuthorizationClaim.ModerationMassDeleteMessages);
 
             if (confirmDelegate is null)
                 throw new ArgumentNullException(nameof(confirmDelegate));
@@ -706,11 +513,10 @@ namespace Modix.Services.Moderation
             await DoDeleteMessagesAsync(channel, guildChannel, messages);
         }
 
-        /// <inheritdoc />
         public async Task DeleteMessagesAsync(ITextChannel channel, IGuildUser user, int count,
             Func<Task<bool>> confirmDelegate)
         {
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationMassDeleteMessages);
+            _authorizationService.RequireClaims(AuthorizationClaim.ModerationMassDeleteMessages);
 
             if (confirmDelegate is null)
                 throw new ArgumentNullException(nameof(confirmDelegate));
@@ -735,89 +541,75 @@ namespace Modix.Services.Moderation
             await DoDeleteMessagesAsync(channel, guildChannel, messages);
         }
 
-        /// <inheritdoc />
         public async Task<RecordsPage<DeletedMessageSummary>> SearchDeletedMessagesAsync(
             DeletedMessageSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria,
             PagingCriteria pagingCriteria)
         {
-            AuthorizationService.RequireClaims(AuthorizationClaim.LogViewDeletedMessages);
+            _authorizationService.RequireClaims(AuthorizationClaim.LogViewDeletedMessages);
 
-            return await DeletedMessageRepository.SearchSummariesPagedAsync(searchCriteria, sortingCriteria,
+            return await _deletedMessageRepository.SearchSummariesPagedAsync(searchCriteria, sortingCriteria,
                 pagingCriteria);
         }
 
-        /// <inheritdoc />
         public Task<IReadOnlyCollection<InfractionSummary>> SearchInfractionsAsync(
-            InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria = null)
+            InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria>? sortingCriteria = null)
         {
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
+            _authorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
 
-            return InfractionRepository.SearchSummariesAsync(searchCriteria, sortingCriteria);
+            return _infractionRepository.SearchSummariesAsync(searchCriteria, sortingCriteria);
         }
 
-        /// <inheritdoc />
         public Task<RecordsPage<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria,
             IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
         {
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
+            _authorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
 
-            return InfractionRepository.SearchSummariesPagedAsync(searchCriteria, sortingCriteria, pagingCriteria);
+            return _infractionRepository.SearchSummariesPagedAsync(searchCriteria, sortingCriteria, pagingCriteria);
         }
 
         public async Task<IDictionary<InfractionType, int>> GetInfractionCountsForUserAsync(ulong subjectId)
         {
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
+            _authorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
 
-            return await InfractionRepository.GetInfractionCountsAsync(new InfractionSearchCriteria
+            return await _infractionRepository.GetInfractionCountsAsync(new InfractionSearchCriteria
             {
-                GuildId = AuthorizationService.CurrentGuildId,
-                SubjectId = subjectId,
-                IsDeleted = false
+                GuildId = _authorizationService.CurrentGuildId, SubjectId = subjectId, IsDeleted = false
             });
         }
 
-        /// <inheritdoc />
         public Task<ModerationActionSummary> GetModerationActionSummaryAsync(long moderationActionId)
         {
-            return ModerationActionRepository.ReadSummaryAsync(moderationActionId);
+            return _moderationActionRepository.ReadSummaryAsync(moderationActionId);
         }
 
-        /// <inheritdoc />
-        public Task<IReadOnlyCollection<ModerationActionSummary>> SearchModerationActionsAsync(
-            ModerationActionSearchCriteria searchCriteria)
-            => ModerationActionRepository.SearchSummariesAsync(searchCriteria);
-
-        /// <inheritdoc />
         public Task<DateTimeOffset?> GetNextInfractionExpiration()
-            => InfractionRepository.ReadExpiresFirstOrDefaultAsync(
+            => _infractionRepository.ReadExpiresFirstOrDefaultAsync(
                 new InfractionSearchCriteria()
                 {
                     IsRescinded = false,
                     IsDeleted = false,
                     ExpiresRange = new DateTimeOffsetRange()
                     {
-                        From = DateTimeOffset.MinValue,
-                        To = DateTimeOffset.MaxValue,
+                        From = DateTimeOffset.MinValue, To = DateTimeOffset.MaxValue,
                     }
                 },
                 new[]
                 {
                     new SortingCriteria()
                     {
-                        PropertyName = nameof(InfractionSummary.Expires),
-                        Direction = SortDirection.Ascending
+                        PropertyName = nameof(InfractionSummary.Expires), Direction = SortDirection.Ascending
                     }
                 });
 
         public async Task<bool> DoesModeratorOutrankUserAsync(ulong guildId, ulong moderatorId, ulong subjectId)
         {
-            var moderator = await UserService.GetGuildUserAsync(guildId, moderatorId);
+            var moderator = await _userService.GetGuildUserAsync(guildId, moderatorId);
 
             //If the user doesn't exist in the guild, we outrank them
-            if (await UserService.GuildUserExistsAsync(guildId, subjectId) == false)
+            if (await _userService.GuildUserExistsAsync(guildId, subjectId) == false)
                 return true;
 
-            var subject = await UserService.GetGuildUserAsync(guildId, subjectId);
+            var subject = await _userService.GetGuildUserAsync(guildId, subjectId);
 
             //If the subject is the guild owner, and we are not the owner, we do not outrank them
             if (subject.Guild.OwnerId == subjectId && subject.Guild.OwnerId != moderatorId)
@@ -847,141 +639,89 @@ namespace Modix.Services.Moderation
             if (criteria is null)
                 throw new ArgumentNullException(nameof(criteria));
 
-            return await InfractionRepository.AnyAsync(criteria);
+            return await _infractionRepository.AnyAsync(criteria);
         }
 
         public async Task<IRole> GetOrCreateDesignatedMuteRoleAsync(IGuild guild, ulong currentUserId)
         {
-            using (var transaction = await DesignatedRoleMappingRepository.BeginCreateTransactionAsync())
-            {
-                var mapping = (await DesignatedRoleMappingRepository.SearchBriefsAsync(
-                    new DesignatedRoleMappingSearchCriteria()
-                    {
-                        GuildId = guild.Id,
-                        Type = DesignatedRoleType.ModerationMute,
-                        IsDeleted = false
-                    })).FirstOrDefault();
+            using var transaction = await _designatedRoleMappingRepository.BeginCreateTransactionAsync();
 
-                if (!(mapping is null))
-                    return guild.Roles.First(x => x.Id == mapping.Role.Id);
-
-                var role = guild.Roles.FirstOrDefault(x => x.Name == MuteRoleName)
-                    ?? await guild.CreateRoleAsync(MuteRoleName, isMentionable: false);
-
-                await RoleService.TrackRoleAsync(role, default);
-
-                await DesignatedRoleMappingRepository.CreateAsync(new DesignatedRoleMappingCreationData()
+            var mapping = (await _designatedRoleMappingRepository.SearchBriefsAsync(
+                new DesignatedRoleMappingSearchCriteria()
                 {
-                    GuildId = guild.Id,
-                    RoleId = role.Id,
-                    Type = DesignatedRoleType.ModerationMute,
-                    CreatedById = currentUserId
-                });
+                    GuildId = guild.Id, Type = DesignatedRoleType.ModerationMute, IsDeleted = false
+                })).FirstOrDefault();
 
-                transaction.Commit();
-                return role;
-            }
+            if (!(mapping is null))
+                return guild.Roles.First(x => x.Id == mapping.Role.Id);
+
+            var role = guild.Roles.FirstOrDefault(x => x.Name == MuteRoleName)
+                       ?? await guild.CreateRoleAsync(MuteRoleName, isMentionable: false);
+
+            await _roleService.TrackRoleAsync(role, default);
+
+            await _designatedRoleMappingRepository.CreateAsync(new DesignatedRoleMappingCreationData()
+            {
+                GuildId = guild.Id,
+                RoleId = role.Id,
+                Type = DesignatedRoleType.ModerationMute,
+                CreatedById = currentUserId
+            });
+
+            transaction.Commit();
+            return role;
         }
 
-#nullable enable
-
-        public async Task<(bool success, string? errorMessage)> UpdateInfractionAsync(long infractionId, string newReason, ulong currentUserId)
+        public async Task<(bool success, string? errorMessage)> UpdateInfractionAsync(long infractionId,
+            string newReason, ulong currentUserId)
         {
-            var infraction = await InfractionRepository.ReadSummaryAsync(infractionId);
+            var infraction = await _infractionRepository.ReadSummaryAsync(infractionId);
 
             if (infraction is null)
                 return (false, $"An infraction with an ID of {infractionId} could not be found.");
 
-            AuthorizationService.RequireClaims(_createInfractionClaimsByType[infraction.Type]);
+            _authorizationService.RequireClaims(_createInfractionClaimsByType[infraction.Type]);
 
             // Allow users who created the infraction to bypass any further
             // validation and update their own infraction
             if (infraction.CreateAction.CreatedBy.Id == currentUserId)
             {
-                return (await InfractionRepository.TryUpdateAync(infractionId, newReason, currentUserId), null);
+                return (await _infractionRepository.TryUpdateAync(infractionId, newReason, currentUserId), null);
             }
 
             // Else we know it's not the user's infraction
-            AuthorizationService.RequireClaims(AuthorizationClaim.ModerationUpdateInfraction);
+            _authorizationService.RequireClaims(AuthorizationClaim.ModerationUpdateInfraction);
 
-            return (await InfractionRepository.TryUpdateAync(infractionId, newReason, currentUserId), null);
+            return (await _infractionRepository.TryUpdateAync(infractionId, newReason, currentUserId), null);
         }
 
-#nullable restore
-
-        /// <summary>
-        /// An <see cref="IDiscordClient"/> for interacting with the Discord API.
-        /// </summary>
-        internal protected IDiscordClient DiscordClient { get; }
-
-        /// <summary>
-        /// A <see cref="IAuthorizationService"/> to be used to interact with frontend authentication system, and perform authorization.
-        /// </summary>
-        internal protected IAuthorizationService AuthorizationService { get; }
-
-        /// <summary>
-        /// An <see cref="IChannelService"/> for interacting with discord channels within the application.
-        /// </summary>
-        internal protected IChannelService ChannelService { get; }
-
-        /// <summary>
-        /// An <see cref="IUserService"/> for interacting with discord users within the application.
-        /// </summary>
-        internal protected IUserService UserService { get; }
-
-        /// <summary>
-        /// An <see cref="IModerationActionRepository"/> for storing and retrieving moderation action data.
-        /// </summary>
-        internal protected IModerationActionRepository ModerationActionRepository { get; }
-
-        /// <summary>
-        /// An <see cref="IInfractionRepository"/> for storing and retrieving infraction data.
-        /// </summary>
-        internal protected IInfractionRepository InfractionRepository { get; }
-
-        /// <summary>
-        /// An <see cref="IDesignatedRoleMappingRepository"/> storing and retrieving roles designated for use by the application.
-        /// </summary>
-        internal protected IDesignatedRoleMappingRepository DesignatedRoleMappingRepository { get; }
-
-        /// <summary>
-        /// An <see cref="IDeletedMessageRepository"/> for storing and retrieving records of deleted messages.
-        /// </summary>
-        internal protected IDeletedMessageRepository DeletedMessageRepository { get; }
-
-        /// <summary>
-        /// An <see cref="IDeletedMessageBatchRepository"/> for storing and retrieving records of deleted message batches.
-        /// </summary>
-        internal protected IDeletedMessageBatchRepository DeletedMessageBatchRepository { get; }
-
-        /// <summary>
-        /// An <see cref="IRoleService"/> for interacting with discord roles within the application.
-        /// </summary>
-        internal protected IRoleService RoleService { get; }
-
-        internal protected IDesignatedChannelService DesignatedChannelService { get; }
-
-        private IDogStatsd Stats { get; }
-
-        private async Task ConfigureChannelMuteRolePermissionsAsync(IGuildChannel channel, IRole muteRole)
+        private static async Task ConfigureChannelMuteRolePermissionsAsync(IGuildChannel channel, IRole muteRole)
         {
-            var permissionOverwrite = channel.GetPermissionOverwrite(muteRole);
-            if (permissionOverwrite != null)
+            try
             {
-                if ((permissionOverwrite.Value.AllowValue == _mutePermissions.AllowValue) &&
-                    (permissionOverwrite.Value.DenyValue == _mutePermissions.DenyValue))
+                var permissionOverwrite = channel.GetPermissionOverwrite(muteRole);
+
+                if (permissionOverwrite != null)
                 {
-                    Log.Debug("Skipping setting mute permissions for channel #{Channel} as they're already set.",
-                        channel.Name);
-                    return;
+                    if ((permissionOverwrite.Value.AllowValue == _mutePermissions.AllowValue) &&
+                        (permissionOverwrite.Value.DenyValue == _mutePermissions.DenyValue))
+                    {
+                        Log.Debug("Skipping setting mute permissions for channel #{Channel} as they're already set.", channel.Name);
+                        return;
+                    }
+
+                    Log.Debug("Removing permission overwrite for channel #{Channel}.", channel.Name);
+                    await channel.RemovePermissionOverwriteAsync(muteRole);
                 }
 
-                Log.Debug("Removing permission overwrite for channel #{Channel}.", channel.Name);
-                await channel.RemovePermissionOverwriteAsync(muteRole);
+                await channel.AddPermissionOverwriteAsync(muteRole, _mutePermissions);
+                Log.Debug("Set mute permissions for role {Role} in channel #{Channel}.", muteRole.Name, channel.Name);
             }
-
-            await channel.AddPermissionOverwriteAsync(muteRole, _mutePermissions);
-            Log.Debug("Set mute permissions for role {Role} in channel #{Channel}.", muteRole.Name, channel.Name);
+            catch (Exception e)
+            {
+                Log.Error(e, "Failed setting channel mute role on #{Channel}", channel.Name);
+                throw;
+            }
         }
 
         private async Task DoDeleteMessagesAsync(ITextChannel channel, IGuildChannel guildChannel,
@@ -989,31 +729,27 @@ namespace Modix.Services.Moderation
         {
             await channel.DeleteMessagesAsync(messages);
 
-            using (var transaction = await DeletedMessageBatchRepository.BeginCreateTransactionAsync())
+            using var transaction = await _deletedMessageBatchRepository.BeginCreateTransactionAsync();
+            await _channelService.TrackChannelAsync(guildChannel);
+
+            await _deletedMessageBatchRepository.CreateAsync(new DeletedMessageBatchCreationData()
             {
-                await ChannelService.TrackChannelAsync(guildChannel);
+                CreatedById = _authorizationService.CurrentUserId!.Value,
+                GuildId = _authorizationService.CurrentGuildId!.Value,
+                Data = messages.Select(
+                    x => new DeletedMessageCreationData()
+                    {
+                        AuthorId = x.Author.Id,
+                        ChannelId = x.Channel.Id,
+                        Content = x.Content,
+                        GuildId = _authorizationService.CurrentGuildId.Value,
+                        MessageId = x.Id,
+                        Reason = "Mass-deleted.",
+                    }),
+            });
 
-                await DeletedMessageBatchRepository.CreateAsync(new DeletedMessageBatchCreationData()
-                {
-                    CreatedById = AuthorizationService.CurrentUserId.Value,
-                    GuildId = AuthorizationService.CurrentGuildId.Value,
-                    Data = messages.Select(
-                        x => new DeletedMessageCreationData()
-                        {
-                            AuthorId = x.Author.Id,
-                            ChannelId = x.Channel.Id,
-                            Content = x.Content,
-                            GuildId = AuthorizationService.CurrentGuildId.Value,
-                            MessageId = x.Id,
-                            Reason = "Mass-deleted.",
-                        }),
-                });
-
-                transaction.Commit();
-            }
+            transaction.Commit();
         }
-
-#nullable enable
 
         private async Task DoRescindInfractionAsync(InfractionType type,
             ulong guildId,
@@ -1027,15 +763,16 @@ namespace Modix.Services.Moderation
 
             if (!isAutoRescind)
             {
-                await RequireSubjectRankLowerThanModeratorRankAsync(guildId, AuthorizationService.CurrentUserId!.Value, subjectId);
+                await RequireSubjectRankLowerThanModeratorRankAsync(guildId, _authorizationService.CurrentUserId!.Value,
+                    subjectId);
             }
 
-            var guild = await DiscordClient.GetGuildAsync(guildId);
+            var guild = await _discordClient.GetGuildAsync(guildId);
 
             switch (type)
             {
                 case InfractionType.Mute:
-                    if (!await UserService.GuildUserExistsAsync(guild.Id, subjectId))
+                    if (!await _userService.GuildUserExistsAsync(guild.Id, subjectId))
                     {
                         Log.Information(
                             "Attempted to remove the mute role from {0} ({1}), but they were not in the server.",
@@ -1044,7 +781,7 @@ namespace Modix.Services.Moderation
                         break;
                     }
 
-                    var subject = await UserService.GetGuildUserAsync(guild.Id, subjectId);
+                    var subject = await _userService.GetGuildUserAsync(guild.Id, subjectId);
                     await subject.RemoveRoleAsync(await GetDesignatedMuteRoleAsync(guild), GetRequestOptions());
                     break;
 
@@ -1058,20 +795,17 @@ namespace Modix.Services.Moderation
 
             if (infraction != null)
             {
-                await InfractionRepository.TryRescindAsync(infraction.Id, AuthorizationService.CurrentUserId!.Value, reason);
+                await _infractionRepository.TryRescindAsync(infraction.Id, _authorizationService.CurrentUserId!.Value,
+                    reason);
             }
         }
 
-#nullable restore
-
         private async Task<IRole> GetDesignatedMuteRoleAsync(IGuild guild)
         {
-            var mapping = (await DesignatedRoleMappingRepository.SearchBriefsAsync(
+            var mapping = (await _designatedRoleMappingRepository.SearchBriefsAsync(
                 new DesignatedRoleMappingSearchCriteria()
                 {
-                    GuildId = guild.Id,
-                    Type = DesignatedRoleType.ModerationMute,
-                    IsDeleted = false
+                    GuildId = guild.Id, Type = DesignatedRoleType.ModerationMute, IsDeleted = false
                 })).FirstOrDefault();
 
             if (mapping == null)
@@ -1082,12 +816,10 @@ namespace Modix.Services.Moderation
         }
 
         private async Task<IEnumerable<GuildRoleBrief>> GetRankRolesAsync(ulong guildId)
-            => (await DesignatedRoleMappingRepository
+            => (await _designatedRoleMappingRepository
                     .SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria
                     {
-                        GuildId = guildId,
-                        Type = DesignatedRoleType.Rank,
-                        IsDeleted = false,
+                        GuildId = guildId, Type = DesignatedRoleType.Rank, IsDeleted = false,
                     }))
                 .Select(r => r.Role);
 
@@ -1100,13 +832,13 @@ namespace Modix.Services.Moderation
         }
 
         private static readonly OverwritePermissions _mutePermissions
-            = new OverwritePermissions(
+            = new(
                 addReactions: PermValue.Deny,
                 sendMessages: PermValue.Deny,
                 speak: PermValue.Deny);
 
         private static readonly Dictionary<InfractionType, AuthorizationClaim> _createInfractionClaimsByType
-            = new Dictionary<InfractionType, AuthorizationClaim>()
+            = new()
             {
                 {InfractionType.Notice, AuthorizationClaim.ModerationNote},
                 {InfractionType.Warning, AuthorizationClaim.ModerationWarn},
