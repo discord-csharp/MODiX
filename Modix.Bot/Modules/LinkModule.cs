@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -35,31 +37,22 @@ namespace Modix.Bot.Modules
                 return;
             }
 
-            if (host.Equals("sharplab.io") &&
-                TryPrepareSharplabPreview(uri.OriginalString, out string preview))
-            {
-                string markdownUrl = Format.Url($"{host} (click here)", uri.ToString());
-                string markdownText = $"{markdownUrl}\r{preview}";
+            var urlMarkdown = Format.Url($"{host} (click here)", uri.ToString());
 
-                await ReplyAsync(embed: new EmbedBuilder()
-                    .WithDescription(markdownText)
-                    .WithUserAsAuthor(Context.User)
-                    .WithColor(Color.LightGrey)
-                    .Build());
-            }
-            else
-            {
-                await ReplyAsync(embed: new EmbedBuilder()
-                .WithDescription(Format.Url($"{host} (click here)", uri.ToString()))
+            var description = host.Equals("sharplab.io") && TryPrepareSharplabPreview(uri.OriginalString, urlMarkdown.Length + 1, out var preview)
+                ? $"{urlMarkdown}\n{preview}"
+                : urlMarkdown;
+
+            await ReplyAsync(embed: new EmbedBuilder()
+                .WithDescription(description)
                 .WithUserAsAuthor(Context.User)
                 .WithColor(Color.LightGrey)
                 .Build());
-            }
 
             await Context.Message.DeleteAsync();
         }
 
-        private static bool TryPrepareSharplabPreview(string url, out string preview)
+        private static bool TryPrepareSharplabPreview(string url, int markdownLength, out string? preview)
         {
             if (!url.Contains("#v2:"))
             {
@@ -98,18 +91,15 @@ namespace Modix.Bot.Modules
                 // Trim, for good measure
                 sourceCode = sourceCode.Trim();
 
-                // Clip to avoid Discord errors.
-                // - 2048 is the maximum length
-                // - 20 is the approximate length of the markdown URL and message
-                // - 10 is the approximate length of the code highlight markdown
-                int maximumLength = 2048 - (url.Length + 20 + 10);
+                // Clip to avoid Discord errors
+                int maximumLength = EmbedBuilder.MaxDescriptionLength - (markdownLength + language.Length + "```\n\n```".Length);
 
                 if (sourceCode.Length > maximumLength)
                 {
                     // Clip at the maximum length
                     sourceCode = sourceCode.Substring(0, maximumLength);
 
-                    int lastCarriageIndex = sourceCode.LastIndexOf('\r');
+                    int lastCarriageIndex = sourceCode.LastIndexOf('\n');
 
                     // Remove the last line to avoid having code cut mid-statements
                     if (lastCarriageIndex > 0)
@@ -118,7 +108,7 @@ namespace Modix.Bot.Modules
                     }
                 }
 
-                preview = $"```{language}\r{sourceCode}\r```";
+                preview = Format.Code(sourceCode, language);
 
                 return true;
             }
@@ -161,7 +151,7 @@ namespace Modix.Bot.Modules
                 "Program",
                 "Main",
                 "Console.WriteLine",
-                "<help.run.csharp>",
+                "", // <help.run.csharp>
                 "using System;",
                 "public static void Main()",
                 "public static class Program",
