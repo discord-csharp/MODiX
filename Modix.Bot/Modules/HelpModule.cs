@@ -231,9 +231,9 @@ namespace Modix.Modules
             foreach (var parameter in info.Parameters)
             {
                 if (parameter.IsOptional)
-                    sb.Append($"[Optional({parameter.Name})]");
-                else
                     sb.Append($"[{parameter.Name}]");
+                else
+                    sb.Append($"<{parameter.Name}>");
             }
 
             return sb.ToString();
