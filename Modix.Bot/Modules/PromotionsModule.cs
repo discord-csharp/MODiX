@@ -64,7 +64,7 @@ namespace Modix.Modules
             {
                 var idLabel = $"#{campaign.Id}";
 
-                var approvalLabel = $"👍 {campaign.ApproveCount} / 👎 {campaign.OpposeCount}";
+                var approvalLabel = $"👍 {campaign.ApproveCount} / 👎 {campaign.OpposeCount} / 😐 {campaign.AbstainCount}";
                 var timeRemaining = campaign.GetTimeUntilCampaignCanBeClosed();
                 var timeRemainingLabel = timeRemaining < TimeSpan.FromSeconds(1) ? "Can be closed now" : $"{timeRemaining.Humanize(precision: 2, minUnit: TimeUnit.Minute)} until close";
 
