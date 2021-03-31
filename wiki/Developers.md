@@ -33,7 +33,7 @@ If you prefer to use environment variables for configuration, they must all be p
   - `LogWebhookToken` - Same as above, but the token of the webhook.
     - `https://discord.com/api/webhooks/000000000000000000/[this part]`
   - `StackoverflowToken` - A token for the StackOverflow API, if you need to use the StackOverflow module.
-  - `ReplUrl` - The URL of the endpoint that will be receiving REPL (`!eval`/`!exec`) requests - required if you want to test the REPL, and requires you to host it separately elsewhere.
+  - `ReplUrl` - The URL of the endpoint that will be receiving REPL (`!eval`/`!exec`) requests - required if you want to test the REPL, and requires you to host the [repl](https://github.com/discord-csharp/CSDiscord).
   - `IlUrl` - The URL of the endpoint that will be receiving IL (`!il`) requests. Same as above, and will likely be the same URL.
 
 After setting all this up, you can move on to learning about [how modix starts](Modix-Startup)!
