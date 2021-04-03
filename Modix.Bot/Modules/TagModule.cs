@@ -129,6 +129,7 @@ namespace Modix.Bot.Modules
         }
 
         [Command("owner")]
+        [Alias("info", "about")]
         [Summary("Lists the owner of the supplied tag.")]
         public async Task GetOwnerAsync(
             [Summary("The name of the tag whose owner is being requested.")]
