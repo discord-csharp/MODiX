@@ -92,8 +92,10 @@ namespace Modix.Data.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Sentiment",
                 table: "PromotionComments",
+                type: "text",
                 nullable: false,
-                oldClrType: typeof(int));
+                oldClrType: typeof(int),
+                oldType: "integer");
 
             migrationBuilder.AddColumn<long>(
                 name: "CampaignId",
@@ -406,8 +408,10 @@ namespace Modix.Data.Migrations
             migrationBuilder.AlterColumn<int>(
                 name: "Sentiment",
                 table: "PromotionComments",
+                type: "integer",
                 nullable: false,
-                oldClrType: typeof(string));
+                oldClrType: typeof(string),
+                oldType: "text");
 
             migrationBuilder.AddColumn<string>(
                 name: "Body",
