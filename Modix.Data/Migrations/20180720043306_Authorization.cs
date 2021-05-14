@@ -32,20 +32,26 @@ namespace Modix.Data.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Type",
                 table: "ModerationActions",
+                type: "text",
                 nullable: false,
-                oldClrType: typeof(int));
+                oldClrType: typeof(int),
+                oldType: "integer");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Type",
                 table: "Infractions",
+                type: "text",
                 nullable: false,
-                oldClrType: typeof(int));
+                oldClrType: typeof(int),
+                oldType: "integer");
 
             migrationBuilder.AlterColumn<string>(
                 name: "Type",
                 table: "ConfigurationActions",
+                type: "text",
                 nullable: false,
-                oldClrType: typeof(int));
+                oldClrType: typeof(int),
+                oldType: "integer");
 
             migrationBuilder.CreateTable(
                 name: "ClaimMappings",
@@ -127,20 +133,26 @@ namespace Modix.Data.Migrations
             migrationBuilder.AlterColumn<int>(
                 name: "Type",
                 table: "ModerationActions",
+                type: "integer",
                 nullable: false,
-                oldClrType: typeof(string));
+                oldClrType: typeof(string),
+                oldType: "text");
 
             migrationBuilder.AlterColumn<int>(
                 name: "Type",
                 table: "Infractions",
+                type: "integer",
                 nullable: false,
-                oldClrType: typeof(string));
+                oldClrType: typeof(string),
+                oldType: "text");
 
             migrationBuilder.AlterColumn<int>(
                 name: "Type",
                 table: "ConfigurationActions",
+                type: "integer",
                 nullable: false,
-                oldClrType: typeof(string));
+                oldClrType: typeof(string),
+                oldType: "text");
 
             migrationBuilder.CreateTable(
                 name: "RoleClaims",
