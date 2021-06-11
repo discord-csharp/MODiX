@@ -736,7 +736,8 @@ namespace Modix.Services.Test.Moderation
                         It.IsAny<bool>(),
                         It.IsAny<Embed>(),
                         It.IsAny<RequestOptions>(),
-                        It.IsAny<AllowedMentions>()));
+                        It.IsAny<AllowedMentions>(),
+                        It.IsAny<MessageReference>()));
         }
     }
 }

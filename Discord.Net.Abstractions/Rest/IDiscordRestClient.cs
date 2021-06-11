@@ -120,6 +120,7 @@ namespace Discord.Rest
                 ?.Abstract();
 
         /// <inheritdoc />
+        [Obsolete("This endpoint is deprecated, please use GetGuildWidgetAsync instead.")]
         public async Task<IRestGuildEmbed> GetGuildEmbedAsync(ulong id, RequestOptions options = null)
             => (await DiscordRestClient.GetGuildEmbedAsync(id, options))
                 ?.Abstract();

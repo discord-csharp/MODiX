@@ -130,8 +130,16 @@ namespace Discord.WebSocket
             => SocketGuildUser.AddRoleAsync(role, options);
 
         /// <inheritdoc />
+        public Task AddRoleAsync(ulong roleId, RequestOptions options = null)
+            => SocketGuildUser.AddRoleAsync(roleId, options);
+
+        /// <inheritdoc />
         public Task AddRolesAsync(IEnumerable<IRole> roles, RequestOptions options = null)
             => SocketGuildUser.AddRolesAsync(roles, options);
+
+        /// <inheritdoc />
+        public Task AddRolesAsync(IEnumerable<ulong> roleIds, RequestOptions options = null)
+            => SocketGuildUser.AddRolesAsync(roleIds, options);
 
         /// <inheritdoc />
         public ChannelPermissions GetPermissions(IGuildChannel channel)
@@ -150,8 +158,16 @@ namespace Discord.WebSocket
             => SocketGuildUser.RemoveRoleAsync(role, options);
 
         /// <inheritdoc />
+        public Task RemoveRoleAsync(ulong roleId, RequestOptions options = null)
+            => SocketGuildUser.RemoveRoleAsync(roleId, options);
+
+        /// <inheritdoc />
         public Task RemoveRolesAsync(IEnumerable<IRole> roles, RequestOptions options = null)
             => SocketGuildUser.RemoveRolesAsync(roles, options);
+
+        /// <inheritdoc />
+        public Task RemoveRolesAsync(IEnumerable<ulong> roleIds, RequestOptions options = null)
+            => SocketGuildUser.RemoveRolesAsync(roleIds, options);
 
         /// <summary>
         /// The existing <see cref="WebSocket.SocketGuildUser"/> being abstracted.
@@ -162,6 +178,9 @@ namespace Discord.WebSocket
         public DateTimeOffset? PremiumSince => (SocketUser as IGuildUser).PremiumSince;
 
         public bool IsStreaming => (SocketUser as IGuildUser).IsStreaming;
+
+        public bool? IsPending
+            => (SocketUser as IGuildUser).IsPending;
     }
 
     /// <summary>

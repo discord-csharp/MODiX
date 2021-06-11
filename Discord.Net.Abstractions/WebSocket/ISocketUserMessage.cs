@@ -41,8 +41,13 @@ namespace Discord.WebSocket
         public Task UnpinAsync(RequestOptions options = null)
             => SocketUserMessage.UnpinAsync(options);
 
+        /// <inheritdoc />
         public Task ModifySuppressionAsync(bool suppressEmbeds, RequestOptions options = null)
             => SocketUserMessage.ModifySuppressionAsync(suppressEmbeds, options);
+
+        /// <inheritdoc />
+        public IUserMessage ReferencedMessage
+            => SocketMessage as IUserMessage;
 
         /// <summary>
         /// The existing <see cref="WebSocket.SocketUserMessage"/> being abstracted.

@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Discord.Net" />
+    <PackageReference Include="Discord.Net" Version="2.4.0" />
   </ItemGroup>
 
 </Project>

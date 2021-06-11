@@ -341,6 +341,9 @@ namespace Modix.Services.Test.Core
 
             Task<IInvite> IDiscordClient.GetInviteAsync(string inviteId, RequestOptions options)
                 => throw new NotImplementedException();
+
+            public Task<BotGateway> GetBotGatewayAsync(RequestOptions options = null)
+                => throw new NotImplementedException();
         }
         #pragma warning restore CS0067
 

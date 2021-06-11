@@ -90,8 +90,14 @@ namespace Discord.Rest
         /// <inheritdoc cref="RestGuild.GetOwnerAsync(RequestOptions)" />
         Task<IRestGuildUser> GetOwnerAsync(RequestOptions options = null);
 
+        /// <inheritdoc cref="RestGuild.GetPublicUpdatesChannelAsync(RequestOptions)" />
+        new Task<IRestTextChannel> GetPublicUpdatesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null);
+
         /// <inheritdoc cref="RestGuild.GetRole(ulong)" />
         new IRestRole GetRole(ulong id);
+
+        /// <inheritdoc cref="RestGuild.GetRulesChannelAsync(RequestOptions)" />
+        new Task<IRestTextChannel> GetRulesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null);
 
         /// <inheritdoc cref="RestGuild.GetSystemChannelAsync(RequestOptions)" />
         Task<IRestTextChannel> GetSystemChannelAsync(RequestOptions options = null);
@@ -125,6 +131,9 @@ namespace Discord.Rest
 
         /// <inheritdoc cref="RestGuild.GetWebhooksAsync(RequestOptions)" />
         new Task<IReadOnlyCollection<IRestWebhook>> GetWebhooksAsync(RequestOptions options = null);
+
+        /// <inheritdoc cref="RestGuild.GetWidgetChannelAsync(RequestOptions)" />
+        new Task<IRestGuildChannel> GetWidgetChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null);
 
         /// <inheritdoc cref="RestGuild.ModifyEmoteAsync(GuildEmote, Action{EmoteProperties}, RequestOptions)" />
         Task<IGuildEmote> ModifyEmoteAsync(IGuildEmote emote, Action<EmoteProperties> func, RequestOptions options = null);
@@ -161,6 +170,14 @@ namespace Discord.Rest
             => RestGuild.ApplicationId;
 
         /// <inheritdoc />
+        public int? ApproximateMemberCount
+            => RestGuild.ApproximateMemberCount;
+
+        /// <inheritdoc />
+        public int? ApproximatePresenceCount
+            => RestGuild.ApproximatePresenceCount;
+
+        /// <inheritdoc />
         public IAudioClient AudioClient
             => (RestGuild as IGuild).AudioClient;
 
@@ -179,6 +196,14 @@ namespace Discord.Rest
         /// <inheritdoc />
         public DefaultMessageNotifications DefaultMessageNotifications
             => RestGuild.DefaultMessageNotifications;
+
+        /// <inheritdoc />
+        public string DiscoverySplashId
+            => RestGuild.DiscoverySplashId;
+
+        /// <inheritdoc />
+        public string DiscoverySplashUrl
+            => RestGuild.DiscoverySplashUrl;
 
         /// <inheritdoc />
         public ulong? EmbedChannelId
@@ -229,6 +254,22 @@ namespace Discord.Rest
             => RestGuild.IsEmbeddable;
 
         /// <inheritdoc />
+        public bool IsWidgetEnabled
+            => RestGuild.IsWidgetEnabled;
+
+        /// <inheritdoc />
+        public int? MaxMembers
+            => RestGuild.MaxMembers;
+
+        /// <inheritdoc />
+        public int? MaxPresences
+            => RestGuild.MaxPresences;
+
+        /// <inheritdoc />
+        public int? MaxVideoChannelUsers
+            => RestGuild.MaxVideoChannelUsers;
+
+        /// <inheritdoc />
         public MfaLevel MfaLevel
             => RestGuild.MfaLevel;
 
@@ -241,6 +282,10 @@ namespace Discord.Rest
             => RestGuild.OwnerId;
 
         /// <inheritdoc />
+        public ulong? PublicUpdatesChannelId
+            => RestGuild.PublicUpdatesChannelId;
+
+        /// <inheritdoc />
         public IReadOnlyCollection<IRestRole> Roles
             => RestGuild.Roles
                 .Select(RestRoleAbstractionExtensions.Abstract)
@@ -251,6 +296,10 @@ namespace Discord.Rest
             => (RestGuild as IGuild).Roles
                 .Select(RoleAbstractionExtensions.Abstract)
                 .ToArray();
+
+        /// <inheritdoc />
+        public ulong? RulesChannelId
+            => RestGuild.RulesChannelId;
 
         /// <inheritdoc />
         public string SplashId
@@ -271,6 +320,10 @@ namespace Discord.Rest
         /// <inheritdoc />
         public string VoiceRegionId
             => RestGuild.VoiceRegionId;
+
+        /// <inheritdoc />
+        public ulong? WidgetChannelId
+            => RestGuild.WidgetChannelId;
 
         /// <inheritdoc />
         public Task AddBanAsync(ulong userId, int pruneDays = 0, string reason = null, RequestOptions options = null)
@@ -461,11 +514,13 @@ namespace Discord.Rest
                 ?.Abstract();
 
         /// <inheritdoc />
+        [Obsolete("This endpoint is deprecated, use GetWidgetChannelAsync instead.")]
         public async Task<IRestGuildChannel> GetEmbedChannelAsync(RequestOptions options = null)
             => (await RestGuild.GetEmbedChannelAsync(options))
                 ?.Abstract();
 
         /// <inheritdoc />
+        [Obsolete("This endpoint is deprecated, use GetWidgetChannelAsync instead.")]
         public async Task<IGuildChannel> GetEmbedChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (RestGuild as IGuild).GetEmbedChannelAsync(mode, options))
                 ?.Abstract();
@@ -478,6 +533,10 @@ namespace Discord.Rest
         /// <inheritdoc />
         Task<GuildEmote> IGuild.GetEmoteAsync(ulong id, RequestOptions options)
             => (RestGuild as IGuild).GetEmoteAsync(id, options);
+
+        /// <inheritdoc />
+        public Task<IReadOnlyCollection<GuildEmote>> GetEmotesAsync(RequestOptions options = null)
+            => RestGuild.GetEmotesAsync(options);
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestGuildIntegration>> GetIntegrationsAsync(RequestOptions options = null)
@@ -514,6 +573,16 @@ namespace Discord.Rest
                 .Abstract();
 
         /// <inheritdoc />
+        public async Task<IRestTextChannel> GetPublicUpdatesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await RestGuild.GetPublicUpdatesChannelAsync(options))
+            ?.Abstract();
+
+        /// <inheritdoc />
+        async Task<ITextChannel> IGuild.GetPublicUpdatesChannelAsync(CacheMode mode, RequestOptions options)
+            => (await (RestGuild as IGuild).GetPublicUpdatesChannelAsync(mode, options))
+            ?.Abstract();
+
+        /// <inheritdoc />
         public IRestRole GetRole(ulong id)
             => RestGuild.GetRole(id)
                 ?.Abstract();
@@ -522,6 +591,16 @@ namespace Discord.Rest
         IRole IGuild.GetRole(ulong id)
             => (RestGuild as IGuild).GetRole(id)
                 ?.Abstract();
+
+        /// <inheritdoc />
+        public async Task<IRestTextChannel> GetRulesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await RestGuild.GetRulesChannelAsync(options))
+            ?.Abstract();
+
+        /// <inheritdoc />
+        async Task<ITextChannel> IGuild.GetRulesChannelAsync(CacheMode mode, RequestOptions options)
+            => (await (RestGuild as IGuild).GetRulesChannelAsync(mode, options))
+            ?.Abstract();
 
         /// <inheritdoc />
         public async Task<IRestTextChannel> GetSystemChannelAsync(RequestOptions options = null)
@@ -643,6 +722,16 @@ namespace Discord.Rest
                 .ToArray();
 
         /// <inheritdoc />
+        public async Task<IRestGuildChannel> GetWidgetChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await RestGuild.GetWidgetChannelAsync(options))
+            ?.Abstract();
+
+        /// <inheritdoc />
+        async Task<IGuildChannel> IGuild.GetWidgetChannelAsync(CacheMode mode, RequestOptions options)
+            => (await (RestGuild as IGuild).GetWidgetChannelAsync(mode, options))
+            ?.Abstract();
+
+        /// <inheritdoc />
         public Task LeaveAsync(RequestOptions options = null)
             => RestGuild.LeaveAsync(options);
 
@@ -656,12 +745,17 @@ namespace Discord.Rest
             => RestGuild.ModifyAsync(func, options);
 
         /// <inheritdoc />
+        [Obsolete("This endpoint is deprecated, use ModifyWidgetAsync instead.")]
         public Task ModifyEmbedAsync(Action<GuildEmbedProperties> func, RequestOptions options = null)
             => RestGuild.ModifyEmbedAsync(func, options);
 
         /// <inheritdoc />
         public Task<GuildEmote> ModifyEmoteAsync(GuildEmote emote, Action<EmoteProperties> func, RequestOptions options = null)
             => (RestGuild as IGuild).ModifyEmoteAsync(emote, func, options);
+
+        /// <inheritdoc />
+        public Task ModifyWidgetAsync(Action<GuildWidgetProperties> func, RequestOptions options = null)
+            => RestGuild.ModifyWidgetAsync(func, options);
 
         /// <inheritdoc />
         public Task RemoveBanAsync(ulong userId, RequestOptions options = null)

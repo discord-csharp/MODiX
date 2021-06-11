@@ -40,8 +40,13 @@ namespace Discord.Rest
         public Task UnpinAsync(RequestOptions options = null)
             => RestUserMessage.UnpinAsync(options);
 
+        /// <inheritdoc />
         public Task ModifySuppressionAsync(bool suppressEmbeds, RequestOptions options = null)
             => RestUserMessage.ModifySuppressionAsync(suppressEmbeds, options);
+
+        /// <inheritdoc />
+        public IUserMessage ReferencedMessage
+            => RestMessage as IUserMessage;
 
         /// <summary>
         /// The existing <see cref="Rest.RestUserMessage"/> being abstracted.

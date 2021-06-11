@@ -177,6 +177,12 @@ namespace Discord.Rest
         public bool IsSuppressed => RestMessage.IsSuppressed;
 
         public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => RestMessage.Reactions;
+
+        public IReadOnlyCollection<ISticker> Stickers
+            => RestMessage.Stickers;
+
+        public MessageFlags? Flags
+            => RestMessage.Flags;
     }
 
     /// <summary>

@@ -92,8 +92,16 @@ namespace Discord.WebSocket
             => (SocketWebhookUser as IGuildUser).AddRoleAsync(role, options);
 
         /// <inheritdoc />
+        public Task AddRoleAsync(ulong roleId, RequestOptions options = null)
+            => (SocketWebhookUser as IGuildUser).AddRoleAsync(roleId, options);
+
+        /// <inheritdoc />
         public Task AddRolesAsync(IEnumerable<IRole> roles, RequestOptions options = null)
             => (SocketWebhookUser as IGuildUser).AddRolesAsync(roles, options);
+
+        /// <inheritdoc />
+        public Task AddRolesAsync(IEnumerable<ulong> roleIds, RequestOptions options = null)
+            => (SocketWebhookUser as IGuildUser).AddRolesAsync(roleIds, options);
 
         /// <inheritdoc />
         public ChannelPermissions GetPermissions(IGuildChannel channel)
@@ -112,8 +120,16 @@ namespace Discord.WebSocket
             => (SocketWebhookUser as IGuildUser).RemoveRoleAsync(role, options);
 
         /// <inheritdoc />
+        public Task RemoveRoleAsync(ulong roleId, RequestOptions options = null)
+            => (SocketWebhookUser as IGuildUser).RemoveRoleAsync(roleId, options);
+
+        /// <inheritdoc />
         public Task RemoveRolesAsync(IEnumerable<IRole> roles, RequestOptions options = null)
             => (SocketWebhookUser as IGuildUser).RemoveRolesAsync(roles, options);
+
+        /// <inheritdoc />
+        public Task RemoveRolesAsync(IEnumerable<ulong> roleIds, RequestOptions options = null)
+            => (SocketWebhookUser as IGuildUser).RemoveRolesAsync(roleIds, options);
 
         /// <summary>
         /// The existing <see cref="WebSocket.SocketWebhookUser"/> being abstracted.
@@ -124,6 +140,9 @@ namespace Discord.WebSocket
         public DateTimeOffset? PremiumSince => (SocketUser as IGuildUser).PremiumSince;
 
         public bool IsStreaming => (SocketUser as IGuildUser).IsStreaming;
+
+        public bool? IsPending
+            => (SocketUser as IGuildUser).IsPending;
     }
 
     /// <summary>

@@ -50,14 +50,17 @@ namespace Discord.WebSocket
         /// <inheritdoc cref="SocketDMChannel.GetUser(ulong)" />
         new ISocketUser GetUser(ulong id);
 
-        /// <inheritdoc cref="SocketDMChannel.SendFileAsync(Stream, string, string, bool, Embed, RequestOptions, bool, AllowedMentions)" />
-        new Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null);
+        /// <inheritdoc cref="SocketDMChannel.ModifyMessageAsync(ulong, Action{MessageProperties}, RequestOptions)" />
+        new Task<IUserMessage> ModifyMessageAsync(ulong messageId, Action<MessageProperties> func, RequestOptions options = null);
 
-        /// <inheritdoc cref="SocketDMChannel.SendFileAsync(string, string, bool, Embed, RequestOptions, bool, AllowedMentions)" />
-        new Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null);
+        /// <inheritdoc cref="SocketDMChannel.SendFileAsync(Stream, string, string, bool, Embed, RequestOptions, bool, AllowedMentions, MessageReference)" />
+        new Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null, MessageReference messageReference = null);
 
-        /// <inheritdoc cref="SocketDMChannel.SendMessageAsync(string, bool, Embed, RequestOptions, AllowedMentions)" />
-        new Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null);
+        /// <inheritdoc cref="SocketDMChannel.SendFileAsync(string, string, bool, Embed, RequestOptions, bool, AllowedMentions, MessageReference)" />
+        new Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null, MessageReference messageReference = null);
+
+        /// <inheritdoc cref="SocketDMChannel.SendMessageAsync(string, bool, Embed, RequestOptions, AllowedMentions, MessageReference)" />
+        new Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null, MessageReference messageReference = null);
     }
 
     /// <summary>
@@ -205,33 +208,43 @@ namespace Discord.WebSocket
                 .ToArray();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null)
-            => RestUserMessageAbstractionExtensions.Abstract(
-                await SocketDMChannel.SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler, allowedMentions));
+        public async Task<IUserMessage> ModifyMessageAsync(ulong messageId, Action<MessageProperties> func, RequestOptions options = null)
+            => (await SocketDMChannel.ModifyMessageAsync(messageId, func, options))
+                ?.Abstract();
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler, AllowedMentions allowedMentions)
-            => (await (SocketDMChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler, allowedMentions))
+        async Task<IUserMessage> IMessageChannel.ModifyMessageAsync(ulong messageId, Action<MessageProperties> func, RequestOptions options)
+            => (await (SocketDMChannel as IMessageChannel).ModifyMessageAsync(messageId, func, options))
+                ?.Abstract();
+
+        /// <inheritdoc />
+        public async Task<IRestUserMessage> SendFileAsync(string filePath, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null, MessageReference messageReference = null)
+            => RestUserMessageAbstractionExtensions.Abstract(
+                await SocketDMChannel.SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler, allowedMentions, messageReference));
+
+        /// <inheritdoc />
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler, AllowedMentions allowedMentions, MessageReference messageReference)
+            => (await (SocketDMChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler, allowedMentions, messageReference))
                 .Abstract();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null)
+        public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null, MessageReference messageReference = null)
             => RestUserMessageAbstractionExtensions.Abstract(
-                await SocketDMChannel.SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler, allowedMentions));
+                await SocketDMChannel.SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler, allowedMentions, messageReference));
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler, AllowedMentions allowedMentions)
-            => (await (SocketDMChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler, allowedMentions))
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler, AllowedMentions allowedMentions, MessageReference messageReference)
+            => (await (SocketDMChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler, allowedMentions, messageReference))
                 .Abstract();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null)
+        public async Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null, MessageReference messageReference = null)
             => RestUserMessageAbstractionExtensions.Abstract(
-                await SocketDMChannel.SendMessageAsync(text, isTTS, embed, options, allowedMentions));
+                await SocketDMChannel.SendMessageAsync(text, isTTS, embed, options, allowedMentions, messageReference));
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options, AllowedMentions allowedMentions)
-            => (await (SocketDMChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options, allowedMentions))
+        async Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options, AllowedMentions allowedMentions, MessageReference messageReference)
+            => (await (SocketDMChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options, allowedMentions, messageReference))
                 .Abstract();
 
         /// <inheritdoc />
