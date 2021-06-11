@@ -113,14 +113,23 @@ namespace Discord.WebSocket
         /// <inheritdoc cref="SocketGuild.GetEmoteAsync(ulong, RequestOptions)" />
         new Task<IGuildEmote> GetEmoteAsync(ulong id, RequestOptions options = null);
 
+        /// <inheritdoc cref="SocketGuild.GetEmotesAsync(RequestOptions)" />
+        new Task<IReadOnlyCollection<GuildEmote>> GetEmotesAsync(RequestOptions options = null);
+
         /// <inheritdoc cref="SocketGuild.GetIntegrationsAsync(RequestOptions)" />
         new Task<IReadOnlyCollection<IRestGuildIntegration>> GetIntegrationsAsync(RequestOptions options = null);
 
         /// <inheritdoc cref="SocketGuild.GetInvitesAsync(RequestOptions)" />
         new Task<IReadOnlyCollection<IRestInviteMetadata>> GetInvitesAsync(RequestOptions options = null);
 
+        /// <inheritdoc cref="IGuild.GetPublicUpdatesChannelAsync(CacheMode, RequestOptions)" />
+        new Task<ITextChannel> GetPublicUpdatesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null);
+
         /// <inheritdoc cref="SocketGuild.GetRole(ulong)" />
         new ISocketRole GetRole(ulong id);
+
+        /// <inheritdoc cref="IGuild.GetRulesChannelAsync(CacheMode, RequestOptions)" />
+        new Task<ITextChannel> GetRulesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null);
 
         /// <inheritdoc cref="SocketGuild.GetTextChannel(ulong)" />
         ISocketTextChannel GetTextChannel(ulong id);
@@ -143,8 +152,14 @@ namespace Discord.WebSocket
         /// <inheritdoc cref="SocketGuild.GetWebhooksAsync(RequestOptions)" />
         new Task<IReadOnlyCollection<IRestWebhook>> GetWebhooksAsync(RequestOptions options = null);
 
+        /// <inheritdoc cref="IGuild.GetWidgetChannelAsync(CacheMode, RequestOptions)" />
+        new Task<IGuildChannel> GetWidgetChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null);
+
         /// <inheritdoc cref="SocketGuild.ModifyEmoteAsync(GuildEmote, Action{EmoteProperties}, RequestOptions)" />
         Task<IGuildEmote> ModifyEmoteAsync(IGuildEmote emote, Action<EmoteProperties> func, RequestOptions options = null);
+
+        /// <inheritdoc cref="SocketGuild.ModifyWidgetAsync(Action{GuildWidgetProperties}, RequestOptions)" />
+        new Task ModifyWidgetAsync(Action<GuildWidgetProperties> func, RequestOptions options = null);
 
         /// <inheritdoc cref="SocketGuild.DeleteEmoteAsync(GuildEmote, RequestOptions)" />
         Task DeleteEmoteAsync(IGuildEmote emote, RequestOptions options = null);
@@ -181,6 +196,14 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public ulong? ApplicationId
             => SocketGuild.ApplicationId;
+
+        /// <inheritdoc />
+        public int? ApproximateMemberCount
+            => (SocketGuild as IGuild).ApproximateMemberCount;
+
+        /// <inheritdoc />
+        public int? ApproximatePresenceCount
+            => (SocketGuild as IGuild).ApproximatePresenceCount;
 
         /// <inheritdoc />
         public IAudioClient AudioClient
@@ -225,6 +248,14 @@ namespace Discord.WebSocket
             => SocketGuild.DefaultMessageNotifications;
 
         /// <inheritdoc />
+        public string DiscoverySplashId
+            => SocketGuild.DiscoverySplashId;
+
+        /// <inheritdoc/>
+        public string DiscoverySplashUrl
+            => SocketGuild.DiscoverySplashUrl;
+
+        /// <inheritdoc />
         public int DownloadedMemberCount
             => SocketGuild.DownloadedMemberCount;
 
@@ -233,6 +264,7 @@ namespace Discord.WebSocket
             => SocketGuild.DownloaderPromise;
 
         /// <inheritdoc />
+        [Obsolete("This endpoint is deprecated, use WidgetChannel instead.")]
         public ISocketGuildChannel EmbedChannel
             => SocketGuild.EmbedChannel
                 ?.Abstract();
@@ -298,6 +330,22 @@ namespace Discord.WebSocket
             => SocketGuild.IsSynced;
 
         /// <inheritdoc />
+        public bool IsWidgetEnabled
+            => SocketGuild.IsWidgetEnabled;
+
+        /// <inheritdoc />
+        public int? MaxMembers
+            => SocketGuild.MaxMembers;
+
+        /// <inheritdoc />
+        public int? MaxPresences
+            => SocketGuild.MaxPresences;
+
+        /// <inheritdoc />
+        public int? MaxVideoChannelUsers
+            => SocketGuild.MaxVideoChannelUsers;
+
+        /// <inheritdoc />
         public int MemberCount
             => SocketGuild.MemberCount;
 
@@ -319,6 +367,10 @@ namespace Discord.WebSocket
             => (SocketGuild as IGuild).OwnerId;
 
         /// <inheritdoc />
+        public ulong? PublicUpdatesChannelId
+            => (SocketGuild as IGuild).PublicUpdatesChannelId;
+
+        /// <inheritdoc />
         public IReadOnlyCollection<ISocketRole> Roles
             => SocketGuild.Roles
                 .Select(SocketRoleAbstractionExtensions.Abstract)
@@ -329,6 +381,10 @@ namespace Discord.WebSocket
             => (SocketGuild as IGuild).Roles
                 .Select(RoleAbstractionExtensions.Abstract)
                 .ToArray();
+
+        /// <inheritdoc />
+        public ulong? RulesChannelId
+            => (SocketGuild as IGuild).RulesChannelId;
 
         /// <inheritdoc />
         public IReadOnlyCollection<ISocketGuildUser> Users
@@ -376,6 +432,10 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         public string VoiceRegionId
             => SocketGuild.VoiceRegionId;
+
+        /// <inheritdoc />
+        public ulong? WidgetChannelId
+            => (SocketGuild as IGuild).WidgetChannelId;
 
         /// <inheritdoc />
         public Task AddBanAsync(ulong userId, int pruneDays = 0, string reason = null, RequestOptions options = null)
@@ -534,6 +594,7 @@ namespace Discord.WebSocket
                 ?.Abstract();
 
         /// <inheritdoc />
+        [Obsolete("This endpoint is deprecated, use GetWidgetChannelAsync instead.")]
         public async Task<IGuildChannel> GetEmbedChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
             => (await (SocketGuild as IGuild).GetEmbedChannelAsync(mode, options))
                 ?.Abstract();
@@ -546,6 +607,14 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         Task<GuildEmote> IGuild.GetEmoteAsync(ulong id, RequestOptions options)
             => (SocketGuild as IGuild).GetEmoteAsync(id, options);
+
+        /// <inheritdoc />
+        public async Task<IReadOnlyCollection<GuildEmote>> GetEmotesAsync(RequestOptions options = null)
+            => (await SocketGuild.GetEmotesAsync(options));
+
+        /// <inheritdoc />
+        async Task<IReadOnlyCollection<GuildEmote>> IGuild.GetEmotesAsync(RequestOptions options)
+            => (await (SocketGuild as IGuild).GetEmotesAsync(options));
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IRestGuildIntegration>> GetIntegrationsAsync(RequestOptions options = null)
@@ -577,6 +646,11 @@ namespace Discord.WebSocket
                 .Abstract();
 
         /// <inheritdoc />
+        public async Task<ITextChannel> GetPublicUpdatesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (SocketGuild as IGuild).GetPublicUpdatesChannelAsync(mode, options))
+                ?.Abstract();
+
+        /// <inheritdoc />
         public ISocketRole GetRole(ulong id)
             => SocketGuild.GetRole(id)
                 ?.Abstract();
@@ -584,6 +658,11 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         IRole IGuild.GetRole(ulong id)
             => (SocketGuild as IGuild).GetRole(id)
+                ?.Abstract();
+
+        /// <inheritdoc />
+        public async Task<ITextChannel> GetRulesChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (SocketGuild as IGuild).GetRulesChannelAsync(mode, options))
                 ?.Abstract();
 
         /// <inheritdoc />
@@ -606,6 +685,11 @@ namespace Discord.WebSocket
             => (await (SocketGuild as IGuild).GetTextChannelsAsync(mode, options))
                 .Select(TextChannelAbstractionExtensions.Abstract)
                 .ToArray();
+
+        /// <inheritdoc />
+        public async Task<IGuildChannel> GetWidgetChannelAsync(CacheMode mode = CacheMode.AllowDownload, RequestOptions options = null)
+            => (await (SocketGuild as IGuild).GetWidgetChannelAsync(mode, options))
+                ?.Abstract();
 
         /// <inheritdoc />
         public ISocketGuildUser GetUser(ulong id)
@@ -697,6 +781,7 @@ namespace Discord.WebSocket
             => SocketGuild.ModifyAsync(func, options);
 
         /// <inheritdoc />
+        [Obsolete("This endpoint is deprecated, use ModifyWidgetAsync instead.")]
         public Task ModifyEmbedAsync(Action<GuildEmbedProperties> func, RequestOptions options = null)
             => SocketGuild.ModifyEmbedAsync(func, options);
 
@@ -708,6 +793,14 @@ namespace Discord.WebSocket
         /// <inheritdoc />
         Task<GuildEmote> IGuild.ModifyEmoteAsync(GuildEmote emote, Action<EmoteProperties> func, RequestOptions options)
             => (SocketGuild as IGuild).ModifyEmoteAsync(emote, func, options);
+
+        /// <inheritdoc />
+        public async Task ModifyWidgetAsync(Action<GuildWidgetProperties> func, RequestOptions options = null)
+            => await SocketGuild.ModifyWidgetAsync(func, options);
+
+        /// <inheritdoc />
+        async Task IGuild.ModifyWidgetAsync(Action<GuildWidgetProperties> func, RequestOptions options)
+            => await (SocketGuild as IGuild).ModifyWidgetAsync(func, options);
 
         /// <inheritdoc />
         public Task RemoveBanAsync(ulong userId, RequestOptions options = null)
@@ -725,6 +818,7 @@ namespace Discord.WebSocket
         public Task ReorderRolesAsync(IEnumerable<ReorderRoleProperties> args, RequestOptions options = null)
             => SocketGuild.ReorderRolesAsync(args, options);
 
+        /// <inheritdoc />
         public Task<IReadOnlyCollection<RestGuildUser>> SearchUsersAsync(string query, int limit = 1000, RequestOptions options = null)
             => SocketGuild.SearchUsersAsync(query, limit, options);
 

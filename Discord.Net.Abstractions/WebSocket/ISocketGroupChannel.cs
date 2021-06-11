@@ -204,33 +204,43 @@ namespace Discord.WebSocket
             => SocketGroupChannel.LeaveAsync(options);
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendFileAsync(string filePath, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null)
-            => RestUserMessageAbstractionExtensions.Abstract(
-                await SocketGroupChannel.SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler, allowedMentions));
+        public async Task<IUserMessage> ModifyMessageAsync(ulong messageId, Action<MessageProperties> func, RequestOptions options = null)
+            => (await SocketGroupChannel.ModifyMessageAsync(messageId, func, options))
+                ?.Abstract();
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler, AllowedMentions allowedMentions)
-            => (await (SocketGroupChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler, allowedMentions))
+        async Task<IUserMessage> IMessageChannel.ModifyMessageAsync(ulong messageId, Action<MessageProperties> func, RequestOptions options)
+            => (await (SocketGroupChannel as IMessageChannel).ModifyMessageAsync(messageId, func, options))
+                ?.Abstract();
+
+        /// <inheritdoc />
+        public async Task<IRestUserMessage> SendFileAsync(string filePath, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null, MessageReference messageReference = null)
+            => RestUserMessageAbstractionExtensions.Abstract(
+                await SocketGroupChannel.SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler, allowedMentions, messageReference));
+
+        /// <inheritdoc />
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(string filePath, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler, AllowedMentions allowedMentions, MessageReference messageReference)
+            => (await (SocketGroupChannel as IMessageChannel).SendFileAsync(filePath, text, isTTS, embed, options, isSpoiler, allowedMentions, messageReference))
                 .Abstract();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null)
+        public async Task<IRestUserMessage> SendFileAsync(Stream stream, string filename, string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, bool isSpoiler = false, AllowedMentions allowedMentions = null, MessageReference messageReference = null)
             => RestUserMessageAbstractionExtensions.Abstract(
-                await SocketGroupChannel.SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler, allowedMentions));
+                await SocketGroupChannel.SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler, allowedMentions, messageReference));
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler, AllowedMentions allowedMentions)
-            => (await (SocketGroupChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler, allowedMentions))
+        async Task<IUserMessage> IMessageChannel.SendFileAsync(Stream stream, string filename, string text, bool isTTS, Embed embed, RequestOptions options, bool isSpoiler, AllowedMentions allowedMentions, MessageReference messageReference)
+            => (await (SocketGroupChannel as IMessageChannel).SendFileAsync(stream, filename, text, isTTS, embed, options, isSpoiler, allowedMentions, messageReference))
                 .Abstract();
 
         /// <inheritdoc />
-        public async Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null)
+        public async Task<IRestUserMessage> SendMessageAsync(string text = null, bool isTTS = false, Embed embed = null, RequestOptions options = null, AllowedMentions allowedMentions = null, MessageReference messageReference = null)
             => RestUserMessageAbstractionExtensions.Abstract(
-                await SocketGroupChannel.SendMessageAsync(text, isTTS, embed, options, allowedMentions));
+                await SocketGroupChannel.SendMessageAsync(text, isTTS, embed, options, allowedMentions, messageReference));
 
         /// <inheritdoc />
-        async Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options, AllowedMentions allowedMentions)
-            => (await (SocketGroupChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options, allowedMentions))
+        async Task<IUserMessage> IMessageChannel.SendMessageAsync(string text, bool isTTS, Embed embed, RequestOptions options, AllowedMentions allowedMentions, MessageReference messageReference)
+            => (await (SocketGroupChannel as IMessageChannel).SendMessageAsync(text, isTTS, embed, options, allowedMentions, messageReference))
                 .Abstract();
 
         /// <inheritdoc />

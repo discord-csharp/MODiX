@@ -184,6 +184,10 @@ namespace Discord.Rest
         public Task StopAsync()
             => (BaseDiscordClient as IDiscordClient).StopAsync();
 
+        /// <inheritdoc />
+        public Task<BotGateway> GetBotGatewayAsync(RequestOptions options = null)
+            => (BaseDiscordClient as IDiscordClient).GetBotGatewayAsync();
+
         /// <summary>
         /// The existing <see cref="Rest.BaseDiscordClient"/> being abstracted.
         /// </summary>

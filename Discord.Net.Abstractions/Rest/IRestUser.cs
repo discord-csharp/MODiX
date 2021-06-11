@@ -62,6 +62,9 @@ namespace Discord.Rest
         public string Mention
             => RestUser.Mention;
 
+        public UserProperties? PublicFlags
+            => RestUser.PublicFlags;
+
         /// <inheritdoc />
         public UserStatus Status
             => RestUser.Status;

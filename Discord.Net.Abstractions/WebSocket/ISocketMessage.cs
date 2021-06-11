@@ -185,6 +185,12 @@ namespace Discord.WebSocket
         public bool IsSuppressed => SocketMessage.IsSuppressed;
 
         public IReadOnlyDictionary<IEmote, ReactionMetadata> Reactions => SocketMessage.Reactions;
+
+        public IReadOnlyCollection<ISticker> Stickers
+            => SocketMessage.Stickers;
+
+        public MessageFlags? Flags
+            => SocketMessage.Flags;
     }
 
     /// <summary>

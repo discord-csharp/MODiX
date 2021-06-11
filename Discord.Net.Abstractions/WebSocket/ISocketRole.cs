@@ -109,6 +109,9 @@ namespace Discord.WebSocket
         /// The existing <see cref="WebSocket.SocketRole"/> being abstracted.
         /// </summary>
         protected SocketRole SocketRole { get; }
+
+        public RoleTags Tags
+            => SocketRole.Tags;
     }
 
     /// <summary>

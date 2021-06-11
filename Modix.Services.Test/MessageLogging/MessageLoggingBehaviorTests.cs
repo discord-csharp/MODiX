@@ -63,7 +63,8 @@ namespace Modix.Services.Test.MessageLogging
                                 It.IsAny<bool>(),
                                 It.IsAny<Embed?>(),
                                 It.IsAny<RequestOptions?>(),
-                                It.IsAny<AllowedMentions?>()))
+                                It.IsAny<AllowedMentions?>(),
+                                It.IsAny<MessageReference?>()))
                             .ReturnsAsync(mockLogMessage.Object);
 
                         return mockMessageLogChannel;
@@ -233,7 +234,8 @@ namespace Modix.Services.Test.MessageLogging
                     It.IsAny<bool>(),
                     It.IsAny<Embed?>(),
                     It.IsAny<RequestOptions?>(),
-                    It.IsAny<AllowedMentions?>()));
+                    It.IsAny<AllowedMentions?>(),
+                    It.IsAny<MessageReference?>()));
         }
 
         public static readonly ImmutableArray<TestCaseData> HandleNotificationAsync_MessageDeletedNotification_MessageShouldNotBeIgnored_TestCaseData
@@ -281,6 +283,7 @@ namespace Modix.Services.Test.MessageLogging
                         false,
                         It.IsNotNull<Embed>(),
                         null,
+                        null,
                         null));
 
                 var (content, embed) = mockMessageLogChannel.Invocations
@@ -322,7 +325,8 @@ namespace Modix.Services.Test.MessageLogging
                     It.IsAny<bool>(),
                     It.IsAny<Embed?>(),
                     It.IsAny<RequestOptions?>(),
-                    It.IsAny<AllowedMentions?>()));
+                    It.IsAny<AllowedMentions?>(),
+                    It.IsAny<MessageReference?>()));
         }
 
         #endregion HandleNotificationAsync(MessageDeletedNotification) Tests
@@ -472,7 +476,8 @@ namespace Modix.Services.Test.MessageLogging
                     It.IsAny<bool>(),
                     It.IsAny<Embed?>(),
                     It.IsAny<RequestOptions?>(),
-                    It.IsAny<AllowedMentions?>()));
+                    It.IsAny<AllowedMentions?>(),
+                    It.IsAny<MessageReference?>()));
         }
 
         public static readonly ImmutableArray<TestCaseData> HandleNotificationAsync_MessageUpdatedNotification_MessageShouldNotBeIgnored_TestCaseData
@@ -521,6 +526,7 @@ namespace Modix.Services.Test.MessageLogging
                         false,
                         It.IsNotNull<Embed>(),
                         null,
+                        null,
                         null));
 
                 var (content, embed) = mockMessageLogChannel.Invocations
@@ -550,7 +556,8 @@ namespace Modix.Services.Test.MessageLogging
                     It.IsAny<bool>(),
                     It.IsAny<Embed?>(),
                     It.IsAny<RequestOptions?>(),
-                    It.IsAny<AllowedMentions?>()));
+                    It.IsAny<AllowedMentions?>(),
+                    It.IsAny<MessageReference?>()));
         }
 
         #endregion HandleNotificationAsync(MessageUpdatedNotification) Tests

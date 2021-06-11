@@ -237,6 +237,7 @@ namespace Discord.WebSocket
             => BaseSocketClient.Status;
 
         /// <inheritdoc />
+        [Obsolete("This endpoint is deprecated, please use GetVoiceRegionAsync instead.")]
         public IReadOnlyCollection<IRestVoiceRegion> VoiceRegions
             => BaseSocketClient.VoiceRegions
                 .Select(RestVoiceRegionAbstractionExtensions.Abstract)
@@ -377,6 +378,7 @@ namespace Discord.WebSocket
                 ?.Abstract();
 
         /// <inheritdoc />
+        [Obsolete("This endpoint is deprecated, please use GetVoiceRegionAsync instead.")]
         public IRestVoiceRegion GetVoiceRegion(string id)
         {
             var restVoiceRegion = BaseSocketClient.GetVoiceRegion(id);

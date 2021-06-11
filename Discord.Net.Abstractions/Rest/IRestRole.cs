@@ -94,6 +94,9 @@ namespace Discord.Rest
         /// The existing <see cref="Rest.RestRole"/> being abstracted.
         /// </summary>
         protected RestRole RestRole { get; }
+
+        public RoleTags Tags
+            => RestRole.Tags;
     }
 
     /// <summary>

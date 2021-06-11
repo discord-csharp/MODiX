@@ -237,7 +237,7 @@ namespace Modix.Common.Test.Extensions.Microsoft.Extensions.DependencyInjection
                         .Setup(x => x.GetService(expectedResult.ImplementationFactoryServiceType))
                         .Returns(service);
 
-                    result.ImplementationFactory.Invoke(mockServiceProvider.Object)
+                    result.ImplementationFactory?.Invoke(mockServiceProvider.Object)
                         .ShouldBeSameAs(service);
                 }
 

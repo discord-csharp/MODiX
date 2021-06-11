@@ -27,16 +27,11 @@ namespace Discord.Rest
             => RestInviteMetadata.CreatedAt;
 
         /// <inheritdoc />
-        public IRestUser Inviter
-            => RestInviteMetadata.Inviter
-                .Abstract();
+        IRestUser IRestInviteMetadata.Inviter
+            => (IRestUser)RestInviteMetadata.Inviter;
 
         /// <inheritdoc />
-        IUser IInviteMetadata.Inviter
-            => (RestInviteMetadata as IInviteMetadata).Inviter
-                .Abstract();
-
-        /// <inheritdoc />
+        [Obsolete("This property doesn't exist anymore and shouldn't be used.")]
         public bool IsRevoked
             => RestInviteMetadata.IsRevoked;
 
