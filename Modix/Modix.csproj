@@ -19,7 +19,6 @@
 
   <ItemGroup>
     <PackageReference Include="AspNet.Security.OAuth.Discord" />
-    <PackageReference Include="Discord.Net" Version="2.4.0" />
     <PackageReference Include="DogStatsD-CSharp-Client" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" />

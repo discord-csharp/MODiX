@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <PackageReference Include="AsyncEvent" />
-    <PackageReference Include="Discord.Net" Version="2.4.0" />
+    <PackageReference Include="Discord.Net" />
     <PackageReference Include="DogStatsD-CSharp-Client" />
     <PackageReference Include="Humanizer.Core" />
     <PackageReference Include="Kitsu" />
