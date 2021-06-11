@@ -12,7 +12,7 @@
     "axios": "^0.21.1",
     "bulma": "^0.8.0",
     "date-fns": "2.0.0-alpha.7",
-    "chart.js": "^2.9.3",
+    "chart.js": "^2.9.4",
     "lodash-es": "^4.17.15",
     "tinycolor2": "^1.4.1",
     "v-tooltip": "^2.0.2",
