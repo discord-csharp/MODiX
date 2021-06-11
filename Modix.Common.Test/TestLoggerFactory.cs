@@ -8,12 +8,13 @@ namespace Modix.Common.Test
     public sealed class TestLoggerFactory
         : IDisposable
     {
+
         public TestLoggerFactory()
         {
             _serviceProvider = new ServiceCollection()
                 .AddLogging(loggingBuilder => loggingBuilder
-                    .AddConsole(options => options
-                        .IncludeScopes = true)
+                    .AddSimpleConsole(options =>
+                    options.IncludeScopes = true)
                     .SetMinimumLevel(LogLevel.Trace))
                 .BuildServiceProvider();
         }

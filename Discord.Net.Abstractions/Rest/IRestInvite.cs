@@ -59,6 +59,9 @@ namespace Discord.Rest
         public string Id
             => RestInvite.Id;
 
+        public IUser Inviter
+            => RestInvite.Inviter;
+
         /// <inheritdoc />
         public int? MemberCount
             => RestInvite.MemberCount;
@@ -66,6 +69,14 @@ namespace Discord.Rest
         /// <inheritdoc />
         public int? PresenceCount
             => RestInvite.PresenceCount;
+
+         /// <inheritdoc/>
+        public IUser TargetUser
+            => RestInvite.TargetUser;
+
+        /// <inheritdoc />
+        public TargetUserType TargetUserType
+            => RestInvite.TargetUserType;
 
         /// <inheritdoc />
         public string Url

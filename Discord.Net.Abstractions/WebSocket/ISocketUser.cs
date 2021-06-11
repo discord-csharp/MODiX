@@ -103,6 +103,9 @@ namespace Discord.WebSocket
         public IImmutableSet<ClientType> ActiveClients => SocketUser.ActiveClients;
 
         public IImmutableList<IActivity> Activities => SocketUser.Activities;
+
+        public UserProperties? PublicFlags
+            => SocketUser.PublicFlags;
     }
 
     /// <summary>

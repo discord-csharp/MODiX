@@ -76,6 +76,22 @@ namespace Modix.Data.Models.Core
 
         public bool IsStreaming { get; private set; }
 
+        public bool? IsPending { get; private set; }
+
+        public UserProperties? PublicFlags { get; private set; }
+
+        public async Task AddRoleAsync(ulong roleId, RequestOptions? options = null)
+            => await OnGuildUserOrThrowAsync(user => user.AddRoleAsync(roleId, options));
+
+        public async Task AddRolesAsync(IEnumerable<ulong> roleIds, RequestOptions? options = null)
+            => await OnGuildUserOrThrowAsync(user => user.AddRolesAsync(roleIds, options));
+
+        public async Task RemoveRoleAsync(ulong roleId, RequestOptions? options = null)
+            => await OnGuildUserOrThrowAsync(user => user.RemoveRoleAsync(roleId, options));
+
+        public async Task RemoveRolesAsync(IEnumerable<ulong> roleIds, RequestOptions? options = null)
+            => await OnGuildUserOrThrowAsync(user => user.RemoveRolesAsync(roleIds, options));
+
         public async Task AddRoleAsync(IRole role, RequestOptions? options = null)
         {
             await OnGuildUserOrThrowAsync(user => user.AddRoleAsync(role, options));

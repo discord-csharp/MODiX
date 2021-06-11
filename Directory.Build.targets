@@ -12,7 +12,7 @@
 
   <!-- Package versions for package references across all projects -->
   <ItemGroup>
-    <PackageReference Update="Discord.Net" Version="2.3.0-dev-20201109.3" />
+    <PackageReference Update="Discord.Net" Version="2.4.0" />
 
     <PackageReference Update="Microsoft.EntityFrameworkCore" Version="5.0.0" />
     <PackageReference Update="Microsoft.EntityFrameworkCore.Design" Version="5.0.0"/>

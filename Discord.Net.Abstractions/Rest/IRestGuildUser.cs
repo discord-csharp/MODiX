@@ -79,8 +79,16 @@ namespace Discord.Rest
             => RestGuildUser.AddRoleAsync(role);
 
         /// <inheritdoc />
+        public Task AddRoleAsync(ulong roleId, RequestOptions options = null)
+            => RestGuildUser.AddRoleAsync(roleId, options);
+
+        /// <inheritdoc />
         public Task AddRolesAsync(IEnumerable<IRole> roles, RequestOptions options = null)
             => RestGuildUser.AddRolesAsync(roles);
+
+        /// <inheritdoc />
+        public Task AddRolesAsync(IEnumerable<ulong> roleIds, RequestOptions options = null)
+            => RestGuildUser.AddRolesAsync(roleIds, options);
 
         /// <inheritdoc />
         public Task KickAsync(string reason = null, RequestOptions options = null)
@@ -99,8 +107,16 @@ namespace Discord.Rest
             => RestGuildUser.RemoveRoleAsync(role, options);
 
         /// <inheritdoc />
+        public Task RemoveRoleAsync(ulong roleId, RequestOptions options = null)
+            => RestGuildUser.RemoveRoleAsync(roleId, options);
+
+        /// <inheritdoc />
         public Task RemoveRolesAsync(IEnumerable<IRole> roles, RequestOptions options = null)
             => RestGuildUser.RemoveRolesAsync(roles, options);
+
+        /// <inheritdoc />
+        public Task RemoveRolesAsync(IEnumerable<ulong> roleIds, RequestOptions options = null)
+            => RestGuildUser.RemoveRolesAsync(roleIds, options);
 
         /// <summary>
         /// The existing <see cref="Rest.RestGuildUser"/> being abstracted.
@@ -111,6 +127,9 @@ namespace Discord.Rest
         public DateTimeOffset? PremiumSince => RestGuildUser.PremiumSince;
 
         public bool IsStreaming => (RestGuildUser as IGuildUser).IsStreaming;
+
+        public bool? IsPending
+            => RestGuildUser.IsPending;
     }
 
     /// <summary>
