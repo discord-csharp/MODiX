@@ -35,6 +35,15 @@ namespace Modix.Services.Core
         Task<IGuildUser> GetGuildUserAsync(ulong guildId, ulong userId);
 
         /// <summary>
+        /// Retrieves the user, if any, associated with the provided guild and user ID.
+        /// </summary>
+        /// <param name="guild">The guild in which to search for the user.</param>
+        /// <param name="userId">The unique Discord snowflake ID of the user to search for.</param>
+        /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
+        /// <returns>The <see cref="IGuildUser"/>, if any, that was retrieved from Discord.NET.</returns>
+        Task<IGuildUser?> TryGetGuildUserAsync(IGuild guild, ulong userId, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Retrieves the summary data for the user with the given user ID, within the given guild
         /// </summary>
         /// <param name="guildId">The <see cref="IEntity{T}.Id" /> of the guild whose user is to be retrieved.</param>
@@ -136,6 +145,32 @@ namespace Modix.Services.Core
             await TrackUserAsync(user, default);
 
             return user;
+        }
+
+        public async Task<IGuildUser?> TryGetGuildUserAsync(IGuild guild, ulong userId, CancellationToken cancellationToken)
+        {
+            var user = await guild.GetUserAsync(userId);
+
+            if (user is not null)
+            {
+                await TrackUserAsync(user, cancellationToken);
+                return user;
+            }
+
+            var restUser = await DiscordRestClient.GetUserAsync(userId);
+
+            // Even if they aren't in the guild, we still want to track them.
+            if (restUser is not null)
+            {
+                var ephemeralUser = new EphemeralUser()
+                    .WithIUserData(restUser)
+                    .WithGuildContext(guild);
+
+                await TrackUserAsync(ephemeralUser, cancellationToken);
+                return null;
+            }
+
+            throw new InvalidOperationException($"Discord user {userId} does not exist");
         }
 
         public async Task<GuildUserSummary> GetGuildUserSummaryAsync(ulong guildId, ulong userId)
