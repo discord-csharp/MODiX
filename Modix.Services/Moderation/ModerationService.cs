@@ -272,27 +272,7 @@ namespace Modix.Services.Moderation
         {
             _authorizationService.RequireClaims(_createInfractionClaimsByType[type]);
 
-            await RequireSubjectRankLowerThanModeratorRankAsync(guildId, moderatorId, subjectId);
-
-            var guild = await _discordClient.GetGuildAsync(guildId);
-
-            IGuildUser subject;
-
-            if (!await _userService.GuildUserExistsAsync(guildId, subjectId))
-            {
-                var existingUserInformation = await _userService.GetUserInformationAsync(guildId, subjectId);
-
-                subject = existingUserInformation ??
-                          throw new InvalidOperationException($"The given subject was not valid, ID: {subjectId}");
-
-                await _userService.TrackUserAsync(subject, default);
-            }
-            else
-            {
-                subject = await _userService.GetGuildUserAsync(guildId, subjectId);
-            }
-
-            if (reason == null)
+            if (reason is null)
                 throw new ArgumentNullException(nameof(reason));
 
             if (reason.Length >= MaxReasonLength)
@@ -302,6 +282,11 @@ namespace Modix.Services.Moderation
             if (((type == InfractionType.Notice) || (type == InfractionType.Warning))
                 && string.IsNullOrWhiteSpace(reason))
                 throw new InvalidOperationException($"{type.ToString()} infractions require a reason to be given");
+
+            var guild = await _discordClient.GetGuildAsync(guildId);
+            var subject = await _userService.TryGetGuildUserAsync(guild, subjectId, default);
+
+            await RequireSubjectRankLowerThanModeratorRankAsync(guild, moderatorId, subject);
 
             using (var transaction = await _infractionRepository.BeginCreateTransactionAsync())
             {
@@ -350,13 +335,13 @@ namespace Modix.Services.Moderation
             // Assuming that our Infractions repository is always correct, regarding the state of the Discord API.
             switch (type)
             {
-                case InfractionType.Mute:
+                case InfractionType.Mute when subject is not null:
                     await subject.AddRoleAsync(
                         await GetDesignatedMuteRoleAsync(guild));
                     break;
 
                 case InfractionType.Ban:
-                    await guild.AddBanAsync(subject, reason: reason);
+                    await guild.AddBanAsync(subjectId, reason: reason);
                     break;
             }
         }
@@ -603,35 +588,13 @@ namespace Modix.Services.Moderation
 
         public async Task<bool> DoesModeratorOutrankUserAsync(ulong guildId, ulong moderatorId, ulong subjectId)
         {
-            var moderator = await _userService.GetGuildUserAsync(guildId, moderatorId);
-
             //If the user doesn't exist in the guild, we outrank them
             if (await _userService.GuildUserExistsAsync(guildId, subjectId) == false)
                 return true;
 
             var subject = await _userService.GetGuildUserAsync(guildId, subjectId);
 
-            //If the subject is the guild owner, and we are not the owner, we do not outrank them
-            if (subject.Guild.OwnerId == subjectId && subject.Guild.OwnerId != moderatorId)
-                return false;
-
-            //If we have the "Admin" permission, we outrank everyone in the guild but the owner
-            if (moderator.GuildPermissions.Administrator)
-                return true;
-
-            var rankRoles = await GetRankRolesAsync(guildId);
-
-            var subjectRankRoles = rankRoles.Where(r => subject.RoleIds.Contains(r.Id));
-            var moderatorRankRoles = rankRoles.Where(r => moderator.RoleIds.Contains(r.Id));
-
-            var greatestSubjectRankPosition = subjectRankRoles.Any()
-                ? subjectRankRoles.Select(r => r.Position).Max()
-                : int.MinValue;
-            var greatestModeratorRankPosition = moderatorRankRoles.Any()
-                ? moderatorRankRoles.Select(r => r.Position).Max()
-                : int.MinValue;
-
-            return greatestSubjectRankPosition < greatestModeratorRankPosition;
+            return await DoesModeratorOutrankUserAsync(subject.Guild, moderatorId, subject);
         }
 
         public async Task<bool> AnyInfractionsAsync(InfractionSearchCriteria criteria)
@@ -829,6 +792,45 @@ namespace Modix.Services.Moderation
             if (!await DoesModeratorOutrankUserAsync(guildId, moderatorId, subjectId))
                 throw new InvalidOperationException(
                     "Cannot moderate users that have a rank greater than or equal to your own.");
+        }
+
+        private async ValueTask RequireSubjectRankLowerThanModeratorRankAsync(IGuild guild, ulong moderatorId,
+            IGuildUser? subject)
+        {
+            // If the subject is null, then the moderator automatically outranks them.
+            if (subject is null)
+                return;
+
+            if (!await DoesModeratorOutrankUserAsync(guild, moderatorId, subject))
+                throw new InvalidOperationException(
+                    "Cannot moderate users that have a rank greater than or equal to your own.");
+        }
+
+        private async Task<bool> DoesModeratorOutrankUserAsync(IGuild guild, ulong moderatorId, IGuildUser subject)
+        {
+            //If the subject is the guild owner, and the moderator is not the owner, the moderator does not outrank them
+            if (guild.OwnerId == subject.Id && guild.OwnerId != moderatorId)
+                return false;
+
+            var moderator = await _userService.GetGuildUserAsync(guild.Id, moderatorId);
+
+            // If the moderator has the "Admin" permission, they outrank everyone in the guild but the owner
+            if (moderator.GuildPermissions.Administrator)
+                return true;
+
+            var rankRoles = await GetRankRolesAsync(guild.Id);
+
+            var subjectRankRoles = rankRoles.Where(r => subject.RoleIds.Contains(r.Id));
+            var moderatorRankRoles = rankRoles.Where(r => moderator.RoleIds.Contains(r.Id));
+
+            var greatestSubjectRankPosition = subjectRankRoles.Any()
+                ? subjectRankRoles.Select(r => r.Position).Max()
+                : int.MinValue;
+            var greatestModeratorRankPosition = moderatorRankRoles.Any()
+                ? moderatorRankRoles.Select(r => r.Position).Max()
+                : int.MinValue;
+
+            return greatestSubjectRankPosition < greatestModeratorRankPosition;
         }
 
         private static readonly OverwritePermissions _mutePermissions
