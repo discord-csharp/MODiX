@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -148,6 +148,11 @@ namespace Modix.Services.Promotions
 
             var rankRoles = await GetRankRolesAsync(AuthorizationService.CurrentGuildId.Value);
             var subject = await UserService.GetGuildUserAsync(AuthorizationService.CurrentGuildId.Value, subjectId);
+
+            if (subject.IsBot)
+            {
+                return;
+            }
 
             if (!TryGetNextRankRoleForUser(rankRoles, subject, out var nextRankRole, out var message))
                 throw new InvalidOperationException(message);
