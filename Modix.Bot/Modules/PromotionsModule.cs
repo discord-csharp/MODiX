@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -81,21 +81,15 @@ namespace Modix.Modules
 
         [Command("nominate")]
         [Summary("Nominate the given user for promotion")]
-        public Task NominateAsync(
+        public async Task NominateAsync(
             [Summary("The user to nominate")]
                 IGuildUser subject,
             [Remainder]
             [Summary("A comment to be attached to the new campaign")]
                 string comment)
-        {
-            if (subject.IsBot)
-            {
-                return ReplyAsync("Cannot nominate bot users for promotion.");
-            }
-            return PromotionsService.CreateCampaignAsync(subject.Id, comment,
-               c => Context.GetUserConfirmationAsync(
-                   $"You are nominating {subject.GetFullUsername()} ({subject.Id}) for promotion to {c.TargetRankRole.Name}.{Environment.NewLine}"));
-        }
+            => await PromotionsService.CreateCampaignAsync(subject.Id, comment,
+                c => Context.GetUserConfirmationAsync(
+                    $"You are nominating {subject.GetFullUsername()} ({subject.Id}) for promotion to {c.TargetRankRole.Name}.{Environment.NewLine}"));
 
         [Command("comment")]
         [Summary("Comment on an ongoing campaign to promote a user.")]
