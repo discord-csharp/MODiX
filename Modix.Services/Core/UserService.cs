@@ -193,11 +193,10 @@ namespace Modix.Services.Core
             var guild = await guildTask;
 
             var guildUser = await guild.GetUserAsync(userId);
-            var bans = await guild.GetBansAsync();
+            var ban = await guild.GetBanAsync(userId);
 
             var user = await userTask;
             var restUser = await restUserTask;
-            var ban = bans.FirstOrDefault(x => x.User.Id == userId);
 
             if (guildUser is { })
                 await TrackUserAsync(guildUser, default);
