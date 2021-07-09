@@ -27,7 +27,8 @@ namespace Modix
 
             var configBuilder = new ConfigurationBuilder()
                 .AddEnvironmentVariables("MODIX_")
-                .AddJsonFile("developmentSettings.json", optional: true, reloadOnChange: false);
+                .AddJsonFile("developmentSettings.json", optional: true, reloadOnChange: false)
+                .AddKeyPerFile("/run/secrets", true);
 
             if(environment is DEVELOPMENT_ENVIRONMENT_KEY)
             {
