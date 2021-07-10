@@ -44,6 +44,10 @@ jobs:
           push: true
           tags: ${{ steps.meta-main.outputs.tags }}${{ steps.meta-pr.outputs.tags }}
           labels: ${{ steps.meta-main.outputs.labels }}${{ steps.meta-pr.outputs.labels }}
+      - name: Sleep for 15 seconds
+        if: github.event_name != 'pull_request'
+        run: sleep 15s
+        shell: bash
       - name: Signal New Build
         if: github.event_name != 'pull_request'
         uses: enflo/curl-action@fabe347922c7a9e88bafa15c4b7d6326ea802695
