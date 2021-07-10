@@ -1,0 +1,52 @@
+name: build-modix
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Log into registry ${{ env.REGISTRY }}
+        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract Docker metadata for main build
+        id: meta-main
+        if: github.event_name != 'pull_request'
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          flavor: |
+            latest=true
+      - name: Extract Docker metadata for pr build
+        if: github.event_name == 'pull_request'
+        id: meta-pr
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta-main.outputs.tags }}${{ steps.meta-pr.outputs.tags }}
+          labels: ${{ steps.meta-main.outputs.labels }}${{ steps.meta-pr.outputs.labels }}
+      - name: Signal New Build
+        if: github.event_name != 'pull_request'
+        uses: enflo/curl-action@fabe347922c7a9e88bafa15c4b7d6326ea802695
+        with:
+          curl: -X POST ${{ secrets.MODIX_UPDATE_WEBHOOK }}
+
