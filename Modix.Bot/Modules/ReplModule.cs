@@ -1,14 +1,11 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using Microsoft.Extensions.Options;
 using Modix.Data.Models.Core;
 using Modix.Services.AutoRemoveMessage;
@@ -81,7 +78,7 @@ namespace Modix.Modules
             HttpResponseMessage res;
             try
             {
-                var client = _httpClientFactory.CreateClient();
+                var client = _httpClientFactory.CreateClient(HttpClientNames.RetryOn5xxPolicy);
                 res = await client.PostAsync(_replUrl, content);
 
             }

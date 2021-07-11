@@ -5,6 +5,8 @@
     /// </summary>
     public static class HttpClientNames
     {
+        public static string RetryOn5xxPolicy { get; } = nameof(RetryOn5xxPolicy);
+
         public static string AutomaticGZipDecompression { get; } = nameof(AutomaticGZipDecompression);
 
         public static string TimeoutFiveSeconds { get; } = nameof(TimeoutFiveSeconds);

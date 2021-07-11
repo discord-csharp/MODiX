@@ -7,6 +7,7 @@ using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Polly.Extensions.Http;
 using Microsoft.Extensions.Options;
 
 using Modix;
@@ -39,6 +40,7 @@ using Modix.Services.Tags;
 using Modix.Services.Utilities;
 using Modix.Services.Wikipedia;
 using StatsdClient;
+using Polly;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -47,6 +49,10 @@ namespace Microsoft.Extensions.DependencyInjection
         public static IServiceCollection AddModixHttpClients(this IServiceCollection services)
         {
             services.AddHttpClient();
+
+            services.AddHttpClient(HttpClientNames.RetryOn5xxPolicy)
+                .AddPolicyHandler(HttpPolicyExtensions.HandleTransientHttpError()
+                    .WaitAndRetryAsync(2, retryAttempt => TimeSpan.FromSeconds(5)));                
 
             services.AddHttpClient(HttpClientNames.TimeoutFiveSeconds)
                 .ConfigureHttpClient(client =>
