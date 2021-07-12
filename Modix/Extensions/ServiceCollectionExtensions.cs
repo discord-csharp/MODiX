@@ -50,7 +50,7 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             services.AddHttpClient();
 
-            services.AddHttpClient(HttpClientNames.RetryOn5xxPolicy)
+            services.AddHttpClient(HttpClientNames.RetryOnTransientErrorPolicy)
                 .AddPolicyHandler(HttpPolicyExtensions.HandleTransientHttpError()
                     .WaitAndRetryAsync(2, retryAttempt => TimeSpan.FromSeconds(5)));                
 

@@ -5,7 +5,7 @@
     /// </summary>
     public static class HttpClientNames
     {
-        public static string RetryOn5xxPolicy { get; } = nameof(RetryOn5xxPolicy);
+        public static string RetryOnTransientErrorPolicy { get; } = nameof(RetryOnTransientErrorPolicy);
 
         public static string AutomaticGZipDecompression { get; } = nameof(AutomaticGZipDecompression);
 

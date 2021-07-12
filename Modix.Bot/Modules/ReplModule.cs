@@ -75,10 +75,16 @@ namespace Modix.Modules
 
             var content = FormatUtilities.BuildContent(code);
 
+            // make it easier to trace calls back to discord if moderation or investigation needs to happen
+            content.Headers.TryAddWithoutValidation("X-Modix-DiscordUserId", Context.User.Id.ToString());
+            content.Headers.TryAddWithoutValidation("X-Modix-DiscordUsername", Context.User.GetFullUsername());
+            var messageLink = $"https://discord.com/channels/{Context.Guild.Id}/{Context.Channel.Id}/{message.Id}";
+            content.Headers.TryAddWithoutValidation("X-Modix-MessageLink", messageLink);
+
             HttpResponseMessage res;
             try
             {
-                var client = _httpClientFactory.CreateClient(HttpClientNames.RetryOn5xxPolicy);
+                var client = _httpClientFactory.CreateClient(HttpClientNames.RetryOnTransientErrorPolicy);
                 res = await client.PostAsync(_replUrl, content);
 
             }
@@ -91,7 +97,7 @@ namespace Modix.Modules
             catch (Exception ex)
             {
                 await ModifyOrSendErrorEmbed("An error occurred while sending a request to the REPL service. " +
-                                             "This is probably due to container exhaustion - try again later." +
+                                             "This may be due to a StackOverflowException or exceeding the 30 second timeout." +
                                              $"\n\n{Format.Bold("Details:")}\n{ex.Message}", message);
                 return;
             }
