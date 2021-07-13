@@ -1,0 +1,373 @@
+version: '3.7'
+services:
+# An nginx/LetsEncrypt reverse proxy for handling SSL offloading and traffic routing
+  swag:
+    image: ghcr.io/linuxserver/swag
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - URL=mod.gg
+      - SUBDOMAINS=portainer,www,paste,repl,stats,db,webhook,logs
+      - VALIDATION=http
+      - EMAIL=certs@cisien.com
+      - ONLY_SUBDOMAINS=false
+      - STAGING=false
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '1'
+          memory: 500M
+        reservations:
+          cpus: '0.5'
+          memory: 20M
+    volumes:
+      - swag-config:/config
+    ports:
+      - 443:443
+      - 80:80
+    networks:
+      - proxy
+      - portainer_agent_network
+
+# A self-hosted hastebin instance for ad-hoc pastes
+  hastebin:
+    image: ghcr.io/discord-csharp/haste-server:latest
+    user: node
+    healthcheck: 
+      test: ["CMD", "curl", "-f", "http://localhost:7777"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+      start_period: 1s
+    environment:
+      STORAGE_TYPE: file
+      STORAGE_FILEPATH: /data
+      RATELIMITS_NORMAL_TOTAL_REQUESTS: 100
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 2
+        delay: 0s
+        order: start-first
+      restart_policy:
+        condition: any
+        delay: 0s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 500M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+    volumes:
+      - hastebin-data:/data
+    networks:
+      - proxy
+
+# c# repl service
+  repl:
+    image: ghcr.io/discord-csharp/csharprepl:latest
+    read_only: true
+    user: www-data
+    environment: 
+      - ASPNETCORE_URLS=http://+:31337
+      - Logging__LogLevel__Microsoft=Warning
+      - Logging__LogLevel__CSDiscordService=Trace
+    deploy:
+      replicas: 5
+      mode: replicated
+      update_config:
+        parallelism: 2
+        delay: 0s
+        order: start-first
+      restart_policy:
+        condition: any
+        delay: 0s
+      resources:
+        limits:
+          cpus: '1'
+          memory: 500M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "repl"
+        labels: "modix,repl"
+    volumes:
+      - repl-tmp:/tmp
+      - repl-var:/var
+    networks:
+      - repl
+
+# the datadog agent is used for metrics gathering/statd within modix
+  datadog-agent:
+    image: datadog/agent:latest
+    environment:
+      DD_API_KEY: 'ENC[datadog-key]'
+      DD_DOGSTATSD_NON_LOCAL_TRAFFIC: 'true'
+      DD_PROCESS_AGENT_ENABLED: 'true'
+      DD_HOSTNAME: azure-modix-bot
+      DD_SECRET_BACKEND_COMMAND: /readsecret.py
+      DD_SECRET_BACKEND_ARGUMENTS: /run/secrets
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '1'
+          memory: 500M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+      update_config:
+        parallelism: 2
+        delay: 0s
+        order: start-first
+      restart_policy:
+        condition: any
+        delay: 0s
+    secrets:
+      - datadog-key
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup:/host/sys/fs/cgroup:ro
+    networks:
+      - datadog
+      
+# the modix bot
+  modix:
+    image: ghcr.io/discord-csharp/modix:latest
+    environment:
+      COREHOST_TRACE: '0'
+      MessageCacheSize: '1000'
+      MODIX_DiscordClientId: '550841992809152542'
+      MODIX_LogWebhookId: '382609729802862592'
+      MODIX_ReplUrl: http://repl:31337/eval
+      MODIX_IlUrl: http://repl:31337/il
+      MODIX_EnableStatsd: 'True'
+      DD_AGENT_HOST: datadog-agent
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        delay: 0s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 0s
+    secrets:
+      - source: discord-bot-token
+        target: DiscordToken
+      - source: discord-client-secret
+        target: DiscordClientSecret
+      - source: stackoverflow-token
+        target: StackoverflowToken
+      - source: db-connection-string
+        target: DbConnection
+      - source: log-webhook-token
+        target: LogWebhookToken
+    volumes:
+      - modix-keys:/app/dataprotection
+      - modix-logs:/app/logs
+    networks:
+      - proxy
+      - repl
+      - datadog
+      - modix
+      
+# the translation feature of the modix bot
+  modix-translator:
+    image: ghcr.io/discord-csharp/modix-translator:latest
+    environment:
+      COREHOST_TRACE: '0'
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        delay: 0s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 0s
+    secrets:
+      - source: discord-bot-token
+        target: DISCORDTOKEN
+      - source: azure-translation-service-key
+        target: AZURETRANSLATIONKEY
+
+# pgadmin instance with access to the modix instance
+  db-admin:
+    image: dpage/pgadmin4:latest
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=cisien@cisien.com
+      - PGADMIN_DEFAULT_PASSWORD=CHANGEME
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 0s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 0s
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - proxy
+      
+# grafana instance with access to the modix database
+  stats:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SERVER_ROOT_URL=https://stats.mod.gg
+      - GF_SECURITY_ADMIN_PASSWORD=CHANGEME
+      - GF_PATHS_CONFIG=/gfdata/grafana.ini
+      - GF_PATHS_DATA=/gfdata/data
+      - GF_PATHS_PROVISIONING=/gfdata/provisioning
+      - GF_DATABASE_TYPE=sqlite3
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 0s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 0s
+    volumes:
+      - grafana-data:/gfdata:rw
+    networks:
+      - proxy
+
+# log viewer/aggregator
+  seq:
+    image: datalust/seq:latest
+    environment: 
+      - ACCEPT_EULA=Y
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          cpus: '2'
+          memory: 3G
+        reservations:
+          cpus: '0.5'
+          memory: 1G
+      update_config:
+        parallelism: 1
+        delay: 0s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 0s
+    volumes:
+      - seq-data:/data
+    networks:
+      - modix
+      - proxy
+      - seq
+# receives docker logs with the gelf docker log driver
+  seq-input-gelf:
+    image: datalust/seq-input-gelf:latest
+    environment:
+      - SEQ_ADDRESS=http://seq:5341
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 0s
+    ports:
+      - "12201:12201/udp"
+    networks:
+      - repl
+      - seq
+ 
+#experimental services
+  webhook:
+    image: ghcr.io/discord-csharp/discordwebhookproxy:latest
+    environment: 
+      - ASPNETCORE_URLS=http://+:8023
+    deploy:
+      mode: replicated
+      replicas: 1
+      update_config:
+        delay: 0s
+        order: stop-first
+      restart_policy:
+        condition: any
+        delay: 0s
+    secrets:
+      - source: modix-dev-token
+        target: DiscordToken
+    volumes:
+      - modix-keys:/app/dataprotection
+      - modix-logs:/app/logs
+    networks:
+      - proxy      
+networks:
+  proxy:
+    driver: overlay
+  repl:
+    driver: overlay
+  modix:
+    driver: overlay
+  datadog:
+    driver: overlay
+  seq:
+    driver: overlay
+  portainer_agent_network:
+    external:
+      name: portainer_agent_network
+secrets:
+  discord-bot-token:
+    external: true
+  discord-client-secret:
+    external: true
+  stackoverflow-token:
+    external: true
+  db-connection-string:
+    external: true
+  log-webhook-token:
+    external: true
+  datadog-key:
+    external: true
+  azure-translation-service-key:
+    external: true
+  modix-dev-token:
+    external: true
+volumes:
+  pgadmin-data:
+  grafana-data:
+  swag-config:
+  hastebin-data:
+  modix-keys:
+  modix-logs:
+  seq-data:
+    driver_opts:
+      type: local
+      o: bind
+      device: /data/1/seq
+    
+  #workaround for swarm not supporting tmpfs mounts
+  repl-tmp:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
+  repl-var:
+    driver_opts:
+      type: tmpfs
+      device: tmpfs

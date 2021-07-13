@@ -53,6 +53,12 @@ namespace Modix
                     Path.Combine("logs", "{Date}.clef"),
                     retainedFileCountLimit: 2);
 
+            var seqEndpoint = config.GetValue<string>(nameof(ModixConfig.SeqEndpoint));
+            if (!string.IsNullOrWhiteSpace(seqEndpoint))
+            { 
+                loggerConfig = loggerConfig.WriteTo.Seq(seqEndpoint, LogEventLevel.Information);
+            }
+
             var webhookId = config.GetValue<ulong>(nameof(ModixConfig.LogWebhookId));
             var webhookToken = config.GetValue<string>(nameof(ModixConfig.LogWebhookToken));
 

@@ -2,6 +2,8 @@
 {
     public class ModixConfig
     {
+        public string SeqEndpoint { get; set; } = null!;
+
         public string DiscordToken { get; set; } = null!;
 
         public string StackoverflowToken { get; set; } = null!;
