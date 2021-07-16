@@ -53,4 +53,3 @@ jobs:
         uses: enflo/curl-action@fabe347922c7a9e88bafa15c4b7d6326ea802695
         with:
           curl: -X POST ${{ secrets.MODIX_UPDATE_WEBHOOK }}
-
