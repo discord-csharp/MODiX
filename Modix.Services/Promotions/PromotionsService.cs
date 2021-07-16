@@ -151,7 +151,7 @@ namespace Modix.Services.Promotions
 
             if (subject.IsBot)
             {
-                return;
+                throw new InvalidOperationException("Bots cannot be nominated for a promotion campaign.");
             }
 
             if (!TryGetNextRankRoleForUser(rankRoles, subject, out var nextRankRole, out var message))
