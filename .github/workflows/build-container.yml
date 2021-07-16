@@ -41,7 +41,7 @@ jobs:
         uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
         with:
           context: .
-          push: true
+          push: github.event_name != 'pull_request'
           tags: ${{ steps.meta-main.outputs.tags }}${{ steps.meta-pr.outputs.tags }}
           labels: ${{ steps.meta-main.outputs.labels }}${{ steps.meta-pr.outputs.labels }}
       - name: Sleep for 15 seconds
