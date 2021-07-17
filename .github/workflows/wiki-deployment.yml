@@ -3,9 +3,9 @@ name: Wiki Deployment
 on:
   push:
     branches:
-      - master
+      - main
     paths:
-      - 'wiki/**'    
+      - 'wiki/**'
 
 jobs:
   sync-wiki-files:
