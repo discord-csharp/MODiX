@@ -65,14 +65,15 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
-    if: ${{ success() && github.event_name == 'push' && env.PORTAINER_WEBHOOK != 0 }}
     needs: build
     steps:
       - name: Sleep for 15 seconds
+        if: ${{ success() && github.event_name == 'push' && env.PORTAINER_WEBHOOK != 0 }}
         run: sleep 15s
         shell: bash
         
       - name: Signal New Build
         uses: enflo/curl-action@fabe347922c7a9e88bafa15c4b7d6326ea802695
+        if: ${{ success() && github.event_name == 'push' && env.PORTAINER_WEBHOOK != 0 }}
         with:
           curl: -X POST ${{ env.PORTAINER_WEBHOOK }}
