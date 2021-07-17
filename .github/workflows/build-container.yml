@@ -60,7 +60,7 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && env.PORTAINER_WEBHOOK != 0 }}
+    if: ${{ github.event_name == 'push' && github.event_name == 'push' }} #env.PORTAINER_WEBHOOK != 0
     steps:
       - name: Sleep for 15 seconds
         run: sleep 15s
