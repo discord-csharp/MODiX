@@ -12,7 +12,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  PORTAINER_WEBHOOK: ${{ secrets.MODIX_UPDATE_WEBHOOK }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -62,12 +62,12 @@ jobs:
     needs: build
     steps:
       - name: Sleep for 15 seconds
-        if: ${{ github.event_name == 'push' && env.PORTAINER_WEBHOOK != 0 }}
+        if: ${{ github.event_name == 'push' && secrets.MODIX_UPDATE_WEBHOOK != 0 }}
         run: sleep 15s
         shell: bash
         
       - name: Signal New Build
         uses: enflo/curl-action@fabe347922c7a9e88bafa15c4b7d6326ea802695
-        if: ${{ github.event_name == 'push' && env.PORTAINER_WEBHOOK != 0 }}
+        if: ${{ github.event_name == 'push' && secrets.MODIX_UPDATE_WEBHOOK != 0 }}
         with:
-          curl: -X POST ${{ env.PORTAINER_WEBHOOK }}
+          curl: -X POST ${{ secrets.MODIX_UPDATE_WEBHOOK }}
