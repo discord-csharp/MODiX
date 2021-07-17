@@ -34,7 +34,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' }}
+    if: github.event_name == 'push'
     permissions:
       contents: read
       packages: write
@@ -59,7 +59,7 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && (secrets.MODIX_UPDATE_WEBHOOK != null || secrets.MODIX_UPDATE_WEBHOOK != '')}}
+    if: ${{ github.event_name == 'push' && (secrets.MODIX_UPDATE_WEBHOOK != null || secrets.MODIX_UPDATE_WEBHOOK != '') }}
     steps:
       - name: Sleep for 15 seconds
         run: sleep 15s
