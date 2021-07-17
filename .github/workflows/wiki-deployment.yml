@@ -3,7 +3,7 @@ name: Wiki Deployment
 on:
   push:
     branches:
-      - master
+      - main
     paths:
       - 'wiki/**'    
 
