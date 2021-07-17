@@ -7,7 +7,6 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -17,39 +16,61 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Log into registry ${{ env.REGISTRY }}
-        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
+      
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1.5.1
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          version: latest
+          install: true
+
       - name: Extract Docker metadata for main build
         id: meta-main
         if: github.event_name != 'pull_request'
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        uses: docker/metadata-action@v3.4.1
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           flavor: |
             latest=true
+            
       - name: Extract Docker metadata for pr build
         if: github.event_name == 'pull_request'
         id: meta-pr
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        uses: docker/metadata-action@v3.4.1
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-      - name: Build and push Docker image
-        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+          
+      - name: mkdir
+        run: mkdir -p /tmp/publish
+        
+      - name: Run Tests
+        uses: docker/build-push-action@v2.6.1
         with:
           context: .
-          push: github.event_name != 'pull_request'
-          tags: ${{ steps.meta-main.outputs.tags }}${{ steps.meta-pr.outputs.tags }}
-          labels: ${{ steps.meta-main.outputs.labels }}${{ steps.meta-pr.outputs.labels }}
-      - name: Sleep for 15 seconds
-        if: github.event_name != 'pull_request'
-        run: sleep 15s
-        shell: bash
-      - name: Signal New Build
-        if: github.event_name != 'pull_request'
-        uses: enflo/curl-action@fabe347922c7a9e88bafa15c4b7d6326ea802695
+          target: dotnet-test
+          push: false
+          cache-to: type=gha, scope=${{github.repository}}
+          cache-from: type=gha, scope=${{github.repository}}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2.6.1
         with:
-          curl: -X POST ${{ secrets.MODIX_UPDATE_WEBHOOK }}
+          context: .
+          push: false
+          cache-to: type=gha, scope=${{github.repository}}
+          cache-from: type=gha, scope=${{github.repository}}
+          outputs: type=tar,dest=/tmp/publish/container.tar
+
+      - name: compress image
+        run: gzip /tmp/publish/container.tar
+      
+      - name: save tags
+        run: echo $'${{ steps.meta-main.outputs.tags }}${{ steps.meta-pr.outputs.tags }}' >> /tmp/publish/tags
+      
+      - name: upload exported container to artifacts
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: docker-container
+          path: /tmp/publish/*
+          retention-days: 1
+
