@@ -25,24 +25,12 @@ jobs:
           install: true
 
       - name: Extract Docker metadata for main build
-        id: meta-main
-        if: github.event_name != 'pull_request'
+        id: meta
         uses: docker/metadata-action@v3.4.1
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          flavor: |
-            latest=true
-            
-      - name: Extract Docker metadata for pr build
-        if: github.event_name == 'pull_request'
-        id: meta-pr
-        uses: docker/metadata-action@v3.4.1
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          
-      - name: mkdir
-        run: mkdir -p /tmp/publish
-        
+          flavor: 'latest=${{ github.event_name == "push" }}'
+
       - name: Run Tests
         uses: docker/build-push-action@v2.6.1
         with:
@@ -56,21 +44,21 @@ jobs:
         uses: docker/build-push-action@v2.6.1
         with:
           context: .
-          push: false
+          push: github.event_name == 'push'
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-to: type=gha, scope=${{github.repository}}
           cache-from: type=gha, scope=${{github.repository}}
-          outputs: type=tar,dest=/tmp/publish/container.tar
 
-      - name: compress image
-        run: gzip /tmp/publish/container.tar
-      
-      - name: save tags
-        run: echo $'${{ steps.meta-main.outputs.tags }}${{ steps.meta-pr.outputs.tags }}' >> /tmp/publish/tags
-      
-      - name: upload exported container to artifacts
-        uses: actions/upload-artifact@v2.2.4
+  publish:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' && secrets.MODIX_UPDATE_WEBHOOK }}
+    steps:
+      - name: Sleep for 15 seconds
+        run: sleep 15s
+        shell: bash
+        
+      - name: Signal New Build
+        uses: enflo/curl-action@fabe347922c7a9e88bafa15c4b7d6326ea802695
         with:
-          name: docker-container
-          path: /tmp/publish/*
-          retention-days: 1
-
+          curl: -X POST ${{ secrets.MODIX_UPDATE_WEBHOOK }}
