@@ -8,11 +8,10 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -24,14 +23,6 @@ jobs:
           version: latest
           install: true
 
-      - name: Extract Docker metadata for main build
-        id: meta
-        uses: docker/metadata-action@v3.4.1
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          flavor: |
-            latest=${{ github.event_name == 'push' }}
-
       - name: Run Tests
         uses: docker/build-push-action@v2.6.1
         with:
@@ -40,7 +31,22 @@ jobs:
           push: false
           cache-to: type=gha, scope=${{github.repository}}
           cache-from: type=gha, scope=${{github.repository}}
-      
+
+  build:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'push' }}
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Extract Docker metadata for main build
+        id: meta
+        uses: docker/metadata-action@v3.4.1
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          flavor: |
+            latest=${{ github.event_name == 'push' }}
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v2.6.1
         with:
@@ -53,7 +59,7 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && secrets.MODIX_UPDATE_WEBHOOK }}
+    if: ${{ github.event_name == 'push' && (secrets.MODIX_UPDATE_WEBHOOK != null || secrets.MODIX_UPDATE_WEBHOOK != '')}}
     steps:
       - name: Sleep for 15 seconds
         run: sleep 15s
@@ -62,7 +68,4 @@ jobs:
       - name: Signal New Build
         uses: enflo/curl-action@fabe347922c7a9e88bafa15c4b7d6326ea802695
         with:
-          name: docker-container
-          path: /tmp/publish/*
-          retention-days: 1
-
+          curl: -X POST ${{ secrets.MODIX_UPDATE_WEBHOOK }}
