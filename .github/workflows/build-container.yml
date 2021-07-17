@@ -9,7 +9,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   PORTAINER_WEBHOOK: ${{ secrets.MODIX_UPDATE_WEBHOOK }}
 jobs:
-  test:
+  pre:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,6 +24,10 @@ jobs:
           version: latest
           install: true
 
+  test:
+    runs-on: ubuntu-latest
+    needs: pre
+    steps:
       - name: Run Tests
         uses: docker/build-push-action@v2.6.1
         with:
@@ -36,6 +40,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
+    needs: test
     permissions:
       contents: read
       packages: write
@@ -52,7 +57,7 @@ jobs:
         uses: docker/build-push-action@v2.6.1
         with:
           context: .
-          push: github.event_name == 'push'
+          push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-to: type=gha, scope=${{github.repository}}
@@ -60,7 +65,8 @@ jobs:
 
   publish:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' && github.event_name == 'push' }} #env.PORTAINER_WEBHOOK != 0
+    if: ${{ github.event_name == 'push' && env.PORTAINER_WEBHOOK != 0 }}
+    needs: build
     steps:
       - name: Sleep for 15 seconds
         run: sleep 15s
