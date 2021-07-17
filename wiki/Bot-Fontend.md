@@ -114,3 +114,4 @@ public class CommandListeningBehavior
 Testing should generally focus on behaviors and decision making. Where rendering is involved, testing should usually only worry about ensuring that rendering occurs without error, not necessarily examining render output. Where applicable, render output generated during testing can be dumped to the Console (which the testing framwork should intercept for logging purposes) where it can be visually examined by a developer.
 
 See [Testing](Testing) for more information.
+
