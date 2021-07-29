@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Core;
 using Remora.Results;
@@ -38,8 +37,10 @@ namespace Modix.RemoraShim.Services
             var confirmationMessageSendResult = await _channelApi.CreateMessageAsync(channelId, mainMessage +
                 $"React with {ConfirmButtonEmoji} or {CancelButtonEmoji} in the next {ConfirmationTimeoutSeconds} seconds to finalize or cancel the operation.");
 
-            if (!confirmationMessageSendResult.IsSuccess || confirmationMessageSendResult.Entity is not IMessage confirmationMessage)
+            if (!confirmationMessageSendResult.IsSuccess)
                 return Result<bool>.FromError(confirmationMessageSendResult);
+
+            var confirmationMessage = confirmationMessageSendResult.Entity;
 
             var createConfirmButtonResult = await _channelApi.CreateReactionAsync(channelId, confirmationMessage.ID, ConfirmButtonEmoji);
             if (!createConfirmButtonResult.IsSuccess)

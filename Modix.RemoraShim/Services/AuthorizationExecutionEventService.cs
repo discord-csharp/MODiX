@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using Modix.RemoraShim.Errors;
 using Modix.Services.Core;
 
 using Remora.Discord.API.Abstractions.Rest;
@@ -37,8 +38,11 @@ namespace Modix.RemoraShim.Services
             try
             {
                 var channelResult = await _channelApi.GetChannelAsync(context.ChannelID, ct);
-                if (!channelResult.IsSuccess || channelResult.Entity is { ThreadMetadata: { HasValue: false } })
+                if (!channelResult.IsSuccess)
                     return Result.FromError(channelResult);
+
+                if (channelResult.Entity is { ThreadMetadata: { HasValue: false } })
+                    return Result.FromError(new NonThreadContextError(context.ChannelID));
 
                 var guildUser = await _userService.GetGuildUserAsync(context.GuildID.Value.Value, context.User.ID.Value);
                 await _authorizationService.OnAuthenticatedAsync(guildUser);
