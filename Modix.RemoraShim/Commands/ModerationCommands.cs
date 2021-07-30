@@ -23,13 +23,11 @@ namespace Modix.RemoraShim.Commands
         : CommandGroup
     {
         public ModerationCommands(
-            IDiscordRestChannelAPI channelApi,
             ICommandContext context,
             ICommandConfirmationService commandConfirmationService,
             IModerationService moderationService,
             IUserService userService)
         {
-            _channelApi = channelApi;
             _context = context;
             _commandConfirmationService = commandConfirmationService;
             _moderationService = moderationService;
@@ -38,11 +36,14 @@ namespace Modix.RemoraShim.Commands
 
         [Command("note")]
         public async Task<IResult> NoteAsync(UserOrMessageAuthor subject, [Greedy] string reason)
-        {
-            var channelResult = await _channelApi.GetChannelAsync(_context.ChannelID);
-            if (!channelResult.IsSuccess)
-                return Result.FromError(channelResult);
+            => await CreateInfractionAsync(subject, reason, InfractionType.Notice);
 
+        [Command("warn")]
+        public async Task<IResult> WarnAsync(UserOrMessageAuthor subject, [Greedy] string reason)
+            => await CreateInfractionAsync(subject, reason, InfractionType.Warning);
+
+        private async Task<IResult> CreateInfractionAsync(UserOrMessageAuthor subject, string reason, InfractionType infractionType, TimeSpan? duration = null)
+        {
             var confirmationResult = await GetConfirmationIfRequiredAsync(subject);
             if (!confirmationResult.IsSuccess || !confirmationResult.Entity)
                 return Result.FromSuccess();
@@ -50,7 +51,7 @@ namespace Modix.RemoraShim.Commands
             try
             {
                 var reasonWithUrls = AppendUrlsFromMessage(reason);
-                await _moderationService.CreateInfractionAsync(_context.GuildID.Value.Value, _context.User.ID.Value, InfractionType.Notice, subject.User.ID.Value, reasonWithUrls, duration: null);
+                await _moderationService.CreateInfractionAsync(_context.GuildID.Value.Value, _context.User.ID.Value, infractionType, subject.User.ID.Value, reasonWithUrls, duration: duration);
                 return await ConfirmAsync();
             }
             catch (Exception ex)
@@ -100,7 +101,6 @@ namespace Modix.RemoraShim.Commands
             return await _commandConfirmationService.AddConfirmationAsync(_context.ChannelID, messageContext.MessageID);
         }
 
-        private readonly IDiscordRestChannelAPI _channelApi;
         private readonly ICommandContext _context;
         private readonly ICommandConfirmationService _commandConfirmationService;
         private readonly IModerationService _moderationService;

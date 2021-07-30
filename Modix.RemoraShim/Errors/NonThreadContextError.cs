@@ -3,6 +3,6 @@ using Remora.Results;
 
 namespace Modix.RemoraShim.Errors
 {
-    internal record NonThreadContextError(Snowflake channelId)
-        : ResultError($"Command was executed outside of a thread. (ChannelId {channelId})");
+    internal record NonThreadContextError(Snowflake ChannelId)
+        : ResultError($"Command was executed outside of a thread. (ChannelId {ChannelId})");
 }
