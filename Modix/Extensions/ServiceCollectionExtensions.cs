@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
+
 using Discord;
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Polly.Extensions.Http;
 using Microsoft.Extensions.Options;
 
 using Modix;
@@ -19,6 +20,7 @@ using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.DataDog;
+using Modix.RemoraShim;
 using Modix.Services;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.CodePaste;
@@ -39,8 +41,11 @@ using Modix.Services.Starboard;
 using Modix.Services.Tags;
 using Modix.Services.Utilities;
 using Modix.Services.Wikipedia;
-using StatsdClient;
+
 using Polly;
+using Polly.Extensions.Http;
+
+using StatsdClient;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -166,6 +171,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<INotificationHandler<PromotionActionCreatedNotification>, PromotionLoggingHandler>();
 
             services.AddHostedService<ModixBot>();
+
+            services.AddRemoraShim(configuration);
 
             return services;
         }

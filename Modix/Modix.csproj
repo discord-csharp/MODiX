@@ -56,6 +56,7 @@
     <ProjectReference Include="..\Modix.Bot\Modix.Bot.csproj" />
     <ProjectReference Include="..\Modix.Common\Modix.Common.csproj" />
     <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
+    <ProjectReference Include="..\Modix.RemoraShim\Modix.RemoraShim.csproj" />
     <ProjectReference Include="..\Modix.Services\Modix.Services.csproj" />
   </ItemGroup>
 
