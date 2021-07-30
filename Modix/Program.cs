@@ -35,7 +35,10 @@ namespace Modix
                 configBuilder.AddUserSecrets<Program>();
             }
 
-            var config = configBuilder.Build();
+            var builtConfig = configBuilder.Build();
+            var config = new ModixConfig();
+            builtConfig.Bind(config);
+
 
             var loggerConfig = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
@@ -53,21 +56,27 @@ namespace Modix
                     Path.Combine("logs", "{Date}.clef"),
                     retainedFileCountLimit: 2);
 
-            var seqEndpoint = config.GetValue<string>(nameof(ModixConfig.SeqEndpoint));
-            if (!string.IsNullOrWhiteSpace(seqEndpoint))
+            var seqEndpoint = config.SeqEndpoint;
+            var seqKey = config.SeqKey;
+
+            if (seqEndpoint != null && seqKey == null) // seq is enabled without a key
             { 
-                loggerConfig = loggerConfig.WriteTo.Seq(seqEndpoint, LogEventLevel.Information);
+                loggerConfig = loggerConfig.WriteTo.Seq(seqEndpoint);
+            }
+            else if(seqEndpoint != null && seqKey != null) //seq is enabled with a key
+            {
+                loggerConfig = loggerConfig.WriteTo.Seq(seqEndpoint, apiKey: seqKey);
             }
 
-            var webhookId = config.GetValue<ulong>(nameof(ModixConfig.LogWebhookId));
-            var webhookToken = config.GetValue<string>(nameof(ModixConfig.LogWebhookToken));
+            var webhookId = config.LogWebhookId;
+            var webhookToken = config.LogWebhookToken;
 
-            var webHost = CreateWebHostBuilder(args, config).Build();
+            var webHost = CreateWebHostBuilder(args, builtConfig).Build();
 
-            if (webhookId != default && string.IsNullOrWhiteSpace(webhookToken) == false)
+            if (webhookId.HasValue && webhookToken != null)
             {
                 loggerConfig = loggerConfig
-                    .WriteTo.DiscordWebhookSink(webhookId, webhookToken, LogEventLevel.Error, webHost.Services.GetRequiredService<CodePasteService>());
+                    .WriteTo.DiscordWebhookSink(webhookId.Value, webhookToken, LogEventLevel.Error, webHost.Services.GetRequiredService<CodePasteService>());
             }
 
             Log.Logger = loggerConfig.CreateLogger();
