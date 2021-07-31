@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Modix.Data.Models.Moderation;
+using Modix.RemoraShim.Models;
 using Modix.RemoraShim.Parsers;
 using Modix.RemoraShim.Services;
 using Modix.Services.Core;
@@ -25,11 +26,13 @@ namespace Modix.RemoraShim.Commands
         public ModerationCommands(
             ICommandContext context,
             ICommandConfirmationService commandConfirmationService,
+            IDiscordRestChannelAPI channelApi,
             IModerationService moderationService,
             IUserService userService)
         {
             _context = context;
             _commandConfirmationService = commandConfirmationService;
+            _channelApi = channelApi;
             _moderationService = moderationService;
             _userService = userService;
         }
@@ -41,6 +44,26 @@ namespace Modix.RemoraShim.Commands
         [Command("warn")]
         public async Task<IResult> WarnAsync(UserOrMessageAuthor subject, [Greedy] string reason)
             => await CreateInfractionAsync(subject, reason, InfractionType.Warning);
+
+        [Command("mute", "tempmute")]
+        public async Task<IResult> MuteAsync(UserOrMessageAuthor subject, TimeSpan duration, [Greedy] string reason)
+            => await CreateInfractionAsync(subject, reason, InfractionType.Mute, duration);
+
+        [Command("mute", "tempmute")]
+        public async Task<IResult> MuteAsync(TimeSpan duration, UserOrMessageAuthor subject, [Greedy] string reason)
+            => await CreateInfractionAsync(subject, reason, InfractionType.Mute, duration);
+
+        [Command("unmute")]
+        public async Task<IResult> UnmuteAsync(UserOrMessageAuthor subject, [Greedy] string reason = "")
+            => await RescindInfractionAsync(subject, reason, InfractionType.Mute);
+
+        [Command("ban", "forceban")]
+        public async Task<IResult> BanAsync(UserOrMessageAuthor subject, [Greedy] string reason)
+            => await CreateInfractionAsync(subject, reason, InfractionType.Ban);
+
+        [Command("unban")]
+        public async Task<IResult> UnbanAsync(UserOrMessageAuthor subject, [Greedy] string reason = "")
+            => await RescindInfractionAsync(subject, reason, InfractionType.Ban);
 
         private async Task<IResult> CreateInfractionAsync(UserOrMessageAuthor subject, string reason, InfractionType infractionType, TimeSpan? duration = null)
         {
@@ -56,6 +79,26 @@ namespace Modix.RemoraShim.Commands
             }
             catch (Exception ex)
             {
+                await _channelApi.CreateMessageAsync(_context.ChannelID, ex.Message, allowedMentions: new NoAllowedMentions());
+                return Result.FromError(new ExceptionError(ex));
+            }
+        }
+
+        private async Task<IResult> RescindInfractionAsync(UserOrMessageAuthor subject, string reason, InfractionType infractionType)
+        {
+            var confirmationResult = await GetConfirmationIfRequiredAsync(subject);
+            if (!confirmationResult.IsSuccess || !confirmationResult.Entity)
+                return Result.FromSuccess();
+
+            try
+            {
+                var reasonWithUrls = AppendUrlsFromMessage(reason);
+                await _moderationService.RescindInfractionAsync(infractionType, _context.GuildID.Value.Value, subject.User.ID.Value, reasonWithUrls);
+                return await ConfirmAsync();
+            }
+            catch (Exception ex)
+            {
+                await _channelApi.CreateMessageAsync(_context.ChannelID, ex.Message, allowedMentions: new NoAllowedMentions());
                 return Result.FromError(new ExceptionError(ex));
             }
         }
@@ -103,6 +146,7 @@ namespace Modix.RemoraShim.Commands
 
         private readonly ICommandContext _context;
         private readonly ICommandConfirmationService _commandConfirmationService;
+        private readonly IDiscordRestChannelAPI _channelApi;
         private readonly IModerationService _moderationService;
         private readonly IUserService _userService;
     }

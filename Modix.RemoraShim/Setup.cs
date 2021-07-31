@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 
 using Modix.Data.Models.Core;
 using Modix.RemoraShim.Commands;
+using Modix.RemoraShim.Responders;
 
 using Remora.Discord.API.Abstractions.Gateway.Commands;
 using Remora.Discord.Gateway;
@@ -24,6 +25,7 @@ namespace Modix.RemoraShim
                     GatewayIntents.GuildMessages |
                     GatewayIntents.Guilds)
                 .AddHostedService<ModixBot>()
+                .AddResponders()
                 .AddCommands();
     }
 }
