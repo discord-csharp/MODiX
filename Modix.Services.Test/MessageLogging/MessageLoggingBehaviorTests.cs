@@ -28,8 +28,7 @@ namespace Modix.Services.Test.MessageLogging
     {
         #region Test Context
 
-        public class TestContext
-            : AsyncMethodWithLoggerTestContext
+        public class TestContext : AsyncMethodWithLoggerTestContext
         {
             public TestContext(
                 ulong selfUserId,
@@ -39,8 +38,8 @@ namespace Modix.Services.Test.MessageLogging
                 MockDesignatedChannelService = new Mock<IDesignatedChannelService>();
                 MockDesignatedChannelService
                     .Setup(x => x.ChannelHasDesignationAsync(
-                        It.IsAny<IGuild>().Id,
-                        It.IsAny<IChannel>().Id,
+                        It.IsAny<ulong>(),
+                        It.IsAny<ulong>(),
                         DesignatedChannelType.Unmoderated,
                         It.IsAny<CancellationToken>()))
                     .ReturnsAsync(isChannelUnmoderated);

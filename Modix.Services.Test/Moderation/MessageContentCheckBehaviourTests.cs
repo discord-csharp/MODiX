@@ -452,12 +452,12 @@ namespace Modix.Services.Test.Moderation
                 message: BuildBlockedContentTestMessage(autoMocker));
 
             var user = autoMocker.Get<IGuildUser>();
-
+            var roles = user.RoleIds?.ToList();
             autoMocker.GetMock<IAuthorizationService>()
                 .Setup(x => x.HasClaimsAsync(
                     user.Id,
                     user.Guild.Id,
-                    user.RoleIds.ToList(),
+                    roles,
                     AuthorizationClaim.BypassMessageContentPatternCheck))
                 .ReturnsAsync(true);
 
@@ -674,11 +674,12 @@ namespace Modix.Services.Test.Moderation
                 newMessage: BuildBlockedContentTestMessage(autoMocker),
                 channel: autoMocker.Get<IISocketMessageChannel>());
             var user = autoMocker.Get<IGuildUser>();
+            var roles = user.RoleIds?.ToList();
             autoMocker.GetMock<IAuthorizationService>()
                 .Setup(x => x.HasClaimsAsync(
                     user.Id,
                     user.Guild.Id,
-                    user.RoleIds.ToList(),
+                    roles,
                     AuthorizationClaim.BypassMessageContentPatternCheck))
                 .ReturnsAsync(true);
 

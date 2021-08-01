@@ -73,7 +73,7 @@ namespace Modix.Services.Moderation
                 return;
             }
 
-            if (await _authorizationService.HasClaimsAsync(author.Id, author.Guild.Id, author.RoleIds.ToList(), AuthorizationClaim.BypassMessageContentPatternCheck))
+            if (await _authorizationService.HasClaimsAsync(author.Id, author.Guild.Id, author.RoleIds?.ToList(), AuthorizationClaim.BypassMessageContentPatternCheck))
             {
                 Log.Debug("Message {MessageId} was skipped because the author {Author} has the {Claim} claim",
                     message.Id, message.Author.Id, AuthorizationClaim.BypassMessageContentPatternCheck);

@@ -38,8 +38,8 @@ namespace Modix.Services.Test.Moderation
                 MockDesignatedChannelService = new Mock<IDesignatedChannelService>();
                 MockDesignatedChannelService
                     .Setup(x => x.ChannelHasDesignationAsync(
-                        It.IsAny<IGuild>().Id,
-                        It.IsAny<IChannel>().Id,
+                        It.IsAny<ulong>(),
+                        It.IsAny<ulong>(),
                         DesignatedChannelType.Unmoderated,
                         It.IsAny<CancellationToken>()))
                     .ReturnsAsync(channelIsUnmoderated);
@@ -183,8 +183,8 @@ namespace Modix.Services.Test.Moderation
             if (guild is null)
                 testContext.MockDesignatedChannelService.ShouldNotHaveReceived(x => x
                     .ChannelHasDesignationAsync(
-                        It.IsAny<IGuild>().Id,
-                        It.IsAny<IChannel>().Id,
+                        It.IsAny<ulong>(),
+                        It.IsAny<ulong>(),
                         It.IsAny<DesignatedChannelType>(),
                         It.IsAny<CancellationToken>()));
             else

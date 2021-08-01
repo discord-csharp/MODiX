@@ -221,7 +221,7 @@ namespace Modix.Services.Test.Core
                     .Invocations
                     .Where(x => x.Method.Name == nameof(IChannelService.TrackChannelAsync))
                     .Select(x => x.Arguments[0])
-                    .ShouldBe(textChannels, ignoreOrder: true);
+                    .ShouldBe(textChannels.Select(a => a.Name), ignoreOrder: true);
             }
         }
 
@@ -337,7 +337,7 @@ namespace Modix.Services.Test.Core
                     .Invocations
                     .Where(x => x.Method.Name == nameof(IChannelService.TrackChannelAsync))
                     .Select(x => x.Arguments[0])
-                    .ShouldBe(textChannels, ignoreOrder: true);
+                    .ShouldBe(textChannels.Select(a => a.Name), ignoreOrder: true);
             }
         }
 

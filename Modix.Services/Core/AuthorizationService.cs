@@ -155,7 +155,7 @@ namespace Modix.Services.Core
         /// A <see cref="Task"/> that will complete when the operation has completed,
         /// containing a flag indicating whether <paramref name="guildUser"/> posesses <paramref name="claims"/>.
         /// </returns>
-        Task<bool> HasClaimsAsync(ulong user, ulong guild, IReadOnlyList<ulong> roles, params AuthorizationClaim[] claims);
+        Task<bool> HasClaimsAsync(ulong user, ulong guild, IReadOnlyList<ulong>? roles, params AuthorizationClaim[] claims);
 
         /// <summary>
         /// Loads authentication and authorization data into the service, based on the given guild, user, and role ID values

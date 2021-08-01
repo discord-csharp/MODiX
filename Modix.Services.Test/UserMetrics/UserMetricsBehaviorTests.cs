@@ -37,8 +37,8 @@ namespace Modix.Services.Test.UserMetrics
                 MockDesignatedChannelService = new Mock<IDesignatedChannelService>();
                 MockDesignatedChannelService
                     .Setup(x => x.ChannelHasDesignationAsync(
-                        It.IsAny<IGuild>().Id,
-                        It.IsAny<IChannel>().Id,
+                        It.IsAny<ulong>(),
+                        It.IsAny<ulong>(),
                         DesignatedChannelType.CountsTowardsParticipation,
                         It.IsAny<CancellationToken>()))
                     .ReturnsAsync(() => IsChannelOnTopic);
@@ -227,9 +227,10 @@ namespace Modix.Services.Test.UserMetrics
                 notification,
                 testContext.CancellationToken);
 
+            var expected = guild?.Id ?? 0;
             testContext.MockDesignatedChannelService.ShouldHaveReceived(x => x
                     .ChannelHasDesignationAsync(
-                        guild.Id,
+                        expected,
                         notification.Message.Channel.Id,
                         DesignatedChannelType.CountsTowardsParticipation,
                         testContext.CancellationToken),
@@ -322,8 +323,8 @@ namespace Modix.Services.Test.UserMetrics
 
             testContext.MockDesignatedChannelService
                 .Setup(x => x.ChannelHasDesignationAsync(
-                    It.IsAny<IGuild>().Id,
-                    It.IsAny<IChannel>().Id,
+                    It.IsAny<ulong>(),
+                    It.IsAny<ulong>(),
                     It.IsAny<DesignatedChannelType>(),
                     It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new Exception());
