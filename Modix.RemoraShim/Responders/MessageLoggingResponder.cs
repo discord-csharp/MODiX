@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Modix.Data.Models.Core;
 using Modix.RemoraShim.Services;
@@ -13,47 +12,58 @@ using Remora.Discord.API.Abstractions.Gateway.Events;
 using Remora.Discord.API.Abstractions.Objects;
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.API.Objects;
+using Remora.Discord.Caching;
+using Remora.Discord.Caching.Services;
 using Remora.Discord.Core;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 
-namespace Modix.RemoraShim.Behaviors
+namespace Modix.RemoraShim.Responders
 {
-    public class MessageLoggingBehavior : IResponder<IMessageDelete>//, IResponder<IMessageUpdate>
+    public class MessageLoggingResponder : IResponder<IMessageDelete>, IResponder<IMessageUpdate>
     {
-        private readonly ILogger<MessageLoggingBehavior> _logger;
-        private readonly IDiscordRestUserAPI _userApi;
+        private readonly ILogger<MessageLoggingResponder> _logger;
         private readonly IDiscordRestChannelAPI _channelApi;
         private readonly IDesignatedChannelService _designatedChannelService;
+        private readonly IAuthorizationContextService _authService;
         private readonly IThreadService _threadSvc;
+        private readonly CacheService _cache;
 
-        public MessageLoggingBehavior(ILogger<MessageLoggingBehavior> logger,
-            IDiscordRestUserAPI userApi,
+        public MessageLoggingResponder(ILogger<MessageLoggingResponder> logger,
             IDiscordRestChannelAPI channelApi,
             IDesignatedChannelService designatedChannelService,
-            IThreadService threadService)
+            IAuthorizationContextService authService,
+            IThreadService threadService,
+            CacheService cache)
         {
             _logger = logger;
-            _userApi = userApi;
             _channelApi = channelApi;
             _designatedChannelService = designatedChannelService;
+            _authService = authService;
             _threadSvc = threadService;
+            _cache = cache;
         }
 
         public async Task<Result> RespondAsync(IMessageDelete gatewayEvent, CancellationToken ct = default)
         {
-            await HandleNotificationAsync(gatewayEvent, ct);
+            var key = KeyHelpers.CreateMessageCacheKey(gatewayEvent.ChannelID, gatewayEvent.ID);
+            _cache.TryGetValue<IMessage>(key, out var previousMessage);
+
+            await HandleNotificationAsync(gatewayEvent, previousMessage, ct);
             return Result.FromSuccess();
         }
 
         public async Task<Result> RespondAsync(IMessageUpdate gatewayEvent, CancellationToken ct = default)
         {
-            await HandleNotificationAsync(gatewayEvent, ct);
+            var key = KeyHelpers.CreateMessageCacheKey(gatewayEvent.ChannelID.Value, gatewayEvent.ID.Value);
+            _cache.TryGetValue<IMessage>(key, out var previousMessage);
+
+            await HandleNotificationAsync(gatewayEvent, previousMessage, ct);
             return Result.FromSuccess();
         }
 
 
-        private async Task HandleNotificationAsync(IMessageDelete notification, CancellationToken cancellationToken)
+        private async Task HandleNotificationAsync(IMessageDelete notification, IMessage? previousMessage, CancellationToken cancellationToken)
         {
             if (!notification.GuildID.HasValue)
             {
@@ -63,7 +73,7 @@ namespace Modix.RemoraShim.Behaviors
             var channelId = notification.ChannelID;
 
             var isThreadChannel = await _threadSvc.IsThreadChannelAsync(channelId, cancellationToken);
-            if(!isThreadChannel)
+            if (!isThreadChannel)
             {
                 return;
             }
@@ -76,13 +86,14 @@ namespace Modix.RemoraShim.Behaviors
 
             await TryLogAsync(
                 guild,
+                previousMessage?.Author.ID,
                 null,
                 null,
                 notification.ChannelID,
                 () =>
                 {
                     var fields = Enumerable.Empty<IEmbedField>()
-                        .Concat(FormatMessageContent(null)
+                        .Concat(FormatMessageContent(previousMessage?.Content ?? "[Message was not in cache]")
                             .EnumerateLongTextAsFieldBuilders("**Content**"))
                         .Append(new EmbedField("Channel ID", notification.ChannelID.Value.ToString(), true))
                         .Append(new EmbedField("Message ID", notification.ID.Value.ToString(), true));
@@ -96,7 +107,7 @@ namespace Modix.RemoraShim.Behaviors
             MessageLoggingLogMessages.MessageDeletedHandled(_logger);
         }
 
-        public async Task HandleNotificationAsync(IPartialMessage notification, CancellationToken cancellationToken)
+        public async Task HandleNotificationAsync(IPartialMessage notification, IMessage? previousMessage, CancellationToken cancellationToken)
         {
             if (!notification.GuildID.HasValue)
             {
@@ -119,7 +130,8 @@ namespace Modix.RemoraShim.Behaviors
             var author = notification.Author.HasValue ? notification.Author.Value : null;
             await TryLogAsync(
                 guild,
-                notification.ReferencedMessage.HasValue ? new Optional<IPartialMessage>(notification.ReferencedMessage.Value!.ToPartialMessage()) : new Optional<IPartialMessage>(),
+                notification.Author.Value.ID,
+                previousMessage != null ? new Optional<IPartialMessage>(previousMessage.ToPartialMessage()) : new Optional<IPartialMessage>(),
                 new Optional<IPartialMessage>(notification),
                 notification.ChannelID.Value,
                 () => new Embed(
@@ -127,11 +139,9 @@ namespace Modix.RemoraShim.Behaviors
                     Description: $"\\📝 **Message edited in {notification.GetJumpUrlForEmbed()}**",
                     Timestamp: DateTimeOffset.UtcNow,
                     Fields: Enumerable.Empty<IEmbedField>()
-                        .Concat(FormatMessageContent(
-                            notification.Content.HasValue ? notification.Content.Value : null)
+                        .Concat(FormatMessageContent(previousMessage?.Content ?? "[Message was not in cache]")
                             .EnumerateLongTextAsFieldBuilders("**Original**", false))
-                        .Concat(FormatMessageContent(
-                            notification.ReferencedMessage.HasValue ? notification.ReferencedMessage.Value?.Content : null)
+                        .Concat(FormatMessageContent(notification.Content.HasValue ? notification.Content.Value : null)
                             .EnumerateLongTextAsFieldBuilders("**Updated**", false))
                         .Append(new EmbedField("Channel ID", notification.ChannelID.Value.Value.ToString(), true))
                         .Append(new EmbedField("Message ID", notification.ID.Value.ToString(), true)).ToList()),
@@ -149,6 +159,7 @@ namespace Modix.RemoraShim.Behaviors
 
         private async Task TryLogAsync(
             Optional<Snowflake> guildId,
+            Optional<Snowflake>? userId,
             Optional<IPartialMessage>? oldMessage,
             Optional<IPartialMessage>? newMessage,
             Snowflake channel,
@@ -161,7 +172,7 @@ namespace Modix.RemoraShim.Behaviors
                 return;
             }
 
-            if (oldMessage.HasValue && newMessage.HasValue) // both are null on delete
+            if (oldMessage.HasValue && newMessage.HasValue) // new message doesn't have value on delete old message only has a value if cached
             {
                 // I.E. we have content for both messages and can see for sure it hasn't changed, E.G. Embed changes
                 if (oldMessage.GetOptionalValueOrDefault()?.Content == newMessage.GetOptionalValueOrDefault()?.Content)
@@ -169,15 +180,6 @@ namespace Modix.RemoraShim.Behaviors
                     MessageLoggingLogMessages.IgnoringUnchangedMessage(_logger);
                     return;
                 }
-            }
-
-            var selfUser = await _userApi.GetCurrentUserAsync(cancellationToken);
-            MessageLoggingLogMessages.SelfUserFetched(_logger, selfUser.Entity!.ID.Value);
-
-            if ((oldMessage?.Value.Author ?? newMessage?.Value.Author)?.Value.ID == selfUser.Entity.ID)
-            {
-                MessageLoggingLogMessages.IgnoringSelfAuthoredMessage(_logger);
-                return;
             }
 
             var channelIsUnmoderated = await _designatedChannelService.ChannelHasDesignationAsync(
@@ -191,6 +193,8 @@ namespace Modix.RemoraShim.Behaviors
                 return;
             }
             MessageLoggingLogMessages.ModeratedChannelIdentified(_logger);
+
+            await _authService.SetCurrentAuthenticatedUserAsync(guildId.Value, userId?.Value ?? default);
 
             var messageLogChannels = await _designatedChannelService.GetDesignatedChannelsAsync(guildId.Value.Value);
             messageLogChannels = messageLogChannels.Where(a => a.Type == DesignatedChannelType.MessageLog).ToList().AsReadOnly();

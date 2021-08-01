@@ -1,36 +1,31 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Modix.Data.Repositories;
 using Modix.RemoraShim.Services;
 using Modix.Services.Core;
 using Remora.Discord.API.Abstractions.Gateway.Events;
-using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Core;
 using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 using StatsdClient;
 
-namespace Modix.RemoraShim.Behaviors
+namespace Modix.RemoraShim.Responders
 {
-    public class TrackingHandler : IResponder<IMessageCreate>, IResponder<IMessageDelete>, IResponder<IThreadCreate>
+    public class TrackingResponder : IResponder<IMessageCreate>, IResponder<IMessageDelete>, IResponder<IThreadCreate>
     {
         private readonly IDogStatsd _dogStatsd;
-        private readonly ILogger<TrackingHandler> _logger;
+        private readonly ILogger<TrackingResponder> _logger;
         private readonly IMessageRepository _messageRepository;
         private readonly IChannelService _channelService;
-        private readonly IDiscordRestChannelAPI _channelApi;
         private readonly IThreadService _threadService;
 
-        public TrackingHandler(
+        public TrackingResponder(
             IDogStatsd dogStatsd,
-            ILogger<TrackingHandler> logger,
+            ILogger<TrackingResponder> logger,
             IMessageRepository messageRepository,
             IChannelService channelService,
-            IDiscordRestChannelAPI channelApi,
             IThreadService threadSvc
             )
         {
@@ -38,7 +33,6 @@ namespace Modix.RemoraShim.Behaviors
             _logger = logger;
             _messageRepository = messageRepository;
             _channelService = channelService;
-            _channelApi = channelApi;
             _threadService = threadSvc;
         }
 

@@ -15,7 +15,7 @@ namespace Modix.RemoraShim.Services
     /// <summary>
     /// Provides the ability to authenticate a user within the current scope.
     /// </summary>
-    internal interface IAuthorizationContextService
+    public interface IAuthorizationContextService
     {
         Task<Result> SetCurrentAuthenticatedUserAsync(Snowflake guildId, Snowflake userId = default);
     }

@@ -6,6 +6,7 @@
   
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Remora.Discord.Caching" />
     <PackageReference Include="Remora.Discord.Commands" />
   </ItemGroup>
   

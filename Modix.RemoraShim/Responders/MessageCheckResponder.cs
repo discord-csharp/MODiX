@@ -16,36 +16,36 @@ using Remora.Discord.Gateway.Responders;
 using Remora.Results;
 using Serilog;
 
-namespace Modix.RemoraShim.Behaviors
+namespace Modix.RemoraShim.Responders
 {
-    public class MessageCheckHandler : IResponder<IMessageCreate>, IResponder<IMessageUpdate>
+    public class MessageCheckResponder : IResponder<IMessageCreate>, IResponder<IMessageUpdate>
     {
         private readonly IMessageContentPatternService _msgContentPatternSvc;
         private readonly IDiscordRestChannelAPI _channelApi;
-        private readonly IDiscordRestGuildAPI _guildApi;
         private readonly IDiscordRestUserAPI _userApi;
         private readonly IDesignatedChannelService _designatedChannelService;
         private readonly IAuthorizationService _authService;
+        private readonly IAuthorizationContextService _remoraAuthService;
         private readonly IDeletedMessageRepository _deletedMessageRepository;
         private readonly IThreadService _threadSvc;
 
-        public MessageCheckHandler(
+        public MessageCheckResponder(
             IMessageContentPatternService msgContentPatternSvc,
             IDiscordRestChannelAPI channelApi,
-            IDiscordRestGuildAPI guildApi,
             IDiscordRestUserAPI userApi,
             IDesignatedChannelService designatedChannelService,
             IAuthorizationService authService,
+            IAuthorizationContextService remoraAuthService,
             IDeletedMessageRepository deletedRepository,
             IThreadService threadService
             )
         {
             _msgContentPatternSvc = msgContentPatternSvc;
             _channelApi = channelApi;
-            _guildApi = guildApi;
             _userApi = userApi;
             _designatedChannelService = designatedChannelService;
             _authService = authService;
+            _remoraAuthService = remoraAuthService;
             _deletedMessageRepository = deletedRepository;
             _threadSvc = threadService;
         }
@@ -112,6 +112,7 @@ namespace Modix.RemoraShim.Behaviors
             }
 
             var roles = message.Member.Value.Roles.Value.Select(a => a.Value).ToList();
+            await _remoraAuthService.SetCurrentAuthenticatedUserAsync(guildId, authorId);
             if (await _authService.HasClaimsAsync(authorId.Value, messageId.Value, roles, AuthorizationClaim.BypassMessageContentPatternCheck))
             {
                 Log.Debug("Message {MessageId} was skipped because the author {Author} has the {Claim} claim",
