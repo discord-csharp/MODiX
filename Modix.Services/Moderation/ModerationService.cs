@@ -63,6 +63,8 @@ namespace Modix.Services.Moderation
 
         Task<bool> AnyInfractionsAsync(InfractionSearchCriteria criteria);
 
+        Task<IRole> GetOrCreateDesignatedMuteRoleAsync(ulong guildId, ulong currentUserId);
+
         Task<IRole> GetOrCreateDesignatedMuteRoleAsync(IGuild guild, ulong currentUserId);
 
         Task<(bool success, string? errorMessage)> UpdateInfractionAsync(long infractionId, string newReason,
@@ -605,6 +607,12 @@ namespace Modix.Services.Moderation
             return await _infractionRepository.AnyAsync(criteria);
         }
 
+        public async Task<IRole> GetOrCreateDesignatedMuteRoleAsync(ulong guildId, ulong currentUserId)
+        {
+            var guild = await _discordClient.GetGuildAsync(guildId);
+            return await GetOrCreateDesignatedMuteRoleAsync(guild, currentUserId);
+        }
+
         public async Task<IRole> GetOrCreateDesignatedMuteRoleAsync(IGuild guild, ulong currentUserId)
         {
             using var transaction = await _designatedRoleMappingRepository.BeginCreateTransactionAsync();
@@ -666,8 +674,9 @@ namespace Modix.Services.Moderation
 
                 if (permissionOverwrite != null)
                 {
-                    if ((permissionOverwrite.Value.AllowValue == _mutePermissions.AllowValue) &&
-                        (permissionOverwrite.Value.DenyValue == _mutePermissions.DenyValue))
+                    var deniedPermissions = permissionOverwrite.GetValueOrDefault().ToDenyList();
+
+                    if (!_mutePermissions.ToDenyList().Except(deniedPermissions).Any())
                     {
                         Log.Debug("Skipping setting mute permissions for channel #{Channel} as they're already set.", channel.Name);
                         return;

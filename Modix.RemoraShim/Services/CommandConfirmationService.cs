@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using Modix.RemoraShim.Models;
+
 using Remora.Discord.API.Abstractions.Rest;
 using Remora.Discord.Core;
 using Remora.Results;
@@ -35,7 +37,8 @@ namespace Modix.RemoraShim.Services
                 mainMessage += Environment.NewLine;
 
             var confirmationMessageSendResult = await _channelApi.CreateMessageAsync(channelId, mainMessage +
-                $"React with {ConfirmButtonEmoji} or {CancelButtonEmoji} in the next {ConfirmationTimeoutSeconds} seconds to finalize or cancel the operation.");
+                $"React with {ConfirmButtonEmoji} or {CancelButtonEmoji} in the next {ConfirmationTimeoutSeconds} seconds to finalize or cancel the operation.",
+                allowedMentions: new NoAllowedMentions());
 
             if (!confirmationMessageSendResult.IsSuccess)
                 return Result<bool>.FromError(confirmationMessageSendResult);
@@ -81,7 +84,7 @@ namespace Modix.RemoraShim.Services
             async Task RemoveReactionsAndUpdateMessage(string bottomMessage)
             {
                 await _channelApi.DeleteAllReactionsAsync(channelId, confirmationMessage.ID);
-                await _channelApi.EditMessageAsync(channelId, confirmationMessage.ID, mainMessage + bottomMessage);
+                await _channelApi.EditMessageAsync(channelId, confirmationMessage.ID, mainMessage + bottomMessage, allowedMentions: new NoAllowedMentions());
             }
         }
 
