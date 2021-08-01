@@ -60,7 +60,7 @@ namespace Modix.RemoraShim.Parsers
                     return new UserOrMessageAuthor(currentChannelMessageResult.Entity.Author, currentChannelMessageResult.Entity.ChannelID, currentChannelMessageResult.Entity.ID);
 
                 if (!_context.GuildID.HasValue)
-                    return FromError();
+                    return FromError(value);
 
                 var currentGuildChannelsResult = await _guildApi.GetGuildChannelsAsync(_context.GuildID.Value, ct);
 
@@ -76,14 +76,14 @@ namespace Modix.RemoraShim.Parsers
                 }
             }
 
-            return FromError();
+            return FromError(value);
         }
 
         private static Result<UserOrMessageAuthor> FromError<T>(Result<T> result)
             => Result<UserOrMessageAuthor>.FromError(result);
 
-        private static Result<UserOrMessageAuthor> FromError(string reason = "Could not find a matching user or message.")
-            => Result<UserOrMessageAuthor>.FromError(new ParsingError<UserOrMessageAuthor>(reason));
+        private static Result<UserOrMessageAuthor> FromError(string value, string reason = "Could not find a matching user or message.")
+            => Result<UserOrMessageAuthor>.FromError(new ParsingError<UserOrMessageAuthor>(value, reason));
 
         private readonly ICommandContext _context;
         private readonly IDiscordRestChannelAPI _channelApi;
