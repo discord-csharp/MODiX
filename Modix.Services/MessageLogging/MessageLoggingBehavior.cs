@@ -95,6 +95,11 @@ namespace Modix.Services.MessageLogging
             CancellationToken cancellationToken)
         {
             var guild = (notification.Channel as ISocketGuildChannel)?.Guild;
+            if(notification.NewMessage.Author.Id == default)
+            {
+                // update caused by new thread created or deleted
+                return;
+            }
 
             using var logScope = MessageLoggingLogMessages.BeginMessageNotificationScope(_logger, guild?.Id, notification.Channel.Id, notification.NewMessage.Id);
 
@@ -170,8 +175,8 @@ namespace Modix.Services.MessageLogging
             }
 
             var channelIsUnmoderated = await _designatedChannelService.ChannelHasDesignationAsync(
-                guild,
-                channel,
+                guild.Id,
+                channel.Id,
                 DesignatedChannelType.Unmoderated,
                 cancellationToken);
             if (channelIsUnmoderated)

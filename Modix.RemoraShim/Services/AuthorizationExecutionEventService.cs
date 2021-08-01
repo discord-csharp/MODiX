@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -45,7 +46,7 @@ namespace Modix.RemoraShim.Services
                     return Result.FromError(new NonThreadContextError(context.ChannelID));
 
                 var guildUser = await _userService.GetGuildUserAsync(context.GuildID.Value.Value, context.User.ID.Value);
-                await _authorizationService.OnAuthenticatedAsync(guildUser);
+                await _authorizationService.OnAuthenticatedAsync(guildUser.Id, guildUser.Guild.Id, guildUser.RoleIds.ToList());
                 return Result.FromSuccess();
             }
             catch (Exception ex)

@@ -1,8 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-using Discord;
-
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 
@@ -19,7 +17,7 @@ namespace Modix.Services.Core
         /// <param name="channel">The channel whose info is to be tracked.</param>
         /// <param name="cancellationToken">A <see cref="CancellationToken"/> that may be used to cancel the returned <see cref="Task"/> before it completes.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task TrackChannelAsync(IGuildChannel channel, CancellationToken cancellationToken = default);
+        Task TrackChannelAsync(string channelName, ulong channelId, ulong guildId, CancellationToken cancellationToken = default);
     }
 
     /// <inheritdoc />
@@ -35,20 +33,20 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task TrackChannelAsync(IGuildChannel channel, CancellationToken cancellationToken = default)
+        public async Task TrackChannelAsync(string channelName, ulong channelId, ulong guildId, CancellationToken cancellationToken = default)
         {
             using (var transaction = await _guildChannelRepository.BeginCreateTransactionAsync(cancellationToken))
             {
-                if (!await _guildChannelRepository.TryUpdateAsync(channel.Id, data =>
+                if (!await _guildChannelRepository.TryUpdateAsync(channelId, data =>
                 {
-                    data.Name = channel.Name;
+                    data.Name = channelName;
                 }, cancellationToken))
                 {
                     await _guildChannelRepository.CreateAsync(new GuildChannelCreationData()
                     {
-                        ChannelId = channel.Id,
-                        GuildId = channel.GuildId,
-                        Name = channel.Name
+                        ChannelId = channelId,
+                        GuildId = guildId,
+                        Name = channelName
                     }, cancellationToken);
                 }
 

@@ -13,6 +13,7 @@ namespace Modix.RemoraShim.Commands
             => services
                 .AddDiscordCommands()
                 .AddParsers()
-                .AddCommandGroup<ModerationCommands>();
+                .AddCommandGroup<ModerationCommands>()
+                .AddCommandGroup<MessageCheckCommands>();
     }
 }

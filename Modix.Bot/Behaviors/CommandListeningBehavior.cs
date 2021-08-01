@@ -73,7 +73,7 @@ namespace Modix.Bot.Behaviors
 
             var commandContext = new CommandContext(DiscordClient, userMessage);
 
-            await AuthorizationService.OnAuthenticatedAsync(author);
+            await AuthorizationService.OnAuthenticatedAsync(author.Id, author.Guild.Id, author.RoleIds.ToList());
 
             IResult commandResult = null;
             var commandTimer = Stopwatch.StartNew();

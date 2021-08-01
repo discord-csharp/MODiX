@@ -39,8 +39,8 @@ namespace Modix.Services.Test.MessageLogging
                 MockDesignatedChannelService = new Mock<IDesignatedChannelService>();
                 MockDesignatedChannelService
                     .Setup(x => x.ChannelHasDesignationAsync(
-                        It.IsAny<IGuild>(),
-                        It.IsAny<IChannel>(),
+                        It.IsAny<IGuild>().Id,
+                        It.IsAny<IChannel>().Id,
                         DesignatedChannelType.Unmoderated,
                         It.IsAny<CancellationToken>()))
                     .ReturnsAsync(isChannelUnmoderated);
@@ -213,8 +213,8 @@ namespace Modix.Services.Test.MessageLogging
             {
                 testContext.MockDesignatedChannelService.ShouldHaveReceived(x => x
                         .ChannelHasDesignationAsync(
-                            mockGuild.Object,
-                            mockChannel.Object,
+                            mockGuild.Object.Id,
+                            mockChannel.Object.Id,
                             DesignatedChannelType.Unmoderated,
                             testContext.CancellationToken),
                     Times.AtMostOnce());
@@ -266,8 +266,8 @@ namespace Modix.Services.Test.MessageLogging
 
             testContext.MockDesignatedChannelService.ShouldHaveReceived(x => x
                 .ChannelHasDesignationAsync(
-                    mockGuild.Object,
-                    mockChannel.Object,
+                    mockGuild.Object.Id,
+                    mockChannel.Object.Id,
                     DesignatedChannelType.Unmoderated,
                     testContext.CancellationToken));
             testContext.MockDesignatedChannelService.ShouldHaveReceived(x => x
@@ -455,8 +455,8 @@ namespace Modix.Services.Test.MessageLogging
             {
                 testContext.MockDesignatedChannelService.ShouldHaveReceived(x => x
                         .ChannelHasDesignationAsync(
-                            mockGuild.Object,
-                            mockChannel.Object,
+                            mockGuild.Object.Id,
+                            mockChannel.Object.Id,
                             DesignatedChannelType.Unmoderated,
                             testContext.CancellationToken),
                     Times.AtMostOnce());
@@ -509,8 +509,8 @@ namespace Modix.Services.Test.MessageLogging
 
             testContext.MockDesignatedChannelService.ShouldHaveReceived(x => x
                 .ChannelHasDesignationAsync(
-                    mockGuild.Object,
-                    mockChannel.Object,
+                    mockGuild.Object.Id,
+                    mockChannel.Object.Id,
                     DesignatedChannelType.Unmoderated,
                     testContext.CancellationToken));
             testContext.MockDesignatedChannelService.ShouldHaveReceived(x => x

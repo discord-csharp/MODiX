@@ -57,7 +57,7 @@ namespace Modix.Services.Test.Core
                     .Setup(x => x.Name)
                     .Returns(channelName);
 
-                await uut.TrackChannelAsync(mockChannel.Object, cancellationTokenSource.Token);
+                await uut.TrackChannelAsync(mockChannel.Object.Name, mockChannel.Object.Id, mockChannel.Object.GuildId, cancellationTokenSource.Token);
 
                 mockGuildChannelRepository
                     .ShouldHaveReceived(x => x.BeginCreateTransactionAsync(cancellationTokenSource.Token), Times.Once());
@@ -127,7 +127,7 @@ namespace Modix.Services.Test.Core
                     .Setup(x => x.Name)
                     .Returns(channelName);
 
-                await uut.TrackChannelAsync(mockChannel.Object, cancellationTokenSource.Token);
+                await uut.TrackChannelAsync(mockChannel.Object.Name, mockChannel.Object.Id, mockChannel.Object.GuildId, cancellationTokenSource.Token);
 
                 mockGuildChannelRepository
                     .ShouldHaveReceived(x => x.BeginCreateTransactionAsync(cancellationTokenSource.Token), Times.Once());

@@ -89,8 +89,8 @@ namespace Modix.Services.Core
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns></returns>
         Task<bool> ChannelHasDesignationAsync(
-            IGuild guild,
-            IChannel channel,
+            ulong guildId,
+            ulong channelId,
             DesignatedChannelType designation,
             CancellationToken cancellationToken);
 
@@ -251,15 +251,15 @@ namespace Modix.Services.Core
 
         /// <inheritdoc />
         public Task<bool> ChannelHasDesignationAsync(
-                IGuild guild,
-                IChannel channel,
+                ulong guildId,
+                ulong channelId,
                 DesignatedChannelType designation,
                 CancellationToken cancellationToken)
             => DesignatedChannelMappingRepository.AnyAsync(new DesignatedChannelMappingSearchCriteria()
             {
-                GuildId = guild.Id,
+                GuildId = guildId,
                 Type = designation,
-                ChannelId = channel.Id,
+                ChannelId = channelId,
                 IsDeleted = false
             }, cancellationToken);
     }

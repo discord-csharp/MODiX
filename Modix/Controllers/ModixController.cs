@@ -63,7 +63,7 @@ namespace Modix.Controllers
 
         protected async Task AssignClaims()
         {
-            await ModixAuth.OnAuthenticatedAsync(SocketUser);
+            await ModixAuth.OnAuthenticatedAsync(SocketUser.Id, SocketUser.Guild.Id, SocketUser.RoleIds.ToList());
 
             var claims = (await ModixAuth.GetGuildUserClaimsAsync(SocketUser))
                 .Select(d => new Claim(ClaimTypes.Role, d.ToString()));
