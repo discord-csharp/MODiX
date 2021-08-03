@@ -121,8 +121,8 @@ namespace Modix.Services.Moderation
 
             AttachmentBlacklistLogMessages.ChannelModerationStatusFetching(_logger);
             var channelIsUnmoderated = await _designatedChannelService.ChannelHasDesignationAsync(
-                guild,
-                channel,
+                guild.Id,
+                channel.Id,
                 DesignatedChannelType.Unmoderated,
                 cancellationToken);
             AttachmentBlacklistLogMessages.ChannelModerationStatusFetched(_logger);

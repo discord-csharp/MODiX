@@ -80,12 +80,6 @@ namespace Modix.Services.Core
         /// <returns>A <see cref="Task"/> that will complete when all <see cref="DesignatedChannelMappingBrief"/>s have been retrieved.</returns>
         Task<IReadOnlyCollection<DesignatedChannelMappingBrief>> GetDesignatedChannelsAsync(ulong guildId);
 
-        Task<bool> ChannelHasDesignationAsync(
-            ulong guildId,
-            ulong channelId,
-            DesignatedChannelType designation,
-            CancellationToken cancellationToken);
-
         /// <summary>
         /// Checks if the given channel has the given designation
         /// </summary>
@@ -95,8 +89,8 @@ namespace Modix.Services.Core
         /// <param name="cancellationToken">A token that may be used to cancel the operation.</param>
         /// <returns></returns>
         Task<bool> ChannelHasDesignationAsync(
-            IGuild guild,
-            IChannel channel,
+            ulong guildId,
+            ulong channelId,
             DesignatedChannelType designation,
             CancellationToken cancellationToken);
 
@@ -255,30 +249,17 @@ namespace Modix.Services.Core
             });
         }
 
-        public async Task<bool> ChannelHasDesignationAsync(
+        /// <inheritdoc />
+        public Task<bool> ChannelHasDesignationAsync(
                 ulong guildId,
                 ulong channelId,
                 DesignatedChannelType designation,
                 CancellationToken cancellationToken)
-            => await DesignatedChannelMappingRepository.AnyAsync(new DesignatedChannelMappingSearchCriteria()
+            => DesignatedChannelMappingRepository.AnyAsync(new DesignatedChannelMappingSearchCriteria()
             {
                 GuildId = guildId,
                 Type = designation,
                 ChannelId = channelId,
-                IsDeleted = false
-            }, cancellationToken);
-
-        /// <inheritdoc />
-        public Task<bool> ChannelHasDesignationAsync(
-                IGuild guild,
-                IChannel channel,
-                DesignatedChannelType designation,
-                CancellationToken cancellationToken)
-            => DesignatedChannelMappingRepository.AnyAsync(new DesignatedChannelMappingSearchCriteria()
-            {
-                GuildId = guild.Id,
-                Type = designation,
-                ChannelId = channel.Id,
                 IsDeleted = false
             }, cancellationToken);
     }

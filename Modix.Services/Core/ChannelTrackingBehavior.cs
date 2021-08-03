@@ -31,20 +31,20 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public Task HandleNotificationAsync(ChannelCreatedNotification notification, CancellationToken cancellationToken = default)
             => notification.Channel is ITextChannel textChannel
-                ? _channelService.TrackChannelAsync(textChannel, cancellationToken)
+                ? _channelService.TrackChannelAsync(textChannel.Name, textChannel.Id, textChannel.GuildId, cancellationToken)
                 : Task.CompletedTask;
 
         /// <inheritdoc />
         public Task HandleNotificationAsync(ChannelUpdatedNotification notification, CancellationToken cancellationToken = default)
             => notification.NewChannel is ITextChannel textChannel
-                ? _channelService.TrackChannelAsync(textChannel, cancellationToken)
+                ? _channelService.TrackChannelAsync(textChannel.Name, textChannel.Id, textChannel.GuildId, cancellationToken)
                 : Task.CompletedTask;
 
         /// <inheritdoc />
         public async Task HandleNotificationAsync(GuildAvailableNotification notification, CancellationToken cancellationToken = default)
         {
             foreach (var channel in notification.Guild.Channels.Where(x => x is ITextChannel))
-                await _channelService.TrackChannelAsync(channel, cancellationToken);
+                await _channelService.TrackChannelAsync(channel.Name, channel.Id, channel.GuildId, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -52,7 +52,7 @@ namespace Modix.Services.Core
         {
             if(notification.Guild.Available)
                 foreach (var channel in notification.Guild.Channels.Where(x => x is ITextChannel))
-                    await _channelService.TrackChannelAsync(channel, cancellationToken);
+                    await _channelService.TrackChannelAsync(channel.Name, channel.Id, channel.GuildId, cancellationToken);
         }
 
         private readonly IChannelService _channelService;

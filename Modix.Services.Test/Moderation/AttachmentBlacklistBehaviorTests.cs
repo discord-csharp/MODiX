@@ -38,8 +38,8 @@ namespace Modix.Services.Test.Moderation
                 MockDesignatedChannelService = new Mock<IDesignatedChannelService>();
                 MockDesignatedChannelService
                     .Setup(x => x.ChannelHasDesignationAsync(
-                        It.IsAny<IGuild>(),
-                        It.IsAny<IChannel>(),
+                        It.IsAny<ulong>(),
+                        It.IsAny<ulong>(),
                         DesignatedChannelType.Unmoderated,
                         It.IsAny<CancellationToken>()))
                     .ReturnsAsync(channelIsUnmoderated);
@@ -183,15 +183,15 @@ namespace Modix.Services.Test.Moderation
             if (guild is null)
                 testContext.MockDesignatedChannelService.ShouldNotHaveReceived(x => x
                     .ChannelHasDesignationAsync(
-                        It.IsAny<IGuild>(),
-                        It.IsAny<IChannel>(),
+                        It.IsAny<ulong>(),
+                        It.IsAny<ulong>(),
                         It.IsAny<DesignatedChannelType>(),
                         It.IsAny<CancellationToken>()));
             else
                 testContext.MockDesignatedChannelService.ShouldHaveReceived(x => x
                         .ChannelHasDesignationAsync(
-                            guild,
-                            mockChannel.Object,
+                            guild.Id,
+                            mockChannel.Object.Id,
                             DesignatedChannelType.Unmoderated,
                             testContext.CancellationToken),
                     Times.AtMostOnce());
@@ -234,8 +234,8 @@ namespace Modix.Services.Test.Moderation
 
             testContext.MockDesignatedChannelService.ShouldHaveReceived(x => x
                 .ChannelHasDesignationAsync(
-                    ((ISocketGuildChannel)notification.Message.Channel).Guild,
-                    mockChannel.Object,
+                    ((ISocketGuildChannel)notification.Message.Channel).Guild.Id,
+                    mockChannel.Object.Id,
                     DesignatedChannelType.Unmoderated,
                     testContext.CancellationToken));
 

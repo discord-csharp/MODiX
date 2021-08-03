@@ -93,7 +93,7 @@ namespace Modix.Services.Moderation
 
             var guildUser = guild.GetUser(banLog.Entry.User.Id);
 
-            await _authorizationService.OnAuthenticatedAsync(guildUser);
+            await _authorizationService.OnAuthenticatedAsync(guildUser.Id, guildUser.Guild.Id, guildUser.RoleIds.ToList());
             await _moderationService.CreateInfractionAsync(guild.Id, banLog.Entry.User.Id, InfractionType.Ban, user.Id, reason, null);
         }
 

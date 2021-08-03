@@ -105,6 +105,22 @@ namespace Modix.Services.Core
         Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(IGuildUser guildUser, params AuthorizationClaim[] claimsFilter);
 
         /// <summary>
+        /// Retrieves the list of claims currently active and mapped to particular user, within a particular guild.
+        /// </summary>
+        /// <param name="user">The user whose claims are to be retrieved.</param>
+        /// <param name="guild"></param>
+        /// <param name="roles"></param>
+        /// <param name="filterClaims">
+        /// An optional list of claims to be used to filter the results.
+        /// I.E. the returned list of claims will only contain claims specified in this list (unless none are specified).
+        /// </param>
+        /// <returns>
+        /// A <see cref="Task"/> that will complete when the operation has completed,
+        /// containing the requested list of claims.
+        /// </returns>
+        public Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(ulong user, ulong guild, IReadOnlyList<ulong> roles, params AuthorizationClaim[] filterClaims);
+
+        /// <summary>
         /// Retrieves the list of claims currently active and mapped to particular role.
         /// </summary>
         /// <param name="guildRole">The role whose claims are to be retrieved.</param>
@@ -118,32 +134,38 @@ namespace Modix.Services.Core
         /// Compares a given set of claims against the full set of claims posessed by a given user,
         /// to determine which claims, if any, are missing.
         /// </summary>
-        /// <param name="guildUser">The user whose claims are to be checked.</param>
+        /// <param name="user">The user whose claims are to be checked.</param>
+        /// <param name="guild"></param>
+        /// <param name="roles"></param>
         /// <param name="claims">The set of claims to be compared against the claims posessed by <paramref name="guildUser"/>.</param>
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation has completed,
         /// containing the set of claims present in <paramref name="claims"/>, but not posessed by <paramref name="guildUser"/>.
         /// </returns>
-        Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserMissingClaimsAsync(IGuildUser guildUser, params AuthorizationClaim[] claims);
+        Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserMissingClaimsAsync(ulong user, ulong guild, IReadOnlyList<ulong> roles, params AuthorizationClaim[] claims);
 
         /// <summary>
         /// Checks whether a given user currently posesses a set of claims.
         /// </summary>
-        /// <param name="guildUser">The user whose claims are to be checked.</param>
+        /// <param name="user">The user whose claims are to be checked.</param>
+        /// <param name="guild"></param>
+        /// <param name="roles"></param>
         /// <param name="claims">The set of claims to be checked for.</param>
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation has completed,
         /// containing a flag indicating whether <paramref name="guildUser"/> posesses <paramref name="claims"/>.
         /// </returns>
-        Task<bool> HasClaimsAsync(IGuildUser guildUser, params AuthorizationClaim[] claims);
+        Task<bool> HasClaimsAsync(ulong user, ulong guild, IReadOnlyList<ulong>? roles, params AuthorizationClaim[] claims);
 
         /// <summary>
         /// Loads authentication and authorization data into the service, based on the given guild, user, and role ID values
         /// retrieved from a frontend authentication mechanism.
         /// </summary>
         /// <param name="user">The user to be authenticated</param>
+        /// <param name="guild"></param>
+        /// <param name="roles"></param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task OnAuthenticatedAsync(IGuildUser user);
+        Task OnAuthenticatedAsync(ulong user, ulong guild, IReadOnlyList<ulong> roles);
 
         /// <summary>
         /// Loads and authentication and authorization data into the service, for self-initiated operations.
@@ -406,6 +428,20 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
+        public Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(ulong user, ulong guild, IReadOnlyList<ulong> roles, params AuthorizationClaim[] filterClaims)
+        {
+            if (user == default)
+                return Task.FromException<IReadOnlyCollection<AuthorizationClaim>>(new ArgumentNullException(nameof(user)));
+
+            if (user == CurrentUserId)
+                return Task.FromResult(CurrentClaims);
+
+            if ((user == _discordSocketClient.CurrentUser.Id))
+                return Task.FromResult<IReadOnlyCollection<AuthorizationClaim>>(Enum.GetValues(typeof(AuthorizationClaim)).Cast<AuthorizationClaim>().ToArray());
+
+            return LookupPosessedClaimsAsync(guild, roles, user, filterClaims);
+        }
+        /// <inheritdoc />
         public async Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildRoleClaimsAsync(IRole guildRole)
         {
             return (await ClaimMappingRepository.SearchBriefsAsync(new ClaimMappingSearchCriteria
@@ -420,20 +456,20 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserMissingClaimsAsync(IGuildUser guildUser, params AuthorizationClaim[] claims)
-            => claims.Except(await GetGuildUserClaimsAsync(guildUser, claims))
+        public async Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserMissingClaimsAsync(ulong user, ulong guild, IReadOnlyList<ulong> roles, params AuthorizationClaim[] claims)
+            => claims.Except(await GetGuildUserClaimsAsync(user, guild, roles, claims))
                 .ToArray();
 
         /// <inheritdoc />
-        public async Task<bool> HasClaimsAsync(IGuildUser guildUser, params AuthorizationClaim[] claims)
-            => !(await GetGuildUserMissingClaimsAsync(guildUser, claims)).Any();
+        public async Task<bool> HasClaimsAsync(ulong user, ulong guild, IReadOnlyList<ulong> roles, params AuthorizationClaim[] claims)
+            => !(await GetGuildUserMissingClaimsAsync(user, guild, roles, claims)).Any();
 
         /// <inheritdoc />
-        public async Task OnAuthenticatedAsync(IGuildUser user)
+        public async Task OnAuthenticatedAsync(ulong user, ulong guild, IReadOnlyList<ulong> roles)
         {
-            CurrentClaims = await GetGuildUserClaimsAsync(user);
-            CurrentGuildId = user.GuildId;
-            CurrentUserId = user.Id;
+            CurrentClaims = await GetGuildUserClaimsAsync(user, guild, roles);
+            CurrentGuildId = guild;
+            CurrentUserId = user;
         }
 
         /// <inheritdoc />

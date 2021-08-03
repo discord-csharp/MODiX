@@ -119,8 +119,8 @@ namespace Modix.Modules
             {
                 colorTask = _imageService.GetDominantColorAsync(new Uri(avatarUrl));
             }
-
-            var moderationRead = await _authorizationService.HasClaimsAsync(Context.User as IGuildUser, AuthorizationClaim.ModerationRead);
+            var guildUser = Context.User as IGuildUser;
+            var moderationRead = await _authorizationService.HasClaimsAsync(Context.User.Id, guildUser.Guild.Id, guildUser.RoleIds.ToList(), AuthorizationClaim.ModerationRead);
             var promotions = await _promotionsService.GetPromotionsForUserAsync(Context.Guild.Id, userId);
 
             if (userInfo.IsBanned)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -14,7 +15,7 @@ namespace Modix.RemoraShim.Services
     /// <summary>
     /// Provides the ability to authenticate a user within the current scope.
     /// </summary>
-    internal interface IAuthorizationContextService
+    public interface IAuthorizationContextService
     {
         Task<Result> SetCurrentAuthenticatedUserAsync(Snowflake guildId, Snowflake userId = default);
     }
@@ -46,7 +47,7 @@ namespace Modix.RemoraShim.Services
                 }
 
                 var guildUser = await _userService.GetGuildUserAsync(guildId.Value, userId.Value);
-                await _authorizationService.OnAuthenticatedAsync(guildUser);
+                await _authorizationService.OnAuthenticatedAsync(guildUser.Id, guildUser.GuildId, guildUser.RoleIds.ToList());
                 return Result.FromSuccess();
             }
             catch (Exception ex)

@@ -344,7 +344,7 @@ namespace Modix.Services.Tags
                 return true;
 
             // Users with the MaintainOtherUserTag claim can always maintain tags.
-            if (await _authorizationService.HasClaimsAsync(currentUser, AuthorizationClaim.MaintainOtherUserTag))
+            if (await _authorizationService.HasClaimsAsync(currentUser.Id, currentUser.Guild.Id, currentUser.RoleIds.ToList(), AuthorizationClaim.MaintainOtherUserTag))
                 return true;
 
             return false;

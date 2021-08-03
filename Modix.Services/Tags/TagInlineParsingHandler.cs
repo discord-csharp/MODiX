@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,12 +51,12 @@ namespace Modix.Services.Tags
             var tagName = match.Groups[1].Value;
             if (string.IsNullOrWhiteSpace(tagName)) { return; }
 
-            if (await AuthorizationService.HasClaimsAsync(guildUser, AuthorizationClaim.UseTag) == false) { return; }
+            if (await AuthorizationService.HasClaimsAsync(guildUser.Id, guildUser.Guild.Id, guildUser.RoleIds.ToList(), AuthorizationClaim.UseTag) == false) { return; }
             if (await TagService.TagExistsAsync(guildUser.Guild.Id, tagName) == false) { return; }
 
             try
             {
-                await AuthorizationService.OnAuthenticatedAsync(guildUser);
+                await AuthorizationService.OnAuthenticatedAsync(guildUser.Id, guildUser.Guild.Id, guildUser.RoleIds.ToList());
                 await TagService.UseTagAsync(guildUser.Guild.Id, userMessage.Channel.Id, tagName);
             }
             catch (InvalidOperationException ex)

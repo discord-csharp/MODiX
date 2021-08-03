@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Modix.Services.Core
 {
-    internal static class MessageLogMessages
+    public static class MessageLogMessages
     {
         public enum EventType
         {

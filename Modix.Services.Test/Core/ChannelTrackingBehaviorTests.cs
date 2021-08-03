@@ -97,7 +97,7 @@ namespace Modix.Services.Test.Core
                 await uut.HandleNotificationAsync(notification, cancellationTokenSource.Token);
 
                 autoMocker.GetMock<IChannelService>()
-                    .ShouldHaveReceived(x => x.TrackChannelAsync(mockChannel.Object, cancellationTokenSource.Token));
+                    .ShouldHaveReceived(x => x.TrackChannelAsync(mockChannel.Object.Name, mockChannel.Object.Id, mockChannel.Object.GuildId, cancellationTokenSource.Token));
             }
         }
 
@@ -145,7 +145,7 @@ namespace Modix.Services.Test.Core
                 await uut.HandleNotificationAsync(notification, cancellationTokenSource.Token);
 
                 autoMocker.GetMock<IChannelService>()
-                    .ShouldHaveReceived(x => x.TrackChannelAsync(mockNewChannel.Object, cancellationTokenSource.Token));
+                    .ShouldHaveReceived(x => x.TrackChannelAsync(mockNewChannel.Object.Name, mockNewChannel.Object.Id, mockNewChannel.Object.GuildId, cancellationTokenSource.Token));
             }
         }
 
@@ -215,13 +215,13 @@ namespace Modix.Services.Test.Core
                     .ToArray();
 
                 foreach (var textChannel in textChannels)
-                    mockChannelService.ShouldHaveReceived(x => x.TrackChannelAsync(textChannel, cancellationTokenSource.Token));
+                    mockChannelService.ShouldHaveReceived(x => x.TrackChannelAsync(textChannel.Name, textChannel.Id, textChannel.GuildId, cancellationTokenSource.Token));
 
                 mockChannelService
                     .Invocations
                     .Where(x => x.Method.Name == nameof(IChannelService.TrackChannelAsync))
                     .Select(x => x.Arguments[0])
-                    .ShouldBe(textChannels, ignoreOrder: true);
+                    .ShouldBe(textChannels.Select(a => a.Name), ignoreOrder: true);
             }
         }
 
@@ -331,13 +331,13 @@ namespace Modix.Services.Test.Core
                     .ToArray();
 
                 foreach (var textChannel in textChannels)
-                    mockChannelService.ShouldHaveReceived(x => x.TrackChannelAsync(textChannel, cancellationTokenSource.Token));
+                    mockChannelService.ShouldHaveReceived(x => x.TrackChannelAsync(textChannel.Name, textChannel.Id, textChannel.GuildId, cancellationTokenSource.Token));
 
                 mockChannelService
                     .Invocations
                     .Where(x => x.Method.Name == nameof(IChannelService.TrackChannelAsync))
                     .Select(x => x.Arguments[0])
-                    .ShouldBe(textChannels, ignoreOrder: true);
+                    .ShouldBe(textChannels.Select(a => a.Name), ignoreOrder: true);
             }
         }
 

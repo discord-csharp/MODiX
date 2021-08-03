@@ -212,8 +212,8 @@ namespace Modix.Services.Moderation
 
             if (channel is IGuildChannel guildChannel)
             {
-                var isUnmoderated = await _designatedChannelService.ChannelHasDesignationAsync(guildChannel.Guild,
-                    channel, DesignatedChannelType.Unmoderated, default);
+                var isUnmoderated = await _designatedChannelService.ChannelHasDesignationAsync(guildChannel.Guild.Id,
+                    channel.Id, DesignatedChannelType.Unmoderated, default);
 
                 if (isUnmoderated)
                 {
@@ -450,7 +450,7 @@ namespace Modix.Services.Moderation
                     $"Cannot delete message {message.Id} because it is not a guild message");
 
             await _userService.TrackUserAsync((IGuildUser)message.Author, cancellationToken);
-            await _channelService.TrackChannelAsync(guildChannel, cancellationToken);
+            await _channelService.TrackChannelAsync(guildChannel.Name, guildChannel.Id, guildChannel.GuildId, cancellationToken);
 
             using var transaction = await _deletedMessageRepository.BeginCreateTransactionAsync(cancellationToken);
 
@@ -702,7 +702,7 @@ namespace Modix.Services.Moderation
             await channel.DeleteMessagesAsync(messages);
 
             using var transaction = await _deletedMessageBatchRepository.BeginCreateTransactionAsync();
-            await _channelService.TrackChannelAsync(guildChannel);
+            await _channelService.TrackChannelAsync(channel.Name, channel.Id, channel.GuildId);
 
             await _deletedMessageBatchRepository.CreateAsync(new DeletedMessageBatchCreationData()
             {

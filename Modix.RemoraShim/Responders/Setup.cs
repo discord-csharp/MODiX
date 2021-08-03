@@ -10,7 +10,11 @@ namespace Modix.RemoraShim.Responders
     {
         public static IServiceCollection AddResponders(this IServiceCollection services)
             => services
+                .AddResponder<TrackingResponder>()
                 .AddResponder<MuteRoleConfigurationResponder>()
-                .AddScoped<INotificationHandler<Discord.ReadyNotification>, MuteRoleConfigurationResponder>();
+                .AddScoped<INotificationHandler<Discord.ReadyNotification>, MuteRoleConfigurationResponder>()
+                .AddResponder<MessageLoggingResponder>()
+                .AddResponder<MessageCheckResponder>();
+
     }
 }

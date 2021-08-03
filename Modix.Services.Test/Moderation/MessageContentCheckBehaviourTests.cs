@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -431,8 +432,8 @@ namespace Modix.Services.Test.Moderation
 
             autoMocker.GetMock<IDesignatedChannelService>()
                 .Setup(x => x.ChannelHasDesignationAsync(
-                    autoMocker.Get<IGuild>(),
-                    autoMocker.Get<IMessageChannel>(),
+                    autoMocker.Get<IGuild>().Id,
+                    autoMocker.Get<IMessageChannel>().Id,
                     DesignatedChannelType.Unmoderated,
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
@@ -450,9 +451,13 @@ namespace Modix.Services.Test.Moderation
             var notification = new MessageReceivedNotification(
                 message: BuildBlockedContentTestMessage(autoMocker));
 
+            var user = autoMocker.Get<IGuildUser>();
+            var roles = user.RoleIds?.ToList();
             autoMocker.GetMock<IAuthorizationService>()
                 .Setup(x => x.HasClaimsAsync(
-                    autoMocker.Get<IGuildUser>(),
+                    user.Id,
+                    user.Guild.Id,
+                    roles,
                     AuthorizationClaim.BypassMessageContentPatternCheck))
                 .ReturnsAsync(true);
 
@@ -648,8 +653,8 @@ namespace Modix.Services.Test.Moderation
 
             autoMocker.GetMock<IDesignatedChannelService>()
                 .Setup(x => x.ChannelHasDesignationAsync(
-                    autoMocker.Get<IGuild>(),
-                    autoMocker.Get<IMessageChannel>(),
+                    autoMocker.Get<IGuild>().Id,
+                    autoMocker.Get<IMessageChannel>().Id,
                     DesignatedChannelType.Unmoderated,
                     It.IsAny<CancellationToken>()))
                 .ReturnsAsync(true);
@@ -668,10 +673,13 @@ namespace Modix.Services.Test.Moderation
                 oldMessage: autoMocker.Get<ICacheable<IMessage, ulong>>(),
                 newMessage: BuildBlockedContentTestMessage(autoMocker),
                 channel: autoMocker.Get<IISocketMessageChannel>());
-
+            var user = autoMocker.Get<IGuildUser>();
+            var roles = user.RoleIds?.ToList();
             autoMocker.GetMock<IAuthorizationService>()
                 .Setup(x => x.HasClaimsAsync(
-                    autoMocker.Get<IGuildUser>(),
+                    user.Id,
+                    user.Guild.Id,
+                    roles,
                     AuthorizationClaim.BypassMessageContentPatternCheck))
                 .ReturnsAsync(true);
 
