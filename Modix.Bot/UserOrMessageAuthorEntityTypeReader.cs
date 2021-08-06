@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.Rest;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -54,8 +55,8 @@ namespace Modix
 
             // The base class covers users that are in the guild, and the previous condition covers mentioning users that are not in the guild.
             // At this point, it's one of the following:
-            //   - A snowflake for a message in the guild.
             //   - A snowflake for a user not in the guild.
+            //   - A snowflake for a message in the guild.
             //   - Something we can't handle.
             if (ulong.TryParse(input, out var snowflake))
             {
@@ -64,15 +65,21 @@ namespace Modix
                     return GetInvalidSnowflakeResult();
                 }
 
+                // Try to find the user if they are not in the guild
+                var restClient = services.GetRequiredService<IDiscordRestClient>();
+
+                var user = await restClient.GetUserAsync(snowflake);
+                if (user is not null)
+                {
+                    return GetUserResult(user.Id);
+                }
+
                 var messageService = services.GetRequiredService<IMessageService>();
 
                 if (await messageService.FindMessageAsync(context.Guild.Id, snowflake) is { } message)
                 {
                     return GetMessageAuthorResult(message.Author.Id, message.Channel.Id, message.Id);
                 }
-
-                // At this point, our best guess is that the snowflake is for a user who is not in the guild.
-                return GetUserResult(snowflake);
             }
 
             return GetBadInputResult();
