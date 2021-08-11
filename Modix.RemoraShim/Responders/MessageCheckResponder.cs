@@ -112,6 +112,8 @@ namespace Modix.RemoraShim.Responders
             }
 
             var roles = message.Member.Value.Roles.Value.Select(a => a.Value).ToList();
+            roles.Add(guildId.Value);
+
             await _remoraAuthService.SetCurrentAuthenticatedUserAsync(guildId, authorId);
             if (await _authService.HasClaimsAsync(authorId.Value, messageId.Value, roles, AuthorizationClaim.BypassMessageContentPatternCheck))
             {

@@ -78,6 +78,7 @@ namespace Modix.RemoraShim.Responders
             {
                 roles = gatewayEvent.Member.Value.Roles.Value.Select(a => a.Value).ToList();
             }
+            roles.Add(gatewayEvent.GuildID.Value.Value);
 
             if (await _authService.HasClaimsAsync(gatewayEvent.Author.ID.Value, gatewayEvent.GuildID.Value.Value, roles, AuthorizationClaim.UseTag) == false)
             { return Result.FromSuccess(); }
