@@ -14,7 +14,8 @@ namespace Modix.RemoraShim.Responders
                 .AddResponder<MuteRoleConfigurationResponder>()
                 .AddScoped<INotificationHandler<Discord.ReadyNotification>, MuteRoleConfigurationResponder>()
                 .AddResponder<MessageLoggingResponder>()
-                .AddResponder<MessageCheckResponder>();
+                .AddResponder<MessageCheckResponder>()
+                .AddResponder<InlineTagResponder>();
 
     }
 }
