@@ -72,7 +72,10 @@ namespace Modix.RemoraShim.Responders
             if (string.IsNullOrWhiteSpace(tagName))
             { return Result.FromSuccess(); }
 
-            var roles = new List<ulong>();
+            var roles = new List<ulong>()
+            {
+                gatewayEvent.GuildID.Value.Value
+            };
 
             if (gatewayEvent.Member.HasValue && gatewayEvent.Member.Value.Roles.HasValue)
             {
