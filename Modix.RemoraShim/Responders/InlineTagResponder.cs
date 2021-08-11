@@ -72,15 +72,13 @@ namespace Modix.RemoraShim.Responders
             if (string.IsNullOrWhiteSpace(tagName))
             { return Result.FromSuccess(); }
 
-            var roles = new List<ulong>()
-            {
-                gatewayEvent.GuildID.Value.Value
-            };
+            var roles = new List<ulong>();
 
             if (gatewayEvent.Member.HasValue && gatewayEvent.Member.Value.Roles.HasValue)
             {
                 roles = gatewayEvent.Member.Value.Roles.Value.Select(a => a.Value).ToList();
             }
+            roles.Add(gatewayEvent.GuildID.Value.Value);
 
             if (await _authService.HasClaimsAsync(gatewayEvent.Author.ID.Value, gatewayEvent.GuildID.Value.Value, roles, AuthorizationClaim.UseTag) == false)
             { return Result.FromSuccess(); }
