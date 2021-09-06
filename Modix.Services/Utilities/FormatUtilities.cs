@@ -82,13 +82,13 @@ namespace Modix.Services.Utilities
             return code;
         }
 
-        public static async Task UploadToServiceIfBiggerThan(this EmbedBuilder embed, string content, string contentType, uint size, CodePasteService service)
+        public static async Task UploadToServiceIfBiggerThan(this EmbedBuilder embed, string content, uint size, CodePasteService service)
         {
             if (content.Length > size)
             {
                 try
                 {
-                    var resultLink = await service.UploadCodeAsync(content, contentType);
+                    var resultLink = await service.UploadCodeAsync(content);
                     embed.AddField(a => a.WithName("More...").WithValue($"[View on Hastebin]({resultLink})"));
                 }
                 catch (WebException we)

@@ -32,7 +32,7 @@ namespace Modix.Services.CodePaste
         /// </summary>
         /// <param name="code">The code to post</param>
         /// <returns>The URL to the newly created post</returns>
-        public async Task<string> UploadCodeAsync(string code, string language = null)
+        public async Task<string> UploadCodeAsync(string code)
         {
             var content = FormatUtilities.BuildContent(code);
 
@@ -49,7 +49,7 @@ namespace Modix.Services.CodePaste
             var urlResponse = await response.Content.ReadAsStringAsync();
             var pasteKey = JObject.Parse(urlResponse)["key"]?.Value<string>();
 
-            return $"{ApiReferenceUrl}{pasteKey}.{language ?? FormatUtilities.GetCodeLanguage(code) ?? "cs"}";
+            return $"{ApiReferenceUrl}{pasteKey}";
         }
 
         /// <summary>

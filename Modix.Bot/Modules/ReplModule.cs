@@ -166,14 +166,14 @@ namespace Modix.Modules
             {
                 embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnTypeName ?? "null"}")
                                      .WithValue(Format.Code($"{returnValue.TruncateTo(MaxFormattedFieldSize)}", "json")));
-                await embed.UploadToServiceIfBiggerThan(returnValue, "json", MaxFormattedFieldSize, _pasteService);
+                await embed.UploadToServiceIfBiggerThan(returnValue, MaxFormattedFieldSize, _pasteService);
             }
 
             if (!string.IsNullOrWhiteSpace(consoleOut))
             {
                 embed.AddField(a => a.WithName("Console Output")
                                      .WithValue(Format.Code(consoleOut.TruncateTo(MaxFormattedFieldSize), "txt")));
-                await embed.UploadToServiceIfBiggerThan(consoleOut, "txt", MaxFormattedFieldSize, _pasteService);
+                await embed.UploadToServiceIfBiggerThan(consoleOut,  MaxFormattedFieldSize, _pasteService);
             }
 
             if (!string.IsNullOrWhiteSpace(parsedResult.Exception))
@@ -181,7 +181,7 @@ namespace Modix.Modules
                 var diffFormatted = Regex.Replace(parsedResult.Exception, "^", "- ", RegexOptions.Multiline);
                 embed.AddField(a => a.WithName($"Exception: {parsedResult.ExceptionType}")
                                      .WithValue(Format.Code(diffFormatted.TruncateTo(MaxFormattedFieldSize), "diff")));
-                await embed.UploadToServiceIfBiggerThan(diffFormatted, "diff", MaxFormattedFieldSize, _pasteService);
+                await embed.UploadToServiceIfBiggerThan(diffFormatted, MaxFormattedFieldSize, _pasteService);
             }
 
             return embed;
