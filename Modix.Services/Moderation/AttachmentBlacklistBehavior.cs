@@ -75,7 +75,23 @@ namespace Modix.Services.Moderation
                 ".ppam",
                 ".ppsm",
                 ".sldn",
-                ".sb"
+                ".sb",
+                ".bin",
+                ".com",
+                ".gadget",
+                ".inf1",
+                ".ins",
+                ".inx",
+                ".isu",
+                ".job",
+                ".jse",
+                ".paf",
+                ".rgs",
+                ".sct",
+                ".shb",
+                ".shs",
+                ".u3p",
+                ".vbscript"
         };
 
         public AttachmentBlacklistBehavior(
