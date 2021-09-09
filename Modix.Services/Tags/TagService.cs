@@ -159,7 +159,7 @@ namespace Modix.Services.Tags
                 .SingleOrDefaultAsync();
 
             if (tag is null)
-                return;
+                throw new ArgumentException("The tag provided was not found.");
 
             await EnsureUserCanMaintainTagAsync(tag, modifierId);
 
@@ -185,7 +185,7 @@ namespace Modix.Services.Tags
                 .SingleOrDefaultAsync();
 
             if (tag is null)
-                return;
+                throw new ArgumentException("The tag provided was not found.");
 
             await EnsureUserCanMaintainTagAsync(tag, deleterId);
 
