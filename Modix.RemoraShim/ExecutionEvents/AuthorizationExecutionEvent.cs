@@ -1,8 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 
-using Microsoft.Extensions.DependencyInjection;
-
 using Modix.RemoraShim.Errors;
 using Modix.RemoraShim.Services;
 
@@ -10,22 +8,18 @@ using Remora.Discord.Commands.Contexts;
 using Remora.Discord.Commands.Services;
 using Remora.Results;
 
-namespace Modix.RemoraShim.ExecutionEventServices
+namespace Modix.RemoraShim.ExecutionEvents
 {
     /// <summary>
     /// Ensures that the command user is authenticated in the authorization service before a command is invoked.
     /// </summary>
-    [ServiceBinding(ServiceLifetime.Scoped)]
-    internal class AuthorizationExecutionEventService : IExecutionEventService
+    internal class AuthorizationExecutionEvent : IPreExecutionEvent
     {
-        public AuthorizationExecutionEventService(
+        public AuthorizationExecutionEvent(
             IAuthorizationContextService requestAuthorizationService)
         {
             _requestAuthorizationService = requestAuthorizationService;
         }
-
-        public Task<Result> AfterExecutionAsync(ICommandContext context, IResult executionResult, CancellationToken ct = default)
-            => Task.FromResult(Result.FromSuccess());
 
         public async Task<Result> BeforeExecutionAsync(ICommandContext context, CancellationToken ct = default)
         {

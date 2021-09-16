@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
+using Modix.RemoraShim.ExecutionEvents;
 using Modix.RemoraShim.Parsers;
 
 using Remora.Commands.Extensions;
@@ -13,6 +14,7 @@ namespace Modix.RemoraShim.Commands
             => services
                 .AddDiscordCommands()
                 .AddParsers()
+                .AddExecutionEvents()
                 .AddCommandGroup<ModerationCommands>()
                 .AddCommandGroup<MessageCheckCommands>();
     }

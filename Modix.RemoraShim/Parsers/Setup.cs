@@ -10,7 +10,7 @@ namespace Modix.RemoraShim.Parsers
     {
         public static IServiceCollection AddParsers(this IServiceCollection services)
             => services
-                .AddParser<UserOrMessageAuthor, UserOrMessageAuthorParser>()
-                .AddParser<TimeSpan, TimeSpanParser>();
+                .AddParser<UserOrMessageAuthorParser>()
+                .AddParser<TimeSpanParser>();
     }
 }
