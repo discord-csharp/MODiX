@@ -1,10 +1,15 @@
-﻿using System.Linq;
+﻿#nullable enable
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+
 using Discord.WebSocket;
+
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+
 using Modix.Models;
 
 namespace Modix.Controllers
@@ -15,8 +20,8 @@ namespace Modix.Controllers
     {
         protected IDiscordSocketClient DiscordSocketClient { get; private set; }
         protected ModixUser ModixUser { get; private set; }
-        protected ISocketGuildUser SocketUser { get; private set; }
-        protected ISocketGuild UserGuild => SocketUser.Guild;
+        protected ISocketGuildUser? SocketUser { get; private set; }
+        protected ISocketGuild? UserGuild => SocketUser?.Guild;
 
         protected Services.Core.IAuthorizationService ModixAuth { get; private set; }
 
@@ -28,8 +33,16 @@ namespace Modix.Controllers
 
         public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            if (!DiscordSocketClient.Guilds.Any()) { await next(); return; }
-            if (HttpContext.User == null) { await next(); return; }
+            if (!DiscordSocketClient.Guilds.Any())
+            {
+                return;
+            }
+
+            if (HttpContext.User == null)
+            {
+                await HttpContext.ChallengeAsync();
+                return;
+            }
 
             //Parse the ID to look up socket user
             ModixUser = ModixUser.FromClaimsPrincipal(HttpContext.User);
@@ -49,7 +62,11 @@ namespace Modix.Controllers
 
             SocketUser = guildToSearch?.GetUser(ModixUser.UserId);
 
-            if (SocketUser == null) { await next(); return; }
+            if (SocketUser is null)
+            {
+                await HttpContext.ChallengeAsync();
+                return;
+            }
 
             await AssignClaims();
 
@@ -63,12 +80,12 @@ namespace Modix.Controllers
 
         protected async Task AssignClaims()
         {
-            await ModixAuth.OnAuthenticatedAsync(SocketUser.Id, SocketUser.Guild.Id, SocketUser.RoleIds.ToList());
+            await ModixAuth.OnAuthenticatedAsync(SocketUser!.Id, SocketUser.Guild.Id, SocketUser.RoleIds.ToList());
 
             var claims = (await ModixAuth.GetGuildUserClaimsAsync(SocketUser))
                 .Select(d => new Claim(ClaimTypes.Role, d.ToString()));
 
-            (HttpContext.User.Identity as ClaimsIdentity).AddClaims(claims);
+            (HttpContext.User.Identity as ClaimsIdentity)?.AddClaims(claims);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -43,7 +44,7 @@ namespace Modix.Controllers
         [HttpGet("users")]
         public async Task<IActionResult> AutocompleteUsers(string query)
         {
-            var result = UserGuild.Users is null
+            var result = UserGuild?.Users is null
                 ? Enumerable.Empty<ModixUser>()
                 : UserGuild.Users
                     .Where(d => d.Username.OrdinalContains(query) || d.Id.ToString() == query)
