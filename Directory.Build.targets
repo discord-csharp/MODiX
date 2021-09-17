@@ -14,8 +14,8 @@
   <ItemGroup>
     <PackageReference Update="Discord.Net" Version="2.4.0" />
     
-    <PackageReference Update="Remora.Discord.Commands"  Version="6.0.0" />
-    <PackageReference Update="Remora.Discord.Caching" Version="10.0.1" />
+    <PackageReference Update="Remora.Discord.Caching" Version="12.1.2" />
+    <PackageReference Update="Remora.Discord.Commands" Version="10.0.3" />
 
     <PackageReference Update="Microsoft.EntityFrameworkCore" Version="5.0.0" />
     <PackageReference Update="Microsoft.EntityFrameworkCore.Design" Version="5.0.0"/>

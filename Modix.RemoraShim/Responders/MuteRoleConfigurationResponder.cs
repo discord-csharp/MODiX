@@ -157,6 +157,7 @@ namespace Modix.RemoraShim.Responders
             DiscordPermission.RequestToSpeak,
             DiscordPermission.UsePublicThreads,
             DiscordPermission.UsePrivateThreads,
+            (DiscordPermission)38, // SendMessagesInThreads, TODO: update this when https://github.com/Nihlus/Remora.Discord/pull/91 is merged 
         };
 
         private static readonly DiscordPermissionSet _muteDeniedPermissionSet;

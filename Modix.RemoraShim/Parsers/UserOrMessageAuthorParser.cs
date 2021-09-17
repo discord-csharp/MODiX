@@ -35,11 +35,11 @@ namespace Modix.RemoraShim.Parsers
             _userApi = userApi;
         }
 
-        public override async ValueTask<Result<UserOrMessageAuthor>> TryParse(string value, CancellationToken ct)
+        public override async ValueTask<Result<UserOrMessageAuthor>> TryParseAsync(string? value, CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();
 
-            value = value.Trim(',', '.');
+            value = value?.Trim(',', '.') ?? string.Empty;
 
             // value could be:
             // - user ID

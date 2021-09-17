@@ -10,7 +10,7 @@ namespace Modix.RemoraShim.Parsers
 {
     internal class TimeSpanParser : AbstractTypeParser<TimeSpan>
     {
-        public override ValueTask<Result<TimeSpan>> TryParse(string value, CancellationToken ct)
+        public override ValueTask<Result<TimeSpan>> TryParseAsync(string? value, CancellationToken ct)
         {
             return Parse(value);
 

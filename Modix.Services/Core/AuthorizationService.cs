@@ -422,24 +422,30 @@ namespace Modix.Services.Core
                 return Task.FromResult(CurrentClaims);
 
             if ((guildUser.Id == _discordSocketClient.CurrentUser.Id) || guildUser.GuildPermissions.Administrator)
-                return Task.FromResult<IReadOnlyCollection<AuthorizationClaim>>(Enum.GetValues(typeof(AuthorizationClaim)).Cast<AuthorizationClaim>().ToArray());
+                return Task.FromResult<IReadOnlyCollection<AuthorizationClaim>>(Enum.GetValues<AuthorizationClaim>());
 
             return LookupPosessedClaimsAsync(guildUser.GuildId, guildUser.RoleIds, guildUser.Id, filterClaims);
         }
 
         /// <inheritdoc />
-        public Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(ulong user, ulong guild, IReadOnlyList<ulong> roles, params AuthorizationClaim[] filterClaims)
+        public async Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildUserClaimsAsync(ulong userId, ulong guildId, IReadOnlyList<ulong> roles, params AuthorizationClaim[] filterClaims)
         {
-            if (user == default)
-                return Task.FromException<IReadOnlyCollection<AuthorizationClaim>>(new ArgumentNullException(nameof(user)));
+            if (userId == default)
+                throw new ArgumentNullException(nameof(userId));
 
-            if (user == CurrentUserId)
-                return Task.FromResult(CurrentClaims);
+            if (userId == CurrentUserId)
+                return CurrentClaims;
 
-            if ((user == _discordSocketClient.CurrentUser.Id))
-                return Task.FromResult<IReadOnlyCollection<AuthorizationClaim>>(Enum.GetValues(typeof(AuthorizationClaim)).Cast<AuthorizationClaim>().ToArray());
+            if (userId == _discordSocketClient.CurrentUser.Id)
+                return Enum.GetValues<AuthorizationClaim>();
 
-            return LookupPosessedClaimsAsync(guild, roles, user, filterClaims);
+            var guild = await _discordSocketClient.GetGuildAsync(guildId);
+            var user = await guild.GetUserAsync(userId);
+
+            if (user.GuildPermissions.Administrator)
+                return Enum.GetValues<AuthorizationClaim>();
+
+            return await LookupPosessedClaimsAsync(guildId, roles, userId, filterClaims);
         }
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<AuthorizationClaim>> GetGuildRoleClaimsAsync(IRole guildRole)

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
+using Modix.RemoraShim.Models;
 using Modix.RemoraShim.Parsers;
 using Modix.RemoraShim.Services;
 using Modix.Services.Core;
@@ -59,7 +60,7 @@ namespace Modix.RemoraShim.Commands
 
             if (!canViewPatterns)
             {
-                await _channelApi.CreateMessageAsync(_context.ChannelID, $"{_context.User.ID} does not have permission to view patterns blocked or allowed in {_context.GuildID}!");
+                await _channelApi.CreateMessageAsync(_context.ChannelID, $"<@!{_context.User.ID}> does not have permission to view patterns blocked or allowed in guild {_context.GuildID.Value.Value}!", allowedMentions: new NoAllowedMentions());
                 return Result.FromError(new InvalidOperationError("You do not have permission to view patterns blocked or allowed in this guild!"));
             }
 
@@ -67,7 +68,7 @@ namespace Modix.RemoraShim.Commands
 
             if (!patterns.Any())
             {
-                await _channelApi.CreateMessageAsync(_context.ChannelID, $"{_context.GuildID} does not have any patterns set up, get started with `!pattern block` or `!pattern allow`");
+                await _channelApi.CreateMessageAsync(_context.ChannelID, $"Guild {_context.GuildID.Value.Value} does not have any patterns set up, get started with `!pattern block` or `!pattern allow`");
                 return Result.FromError(new InvalidOperationError("This guild does not have any patterns set up, get started with `!pattern block` or `!pattern allow`"));
             }
 
