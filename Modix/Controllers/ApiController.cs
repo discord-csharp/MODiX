@@ -39,7 +39,7 @@ namespace Modix.Controllers
         {
             var guilds = DiscordSocketClient
                 .Guilds
-                .Where(d => d.GetUser(SocketUser.Id) != null)
+                .Where(d => d.GetUser(SocketUser?.Id??0) != null)
                 .Select(d => new { d.Name, d.Id, d.IconUrl });
 
             return Ok(guilds);
