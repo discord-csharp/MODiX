@@ -185,6 +185,12 @@ namespace Modix.Services.EmojiStats
             await UnlogMessageContentEmojiAsync(channel, notification.OldMessage.Id);
 
             var newMessage = notification.NewMessage as IUserMessage;
+
+            if(newMessage?.Content == null)
+            {
+                return;
+            }
+
             var newEmoji = EmojiRegex.Matches(newMessage.Content);
 
             if (newEmoji.Count == 0)
