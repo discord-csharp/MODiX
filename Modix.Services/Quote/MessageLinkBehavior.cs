@@ -53,8 +53,8 @@ namespace Modix.Services.Quote
 
         private async Task OnMessageReceivedAsync(IMessage message)
         {
-            if (!(message is IUserMessage userMessage)
-                || !(userMessage.Author is IGuildUser guildUser)
+            if (message is not IUserMessage userMessage
+                || userMessage.Author is not IGuildUser guildUser
                 || guildUser.IsBot
                 || guildUser.IsWebhook)
             {
@@ -100,7 +100,7 @@ namespace Modix.Services.Quote
 
                             if (msg == null) return;
 
-                            var success = await SendQuoteEmbedAsync(msg, guildUser, userMessage.Channel);
+                            var success = await SendQuoteEmbedAsync(msg, userMessage);
                             if (success
                                 && string.IsNullOrEmpty(match.Groups["Prelink"].Value)
                                 && string.IsNullOrEmpty(match.Groups["Postlink"].Value))
@@ -117,16 +117,19 @@ namespace Modix.Services.Quote
             }
         }
 
-        private async Task<bool> SendQuoteEmbedAsync(IMessage message, IGuildUser quoter, IMessageChannel targetChannel)
+        private async Task<bool> SendQuoteEmbedAsync(IMessage message, IMessage source)
         {
             bool success = false;
             await SelfExecuteRequest<IQuoteService>(async quoteService =>
             {
-                await quoteService.BuildRemovableEmbed(message, quoter,
+                await quoteService.BuildRemovableEmbed(message, source.Author,
                     async (embed) => //If embed building is unsuccessful, this won't execute
                     {
                         success = true;
-                        return await targetChannel.SendMessageAsync(embed: embed.Build());
+                        return await source.Channel.SendMessageAsync(
+                            embed: embed.Build(),
+                            messageReference: source.Reference,
+                            allowedMentions: AllowedMentions.None);
                     });
             });
 
