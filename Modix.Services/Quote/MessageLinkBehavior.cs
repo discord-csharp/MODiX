@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
@@ -117,13 +117,20 @@ namespace Modix.Services.Quote
             }
         }
 
+        /// <summary>
+        ///     Creates a quote embed and sends the message to the same channel the message link is from.
+        ///     Will also reply to the same message the <paramref name="source" /> is replying to.
+        /// </summary>
+        /// <param name="message">The message that will be quoted.</param>
+        /// <param name="source">The message that contains the message link.</param>
+        /// <returns>True when the the quote succeeds, otherwise False.</returns>
         private async Task<bool> SendQuoteEmbedAsync(IMessage message, IMessage source)
         {
-            bool success = false;
+            var success = false;
             await SelfExecuteRequest<IQuoteService>(async quoteService =>
             {
                 await quoteService.BuildRemovableEmbed(message, source.Author,
-                    async (embed) => //If embed building is unsuccessful, this won't execute
+                    async embed => //If embed building is unsuccessful, this won't execute
                     {
                         success = true;
                         return await source.Channel.SendMessageAsync(
