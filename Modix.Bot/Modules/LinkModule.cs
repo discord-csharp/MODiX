@@ -11,6 +11,8 @@ using Discord.Commands;
 using Modix.Services.Utilities;
 
 using LZStringCSharp;
+using System.Text;
+using System.Collections.Generic;
 
 namespace Modix.Bot.Modules
 {
@@ -91,24 +93,60 @@ namespace Modix.Bot.Modules
                 // Trim, for good measure
                 sourceCode = sourceCode.Trim();
 
-                // Clip to avoid Discord errors
-                int maximumLength = EmbedBuilder.MaxDescriptionLength - (markdownLength + language.Length + "```\n\n```".Length);
+                var processedLines = new List<string>();
+                var lines = sourceCode.Remove('\r').Split('\n', StringSplitOptions.RemoveEmptyEntries);
 
-                if (sourceCode.Length > maximumLength)
+                // Embeds always end up being too long and then messy to display in chat. They also disrupt conversations
+                // a lot as they just end up being a huge wall of text out of nowhere. To account for this, we will:
+                //   - Trim all lines at the right side
+                //   - Remove blank lines
+                //   - Change all single-line opening brackets to be on the previous line instead
+                //   - Clip every line to the maximum length in an embed
+                //   - Clip the total number of lines to 10
+                //   - If there's more, add a comment indicating the number of remaining lines
+                for (int i = 0; i < lines.Length; i++)
                 {
-                    // Clip at the maximum length
-                    sourceCode = sourceCode.Substring(0, maximumLength);
+                    const int MaxLineLength = 57;
+                    string line = lines[i].TrimEnd();
 
-                    int lastCarriageIndex = sourceCode.LastIndexOf('\n');
-
-                    // Remove the last line to avoid having code cut mid-statements
-                    if (lastCarriageIndex > 0)
+                    if (line.Length < MaxLineLength - 1)
                     {
-                        sourceCode = sourceCode.Substring(0, lastCarriageIndex).Trim();
+                        if (line.EndsWith('{') &&
+                            string.IsNullOrWhiteSpace(line.Substring(0, line.Length - 1)) &&
+                            processedLines.Count > 0)
+                        {
+                            processedLines[processedLines.Count - 1] = processedLines[processedLines.Count - 1] + " {";
+                        }
+                        else
+                        {
+                            processedLines.Add(line);
+                        }
+                    }
+                    else
+                    {
+                        processedLines.Add(line.Substring(0, line.Length - 3) + "...");
+                    }
+
+                    if (processedLines.Count == 10)
+                    {
+                        if (language is "cs")
+                        {
+                            processedLines.Add($"// [{lines.Length - i}] more line(s), click to expand");
+                        }
+
+                        break;
                     }
                 }
 
-                preview = Format.Code(sourceCode, language);
+                var builder = new StringBuilder();
+
+                // Now move the processed line to a single text block
+                foreach (var line in processedLines)
+                {
+                    builder.AppendLine(line);
+                }
+
+                preview = Format.Code(builder.ToString(), language);
 
                 return true;
             }
