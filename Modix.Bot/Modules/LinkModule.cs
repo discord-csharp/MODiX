@@ -13,6 +13,7 @@ using Modix.Services.Utilities;
 using LZStringCSharp;
 using System.Text;
 using System.Collections.Generic;
+using Modix.Services.AutoRemoveMessage;
 
 namespace Modix.Bot.Modules
 {
@@ -20,6 +21,13 @@ namespace Modix.Bot.Modules
     [Summary("Commands for working with links.")]
     public class LinkModule : ModuleBase
     {
+        private readonly IAutoRemoveMessageService _autoRemoveMessageService;
+
+        public LinkModule(IAutoRemoveMessageService autoRemoveMessageService)
+        {
+            _autoRemoveMessageService = autoRemoveMessageService;
+        }
+
         [Command("link")]
         [Alias("url", "uri", "shorten", "linkto")]
         [Summary("Shortens the provided link.")]
@@ -45,11 +53,23 @@ namespace Modix.Bot.Modules
                 ? $"{urlMarkdown}\n{preview}"
                 : urlMarkdown;
 
-            await ReplyAsync(embed: new EmbedBuilder()
+            var embed = new EmbedBuilder()
                 .WithDescription(description)
                 .WithUserAsAuthor(Context.User)
-                .WithColor(Color.LightGrey)
-                .Build());
+                .WithColor(Color.LightGrey);
+            ;
+
+            var message = await ReplyAsync(embed: embed.Build());
+
+            await _autoRemoveMessageService.RegisterRemovableMessageAsync(Context.User, embed, async (e) =>
+            {
+                await message.ModifyAsync(a =>
+                {
+                    a.Content = string.Empty;
+                    a.Embed = e.Build();
+                });
+                return message;
+            });
 
             await Context.Message.DeleteAsync();
         }
