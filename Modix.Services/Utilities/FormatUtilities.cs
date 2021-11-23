@@ -327,7 +327,7 @@ namespace Modix.Services.Utilities
             bool TryReplaceLine(Index index, string line)
             {
                 var remainingCount = GetRemainingLineCount();
-                var possibleRemainingLineCommentLength = remainingCount > 1 // 1, because the current line is included in the count
+                var possibleRemainingLineCommentLength = remainingCount > 0
                     ? GetRemainingLineCountComment(remainingCount).Length
                     : 0;
 
