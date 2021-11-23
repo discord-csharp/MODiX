@@ -4,16 +4,11 @@ using System;
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
 using Discord;
 using Discord.Commands;
-
-using Modix.Services.Utilities;
-
 using LZStringCSharp;
-using System.Text;
-using System.Collections.Generic;
 using Modix.Services.AutoRemoveMessage;
+using Modix.Services.Utilities;
 
 namespace Modix.Bot.Modules
 {
@@ -29,7 +24,7 @@ namespace Modix.Bot.Modules
         }
 
         [Command("link")]
-        [Alias("url", "uri", "shorten", "linkto")]
+        [Alias("url", "uri", "shorten", "linkto", "sharplab")]
         [Summary("Shortens the provided link.")]
         public async Task LinkAsync(
             [Summary("The link to shorten.")]
@@ -53,23 +48,18 @@ namespace Modix.Bot.Modules
                 ? $"{urlMarkdown}\n{preview}"
                 : urlMarkdown;
 
+            if (description.Length > EmbedBuilder.MaxDescriptionLength)
+            {
+                await ReplyAsync("Error: The provided link is too long to be converted to an embed.");
+                return;
+            }
+
             var embed = new EmbedBuilder()
                 .WithDescription(description)
                 .WithUserAsAuthor(Context.User)
                 .WithColor(Color.LightGrey);
-            ;
 
-            var message = await ReplyAsync(embed: embed.Build());
-
-            await _autoRemoveMessageService.RegisterRemovableMessageAsync(Context.User, embed, async (e) =>
-            {
-                await message.ModifyAsync(a =>
-                {
-                    a.Content = string.Empty;
-                    a.Embed = e.Build();
-                });
-                return message;
-            });
+            await _autoRemoveMessageService.RegisterRemovableMessageAsync(Context.User, embed, async e => await ReplyAsync(embed: e.Build()));
 
             await Context.Message.DeleteAsync();
         }
@@ -79,103 +69,56 @@ namespace Modix.Bot.Modules
             if (!url.Contains("#v2:"))
             {
                 preview = null;
-
                 return false;
             }
 
             try
             {
                 // Decode the compressed code from the URL payload
-                string base64Text = url.Substring(url.IndexOf("#v2:") + "#v2:".Length);
-                string plainText = LZString.DecompressFromBase64(base64Text);
+                var base64Text = url.Substring(url.IndexOf("#v2:") + "#v2:".Length);
+                var plainText = LZString.DecompressFromBase64(base64Text);
 
                 // Extract the option and get the target language
                 var textParts = Regex.Match(plainText, @"([^|]*)\|([\s\S]*)$");
                 var languageOption = Regex.Match(textParts.Groups[1].Value, @"l:(\w+)");
-                string language = languageOption.Success ? languageOption.Groups[1].Value : "cs";
-                string sourceCode = textParts.Groups[2].Value;
+                var language = languageOption.Success ? languageOption.Groups[1].Value : "cs";
+                var sourceCode = textParts.Groups[2].Value;
 
                 // Replace the compression tokens
                 if (language is "cs")
                 {
-                    sourceCode = Regex.Replace(sourceCode, @"@(\d+|@)", match =>
-                    {
-                        if (match.Value is "@@") return "@";
-
-                        return _sharplabCSTokens[int.Parse(match.Groups[1].Value)];
-                    });
+                    sourceCode = ReplaceTokens(sourceCode, _sharplabCSTokens);
 
                     // Strip using directives
                     sourceCode = Regex.Replace(sourceCode, @"using \w+(?:\.\w+)*;", string.Empty);
                 }
-                else sourceCode = sourceCode.Replace("@@", "@");
+                else if (language is "il")
+                    sourceCode = ReplaceTokens(sourceCode, _sharplabILTokens);
+                else
+                    sourceCode = sourceCode.Replace("@@", "@");
 
-                // Trim, for good measure
-                sourceCode = sourceCode.Trim();
+                var maxPreviewLength = EmbedBuilder.MaxDescriptionLength - (markdownLength + language.Length + "```\n\n```".Length);
 
-                var processedLines = new List<string>();
-                var lines = sourceCode.Remove('\r').Split('\n', StringSplitOptions.RemoveEmptyEntries);
+                preview = FormatUtilities.FormatCodeForEmbed(language, sourceCode, maxPreviewLength);
 
-                // Embeds always end up being too long and then messy to display in chat. They also disrupt conversations
-                // a lot as they just end up being a huge wall of text out of nowhere. To account for this, we will:
-                //   - Trim all lines at the right side
-                //   - Remove blank lines
-                //   - Change all single-line opening brackets to be on the previous line instead
-                //   - Clip every line to the maximum length in an embed
-                //   - Clip the total number of lines to 10
-                //   - If there's more, add a comment indicating the number of remaining lines
-                for (int i = 0; i < lines.Length; i++)
-                {
-                    const int MaxLineLength = 57;
-                    string line = lines[i].TrimEnd();
-
-                    if (line.Length < MaxLineLength - 1)
-                    {
-                        if (line.EndsWith('{') &&
-                            string.IsNullOrWhiteSpace(line.Substring(0, line.Length - 1)) &&
-                            processedLines.Count > 0)
-                        {
-                            processedLines[processedLines.Count - 1] = processedLines[processedLines.Count - 1] + " {";
-                        }
-                        else
-                        {
-                            processedLines.Add(line);
-                        }
-                    }
-                    else
-                    {
-                        processedLines.Add(line.Substring(0, line.Length - 3) + "...");
-                    }
-
-                    if (processedLines.Count == 10)
-                    {
-                        if (language is "cs")
-                        {
-                            processedLines.Add($"// [{lines.Length - i}] more line(s), click to expand");
-                        }
-
-                        break;
-                    }
-                }
-
-                var builder = new StringBuilder();
-
-                // Now move the processed line to a single text block
-                foreach (var line in processedLines)
-                {
-                    builder.AppendLine(line);
-                }
-
-                preview = Format.Code(builder.ToString(), language);
-
-                return true;
+                return !string.IsNullOrWhiteSpace(preview);
             }
             catch
             {
                 preview = null;
-
                 return false;
             }
+        }
+
+        private static string ReplaceTokens(string sourceCode, ImmutableArray<string> tokens)
+        {
+            return Regex.Replace(sourceCode, @"@(\d+|@)", match =>
+            {
+                if (match.Value is "@@")
+                    return "@";
+
+                return tokens[int.Parse(match.Groups[1].Value)];
+            });
         }
 
         private static readonly ImmutableArray<string> _allowedHosts
@@ -215,6 +158,22 @@ namespace Modix.Bot.Modules
                 "public static class Program",
                 "Inspect.Allocations(() =>",
                 "Inspect.MemoryGraph("
+            });
+
+        private static readonly ImmutableArray<string> _sharplabILTokens
+            = ImmutableArray.Create(new[]
+            {
+                "Main ()",
+                "Program",
+                "ConsoleApp",
+                "cil managed",
+                ".entrypoint",
+                ".maxstack",
+                ".assembly",
+                ".class public auto ansi abstract sealed beforefieldinit",
+                "extends System.Object",
+                ".method public hidebysig",
+                "call void [System.Console]System.Console::WriteLine("
             });
     }
 }
