@@ -160,12 +160,12 @@ namespace Modix.Modules
                     .WithUserAsAuthor(guildUser)
                     .WithFooter(a => a.WithText($"Compile: {parsedResult.CompileTime.TotalMilliseconds:F}ms | Execution: {parsedResult.ExecutionTime.TotalMilliseconds:F}ms"));
 
-            embed.WithDescription(Format.Code(parsedResult.Code, "cs"));
+            embed.WithDescription(FormatOrEmptyCodeblock(parsedResult.Code, "cs"));
 
             if (parsedResult.ReturnValue != null)
             {
                 embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnTypeName ?? "null"}")
-                                     .WithValue(Format.Code($"{returnValue.TruncateTo(MaxFormattedFieldSize)}", "json")));
+                                     .WithValue(FormatOrEmptyCodeblock(returnValue.TruncateTo(MaxFormattedFieldSize), "json")));
                 await embed.UploadToServiceIfBiggerThan(returnValue, MaxFormattedFieldSize, _pasteService);
             }
 
@@ -185,6 +185,13 @@ namespace Modix.Modules
             }
 
             return embed;
+        }
+
+        private static string FormatOrEmptyCodeblock(string input, string language)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return "```\n```";
+            return Format.Code(input, language);
         }
     }
 }
