@@ -195,6 +195,7 @@ namespace Modix.Bot.Modules
         }
 
         [Command("transfer")]
+        [Priority(-5)] // Prioritize role over user to avoid people accidentally transferring tags to someone whose nickname is the same as a role's name
         [Summary("Transfers ownership of a tag to the supplied user.")]
         public async Task TransferToUserAsync(
             [Summary("The name of the tag to be transferred.")]
