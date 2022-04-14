@@ -77,7 +77,6 @@ namespace Modix.Modules
 
             // make it easier to trace calls back to discord if moderation or investigation needs to happen
             content.Headers.TryAddWithoutValidation("X-Modix-DiscordUserId", Context.User.Id.ToString());
-            content.Headers.TryAddWithoutValidation("X-Modix-DiscordUsername", Context.User.GetFullUsername());
             var messageLink = $"https://discord.com/channels/{Context.Guild.Id}/{Context.Channel.Id}/{message.Id}";
             content.Headers.TryAddWithoutValidation("X-Modix-MessageLink", messageLink);
 
