@@ -211,7 +211,7 @@ namespace Modix.Services.EmojiStats
                 return;
 
             var message = await notification.Message.GetOrDownloadAsync();
-            if (message is { Author.IsBot: true })
+            if (message is { Author: { IsBot: true } })
                 return;
 
             var channel = (ITextChannel)await notification.Channel.GetOrDownloadAsync();
