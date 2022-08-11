@@ -1,7 +1,5 @@
 ﻿using System;
 
-using Discord.WebSocket;
-
 namespace Discord
 {
     /// <summary>
@@ -15,9 +13,10 @@ namespace Discord
         /// <param name="message">The value to use for <see cref="Message"/>.</param>
         /// <param name="message">The value to use for <see cref="Channel"/>.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="message"/> and <paramref name="channel"/>.</exception>
-        public MessageDeletedNotification(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
+        public MessageDeletedNotification(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
         {
-            Channel = channel ?? throw new ArgumentNullException(nameof(channel));
+            Message = message;
+            Channel = channel;
         }
 
         /// <summary>
@@ -28,6 +27,6 @@ namespace Discord
         /// <summary>
         /// The channel from which the message was deleted.
         /// </summary>
-        public ISocketMessageChannel Channel { get; }
+        public Cacheable<IMessageChannel, ulong> Channel { get; }
     }
 }

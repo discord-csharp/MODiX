@@ -20,7 +20,6 @@ using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.DataDog;
-using Modix.RemoraShim;
 using Modix.Services;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.CodePaste;
@@ -169,8 +168,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<INotificationHandler<PromotionActionCreatedNotification>, PromotionLoggingHandler>();
 
             services.AddHostedService<ModixBot>();
-
-            services.AddRemoraShim(configuration);
 
             return services;
         }

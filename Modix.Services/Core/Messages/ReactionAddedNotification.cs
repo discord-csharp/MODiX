@@ -16,10 +16,10 @@ namespace Discord
         /// <param name="channel">The value to use for <see cref="Channel"/>.</param>
         /// <param name="reaction">The value to use for <see cref="Reaction"/>.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="channel"/> and <paramref name="reaction"/>.</exception>
-        public ReactionAddedNotification(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+        public ReactionAddedNotification(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
         {
             Message = message;
-            Channel = channel ?? throw new ArgumentNullException(nameof(channel));
+            Channel = channel;
             Reaction = reaction ?? throw new ArgumentNullException(nameof(reaction));
         }
 
@@ -31,7 +31,7 @@ namespace Discord
         /// <summary>
         /// The channel in which a reaction was added to a message.
         /// </summary>
-        public ISocketMessageChannel Channel { get; }
+        public Cacheable<IMessageChannel, ulong> Channel { get; }
 
         /// <summary>
         /// The reaction that was added to a message.

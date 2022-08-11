@@ -12,16 +12,24 @@ namespace Discord
         /// <summary>
         /// Constructs a new <see cref="UserLeftNotification"/> from the given values.
         /// </summary>
-        /// <param name="guildUser">The value to use for <see cref="GuildUser"/>.</param>
-        /// <exception cref="ArgumentNullException">Throws for <paramref name="guildUser"/>.</exception>
-        public UserLeftNotification(SocketGuildUser guildUser)
+        /// <param name="guild">The value to use for <see cref="Guild"/>.</param>
+        /// <param name="user">The value to use for <see cref="User"/>.</param>
+        /// <exception cref="ArgumentNullException">Throws for <paramref name="guild"/>.</exception>
+        /// <exception cref="ArgumentNullException">Throws for <paramref name="user"/>.</exception>
+        public UserLeftNotification(SocketGuild guild, SocketUser user)
         {
-            GuildUser = guildUser ?? throw new ArgumentNullException(nameof(guildUser));
+            Guild = guild ?? throw new ArgumentNullException(nameof(guild));
+            User = user ?? throw new ArgumentNullException(nameof(user));
         }
 
         /// <summary>
-        /// The user that left, and the guild that was left.
+        /// The guild that was left.
         /// </summary>
-        public SocketGuildUser GuildUser { get; }
+        public SocketGuild Guild { get; }
+
+        /// <summary>
+        /// The user that left.
+        /// </summary>
+        public SocketUser User { get; }
     }
 }

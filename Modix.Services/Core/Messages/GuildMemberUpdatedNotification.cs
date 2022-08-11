@@ -15,7 +15,7 @@ namespace Discord
         /// <param name="oldMember">The value to use for <see cref="OldMember"/>.</param>
         /// <param name="newMember">The value to use for <see cref="NewMember"/>.</param>
         public GuildMemberUpdatedNotification(
-            SocketGuildUser oldMember,
+            Cacheable<SocketGuildUser, ulong> oldMember,
             SocketGuildUser newMember)
         {
             OldMember = oldMember;
@@ -25,7 +25,7 @@ namespace Discord
         /// <summary>
         /// A model of the Guild Member that was updated, from before the update.
         /// </summary>
-        public SocketGuildUser OldMember { get; }
+        public Cacheable<SocketGuildUser, ulong> OldMember { get; }
 
         /// <summary>
         /// A model of the Guild Member that was updated, from after the update.

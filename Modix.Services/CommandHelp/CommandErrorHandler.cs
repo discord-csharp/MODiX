@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,7 +8,6 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Caching.Memory;
 
 using Modix.Common.Messaging;
-using Modix.Services.Core;
 
 namespace Modix.Services.CommandHelp
 {
@@ -45,7 +43,7 @@ namespace Modix.Services.CommandHelp
         /// <param name="message">The message containing an errored command</param>
         /// <param name="error">The error that occurred</param>
         /// <returns></returns>
-        public async Task AssociateError(IUserMessage message, string error)
+        public async Task AssociateErrorAsync(IUserMessage message, string error)
         {
             if (AssociatedErrors.TryAdd(message.Id, error))
             {
@@ -54,9 +52,9 @@ namespace Modix.Services.CommandHelp
         }
 
         public Task HandleNotificationAsync(ReactionAddedNotification notification, CancellationToken cancellationToken)
-            => ReactionAdded(notification.Message, notification.Channel, notification.Reaction);
+            => ReactionAddedAsync(notification.Message, notification.Channel, notification.Reaction);
 
-        public async Task ReactionAdded(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
+        public async Task ReactionAddedAsync(Cacheable<IUserMessage, ulong> cachedMessage, Cacheable<IMessageChannel, ulong> cachedChannel, SocketReaction reaction)
         {
             //Don't trigger if the emoji is wrong, if the user is a bot, or if we've
             //made an error message reply already
@@ -75,6 +73,8 @@ namespace Modix.Services.CommandHelp
             //with the error message then add that to the replies collection
             if (AssociatedErrors.TryGetValue(cachedMessage.Id, out var value))
             {
+
+                var channel = await cachedChannel.GetOrDownloadAsync();
                 var msg = await channel.SendMessageAsync("", false, new EmbedBuilder()
                 {
                     Author = new EmbedAuthorBuilder
@@ -94,9 +94,9 @@ namespace Modix.Services.CommandHelp
         }
 
         public Task HandleNotificationAsync(ReactionRemovedNotification notification, CancellationToken cancellationToken)
-            => ReactionRemoved(notification.Message, notification.Channel, notification.Reaction);
+            => ReactionRemovedAsync(notification.Message, notification.Channel, notification.Reaction);
 
-        public async Task ReactionRemoved(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
+        public async Task ReactionRemovedAsync(Cacheable<IUserMessage, ulong> cachedMessage, Cacheable<IMessageChannel, ulong> cachedChannel, SocketReaction reaction)
         {
             //Bugfix for NRE?
             if (reaction is null || reaction.User.Value is null)
@@ -120,6 +120,7 @@ namespace Modix.Services.CommandHelp
             //the reactions from the original message
             if (ErrorReplies.TryGetValue(cachedMessage.Id, out var botReplyId) == false) { return; }
 
+            var channel = await cachedChannel.GetOrDownloadAsync();
             await channel.DeleteMessageAsync(botReplyId);
 
             if

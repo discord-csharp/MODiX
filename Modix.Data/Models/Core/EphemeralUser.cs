@@ -58,8 +58,6 @@ namespace Modix.Data.Models.Core
 
         public string? VoiceSessionId { get; private set; }
 
-        public IActivity? Activity { get; private set; }
-
         public DateTimeOffset? FirstSeen { get; private set; }
 
         public DateTimeOffset? LastSeen { get; private set; }
@@ -70,15 +68,29 @@ namespace Modix.Data.Models.Core
 
         public DateTimeOffset? PremiumSince { get; private set; }
 
-        public IImmutableSet<ClientType>? ActiveClients { get; private set; }
+        public IReadOnlyCollection<ClientType>? ActiveClients { get; private set; }
 
-        public IImmutableList<IActivity>? Activities { get; private set; }
+        public IReadOnlyCollection<IActivity>? Activities { get; private set; }
 
         public bool IsStreaming { get; private set; }
 
         public bool? IsPending { get; private set; }
 
         public UserProperties? PublicFlags { get; private set; }
+
+        public string? DisplayName { get; private set; }
+
+        public string? DisplayAvatarId { get; private set; }
+
+        public string? GuildAvatarId { get; private set; }
+
+        public int Hierarchy { get; private set; }
+
+        public DateTimeOffset? TimedOutUntil { get; private set; }
+
+        public bool IsVideoing { get; private set; }
+
+        public DateTimeOffset? RequestToSpeakTimestamp { get; private set; }
 
         public async Task AddRoleAsync(ulong roleId, RequestOptions? options = null)
             => await OnGuildUserOrThrowAsync(user => user.AddRoleAsync(roleId, options));
@@ -104,7 +116,7 @@ namespace Modix.Data.Models.Core
 
         public async Task<IDMChannel> GetOrCreateDMChannelAsync(RequestOptions? options = null)
         {
-            return await OnGuildUserOrThrowAsync(user => user.GetOrCreateDMChannelAsync(options));
+            return await OnGuildUserOrThrowAsync(user => user.CreateDMChannelAsync(options));
         }
 
         public ChannelPermissions GetPermissions(IGuildChannel channel)
@@ -138,6 +150,31 @@ namespace Modix.Data.Models.Core
         public string? GetDefaultAvatarUrl()
             => _user?.GetDefaultAvatarUrl();
 
+        public string GetGuildAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
+        {
+            return OnGuildUserOrThrow(u => u.GetGuildAvatarUrl(format, size));
+        }
+
+        public string GetDisplayAvatarUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128)
+        {
+            return OnGuildUserOrThrow(u => u.GetDisplayAvatarUrl(format, size));
+        }
+
+        public async Task SetTimeOutAsync(TimeSpan span, RequestOptions? options = null)
+        {
+            await OnGuildUserOrThrowAsync(u => u.SetTimeOutAsync(span, options));
+        }
+
+        public async Task RemoveTimeOutAsync(RequestOptions? options = null)
+        {
+            await OnGuildUserOrThrowAsync(u => u.RemoveTimeOutAsync(options));
+        }
+
+        public async Task<IDMChannel> CreateDMChannelAsync(RequestOptions? options = null)
+        {
+            return await OnGuildUserOrThrowAsync(u => u.CreateDMChannelAsync(options));
+        }
+
         public EphemeralUser WithIEntityData(IEntity<ulong>? user)
         {
             if (user is null)
@@ -170,9 +207,6 @@ namespace Modix.Data.Models.Core
 
             if (user.Activities is not null)
                 Activities = user.Activities;
-
-            if (user.Activity != default)
-                Activity = user.Activity;
 
             if (user.Status != default)
                 Status = user.Status;
@@ -232,6 +266,12 @@ namespace Modix.Data.Models.Core
             if (user.IsSuppressed != default)
                 IsSuppressed = user.IsSuppressed;
 
+            if (user.IsVideoing != default)
+                IsVideoing = user.IsVideoing;
+
+            if (user.RequestToSpeakTimestamp != default)
+                RequestToSpeakTimestamp = user.RequestToSpeakTimestamp;
+
             if (user.VoiceChannel != default)
                 VoiceChannel = user.VoiceChannel;
 
@@ -247,6 +287,18 @@ namespace Modix.Data.Models.Core
                 return this;
 
             _guildUser = user;
+
+            if (user.DisplayName != default)
+                DisplayName = user.DisplayName;
+
+            if (user.DisplayAvatarId != default)
+                DisplayAvatarId = user.DisplayAvatarId;
+
+            if (user.GuildAvatarId != default)
+                GuildAvatarId = user.GuildAvatarId;
+
+            if (user.Hierarchy != default)
+                Hierarchy = user.Hierarchy;
 
             if (user.JoinedAt != default)
                 JoinedAt = user.JoinedAt;
@@ -265,6 +317,9 @@ namespace Modix.Data.Models.Core
 
             if (user.RoleIds != default)
                 RoleIds = user.RoleIds;
+
+            if (user.TimedOutUntil != default)
+                TimedOutUntil = user.TimedOutUntil;
 
             return WithIUserData(user)
                 .WithIVoiceStateData(user);

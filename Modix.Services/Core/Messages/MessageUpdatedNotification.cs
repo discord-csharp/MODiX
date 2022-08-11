@@ -18,6 +18,8 @@ namespace Discord
         /// <exception cref="ArgumentNullException">Throws for <paramref name="oldMessage"/>, <paramref name="newMessage"/>, and <paramref name="channel"/>.</exception>
         public MessageUpdatedNotification(Cacheable<IMessage, ulong> oldMessage, SocketMessage newMessage, ISocketMessageChannel channel)
         {
+            OldMessage = oldMessage;
+            NewMessage = newMessage;
             Channel = channel ?? throw new ArgumentNullException(nameof(channel));
         }
 

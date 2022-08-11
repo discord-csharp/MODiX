@@ -37,7 +37,8 @@ namespace Modix.Services.MessageLogging
             MessageDeletedNotification notification,
             CancellationToken cancellationToken)
         {
-            var guild = (notification.Channel as SocketGuildChannel)?.Guild;
+            var channel = await notification.Channel.GetOrDownloadAsync();
+            var guild = (channel as IGuildChannel)?.Guild;
 
             using var logScope = MessageLoggingLogMessages.BeginMessageNotificationScope(_logger, guild?.Id, notification.Channel.Id, notification.Message.Id);
 
@@ -47,7 +48,7 @@ namespace Modix.Services.MessageLogging
                 guild,
                 notification.Message.HasValue ? notification.Message.Value : null,
                 null,
-                notification.Channel,
+                channel,
                 () =>
                 {
                     var fields = Enumerable.Empty<EmbedFieldBuilder>()
@@ -143,10 +144,10 @@ namespace Modix.Services.MessageLogging
                 : messageContent.Replace("```", '\u200B' + "`" + '\u200B' + "`" + '\u200B' + "`" + '\u200B');
 
         private async Task TryLogAsync(
-            SocketGuild? guild,
+            IGuild? guild,
             IMessage? oldMessage,
             IMessage? newMessage,
-            ISocketMessageChannel channel,
+            IMessageChannel channel,
             Func<Embed> renderLogMessage,
             CancellationToken cancellationToken)
         {
