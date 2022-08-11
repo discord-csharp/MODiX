@@ -29,7 +29,7 @@ namespace Modix.Services.Core
     internal class MessageService : IMessageService
     {
         public MessageService(
-            IDiscordSocketClient discordSocketClient,
+            DiscordSocketClient discordSocketClient,
             IMessageRepository messageRepository)
         {
             _discordSocketClient = discordSocketClient;
@@ -69,7 +69,7 @@ namespace Modix.Services.Core
             return null;
         }
 
-        private readonly IDiscordSocketClient _discordSocketClient;
+        private readonly DiscordSocketClient _discordSocketClient;
         private readonly IMessageRepository _messageRepository;
     }
 }

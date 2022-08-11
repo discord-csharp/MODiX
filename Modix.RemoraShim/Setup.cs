@@ -22,7 +22,7 @@ namespace Modix.RemoraShim
             => services
                 .AddServices(typeof(Setup).Assembly, configuration)
                 .AddTransient<IThreadService, ThreadService>()
-                .AddDiscordGateway(x => x.GetRequiredService<IOptions<ModixConfig>>().Value.DiscordToken)
+                .AddDiscordGateway(x => x.GetRequiredService<IOptions<ModixConfig>>().Value.DiscordToken!)
                 .Configure<DiscordGatewayClientOptions>(x => x.Intents =
                     GatewayIntents.GuildBans |
                     GatewayIntents.GuildMembers |

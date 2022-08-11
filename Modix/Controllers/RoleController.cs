@@ -14,7 +14,7 @@ namespace Modix.Controllers
     {
         private IDesignatedRoleService RoleService { get; }
 
-        public RoleController(IDiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedRoleService roleService) : base(client, modixAuth)
+        public RoleController(DiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedRoleService roleService) : base(client, modixAuth)
         {
             RoleService = roleService;
         }

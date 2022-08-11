@@ -14,7 +14,7 @@ namespace Discord
         /// </summary>
         /// <param name="guild">The value to use for <see cref="Guild"/>.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="guild"/>.</exception>
-        public GuildAvailableNotification(ISocketGuild guild)
+        public GuildAvailableNotification(SocketGuild guild)
         {
             Guild = guild ?? throw new ArgumentNullException(nameof(guild));
         }
@@ -22,6 +22,6 @@ namespace Discord
         /// <summary>
         /// The guild whose data is now available.
         /// </summary>
-        public ISocketGuild Guild { get; }
+        public SocketGuild Guild { get; }
     }
 }

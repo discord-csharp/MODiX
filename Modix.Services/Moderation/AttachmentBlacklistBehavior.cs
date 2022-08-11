@@ -96,7 +96,7 @@ namespace Modix.Services.Moderation
 
         public AttachmentBlacklistBehavior(
             IDesignatedChannelService designatedChannelService,
-            IDiscordSocketClient discordSocketClient,
+            DiscordSocketClient discordSocketClient,
             ILogger<AttachmentBlacklistBehavior> logger,
             IModerationService moderationService)
         {
@@ -112,7 +112,7 @@ namespace Modix.Services.Moderation
         {
             var message = notification.Message;
             var channel = notification.Message.Channel;
-            var guild = (channel as ISocketGuildChannel)?.Guild;
+            var guild = (channel as SocketGuildChannel)?.Guild;
             var author = notification.Message.Author;
 
             using var logScope = AttachmentBlacklistLogMessages.BeginMessageScope(_logger, guild?.Id, channel.Id, author.Id, message.Id);
@@ -181,7 +181,7 @@ namespace Modix.Services.Moderation
         }
 
         private readonly IDesignatedChannelService _designatedChannelService;
-        private readonly IDiscordSocketClient _discordSocketClient;
+        private readonly DiscordSocketClient _discordSocketClient;
         private readonly ILogger _logger;
         private readonly IModerationService _moderationService;
     }

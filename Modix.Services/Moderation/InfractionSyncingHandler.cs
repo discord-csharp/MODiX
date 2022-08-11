@@ -50,7 +50,7 @@ namespace Modix.Services.Moderation
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation completes.
         /// </returns>
-        private async Task TryCreateBanInfractionAsync(ISocketUser user, ISocketGuild guild)
+        private async Task TryCreateBanInfractionAsync(SocketUser user, SocketGuild guild)
         {
             if (await _moderationService.AnyInfractionsAsync(GetBanSearchCriteria(guild, user)))
             {
@@ -93,7 +93,7 @@ namespace Modix.Services.Moderation
 
             var guildUser = guild.GetUser(banLog.Entry.User.Id);
 
-            await _authorizationService.OnAuthenticatedAsync(guildUser.Id, guildUser.Guild.Id, guildUser.RoleIds.ToList());
+            await _authorizationService.OnAuthenticatedAsync(guildUser.Id, guildUser.Guild.Id, guildUser.Roles.Select(x => x.Id).ToList());
             await _moderationService.CreateInfractionAsync(guild.Id, banLog.Entry.User.Id, InfractionType.Ban, user.Id, reason, null);
         }
 

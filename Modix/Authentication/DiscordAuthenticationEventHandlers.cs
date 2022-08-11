@@ -21,7 +21,7 @@ namespace Modix.Authentication
         {
             var user = ModixUser.FromClaimsPrincipal(context.Principal);
 
-            var userIsInGuilds = context.HttpContext.RequestServices.GetRequiredService<IDiscordSocketClient>()
+            var userIsInGuilds = context.HttpContext.RequestServices.GetRequiredService<DiscordSocketClient>()
                 .Guilds.Any(x => x.GetUser(user.UserId) is { });
 
             if (!userIsInGuilds)

@@ -21,11 +21,11 @@ namespace Modix.Services.Moderation
         private readonly IAuthorizationService _authorizationService;
         private readonly IModerationService _moderationService;
         private readonly IMessageContentPatternService _messageContentPatternService;
-        private readonly IDiscordSocketClient _discordSocketClient;
+        private readonly DiscordSocketClient _discordSocketClient;
 
         public MessageContentCheckBehaviour(
             IDesignatedChannelService designatedChannelService,
-            IDiscordSocketClient discordSocketClient,
+            DiscordSocketClient discordSocketClient,
             IAuthorizationService authorizationService,
             IModerationService moderationService, IMessageContentPatternService messageContentPatternService)
         {

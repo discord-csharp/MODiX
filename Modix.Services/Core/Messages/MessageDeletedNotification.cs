@@ -15,20 +15,19 @@ namespace Discord
         /// <param name="message">The value to use for <see cref="Message"/>.</param>
         /// <param name="message">The value to use for <see cref="Channel"/>.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="message"/> and <paramref name="channel"/>.</exception>
-        public MessageDeletedNotification(ICacheable<IMessage, ulong> message, IISocketMessageChannel channel)
+        public MessageDeletedNotification(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
-            Message = message ?? throw new ArgumentNullException(nameof(message));
             Channel = channel ?? throw new ArgumentNullException(nameof(channel));
         }
 
         /// <summary>
         /// A cache entry for the message that was deleted.
         /// </summary>
-        public ICacheable<IMessage, ulong> Message { get; }
+        public Cacheable<IMessage, ulong> Message { get; }
 
         /// <summary>
         /// The channel from which the message was deleted.
         /// </summary>
-        public IISocketMessageChannel Channel { get; }
+        public ISocketMessageChannel Channel { get; }
     }
 }

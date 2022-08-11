@@ -14,7 +14,7 @@ namespace Discord
         /// </summary>
         /// <param name="message">The value to use for <see cref="Message"/>.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="message"/>.</exception>
-        public MessageReceivedNotification(ISocketMessage message)
+        public MessageReceivedNotification(SocketMessage message)
         {
             Message = message ?? throw new ArgumentNullException(nameof(message));
         }
@@ -22,6 +22,6 @@ namespace Discord
         /// <summary>
         /// The message that was received.
         /// </summary>
-        public ISocketMessage Message { get; }
+        public SocketMessage Message { get; }
     }
 }

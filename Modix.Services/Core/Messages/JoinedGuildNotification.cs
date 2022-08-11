@@ -14,7 +14,7 @@ namespace Discord
         /// </summary>
         /// <param name="guild">The value to use for <see cref="Guild"/>.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="guild"/>.</exception>
-        public JoinedGuildNotification(ISocketGuild guild)
+        public JoinedGuildNotification(SocketGuild guild)
         {
             Guild = guild ?? throw new ArgumentNullException(nameof(guild));
         }
@@ -22,6 +22,6 @@ namespace Discord
         /// <summary>
         /// The guild that the bot has joined.
         /// </summary>
-        public ISocketGuild Guild { get; }
+        public SocketGuild Guild { get; }
     }
 }

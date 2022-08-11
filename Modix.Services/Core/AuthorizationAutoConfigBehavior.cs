@@ -31,7 +31,7 @@ namespace Modix.Services.Core
 
         /// <inheritdoc />
         public Task HandleNotificationAsync(JoinedGuildNotification notification, CancellationToken cancellationToken = default)
-            => notification.Guild.Available
+            => ((IGuild)notification.Guild).Available
                 ? _authorizationService.AutoConfigureGuildAsync(notification.Guild, cancellationToken)
                 : Task.CompletedTask;
 

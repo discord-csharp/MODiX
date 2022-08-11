@@ -14,7 +14,7 @@ namespace Discord
         /// </summary>
         /// <param name="role">The value to use for <see cref="Role"/>.</param>
         public RoleCreatedNotification(
-            ISocketRole role)
+            SocketRole role)
         {
             Role = role;
         }
@@ -22,6 +22,6 @@ namespace Discord
         /// <summary>
         /// The role that was created.
         /// </summary>
-        public ISocketRole Role { get; }
+        public SocketRole Role { get; }
     }
 }

@@ -278,7 +278,7 @@ namespace Modix.Services.Core
         internal protected IDiscordClient DiscordClient { get; }
 
         /// <summary>
-        /// A <see cref="IDiscordRestClient"/> to be used to interact with the Discord API.
+        /// A <see cref="DiscordRestClient"/> to be used to interact with the Discord API.
         /// </summary>
         internal protected DiscordRestClient DiscordRestClient { get; }
 

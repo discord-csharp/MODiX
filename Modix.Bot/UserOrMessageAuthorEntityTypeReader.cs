@@ -66,7 +66,7 @@ namespace Modix
                 }
 
                 // Try to find the user if they are not in the guild
-                var restClient = services.GetRequiredService<IDiscordRestClient>();
+                var restClient = services.GetRequiredService<DiscordRestClient>();
 
                 var user = await restClient.GetUserAsync(snowflake);
                 if (user is not null)

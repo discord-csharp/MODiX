@@ -14,7 +14,7 @@ namespace Discord
         /// </summary>
         /// <param name="guildUser">The value to use for <see cref="GuildUser"/>.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="guildUser"/>.</exception>
-        public UserLeftNotification(ISocketGuildUser guildUser)
+        public UserLeftNotification(SocketGuildUser guildUser)
         {
             GuildUser = guildUser ?? throw new ArgumentNullException(nameof(guildUser));
         }
@@ -22,6 +22,6 @@ namespace Discord
         /// <summary>
         /// The user that left, and the guild that was left.
         /// </summary>
-        public ISocketGuildUser GuildUser { get; }
+        public SocketGuildUser GuildUser { get; }
     }
 }

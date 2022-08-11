@@ -25,7 +25,7 @@ namespace Modix.Services.MessageLogging
     {
         public MessageLoggingBehavior(
             IDesignatedChannelService designatedChannelService,
-            IDiscordSocketClient discordSocketClient,
+            DiscordSocketClient discordSocketClient,
             ILogger<MessageLoggingBehavior> logger)
         {
             _designatedChannelService = designatedChannelService;
@@ -37,7 +37,7 @@ namespace Modix.Services.MessageLogging
             MessageDeletedNotification notification,
             CancellationToken cancellationToken)
         {
-            var guild = (notification.Channel as ISocketGuildChannel)?.Guild;
+            var guild = (notification.Channel as SocketGuildChannel)?.Guild;
 
             using var logScope = MessageLoggingLogMessages.BeginMessageNotificationScope(_logger, guild?.Id, notification.Channel.Id, notification.Message.Id);
 
@@ -94,7 +94,7 @@ namespace Modix.Services.MessageLogging
             MessageUpdatedNotification notification,
             CancellationToken cancellationToken)
         {
-            var guild = (notification.Channel as ISocketGuildChannel)?.Guild;
+            var guild = (notification.Channel as SocketGuildChannel)?.Guild;
             if(notification.NewMessage.Author.Id == default)
             {
                 // update caused by new thread created or deleted
@@ -143,10 +143,10 @@ namespace Modix.Services.MessageLogging
                 : messageContent.Replace("```", '\u200B' + "`" + '\u200B' + "`" + '\u200B' + "`" + '\u200B');
 
         private async Task TryLogAsync(
-            ISocketGuild? guild,
+            SocketGuild? guild,
             IMessage? oldMessage,
             IMessage? newMessage,
-            IISocketMessageChannel channel,
+            ISocketMessageChannel channel,
             Func<Embed> renderLogMessage,
             CancellationToken cancellationToken)
         {
@@ -207,7 +207,7 @@ namespace Modix.Services.MessageLogging
         }
 
         private readonly IDesignatedChannelService _designatedChannelService;
-        private readonly IDiscordSocketClient _discordSocketClient;
+        private readonly DiscordSocketClient _discordSocketClient;
         private readonly ILogger _logger;
     }
 }

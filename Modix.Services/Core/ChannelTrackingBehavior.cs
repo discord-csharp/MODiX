@@ -44,15 +44,15 @@ namespace Modix.Services.Core
         public async Task HandleNotificationAsync(GuildAvailableNotification notification, CancellationToken cancellationToken = default)
         {
             foreach (var channel in notification.Guild.Channels.Where(x => x is ITextChannel))
-                await _channelService.TrackChannelAsync(channel.Name, channel.Id, channel.GuildId, cancellationToken);
+                await _channelService.TrackChannelAsync(channel.Name, channel.Id, channel.Guild.Id, cancellationToken);
         }
 
         /// <inheritdoc />
         public async Task HandleNotificationAsync(JoinedGuildNotification notification, CancellationToken cancellationToken = default)
         {
-            if(notification.Guild.Available)
+            if(((IGuild)notification.Guild).Available)
                 foreach (var channel in notification.Guild.Channels.Where(x => x is ITextChannel))
-                    await _channelService.TrackChannelAsync(channel.Name, channel.Id, channel.GuildId, cancellationToken);
+                    await _channelService.TrackChannelAsync(channel.Name, channel.Id, channel.Guild.Id, cancellationToken);
         }
 
         private readonly IChannelService _channelService;

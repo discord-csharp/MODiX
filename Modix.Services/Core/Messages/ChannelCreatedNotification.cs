@@ -14,7 +14,7 @@ namespace Discord
         /// </summary>
         /// <param name="channel">The value to use for <see cref="Channel"/>.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="channel"/>.</exception>
-        public ChannelCreatedNotification(ISocketChannel channel)
+        public ChannelCreatedNotification(SocketChannel channel)
         {
             Channel = channel ?? throw new ArgumentNullException(nameof(channel));
         }
@@ -22,6 +22,6 @@ namespace Discord
         /// <summary>
         /// The channel that was created.
         /// </summary>
-        public ISocketChannel Channel { get; }
+        public SocketChannel Channel { get; }
     }
 }

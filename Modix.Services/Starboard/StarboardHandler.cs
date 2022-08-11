@@ -33,7 +33,7 @@ namespace Modix.Services.Starboard
         public Task HandleNotificationAsync(ReactionRemovedNotification notification, CancellationToken cancellationToken)
             => HandleReactionAsync(notification.Message, notification.Reaction);
 
-        private async Task HandleReactionAsync(ICacheable<IUserMessage, ulong> cachedMessage, IReaction reaction)
+        private async Task HandleReactionAsync(Cacheable<IUserMessage, ulong> cachedMessage, IReaction reaction)
         {
             var emote = reaction.Emote;
             if (!_starboardService.IsStarEmote(emote))

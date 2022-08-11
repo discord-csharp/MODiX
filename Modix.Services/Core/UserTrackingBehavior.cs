@@ -20,7 +20,7 @@ namespace Modix.Services.Core
             INotificationHandler<UserJoinedNotification>
     {
         public UserTrackingBehavior(
-            IDiscordSocketClient discordSocketClient,
+            DiscordSocketClient discordSocketClient,
             IUserService userService)
         {
             _discordSocketClient = discordSocketClient;
@@ -58,7 +58,7 @@ namespace Modix.Services.Core
                 notification.GuildUser,
                 cancellationToken);
 
-        private readonly IDiscordSocketClient _discordSocketClient;
+        private readonly DiscordSocketClient _discordSocketClient;
         private readonly IUserService _userService;
     }
 }

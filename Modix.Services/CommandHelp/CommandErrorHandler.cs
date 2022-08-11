@@ -30,10 +30,10 @@ namespace Modix.Services.CommandHelp
 
         private const string _emoji = "⚠";
         private readonly IEmote _emote = new Emoji(_emoji);
-        private readonly IDiscordSocketClient _discordSocketClient;
+        private readonly DiscordSocketClient _discordSocketClient;
         private readonly IMemoryCache _memoryCache;
 
-        public CommandErrorHandler(IDiscordSocketClient discordSocketClient, IMemoryCache memoryCache)
+        public CommandErrorHandler(DiscordSocketClient discordSocketClient, IMemoryCache memoryCache)
         {
             _discordSocketClient = discordSocketClient;
             _memoryCache = memoryCache;
@@ -56,7 +56,7 @@ namespace Modix.Services.CommandHelp
         public Task HandleNotificationAsync(ReactionAddedNotification notification, CancellationToken cancellationToken)
             => ReactionAdded(notification.Message, notification.Channel, notification.Reaction);
 
-        public async Task ReactionAdded(ICacheable<IUserMessage, ulong> cachedMessage, IISocketMessageChannel channel, ISocketReaction reaction)
+        public async Task ReactionAdded(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
         {
             //Don't trigger if the emoji is wrong, if the user is a bot, or if we've
             //made an error message reply already
@@ -96,7 +96,7 @@ namespace Modix.Services.CommandHelp
         public Task HandleNotificationAsync(ReactionRemovedNotification notification, CancellationToken cancellationToken)
             => ReactionRemoved(notification.Message, notification.Channel, notification.Reaction);
 
-        public async Task ReactionRemoved(ICacheable<IUserMessage, ulong> cachedMessage, IISocketMessageChannel channel, ISocketReaction reaction)
+        public async Task ReactionRemoved(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
         {
             //Bugfix for NRE?
             if (reaction is null || reaction.User.Value is null)

@@ -181,7 +181,7 @@ namespace Modix.Services.UserMetrics
 
         private void DoGuildStats(
             string? counterName,
-            ISocketGuild guild)
+            SocketGuild guild)
         {
             var tags = new[] { $"guild:{guild.Name}" };
 

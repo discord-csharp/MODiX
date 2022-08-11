@@ -13,7 +13,7 @@ namespace Modix.Services.Diagnostics
         : ILatencyEndpoint
     {
         public DiscordGatewayLatencyEndpoint(
-            IDiscordSocketClient discordClient)
+            DiscordSocketClient discordClient)
         {
             _discordClient = discordClient;
         }
@@ -25,6 +25,6 @@ namespace Modix.Services.Diagnostics
                 CancellationToken cancellationToken)
             => Task.FromResult<long?>(Convert.ToInt64(_discordClient.Latency));
 
-        private readonly IDiscordSocketClient _discordClient;
+        private readonly DiscordSocketClient _discordClient;
     }
 }

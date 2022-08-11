@@ -21,7 +21,7 @@ namespace Modix.Services.Core
             INotificationHandler<RoleUpdatedNotification>
     {
         public RoleTrackingBehavior(
-            IDiscordSocketClient discordSocketClient,
+            DiscordSocketClient discordSocketClient,
             IRoleService roleService)
         {
             _discordSocketClient = discordSocketClient;
@@ -54,7 +54,7 @@ namespace Modix.Services.Core
                 CancellationToken cancellationToken)
             => _roleService.TrackRoleAsync(notification.NewRole, cancellationToken);
 
-        private readonly IDiscordSocketClient _discordSocketClient;
+        private readonly DiscordSocketClient _discordSocketClient;
         private readonly IRoleService _roleService;
     }
 }

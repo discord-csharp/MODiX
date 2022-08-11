@@ -18,7 +18,7 @@ namespace Modix.Bot.Behaviors
         : ICommandPrefixParser
     {
         public CommandPrefixParser(
-            IDiscordSocketClient discordSocketClient)
+            DiscordSocketClient discordSocketClient)
         {
             _discordSocketClient = discordSocketClient;
         }
@@ -45,7 +45,7 @@ namespace Modix.Bot.Behaviors
             return Task.FromResult(_lastResult.Value.argPos);
         }
 
-        private readonly IDiscordSocketClient _discordSocketClient;
+        private readonly DiscordSocketClient _discordSocketClient;
 
         private (IUserMessage message, int? argPos)? _lastResult;
     }

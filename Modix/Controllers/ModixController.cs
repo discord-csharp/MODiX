@@ -18,14 +18,14 @@ namespace Modix.Controllers
     [Authorize]
     public class ModixController : Controller
     {
-        protected IDiscordSocketClient DiscordSocketClient { get; private set; }
+        protected DiscordSocketClient DiscordSocketClient { get; private set; }
         protected ModixUser ModixUser { get; private set; }
-        protected ISocketGuildUser? SocketUser { get; private set; }
-        protected ISocketGuild? UserGuild => SocketUser?.Guild;
+        protected SocketGuildUser? SocketUser { get; private set; }
+        protected SocketGuild? UserGuild => SocketUser?.Guild;
 
         protected Services.Core.IAuthorizationService ModixAuth { get; private set; }
 
-        public ModixController(IDiscordSocketClient client, Services.Core.IAuthorizationService modixAuth)
+        public ModixController(DiscordSocketClient client, Services.Core.IAuthorizationService modixAuth)
         {
             DiscordSocketClient = client;
             ModixAuth = modixAuth;
@@ -48,7 +48,7 @@ namespace Modix.Controllers
             ModixUser = ModixUser.FromClaimsPrincipal(HttpContext.User);
 
             var guildCookie = Request.Cookies["SelectedGuild"];
-            ISocketGuild guildToSearch;
+            SocketGuild guildToSearch;
 
             if (!string.IsNullOrWhiteSpace(guildCookie))
             {
@@ -80,7 +80,7 @@ namespace Modix.Controllers
 
         protected async Task AssignClaims()
         {
-            await ModixAuth.OnAuthenticatedAsync(SocketUser!.Id, SocketUser.Guild.Id, SocketUser.RoleIds.ToList());
+            await ModixAuth.OnAuthenticatedAsync(SocketUser!.Id, SocketUser.Guild.Id, SocketUser.Roles.Select(x => x.Id).ToList());
 
             var claims = (await ModixAuth.GetGuildUserClaimsAsync(SocketUser))
                 .Select(d => new Claim(ClaimTypes.Role, d.ToString()));

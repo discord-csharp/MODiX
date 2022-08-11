@@ -29,7 +29,7 @@ namespace Modix.Behaviors
         /// </summary>
         public PromotionLoggingHandler(
             IAuthorizationService authorizationService,
-            IDiscordSocketClient discordSocketClient,
+            DiscordSocketClient discordSocketClient,
             IDesignatedChannelService designatedChannelService,
             IUserService userService,
             IPromotionsService promotionsService,
