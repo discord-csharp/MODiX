@@ -169,7 +169,7 @@ namespace Modix.Services.UserMetrics
             UserLeftNotification notification,
             CancellationToken cancellationToken)
         {
-            var guild = notification.GuildUser.Guild;
+            var guild = notification.Guild;
             using var logScope = UserMetricsLogMessages.BeginGuildScope(_logger, guild.Id);
 
             UserMetricsLogMessages.UserLeftHandling(_logger);

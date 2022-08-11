@@ -176,7 +176,7 @@ namespace Modix.Services.Moderation
 
             var nonCategoryChannels =
                 (await guild.GetChannelsAsync())
-                .Where(c => !(c is ICategoryChannel) && !(c is SocketNewsChannel))
+                .Where(c => c is (ITextChannel or IVoiceChannel) and not IThreadChannel)
                 .Where(c => !unmoderatedChannels.Contains(c.Id))
                 .ToList();
 
@@ -672,22 +672,15 @@ namespace Modix.Services.Moderation
             {
                 var permissionOverwrite = channel.GetPermissionOverwrite(muteRole);
 
-                if (permissionOverwrite != null)
+                if (permissionOverwrite is null || _mutePermissions.ToDenyList().Any(x => !permissionOverwrite.GetValueOrDefault().ToDenyList().Contains(x)))
                 {
-                    var deniedPermissions = permissionOverwrite.GetValueOrDefault().ToDenyList();
-
-                    if (!_mutePermissions.ToDenyList().Except(deniedPermissions).Any())
-                    {
-                        Log.Debug("Skipping setting mute permissions for channel #{Channel} as they're already set.", channel.Name);
-                        return;
-                    }
-
-                    Log.Debug("Removing permission overwrite for channel #{Channel}.", channel.Name);
-                    await channel.RemovePermissionOverwriteAsync(muteRole);
+                    await channel.AddPermissionOverwriteAsync(muteRole, _mutePermissions, new() { AuditLogReason = "Setting mute role permissions." });
+                    Log.Debug("Set mute permissions for role {Role} in channel #{Channel}.", muteRole.Name, channel.Name);
                 }
-
-                await channel.AddPermissionOverwriteAsync(muteRole, _mutePermissions);
-                Log.Debug("Set mute permissions for role {Role} in channel #{Channel}.", muteRole.Name, channel.Name);
+                else
+                {
+                    Log.Debug("Skipping setting mute permissions for channel #{Channel} as they're already set.", channel.Name);
+                }
             }
             catch (Exception e)
             {
@@ -845,8 +838,12 @@ namespace Modix.Services.Moderation
         private static readonly OverwritePermissions _mutePermissions
             = new(
                 addReactions: PermValue.Deny,
+                requestToSpeak: PermValue.Deny,
                 sendMessages: PermValue.Deny,
-                speak: PermValue.Deny);
+                sendMessagesInThreads: PermValue.Deny,
+                speak: PermValue.Deny,
+                usePrivateThreads: PermValue.Deny,
+                usePublicThreads: PermValue.Deny);
 
         private static readonly Dictionary<InfractionType, AuthorizationClaim> _createInfractionClaimsByType
             = new()

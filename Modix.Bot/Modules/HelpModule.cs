@@ -62,7 +62,7 @@ namespace Modix.Modules
         [Summary("Spams the user's DMs with a list of every command available.")]
         public async Task HelpDMAsync()
         {
-            var userDM = await Context.User.GetOrCreateDMChannelAsync();
+            var userDM = await Context.User.CreateDMChannelAsync();
 
             foreach (var module in _commandHelpService.GetModuleHelpData().OrderBy(x => x.Name))
             {
@@ -72,7 +72,7 @@ namespace Modix.Modules
                 {
                     await userDM.SendMessageAsync(embed: embed.Build());
                 }
-                catch (HttpException ex) when (ex.DiscordCode == 50007)
+                catch (HttpException ex) when (ex.DiscordCode == DiscordErrorCode.CannotSendMessageToUser)
                 {
                     await ReplyAsync(
                         $"You have private messages for this server disabled, {Context.User.Mention}. Please enable them so that I can send you help.");

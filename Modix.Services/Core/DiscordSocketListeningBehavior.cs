@@ -104,7 +104,7 @@ namespace Modix.Services.Core
             return Task.CompletedTask;
         }
 
-        private Task OnGuildMemberUpdatedAsync(SocketGuildUser oldMember, SocketGuildUser newMember)
+        private Task OnGuildMemberUpdatedAsync(Cacheable<SocketGuildUser, ulong> oldMember, SocketGuildUser newMember)
         {
             MessageDispatcher.Dispatch(new GuildMemberUpdatedNotification(oldMember, newMember));
 
@@ -118,7 +118,7 @@ namespace Modix.Services.Core
             return Task.CompletedTask;
         }
 
-        private Task OnMessageDeletedAsync(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
+        private Task OnMessageDeletedAsync(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
         {
             MessageDispatcher.Dispatch(new MessageDeletedNotification(message, channel));
 
@@ -139,14 +139,14 @@ namespace Modix.Services.Core
             return Task.CompletedTask;
         }
 
-        private Task OnReactionAddedAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+        private Task OnReactionAddedAsync(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
         {
             MessageDispatcher.Dispatch(new ReactionAddedNotification(message, channel, reaction));
 
             return Task.CompletedTask;
         }
 
-        private Task OnReactionRemovedAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
+        private Task OnReactionRemovedAsync(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
         {
             MessageDispatcher.Dispatch(new ReactionRemovedNotification(message, channel, reaction));
 
@@ -188,9 +188,9 @@ namespace Modix.Services.Core
             return Task.CompletedTask;
         }
 
-        private Task OnUserLeftAsync(SocketGuildUser guildUser)
+        private Task OnUserLeftAsync(SocketGuild guild, SocketUser user)
         {
-            MessageDispatcher.Dispatch(new UserLeftNotification(guildUser));
+            MessageDispatcher.Dispatch(new UserLeftNotification(guild, user));
 
             return Task.CompletedTask;
         }

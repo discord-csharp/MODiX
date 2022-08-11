@@ -25,7 +25,7 @@ namespace Modix.Services.EmojiStats
     {
         private readonly IEmojiRepository _emojiRepository;
 
-        public static readonly Regex EmojiRegex = new Regex($@"(<a?:\w+:[0-9]+>|{EmojiUtilities.EmojiPattern})", RegexOptions.Compiled);
+        public static readonly Regex EmojiRegex = new($@"(<a?:\w+:[0-9]+>|{EmojiUtilities.EmojiPattern})", RegexOptions.Compiled);
 
         /// <summary>
         /// Constructs a new <see cref="EmojiUsageHandler"/> object with the given injected dependencies.
@@ -42,7 +42,7 @@ namespace Modix.Services.EmojiStats
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            var channel = notification.Channel as ITextChannel;
+            var channel = (ITextChannel)await notification.Channel.GetOrDownloadAsync();
             if (channel is null)
                 return;
 
@@ -74,22 +74,21 @@ namespace Modix.Services.EmojiStats
         /// </returns>
         private async Task LogReactionAsync(ITextChannel channel, IUserMessage message, SocketReaction reaction, Emote emote)
         {
-            using (var transaction = await _emojiRepository.BeginMaintainTransactionAsync())
-            {
-                await _emojiRepository.CreateAsync(new EmojiCreationData()
-                {
-                    GuildId = channel.GuildId,
-                    ChannelId = channel.Id,
-                    MessageId = message.Id,
-                    UserId = reaction.UserId,
-                    EmojiId = emote?.Id,
-                    EmojiName = reaction.Emote.Name,
-                    IsAnimated = emote?.Animated ?? false,
-                    UsageType = EmojiUsageType.Reaction,
-                });
+            using var transaction = await _emojiRepository.BeginMaintainTransactionAsync();
 
-                transaction.Commit();
-            }
+            await _emojiRepository.CreateAsync(new EmojiCreationData()
+            {
+                GuildId = channel.GuildId,
+                ChannelId = channel.Id,
+                MessageId = message.Id,
+                UserId = reaction.UserId,
+                EmojiId = emote?.Id,
+                EmojiName = reaction.Emote.Name,
+                IsAnimated = emote?.Animated ?? false,
+                UsageType = EmojiUsageType.Reaction,
+            });
+
+            transaction.Commit();
         }
 
         public async Task HandleNotificationAsync(ReactionRemovedNotification notification, CancellationToken cancellationToken)
@@ -97,7 +96,7 @@ namespace Modix.Services.EmojiStats
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            var channel = notification.Channel as ITextChannel;
+            var channel = (ITextChannel)await notification.Channel.GetOrDownloadAsync();
             if (channel is null)
                 return;
 
@@ -129,23 +128,22 @@ namespace Modix.Services.EmojiStats
         /// </returns>
         private async Task UnlogReactionAsync(ITextChannel channel, IUserMessage message, SocketReaction reaction, Emote emote)
         {
-            using (var transaction = await _emojiRepository.BeginMaintainTransactionAsync())
-            {
-                await _emojiRepository.DeleteAsync(new EmojiSearchCriteria()
-                {
-                    GuildId = channel.GuildId,
-                    ChannelId = channel.Id,
-                    MessageId = message.Id,
-                    UserId = reaction.UserId,
-                    EmojiId = emote?.Id,
-                    EmojiName = emote is null
-                        ? reaction.Emote.Name
-                        : null,
-                    UsageType = EmojiUsageType.Reaction,
-                });
+            using var transaction = await _emojiRepository.BeginMaintainTransactionAsync();
 
-                transaction.Commit();
-            }
+            await _emojiRepository.DeleteAsync(new EmojiSearchCriteria()
+            {
+                GuildId = channel.GuildId,
+                ChannelId = channel.Id,
+                MessageId = message.Id,
+                UserId = reaction.UserId,
+                EmojiId = emote?.Id,
+                EmojiName = emote is null
+                    ? reaction.Emote.Name
+                    : null,
+                UsageType = EmojiUsageType.Reaction,
+            });
+
+            transaction.Commit();
         }
 
         public async Task HandleNotificationAsync(MessageReceivedNotification notification, CancellationToken cancellationToken)
@@ -213,64 +211,61 @@ namespace Modix.Services.EmojiStats
                 return;
 
             var message = await notification.Message.GetOrDownloadAsync();
-            if (message is { Author: { IsBot: true } })
+            if (message is { Author.IsBot: true })
                 return;
 
-            var channel = notification.Channel as ITextChannel;
+            var channel = (ITextChannel)await notification.Channel.GetOrDownloadAsync();
 
             await UnlogAllEmojiAsync(channel, notification.Message.Id);
         }
 
         private async Task LogMultipleMessageEmojiAsync(ITextChannel channel, IUserMessage message, string emoji, Emote emote, int count)
         {
-            using (var transaction = await _emojiRepository.BeginMaintainTransactionAsync())
-            {
-                await _emojiRepository.CreateMultipleAsync(new EmojiCreationData()
-                {
-                    GuildId = channel.GuildId,
-                    ChannelId = channel.Id,
-                    MessageId = message.Id,
-                    UserId = message.Author.Id,
-                    EmojiId = emote?.Id,
-                    EmojiName = emoji,
-                    IsAnimated = emote?.Animated ?? false,
-                    UsageType = EmojiUsageType.MessageContent,
-                },
-                count);
+            using var transaction = await _emojiRepository.BeginMaintainTransactionAsync();
 
-                transaction.Commit();
-            }
+            await _emojiRepository.CreateMultipleAsync(new EmojiCreationData()
+            {
+                GuildId = channel.GuildId,
+                ChannelId = channel.Id,
+                MessageId = message.Id,
+                UserId = message.Author.Id,
+                EmojiId = emote?.Id,
+                EmojiName = emoji,
+                IsAnimated = emote?.Animated ?? false,
+                UsageType = EmojiUsageType.MessageContent,
+            },
+            count);
+
+            transaction.Commit();
         }
 
         private async Task UnlogMessageContentEmojiAsync(ITextChannel channel, ulong messageId)
         {
-            using (var transaction = await _emojiRepository.BeginMaintainTransactionAsync())
-            {
-                await _emojiRepository.DeleteAsync(new EmojiSearchCriteria()
-                {
-                    GuildId = channel.GuildId,
-                    ChannelId = channel.Id,
-                    MessageId = messageId,
-                    UsageType = EmojiUsageType.MessageContent,
-                });
+            using var transaction = await _emojiRepository.BeginMaintainTransactionAsync();
 
-                transaction.Commit();
-            }
+            await _emojiRepository.DeleteAsync(new EmojiSearchCriteria()
+            {
+                GuildId = channel.GuildId,
+                ChannelId = channel.Id,
+                MessageId = messageId,
+                UsageType = EmojiUsageType.MessageContent,
+            });
+
+            transaction.Commit();
         }
 
         private async Task UnlogAllEmojiAsync(ITextChannel channel, ulong messageId)
         {
-            using (var transaction = await _emojiRepository.BeginMaintainTransactionAsync())
-            {
-                await _emojiRepository.DeleteAsync(new EmojiSearchCriteria()
-                {
-                    GuildId = channel.GuildId,
-                    ChannelId = channel.Id,
-                    MessageId = messageId,
-                });
+            using var transaction = await _emojiRepository.BeginMaintainTransactionAsync();
 
-                transaction.Commit();
-            }
+            await _emojiRepository.DeleteAsync(new EmojiSearchCriteria()
+            {
+                GuildId = channel.GuildId,
+                ChannelId = channel.Id,
+                MessageId = messageId,
+            });
+
+            transaction.Commit();
         }
     }
 }

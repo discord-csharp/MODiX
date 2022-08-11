@@ -77,7 +77,7 @@ namespace Modix.Services.GuildStats
 
         public Task HandleNotificationAsync(UserLeftNotification notification, CancellationToken cancellationToken)
         {
-            ClearCacheEntry(notification.GuildUser.Guild);
+            ClearCacheEntry(notification.Guild);
             return Task.CompletedTask;
         }
 

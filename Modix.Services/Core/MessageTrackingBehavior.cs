@@ -37,7 +37,7 @@ namespace Modix.Services.Core
             CancellationToken cancellationToken)
         {
             var message = notification.Message.HasValue ? notification.Message.Value : null;
-            var channel = notification.Channel;
+            var channel = await notification.Channel.GetOrDownloadAsync();
             var guild = (channel as IGuildChannel)?.Guild;
 
             using var logScope = MessageLogMessages.BeginMessageNotificationScope(_logger, guild?.Id, notification.Message.Id, channel.Id);
@@ -105,9 +105,9 @@ namespace Modix.Services.Core
                 return;
             }
 
-            if (message is { })
+            if (message is not null)
             {
-                if (!(message is IUserMessage userMessage) || message.Author.IsBot || message.Author.IsWebhook)
+                if (message is not IUserMessage userMessage || message.Author.IsBot || message.Author.IsWebhook)
                 {
                     MessageLogMessages.IgnoringNonHumanMessage(_logger);
                     return;
