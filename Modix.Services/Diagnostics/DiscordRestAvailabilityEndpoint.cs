@@ -15,7 +15,7 @@ namespace Modix.Services.Diagnostics
         : IAvailabilityEndpoint
     {
         public DiscordRestAvailabilityEndpoint(
-            IDiscordRestClient discordClient,
+            DiscordRestClient discordClient,
             ILogger<DiscordRestAvailabilityEndpoint> logger)
         {
             _discordClient = discordClient;
@@ -45,7 +45,7 @@ namespace Modix.Services.Diagnostics
             }
         }
 
-        private readonly IDiscordRestClient _discordClient;
+        private readonly DiscordRestClient _discordClient;
         private readonly ILogger _logger;
     }
 }

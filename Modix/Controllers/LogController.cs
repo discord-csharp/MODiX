@@ -22,7 +22,7 @@ namespace Modix.Controllers
     {
         private IModerationService ModerationService { get; }
 
-        public LogController(IDiscordSocketClient client, IAuthorizationService modixAuth, IModerationService moderationService) : base(client, modixAuth)
+        public LogController(DiscordSocketClient client, IAuthorizationService modixAuth, IModerationService moderationService) : base(client, modixAuth)
         {
             ModerationService = moderationService;
         }
@@ -50,7 +50,7 @@ namespace Modix.Controllers
 
             var batchChannelId = deletedMessages.Records.First().Channel.Id;
 
-            if (!(UserGuild.GetChannel(batchChannelId) is IISocketMessageChannel foundChannel))
+            if (!(UserGuild.GetChannel(batchChannelId) is ISocketMessageChannel foundChannel))
             {
                 return NotFound($"Couldn't recreate context - text channel with id {batchChannelId} not found");
             }

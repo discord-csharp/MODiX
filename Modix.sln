@@ -28,8 +28,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix", "Modix\Modix.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Services.Test", "Modix.Services.Test\Modix.Services.Test.csproj", "{D9BFC7C7-10B2-4D61-99EA-79805074CCD7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Discord.Net.Abstractions", "Discord.Net.Abstractions\Discord.Net.Abstractions.csproj", "{0D031987-CEA1-4745-A4D6-4C8A14A715CD}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Common", "Modix.Common\Modix.Common.csproj", "{575B80E6-56E5-4E9A-94EE-ADEB3A1A9FC0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Common.Test", "Modix.Common.Test\Modix.Common.Test.csproj", "{4F9BDC85-B8B2-4AC5-99BC-1F2F0CF80016}"
@@ -38,8 +36,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Bot.Test", "Modix.Bot
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wiki", "wiki", "{092916B2-32C6-4ED9-A4EA-DF31D2F91A8F}"
 	ProjectSection(SolutionItems) = preProject
-		wiki\_Footer.md = wiki\_Footer.md
-		wiki\_Sidebar.md = wiki\_Sidebar.md
 		wiki\Application-Architecture.csv = wiki\Application-Architecture.csv
 		wiki\Application-Architecture.md = wiki\Application-Architecture.md
 		wiki\Application-Architecture.svg = wiki\Application-Architecture.svg
@@ -57,9 +53,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "wiki", "wiki", "{092916B2-3
 		wiki\Testing.md = wiki\Testing.md
 		wiki\Web-API.md = wiki\Web-API.md
 		wiki\Web-Frontend.md = wiki\Web-Frontend.md
+		wiki\_Footer.md = wiki\_Footer.md
+		wiki\_Sidebar.md = wiki\_Sidebar.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modix.RemoraShim", "Modix.RemoraShim\Modix.RemoraShim.csproj", "{770F25AA-199A-493B-BA62-2D50DCD34A26}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.RemoraShim", "Modix.RemoraShim\Modix.RemoraShim.csproj", "{770F25AA-199A-493B-BA62-2D50DCD34A26}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -143,18 +141,6 @@ Global
 		{D9BFC7C7-10B2-4D61-99EA-79805074CCD7}.Release|x64.Build.0 = Release|Any CPU
 		{D9BFC7C7-10B2-4D61-99EA-79805074CCD7}.Release|x86.ActiveCfg = Release|Any CPU
 		{D9BFC7C7-10B2-4D61-99EA-79805074CCD7}.Release|x86.Build.0 = Release|Any CPU
-		{0D031987-CEA1-4745-A4D6-4C8A14A715CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0D031987-CEA1-4745-A4D6-4C8A14A715CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0D031987-CEA1-4745-A4D6-4C8A14A715CD}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{0D031987-CEA1-4745-A4D6-4C8A14A715CD}.Debug|x64.Build.0 = Debug|Any CPU
-		{0D031987-CEA1-4745-A4D6-4C8A14A715CD}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{0D031987-CEA1-4745-A4D6-4C8A14A715CD}.Debug|x86.Build.0 = Debug|Any CPU
-		{0D031987-CEA1-4745-A4D6-4C8A14A715CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0D031987-CEA1-4745-A4D6-4C8A14A715CD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0D031987-CEA1-4745-A4D6-4C8A14A715CD}.Release|x64.ActiveCfg = Release|Any CPU
-		{0D031987-CEA1-4745-A4D6-4C8A14A715CD}.Release|x64.Build.0 = Release|Any CPU
-		{0D031987-CEA1-4745-A4D6-4C8A14A715CD}.Release|x86.ActiveCfg = Release|Any CPU
-		{0D031987-CEA1-4745-A4D6-4C8A14A715CD}.Release|x86.Build.0 = Release|Any CPU
 		{575B80E6-56E5-4E9A-94EE-ADEB3A1A9FC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{575B80E6-56E5-4E9A-94EE-ADEB3A1A9FC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{575B80E6-56E5-4E9A-94EE-ADEB3A1A9FC0}.Debug|x64.ActiveCfg = Debug|Any CPU

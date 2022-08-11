@@ -18,7 +18,7 @@ namespace Modix.Controllers
         private IDesignatedRoleService RoleService { get; }
         private readonly IUserService _userService;
 
-        public AutocompleteController(IDiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedRoleService roleService, IUserService userService) : base(client, modixAuth)
+        public AutocompleteController(DiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedRoleService roleService, IUserService userService) : base(client, modixAuth)
         {
             RoleService = roleService;
             _userService = userService;
@@ -33,7 +33,7 @@ namespace Modix.Controllers
             }
 
             var result = UserGuild.Channels
-                .Where(d => d is ISocketTextChannel)
+                .Where(d => d is SocketTextChannel)
                 .Where(d => d.Name.OrdinalContains(query))
                 .Take(10)
                 .Select(d => new { d.Id, d.Name });

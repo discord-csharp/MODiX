@@ -27,7 +27,7 @@ namespace Modix.Modules
         private readonly DateTime _utcNow = DateTime.UtcNow;
 
         public GuildInfoModule(
-            IDiscordSocketClient discordClient,
+            DiscordSocketClient discordClient,
             IMessageRepository messageRepository,
             IEmojiRepository emojiRepository,
             IImageService imageService)
@@ -38,7 +38,7 @@ namespace Modix.Modules
             _imageService = imageService;
         }
 
-        private readonly IDiscordSocketClient _discordClient;
+        private readonly DiscordSocketClient _discordClient;
         private readonly IMessageRepository _messageRepository;
         private readonly IEmojiRepository _emojiRepository;
         private readonly IImageService _imageService;
@@ -101,7 +101,7 @@ namespace Modix.Modules
             }
         }
 
-        public void AppendGuildInformation(StringBuilder stringBuilder, ISocketGuild guild)
+        public void AppendGuildInformation(StringBuilder stringBuilder, SocketGuild guild)
         {
             stringBuilder
                 .AppendLine(Format.Bold("\u276F Guild Information"))
@@ -111,7 +111,7 @@ namespace Modix.Modules
                 .AppendLine();
         }
 
-        public async Task AppendGuildParticipationAsync(StringBuilder stringBuilder, ISocketGuild guild)
+        public async Task AppendGuildParticipationAsync(StringBuilder stringBuilder, SocketGuild guild)
         {
             var weekTotal = await _messageRepository.GetTotalMessageCountAsync(guild.Id, TimeSpan.FromDays(7));
             var monthTotal = await _messageRepository.GetTotalMessageCountAsync(guild.Id, TimeSpan.FromDays(30));
@@ -148,7 +148,7 @@ namespace Modix.Modules
             stringBuilder.AppendLine();
         }
 
-        public void AppendMemberInformation(StringBuilder stringBuilder, ISocketGuild guild)
+        public static void AppendMemberInformation(StringBuilder stringBuilder, SocketGuild guild)
         {
             var members = guild.Users.Count;
             var bots = guild.Users.Count(x => x.IsBot);
@@ -162,7 +162,7 @@ namespace Modix.Modules
                 .AppendLine();
         }
 
-        public void AppendRoleInformation(StringBuilder stringBuilder, ISocketGuild guild)
+        public static void AppendRoleInformation(StringBuilder stringBuilder, SocketGuild guild)
         {
             var roles = guild.Roles
                 .Where(x => x.Id != guild.EveryoneRole.Id && x.Color != Color.Default)

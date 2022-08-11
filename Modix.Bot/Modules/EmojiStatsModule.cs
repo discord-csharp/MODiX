@@ -88,7 +88,7 @@ namespace Modix.Modules
                 .WithAuthor($"{user.GetFullUsername()} - Emoji statistics", user.GetDefiniteAvatarUrl())
                 .WithColor(Color.Blue)
                 .WithDescription(sb.ToString())
-                .WithFooter($"{"unique emoji".ToQuantity(userTotalUses.UniqueEmojis)} used {"time".ToQuantity(userTotalUses.TotalUses)} ({totalEmojiUsesPerDay.ToString("0.0")}/day) since {userTotalUses.OldestTimestamp.ToString("yyyy-MM-dd")}")
+                .WithFooter($"{"unique emoji".ToQuantity(userTotalUses.UniqueEmojis)} used {"time".ToQuantity(userTotalUses.TotalUses)} ({totalEmojiUsesPerDay:0.0}/day) since {userTotalUses.OldestTimestamp:yyyy-MM-dd}")
                 .Build());
         }
 
@@ -99,7 +99,6 @@ namespace Modix.Modules
             [Summary("The emoji to retrieve information about.")]
                 IEmote emoji)
         {
-            // TODO: Abstract this as IEmoteEntity instead (actually not entirely sure how this would work, as it comes out of the commands module)
             var asEmote = emoji as Emote;
 
             var ephemeralEmoji = EphemeralEmoji.FromRawData(emoji.Name, asEmote?.Id, asEmote?.Animated ?? false);
@@ -139,8 +138,8 @@ namespace Modix.Modules
 
             sb.AppendLine()
                 .AppendLine($"• {"use".ToQuantity(emojiStats.Uses)}")
-                .AppendLine($"• {percentUsage.ToString("0.0")}% of all emoji uses")
-                .AppendLine($"• {perDay.ToString("0.0/day")}");
+                .AppendLine($"• {percentUsage:0.0}% of all emoji uses")
+                .AppendLine($"• {perDay:0.0/day}");
 
             if (emojiStats.TopUserId != default)
                 sb.AppendLine($"• Top user: {MentionUtils.MentionUser(emojiStats.TopUserId)} ({"use".ToQuantity(emojiStats.TopUserUses)})");
@@ -180,7 +179,7 @@ namespace Modix.Modules
                 .WithAuthor(Context.Guild.Name, Context.Guild.IconUrl)
                 .WithColor(Color.Blue)
                 .WithDescription(sb.ToString())
-                .WithFooter($"{"unique emoji".ToQuantity(guildStats.UniqueEmojis)} used {"time".ToQuantity(guildStats.TotalUses)} ({totalEmojiUsesPerDay.ToString("0.0")}/day) since {guildStats.OldestTimestamp.ToString("yyyy-MM-dd")}");
+                .WithFooter($"{"unique emoji".ToQuantity(guildStats.UniqueEmojis)} used {"time".ToQuantity(guildStats.TotalUses)} ({totalEmojiUsesPerDay:0.0}/day) since {guildStats.OldestTimestamp:yyyy-MM-dd}");
         }
 
         private void BuildEmojiStatString(
@@ -207,8 +206,8 @@ namespace Modix.Modules
                 builder.Append($"{emojiStat.Rank}.")
                     .Append($" {emojiFormatted}")
                     .Append($" ({"use".ToQuantity(emojiStat.Uses)})")
-                    .Append($" ({percentUsage.ToString("0.0")}%),")
-                    .Append($" {perDay.ToString("0.0/day")}")
+                    .Append($" ({percentUsage:0.0}%),")
+                    .Append($" {perDay:0.0/day}")
                     .Append(canAccess ? string.Empty : $" ({Format.Url($":{emoji.Name}:", emoji.Url)})")
                     .AppendLine();
             }

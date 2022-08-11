@@ -203,7 +203,7 @@ namespace Modix.Services.MessageLogging
             = LoggerMessage.Define<ulong>(
                     LogLevel.Debug,
                     EventType.SelfUserFetched.ToEventId(),
-                    $"Fetched {nameof(ISocketSelfUser)}: {{SelfUserId}}")
+                    $"Fetched {nameof(SocketSelfUser)}: {{SelfUserId}}")
                 .WithoutException();
     }
 }

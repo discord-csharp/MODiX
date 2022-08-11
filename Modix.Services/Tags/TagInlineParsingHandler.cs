@@ -15,7 +15,7 @@ namespace Modix.Services.Tags
 {
     public class TagInlineParsingHandler : INotificationHandler<MessageReceivedNotification>
     {
-        private static readonly Regex _inlineTagRegex = new Regex(@"\$(\S+)\b");
+        private static readonly Regex _inlineTagRegex = new(@"\$(\S+)\b");
 
         public DiscordSocketClient DiscordClient { get; }
         public IAuthorizationService AuthorizationService { get; }
@@ -32,8 +32,8 @@ namespace Modix.Services.Tags
         {
             var message = notification.Message;
 
-            if (!(message is ISocketUserMessage userMessage) || userMessage.Author.IsBot) { return; }
-            if (!(userMessage.Author is ISocketGuildUser guildUser)) { return; }
+            if (message is not SocketUserMessage userMessage || userMessage.Author.IsBot) { return; }
+            if (userMessage.Author is not SocketGuildUser guildUser) { return; }
 
             //TODO: Refactor when we have a configurable prefix
             if (message.Content.StartsWith('!')) { return; }
@@ -51,12 +51,12 @@ namespace Modix.Services.Tags
             var tagName = match.Groups[1].Value;
             if (string.IsNullOrWhiteSpace(tagName)) { return; }
 
-            if (await AuthorizationService.HasClaimsAsync(guildUser.Id, guildUser.Guild.Id, guildUser.RoleIds.ToList(), AuthorizationClaim.UseTag) == false) { return; }
+            if (await AuthorizationService.HasClaimsAsync(guildUser.Id, guildUser.Guild.Id, guildUser.Roles.Select(x => x.Id).ToList(), AuthorizationClaim.UseTag) == false) { return; }
             if (await TagService.TagExistsAsync(guildUser.Guild.Id, tagName) == false) { return; }
 
             try
             {
-                await AuthorizationService.OnAuthenticatedAsync(guildUser.Id, guildUser.Guild.Id, guildUser.RoleIds.ToList());
+                await AuthorizationService.OnAuthenticatedAsync(guildUser.Id, guildUser.Guild.Id, guildUser.Roles.Select(x => x.Id).ToList());
                 await TagService.UseTagAsync(guildUser.Guild.Id, userMessage.Channel.Id, tagName);
             }
             catch (InvalidOperationException ex)

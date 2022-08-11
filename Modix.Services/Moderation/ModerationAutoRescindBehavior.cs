@@ -14,7 +14,7 @@ namespace Modix.Services.Moderation
     /// </summary>
     public class ModerationAutoRescindBehavior : BehaviorBase, IInfractionEventHandler
     {
-        // TODO: Abstract DiscordSocketClient to IDiscordSocketClient, or something, to make this testable
+        // TODO: Abstract DiscordSocketClient to DiscordSocketClient, or something, to make this testable
         /// <summary>
         /// Constructs a new <see cref="ModerationAutoRescindBehavior"/> object, with the given injected dependencies.
         /// See <see cref="BehaviorBase"/> for more details.
@@ -65,7 +65,7 @@ namespace Modix.Services.Moderation
             return Task.CompletedTask;
         }
 
-        // TODO: Abstract DiscordSocketClient to IDiscordSocketClient, or something, to make this testable
+        // TODO: Abstract DiscordSocketClient to DiscordSocketClient, or something, to make this testable
         /// <summary>
         /// A <see cref="DiscordSocketClient"/> for interacting with, and receiving events from, the Discord API.
         /// </summary>

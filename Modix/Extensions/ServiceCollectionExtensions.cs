@@ -105,16 +105,14 @@ namespace Microsoft.Extensions.DependencyInjection
                             .Value
                             .MessageCacheSize //needed to log deletions
                     }))
-                .AddSingleton<IDiscordClient>(provider => provider.GetRequiredService<DiscordSocketClient>())
-                .AddSingleton(provider => provider.GetRequiredService<DiscordSocketClient>().Abstract());
+                .AddSingleton<IDiscordClient>(provider => provider.GetRequiredService<DiscordSocketClient>());
 
             services
                 .AddSingleton(
                     provider => new DiscordRestClient(config: new DiscordRestConfig
                     {
                         LogLevel = LogSeverity.Debug,
-                    }))
-                .AddSingleton(provider => provider.GetRequiredService<DiscordRestClient>().Abstract());
+                    }));
 
             services.AddSingleton(_ =>
                 {

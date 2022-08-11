@@ -15,8 +15,8 @@ namespace Discord
         /// <param name="oldMember">The value to use for <see cref="OldMember"/>.</param>
         /// <param name="newMember">The value to use for <see cref="NewMember"/>.</param>
         public GuildMemberUpdatedNotification(
-            ISocketGuildUser oldMember,
-            ISocketGuildUser newMember)
+            SocketGuildUser oldMember,
+            SocketGuildUser newMember)
         {
             OldMember = oldMember;
             NewMember = newMember;
@@ -25,11 +25,11 @@ namespace Discord
         /// <summary>
         /// A model of the Guild Member that was updated, from before the update.
         /// </summary>
-        public ISocketGuildUser OldMember { get; }
+        public SocketGuildUser OldMember { get; }
 
         /// <summary>
         /// A model of the Guild Member that was updated, from after the update.
         /// </summary>
-        public ISocketGuildUser NewMember { get; }
+        public SocketGuildUser NewMember { get; }
     }
 }

@@ -16,26 +16,24 @@ namespace Discord
         /// <param name="newMessage">The value to use for <see cref="NewMessage"/>.</param>
         /// <param name="channel">The value to use for <see cref="Channel"/>.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="oldMessage"/>, <paramref name="newMessage"/>, and <paramref name="channel"/>.</exception>
-        public MessageUpdatedNotification(ICacheable<IMessage, ulong> oldMessage, ISocketMessage newMessage, IISocketMessageChannel channel)
+        public MessageUpdatedNotification(Cacheable<IMessage, ulong> oldMessage, SocketMessage newMessage, ISocketMessageChannel channel)
         {
-            OldMessage = oldMessage ?? throw new ArgumentNullException(nameof(oldMessage));
-            NewMessage = newMessage ?? throw new ArgumentNullException(nameof(newMessage));
             Channel = channel ?? throw new ArgumentNullException(nameof(channel));
         }
 
         /// <summary>
         /// The old version of the updated message, if it happens to have been cached.
         /// </summary>
-        public ICacheable<IMessage, ulong> OldMessage { get; set; }
+        public Cacheable<IMessage, ulong> OldMessage { get; set; }
 
         /// <summary>
         /// The new version of the updated message.
         /// </summary>
-        public ISocketMessage NewMessage { get; set; }
+        public SocketMessage NewMessage { get; set; }
 
         /// <summary>
         /// The channel in which the message was posted.
         /// </summary>
-        public IISocketMessageChannel Channel { get; set; }
+        public ISocketMessageChannel Channel { get; set; }
     }
 }

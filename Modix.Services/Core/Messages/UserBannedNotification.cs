@@ -15,7 +15,7 @@ namespace Discord
         /// <param name="user">The value to use for <see cref="User"/>.</param>
         /// <param name="guild">The value to use for <see cref="Guild"/>.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="user"/> and <paramref name="guild"/>.</exception>
-        public UserBannedNotification(ISocketUser user, ISocketGuild guild)
+        public UserBannedNotification(SocketUser user, SocketGuild guild)
         {
             User = user ?? throw new ArgumentNullException(nameof(user));
             Guild = guild ?? throw new ArgumentNullException(nameof(guild));
@@ -24,11 +24,11 @@ namespace Discord
         /// <summary>
         /// The user that was banned.
         /// </summary>
-        public ISocketUser User { get; }
+        public SocketUser User { get; }
 
         /// <summary>
         /// The guild from which the user was banned.
         /// </summary>
-        public ISocketGuild Guild { get; }
+        public SocketGuild Guild { get; }
     }
 }

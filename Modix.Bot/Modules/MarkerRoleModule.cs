@@ -43,7 +43,7 @@ namespace Modix.Modules
                 .OrderBy(x => x.Role.Name)
                 .Select(x =>
                 {
-                    return Context.Guild.GetRole(x.Role.Id) is ISocketRole role
+                    return Context.Guild.GetRole(x.Role.Id) is SocketRole role
                         ? $"{role.Mention} - {Format.Bold("member".ToQuantity(role.Members.Count()))}"
                         : null;
                 })

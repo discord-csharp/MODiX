@@ -14,7 +14,7 @@ namespace Modix.Controllers
     {
         private IDesignatedChannelService ChannelService { get; }
 
-        public ChannelController(IDiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedChannelService channelService) : base(client, modixAuth)
+        public ChannelController(DiscordSocketClient client, IAuthorizationService modixAuth, IDesignatedChannelService channelService) : base(client, modixAuth)
         {
             ChannelService = channelService;
         }
@@ -55,7 +55,7 @@ namespace Modix.Controllers
                 ?.GetGuild(ModixAuth.CurrentGuildId.Value)
                 ?.GetChannel(creationData.ChannelId);
 
-            if (foundChannel == null || !(foundChannel is IISocketMessageChannel messageChannel))
+            if (foundChannel == null || !(foundChannel is ISocketMessageChannel messageChannel))
             {
                 return BadRequest($"A message channel was not found with id {creationData.ChannelId} in guild with id {ModixAuth.CurrentGuildId}");
             }

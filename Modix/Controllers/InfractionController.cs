@@ -20,7 +20,7 @@ namespace Modix.Controllers
     {
         private IModerationService ModerationService { get; }
 
-        public InfractionController(IDiscordSocketClient client, IAuthorizationService modixAuth, IModerationService moderationService) : base(client, modixAuth)
+        public InfractionController(DiscordSocketClient client, IAuthorizationService modixAuth, IModerationService moderationService) : base(client, modixAuth)
         {
             ModerationService = moderationService;
         }

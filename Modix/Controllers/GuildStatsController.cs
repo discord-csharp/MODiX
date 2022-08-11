@@ -12,7 +12,7 @@ namespace Modix.Controllers
     {
         private readonly IGuildStatService _statService;
 
-        public GuildStatsController(IGuildStatService statService, IDiscordSocketClient client, IAuthorizationService modixAuth) : base(client, modixAuth)
+        public GuildStatsController(IGuildStatService statService, DiscordSocketClient client, IAuthorizationService modixAuth) : base(client, modixAuth)
         {
             _statService = statService;
         }

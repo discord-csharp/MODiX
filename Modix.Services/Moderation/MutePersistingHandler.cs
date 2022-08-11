@@ -18,7 +18,7 @@ namespace Modix.Services.Moderation
     public class MutePersistingHandler :
         INotificationHandler<UserJoinedNotification>
     {
-        private readonly IDiscordSocketClient _discordSocketClient;
+        private readonly DiscordSocketClient _discordSocketClient;
         private readonly IModerationService _moderationService;
 
         /// <summary>
@@ -27,7 +27,7 @@ namespace Modix.Services.Moderation
         /// <param name="moderationService">A moderation service to interact with the infractions system.</param>
         /// <param name="selfUserProvider">The Discord user that the bot is running as.</param>
         public MutePersistingHandler(
-            IDiscordSocketClient discordSocketClient,
+            DiscordSocketClient discordSocketClient,
             IModerationService moderationService)
         {
             _discordSocketClient = discordSocketClient;
@@ -45,11 +45,11 @@ namespace Modix.Services.Moderation
         /// <returns>
         /// A <see cref="Task"/> that will complete when the operation completes.
         /// </returns>
-        private async Task TryMuteUserAsync(ISocketGuildUser guildUser)
+        private async Task TryMuteUserAsync(SocketGuildUser guildUser)
         {
             var userHasActiveMuteInfraction = await _moderationService.AnyInfractionsAsync(new InfractionSearchCriteria()
             {
-                GuildId = guildUser.GuildId,
+                GuildId = guildUser.Guild.Id,
                 IsDeleted = false,
                 IsRescinded = false,
                 SubjectId = guildUser.Id,

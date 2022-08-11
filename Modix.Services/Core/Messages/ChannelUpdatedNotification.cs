@@ -15,7 +15,7 @@ namespace Discord
         /// <param name="oldChannel">The value to use for <see cref="OldChannel"/>.</param>
         /// <param name="newChannel">The value to use for <see cref="NewChannel"/>.</param>
         /// <exception cref="ArgumentNullException">Throws for <paramref name="oldChannel"/> and <paramref name="newChannel"/>.</exception>
-        public ChannelUpdatedNotification(ISocketChannel oldChannel, ISocketChannel newChannel)
+        public ChannelUpdatedNotification(SocketChannel oldChannel, SocketChannel newChannel)
         {
             OldChannel = oldChannel ?? throw new ArgumentNullException(nameof(oldChannel));
             NewChannel = newChannel ?? throw new ArgumentNullException(nameof(newChannel));
@@ -24,11 +24,11 @@ namespace Discord
         /// <summary>
         /// The state of the channel that was updated, prior to the update.
         /// </summary>
-        public ISocketChannel OldChannel { get; }
+        public SocketChannel OldChannel { get; }
 
         /// <summary>
         /// The state of the channel that was updated, after the update.
         /// </summary>
-        public ISocketChannel NewChannel { get; }
+        public SocketChannel NewChannel { get; }
     }
 }
