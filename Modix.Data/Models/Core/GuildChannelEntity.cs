@@ -19,6 +19,8 @@ namespace Modix.Data.Models.Core
         [Required]
         public string Name { get; set; } = null!;
 
+        public ulong? ParentChannelId { get; set; }
+
         public ICollection<DesignatedChannelMappingEntity> DesignatedChannelMappings { get; set; }
             = new HashSet<DesignatedChannelMappingEntity>();
     }
@@ -35,6 +37,10 @@ namespace Modix.Data.Models.Core
 
             entityTypeBuilder
                 .Property(x => x.GuildId)
+                .HasConversion<long>();
+
+            entityTypeBuilder
+                .Property(x => x.ParentChannelId)
                 .HasConversion<long>();
         }
     }

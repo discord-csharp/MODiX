@@ -20,12 +20,18 @@
         /// </summary>
         public string Name { get; set; } = null!;
 
+        /// <summary>
+        /// See <see cref="GuildChannelEntity.ParentChannelId"/>.
+        /// </summary>
+        public ulong? ParentChannelId { get; set; }
+
         internal GuildChannelEntity ToEntity()
             => new GuildChannelEntity()
             {
                 ChannelId = ChannelId,
                 GuildId = GuildId,
-                Name = Name
+                Name = Name,
+                ParentChannelId = ParentChannelId,
             };
     }
 }

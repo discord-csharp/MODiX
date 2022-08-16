@@ -70,7 +70,7 @@ namespace Modix.Data.Repositories
 
             var entity = data.ToEntity();
 
-            await ModixContext.Set<GuildChannelEntity>().AddAsync(entity, cancellationToken);
+            ModixContext.Set<GuildChannelEntity>().Add(entity);
             await ModixContext.SaveChangesAsync(cancellationToken);
         }
 

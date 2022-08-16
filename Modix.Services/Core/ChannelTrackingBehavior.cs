@@ -1,10 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Discord;
-using Discord.WebSocket;
 
 using Modix.Common.Messaging;
 
@@ -17,7 +15,9 @@ namespace Modix.Services.Core
         : INotificationHandler<ChannelCreatedNotification>,
             INotificationHandler<ChannelUpdatedNotification>,
             INotificationHandler<GuildAvailableNotification>,
-            INotificationHandler<JoinedGuildNotification>
+            INotificationHandler<JoinedGuildNotification>,
+            INotificationHandler<ThreadCreatedNotification>,
+            INotificationHandler<ThreadUpdatedNotification>
     {
         /// <summary>
         /// Constructs a new <see cref="ChannelTrackingBehavior"/> object, with the given injected dependencies.
@@ -29,31 +29,46 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public Task HandleNotificationAsync(ChannelCreatedNotification notification, CancellationToken cancellationToken = default)
-            => notification.Channel is ITextChannel textChannel
-                ? _channelService.TrackChannelAsync(textChannel.Name, textChannel.Id, textChannel.GuildId, cancellationToken)
-                : Task.CompletedTask;
+        public async Task HandleNotificationAsync(ChannelCreatedNotification notification, CancellationToken cancellationToken = default)
+        {
+            if (notification.Channel is ITextChannel textChannel)
+            {
+                await TrackChannelAsync(textChannel, cancellationToken);
+            }
+        }
 
         /// <inheritdoc />
-        public Task HandleNotificationAsync(ChannelUpdatedNotification notification, CancellationToken cancellationToken = default)
-            => notification.NewChannel is ITextChannel textChannel
-                ? _channelService.TrackChannelAsync(textChannel.Name, textChannel.Id, textChannel.GuildId, cancellationToken)
-                : Task.CompletedTask;
+        public async Task HandleNotificationAsync(ChannelUpdatedNotification notification, CancellationToken cancellationToken = default)
+        {
+            if (notification.NewChannel is ITextChannel textChannel)
+            {
+                await TrackChannelAsync(textChannel, cancellationToken);
+            }
+        }
 
         /// <inheritdoc />
         public async Task HandleNotificationAsync(GuildAvailableNotification notification, CancellationToken cancellationToken = default)
         {
-            foreach (var channel in notification.Guild.Channels.Where(x => x is ITextChannel))
-                await _channelService.TrackChannelAsync(channel.Name, channel.Id, channel.Guild.Id, cancellationToken);
+            foreach (var channel in notification.Guild.Channels.OfType<ITextChannel>())
+                await TrackChannelAsync(channel, cancellationToken);
         }
 
         /// <inheritdoc />
         public async Task HandleNotificationAsync(JoinedGuildNotification notification, CancellationToken cancellationToken = default)
         {
-            if(((IGuild)notification.Guild).Available)
-                foreach (var channel in notification.Guild.Channels.Where(x => x is ITextChannel))
-                    await _channelService.TrackChannelAsync(channel.Name, channel.Id, channel.Guild.Id, cancellationToken);
+            if (((IGuild)notification.Guild).Available)
+                foreach (var channel in notification.Guild.Channels.OfType<ITextChannel>())
+                    await TrackChannelAsync(channel, cancellationToken);
         }
+
+        public async Task HandleNotificationAsync(ThreadCreatedNotification notification, CancellationToken cancellationToken = default)
+            => await TrackChannelAsync(notification.Thread, cancellationToken);
+
+        public async Task HandleNotificationAsync(ThreadUpdatedNotification notification, CancellationToken cancellationToken = default)
+            => await TrackChannelAsync(notification.NewThread, cancellationToken);
+
+        private async Task TrackChannelAsync(ITextChannel channel, CancellationToken cancellationToken)
+            => await _channelService.TrackChannelAsync(channel.Name, channel.Id, channel.GuildId, channel is IThreadChannel threadChannel ? threadChannel.CategoryId : null, cancellationToken);
 
         private readonly IChannelService _channelService;
     }
