@@ -1,8 +1,7 @@
 ﻿using System.Linq;
-using System.Threading.Tasks;
 using System.Text;
 using System.Text.RegularExpressions;
-using System;
+using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Modix.Services.AutoRemoveMessage;
@@ -59,7 +58,11 @@ namespace Modix.Modules
             foreach (var res in response.Results.Take(3))
             {
                 embedCount++;
-                stringBuild.AppendLine($"**\u276F [{res.ItemKind}: {res.DisplayName}]({res.Url})**");
+
+                var urlText = $"{res.ItemType}: {res.DisplayName}";
+                var url = "https://docs.microsoft.com" + res.Url.Replace("(", "%28").Replace(")", "%29");
+
+                stringBuild.AppendLine(Format.Bold($"❯ {Format.Url(urlText, url)}"));
                 stringBuild.AppendLine($"{res.Description}");
                 stringBuild.AppendLine();
 
@@ -86,8 +89,8 @@ namespace Modix.Modules
                 });
                 return message;
             });
-            await Context.Message.DeleteAsync();
 
+            await Context.Message.DeleteAsync();
         }
 
         protected DocumentationService DocumentationService { get; }
