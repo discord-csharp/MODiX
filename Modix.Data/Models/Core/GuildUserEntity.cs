@@ -34,6 +34,7 @@ namespace Modix.Data.Models.Core
         public ICollection<InfractionEntity> Infractions { get; set; } = new HashSet<InfractionEntity>();
         public ICollection<MessageEntity> Messages { get; set; } = new HashSet<MessageEntity>();
         public ICollection<PromotionCampaignEntity> PromotionCampaigns { get; set; } = new HashSet<PromotionCampaignEntity>();
+        public ICollection<ListeningMessagePatternEntity> ListeningMessagePatterns { get; set; } = new HashSet<ListeningMessagePatternEntity>();
     }
 
     public class GuildUserEntityConfiguration

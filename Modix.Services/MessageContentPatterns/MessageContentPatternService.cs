@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Modix.Data;
 using Modix.Data.Models.Core;
 using Modix.Services.Core;
+using Modix.Services.Utilities;
 
 namespace Modix.Services.MessageContentPatterns
 {
@@ -67,7 +68,7 @@ namespace Modix.Services.MessageContentPatterns
                 return ServiceResponse.Fail("User does not have claim to manage patterns!");
             }
 
-            if (!IsValidRegex(regexPattern))
+            if (!RegexUtilities.IsValidRegex(regexPattern))
             {
                 return ServiceResponse.Fail("Pattern is not a valid Regex!");
             }
@@ -91,20 +92,6 @@ namespace Modix.Services.MessageContentPatterns
             ClearCacheForGuild(guildId);
 
             return ServiceResponse.Ok();
-        }
-
-        private bool IsValidRegex(string candidate)
-        {
-            try
-            {
-                _ = new Regex(candidate);
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-
-            return true;
         }
 
         public async Task<ServiceResponse> RemovePattern(ulong guildId, string regexPattern)
