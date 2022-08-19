@@ -1,10 +1,10 @@
-﻿using System.Threading.Tasks;
-using System.Threading;
-
-using Microsoft.Extensions.Hosting;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 using Discord;
 using Discord.WebSocket;
+
+using Microsoft.Extensions.Hosting;
 
 using Modix.Common.Messaging;
 
@@ -44,6 +44,8 @@ namespace Modix.Services.Core
             DiscordSocketClient.Ready += OnReadyAsync;
             DiscordSocketClient.RoleCreated += OnRoleCreatedAsync;
             DiscordSocketClient.RoleUpdated += OnRoleUpdatedAsync;
+            DiscordSocketClient.ThreadCreated += OnThreadCreatedAsync;
+            DiscordSocketClient.ThreadUpdated += OnThreadUpdatedAsync;
             DiscordSocketClient.UserBanned += OnUserBannedAsync;
             DiscordSocketClient.UserJoined += OnUserJoinedAsync;
             DiscordSocketClient.UserLeft += OnUserLeftAsync;
@@ -66,6 +68,8 @@ namespace Modix.Services.Core
             DiscordSocketClient.ReactionAdded -= OnReactionAddedAsync;
             DiscordSocketClient.ReactionRemoved -= OnReactionRemovedAsync;
             DiscordSocketClient.Ready -= OnReadyAsync;
+            DiscordSocketClient.ThreadCreated -= OnThreadCreatedAsync;
+            DiscordSocketClient.ThreadUpdated -= OnThreadUpdatedAsync;
             DiscordSocketClient.UserBanned -= OnUserBannedAsync;
             DiscordSocketClient.UserJoined -= OnUserJoinedAsync;
             DiscordSocketClient.UserLeft -= OnUserLeftAsync;
@@ -170,6 +174,20 @@ namespace Modix.Services.Core
         private Task OnRoleUpdatedAsync(SocketRole oldRole, SocketRole newRole)
         {
             MessageDispatcher.Dispatch(new RoleUpdatedNotification(oldRole, newRole));
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnThreadCreatedAsync(SocketThreadChannel thread)
+        {
+            MessageDispatcher.Dispatch(new ThreadCreatedNotification(thread));
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnThreadUpdatedAsync(Cacheable<SocketThreadChannel, ulong> oldThread, SocketThreadChannel newThread)
+        {
+            MessageDispatcher.Dispatch(new ThreadUpdatedNotification(oldThread, newThread));
 
             return Task.CompletedTask;
         }

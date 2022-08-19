@@ -10,15 +10,22 @@
         /// </summary>
         public string Name { get; set; } = null!;
 
+        /// <summary>
+        /// See <see cref="GuildChannelEntity.ParentChannelId"/>
+        /// </summary>
+        public ulong? ParentChannelId { get; set; }
+
         internal static GuildChannelMutationData FromEntity(GuildChannelEntity entity)
             => new GuildChannelMutationData()
             {
-                Name = entity.Name
+                Name = entity.Name,
+                ParentChannelId = entity.ParentChannelId,
             };
 
         internal void ApplyTo(GuildChannelEntity entity)
         {
             entity.Name = Name;
+            entity.ParentChannelId = ParentChannelId;
         }
     }
 }

@@ -445,12 +445,12 @@ namespace Modix.Services.Moderation
         public async Task DeleteMessageAsync(IMessage message, string reason, ulong deletedById,
             CancellationToken cancellationToken)
         {
-            if (!(message.Channel is IGuildChannel guildChannel))
+            if (message.Channel is not IGuildChannel guildChannel)
                 throw new InvalidOperationException(
                     $"Cannot delete message {message.Id} because it is not a guild message");
 
             await _userService.TrackUserAsync((IGuildUser)message.Author, cancellationToken);
-            await _channelService.TrackChannelAsync(guildChannel.Name, guildChannel.Id, guildChannel.GuildId, cancellationToken);
+            await _channelService.TrackChannelAsync(guildChannel.Name, guildChannel.Id, guildChannel.GuildId, guildChannel is IThreadChannel threadChannel ? threadChannel.CategoryId : null, cancellationToken);
 
             using var transaction = await _deletedMessageRepository.BeginCreateTransactionAsync(cancellationToken);
 
@@ -695,7 +695,7 @@ namespace Modix.Services.Moderation
             await channel.DeleteMessagesAsync(messages);
 
             using var transaction = await _deletedMessageBatchRepository.BeginCreateTransactionAsync();
-            await _channelService.TrackChannelAsync(channel.Name, channel.Id, channel.GuildId);
+            await _channelService.TrackChannelAsync(channel.Name, channel.Id, channel.GuildId, channel is IThreadChannel threadChannel ? threadChannel.CategoryId : null);
 
             await _deletedMessageBatchRepository.CreateAsync(new DeletedMessageBatchCreationData()
             {

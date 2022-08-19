@@ -4,14 +4,15 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Microsoft.Extensions.Logging;
-
 using Discord;
-using StatsdClient;
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 using Modix.Common.Messaging;
 using Modix.Data.Repositories;
-using Microsoft.Extensions.DependencyInjection;
+
+using StatsdClient;
 
 namespace Modix.Services.Core
 {
@@ -24,12 +25,14 @@ namespace Modix.Services.Core
             ICommandPrefixParser commandPrefixParser,
             IDogStatsd dogStatsd,
             ILogger<MessageTrackingBehavior> logger,
-            IMessageRepository messageRepository)
+            IMessageRepository messageRepository,
+            IChannelService channelService)
         {
             _commandPrefixParser = commandPrefixParser;
             _dogStatsd = dogStatsd;
             _logger = logger;
             _messageRepository = messageRepository;
+            _channelService = channelService;
         }
 
         public async Task HandleNotificationAsync(
@@ -78,6 +81,8 @@ namespace Modix.Services.Core
                 async (guildId) =>
                 {
                     MessageLogMessages.MessageRecordCreating(_logger);
+                    
+                    await _channelService.TrackChannelAsync(channel.Name, channel.Id, guildId, channel is IThreadChannel threadChannel ? threadChannel.CategoryId : null, cancellationToken);
                     await _messageRepository.CreateAsync(new MessageCreationData()
                     {
                         Id          = message.Id,
@@ -86,6 +91,7 @@ namespace Modix.Services.Core
                         AuthorId    = message.Author.Id,
                         Timestamp   = message.Timestamp
                     });
+
                     MessageLogMessages.MessageRecordCreated(_logger);
                 },
                 cancellationToken);
@@ -129,6 +135,7 @@ namespace Modix.Services.Core
             MessageLogMessages.TransactionCommitted(_logger);
         }
 
+        private readonly IChannelService _channelService;
         private readonly ICommandPrefixParser _commandPrefixParser;
         private readonly IDogStatsd _dogStatsd;
         private readonly ILogger _logger;

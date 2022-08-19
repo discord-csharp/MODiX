@@ -144,7 +144,7 @@ namespace Modix.Data.Repositories
         public async Task CreateAsync(MessageCreationData data)
         {
             var entity = data.ToEntity();
-            await ModixContext.Set<MessageEntity>().AddAsync(entity);
+            ModixContext.Set<MessageEntity>().Add(entity);
             await ModixContext.SaveChangesAsync();
         }
 
@@ -155,22 +155,11 @@ namespace Modix.Data.Repositories
                 .Where(x => x.Id == messageId)
                 .FirstOrDefaultAsync();
 
-            if (entity is MessageEntity)
+            if (entity is not null)
             {
                 ModixContext.Set<MessageEntity>().Remove(entity);
                 await ModixContext.SaveChangesAsync();
             }
-        }
-
-        /// <inheritdoc />
-        public async Task<int> GetGuildUserMessageCount(ulong guildId, ulong userId, TimeSpan timespan)
-        {
-            var earliestDateTime = DateTimeOffset.UtcNow - timespan;
-
-            return await ModixContext.Set<MessageEntity>()
-                .AsNoTracking()
-                .Where(x => x.GuildId == guildId && x.AuthorId == userId && x.Timestamp >= earliestDateTime)
-                .CountAsync();
         }
 
         /// <inheritdoc />
@@ -203,12 +192,13 @@ namespace Modix.Data.Repositories
                 .FromSqlRaw(
                     @"with user_messages as
                     (
-                        select ""ChannelId"", count(""Id"") as ""MessageCount""
-                        from ""Messages""
-                        where ""GuildId"" = :GuildId
-                        and ""AuthorId"" = :UserId
-                        and ""Timestamp"" > :StartTimestamp
-                        group by ""ChannelId""
+                        select coalesce(c.""ParentChannelId"", c.""ChannelId"") as ""ChannelId"", count(""Id"") as ""MessageCount""
+                        from ""Messages"" as m
+                        inner join ""GuildChannels"" as c on m.""ChannelId"" = c.""ChannelId""
+                        where m.""GuildId"" = :GuildId
+                        and m.""AuthorId"" = :UserId
+                        and m.""Timestamp"" > :StartTimestamp
+                        group by coalesce(c.""ParentChannelId"", c.""ChannelId"")
                     )
                     select gc.""ChannelId"", gc.""Name"" as ""ChannelName"", um.""MessageCount""
                     from ""GuildChannels"" as gc
@@ -248,7 +238,8 @@ namespace Modix.Data.Repositories
                             count(*) as ""MessageCount"",
                             ""AuthorId"" = :UserId as ""IsCurrentUser""
                         from ""Messages""
-                        left outer join ""DesignatedChannelMappings"" on ""Messages"".""ChannelId"" = ""DesignatedChannelMappings"".""ChannelId""
+                        inner join ""GuildChannels"" on ""GuildChannels"".""ChannelId"" = ""Messages"".""ChannelId""
+                        inner join ""DesignatedChannelMappings"" on coalesce(""GuildChannels"".""ParentChannelId"", ""GuildChannels"".""ChannelId"") = ""DesignatedChannelMappings"".""ChannelId""
                         where ""Messages"".""GuildId"" = :GuildId
                             and ""DesignatedChannelMappings"".""Type"" = 'CountsTowardsParticipation'
                             and ""Timestamp"" >= :StartTimestamp
@@ -290,7 +281,8 @@ namespace Modix.Data.Repositories
                     @"with msgs as (
                         select msg.""AuthorId"", msg.""Id"" as ""MessageId"", msg.""GuildId""
                         from ""Messages"" as msg
-                        left outer join ""DesignatedChannelMappings"" as dcm on msg.""ChannelId"" = dcm.""ChannelId""
+                        inner join ""GuildChannels"" as c on c.""ChannelId"" = msg.""ChannelId""
+                        inner join ""DesignatedChannelMappings"" as dcm on coalesce(c.""ParentChannelId"", c.""ChannelId"") = dcm.""ChannelId""
                         where msg.""GuildId"" = cast(:GuildId as bigint)
                         and dcm.""Type"" = 'CountsTowardsParticipation'
                         and ""Timestamp"" >= (current_date - interval '30 day')
@@ -372,7 +364,7 @@ namespace Modix.Data.Repositories
             var messages = await ModixContext.Set<MessageEntity>()
                 .AsNoTracking()
                 .Where(x => x.GuildId == guildId && x.Timestamp >= earliestDateTime)
-                .Select(x => x.ChannelId)
+                .Select(x => x.Channel.ParentChannelId ?? x.ChannelId)
                 .ToListAsync();
 
             return messages

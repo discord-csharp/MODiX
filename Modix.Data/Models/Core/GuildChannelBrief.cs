@@ -20,12 +20,18 @@ namespace Modix.Data.Models.Core
         /// </summary>
         public string Name { get; set; } = null!;
 
+        /// <summary>
+        /// See <see cref="GuildChannelEntity.ParentChannelId"/>.
+        /// </summary>
+        public ulong? ParentChannelId { get; set; }
+
         [ExpansionExpression]
         internal static Expression<Func<GuildChannelEntity, GuildChannelBrief>> FromEntityProjection
             = entity => new GuildChannelBrief()
             {
                 Id = entity.ChannelId,
-                Name = entity.Name
+                Name = entity.Name,
+                ParentChannelId = entity.ParentChannelId,
             };
     }
 }
