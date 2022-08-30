@@ -1,27 +1,26 @@
 ﻿using System;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+
 using Discord;
-using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
+
 using Humanizer;
+
 using Modix.Data.Models;
 using Modix.Data.Repositories;
 using Modix.Services.CommandHelp;
-using Modix.Services.Core;
 using Modix.Services.Images;
 using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
-    [Name("Guild Information")]
-    [Summary("Retrieves information and statistics about the supplied guild.")]
+    [ModuleHelp("Guild Information", "Retrieves information and statistics about the supplied guild.")]
     [HelpTags("guildinfo")]
-    public sealed class GuildInfoModule : ModuleBase
+    public sealed class GuildInfoModule : InteractionModuleBase
     {
         //optimization: UtcNow is slow and the module is created per-request
         private readonly DateTime _utcNow = DateTime.UtcNow;
@@ -43,26 +42,21 @@ namespace Modix.Modules
         private readonly IEmojiRepository _emojiRepository;
         private readonly IImageService _imageService;
 
-        [Command("guildinfo")]
-        [Alias("serverinfo")]
-        [Summary("Retrieves information about the supplied guild, or the current guild if one is not provided.")]
-        public async Task GetUserInfoAsync(
-            [Summary("The unique Discord snowflake ID of the guild to retrieve information about, if any.")]
-                ulong? guildId = null)
+        [SlashCommand("guildinfo", "Retrieves information about the supplied guild, or the current guild if one is not provided.")]
+        public async Task GetGuildInfoAsync()
         {
             var timer = Stopwatch.StartNew();
 
-            var resolvedGuildId = guildId ?? Context.Guild.Id;
-
-            var guild = _discordClient.GetGuild(resolvedGuildId);
+            var guildId = Context.Guild.Id;
+            var guild = _discordClient.GetGuild(guildId);
 
             if (guild is null)
             {
-                await ReplyAsync(embed: new EmbedBuilder()
+                await FollowupAsync(embed: new EmbedBuilder()
                     .WithTitle("Retrieval Error")
                     .WithColor(Color.Red)
                     .WithDescription("Sorry, I have no information about that guild")
-                    .AddField("Guild Id", resolvedGuildId)
+                    .AddField("Guild Id", guildId)
                     .Build());
             }
             else
@@ -88,7 +82,7 @@ namespace Modix.Modules
                 timer.Stop();
                 embedBuilder.WithFooter($"Completed after {timer.ElapsedMilliseconds} ms");
 
-                await ReplyAsync(embed: embedBuilder.Build());
+                await FollowupAsync(embed: embedBuilder.Build());
             }
         }
 
@@ -126,11 +120,8 @@ namespace Modix.Modules
                 .AppendLine($"Last 30 days: {"message".ToQuantity(monthTotal, "n0")}")
                 .AppendLine($"Avg. per day: {"message".ToQuantity(monthTotal / 30, "n0")}");
 
-            if (mostActiveChannel is { })
-            {
-                stringBuilder
-                    .AppendLine($"Most active channel: {MentionUtils.MentionChannel(mostActiveChannel.Key)} ({"message".ToQuantity(mostActiveChannel.Value, "n0")} in 30 days)");
-            }
+            stringBuilder
+                .AppendLine($"Most active channel: {MentionUtils.MentionChannel(mostActiveChannel.Key)} ({"message".ToQuantity(mostActiveChannel.Value, "n0")} in 30 days)");
 
             var emojiCounts = await _emojiRepository.GetEmojiStatsAsync(guild.Id, SortDirection.Ascending, 1);
 

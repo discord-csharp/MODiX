@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Discord.Commands;
 
 namespace Modix.Services.CommandHelp
 {
@@ -14,19 +13,29 @@ namespace Modix.Services.CommandHelp
 
         public IReadOnlyCollection<ParameterHelpData> Parameters { get; set; }
 
-        public static CommandHelpData FromCommandInfo(CommandInfo command)
-        {
-            var ret = new CommandHelpData()
+        public bool IsSlashCommand { get; set; }
+
+        public static CommandHelpData FromCommandInfo(Discord.Commands.CommandInfo command)
+            => new()
             {
                 Name = command.Name,
                 Summary = command.Summary,
                 Aliases = command.Aliases,
                 Parameters = command.Parameters
-                    .Select(x => ParameterHelpData.FromParameterInfo(x))
-                    .ToArray(),
+                        .Select(x => ParameterHelpData.FromParameterInfo(x))
+                        .ToArray(),
             };
 
-            return ret;
-        }
+        public static CommandHelpData FromCommandInfo(Discord.Interactions.SlashCommandInfo command)
+            => new()
+            {
+                Name = command.ToString(),
+                Summary = command.Description,
+                Aliases = new[] { command.Name },
+                Parameters = command.Parameters
+                        .Select(x => ParameterHelpData.FromParameterInfo(x))
+                        .ToArray(),
+                IsSlashCommand = true,
+            };
     }
 }

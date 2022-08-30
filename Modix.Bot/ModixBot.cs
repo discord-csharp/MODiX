@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -8,20 +7,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.Interactions;
 using Discord.Rest;
 using Discord.WebSocket;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Modix.Data;
 using Modix.Data.Models.Core;
-using Modix.Services;
-using Modix.Services.CommandHelp;
-using Modix.Services.Core;
-using Modix.Services.Utilities;
-using StatsdClient;
 
 namespace Modix
 {
@@ -30,37 +23,37 @@ namespace Modix
         private readonly DiscordSocketClient _client;
         private readonly DiscordRestClient _restClient;
         private readonly CommandService _commands;
+        private readonly InteractionService _interactions;
         private readonly IServiceProvider _provider;
         private readonly ModixConfig _config;
         private readonly DiscordSerilogAdapter _serilogAdapter;
         private readonly IHostApplicationLifetime _applicationLifetime;
         private readonly IHostEnvironment _env;
-        private readonly IDogStatsd _stats;
         private IServiceScope _scope;
-        private readonly ConcurrentDictionary<ICommandContext, IServiceScope> _commandScopes = new ConcurrentDictionary<ICommandContext, IServiceScope>();
+        private readonly ConcurrentDictionary<ICommandContext, IServiceScope> _commandScopes = new();
 
         public ModixBot(
             DiscordSocketClient discordClient,
             DiscordRestClient restClient,
             IOptions<ModixConfig> modixConfig,
             CommandService commandService,
+            InteractionService interactions,
             DiscordSerilogAdapter serilogAdapter,
             IHostApplicationLifetime applicationLifetime,
             IServiceProvider serviceProvider,
             ILogger<ModixBot> logger,
-            IHostEnvironment env,
-            IDogStatsd stats)
+            IHostEnvironment env)
         {
             _client = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
             _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
             _config = modixConfig?.Value ?? throw new ArgumentNullException(nameof(modixConfig));
             _commands = commandService ?? throw new ArgumentNullException(nameof(commandService));
+            _interactions = interactions ?? throw new ArgumentNullException(nameof(interactions));
             _provider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _serilogAdapter = serilogAdapter ?? throw new ArgumentNullException(nameof(serilogAdapter));
             _applicationLifetime = applicationLifetime ?? throw new ArgumentNullException(nameof(applicationLifetime));
             Log = logger ?? throw new ArgumentNullException(nameof(logger));
             _env = env;
-            _stats = stats;
         }
 
         private ILogger<ModixBot> Log { get; }
@@ -108,6 +101,20 @@ namespace Modix
                 await StartClient(stoppingToken);
 
                 Log.LogInformation("Discord client started successfully.");
+
+                Log.LogInformation("Loading interaction modules...");
+
+                var modules = (await _interactions.AddModulesAsync(typeof(ModixBot).Assembly, _scope.ServiceProvider)).ToArray();
+
+                foreach (var guild in _client.Guilds)
+                {
+                    var commands = await _interactions.AddModulesToGuildAsync(guild, deleteMissing: true, modules);
+                }
+
+                Log.LogInformation("{Modules} interaction modules loaded.", modules.Length);
+                Log.LogInformation("Loaded {SlashCommands} slash commands.", modules.SelectMany(x => x.SlashCommands).Count());
+                Log.LogInformation("Loaded {ContextCommands} context commands.", modules.SelectMany(x => x.ContextCommands).Count());
+                Log.LogInformation("Loaded {ModalCommands} modal commands.", modules.SelectMany(x => x.ModalCommands).Count());
 
                 await Task.Delay(-1);
             }

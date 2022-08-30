@@ -1,50 +1,57 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
 using Discord;
-using Discord.Commands;
+using Discord.Interactions;
 
 using Microsoft.Extensions.Options;
 
 using Modix.Bot.Extensions;
+using Modix.Bot.Preconditions;
 using Modix.Common.Extensions;
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
+using Modix.Services.CommandHelp;
 using Modix.Services.Moderation;
-using Modix.Services.Core;
 using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
-    [Group("infraction"), Alias("infractions")]
-    [Summary("Provides commands for working with infractions.")]
-    public class InfractionModule : ModuleBase
+    [ModuleHelp("Infractions", "Provides commands for working with infractions.")]
+    public class InfractionModule : InteractionModuleBase
     {
-        public InfractionModule(IModerationService moderationService, IUserService userService, IOptions<ModixConfig> config)
+        private readonly IModerationService _moderationService;
+        private readonly ModixConfig _config;
+
+        public InfractionModule(IModerationService moderationService, IOptions<ModixConfig> config)
         {
-            ModerationService = moderationService;
-            UserService = userService;
-            Config = config.Value;
+            _moderationService = moderationService;
+            _config = config.Value;
         }
 
-        [Command]
-        [Alias("search")]
-        [Summary("Display all infractions for a user, that haven't been deleted.")]
-        [Priority(10)]
-        public async Task SearchAsync(
-            [Summary("The user whose infractions are to be displayed.")]
-                [Remainder] DiscordUserOrMessageAuthorEntity subjectEntity)
-        {
-            var requestor = Context.User.Mention;
-            var subject = await UserService.GetGuildUserSummaryAsync(Context.Guild.Id, subjectEntity.UserId);
+        [MessageCommand("Infractions")]
+        [RequireClaims(AuthorizationClaim.ModerationRead)]
+        public async Task SearchAsync(IMessage message)
+            => await SearchAsync(message.Author);
 
-            var infractions = await ModerationService.SearchInfractionsAsync(
+        [SlashCommand("infractions", "Displays all non-deleted infractions for a user.")]
+        [UserCommand("Infractions")]
+        [RequireClaims(AuthorizationClaim.ModerationRead)]
+        public async Task SearchAsync(
+            [Summary(description: "The user whose infractions are to be displayed.")]
+                IUser? user = null)
+        {
+            user ??= Context.User;
+
+            var infractions = await _moderationService.SearchInfractionsAsync(
                 new InfractionSearchCriteria
                 {
                     GuildId = Context.Guild.Id,
-                    SubjectId = subjectEntity.UserId,
+                    SubjectId = user.Id,
                     IsDeleted = false
                 },
                 new[]
@@ -58,7 +65,7 @@ namespace Modix.Modules
 
             if (infractions.Count == 0)
             {
-                await ReplyAsync(Format.Code("No infractions"));
+                await FollowupAsync(Format.Code("No infractions"));
                 return;
             }
 
@@ -72,17 +79,17 @@ namespace Modix.Modules
                 Rescinded = infraction.RescindAction != null
             });
 
-            var counts = await ModerationService.GetInfractionCountsForUserAsync(subjectEntity.UserId);
+            var counts = await _moderationService.GetInfractionCountsForUserAsync(user.Id);
 
             // https://modix.gg/infractions?subject=12345
-            var url = new UriBuilder(Config.WebsiteBaseUrl)
+            var url = new UriBuilder(_config.WebsiteBaseUrl)
             {
                 Path = "/infractions",
-                Query = $"subject={subject.UserId}"
+                Query = $"subject={user.Id}"
             }.RemoveDefaultPort().ToString();
 
             var builder = new EmbedBuilder()
-                .WithTitle($"Infractions for user: {subject.GetFullUsername()}")
+                .WithTitle($"Infractions for user: {user.GetFullUsername()}")
                 .WithDescription(FormatUtilities.FormatInfractionCounts(counts))
                 .WithUrl(url)
                 .WithColor(new Color(0xA3BF0B));
@@ -90,7 +97,7 @@ namespace Modix.Modules
             foreach (var infraction in infractionQuery)
             {
                 // https://modix.gg/infractions?id=123
-                var infractionUrl = new UriBuilder(Config.WebsiteBaseUrl)
+                var infractionUrl = new UriBuilder(_config.WebsiteBaseUrl)
                 {
                     Path = "/infractions",
                     Query = $"id={infraction.Id}"
@@ -99,36 +106,35 @@ namespace Modix.Modules
                 var emoji = GetEmojiForInfractionType(infraction.Type);
 
                 builder.AddField(
-                    $"#{infraction.Id} - \\{emoji} {infraction.Type} - Created by {infraction.Author} on {infraction.Created}{(infraction.Rescinded ? " - [RESCINDED]" : "")}",
+                    $"#{infraction.Id} - \\{emoji} {infraction.Type} - Created by {infraction.Author} on {infraction.Created}{(infraction.Rescinded ? " - [No longer in effect]" : "")}",
                     Format.Url($"Reason: {infraction.Reason}", infractionUrl)
                 );
             }
 
             var embed = builder.Build();
 
-            await Context.Channel.SendMessageAsync(
-                    $"Requested by {requestor}",
-                    embed: embed)
-                .ConfigureAwait(false);
+            await FollowupAsync(embed: embed);
         }
 
-        [Command("delete")]
-        [Summary("Marks an infraction as deleted, so it no longer appears within infraction search results.")]
+        [SlashCommand("infraction-delete", "Marks an infraction as deleted, so it no longer appears within infraction search results.")]
+        [RequireClaims(AuthorizationClaim.ModerationDeleteInfraction)]
         public async Task DeleteAsync(
-            [Summary("The ID value of the infraction to be deleted.")]
-                long infractionId)
+            [Summary(description: "The ID value of the infraction to be deleted.")]
+                    long infractionId)
         {
-            await ModerationService.DeleteInfractionAsync(infractionId);
-            await Context.AddConfirmation();
+            await _moderationService.DeleteInfractionAsync(infractionId);
+            await Context.AddConfirmationAsync();
         }
 
-        [Command("update")]
-        [Summary("Updates an infraction by ID, overwriting the existing reason")]
+        [SlashCommand("infraction-update", "Updates an infraction by ID, overwriting the existing reason.")]
+        [RequireAnyClaim(AuthorizationClaim.ModerationUpdateInfraction, AuthorizationClaim.ModerationNote, AuthorizationClaim.ModerationWarn, AuthorizationClaim.ModerationMute, AuthorizationClaim.ModerationBan)]
         public async Task UpdateAsync(
-            [Summary("The ID value of the infraction to be update.")] long infractionId,
-                [Summary("New reason for the infraction"), Remainder] string reason)
+            [Summary(description: "The ID value of the infraction to be update.")]
+                    long infractionId,
+            [Summary(description: "New reason for the infraction.")]
+                    string newReason)
         {
-            var (success, errorMessage) = await ModerationService.UpdateInfractionAsync(infractionId, reason, Context.User.Id);
+            var (success, errorMessage) = await _moderationService.UpdateInfractionAsync(infractionId, newReason, Context.User.Id);
 
             if (!success)
             {
@@ -136,16 +142,12 @@ namespace Modix.Modules
                     ? "Failed updating infraction."
                     : $"Failed updating infraction. {errorMessage}";
 
-                await ReplyAsync(replyMessage);
+                await FollowupAsync(replyMessage);
                 return;
             }
 
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
-
-        internal protected IModerationService ModerationService { get; }
-        internal protected IUserService UserService { get; }
-        internal protected ModixConfig Config { get; }
 
         private static string GetEmojiForInfractionType(InfractionType infractionType)
             => infractionType switch

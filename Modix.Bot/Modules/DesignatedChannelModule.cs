@@ -77,7 +77,7 @@ namespace Modix.Modules
                 DesignatedChannelType designation)
         {
             await DesignatedChannelService.AddDesignatedChannelAsync(Context.Guild, channel, designation);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         [Command("add")]
@@ -87,7 +87,7 @@ namespace Modix.Modules
                 DesignatedChannelType designation)
         {
             await DesignatedChannelService.AddDesignatedChannelAsync(Context.Guild, Context.Channel, designation);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         [Command("remove")]
@@ -99,7 +99,7 @@ namespace Modix.Modules
                 DesignatedChannelType designation)
         {
             await DesignatedChannelService.RemoveDesignatedChannelAsync(Context.Guild, channel, designation);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         [Command("remove")]
@@ -109,7 +109,7 @@ namespace Modix.Modules
                 DesignatedChannelType designation)
         {
             await DesignatedChannelService.RemoveDesignatedChannelAsync(Context.Guild, Context.Channel, designation);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
     }
 }

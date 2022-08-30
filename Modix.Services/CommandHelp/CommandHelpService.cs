@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Discord.Commands;
+using Discord.Interactions;
 
 namespace Modix.Services.CommandHelp
 {
@@ -42,20 +43,29 @@ namespace Modix.Services.CommandHelp
     internal class CommandHelpService : ICommandHelpService
     {
         private readonly CommandService _commandService;
+        private readonly InteractionService _interactionService;
         private IReadOnlyCollection<ModuleHelpData> _cachedHelpData;
 
-        public CommandHelpService(CommandService commandService)
+        public CommandHelpService(CommandService commandService, InteractionService interactionService)
         {
             _commandService = commandService;
+            _interactionService = interactionService;
         }
 
         /// <inheritdoc />
         public IReadOnlyCollection<ModuleHelpData> GetModuleHelpData()
             => LazyInitializer.EnsureInitialized(ref _cachedHelpData, () =>
-                _commandService.Modules
+            {
+                var commandModules = _commandService.Modules
                     .Where(x => !x.Attributes.Any(attr => attr is HiddenFromHelpAttribute))
-                    .Select(x => ModuleHelpData.FromModuleInfo(x))
-                    .ToArray());
+                    .Select(x => ModuleHelpData.FromModuleInfo(x));
+
+                var slashModules = _interactionService.Modules
+                    .Where(x => !x.Attributes.Any(attr => attr is HiddenFromHelpAttribute))
+                    .Select(x => ModuleHelpData.FromModuleInfo(x));
+
+                return commandModules.Concat(slashModules).ToArray();
+            });
 
         /// <inheritdoc />
         public ModuleHelpData GetModuleHelpData(string query)

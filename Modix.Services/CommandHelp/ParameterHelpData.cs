@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Discord.Commands;
 
 namespace Modix.Services.CommandHelp
 {
@@ -16,29 +15,33 @@ namespace Modix.Services.CommandHelp
 
         public IReadOnlyCollection<string> Options { get; set; }
 
-        public static ParameterHelpData FromParameterInfo(ParameterInfo parameter)
-        {
-            bool isNullable = parameter.Type.IsGenericType && parameter.Type.GetGenericTypeDefinition() == typeof(Nullable<>);
-            var paramType = isNullable ? parameter.Type.GetGenericArguments()[0] : parameter.Type;
-            string typeName = paramType.Name;
+        public static ParameterHelpData FromParameterInfo(Discord.Commands.ParameterInfo parameter)
+            => BuildHelpData(parameter.Name, parameter.Summary, parameter.Type, !parameter.IsOptional);
 
-            if (paramType.IsInterface && paramType.Name.StartsWith('I'))
+        public static ParameterHelpData FromParameterInfo(Discord.Interactions.SlashCommandParameterInfo parameter)
+            => BuildHelpData(parameter.Name, parameter.Description, parameter.ParameterType, parameter.IsRequired);
+
+        private static ParameterHelpData BuildHelpData(string name, string description, Type parameterType, bool required)
+        {
+            var isNullable = parameterType.IsGenericType && parameterType.GetGenericTypeDefinition() == typeof(Nullable<>);
+            parameterType = isNullable ? parameterType.GetGenericArguments()[0] : parameterType;
+            var typeName = parameterType.Name;
+
+            if (parameterType.IsInterface && parameterType.Name.StartsWith('I'))
             {
-                typeName = typeName.Substring(1);
+                typeName = typeName[1..];
             }
 
-            var ret = new ParameterHelpData
+            return new()
             {
-                Name = parameter.Name,
-                Summary = parameter.Summary,
+                Name = name,
+                Summary = description,
                 Type = typeName,
-                IsOptional = isNullable || parameter.IsOptional,
-                Options = parameter.Type.IsEnum
-                    ? parameter.Type.GetEnumNames()
-                    : Array.Empty<string>(),
+                IsOptional = isNullable || !required,
+                Options = parameterType.IsEnum
+                            ? parameterType.GetEnumNames()
+                            : Array.Empty<string>(),
             };
-
-            return ret;
         }
     }
 }

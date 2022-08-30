@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Discord.Commands;
+
 using Humanizer;
 
 namespace Modix.Services.CommandHelp
@@ -16,38 +16,61 @@ namespace Modix.Services.CommandHelp
 
         public IReadOnlyCollection<string> HelpTags { get; set; }
 
-        public static ModuleHelpData FromModuleInfo(ModuleInfo module)
+        public static ModuleHelpData FromModuleInfo(Discord.Commands.ModuleInfo module)
         {
-            var moduleName = module.Name;
-
-            var suffixPosition = moduleName.IndexOf("Module", StringComparison.Ordinal);
-            if (suffixPosition > -1)
+            return new()
             {
-                moduleName = module.Name.Substring(0, suffixPosition).Humanize();
-            }
-
-            moduleName = moduleName.ApplyCase(LetterCasing.Title);
-
-            var ret = new ModuleHelpData
-            {
-                Name = moduleName,
-                Summary = string.IsNullOrWhiteSpace(module.Summary) ? "No Summary" : module.Summary,
+                Name = GetModuleHelpName(module.Name),
+                Summary = string.IsNullOrWhiteSpace(module.Summary) ? "No summary" : module.Summary,
                 Commands = module.Commands
                     .Where(x => !ShouldBeHidden(x))
                     .Select(x => CommandHelpData.FromCommandInfo(x))
                     .ToArray(),
-                HelpTags = module.Attributes
-                    .OfType<HelpTagsAttribute>()
-                    .SingleOrDefault()
-                    ?.Tags
-                    ?? Array.Empty<string>(),
+                HelpTags = GetHelpTags(module.Attributes),
             };
 
-            return ret;
-
-            bool ShouldBeHidden(CommandInfo command)
-                => command.Preconditions.Any(x => x is RequireOwnerAttribute)
+            static bool ShouldBeHidden(Discord.Commands.CommandInfo command)
+                => command.Preconditions.Any(x => x is Discord.Commands.RequireOwnerAttribute)
                 || command.Attributes.Any(x => x is HiddenFromHelpAttribute);
         }
+
+        public static ModuleHelpData FromModuleInfo(Discord.Interactions.ModuleInfo module)
+        {
+            var moduleHelp = module.Attributes.OfType<ModuleHelpAttribute>().SingleOrDefault();
+
+            return new()
+            {
+                Name = GetModuleHelpName(moduleHelp?.Name ?? module.Name),
+                Summary = !string.IsNullOrWhiteSpace(moduleHelp.Description) ? moduleHelp.Description
+                    : !string.IsNullOrWhiteSpace(module.Description) ? module.Description : "No summary",
+                Commands = module.SlashCommands
+                    .Where(x => !ShouldBeHidden(x))
+                    .Select(x => CommandHelpData.FromCommandInfo(x))
+                    .ToArray(),
+                HelpTags = GetHelpTags(module.Attributes),
+            };
+
+            static bool ShouldBeHidden(Discord.Interactions.SlashCommandInfo command)
+                => command.Preconditions.Any(x => x is Discord.Interactions.RequireOwnerAttribute)
+                || command.Attributes.Any(x => x is HiddenFromHelpAttribute);
+        }
+
+        private static string GetModuleHelpName(string moduleName)
+        {
+            var suffixPosition = moduleName.IndexOf("Module", StringComparison.Ordinal);
+            if (suffixPosition > -1)
+            {
+                moduleName = moduleName[..suffixPosition].Humanize();
+            }
+
+            return moduleName.ApplyCase(LetterCasing.Title);
+        }
+
+        private static string[] GetHelpTags(IReadOnlyCollection<Attribute> attributes)
+            => attributes
+                .OfType<HelpTagsAttribute>()
+                .SingleOrDefault()
+                ?.Tags
+                ?? Array.Empty<string>();
     }
 }

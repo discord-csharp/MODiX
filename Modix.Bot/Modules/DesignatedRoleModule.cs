@@ -79,7 +79,7 @@ namespace Modix.Modules
                 DesignatedRoleType designation)
         {
             await DesignatedRoleService.AddDesignatedRoleAsync(role.Guild.Id, role.Id, designation);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         [Command("remove")]
@@ -91,7 +91,7 @@ namespace Modix.Modules
                 DesignatedRoleType designation)
         {
             await DesignatedRoleService.RemoveDesignatedRoleAsync(role.Guild.Id, role.Id, designation);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
     }
 }

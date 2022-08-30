@@ -3,29 +3,34 @@ using System.IO;
 using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
 using Discord;
-using Discord.Commands;
+using Discord.Interactions;
+
 using Modix.Services.CommandHelp;
 using Modix.Services.Utilities;
+
 using Serilog;
 
 namespace Modix.Modules
 {
-    [Name("Fun")]
-    [Summary("A bunch of miscellaneous, fun commands.")]
+    [ModuleHelp("Fun", "A bunch of miscellaneous, fun commands.")]
     [HelpTags("jumbo")]
-    public class FunModule : ModuleBase
+    public class FunModule : InteractionModuleBase
     {
         private static readonly string[] _owoFaces = {"(・`ω´・)", ";;w;;", "owo", "UwU", ">w<", "^w^"};
+
+        private const ushort MinimumAvatarSize = 16;
+        private const ushort MaximumAvatarSize = 4096;
 
         public FunModule(IHttpClientFactory httpClientFactory)
         {
             HttpClientFactory = httpClientFactory;
         }
 
-        [Command("jumbo"), Summary("Jumbofy an emoji.")]
+        [SlashCommand("jumbo", "Jumbofy an emoji.")]
         public async Task JumboAsync(
-            [Summary("The emoji to jumbofy.")]
+            [Summary(description : "The emoji to jumbofy.")]
                 string emoji)
         {
             var emojiUrl = EmojiUtilities.GetUrl(emoji);
@@ -35,96 +40,80 @@ namespace Modix.Modules
                 var client = HttpClientFactory.CreateClient();
                 var req = await client.GetStreamAsync(emojiUrl);
 
-                await Context.Channel.SendFileAsync(req, Path.GetFileName(emojiUrl), Context.User.Mention);
-
-                try
-                {
-                    await Context.Message.DeleteAsync();
-                }
-                catch (HttpRequestException ex)
-                {
-                    Log.Warning(ex, "Couldn't delete message after jumbofying.");
-                }
+                await FollowupWithFileAsync(req, Path.GetFileName(emojiUrl));
             }
             catch (HttpRequestException ex)
             {
 
                 Log.Warning(ex, "Failed jumbofying emoji");
-                await ReplyAsync($"Sorry {Context.User.Mention}, I don't recognize that emoji.");
+                await FollowupAsync($"Sorry {Context.User.Mention}, I don't recognize that emoji.");
             }
         }
 
-        [Command("avatar"), Alias("av", "ava", "pfp"), Summary("Gets an avatar for a user")]
-        public Task GetAvatarAsync(
-                [Summary("Size for the avatar, defaults to 128")]
-                ushort size = 128)
-        {
-            return GetAvatarAsync(Context.User, size);
-        }
-
-        [Command("avatar"), Alias("av", "ava", "pfp"), Summary("Gets an avatar for a user")]
+        [SlashCommand("avatar", "Gets an avatar for a user.")]
         public async Task GetAvatarAsync(
-            [Summary("User that has the avatar")]
-                IUser user,
-                [Summary("Size for the avatar, defaults to 128")]
+            [Summary(description: "User that has the avatar.")]
+                IUser user = null,
+            [Summary(description: "Size for the avatar, defaults to 128.")]
+            [MinValue(MinimumAvatarSize)]
+            [MaxValue(MaximumAvatarSize)]
                 ushort size = 128)
         {
+            user ??= Context.User;
 
             try
             {
-                const ushort MinimumSize = 128;
-                const ushort MaximumSize = 512;
+                size = Math.Clamp(size, MinimumAvatarSize, MaximumAvatarSize);
 
-                // Set some minimum and maximum boundaries
-                // anything under 128 and Discord won't fetch
-                // the avatar. The upper is an arbitrary limit
-                // to prevent chat from being spammed with large
-                // avatars
-                if (size < MinimumSize)
-                {
-                    size = MinimumSize;
-                }
-                else if (size > MaximumSize)
-                {
-                    size = MaximumSize;
-                }
-
-                var avatarUrl = user.GetAvatarUrl(size: size);
-
-                if (string.IsNullOrWhiteSpace(avatarUrl))
-                {
-                    avatarUrl = user.GetDefaultAvatarUrl();
-                }
+                var avatarUrl = user.GetDefiniteAvatarUrl(size);
 
                 var embed = new EmbedBuilder()
-                    .WithTitle($"{user.Username}'s avatar")
+                    .WithTitle($"{user.GetFullUsername()}'s avatar")
                     .WithImageUrl(avatarUrl)
                     .WithCurrentTimestamp()
-                    .WithFooter($"Requested by {Context.User.Username}")
                     .Build();
 
-                await ReplyAsync(embed: embed);
-
-                try
-                {
-                    await Context.Message.DeleteAsync();
-                }
-                catch (HttpRequestException ex)
-                {
-                    Log.Warning(ex, "Couldn't delete message after getting avatar.");
-                }
+                await FollowupAsync(embed: embed);
             }
             catch (HttpRequestException ex)
             {
                 Log.Warning(ex, "Failed getting avatar for user {userId}", user.Id);
-                await ReplyAsync($"Sorry {Context.User.Mention}, I couldn't get the avatar!");
+                await FollowupAsync($"Sorry {Context.User.Mention}, I couldn't get the avatar!");
             }
         }
 
-        [Command("owoify")]
-        [Alias("owo")]
-        [Summary("Owoifies the given message.")]
-        public async Task OwoifyAsync([Remainder][Summary("The message to owoify.")] string message)
+        [RequireContext(ContextType.Guild)]
+        [SlashCommand("guild-avatar", "Gets a guild-specific avatar for a user.")]
+        public async Task GetGuildAvatarAsync(
+            [Summary(description: "User that has the avatar.")]
+                IGuildUser user = null,
+            [Summary(description: "Size for the avatar, defaults to 128.")]
+                ushort size = 4096)
+        {
+            user ??= (IGuildUser)Context.User;
+
+            try
+            {
+                size = Math.Clamp(size, MinimumAvatarSize, MaximumAvatarSize);
+
+                var avatarUrl = user.GetGuildAvatarUrl(size: size) ?? user.GetDefiniteAvatarUrl(size);
+
+                var embed = new EmbedBuilder()
+                    .WithTitle($"{user.GetFullUsername()}'s avatar")
+                    .WithImageUrl(avatarUrl)
+                    .Build();
+
+                await FollowupAsync(embed: embed);
+            }
+            catch (HttpRequestException ex)
+            {
+                Log.Warning(ex, "Failed getting avatar for user {userId}", user.Id);
+                await FollowupAsync($"Sorry {Context.User.Mention}, I couldn't get the avatar!");
+            }
+        }
+
+        [SlashCommand("owo", "Owoifies the given message.")]
+        public async Task OwoifyAsync([Summary(description: "The message to owoify.")] string message)
         {
             var owoMessage = message;
 
@@ -136,13 +125,7 @@ namespace Modix.Modules
             owoMessage = Regex.Replace(owoMessage, "ove", "uv");
             owoMessage = Regex.Replace(owoMessage, "(?<!\\@)\\!+", " " + _owoFaces[new Random().Next(_owoFaces.Length)] + " ");
 
-            await ReplyAsync(embed: new EmbedBuilder()
-                .WithDescription(owoMessage)
-                .WithUserAsAuthor(Context.User)
-                .WithColor(Color.Blue)
-                .WithCurrentTimestamp()
-                .Build());
-            await Context.Message.DeleteAsync();
+            await FollowupAsync(owoMessage, allowedMentions: AllowedMentions.None);
         }
 
         protected IHttpClientFactory HttpClientFactory { get; }

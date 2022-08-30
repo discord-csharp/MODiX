@@ -1,18 +1,21 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
+
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Discord;
-using Discord.Commands;
+using Discord.Interactions;
 
+using Modix.Bot.Attributes;
+using Modix.Services.CommandHelp;
 using Modix.Services.Diagnostics;
 
 namespace Modix.Modules
 {
-    [Name("Ping")]
-    [Summary("Provides commands related to determining connectivity and latency.")]
-    public sealed class PingModule : ModuleBase
+    [ModuleHelp("Ping", "Provides commands related to determining connectivity and latency.")]
+    public sealed class PingModule : InteractionModuleBase
     {
         public PingModule(
             IEnumerable<IAvailabilityEndpoint> availabilityEndpoints,
@@ -22,11 +25,11 @@ namespace Modix.Modules
             _latencyEndpoints = latencyEndpoints.ToArray();
         }
 
-        [Command("ping")]
-        [Summary("Ping MODiX to determine connectivity and latency.")]
+        [SlashCommand("ping", "Ping MODiX to determine connectivity and latency.")]
+        [DoNotDefer]
         public async Task PingAsync()
         {
-            var message = await ReplyAsync($"Pinging {_latencyEndpoints.Count} latency endpoints " +
+            await RespondAsync($"Pinging {_latencyEndpoints.Count} latency endpoints " +
                 $"and {_availabilityEndpoints.Count} availability endpoints...");
 
             var embed = new EmbedBuilder()
@@ -43,29 +46,29 @@ namespace Modix.Modules
 
             var average = latencyResults
                 .Where(x => x.Latency.HasValue)
-                .Select(x => x.Latency.Value)
+                .Select(x => x.Latency.GetValueOrDefault())
                 .AverageOrNull();
 
             embed = embed
                 .WithCurrentTimestamp()
                 .WithColor(LatencyColor(average));
 
-            foreach (var result in latencyResults)
-                embed.AddField(result.DisplayName, FormatLatency(result.Latency, "📶"), true);
+            foreach (var (displayName, latency) in latencyResults)
+                embed.AddField(displayName, FormatLatency(latency, "📶"), true);
 
-            foreach (var result in availabilityResults)
-                embed.AddField(result.DisplayName, FormatAvailability(result.IsAvailable), true);
+            foreach (var (displayName, isAvailable) in availabilityResults)
+                embed.AddField(displayName, FormatAvailability(isAvailable), true);
 
             embed.AddField("Average", FormatLatency(average, "📈"), true);
 
-            await message.ModifyAsync(m =>
+            await ModifyOriginalResponseAsync(message =>
             {
-                m.Embed = embed.Build();
-                m.Content = "";
+                message.Embed = embed.Build();
+                message.Content = "";
             });
         }
 
-        private string FormatLatency(
+        private static string FormatLatency(
             double? latency,
             string icon)
         {
@@ -84,11 +87,11 @@ namespace Modix.Modules
             return $"{icon} {latency: 0}ms {suffix}";
         }
 
-        private string FormatAvailability(
+        private static string FormatAvailability(
                 bool isAvailable)
             => isAvailable ? "🌐 Up 💚" : "🌐 Down 💔";
 
-        private Color LatencyColor(
+        private static Color LatencyColor(
                 double? latency)
             => latency switch
             {

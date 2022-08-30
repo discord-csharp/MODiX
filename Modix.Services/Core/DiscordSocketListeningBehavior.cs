@@ -35,6 +35,7 @@ namespace Modix.Services.Core
             DiscordSocketClient.ChannelUpdated += OnChannelUpdatedAsync;
             DiscordSocketClient.GuildAvailable += OnGuildAvailableAsync;
             DiscordSocketClient.GuildMemberUpdated += OnGuildMemberUpdatedAsync;
+            DiscordSocketClient.InteractionCreated += OnInteractionCreatedAsync;
             DiscordSocketClient.JoinedGuild += OnJoinedGuildAsync;
             DiscordSocketClient.MessageDeleted += OnMessageDeletedAsync;
             DiscordSocketClient.MessageReceived += OnMessageReceivedAsync;
@@ -49,7 +50,6 @@ namespace Modix.Services.Core
             DiscordSocketClient.UserBanned += OnUserBannedAsync;
             DiscordSocketClient.UserJoined += OnUserJoinedAsync;
             DiscordSocketClient.UserLeft += OnUserLeftAsync;
-
             return Task.CompletedTask;
         }
 
@@ -61,6 +61,7 @@ namespace Modix.Services.Core
             DiscordSocketClient.ChannelUpdated -= OnChannelUpdatedAsync;
             DiscordSocketClient.GuildAvailable -= OnGuildAvailableAsync;
             DiscordSocketClient.GuildMemberUpdated -= OnGuildMemberUpdatedAsync;
+            DiscordSocketClient.InteractionCreated += OnInteractionCreatedAsync;
             DiscordSocketClient.JoinedGuild -= OnJoinedGuildAsync;
             DiscordSocketClient.MessageDeleted -= OnMessageDeletedAsync;
             DiscordSocketClient.MessageReceived -= OnMessageReceivedAsync;
@@ -73,7 +74,6 @@ namespace Modix.Services.Core
             DiscordSocketClient.UserBanned -= OnUserBannedAsync;
             DiscordSocketClient.UserJoined -= OnUserJoinedAsync;
             DiscordSocketClient.UserLeft -= OnUserLeftAsync;
-
             return Task.CompletedTask;
         }
 
@@ -111,6 +111,13 @@ namespace Modix.Services.Core
         private Task OnGuildMemberUpdatedAsync(Cacheable<SocketGuildUser, ulong> oldMember, SocketGuildUser newMember)
         {
             MessageDispatcher.Dispatch(new GuildMemberUpdatedNotification(oldMember, newMember));
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnInteractionCreatedAsync(SocketInteraction interaction)
+        {
+            MessageDispatcher.Dispatch(new InteractionCreatedNotification(interaction));
 
             return Task.CompletedTask;
         }
