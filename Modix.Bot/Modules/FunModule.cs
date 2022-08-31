@@ -57,6 +57,15 @@ namespace Modix.Modules
             [Summary(description: "Size for the avatar, defaults to 128.")]
             [MinValue(MinimumAvatarSize)]
             [MaxValue(MaximumAvatarSize)]
+            [Choice("16", 16)]
+            [Choice("32", 32)]
+            [Choice("64", 64)]
+            [Choice("128", 128)]
+            [Choice("256", 256)]
+            [Choice("512", 512)]
+            [Choice("1024", 1024)]
+            [Choice("2048", 2048)]
+            [Choice("4096", 4096)]
                 ushort size = 128)
         {
             user ??= Context.User;
@@ -88,7 +97,18 @@ namespace Modix.Modules
             [Summary(description: "User that has the avatar.")]
                 IGuildUser user = null,
             [Summary(description: "Size for the avatar, defaults to 128.")]
-                ushort size = 4096)
+            [MinValue(MinimumAvatarSize)]
+            [MaxValue(MaximumAvatarSize)]
+            [Choice("16", 16)]
+            [Choice("32", 32)]
+            [Choice("64", 64)]
+            [Choice("128", 128)]
+            [Choice("256", 256)]
+            [Choice("512", 512)]
+            [Choice("1024", 1024)]
+            [Choice("2048", 2048)]
+            [Choice("4096", 4096)]
+                ushort size = 128)
         {
             user ??= (IGuildUser)Context.User;
 
