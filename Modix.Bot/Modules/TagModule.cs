@@ -46,7 +46,7 @@ namespace Modix.Bot.Modules
                 string content)
         {
             await TagService.CreateTagAsync(Context.Guild.Id, Context.User.Id, name, content);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         [Command]
@@ -83,7 +83,7 @@ namespace Modix.Bot.Modules
                 string newContent)
         {
             await TagService.ModifyTagAsync(Context.Guild.Id, Context.User.Id, name, newContent);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         [Command("delete")]
@@ -94,7 +94,7 @@ namespace Modix.Bot.Modules
                 string name)
         {
             await TagService.DeleteTagAsync(Context.Guild.Id, Context.User.Id, name);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         [Command("ownedby")]
@@ -204,7 +204,7 @@ namespace Modix.Bot.Modules
                 DiscordUserEntity target)
         {
             await TagService.TransferToUserAsync(Context.Guild.Id, name, Context.User.Id, target.Id);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         [Command("transfer")]
@@ -216,7 +216,7 @@ namespace Modix.Bot.Modules
                 IRole target)
         {
             await TagService.TransferToRoleAsync(Context.Guild.Id, name, Context.User.Id, target.Id);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         protected CodePasteService CodePasteService { get; }

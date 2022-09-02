@@ -65,7 +65,7 @@ namespace Modix.Modules
                 IRole role)
         {
             await _authorizationService.AddClaimMappingAsync(role, type, claim);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         [Command("claims add")]
@@ -81,7 +81,7 @@ namespace Modix.Modules
                 IGuildUser user)
         {
             await _authorizationService.AddClaimMappingAsync(user, type, claim);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         [Command("claims remove")]
@@ -97,7 +97,7 @@ namespace Modix.Modules
                 IRole role)
         {
             await _authorizationService.RemoveClaimMappingAsync(role, type, claim);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         [Command("claims remove")]
@@ -113,7 +113,7 @@ namespace Modix.Modules
                 IGuildUser user)
         {
             await _authorizationService.RemoveClaimMappingAsync(user, type, claim);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         private async Task ReplyWithClaimsAsync(IReadOnlyCollection<AuthorizationClaim> claims)

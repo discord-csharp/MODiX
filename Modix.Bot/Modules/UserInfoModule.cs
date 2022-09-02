@@ -1,11 +1,13 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
 using Humanizer;
 using Microsoft.Extensions.Logging;
@@ -28,10 +30,9 @@ using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
-    [Name("User Information")]
-    [Summary("Retrieves information and statistics about the supplied user.")]
+    [ModuleHelp("User Information", "Retrieves information and statistics about the supplied user.")]
     [HelpTags("userinfo", "info")]
-    public class UserInfoModule : ModuleBase
+    public class UserInfoModule : InteractionModuleBase
     {
         private readonly ILogger<UserInfoModule> _log;
         private readonly IUserService _userService;
@@ -71,18 +72,24 @@ namespace Modix.Modules
             _autoRemoveMessageService = autoRemoveMessageService;
         }
 
-        [Command("info")]
-        [Alias("ompf", "omfp")]
-        [Summary("Retrieves information about the supplied user, or the current user if one is not provided.")]
+        [MessageCommand("User Info")]
+        [RequireContext(ContextType.Guild)]
+        public async Task GetUserInfoAsync(IMessage message)
+            => await GetUserInfoAsync(message.Author);
+
+        [SlashCommand("info", "Retrieves information about the supplied user, or the current user if one is not provided.")]
+        [UserCommand("User Info")]
         public async Task GetUserInfoAsync(
-            [Summary("The user to retrieve information about, if any.")]
-                [Remainder] DiscordUserOrMessageAuthorEntity user = null)
+            [Summary(description: "The user to retrieve information about, if any.")]
+                IUser? user = null)
         {
-            var userId = user?.UserId ?? Context.User.Id;
-
             var timer = Stopwatch.StartNew();
+            var originalResponse = await GetOriginalResponseAsync();
+            var ephemeral = originalResponse.Flags.GetValueOrDefault().HasFlag(MessageFlags.Ephemeral);
 
-            var userInfo = await _userService.GetUserInformationAsync(Context.Guild.Id, userId);
+            user ??= Context.User;
+
+            var userInfo = await _userService.GetUserInformationAsync(Context.Guild.Id, user.Id);
 
             if (userInfo == null)
             {
@@ -90,19 +97,19 @@ namespace Modix.Modules
                     .WithTitle("Retrieval Error")
                     .WithColor(Color.Red)
                     .WithDescription("Sorry, we don't have any data for that user - and we couldn't find any, either.")
-                    .AddField("User Id", userId);
+                    .AddField("User Id", user.Id);
                 await _autoRemoveMessageService.RegisterRemovableMessageAsync(
                     Context.User,
                     embed,
-                    async (embedBuilder) => await ReplyAsync(embed: embedBuilder.Build()));
+                    async (embedBuilder) => await FollowupAsync(embed: embedBuilder.Build()));
 
                 return;
             }
 
             var builder = new StringBuilder();
             builder.AppendLine("**\u276F User Information**");
-            builder.AppendLine("ID: " + userId);
-            builder.AppendLine("Profile: " + MentionUtils.MentionUser(userId));
+            builder.AppendLine("ID: " + user.Id);
+            builder.AppendLine("Profile: " + MentionUtils.MentionUser(user.Id));
 
             var embedBuilder = new EmbedBuilder()
                 .WithUserAsAuthor(userInfo)
@@ -119,9 +126,8 @@ namespace Modix.Modules
             {
                 colorTask = _imageService.GetDominantColorAsync(new Uri(avatarUrl));
             }
-            var guildUser = Context.User as IGuildUser;
-            var moderationRead = await _authorizationService.HasClaimsAsync(Context.User.Id, guildUser.Guild.Id, guildUser.RoleIds.ToList(), AuthorizationClaim.ModerationRead);
-            var promotions = await _promotionsService.GetPromotionsForUserAsync(Context.Guild.Id, userId);
+            var commandUser = (IGuildUser)Context.User;
+            var moderationRead = await _authorizationService.HasClaimsAsync(Context.User.Id, commandUser.Guild.Id, commandUser.RoleIds.ToList(), AuthorizationClaim.ModerationRead);
 
             if (userInfo.IsBanned)
             {
@@ -133,32 +139,39 @@ namespace Modix.Modules
                 }
             }
 
+            builder.AppendLine($"Created: {FormatUtilities.FormatTimeAgo(_utcNow, userInfo.CreatedAt)}");
+
             if (userInfo.FirstSeen is DateTimeOffset firstSeen)
                 builder.AppendLine($"First Seen: {FormatUtilities.FormatTimeAgo(_utcNow, firstSeen)}");
 
             if (userInfo.LastSeen is DateTimeOffset lastSeen)
                 builder.AppendLine($"Last Seen: {FormatUtilities.FormatTimeAgo(_utcNow, lastSeen)}");
 
-            try
+            if (userInfo.FirstSeen is not null)
             {
-                var userRank = await _messageRepository.GetGuildUserParticipationStatistics(Context.Guild.Id, userId);
-                var messagesByDate = await _messageRepository.GetGuildUserMessageCountByDate(Context.Guild.Id, userId, TimeSpan.FromDays(30));
-                var messageCountsByChannel = await _messageRepository.GetGuildUserMessageCountByChannel(Context.Guild.Id, userId, TimeSpan.FromDays(30));
-                var emojiCounts = await _emojiRepository.GetEmojiStatsAsync(Context.Guild.Id, SortDirection.Ascending, 1, userId: userId);
+                try
+                {
+                    var userRank = await _messageRepository.GetGuildUserParticipationStatistics(Context.Guild.Id, user.Id);
+                    var messagesByDate = await _messageRepository.GetGuildUserMessageCountByDate(Context.Guild.Id, user.Id, TimeSpan.FromDays(30));
+                    var messageCountsByChannel = await _messageRepository.GetGuildUserMessageCountByChannel(Context.Guild.Id, user.Id, TimeSpan.FromDays(30));
+                    var emojiCounts = await _emojiRepository.GetEmojiStatsAsync(Context.Guild.Id, SortDirection.Ascending, 1, userId: user.Id);
 
-                await AddParticipationToEmbedAsync(userId, builder, userRank, messagesByDate, messageCountsByChannel, emojiCounts);
-            }
-            catch (Exception ex)
-            {
-                _log.LogError(ex, "An error occured while retrieving a user's message count.");
-            }
+                    await AddParticipationToEmbedAsync(user.Id, builder, userRank, messagesByDate, messageCountsByChannel, emojiCounts);
+                }
+                catch (Exception ex)
+                {
+                    _log.LogError(ex, "An error occured while retrieving a user's message count.");
+                }
 
-            AddMemberInformationToEmbed(userInfo, builder);
-            AddPromotionsToEmbed(builder, promotions);
+                AddMemberInformationToEmbed(userInfo, builder);
+
+                var promotions = await _promotionsService.GetPromotionsForUserAsync(Context.Guild.Id, user.Id);
+                AddPromotionsToEmbed(builder, promotions);
+            }
 
             if (moderationRead)
             {
-                await AddInfractionsToEmbedAsync(userId, builder);
+                await AddInfractionsToEmbedAsync(user.Id, builder, ephemeral);
             }
 
             embedBuilder.Description = builder.ToString();
@@ -168,10 +181,17 @@ namespace Modix.Modules
             timer.Stop();
             embedBuilder.WithFooter(footer => footer.Text = $"Completed after {timer.ElapsedMilliseconds} ms");
 
-            await _autoRemoveMessageService.RegisterRemovableMessageAsync(
-                userInfo.Id == Context.User.Id ? new[] { userInfo } : new[] { userInfo, Context.User },
-                embedBuilder,
-                async (embedBuilder) => await ReplyAsync(embed: embedBuilder.Build()));
+            if (ephemeral)
+            {
+                await FollowupAsync(embed: embedBuilder.Build());
+            }
+            else
+            {
+                await _autoRemoveMessageService.RegisterRemovableMessageAsync(
+                    userInfo.Id == Context.User.Id ? new[] { userInfo } : new[] { userInfo, Context.User },
+                    embedBuilder,
+                    async (embedBuilder) => await FollowupAsync(embed: embedBuilder.Build()));
+            }
         }
 
         private void AddMemberInformationToEmbed(EphemeralUser member, StringBuilder builder)
@@ -184,8 +204,6 @@ namespace Modix.Modules
                 builder.AppendLine("Nickname: " + Format.Sanitize(member.Nickname));
             }
 
-            builder.AppendLine($"Created: {FormatUtilities.FormatTimeAgo(_utcNow, member.CreatedAt)}");
-
             if (member.JoinedAt is DateTimeOffset joinedAt)
             {
                 builder.AppendLine($"Joined: {FormatUtilities.FormatTimeAgo(_utcNow, joinedAt)}");
@@ -193,7 +211,7 @@ namespace Modix.Modules
 
             if (member.RoleIds?.Count > 0)
             {
-                var roles = member.RoleIds.Select(x => member.Guild.Roles.Single(y => y.Id == x))
+                var roles = member.RoleIds.Select(x => member.Guild!.Roles.Single(y => y.Id == x))
                     .Where(x => x.Id != x.Guild.Id) // @everyone role always has same ID than guild
                     .ToArray();
 
@@ -208,7 +226,7 @@ namespace Modix.Modules
             }
         }
 
-        private async Task AddInfractionsToEmbedAsync(ulong userId, StringBuilder builder)
+        private async Task AddInfractionsToEmbedAsync(ulong userId, StringBuilder builder, bool ephemeral)
         {
             // https://modix.gg/infractions?subject=1234
             var url = new UriBuilder(_config.WebsiteBaseUrl)
@@ -220,14 +238,14 @@ namespace Modix.Modules
             builder.AppendLine();
             builder.AppendLine($"**\u276F Infractions [See here]({url})**");
 
-            if (!(Context.Channel as IGuildChannel).IsPublic())
+            if (!(Context.Channel as IGuildChannel).IsPublic() || ephemeral)
             {
                 var counts = await _moderationService.GetInfractionCountsForUserAsync(userId);
                 builder.AppendLine(FormatUtilities.FormatInfractionCounts(counts));
             }
             else
             {
-                builder.AppendLine("Infractions cannot be listed in public channels.");
+                builder.AppendLine("Infractions cannot be listed in public channels without using the `/infractions` command.");
             }
         }
 
@@ -256,7 +274,7 @@ namespace Modix.Modules
             builder.AppendLine();
             builder.AppendLine("**\u276F Guild Participation**");
 
-            if (userRank?.Rank > 0)
+            if (userRank.Rank > 0)
             {
                 builder.AppendFormat("Rank: {0} {1}\n", userRank.Rank.Ordinalize(), GetParticipationEmoji(userRank));
             }
@@ -309,7 +327,7 @@ namespace Modix.Modules
             }
         }
 
-        private string GetParticipationEmoji(GuildUserParticipationStatistics stats)
+        private static string GetParticipationEmoji(GuildUserParticipationStatistics stats)
         {
             if (stats.Percentile == 100 || stats.Rank == 1)
             {
@@ -339,9 +357,9 @@ namespace Modix.Modules
             builder.AppendLine();
             builder.AppendLine(Format.Bold("\u276F Promotion History"));
 
-            foreach (var promotion in promotions.OrderByDescending(x => x.CloseAction.Id).Take(5))
+            foreach (var promotion in promotions.OrderByDescending(x => x.CloseAction!.Id).Take(5))
             {
-                builder.AppendLine($"• {MentionUtils.MentionRole(promotion.TargetRole.Id)} {FormatUtilities.FormatTimeAgo(_utcNow, promotion.CloseAction.Created)}");
+                builder.AppendLine($"• {MentionUtils.MentionRole(promotion.TargetRole.Id)} {FormatUtilities.FormatTimeAgo(_utcNow, promotion.CloseAction!.Created)}");
             }
         }
     }

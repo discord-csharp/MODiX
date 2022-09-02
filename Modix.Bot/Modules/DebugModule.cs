@@ -3,61 +3,40 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Discord;
-using Discord.Commands;
+using Discord.Interactions;
+
+using Modix.Bot.Extensions;
+using Modix.Services.CommandHelp;
 
 using Serilog;
-
-using Modix.Services.Core;
-using Modix.Services.Moderation;
-using Modix.Services.CommandHelp;
 
 namespace Modix.Modules
 {
     /// <summary>
     /// Used to test feature work on a private server. The contents of this module can be changed any time.
     /// </summary>
-    [Group("debug"), RequireUserPermission(GuildPermission.BanMembers), HiddenFromHelp]
-    public class DebugModule : ModuleBase
+    [Group("debug", "Used to test feature work on a private server. The contents of this module can be changed any time.")]
+    [RequireUserPermission(GuildPermission.BanMembers)]
+    [HiddenFromHelp]
+    public class DebugModule : InteractionModuleBase
     {
-        public DebugModule(IAuthorizationService authorizationService, IModerationService moderationService)
-        {
-            AuthorizationService = authorizationService;
-        }
-
-        [Command("throw")]
-        public Task Throw([Remainder]string text)
+        [SlashCommand("throw", "Logs an exception.")]
+        public async Task ThrowAsync()
         {
             Log.Error("Error event");
             Log.Error(new Exception("ExceptionEvent"), "ExceptionEvent Template");
             Log.Information("Extra stuff we shouldn't see");
 
-            return Task.CompletedTask;
+            await Context.AddConfirmationAsync();
         }
 
-        [Command("leave")]
-        public async Task Leave(ulong guildId)
-        {
-            var guild = await Context.Client.GetGuildAsync(guildId);
-
-            if(guild == null)
-            {
-                await ReplyAsync($"Modix is not joined to a guild with id {guildId}");
-                return;
-            }
-
-            await guild.LeaveAsync();
-            await ReplyAsync($"Left a guild named {guild.Name}");
-        }
-
-        [Command("joined")]
-        public async Task Joined()
+        [SlashCommand("joined", "Displays all servers that the bot has joined.")]
+        public async Task JoinedAsync()
         {
             var guilds = await Context.Client.GetGuildsAsync();
 
-            var output = string.Join(", ", guilds.Select(a => $"{a.Id}: {a.Name}"));
-            await ReplyAsync(output);
+            var output = string.Join("\n", guilds.Select(a => $"{a.Id}: {a.Name}"));
+            await FollowupAsync(output);
         }
-
-        internal protected IAuthorizationService AuthorizationService { get; }
     }
 }

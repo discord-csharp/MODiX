@@ -9,15 +9,16 @@ using Serilog;
 
 namespace Modix.Bot.Extensions
 {
-    public static class CommandContextExtensions
+    public static class ContextExtensions
     {
-        private static readonly Emoji _checkmarkEmoji = new Emoji("✅");
-        private static readonly Emoji _xEmoji = new Emoji("❌");
-        private const int _confirmationTimeoutSeconds = 10;
+        private static readonly Emoji _checkmarkEmoji = new("✅");
+        private static readonly Emoji _xEmoji = new("❌");
 
-        public static async Task AddConfirmation(this ICommandContext context)
+        private const int ConfirmationTimeoutSeconds = 10;
+
+        public static async Task AddConfirmationAsync(this ICommandContext context)
         {
-            if (!(context.Channel is IGuildChannel guildChannel))
+            if (context.Channel is not IGuildChannel guildChannel)
             {
                 return;
             }
@@ -34,9 +35,12 @@ namespace Modix.Bot.Extensions
             await context.Message.AddReactionAsync(_checkmarkEmoji);
         }
 
+        public static async Task AddConfirmationAsync(this IInteractionContext context)
+            => await context.Interaction.FollowupAsync($"\\{_checkmarkEmoji} Command successful.");
+
         public static async Task<bool> GetUserConfirmationAsync(this ICommandContext context, string mainMessage)
         {
-            if (!(context.Channel is IGuildChannel guildChannel))
+            if (context.Channel is not IGuildChannel guildChannel)
             {
                 return false;
             }
@@ -53,12 +57,12 @@ namespace Modix.Bot.Extensions
                 mainMessage += Environment.NewLine;
 
             var confirmationMessage = await context.Channel.SendMessageAsync(mainMessage +
-                $"React with {_checkmarkEmoji} or {_xEmoji} in the next {_confirmationTimeoutSeconds} seconds to finalize or cancel the operation.");
+                $"React with {_checkmarkEmoji} or {_xEmoji} in the next {ConfirmationTimeoutSeconds} seconds to finalize or cancel the operation.");
 
             await confirmationMessage.AddReactionAsync(_checkmarkEmoji);
             await confirmationMessage.AddReactionAsync(_xEmoji);
 
-            for (var i = 0; i < _confirmationTimeoutSeconds; i++)
+            for (var i = 0; i < ConfirmationTimeoutSeconds; i++)
             {
                 await Task.Delay(1000);
 

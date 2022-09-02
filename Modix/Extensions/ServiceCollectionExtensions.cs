@@ -4,6 +4,7 @@ using System.Net.Http;
 
 using Discord;
 using Discord.Commands;
+using Discord.Interactions;
 using Discord.Rest;
 using Discord.WebSocket;
 
@@ -119,7 +120,7 @@ namespace Microsoft.Extensions.DependencyInjection
                         new CommandServiceConfig
                         {
                             LogLevel = LogSeverity.Debug,
-                            DefaultRunMode = RunMode.Sync,
+                            DefaultRunMode = Discord.Commands.RunMode.Sync,
                             CaseSensitiveCommands = false,
                             SeparatorChar = ' '
                         });
@@ -134,6 +135,21 @@ namespace Microsoft.Extensions.DependencyInjection
                     return service;
                 })
                 .AddScoped<Modix.Common.Messaging.INotificationHandler<MessageReceivedNotification>, CommandListeningBehavior>();
+
+            services.AddSingleton(provider =>
+            {
+                var socketClient = provider.GetRequiredService<DiscordSocketClient>();
+                var service = new InteractionService(socketClient, new()
+                {
+                    LogLevel = LogSeverity.Debug,
+                    DefaultRunMode = Discord.Interactions.RunMode.Sync,
+                    UseCompiledLambda = true,
+                    AutoServiceScopes = false,
+                });
+
+                return service;
+            })
+            .AddScoped<Modix.Common.Messaging.INotificationHandler<InteractionCreatedNotification>, InteractionListeningBehavior>();
 
             services.AddSingleton<DiscordSerilogAdapter>();
 

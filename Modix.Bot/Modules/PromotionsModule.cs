@@ -103,7 +103,7 @@ namespace Modix.Modules
                 string content)
         {
             await PromotionsService.AddCommentAsync(campaignId, sentiment, content);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         [Command("approve")]
@@ -116,7 +116,7 @@ namespace Modix.Modules
                 string content = DefaultApprovalMessage)
         {
             await PromotionsService.AddCommentAsync(campaignId, PromotionSentiment.Approve, content);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         [Command("oppose")]
@@ -129,7 +129,7 @@ namespace Modix.Modules
                 string content)
         {
             await PromotionsService.AddCommentAsync(campaignId, PromotionSentiment.Oppose, content);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         [Command("abstain")]
@@ -142,7 +142,7 @@ namespace Modix.Modules
                 string content)
         {
             await PromotionsService.AddCommentAsync(campaignId, PromotionSentiment.Abstain, content);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         [Command("accept")]
@@ -154,7 +154,7 @@ namespace Modix.Modules
                 bool force = false)
         {
             await PromotionsService.AcceptCampaignAsync(campaignId, force);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         [Command("reject")]
@@ -164,7 +164,7 @@ namespace Modix.Modules
                 long campaignId)
         {
             await PromotionsService.RejectCampaignAsync(campaignId);
-            await Context.AddConfirmation();
+            await Context.AddConfirmationAsync();
         }
 
         internal protected IPromotionsService PromotionsService { get; }

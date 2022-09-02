@@ -18,7 +18,7 @@ namespace Modix.Services.Utilities
         public static bool HasRole(this IGuildUser user, ulong roleId)
             => user.RoleIds.Contains(roleId);
 
-        public static string GetDefiniteAvatarUrl(this IUser user)
-            => user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl();
+        public static string GetDefiniteAvatarUrl(this IUser user, ushort size = 128)
+            => user.GetAvatarUrl(size: size) ?? user.GetDefaultAvatarUrl();
     }
 }

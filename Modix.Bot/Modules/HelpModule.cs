@@ -1,65 +1,32 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+
 using Discord;
-using Discord.Commands;
+using Discord.Interactions;
 using Discord.Net;
-using Microsoft.Extensions.Options;
-using Modix.Bot.Extensions;
-using Modix.Common.Extensions;
-using Modix.Data.Models.Core;
+
 using Modix.Services.CommandHelp;
 using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
-    [Name("Help"), Group("help")]
-    [Summary("Provides commands for helping users to understand how to interact with MODiX.")]
-    public sealed class HelpModule : ModuleBase
+    [ModuleHelp("Help", "Provides commands for helping users to understand how to interact with MODiX.")]
+    public sealed class HelpModule : InteractionModuleBase
     {
         private readonly ICommandHelpService _commandHelpService;
-        private readonly ModixConfig _config;
 
-        public HelpModule(ICommandHelpService commandHelpService, IOptions<ModixConfig> config)
+        public HelpModule(ICommandHelpService commandHelpService)
         {
             _commandHelpService = commandHelpService;
-            _config = config.Value;
         }
 
-        [Command]
-        [Summary("Prints a neat list of all commands.")]
-        public async Task HelpAsync()
-        {
-            var modules = _commandHelpService.GetModuleHelpData()
-                .Select(d => d.Name)
-                .OrderBy(d => d);
-
-            // https://mod.gg/commands
-            var url = new UriBuilder(_config.WebsiteBaseUrl)
-            {
-                Path = "/commands"
-            }.RemoveDefaultPort().ToString();
-
-            var descriptionBuilder = new StringBuilder()
-                .AppendLine("Modules:")
-                .AppendJoin(", ", modules)
-                .AppendLine()
-                .AppendLine()
-                .AppendLine("Do \"!help dm\" to have everything DMed to you. (Spammy!)")
-                .AppendLine("Do \"!help [module name] to have that module's commands listed.")
-                .AppendLine($"Visit {url} to view all the commands!");
-
-            var embed = new EmbedBuilder()
-                       .WithTitle("Help")
-                       .WithDescription(descriptionBuilder.ToString());
-
-            await ReplyAsync(embed: embed.Build());
-        }
-
-        [Command("dm")]
-        [Summary("Spams the user's DMs with a list of every command available.")]
+        [SlashCommand("help-dm", "Spams the user's DMs with a list of every command available.")]
         public async Task HelpDMAsync()
         {
             var userDM = await Context.User.CreateDMChannelAsync();
@@ -74,57 +41,36 @@ namespace Modix.Modules
                 }
                 catch (HttpException ex) when (ex.DiscordCode == DiscordErrorCode.CannotSendMessageToUser)
                 {
-                    await ReplyAsync(
-                        $"You have private messages for this server disabled, {Context.User.Mention}. Please enable them so that I can send you help.");
+                    await FollowupAsync(
+                        $"You have private messages for this server disabled, {Context.User.Mention}. Please enable them so that I can send you help.",
+                        allowedMentions: new AllowedMentions { UserIds = new() { Context.User.Id } });
                     return;
                 }
             }
 
-            await ReplyAsync($"Check your private messages, {Context.User.Mention}.");
+            await FollowupAsync($"Check your private messages, {Context.User.Mention}.");
         }
 
-        [Command]
-        [Summary("Retrieves help from a specific module or command.")]
-        [Priority(-10)]
+        [SlashCommand("help", "Retrieves help from a specific module or command.")]
         public async Task HelpAsync(
-            [Remainder] [Summary("Name of the module or command to query.")]
+            [Summary(description: "Name of the module or command to query.")]
             string query)
         {
             await HelpAsync(query, HelpDataType.Command | HelpDataType.Module);
         }
 
-        [Command("module"), Alias("modules")]
-        [Summary("Retrieves help from a specific module. Useful for modules that have an overlapping command name.")]
-        public async Task HelpModuleAsync(
-            [Remainder] [Summary("Name of the module to query.")]
-            string query)
-        {
-            await HelpAsync(query, HelpDataType.Module);
-        }
-
-        [Command("command"), Alias("commands")]
-        [Summary("Retrieves help from a specific command. Useful for commands that have an overlapping module name.")]
-        public async Task HelpCommandAsync(
-            [Remainder] [Summary("Name of the module to query.")]
-            string query)
-        {
-            await HelpAsync(query, HelpDataType.Command);
-        }
-
         private async Task HelpAsync(string query, HelpDataType type)
         {
-            var sanitizedQuery = FormatUtilities.SanitizeAllMentions(query);
-
             if (TryGetEmbed(query, type, out var embed))
             {
-                await ReplyAsync($"Results for \"{sanitizedQuery}\":", embed: embed.Build());
+                await FollowupAsync($"Results for \"{query}\":", embed: embed.Build(), allowedMentions: AllowedMentions.None);
                 return;
             }
 
-            await ReplyAsync($"Sorry, I couldn't find help related to \"{sanitizedQuery}\".");
+            await FollowupAsync($"Sorry, I couldn't find help related to \"{query}\".", allowedMentions: AllowedMentions.None);
         }
 
-        private bool TryGetEmbed(string query, HelpDataType queries, out EmbedBuilder embed)
+        private bool TryGetEmbed(string query, HelpDataType queries, [NotNullWhen(true)] out EmbedBuilder? embed)
         {
             embed = null;
 
@@ -159,7 +105,7 @@ namespace Modix.Modules
             Module = 1 << 2
         }
 
-        private EmbedBuilder GetEmbedForModule(ModuleHelpData module)
+        private static EmbedBuilder GetEmbedForModule(ModuleHelpData module)
         {
             var embedBuilder = new EmbedBuilder()
                               .WithTitle($"Module: {module.Name}")
@@ -173,26 +119,30 @@ namespace Modix.Modules
             return embedBuilder;
         }
 
-        private EmbedBuilder GetEmbedForCommand(CommandHelpData command)
+        private static EmbedBuilder GetEmbedForCommand(CommandHelpData command)
         {
             return AddCommandFields(new EmbedBuilder(), command);
         }
 
-        private EmbedBuilder AddCommandFields(EmbedBuilder embedBuilder, CommandHelpData command)
+        private static EmbedBuilder AddCommandFields(EmbedBuilder embedBuilder, CommandHelpData command)
         {
             var summaryBuilder = new StringBuilder(command.Summary ?? "No summary.").AppendLine();
-            var name = command.Aliases.FirstOrDefault();
+            var name = command.Aliases.FirstOrDefault() ?? command.Name;
             AppendAliases(summaryBuilder, command.Aliases.Where(a => !a.Equals(name, StringComparison.OrdinalIgnoreCase)).ToList());
             AppendParameters(summaryBuilder, command.Parameters);
 
+            var prefix = command.IsSlashCommand
+                ? '/'
+                : '!';
+
             embedBuilder.AddField(new EmbedFieldBuilder()
-                                 .WithName($"Command: !{name} {GetParams(command)}")
+                                 .WithName($"Command: {prefix}{name} {GetParams(command)}")
                                  .WithValue(summaryBuilder.ToString()));
 
             return embedBuilder;
         }
 
-        private StringBuilder AppendAliases(StringBuilder stringBuilder, IReadOnlyCollection<string> aliases)
+        private static StringBuilder AppendAliases(StringBuilder stringBuilder, IReadOnlyCollection<string> aliases)
         {
             if (aliases.Count == 0)
                 return stringBuilder;
@@ -207,7 +157,7 @@ namespace Modix.Modules
             return stringBuilder;
         }
 
-        private StringBuilder AppendParameters(StringBuilder stringBuilder,
+        private static StringBuilder AppendParameters(StringBuilder stringBuilder,
             IReadOnlyCollection<ParameterHelpData> parameters)
         {
             if (parameters.Count == 0)
@@ -217,14 +167,14 @@ namespace Modix.Modules
 
             foreach (var parameter in parameters)
             {
-                if (!(parameter.Summary is null))
+                if (parameter.Summary is not null)
                     stringBuilder.AppendLine($"• {Format.Bold(parameter.Name)}: {parameter.Summary}");
             }
 
             return stringBuilder;
         }
 
-        private string GetParams(CommandHelpData info)
+        private static string GetParams(CommandHelpData info)
         {
             var sb = new StringBuilder();
 
