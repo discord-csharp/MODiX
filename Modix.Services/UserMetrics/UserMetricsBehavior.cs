@@ -10,8 +10,6 @@ using Microsoft.Extensions.Logging;
 using Discord;
 using Discord.WebSocket;
 
-using StatsdClient;
-
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Services.Core;
@@ -44,12 +42,10 @@ namespace Modix.Services.UserMetrics
         public UserMetricsBehavior(
             IDesignatedChannelService designatedChannelService,
             IDesignatedRoleService designatedRoleService,
-            IDogStatsd dogStatsd,
             ILogger<UserMetricsBehavior> logger)
         {
             _designatedChannelService = designatedChannelService;
             _designatedRoleService = designatedRoleService;
-            _dogStatsd = dogStatsd;
             _logger = logger;
         }
 
@@ -61,7 +57,6 @@ namespace Modix.Services.UserMetrics
             using var logScope = UserMetricsLogMessages.BeginGuildScope(_logger, guild.Id);
 
             UserMetricsLogMessages.GuildAvailableHandling(_logger);
-            DoGuildStats(null, guild);
             UserMetricsLogMessages.GuildAvailableHandled(_logger);
 
             return Task.CompletedTask;
@@ -124,16 +119,6 @@ namespace Modix.Services.UserMetrics
                 UserMetricsLogMessages.UserRankFetchFailed(_logger, ex);
             }
 
-            var tags = new[]
-            {
-                $"guild:{guild.Name}",
-                $"channel:{channel.Name}",
-                $"offtopic:{!isOnTopic}",
-                $"has_role:{isRanked}"
-            };
-
-            _dogStatsd.Increment(MessageReceivedCounterName, tags: tags);
-
             UserMetricsLogMessages.MessageReceivedHandled(_logger);
         }
 
@@ -145,7 +130,6 @@ namespace Modix.Services.UserMetrics
             using var logScope = UserMetricsLogMessages.BeginGuildScope(_logger, guild.Id);
 
             UserMetricsLogMessages.UserBannedHandling(_logger);
-            DoGuildStats(UserBannedCounterName, guild);
             UserMetricsLogMessages.UserBannedHandled(_logger);
 
             return Task.CompletedTask;
@@ -159,7 +143,6 @@ namespace Modix.Services.UserMetrics
             using var logScope = UserMetricsLogMessages.BeginGuildScope(_logger, guild.Id);
 
             UserMetricsLogMessages.UserJoinedHandling(_logger);
-            DoGuildStats(UserJoinedCounterName, guild);
             UserMetricsLogMessages.UserJoinedHandled(_logger);
 
             return Task.CompletedTask;
@@ -173,26 +156,13 @@ namespace Modix.Services.UserMetrics
             using var logScope = UserMetricsLogMessages.BeginGuildScope(_logger, guild.Id);
 
             UserMetricsLogMessages.UserLeftHandling(_logger);
-            DoGuildStats(UserLeftCounterName, guild);
             UserMetricsLogMessages.UserLeftHandled(_logger);
 
             return Task.CompletedTask;
         }
 
-        private void DoGuildStats(
-            string? counterName,
-            SocketGuild guild)
-        {
-            var tags = new[] { $"guild:{guild.Name}" };
-
-            if (counterName is { })
-                _dogStatsd.Increment(counterName, tags: tags);
-            _dogStatsd.Gauge(UserCountGaugeName, guild.MemberCount, tags: tags);
-        }
-
         private readonly IDesignatedChannelService _designatedChannelService;
         private readonly IDesignatedRoleService _designatedRoleService;
-        private readonly IDogStatsd _dogStatsd;
         private readonly ILogger _logger;
     }
 }

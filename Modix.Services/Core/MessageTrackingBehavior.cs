@@ -12,8 +12,6 @@ using Microsoft.Extensions.Logging;
 using Modix.Common.Messaging;
 using Modix.Data.Repositories;
 
-using StatsdClient;
-
 namespace Modix.Services.Core
 {
     [ServiceBinding(ServiceLifetime.Scoped)]
@@ -23,13 +21,11 @@ namespace Modix.Services.Core
     {
         public MessageTrackingBehavior(
             ICommandPrefixParser commandPrefixParser,
-            IDogStatsd dogStatsd,
             ILogger<MessageTrackingBehavior> logger,
             IMessageRepository messageRepository,
             IChannelService channelService)
         {
             _commandPrefixParser = commandPrefixParser;
-            _dogStatsd = dogStatsd;
             _logger = logger;
             _messageRepository = messageRepository;
             _channelService = channelService;
@@ -65,8 +61,6 @@ namespace Modix.Services.Core
             MessageReceivedNotification notification,
             CancellationToken cancellationToken)
         {
-            using var statsScope = _dogStatsd.StartTimer("message_processing_ms");
-
             var message = notification.Message;
             var channel = notification.Message.Channel;
             var guild = (channel as IGuildChannel)?.Guild;
@@ -137,7 +131,6 @@ namespace Modix.Services.Core
 
         private readonly IChannelService _channelService;
         private readonly ICommandPrefixParser _commandPrefixParser;
-        private readonly IDogStatsd _dogStatsd;
         private readonly ILogger _logger;
         private readonly IMessageRepository _messageRepository;
     }

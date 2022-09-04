@@ -13,7 +13,6 @@ using Modix.Data.Repositories;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
 using Serilog;
-using StatsdClient;
 using System.Threading;
 
 namespace Modix.Services.Moderation
@@ -84,7 +83,6 @@ namespace Modix.Services.Moderation
         private readonly IDeletedMessageBatchRepository _deletedMessageBatchRepository;
         private readonly IRoleService _roleService;
         private readonly IDesignatedChannelService _designatedChannelService;
-        private readonly IDogStatsd _dogStatsd;
 
         // TODO: Push this to a bot-wide config? Or maybe on a per-guild basis, but with a bot-wide default, that's pulled from config?
         private const string MuteRoleName = "MODiX_Moderation_Mute";
@@ -102,8 +100,7 @@ namespace Modix.Services.Moderation
             IDeletedMessageRepository deletedMessageRepository,
             IDeletedMessageBatchRepository deletedMessageBatchRepository,
             IRoleService roleService,
-            IDesignatedChannelService designatedChannelService,
-            IDogStatsd dogStatsd)
+            IDesignatedChannelService designatedChannelService)
         {
             _discordClient = discordClient;
             _authorizationService = authorizationService;
@@ -116,7 +113,6 @@ namespace Modix.Services.Moderation
             _deletedMessageBatchRepository = deletedMessageBatchRepository;
             _roleService = roleService;
             _designatedChannelService = designatedChannelService;
-            _dogStatsd = dogStatsd;
         }
 
         public async Task AutoConfigureGuildAsync(IGuild guild)
@@ -318,15 +314,6 @@ namespace Modix.Services.Moderation
                     });
 
                 transaction.Commit();
-
-                try
-                {
-                    _dogStatsd.Increment("infractions", tags: new[] {$"infraction_type:{type}", $"guild:{guild.Name}"});
-                }
-                catch (Exception)
-                {
-                    // The world mourned, but nothing of tremendous value was lost.
-                }
             }
 
             // TODO: Implement ModerationSyncBehavior to listen for mutes and bans that happen directly in Discord, instead of through bot commands,
