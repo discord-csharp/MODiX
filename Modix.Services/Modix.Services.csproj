@@ -2,7 +2,6 @@
   <ItemGroup>
     <PackageReference Include="AsyncEvent" />
     <PackageReference Include="Discord.Net" />
-    <PackageReference Include="DogStatsD-CSharp-Client" />
     <PackageReference Include="Humanizer.Core" />
     <PackageReference Include="Kitsu" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />

@@ -38,7 +38,7 @@ services:
   hastebin:
     image: ghcr.io/discord-csharp/haste-server:latest
     user: node
-    healthcheck: 
+    healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7777"]
       interval: 1m30s
       timeout: 10s
@@ -75,7 +75,7 @@ services:
     image: ghcr.io/discord-csharp/csharprepl:latest
     read_only: true
     user: www-data
-    environment: 
+    environment:
       - ASPNETCORE_URLS=http://+:31337
       - Logging__LogLevel__Microsoft=Warning
       - Logging__LogLevel__CSDiscordService=Trace
@@ -108,42 +108,6 @@ services:
     networks:
       - repl
 
-# the datadog agent is used for metrics gathering/statd within modix
-  datadog-agent:
-    image: datadog/agent:latest
-    environment:
-      DD_API_KEY: 'ENC[datadog-key]'
-      DD_DOGSTATSD_NON_LOCAL_TRAFFIC: 'true'
-      DD_PROCESS_AGENT_ENABLED: 'true'
-      DD_HOSTNAME: azure-modix-bot
-      DD_SECRET_BACKEND_COMMAND: /readsecret.py
-      DD_SECRET_BACKEND_ARGUMENTS: /run/secrets
-    deploy:
-      mode: replicated
-      replicas: 1
-      resources:
-        limits:
-          cpus: '1'
-          memory: 500M
-        reservations:
-          cpus: '0.25'
-          memory: 20M
-      update_config:
-        parallelism: 2
-        delay: 0s
-        order: start-first
-      restart_policy:
-        condition: any
-        delay: 0s
-    secrets:
-      - datadog-key
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /proc/:/host/proc/:ro
-      - /sys/fs/cgroup:/host/sys/fs/cgroup:ro
-    networks:
-      - datadog
-      
 # the modix bot
   modix:
     image: ghcr.io/discord-csharp/modix:latest
@@ -184,7 +148,7 @@ services:
       - repl
       - datadog
       - modix
-      
+
 # the translation feature of the modix bot
   modix-translator:
     image: ghcr.io/discord-csharp/modix-translator:latest
@@ -225,7 +189,7 @@ services:
       - pgadmin-data:/var/lib/pgadmin
     networks:
       - proxy
-      
+
 # grafana instance with access to the modix database
   stats:
     image: grafana/grafana:latest
@@ -254,7 +218,7 @@ services:
 # log viewer/aggregator
   seq:
     image: datalust/seq:latest
-    environment: 
+    environment:
       - ACCEPT_EULA=Y
     deploy:
       mode: replicated
@@ -295,11 +259,11 @@ services:
     networks:
       - repl
       - seq
- 
+
 #experimental services
   webhook:
     image: ghcr.io/discord-csharp/discordwebhookproxy:latest
-    environment: 
+    environment:
       - ASPNETCORE_URLS=http://+:8023
     deploy:
       mode: replicated
@@ -317,7 +281,7 @@ services:
       - modix-keys:/app/dataprotection
       - modix-logs:/app/logs
     networks:
-      - proxy      
+      - proxy
 networks:
   proxy:
     driver: overlay
@@ -361,7 +325,7 @@ volumes:
       type: local
       o: bind
       device: /data/1/seq
-    
+
   #workaround for swarm not supporting tmpfs mounts
   repl-tmp:
     driver_opts:

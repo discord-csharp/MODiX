@@ -20,7 +20,6 @@ using Modix.Common;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
-using Modix.DataDog;
 using Modix.Services;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.CodePaste;
@@ -44,8 +43,6 @@ using Modix.Services.Wikipedia;
 
 using Polly;
 using Polly.Extensions.Http;
-
-using StatsdClient;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -185,30 +182,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddHostedService<ModixBot>();
 
-            return services;
-        }
-
-        public static IServiceCollection AddStatsD(this IServiceCollection services, IHostEnvironment environment, IConfiguration configuration)
-        {
-            var cfg = new StatsdConfig { Prefix = "modix" };
-
-            var enableStatsd = configuration.GetValue<bool>(nameof(ModixConfig.EnableStatsd));
-            if (!enableStatsd ||
-                !environment.IsProduction() && string.IsNullOrWhiteSpace(cfg.StatsdServerName))
-            {
-                services.AddSingleton<IDogStatsd, DebugDogStatsd>();
-                return services;
-            }
-
-            DogStatsd.Configure(cfg);
-            services.AddSingleton(cfg);
-            services.AddSingleton<IDogStatsd>(provider =>
-            {
-                var config = provider.GetRequiredService<StatsdConfig>();
-                var service = new DogStatsdService();
-                service.Configure(config);
-                return service;
-            });
             return services;
         }
     }
