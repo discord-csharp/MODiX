@@ -17,6 +17,7 @@ namespace Modix.Modules
     /// </summary>
     [Group("debug", "Used to test feature work on a private server. The contents of this module can be changed any time.")]
     [RequireUserPermission(GuildPermission.BanMembers)]
+    [DefaultMemberPermissions(GuildPermission.BanMembers)]
     [HiddenFromHelp]
     public class DebugModule : InteractionModuleBase
     {

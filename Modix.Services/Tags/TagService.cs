@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using System.Linq;
 using Discord;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Modix.Data;
 using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Tags;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
-using Modix.Services.Utilities;
 
 namespace Modix.Services.Tags
 {
@@ -20,7 +21,7 @@ namespace Modix.Services.Tags
     {
         Task CreateTagAsync(ulong guildId, ulong creatorId, string name, string content);
 
-        Task UseTagAsync(ulong guildId, ulong channelId, string name);
+        Task UseTagAsync(ulong guildId, ulong channelId, string name, IMessage invokingMessage);
 
         Task ModifyTagAsync(ulong guildId, ulong modifierId, string name, string newContent);
 
@@ -39,6 +40,8 @@ namespace Modix.Services.Tags
         Task TransferToRoleAsync(ulong guildId, string name, ulong currentUserId, ulong roleId);
 
         Task<bool> TagExistsAsync(ulong guildId, string name);
+
+        Task RefreshCache(ulong guildId);
     }
 
     internal class TagService : ITagService
@@ -47,15 +50,17 @@ namespace Modix.Services.Tags
         private readonly IAuthorizationService _authorizationService;
         private readonly IUserService _userService;
         private readonly IDesignatedRoleMappingRepository _designatedRoleMappingRepository;
+        private readonly ITagCache _tagCache;
         private readonly ModixContext _modixContext;
 
-        private static readonly Regex _tagNameRegex = new Regex(@"^\S+\b$");
+        private static readonly Regex _tagNameRegex = new(@"^\S+\b$");
 
         public TagService(
             IDiscordClient discordClient,
             IAuthorizationService authorizationService,
             IUserService userService,
             IDesignatedRoleMappingRepository designatedRoleMappingRepository,
+            ITagCache tagCache,
             ModixContext modixContext)
         {
             _discordClient = discordClient;
@@ -63,6 +68,7 @@ namespace Modix.Services.Tags
             _userService = userService;
             _modixContext = modixContext;
             _designatedRoleMappingRepository = designatedRoleMappingRepository;
+            _tagCache = tagCache;
         }
 
         public async Task CreateTagAsync(ulong guildId, ulong creatorId, string name, string content)
@@ -104,9 +110,11 @@ namespace Modix.Services.Tags
             _modixContext.Set<TagEntity>().Add(tag);
 
             await _modixContext.SaveChangesAsync();
+
+            _tagCache.Add(guildId, name);
         }
 
-        public async Task UseTagAsync(ulong guildId, ulong channelId, string name)
+        public async Task UseTagAsync(ulong guildId, ulong channelId, string name, IMessage invokingMessage)
         {
             _authorizationService.RequireClaims(AuthorizationClaim.UseTag);
 
@@ -117,7 +125,7 @@ namespace Modix.Services.Tags
 
             var channel = await _discordClient.GetChannelAsync(channelId);
 
-            if (!(channel is IMessageChannel messageChannel))
+            if (channel is not IMessageChannel messageChannel)
                 throw new InvalidOperationException($"The channel '{channel.Name}' is not a message channel.");
 
             var tag = await _modixContext
@@ -130,9 +138,7 @@ namespace Modix.Services.Tags
             if (tag is null)
                 return;
 
-            var sanitizedContent = FormatUtilities.SanitizeAllMentions(tag.Content);
-
-            await messageChannel.SendMessageAsync(sanitizedContent);
+            await messageChannel.SendMessageAsync(tag.Content, messageReference: new(invokingMessage.Id), allowedMentions: AllowedMentions.None);
 
             tag.IncrementUse();
 
@@ -192,6 +198,8 @@ namespace Modix.Services.Tags
             tag.Delete(deleterId);
 
             await _modixContext.SaveChangesAsync();
+
+            _tagCache.Remove(guildId, name);
         }
 
         public async Task<TagSummary> GetTagAsync(ulong guildId, string name)
@@ -295,6 +303,33 @@ namespace Modix.Services.Tags
             await _modixContext.SaveChangesAsync();
         }
 
+        public async Task<bool> TagExistsAsync(ulong guildId, string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentException("The tag name cannot be blank or whitespace.", nameof(name));
+
+            name = name.Trim().ToLower();
+
+            return await _modixContext
+                .Set<TagEntity>()
+                .Where(x => x.GuildId == guildId)
+                .Where(x => x.Name == name)
+                .Where(x => x.DeleteActionId == null)
+                .AnyAsync();
+        }
+
+        public async Task RefreshCache(ulong guildId)
+        {
+            var tags = await _modixContext
+                .Set<TagEntity>()
+                .Where(x => x.GuildId == guildId)
+                .Where(x => x.DeleteActionId == null)
+                .Select(x => x.Name)
+                .ToArrayAsync();
+
+            _tagCache.Set(guildId, tags);
+        }
+
         private async Task EnsureUserCanMaintainTagAsync(TagEntity tag, ulong currentUserId)
         {
             var currentUser = await _userService.GetGuildUserAsync(tag.GuildId, currentUserId);
@@ -315,7 +350,7 @@ namespace Modix.Services.Tags
 
         private async Task<bool> CanUserMaintainTagOwnedByRoleAsync(IGuildUser currentUser, GuildRoleEntity ownerRole)
         {
-            Debug.Assert(!(ownerRole is null));
+            Debug.Assert(ownerRole is not null);
 
             var rankRoles = await GetRankRolesAsync(currentUser.GuildId);
 
@@ -359,20 +394,5 @@ namespace Modix.Services.Tags
                     IsDeleted = false,
                 }))
                 .Select(r => r.Role);
-
-        public async Task<bool> TagExistsAsync(ulong guildId, string name)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("The tag name cannot be blank or whitespace.", nameof(name));
-
-            name = name.Trim().ToLower();
-
-            return await _modixContext
-                .Set<TagEntity>()
-                .Where(x => x.GuildId == guildId)
-                .Where(x => x.Name == name)
-                .Where(x => x.DeleteActionId == null)
-                .AnyAsync();
-        }
     }
 }

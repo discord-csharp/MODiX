@@ -82,7 +82,7 @@ namespace Modix.Bot.Behaviors
                     Log.Warning(error);
 
                 if (commandResult.Error == CommandError.Exception)
-                    await commandContext.Channel.SendMessageAsync($"Error: {FormatUtilities.SanitizeEveryone(commandResult.ErrorReason)}");
+                    await commandContext.Channel.SendMessageAsync($"Error: {commandResult.ErrorReason}", allowedMentions: AllowedMentions.None);
                 else
                     await CommandErrorHandler.AssociateErrorAsync(userMessage, error);
             }

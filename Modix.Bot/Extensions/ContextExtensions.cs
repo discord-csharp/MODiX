@@ -35,8 +35,17 @@ namespace Modix.Bot.Extensions
             await context.Message.AddReactionAsync(_checkmarkEmoji);
         }
 
-        public static async Task AddConfirmationAsync(this IInteractionContext context)
-            => await context.Interaction.FollowupAsync($"\\{_checkmarkEmoji} Command successful.");
+        public static async Task AddConfirmationAsync(this IInteractionContext context, string? additionalText = null)
+        {
+            var message = $"\\{_checkmarkEmoji} Command successful. ";
+
+            if (!string.IsNullOrWhiteSpace(additionalText))
+            {
+                message += additionalText;
+            }
+
+            await context.Interaction.FollowupAsync(message, allowedMentions: AllowedMentions.None);
+        }
 
         public static async Task<bool> GetUserConfirmationAsync(this ICommandContext context, string mainMessage)
         {

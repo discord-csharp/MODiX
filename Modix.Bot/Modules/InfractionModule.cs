@@ -35,12 +35,17 @@ namespace Modix.Modules
 
         [MessageCommand("Infractions")]
         [RequireClaims(AuthorizationClaim.ModerationRead)]
+        // Discord doesn't currently give us many good options for default permissions.
+        // Would be much better if the bot could set role-based defaults instead.
+        // Goal is to at least make this not visible to ordinary users and visible to Associate+.
+        [DefaultMemberPermissions(GuildPermission.ManageEmojisAndStickers)]
         public async Task SearchAsync(IMessage message)
             => await SearchAsync(message.Author);
 
         [SlashCommand("infractions", "Displays all non-deleted infractions for a user.")]
         [UserCommand("Infractions")]
         [RequireClaims(AuthorizationClaim.ModerationRead)]
+        [DefaultMemberPermissions(GuildPermission.ManageEmojisAndStickers)]
         public async Task SearchAsync(
             [Summary(description: "The user whose infractions are to be displayed.")]
                 IUser? user = null)
@@ -118,6 +123,7 @@ namespace Modix.Modules
 
         [SlashCommand("infraction-delete", "Marks an infraction as deleted, so it no longer appears within infraction search results.")]
         [RequireClaims(AuthorizationClaim.ModerationDeleteInfraction)]
+        [DefaultMemberPermissions(GuildPermission.BanMembers)]
         public async Task DeleteAsync(
             [Summary(description: "The ID value of the infraction to be deleted.")]
                     long infractionId)
@@ -128,6 +134,7 @@ namespace Modix.Modules
 
         [SlashCommand("infraction-update", "Updates an infraction by ID, overwriting the existing reason.")]
         [RequireAnyClaim(AuthorizationClaim.ModerationUpdateInfraction, AuthorizationClaim.ModerationNote, AuthorizationClaim.ModerationWarn, AuthorizationClaim.ModerationMute, AuthorizationClaim.ModerationBan)]
+        [DefaultMemberPermissions(GuildPermission.ManageEmojisAndStickers)]
         public async Task UpdateAsync(
             [Summary(description: "The ID value of the infraction to be update.")]
                     long infractionId,

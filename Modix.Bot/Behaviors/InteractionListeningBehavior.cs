@@ -51,10 +51,8 @@ namespace Modix.Bot.Behaviors
 
             var stopwatch = Stopwatch.StartNew();
 
-            await _authorizationService.OnAuthenticatedAsync(author.Id, author.Guild.Id, author.RoleIds.ToArray());
-
             string interactionName;
-            bool isDeferred = false;
+            var isDeferred = false;
 
             switch (interaction)
             {
@@ -85,12 +83,16 @@ namespace Modix.Bot.Behaviors
                     interactionName = commandInfo?.ToString() ?? command.CommandName;
                     break;
                 case SocketModal modal:
+                    await interaction.DeferAsync();
+                    isDeferred = true;
                     interactionName = modal.Data.CustomId;
                     break;
                 default:
                     interactionName = interaction.Type.ToString();
                     break;
             }
+
+            await _authorizationService.OnAuthenticatedAsync(author.Id, author.Guild.Id, author.RoleIds.ToArray());
 
             var result = await _interactionService.ExecuteCommandAsync(context, _serviceProvider);
 

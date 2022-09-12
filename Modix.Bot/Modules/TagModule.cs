@@ -4,142 +4,136 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Discord;
-using Discord.Commands;
+using Discord.Interactions;
+
 using Microsoft.Extensions.Options;
+using Modix.Bot.Attributes;
+using Modix.Bot.AutocompleteHandlers;
 using Modix.Bot.Extensions;
+using Modix.Bot.Preconditions;
 using Modix.Common.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Tags;
-using Modix.Services.CodePaste;
+using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.Tags;
 using Modix.Services.Utilities;
 
 namespace Modix.Bot.Modules
 {
-    [Name("Tags")]
-    [Summary("Use and maintain tags.")]
-    [Group("tag")]
-    [Alias("tags")]
-    public class TagModule : ModuleBase
+    [ModuleHelp("Tags", "Use and maintain tags.")]
+    [Group("tag", "Use and maintain tags.")]
+    public class TagModule : InteractionModuleBase
     {
         public TagModule(
+            ITagCache tagCache,
             ITagService tagService,
-            CodePasteService codePasteService,
             IUserService userService,
             IOptions<ModixConfig> config)
         {
-            TagService = tagService;
-            CodePasteService = codePasteService;
-            UserService = userService;
-            Config = config.Value;
+            _tagCache = tagCache;
+            _tagService = tagService;
+            _userService = userService;
+            _config = config.Value;
         }
 
-        [Command("create")]
-        [Alias("add")]
-        [Summary("Creates a new tag.")]
-        public async Task CreateTagAsync(
-            [Summary("The name that will be used to invoke the tag.")]
-                string name,
-            [Remainder]
-            [Summary("The message that will be displayed when the tag is invoked.")]
-                string content)
+        [SlashCommand("create", "Creates a new tag.")]
+        [RequireClaims(AuthorizationClaim.CreateTag)]
+        [DoNotDefer]
+        public async Task CreateTagAsync()
         {
-            await TagService.CreateTagAsync(Context.Guild.Id, Context.User.Id, name, content);
-            await Context.AddConfirmationAsync();
+            await RespondWithModalAsync<TagCreateModal>("modal_tag_create");
         }
 
-        [Command]
-        [Priority(-10)]
-        [Summary("Invokes a tag so that the message associated with the tag will be displayed.")]
-        public async Task UseTagAsync(
-            [Summary("The name that will be used to invoke the tag.")]
+        [ModalInteraction("modal_tag_create", ignoreGroupNames: true)]
+        public async Task CreateTagFromModalResponseAsync(TagCreateModal modal)
+        {
+            await _tagService.CreateTagAsync(Context.Guild.Id, Context.User.Id, modal.Name, modal.Content);
+            await Context.AddConfirmationAsync($"Added tag '{modal.Name}'.");
+        }
+
+        [SlashCommand("update", "Updates the contents of a tag.")]
+        [DoNotDefer]
+        public async Task ModifyTagAsync(
+            [Summary(description: "The name that is used to invoke the tag.")]
+            [Autocomplete(typeof(TagAutocompleteHandler))]
                 string name)
         {
-            if (await TagService.TagExistsAsync(Context.Guild.Id, name) == false)
+            name = name.Trim().ToLower();
+
+            var currentTagData = await _tagService.GetTagAsync(Context.Guild.Id, name);
+
+            if (currentTagData is null)
             {
-                await HandleTagError($"Couldn't find tag \"{name}\" in this guild.");
+                await RespondAsync($"The tag '{name}' does not exist.", allowedMentions: AllowedMentions.None);
                 return;
             }
 
-            try
+            await Context.Interaction.RespondWithModalAsync<TagUpdateModal>("modal_tag_update", modifyModal: modal =>
             {
-                await TagService.UseTagAsync(Context.Guild.Id, Context.Channel.Id, name);
-            }
-            catch (InvalidOperationException ex)
-            {
-                await HandleTagError(ex.Message);
-            }
+                modal.AddTextInput("Name", "tag_name", required: true, value: name);
+                modal.AddTextInput("New content", "tag_content", style: TextInputStyle.Paragraph, required: true, value: currentTagData.Content);
+            });
         }
 
-        [Command("update")]
-        [Alias("edit", "modify")]
-        [Summary("Updates the contents of a tag.")]
-        public async Task ModifyTagAsync(
-            [Summary("The name that is used to invoke the tag.")]
-                string name,
-            [Remainder]
-            [Summary("The new message that will be displayed when the tag is invoked.")]
-                string newContent)
+        [ModalInteraction("modal_tag_update", ignoreGroupNames: true)]
+        public async Task UpdateTagFromModalResponseAsync(TagUpdateModal modal)
         {
-            await TagService.ModifyTagAsync(Context.Guild.Id, Context.User.Id, name, newContent);
-            await Context.AddConfirmationAsync();
+            var name = ((IModalInteraction)Context.Interaction).Data.Components.Single(x => x.CustomId == "tag_name").Value;
+            var content = ((IModalInteraction)Context.Interaction).Data.Components.Single(x => x.CustomId == "tag_content").Value;
+            await _tagService.ModifyTagAsync(Context.Guild.Id, Context.User.Id, name, content);
+            await Context.AddConfirmationAsync($"Updated tag '{name}'.");
         }
 
-        [Command("delete")]
-        [Alias("remove")]
-        [Summary("Deletes a tag.")]
+        [SlashCommand("delete", "Deletes a tag.")]
         public async Task DeleteTagAsync(
-            [Summary("The name that is used to invoke the tag.")]
+            [Summary(description: "The name that is used to invoke the tag.")]
+            [Autocomplete(typeof(TagAutocompleteHandler))]
                 string name)
         {
-            await TagService.DeleteTagAsync(Context.Guild.Id, Context.User.Id, name);
-            await Context.AddConfirmationAsync();
+            await _tagService.DeleteTagAsync(Context.Guild.Id, Context.User.Id, name);
+            await Context.AddConfirmationAsync($"Deleted tag '{name}'.");
         }
 
-        [Command("ownedby")]
-        [Alias("ownedby me")]
-        [Summary("Lists all tags owned by the supplied user.")]
-        public async Task ListAsync(
-            [Summary("The user whose tags are to be retrieved. If left blank, the current user.")]
-                DiscordUserEntity discordUser = null)
+        [SlashCommand("ownedbyuser", "Lists all tags owned by the supplied user.")]
+        public async Task OwnedByAsync(
+            [Summary(description: "The user whose tags are to be retrieved. If left blank, the current user.")]
+                IUser discordUser = null)
         {
             var userId = discordUser?.Id ?? Context.User.Id;
 
-            var tags = await TagService.GetTagsOwnedByUserAsync(Context.Guild.Id, userId);
+            var tags = await _tagService.GetTagsOwnedByUserAsync(Context.Guild.Id, userId);
 
-            var user = await UserService.GetUserInformationAsync(Context.Guild.Id, userId);
+            var user = await _userService.GetUserAsync(userId);
 
             var embed = BuildEmbed(tags, ownerUser: user);
 
-            await ReplyAsync(embed: embed);
+            await FollowupAsync(embed: embed);
         }
 
-        [Command("ownedby")]
-        [Summary("Lists all tags owned by the supplied role.")]
-        public async Task ListAsync(
-            [Summary("The role whose tags are to be retrieved.")]
+        [SlashCommand("ownedbyrole", "Lists all tags owned by the supplied role.")]
+        public async Task OwnedByAsync(
+            [Summary(description: "The role whose tags are to be retrieved.")]
                 IRole role)
         {
-            var tags = await TagService.GetTagsOwnedByRoleAsync(Context.Guild.Id, role.Id);
+            var tags = await _tagService.GetTagsOwnedByRoleAsync(Context.Guild.Id, role.Id);
 
             var embed = BuildEmbed(tags, ownerRole: role);
 
-            await ReplyAsync(embed: embed);
+            await FollowupAsync(embed: embed);
         }
 
-        [Command("owner")]
-        [Alias("info", "about")]
-        [Summary("Lists the owner of the supplied tag.")]
+        [SlashCommand("owner", "Lists the owner of the supplied tag.")]
         public async Task GetOwnerAsync(
-            [Summary("The name of the tag whose owner is being requested.")]
+            [Summary(description: "The name of the tag whose owner is being requested.")]
+            [Autocomplete(typeof(TagAutocompleteHandler))]
                 string name)
         {
-            var tag = await TagService.GetTagAsync(Context.Guild.Id, name);
+            var tag = await _tagService.GetTagAsync(Context.Guild.Id, name);
 
             if (tag is null)
             {
-                await ReplyAsync($"The tag '{name.Trim().ToLower()}' does not exist.");
+                await FollowupAsync($"The tag '{name.Trim().ToLower()}' does not exist.", allowedMentions: AllowedMentions.None);
                 return;
             }
 
@@ -150,7 +144,7 @@ namespace Modix.Bot.Modules
 
             if (tag.OwnerUser != null)
             {
-                var user = await UserService.GetUserAsync(tag.OwnerUser.Id);
+                var user = await _userService.GetUserAsync(tag.OwnerUser.Id);
 
                 if (user != null)
                 {
@@ -176,65 +170,65 @@ namespace Modix.Bot.Modules
                     .WithColor(Color.Red);
             }
 
-            await ReplyAsync(embed: embedBuilder.Build());
+            await FollowupAsync(embed: embedBuilder.Build());
         }
 
-        [Command("all")]
-        [Alias("list", "")]
-        [Summary("Lists all tags available in the current guild.")]
+        [SlashCommand("list", "Lists all tags available in the current guild.")]
         public async Task ListAllAsync()
         {
-            var tags = await TagService.GetSummariesAsync(new TagSearchCriteria()
+            var tags = await _tagService.GetSummariesAsync(new TagSearchCriteria()
             {
                 GuildId = Context.Guild.Id
             });
 
             var embed = BuildEmbed(tags, ownerGuild: Context.Guild);
 
-            await ReplyAsync(embed: embed);
+            await FollowupAsync(embed: embed);
         }
 
-        [Command("transfer")]
-        [Priority(-5)] // Prioritize role over user to avoid people accidentally transferring tags to someone whose nickname is the same as a role's name
-        [Summary("Transfers ownership of a tag to the supplied user.")]
+        [SlashCommand("transfer-user", "Transfers ownership of a tag to the supplied user.")]
         public async Task TransferToUserAsync(
-            [Summary("The name of the tag to be transferred.")]
+            [Summary(description: "The name of the tag to be transferred.")]
+            [Autocomplete(typeof(TagAutocompleteHandler))]
                 string name,
-            [Summary("The user to whom the tag should be transferred.")]
-                DiscordUserEntity target)
+            [Summary(description: "The user to whom the tag should be transferred.")]
+                IUser target)
         {
-            await TagService.TransferToUserAsync(Context.Guild.Id, name, Context.User.Id, target.Id);
+            await _tagService.TransferToUserAsync(Context.Guild.Id, name, Context.User.Id, target.Id);
             await Context.AddConfirmationAsync();
         }
 
-        [Command("transfer")]
-        [Summary("Transfers ownership of a tag to the supplied role.")]
+        [SlashCommand("transfer-role", "Transfers ownership of a tag to the supplied role.")]
         public async Task TransferToRoleAsync(
-            [Summary("The name of the tag to be transferred.")]
+            [Summary(description: "The name of the tag to be transferred.")]
+            [Autocomplete(typeof(TagAutocompleteHandler))]
                 string name,
-            [Summary("The role to which the tag should be transferred.")]
+            [Summary(description: "The role to which the tag should be transferred.")]
                 IRole target)
         {
-            await TagService.TransferToRoleAsync(Context.Guild.Id, name, Context.User.Id, target.Id);
+            await _tagService.TransferToRoleAsync(Context.Guild.Id, name, Context.User.Id, target.Id);
             await Context.AddConfirmationAsync();
         }
 
-        protected CodePasteService CodePasteService { get; }
-
-        protected ITagService TagService { get; }
-
-        protected IUserService UserService { get; }
-
-        protected ModixConfig Config { get; }
-
-        private async Task HandleTagError(string message)
+        [SlashCommand("search", "Searches for a tag based on a partial name.")]
+        public async Task SearchAsync(
+            [Summary(description: "Partial name of the tag to search for.")]
+                string partialName)
         {
-            var embed = new EmbedBuilder()
-                        .WithTitle("Error")
-                        .WithColor(Color.Red)
-                        .WithDescription(message);
+            partialName = partialName.Trim();
 
-            await ReplyAsync(embed: embed.Build());
+            var tags = _tagCache.Search(Context.Guild.Id, partialName);
+            var tagsForEmbed = tags
+                .Take(EmbedBuilder.MaxFieldCount)
+                .Select(x => $"• {x}")
+                .ToArray();
+
+            var embed = new EmbedBuilder()
+                .WithTitle("Tag Search Results")
+                .WithDescription($"Tags matching the search query \"{Format.Sanitize(partialName)}\":\n{string.Join('\n', tagsForEmbed)}")
+                .WithFooter($"{tagsForEmbed.Length} of {tags.Length} results shown");
+
+            await FollowupAsync(embed: embed.Build());
         }
 
         private Embed BuildEmbed(IReadOnlyCollection<TagSummary> tags, IUser ownerUser = null, IGuild ownerGuild = null, IRole ownerRole = null)
@@ -259,19 +253,19 @@ namespace Modix.Bot.Modules
                 .WithFooter(EmbedFooterText)
                 .WithTitle("Tags");
 
-            const int tagsToDisplay = 6;
+            const int TagsToDisplay = 6;
 
-            foreach (var tag in orderedTags.Take(tagsToDisplay))
+            foreach (var tag in orderedTags.Take(TagsToDisplay))
             {
                 builder.AddField(tag.Name, $"{tag.Uses} uses", true);
             }
 
-            if (tags.Count > tagsToDisplay)
+            if (tags.Count > TagsToDisplay)
             {
-                var fieldName = $"and {tags.Count - tagsToDisplay} more";
+                var fieldName = $"and {tags.Count - TagsToDisplay} more";
 
                 // https://modix.gg/tags
-                var url = new UriBuilder(Config.WebsiteBaseUrl)
+                var url = new UriBuilder(_config.WebsiteBaseUrl)
                 {
                     Path = "/tags"
                 }.RemoveDefaultPort().ToString();
@@ -283,6 +277,28 @@ namespace Modix.Bot.Modules
             return builder.Build();
         }
 
-        private const string EmbedFooterText = "Use tags with \"!tag name\", or inline with \"$name\"";
+        private const string EmbedFooterText = "Use tags inline with \"$name\"";
+        private readonly ITagCache _tagCache;
+        private readonly ITagService _tagService;
+        private readonly IUserService _userService;
+        private readonly ModixConfig _config;
+    }
+
+    public class TagCreateModal : IModal
+    {
+        public string Title => "New Tag";
+
+        [ModalTextInput("tag_name")]
+        [RequiredInput]
+        public string Name { get; set; }
+
+        [ModalTextInput("tag_content", TextInputStyle.Paragraph)]
+        [RequiredInput]
+        public string Content { get; set; }
+    }
+
+    public class TagUpdateModal : IModal
+    {
+        public string Title => "Updating Tag";
     }
 }
