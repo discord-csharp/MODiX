@@ -65,6 +65,7 @@ namespace Modix.Services.Tags
             _designatedRoleMappingRepository = designatedRoleMappingRepository;
         }
 
+#nullable enable
         public async Task CreateTagAsync(ulong guildId, ulong creatorId, string name, string content)
         {
             _authorizationService.RequireClaims(AuthorizationClaim.CreateTag);
@@ -86,10 +87,18 @@ namespace Modix.Services.Tags
             var tag = new TagEntity
             {
                 GuildId = guildId,
-                OwnerUserId = creatorId,
                 Name = name,
                 Content = content,
             };
+
+            var guild = await _discordClient.GetGuildAsync(guildId);
+            var creator = await guild.GetUserAsync(creatorId);
+            var defaultOwnerRole = await GetDefaultOwnerRoleAsync(creator);
+
+            if (defaultOwnerRole is not null)
+                tag.OwnerRoleId = defaultOwnerRole.Id;
+            else
+                tag.OwnerUserId = creatorId;
 
             var createAction = new TagActionEntity()
             {
@@ -105,6 +114,7 @@ namespace Modix.Services.Tags
 
             await _modixContext.SaveChangesAsync();
         }
+#nullable restore
 
         public async Task UseTagAsync(ulong guildId, ulong channelId, string name)
         {
@@ -332,6 +342,26 @@ namespace Modix.Services.Tags
             // Only allow maintenance if the user has sufficient rank.
             return currentUserMaxRank >= ownerRole.Position;
         }
+
+#nullable enable
+        private async Task<IRole?> GetDefaultOwnerRoleAsync(IGuildUser user)
+        {
+            var lowestRankRole = (await _designatedRoleMappingRepository.SearchBriefsAsync(new()
+            {
+                GuildId = user.GuildId,
+                Type = DesignatedRoleType.Rank,
+                IsDeleted = false,
+                RoleIds = user.RoleIds,
+            }))
+            .OrderBy(x => x.Role.Position)
+            .FirstOrDefault();
+
+            if (lowestRankRole is null)
+                return null;
+
+            return user.Guild.Roles.FirstOrDefault(x => x.Id == lowestRankRole.Role.Id);
+        }
+#nullable restore
 
         private async Task<bool> CanTriviallyMaintainTagAsync(IGuildUser currentUser)
         {
