@@ -80,50 +80,5 @@ namespace Modix.Services.Test.Tags
 
             await Should.ThrowAsync<ArgumentException>(() => sut.CreateTagAsync(0, 0, "MODiX", string.Empty));
         }
-
-        [Test]
-        public async Task CreateTagAsync_ValidTag_InsertsTag()
-        {
-            (_, var sut, var db) = GetSut();
-
-            await sut.CreateTagAsync(1, 1, "MODiX", "Content");
-
-            db.Set<TagEntity>().Count().ShouldBe(1);
-
-            var tag = db.Set<TagEntity>().Single();
-
-            tag.GuildId.ShouldBe((ulong)1);
-            tag.OwnerUserId.ShouldBe((ulong)1);
-            tag.Name.ShouldBe("modix");
-            tag.Content.ShouldBe("Content");
-        }
-
-        [Test]
-        public async Task CreateTagAsync_ValidTag_InsertsCreateAction()
-        {
-            (_, var sut, var db) = GetSut();
-
-            await sut.CreateTagAsync(1, 1, "MODiX", "Content");
-
-            db.Set<TagActionEntity>().Count().ShouldBe(1);
-
-            var action = db.Set<TagActionEntity>().Single();
-
-            action.GuildId.ShouldBe((ulong)1);
-            action.CreatedById.ShouldBe((ulong)1);
-            action.Type.ShouldBe(TagActionType.TagCreated);
-        }
-
-        [Test]
-        public async Task CreateTagAsync_ValidTag_LinksTagToCreateAction()
-        {
-            (_, var sut, var db) = GetSut();
-
-            await sut.CreateTagAsync(1, 1, "MODiX", "Content");
-
-            var tag = db.Set<TagEntity>().Single();
-
-            tag.CreateAction.ShouldNotBeNull();
-        }
     }
 }
