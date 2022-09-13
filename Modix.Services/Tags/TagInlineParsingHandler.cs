@@ -57,7 +57,7 @@ namespace Modix.Services.Tags
             try
             {
                 await AuthorizationService.OnAuthenticatedAsync(guildUser.Id, guildUser.Guild.Id, guildUser.Roles.Select(x => x.Id).ToList());
-                await TagService.UseTagAsync(guildUser.Guild.Id, userMessage.Channel.Id, tagName);
+                await TagService.UseTagAsync(guildUser.Guild.Id, userMessage.Channel.Id, tagName, message);
             }
             catch (InvalidOperationException ex)
             {

@@ -116,29 +116,6 @@ namespace Modix.Services.Utilities
 
             return $"This user has {formatted}";
         }
-
-        public static string SanitizeAllMentions(string text)
-        {
-            var everyoneSanitized = SanitizeEveryone(text);
-            var userSanitized = SanitizeUserMentions(everyoneSanitized);
-            var roleSanitized = SanitizeRoleMentions(userSanitized);
-
-            return roleSanitized;
-        }
-
-        public static string SanitizeEveryone(string text)
-            => text.Replace("@everyone", "@\x200beveryone")
-                   .Replace("@here", "@\x200bhere");
-
-        public static string SanitizeUserMentions(string text)
-            => _userMentionRegex.Replace(text, "<@\x200b${Id}>");
-
-        public static string SanitizeRoleMentions(string text)
-            => _roleMentionRegex.Replace(text, "<@&\x200b${Id}>");
-
-        private static readonly Regex _userMentionRegex = new Regex("<@!?(?<Id>[0-9]+)>", RegexOptions.Compiled);
-
-        private static readonly Regex _roleMentionRegex = new Regex("<@&(?<Id>[0-9]+)>", RegexOptions.Compiled);
         
         /// <summary>
         /// Collapses plural forms into a "singular(s)"-type format.
@@ -226,7 +203,7 @@ namespace Modix.Services.Utilities
             => _containsSpoilerRegex.IsMatch(text);
 
         private static readonly Regex _containsSpoilerRegex
-            = new Regex(@"\|\|.+\|\|", RegexOptions.Compiled);
+            = new(@"\|\|.+\|\|", RegexOptions.Compiled);
 
 #nullable enable
         public static string FormatCodeForEmbed(string language, string sourceCode, int maxLength)

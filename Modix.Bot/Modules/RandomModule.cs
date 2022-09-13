@@ -3,12 +3,14 @@
     using System;
     using System.Threading.Tasks;
     using Discord;
-    using Discord.Commands;
+    using Discord.Interactions;
+    using Modix.Services.CommandHelp;
 
-    [Group("random"), Name("Random"), Summary("A bunch of random commands.")]
-    public class RandomModule : ModuleBase
+    [ModuleHelp("Random", "A bunch of commands related to randomness.")]
+    [Group("random", "A bunch of commands related to randomness.")]
+    public class RandomModule : InteractionModuleBase
     {
-        private static readonly Random _random = new Random();
+        private static readonly Random _random = new();
 
         private Embed GetEmbed(object description)
         {
@@ -18,11 +20,11 @@
                 .Build();
         }
 
-        [Command("number"), Summary("Gets a random number.")]
+        [SlashCommand("number", "Gets a random number.")]
         public async Task RandomNumberAsync(
-            [Summary("The inclusive minimum possible number.")]
+            [Summary(description: "The inclusive minimum possible number.")]
                 int min = 0,
-            [Summary("The exlusive maximum possible number.")]
+            [Summary(description: "The exlusive maximum possible number.")]
                 int max = 10)
         {
             if (min >= max)
@@ -33,39 +35,22 @@
 
             var number = _random.Next(min, max);
 
-            await Context.Channel.SendMessageAsync(embed: GetEmbed(number));
+            await FollowupAsync(embed: GetEmbed(number));
         }
 
-        [Command("coin"), Summary("Flips a coin.")]
+        [SlashCommand("coin", "Flips a coin.")]
         public async Task FlipCoinAsync()
         {
             var coin = _random.Next(0, 2);
 
             if (coin == 0)
             {
-                await Context.Channel.SendMessageAsync(embed: GetEmbed("Heads"));
+                await FollowupAsync(embed: GetEmbed("Heads"));
             }
             else
             {
-                await Context.Channel.SendMessageAsync(embed: GetEmbed("Tails"));
+                await FollowupAsync(embed: GetEmbed("Tails"));
             }
-        }
-
-        [Command("pick"), Summary("Picks from a defined list of inputs.")]
-        public async Task PickAsync(
-            [Summary("The items to choose from.")]
-                params string[] inputs)
-        {
-            if (inputs.Length <= 1)
-            {
-                await ReplyAsync("There isn't enough for me to choose from!");
-                return;
-            }
-
-            var random = _random.Next(0, inputs.Length);
-            var choice = inputs[random];
-
-            await ReplyAsync(embed: GetEmbed(choice));
         }
     }
 }
