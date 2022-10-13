@@ -86,8 +86,9 @@ namespace Modix.Services.Tags
             {
                 var cachedTags = GetFromCache(guildId);
 
-                var results = cachedTags
-                    .Where(x => x.Contains(partialName, StringComparison.OrdinalIgnoreCase));
+                IEnumerable<string> results = cachedTags
+                    .Where(x => x.Contains(partialName, StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(x => x);
 
                 if (maxResults is not null)
                 {

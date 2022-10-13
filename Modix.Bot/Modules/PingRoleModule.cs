@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Discord;
-using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
 
 using Humanizer;
@@ -14,23 +14,20 @@ using Modix.Services.Core;
 
 namespace Modix.Modules
 {
-    [Group("pingrole")]
-    [Alias("pingroles", "pr")]
-    [Name("Topic Roles")]
-    [Summary("Provides functionality for maintaining and registering or unregistering topic roles.")]
+    [ModuleHelp("Ping Roles", "Provides functionality for maintaining and registering or unregistering ping roles.")]
+    [Group("pingrole", "Provides functionality for maintaining and registering or unregistering ping roles.")]
     [HelpTags("marker", "pingroles", "pingable", "topicroles")]
-    public class MarkerRoleModule : ModuleBase
+    public class PingRoleModule : InteractionModuleBase
     {
         private readonly IDesignatedRoleService _designatedRoleService;
 
-        public MarkerRoleModule(IDesignatedRoleService designatedRoleService)
+        public PingRoleModule(IDesignatedRoleService designatedRoleService)
         {
             _designatedRoleService = designatedRoleService;
         }
 
-        [Command("list")]
-        [Alias("")]
-        public async Task List()
+        [SlashCommand("list", "List all available ping roles.")]
+        public async Task ListAsync()
         {
             var pingRoles = await _designatedRoleService
                 .SearchDesignatedRolesAsync(new DesignatedRoleMappingSearchCriteria()
@@ -47,86 +44,75 @@ namespace Modix.Modules
                         ? $"{role.Mention} - {Format.Bold("member".ToQuantity(role.Members.Count()))}"
                         : null;
                 })
-                .Where(x => x != null)
+                .Where(x => x is not null)
                 .ToArray();
 
-            var pingableRolesFormatted = "Pingable role".ToQuantity(pingRolesInformation.Length, ShowQuantityAs.None);
+            var pingableRolesFormatted = "Ping role".ToQuantity(pingRolesInformation.Length, ShowQuantityAs.None);
             var pingRolesInformationFormatted = pingRolesInformation.Length == 0
-                                                    ? "No Pingable Roles available."
+                                                    ? "No ping roles available."
                                                     : string.Join("\n", pingRolesInformation);
-
 
             var embed = new EmbedBuilder()
                 .WithAuthor(Context.Guild.Name, Context.Guild.IconUrl)
                 .WithColor(Color.Blue)
                 .WithTitle($"{pingableRolesFormatted} ({pingRolesInformation.Length})")
                 .WithDescription(pingRolesInformationFormatted)
-                .WithFooter("Register to any of the above with !pingrole register <RoleName>");
+                .WithFooter("Register to any of the above with /pingrole register <RoleName>");
 
-            await ReplyAsync(embed: embed.Build());
+            await FollowupAsync(embed: embed.Build());
         }
 
-        [Command("register")]
-        [Alias("join")]
-        [RequireContext(ContextType.Guild)]
-        [Summary("Registers the user as a member of the supplied pingrole.")]
+        [SlashCommand("register", "Registers the user as a member of the supplied ping role.")]
         public async Task RegisterAsync(
-            [Remainder]
-            [Summary("The role to register to.")]
+            [Summary(description: "The role to register to.")]
                 IRole targetRole)
         {
             var user = Context.User as IGuildUser;
 
             if (user.RoleIds.Any(x => x == targetRole.Id))
             {
-                await ReplyAsync("You're already registered to that role.");
+                await FollowupAsync("You're already registered to that role.");
                 return;
             }
 
             if (!await _designatedRoleService.RoleHasDesignationAsync(Context.Guild.Id, targetRole.Id, DesignatedRoleType.Pingable, default))
             {
-                await ReplyAsync("Can't register to a role that isn't pingable.");
+                await FollowupAsync("Can't register to a role that isn't designated as a ping role.");
                 return;
             }
 
             await user.AddRoleAsync(targetRole);
-            await ReplyAsync($"Registered {user.Mention} to {Format.Bold(targetRole.Name)}.");
+            await FollowupAsync($"Registered {user.Mention} to {targetRole.Mention}.", allowedMentions: AllowedMentions.None);
         }
 
-        [Command("unregister")]
-        [Alias("leave")]
-        [RequireContext(ContextType.Guild)]
-        [Summary("Unregisters the user from being a member of the supplied pingrole.")]
+        [SlashCommand("unregister", "Unregisters the user from being a member of the supplied ping role.")]
         public async Task UnregisterAsync(
-            [Remainder]
-            [Summary("The role to unregister from.")]
+            [Summary(description: "The role to unregister from.")]
                 IRole targetRole)
         {
             var user = Context.User as IGuildUser;
 
             if (!user.RoleIds.Any(x => x == targetRole.Id))
             {
-                await ReplyAsync("You're not registered to that role.");
+                await FollowupAsync("You're not registered to that role.");
                 return;
             }
 
             if (!await _designatedRoleService
                 .RoleHasDesignationAsync(Context.Guild.Id, targetRole.Id, DesignatedRoleType.Pingable, default))
             {
-                await ReplyAsync("Can't unregister from a role that isn't pingable.");
+                await FollowupAsync("Can't unregister from a role that isn't designated as a ping role.");
                 return;
             }
 
             await user.RemoveRoleAsync(targetRole);
-            await ReplyAsync($"Unregistered {user.Mention} from role {Format.Bold(targetRole.Name)}.");
+            await FollowupAsync($"Unregistered {user.Mention} from role {targetRole.Mention}.", allowedMentions: AllowedMentions.None);
         }
 
-        [Command("create")]
-        [RequireUserPermission(GuildPermission.ManageRoles)]
-        [Summary("Creates a new pingable role.")]
+        [SlashCommand("create", "Creates a new ping role.")]
+        [DefaultMemberPermissions(GuildPermission.ManageRoles)]
         public async Task CreateRoleAsync(
-            [Remainder]
-            [Summary("The name of the new pingable role.")]
+            [Summary(description: "The name of the new ping role.")]
                 string targetRoleName)
         {
             if (Context.Guild.Roles
@@ -135,7 +121,7 @@ namespace Modix.Modules
                     targetRoleName,
                     StringComparison.OrdinalIgnoreCase)))
             {
-                await ReplyAsync("Cannot create that role - it already exists, did you mean to register to it?");
+                await FollowupAsync("Cannot create that role - it already exists, did you mean to register to it?");
                 return;
             }
 
@@ -143,21 +129,19 @@ namespace Modix.Modules
 
             await _designatedRoleService.AddDesignatedRoleAsync(Context.Guild.Id, targetRole.Id, DesignatedRoleType.Pingable);
 
-            await ReplyAsync($"Created pingable role {Format.Bold(targetRole.Name)}.");
+            await FollowupAsync($"Created ping role {targetRole.Mention}.", allowedMentions: AllowedMentions.None);
         }
 
-        [Command("delete")]
-        [RequireUserPermission(GuildPermission.ManageRoles)]
-        [Summary("Deletes an existing pingable role.")]
+        [SlashCommand("delete", "Deletes an existing ping role.")]
+        [DefaultMemberPermissions(GuildPermission.ManageRoles)]
         public async Task DeleteRoleAsync(
-            [Remainder]
-            [Summary("The pingable role to delete.")]
+            [Summary(description: "The ping role to delete.")]
                 IRole role)
         {
             await _designatedRoleService.RemoveDesignatedRoleAsync(Context.Guild.Id, role.Id, DesignatedRoleType.Pingable);
 
             await role.DeleteAsync();
-            await ReplyAsync($"Deleted role {Format.Bold(role.Name)}.");
+            await FollowupAsync($"Deleted role {Format.Bold(role.Name)}.", allowedMentions: AllowedMentions.None);
         }
     }
 }

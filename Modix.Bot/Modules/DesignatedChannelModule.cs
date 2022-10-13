@@ -2,41 +2,40 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Commands;
+using Discord.Interactions;
 using Humanizer;
 using Microsoft.Extensions.Options;
 using Modix.Bot.Extensions;
+using Modix.Bot.Preconditions;
 using Modix.Common.Extensions;
 using Modix.Data.Models.Core;
+using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 
 namespace Modix.Modules
 {
-    [Name("Channel Designations")]
-    [Summary("Configures channel designation for various bot services")]
-    [Group("channel designations")]
-    public class DesignatedChannelModule : ModuleBase
+    [ModuleHelp("Channel Designations", "Configures channel designation for various bot services.")]
+    [Group("channel-designations", "Configures channel designation for various bot services.")]
+    public class DesignatedChannelModule : InteractionModuleBase
     {
-        public IAuthorizationService AuthorizationService { get; }
-        public IDesignatedChannelService DesignatedChannelService { get; }
+        private readonly IDesignatedChannelService _designatedChannelService;
+        private readonly ModixConfig _config;
 
-        public ModixConfig Config { get; }
-
-        public DesignatedChannelModule(IAuthorizationService authorizationService, IDesignatedChannelService designatedChannelService, IOptions<ModixConfig> config)
+        public DesignatedChannelModule(IDesignatedChannelService designatedChannelService, IOptions<ModixConfig> config)
         {
-            AuthorizationService = authorizationService;
-            DesignatedChannelService = designatedChannelService;
-            Config = config.Value;
+            _designatedChannelService = designatedChannelService;
+            _config = config.Value;
         }
 
-        [Command]
-        [Summary("Lists all of the channels designated for use by the bot")]
+        [SlashCommand("list", "Lists all of the channels designated for use by the bot.")]
+        [RequireClaims(AuthorizationClaim.DesignatedChannelMappingRead)]
+        [DefaultMemberPermissions(GuildPermission.BanMembers)]
         public async Task ListAsync()
         {
-            var channels = await DesignatedChannelService.GetDesignatedChannelsAsync(Context.Guild.Id);
+            var channels = await _designatedChannelService.GetDesignatedChannelsAsync(Context.Guild.Id);
 
             // https://mod.gg/config/channels
-            var url = new UriBuilder(Config.WebsiteBaseUrl)
+            var url = new UriBuilder(_config.WebsiteBaseUrl)
             {
                 Path = "/config/channels"
             }.RemoveDefaultPort().ToString();
@@ -49,7 +48,7 @@ namespace Modix.Modules
                 Timestamp = DateTimeOffset.UtcNow
             };
 
-            foreach (var type in Enum.GetValues(typeof(DesignatedChannelType)).Cast<DesignatedChannelType>())
+            foreach (var type in Enum.GetValues<DesignatedChannelType>())
             {
                 var designatedChannels = channels
                     .Where(x => x.Type == type)
@@ -65,50 +64,32 @@ namespace Modix.Modules
                 });
             }
 
-            await ReplyAsync(embed: builder.Build());
+            await FollowupAsync(embed: builder.Build());
         }
 
-        [Command("add")]
-        [Summary("Assigns a designation to the given channel")]
+        [SlashCommand("add", "Assigns a designation to the given channel.")]
+        [RequireClaims(AuthorizationClaim.DesignatedChannelMappingCreate)]
+        [DefaultMemberPermissions(GuildPermission.BanMembers)]
         public async Task AddAsync(
-            [Summary("The channel to be assigned a designation")]
+            [Summary(description: "The channel to be assigned a designation.")]
                 IMessageChannel channel,
-            [Summary("The designation to assign")]
+            [Summary(description: "The designation to assign.")]
                 DesignatedChannelType designation)
         {
-            await DesignatedChannelService.AddDesignatedChannelAsync(Context.Guild, channel, designation);
+            await _designatedChannelService.AddDesignatedChannelAsync(Context.Guild, channel, designation);
             await Context.AddConfirmationAsync();
         }
 
-        [Command("add")]
-        [Summary("Assigns a designation to the current channel")]
-        public async Task AddAsync(
-            [Summary("The designation to assign")]
-                DesignatedChannelType designation)
-        {
-            await DesignatedChannelService.AddDesignatedChannelAsync(Context.Guild, Context.Channel, designation);
-            await Context.AddConfirmationAsync();
-        }
-
-        [Command("remove")]
-        [Summary("Removes a designation from the given channel")]
+        [SlashCommand("remove", "Removes a designation from the given channel.")]
+        [RequireClaims(AuthorizationClaim.DesignatedChannelMappingDelete)]
+        [DefaultMemberPermissions(GuildPermission.BanMembers)]
         public async Task RemoveAsync(
-            [Summary("The channel whose designation is to be unassigned")]
+            [Summary(description: "The channel whose designation is to be unassigned.")]
                 IMessageChannel channel,
-            [Summary("The designation to be unassigned")]
+            [Summary(description: "The designation to be unassigned.")]
                 DesignatedChannelType designation)
         {
-            await DesignatedChannelService.RemoveDesignatedChannelAsync(Context.Guild, channel, designation);
-            await Context.AddConfirmationAsync();
-        }
-
-        [Command("remove")]
-        [Summary("Removes a designation from the current channel")]
-        public async Task RemoveAsync(
-            [Summary("The designation to be unassigned")]
-                DesignatedChannelType designation)
-        {
-            await DesignatedChannelService.RemoveDesignatedChannelAsync(Context.Guild, Context.Channel, designation);
+            await _designatedChannelService.RemoveDesignatedChannelAsync(Context.Guild, channel, designation);
             await Context.AddConfirmationAsync();
         }
     }

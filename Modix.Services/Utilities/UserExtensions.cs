@@ -1,22 +1,28 @@
-﻿using System.Linq;
-using Discord;
+﻿using Discord;
 using Modix.Data.Models.Core;
 
 namespace Modix.Services.Utilities
 {
     public static class UserExtensions
     {
-        public static string GetFullUsername(this IUser user)
-            => $"{user.Username}#{user.Discriminator}";
+        public static string GetDisplayName(this IUser user)
+        {
+            if (user.GlobalName is not null)
+                return user.GlobalName;
 
-        public static string GetFullUsername(this GuildUserSummary user)
-            => $"{user.Username}#{user.Discriminator}";
+            if (user.DiscriminatorValue == 0)
+                return user.Username;
+
+            return $"{user.Username}#{user.Discriminator}";
+        }
 
         public static string GetFullUsername(this GuildUserBrief user)
-            => $"{user.Username}#{user.Discriminator}";
+        {
+            if (user.Discriminator is "0000" or "????")
+                return user.Username;
 
-        public static bool HasRole(this IGuildUser user, ulong roleId)
-            => user.RoleIds.Contains(roleId);
+            return $"{user.Username}#{user.Discriminator}";
+        }
 
         public static string GetDefiniteAvatarUrl(this IUser user, ushort size = 128)
             => user.GetAvatarUrl(size: size) ?? user.GetDefaultAvatarUrl();

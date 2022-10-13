@@ -37,7 +37,7 @@ namespace Modix.Modules
             var guilds = await Context.Client.GetGuildsAsync();
 
             var output = string.Join("\n", guilds.Select(a => $"{a.Id}: {a.Name}"));
-            await FollowupAsync(output);
+            await FollowupAsync(output, allowedMentions: AllowedMentions.None);
         }
     }
 }

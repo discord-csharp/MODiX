@@ -34,10 +34,6 @@
         /// </summary>
         CountsTowardsParticipation,
         /// <summary>
-        /// Defines a channel in which giveaways and their winners will be posted.
-        /// </summary>
-        GiveawayLog,
-        /// <summary>
         /// Defines a channel where messages, if starred, are not sent to the starboard
         /// </summary>
         IgnoredFromStarboard,

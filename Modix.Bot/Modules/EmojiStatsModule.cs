@@ -1,23 +1,25 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Commands;
+using Discord.Interactions;
 using Discord.WebSocket;
 using Humanizer;
 using Modix.Data.Models;
 using Modix.Data.Models.Emoji;
 using Modix.Data.Repositories;
+using Modix.Services.CommandHelp;
 using Modix.Services.Utilities;
 
 namespace Modix.Modules
 {
-    [Name("EmojiStats")]
-    [Group("emojistats")]
-    [Summary("Commands related to generating statistics on emojis.")]
-    public class EmojiStatsModule : ModuleBase
+    [ModuleHelp("Emoji Stats", "Commands related to generating statistics on emojis.")]
+    [Group("emojistats", "Commands related to generating statistics on emojis.")]
+    public class EmojiStatsModule : InteractionModuleBase
     {
         private readonly IEmojiRepository _emojiRepository;
 
@@ -26,55 +28,49 @@ namespace Modix.Modules
             _emojiRepository = emojiRepository;
         }
 
-        [Command("all top")]
-        [Alias("all")]
-        [Summary("Gets usage stats for the top 10 emojis in the current guild.")]
-        public async Task TopEmojiStatsAsync()
+        [SlashCommand("top", "Gets usage stats for the most popular emojis in the current guild.")]
+        public async Task TopEmojiStatsAsync(
+            [Summary(description: "How many results to return. Default is 10.")]
+            [MinValue(1)]
+            [MaxValue(25)]
+                int count = 10,
+            [Summary(description: "Whether to include all emojis or just custom guild emojis. Default is custom guild emojis.")]
+                EmojiTypeFilter emojiTypeFilter = EmojiTypeFilter.CustomEmojisOnly)
         {
-            var embed = await BuildEmojiStatEmbedAsync(SortDirection.Ascending);
+            var embed = await BuildEmojiStatEmbedAsync(SortDirection.Ascending, count, emojiTypeFilter == EmojiTypeFilter.CustomEmojisOnly);
 
-            await ReplyAsync(embed: embed.Build());
+            await FollowupAsync(embed: embed.Build());
         }
 
-        [Command("all bottom")]
-        [Summary("Gets usage stats for the bottom 10 emojis in the current guild.")]
-        public async Task BottomEmojiStatsAsync()
+        [SlashCommand("bottom", "Gets usage stats for the least popular emojis in the current guild.")]
+        public async Task BottomEmojiStatsAsync(
+            [Summary(description: "How many results to return. Default is 10.")]
+            [MinValue(1)]
+            [MaxValue(25)]
+                int count = 10,
+            [Summary(description: "Whether to include all emojis or just custom guild emojis. Default is custom guild emojis.")]
+                EmojiTypeFilter emojiTypeFilter = EmojiTypeFilter.CustomEmojisOnly)
         {
-            var embed = await BuildEmojiStatEmbedAsync(SortDirection.Descending);
+            var embed = await BuildEmojiStatEmbedAsync(SortDirection.Descending, count, emojiTypeFilter == EmojiTypeFilter.CustomEmojisOnly);
 
-            await ReplyAsync(embed: embed.Build());
+            await FollowupAsync(embed: embed.Build());
         }
 
-        [Command("top")]
-        [Alias("")]
-        [Summary("Gets usage stats for the top 10 emojis in the current guild.")]
-        public async Task TopGuildOnlyEmojiStatsAsync()
-        {
-            var embed = await BuildEmojiStatEmbedAsync(SortDirection.Ascending, guildOnly: true);
-
-            await ReplyAsync(embed: embed.Build());
-        }
-
-        [Command("bottom")]
-        [Summary("Gets usage stats for the bottom 10 emojis in the current guild.")]
-        public async Task BottomGuildOnlyEmojiStatsAsync()
-        {
-            var embed = await BuildEmojiStatEmbedAsync(SortDirection.Descending, guildOnly: true);
-
-            await ReplyAsync(embed: embed.Build());
-        }
-
-        [Command()]
-        [Priority(-10)]
-        [Summary("Gets the usage stats for a specific user.")]
+        [SlashCommand("user", "Gets the usage stats for a specific user.")]
         public async Task UserEmojiStatsAsync(
-            [Summary("The user to retrieve stats for.")]
-                IUser user)
+            [Summary(description: "The user to retrieve stats for.")]
+                IUser? user = null,
+            [Summary(description: "How many results to return. Default is 10.")]
+            [MinValue(1)]
+            [MaxValue(25)]
+                int count = 10)
         {
+            user ??= Context.User;
+
             var userId = user.Id;
             var guildId = Context.Guild.Id;
 
-            var emojiStats = await _emojiRepository.GetEmojiStatsAsync(guildId, SortDirection.Ascending, 10, userId: userId);
+            var emojiStats = await _emojiRepository.GetEmojiStatsAsync(guildId, SortDirection.Ascending, count, userId: userId);
             var userTotalUses = await _emojiRepository.GetGuildStatsAsync(guildId, userId);
 
             var numberOfDays = Math.Max((DateTime.Now - userTotalUses.OldestTimestamp).Days, 1);
@@ -84,19 +80,17 @@ namespace Modix.Modules
 
             var totalEmojiUsesPerDay = (double)userTotalUses.TotalUses / numberOfDays;
 
-            await ReplyAsync(embed: new EmbedBuilder()
-                .WithAuthor($"{user.GetFullUsername()} - Emoji statistics", user.GetDefiniteAvatarUrl())
+            await FollowupAsync(embed: new EmbedBuilder()
+                .WithAuthor($"{user.GetDisplayName()} - Emoji statistics", user.GetDefiniteAvatarUrl())
                 .WithColor(Color.Blue)
                 .WithDescription(sb.ToString())
                 .WithFooter($"{"unique emoji".ToQuantity(userTotalUses.UniqueEmojis)} used {"time".ToQuantity(userTotalUses.TotalUses)} ({totalEmojiUsesPerDay:0.0}/day) since {userTotalUses.OldestTimestamp:yyyy-MM-dd}")
                 .Build());
         }
 
-        [Command()]
-        [Priority(-10)]
-        [Summary("Gets usage stats for a specific emoji.")]
+        [SlashCommand("emoji", "Gets usage stats for a specific emoji.")]
         public async Task EmojiStatsAsync(
-            [Summary("The emoji to retrieve information about.")]
+            [Summary(description: "The emoji to retrieve information about.")]
                 IEmote emoji)
         {
             var asEmote = emoji as Emote;
@@ -108,7 +102,7 @@ namespace Modix.Modules
 
             if (emojiStats.Uses == 0)
             {
-                await ReplyAsync(embed: new EmbedBuilder()
+                await FollowupAsync(embed: new EmbedBuilder()
                     .WithTitle("Unknown Emoji")
                     .WithDescription($"The emoji \"{ephemeralEmoji.Name}\" has never been used in this server.")
                     .WithColor(Color.Red)
@@ -149,10 +143,10 @@ namespace Modix.Modules
                 .WithColor(Color.Blue)
                 .WithDescription(sb.ToString());
 
-            await ReplyAsync(embed: embed.Build());
+            await FollowupAsync(embed: embed.Build());
         }
 
-        private async Task<EmbedBuilder> BuildEmojiStatEmbedAsync(SortDirection sortDirection, bool guildOnly = false)
+        private async Task<EmbedBuilder> BuildEmojiStatEmbedAsync(SortDirection sortDirection, int count, bool guildOnly)
         {
             var guildId = Context.Guild.Id;
 
@@ -160,7 +154,7 @@ namespace Modix.Modules
                 ? Context.Guild.Emotes.Select(x => x.Id)
                 : Enumerable.Empty<ulong>();
 
-            var emojiStats = await _emojiRepository.GetEmojiStatsAsync(guildId, sortDirection, 10, emojiIds: emojiFilter);
+            var emojiStats = await _emojiRepository.GetEmojiStatsAsync(guildId, sortDirection, count, emojiIds: emojiFilter);
             var guildStats = await _emojiRepository.GetGuildStatsAsync(guildId, emojiIds: emojiFilter);
 
             var sb = new StringBuilder();
@@ -212,7 +206,11 @@ namespace Modix.Modules
                     .AppendLine();
             }
         }
+    }
 
-
+    public enum EmojiTypeFilter
+    {
+        CustomEmojisOnly,
+        AllEmojis,
     }
 }

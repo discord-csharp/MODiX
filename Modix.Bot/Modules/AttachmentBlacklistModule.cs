@@ -2,17 +2,16 @@
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Commands;
+using Discord.Interactions;
+using Modix.Services.CommandHelp;
 using Modix.Services.Moderation;
 
 namespace Modix.Modules
 {
-    [Name("Attachment Blacklist")]
-    [Summary("Retrieve information related to the attachment blacklist functionality.")]
-    public class AttachmentBlacklistModule : ModuleBase
+    [ModuleHelp("Attachment Blacklist", "Retrieve information related to the attachment blacklist functionality.")]
+    public class AttachmentBlacklistModule : InteractionModuleBase
     {
-        [Command("attachment blacklist")]
-        [Summary("Retrieves the list of blacklisted attachment file extensions.")]
+        [SlashCommand("attachment-blacklist", "Retrieves the list of blacklisted attachment file extensions.")]
         public async Task GetBlacklistAsync()
         {
             var blacklistBuilder = new StringBuilder()
@@ -21,7 +20,7 @@ namespace Modix.Modules
                 .AppendJoin(", ", AttachmentBlacklistBehavior.BlacklistedExtensions.OrderBy(d => d))
                 .Append("```");
 
-            await ReplyAsync(blacklistBuilder.ToString());
+            await FollowupAsync(blacklistBuilder.ToString(), allowedMentions: AllowedMentions.None);
         }
     }
 }

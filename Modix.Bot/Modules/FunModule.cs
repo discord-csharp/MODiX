@@ -31,9 +31,9 @@ namespace Modix.Modules
         [SlashCommand("jumbo", "Jumbofy an emoji.")]
         public async Task JumboAsync(
             [Summary(description : "The emoji to jumbofy.")]
-                string emoji)
+                IEmote emoji)
         {
-            var emojiUrl = EmojiUtilities.GetUrl(emoji);
+            var emojiUrl = EmojiUtilities.GetUrl(emoji.ToString());
 
             try
             {
@@ -46,7 +46,7 @@ namespace Modix.Modules
             {
 
                 Log.Warning(ex, "Failed jumbofying emoji");
-                await FollowupAsync($"Sorry {Context.User.Mention}, I don't recognize that emoji.");
+                await FollowupAsync($"Sorry {Context.User.Mention}, I don't recognize that emoji.", allowedMentions: new AllowedMentions { UserIds = new() { Context.User.Id } });
             }
         }
 
@@ -77,7 +77,7 @@ namespace Modix.Modules
                 var avatarUrl = user.GetDefiniteAvatarUrl(size);
 
                 var embed = new EmbedBuilder()
-                    .WithTitle($"{user.GetFullUsername()}'s avatar")
+                    .WithTitle($"{user.GetDisplayName()}'s avatar")
                     .WithImageUrl(avatarUrl)
                     .WithCurrentTimestamp()
                     .Build();
@@ -87,7 +87,7 @@ namespace Modix.Modules
             catch (HttpRequestException ex)
             {
                 Log.Warning(ex, "Failed getting avatar for user {userId}", user.Id);
-                await FollowupAsync($"Sorry {Context.User.Mention}, I couldn't get the avatar!");
+                await FollowupAsync($"Sorry {Context.User.Mention}, I couldn't get the avatar!", allowedMentions: new AllowedMentions { UserIds = new() { Context.User.Id } });
             }
         }
 
@@ -119,7 +119,7 @@ namespace Modix.Modules
                 var avatarUrl = user.GetGuildAvatarUrl(size: size) ?? user.GetDefiniteAvatarUrl(size);
 
                 var embed = new EmbedBuilder()
-                    .WithTitle($"{user.GetFullUsername()}'s avatar")
+                    .WithTitle($"{user.GetDisplayName()}'s avatar")
                     .WithImageUrl(avatarUrl)
                     .Build();
 
@@ -128,7 +128,7 @@ namespace Modix.Modules
             catch (HttpRequestException ex)
             {
                 Log.Warning(ex, "Failed getting avatar for user {userId}", user.Id);
-                await FollowupAsync($"Sorry {Context.User.Mention}, I couldn't get the avatar!");
+                await FollowupAsync($"Sorry {Context.User.Mention}, I couldn't get the avatar!", allowedMentions: new AllowedMentions { UserIds = new() { Context.User.Id } });
             }
         }
 

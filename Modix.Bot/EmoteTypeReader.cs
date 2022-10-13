@@ -1,8 +1,7 @@
-﻿using Discord;
-using Discord.Commands;
-using Modix.Services.EmojiStats;
-using System;
+﻿using System;
 using System.Threading.Tasks;
+using Discord;
+using Discord.Commands;
 
 namespace Modix
 {
@@ -14,17 +13,12 @@ namespace Modix
             {
                 return Task.FromResult(TypeReaderResult.FromSuccess(target));
             }
-            else
+            else if (Emoji.TryParse(input, out var emoji))
             {
-                var ret = new Emoji(input);
-
-                if (ret.Name == null || EmojiUsageHandler.EmojiRegex.IsMatch(ret.Name) == false)
-                {
-                    return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, $"Could not recognize emoji \"{ret}\""));
-                }
-
-                return Task.FromResult(TypeReaderResult.FromSuccess(ret));
+                return Task.FromResult(TypeReaderResult.FromSuccess(emoji));
             }
+
+            return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, $"Could not recognize emoji \"{input}\""));
         }
     }
 }

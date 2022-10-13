@@ -30,6 +30,7 @@ namespace Modix.Controllers
                     Summary = c.Summary,
                     Aliases = FormatUtilities.CollapsePlurals(c.Aliases),
                     Parameters = c.Parameters,
+                    IsSlashCommand = c.IsSlashCommand,
                 }),
             });
 

@@ -5,12 +5,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using Microsoft.Extensions.Options;
 using Modix.Data.Models.Core;
 using Modix.Services.AutoRemoveMessage;
-using Modix.Services.CommandHelp;
 using Modix.Services.CodePaste;
+using Modix.Services.CommandHelp;
 using Modix.Services.Utilities;
 using Serilog;
 

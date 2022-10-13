@@ -32,7 +32,7 @@ namespace Modix.Models
         {
             var ret = new ModixUser
             {
-                Name = user.GetFullUsername(),
+                Name = user.GetDisplayName(),
                 UserId = user.Id,
                 AvatarHash = user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl()
             };

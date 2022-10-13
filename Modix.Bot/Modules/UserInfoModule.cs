@@ -110,6 +110,7 @@ namespace Modix.Modules
             builder.AppendLine("**\u276F User Information**");
             builder.AppendLine("ID: " + user.Id);
             builder.AppendLine("Profile: " + MentionUtils.MentionUser(user.Id));
+            builder.AppendLine($"Username: {user.Username}");
 
             var embedBuilder = new EmbedBuilder()
                 .WithUserAsAuthor(userInfo)
@@ -135,17 +136,17 @@ namespace Modix.Modules
 
                 if (moderationRead)
                 {
-                    builder.AppendLine($"Ban Reason: {userInfo.BanReason}");
+                    builder.AppendLine($"Ban reason: {userInfo.BanReason}");
                 }
             }
 
             builder.AppendLine($"Created: {FormatUtilities.FormatTimeAgo(_utcNow, userInfo.CreatedAt)}");
 
             if (userInfo.FirstSeen is DateTimeOffset firstSeen)
-                builder.AppendLine($"First Seen: {FormatUtilities.FormatTimeAgo(_utcNow, firstSeen)}");
+                builder.AppendLine($"First seen: {FormatUtilities.FormatTimeAgo(_utcNow, firstSeen)}");
 
             if (userInfo.LastSeen is DateTimeOffset lastSeen)
-                builder.AppendLine($"Last Seen: {FormatUtilities.FormatTimeAgo(_utcNow, lastSeen)}");
+                builder.AppendLine($"Last seen: {FormatUtilities.FormatTimeAgo(_utcNow, lastSeen)}");
 
             if (userInfo.FirstSeen is not null)
             {
@@ -160,7 +161,7 @@ namespace Modix.Modules
                 }
                 catch (Exception ex)
                 {
-                    _log.LogError(ex, "An error occured while retrieving a user's message count.");
+                    _log.LogError(ex, "An error occurred while retrieving a user's message count.");
                 }
 
                 AddMemberInformationToEmbed(userInfo, builder);
@@ -236,7 +237,7 @@ namespace Modix.Modules
             }.RemoveDefaultPort().ToString();
 
             builder.AppendLine();
-            builder.AppendLine($"**\u276F Infractions [See here]({url})**");
+            builder.AppendLine($"**\u276F Infractions [see here]({url})**");
 
             if (!(Context.Channel as IGuildChannel).IsPublic() || ephemeral)
             {
@@ -320,7 +321,7 @@ namespace Modix.Modules
                 var favoriteEmoji = emojiCounts.First();
 
                 var emojiFormatted = ((SocketSelfUser)Context.Client.CurrentUser).CanAccessEmoji(favoriteEmoji.Emoji)
-                    ? Format.Url(favoriteEmoji.Emoji.ToString(), favoriteEmoji.Emoji.Url)
+                    ? favoriteEmoji.Emoji.ToString()
                     : $"{Format.Url("❔", favoriteEmoji.Emoji.Url)} (`{favoriteEmoji.Emoji.Name}`)";
 
                 builder.AppendLine($"Favorite emoji: {emojiFormatted} ({"time".ToQuantity(favoriteEmoji.Uses)})");

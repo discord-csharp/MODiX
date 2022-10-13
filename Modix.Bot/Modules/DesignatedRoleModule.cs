@@ -2,41 +2,40 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Commands;
+using Discord.Interactions;
 using Humanizer;
 using Microsoft.Extensions.Options;
 using Modix.Bot.Extensions;
+using Modix.Bot.Preconditions;
 using Modix.Common.Extensions;
 using Modix.Data.Models.Core;
+using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 
 namespace Modix.Modules
 {
-    [Name("Role Designations")]
-    [Summary("Configures role designations for various bot services.")]
-    [Group("role designations")]
-    public class DesignatedRoleModule : ModuleBase
+    [ModuleHelp("Role Designations", "Configures role designations for various bot services.")]
+    [Group("role-designations", "Configures role designations for various bot services.")]
+    public class DesignatedRoleModule : InteractionModuleBase
     {
-        public IAuthorizationService AuthorizationService { get; }
-        public IDesignatedRoleService DesignatedRoleService { get; }
+        private readonly IDesignatedRoleService _designatedRoleService;
+        private readonly ModixConfig _config;
 
-        public ModixConfig Config { get; }
-
-        public DesignatedRoleModule(IAuthorizationService authorizationService, IDesignatedRoleService designatedRoleService, IOptions<ModixConfig> config)
+        public DesignatedRoleModule(IDesignatedRoleService designatedRoleService, IOptions<ModixConfig> config)
         {
-            AuthorizationService = authorizationService;
-            DesignatedRoleService = designatedRoleService;
-            Config = config.Value;
+            _designatedRoleService = designatedRoleService;
+            _config = config.Value;
         }
 
-        [Command]
-        [Summary("Lists all of the roles designated for use by the bot")]
+        [SlashCommand("list", "Lists all of the roles designated for use by the bot.")]
+        [RequireClaims(AuthorizationClaim.DesignatedRoleMappingRead)]
+        [DefaultMemberPermissions(GuildPermission.BanMembers)]
         public async Task ListAsync()
         {
-            var roles = await DesignatedRoleService.GetDesignatedRolesAsync(Context.Guild.Id);
+            var roles = await _designatedRoleService.GetDesignatedRolesAsync(Context.Guild.Id);
 
             // https://mod.gg/config/roles
-            var url = new UriBuilder(Config.WebsiteBaseUrl)
+            var url = new UriBuilder(_config.WebsiteBaseUrl)
             {
                 Path = "/config/roles"
             }.RemoveDefaultPort().ToString();
@@ -49,7 +48,7 @@ namespace Modix.Modules
                 Timestamp = DateTimeOffset.UtcNow
             };
 
-            foreach(var type in Enum.GetValues(typeof(DesignatedRoleType)).Cast<DesignatedRoleType>())
+            foreach(var type in Enum.GetValues<DesignatedRoleType>())
             {
                 var designatedRoles = roles
                     .Where(x => x.Type == type)
@@ -67,30 +66,32 @@ namespace Modix.Modules
                 });
             }
 
-            await ReplyAsync(embed: builder.Build());
+            await FollowupAsync(embed: builder.Build());
         }
 
-        [Command("add")]
-        [Summary("Assigns a designation to the given role")]
+        [SlashCommand("add", "Assigns a designation to the given role.")]
+        [RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate)]
+        [DefaultMemberPermissions(GuildPermission.BanMembers)]
         public async Task AddAsync(
-            [Summary("The role to be assigned a designation")]
+            [Summary(description: "The role to be assigned a designation.")]
                 IRole role,
-            [Summary("The designation to assign")]
+            [Summary(description: "The designation to assign.")]
                 DesignatedRoleType designation)
         {
-            await DesignatedRoleService.AddDesignatedRoleAsync(role.Guild.Id, role.Id, designation);
+            await _designatedRoleService.AddDesignatedRoleAsync(role.Guild.Id, role.Id, designation);
             await Context.AddConfirmationAsync();
         }
 
-        [Command("remove")]
-        [Summary("Removes a designation from the given role")]
+        [SlashCommand("remove", "Removes a designation from the given role.")]
+        [RequireClaims(AuthorizationClaim.DesignatedRoleMappingDelete)]
+        [DefaultMemberPermissions(GuildPermission.BanMembers)]
         public async Task RemoveAsync(
-            [Summary("The role whose designation is to be unassigned")]
+            [Summary(description: "The role whose designation is to be unassigned.")]
                 IRole role,
-            [Summary("The designation to be unassigned")]
+            [Summary(description: "The designation to be unassigned.")]
                 DesignatedRoleType designation)
         {
-            await DesignatedRoleService.RemoveDesignatedRoleAsync(role.Guild.Id, role.Id, designation);
+            await _designatedRoleService.RemoveDesignatedRoleAsync(role.Guild.Id, role.Id, designation);
             await Context.AddConfirmationAsync();
         }
     }

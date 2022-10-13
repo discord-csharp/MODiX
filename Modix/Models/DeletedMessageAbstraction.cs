@@ -36,7 +36,7 @@ namespace Modix.Models
             return new DeletedMessageAbstraction
             {
                 MessageId = msg.Id,
-                Username = msg.Author.GetFullUsername(),
+                Username = msg.Author.GetDisplayName(),
                 Content = content,
                 SentTime = msg.CreatedAt,
                 Url = msg.GetJumpUrl()

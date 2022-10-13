@@ -31,7 +31,7 @@ namespace Modix.Services.CommandHelp
             {
                 Name = command.ToString(),
                 Summary = command.Description,
-                Aliases = new[] { command.Name },
+                Aliases = new[] { command.ToString() },
                 Parameters = command.Parameters
                         .Select(x => ParameterHelpData.FromParameterInfo(x))
                         .ToArray(),

@@ -31,6 +31,7 @@ namespace Modix.Services.Core
         public Task StartAsync(
             CancellationToken cancellationToken)
         {
+            DiscordSocketClient.AuditLogCreated += OnAuditLogCreatedAsync;
             DiscordSocketClient.ChannelCreated += OnChannelCreatedAsync;
             DiscordSocketClient.ChannelUpdated += OnChannelUpdatedAsync;
             DiscordSocketClient.GuildAvailable += OnGuildAvailableAsync;
@@ -57,6 +58,7 @@ namespace Modix.Services.Core
         public Task StopAsync(
             CancellationToken cancellationToken)
         {
+            DiscordSocketClient.AuditLogCreated -= OnAuditLogCreatedAsync;
             DiscordSocketClient.ChannelCreated -= OnChannelCreatedAsync;
             DiscordSocketClient.ChannelUpdated -= OnChannelUpdatedAsync;
             DiscordSocketClient.GuildAvailable -= OnGuildAvailableAsync;
@@ -86,6 +88,13 @@ namespace Modix.Services.Core
         /// A <see cref="IMessageDispatcher"/> used to dispatch discord notifications to the rest of the application.
         /// </summary>
         internal protected IMessageDispatcher MessageDispatcher { get; }
+
+        private Task OnAuditLogCreatedAsync(SocketAuditLogEntry entry, SocketGuild guild)
+        {
+            MessageDispatcher.Dispatch(new AuditLogCreatedNotification(entry, guild));
+
+            return Task.CompletedTask;
+        }
 
         private Task OnChannelCreatedAsync(SocketChannel channel)
         {

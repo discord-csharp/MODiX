@@ -39,6 +39,7 @@ namespace Modix.Bot.Modules
 
         [SlashCommand("create", "Creates a new tag.")]
         [RequireClaims(AuthorizationClaim.CreateTag)]
+        [DefaultMemberPermissions(GuildPermission.ManageEmojisAndStickers)]
         [DoNotDefer]
         public async Task CreateTagAsync()
         {
@@ -95,32 +96,37 @@ namespace Modix.Bot.Modules
             await Context.AddConfirmationAsync($"Deleted tag '{name}'.");
         }
 
-        [SlashCommand("ownedbyuser", "Lists all tags owned by the supplied user.")]
+        [SlashCommand("ownedby", "Lists all tags owned by the supplied user or role.")]
         public async Task OwnedByAsync(
-            [Summary(description: "The user whose tags are to be retrieved. If left blank, the current user.")]
-                IUser discordUser = null)
+            [Summary(description: "The user or role whose tags are to be retrieved. If left blank, the current user.")]
+                IMentionable owner = null)
         {
-            var userId = discordUser?.Id ?? Context.User.Id;
+            owner ??= Context.User;
 
-            var tags = await _tagService.GetTagsOwnedByUserAsync(Context.Guild.Id, userId);
+            if (owner is IUser ownerUser)
+            {
+                var userId = ownerUser.Id;
 
-            var user = await _userService.GetUserAsync(userId);
+                var tags = await _tagService.GetTagsOwnedByUserAsync(Context.Guild.Id, userId);
 
-            var embed = BuildEmbed(tags, ownerUser: user);
+                var user = await _userService.GetUserAsync(userId);
 
-            await FollowupAsync(embed: embed);
-        }
+                var embed = BuildEmbed(tags, ownerUser: user);
 
-        [SlashCommand("ownedbyrole", "Lists all tags owned by the supplied role.")]
-        public async Task OwnedByAsync(
-            [Summary(description: "The role whose tags are to be retrieved.")]
-                IRole role)
-        {
-            var tags = await _tagService.GetTagsOwnedByRoleAsync(Context.Guild.Id, role.Id);
+                await FollowupAsync(embed: embed);
+            }
+            else if (owner is IRole ownerRole)
+            {
+                var tags = await _tagService.GetTagsOwnedByRoleAsync(Context.Guild.Id, ownerRole.Id);
 
-            var embed = BuildEmbed(tags, ownerRole: role);
+                var embed = BuildEmbed(tags, ownerRole: ownerRole);
 
-            await FollowupAsync(embed: embed);
+                await FollowupAsync(embed: embed);
+            }
+            else
+            {
+                await FollowupAsync($"Unable to identify {owner.Mention} as a user or role.", allowedMentions: AllowedMentions.None);
+            }
         }
 
         [SlashCommand("owner", "Lists the owner of the supplied tag.")]
@@ -186,27 +192,28 @@ namespace Modix.Bot.Modules
             await FollowupAsync(embed: embed);
         }
 
-        [SlashCommand("transfer-user", "Transfers ownership of a tag to the supplied user.")]
-        public async Task TransferToUserAsync(
+        [SlashCommand("transfer", "Transfers ownership of a tag to the supplied user or role.")]
+        public async Task TransferAsync(
             [Summary(description: "The name of the tag to be transferred.")]
             [Autocomplete(typeof(TagAutocompleteHandler))]
                 string name,
-            [Summary(description: "The user to whom the tag should be transferred.")]
-                IUser target)
+            [Summary(description: "The user or role to whom the tag should be transferred.")]
+                IMentionable target)
         {
-            await _tagService.TransferToUserAsync(Context.Guild.Id, name, Context.User.Id, target.Id);
-            await Context.AddConfirmationAsync();
-        }
+            if (target is IUser user)
+            {
+                await _tagService.TransferToUserAsync(Context.Guild.Id, name, Context.User.Id, user.Id);
+            }
+            else if (target is IRole role)
+            {
+                await _tagService.TransferToRoleAsync(Context.Guild.Id, name, Context.User.Id, role.Id);
+            }
+            else
+            {
+                await FollowupAsync($"Unable to identify {target.Mention} as a user or role.", allowedMentions: AllowedMentions.None);
+                return;
+            }
 
-        [SlashCommand("transfer-role", "Transfers ownership of a tag to the supplied role.")]
-        public async Task TransferToRoleAsync(
-            [Summary(description: "The name of the tag to be transferred.")]
-            [Autocomplete(typeof(TagAutocompleteHandler))]
-                string name,
-            [Summary(description: "The role to which the tag should be transferred.")]
-                IRole target)
-        {
-            await _tagService.TransferToRoleAsync(Context.Guild.Id, name, Context.User.Id, target.Id);
             await Context.AddConfirmationAsync();
         }
 

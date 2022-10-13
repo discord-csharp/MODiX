@@ -1,44 +1,52 @@
-﻿using Discord;
-using Discord.Commands;
-using System;
+﻿using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Discord;
+using Discord.Interactions;
+using Modix.Services.CommandHelp;
 using Modix.Services.Wikipedia;
 
 namespace Modix.Modules
 {
-    [Name("Wikipedia"), Summary("Search Wikipedia from Discord!")]
-    public class WikipediaModule : ModuleBase
+    [ModuleHelp("Wikipedia", "Search Wikipedia from Discord!")]
+    public class WikipediaModule : InteractionModuleBase
     {
+        private readonly WikipediaService _wikipediaService;
+
         public WikipediaModule(WikipediaService wikipediaService)
         {
-            WikipediaService = wikipediaService;
+            _wikipediaService = wikipediaService;
         }
 
-        [Command("wiki"), Summary("Returns a Wikipedia page result matching the search phrase.")]
+        [SlashCommand("wiki", "Returns a Wikipedia page result matching the search phrase.")]
         public async Task RunAsync(
-            [Summary("The phrase to search on Wikipedia.")]
-                [Remainder] string phrase)
+            [Summary(description: "The phrase to search on Wikipedia.")]
+                string phrase)
         {
-            var response = await WikipediaService.GetWikipediaResultsAsync(phrase);
+            var response = await _wikipediaService.GetWikipediaResultsAsync(phrase);
 
             // Empty response.
             if (response == null || response.Query == null || !response.Query.Pages.Any())
             {
-                await ReplyAsync($"Failed to find anything for `!wiki {phrase}`.");
+                await FollowupAsync($"Failed to find anything for {phrase}.", allowedMentions: AllowedMentions.None);
                 return;
             }
 
             // Construct results into one string (use StringBuilder for concat speed).
             var messageBuilder = new StringBuilder();
-            response.Query.Pages.Values.ToList().ForEach(p => messageBuilder.AppendLine(p.Extract));
-            var message = messageBuilder.ToString();
+
+            foreach (var pageValue in response.Query.Pages.Values)
+            {
+                messageBuilder.AppendLine(pageValue.Extract);
+            }
+
+            var message = messageBuilder.ToString().Trim();
 
             // Sometimes we get here and there's no message, just double check.
-            if (message.Length == 0 || message == Environment.NewLine)
+            if (string.IsNullOrEmpty(message))
             {
-                await ReplyAsync($"Failed to find anything for `!wiki {phrase}`.");
+                await FollowupAsync($"Failed to find anything for {phrase}.", allowedMentions: AllowedMentions.None);
                 return;
             }
 
@@ -62,7 +70,7 @@ namespace Modix.Modules
                        .WithTitle($"Results for {phrase} (pt {i + 1})")
                        .WithDescription(message.Substring(cursor, (i == batchCount - 1) ? message.Length - cursor : DiscordConfig.MaxMessageSize));
                     
-                    await ReplyAsync("", embed: builder.Build());
+                    await FollowupAsync(embed: builder.Build());
                     cursor += DiscordConfig.MaxMessageSize;
                 }
             }
@@ -73,10 +81,8 @@ namespace Modix.Modules
                     .WithTitle($"Results for {phrase}")
                     .WithDescription(message);
 
-                await ReplyAsync("", embed: builder.Build());
+                await FollowupAsync(embed: builder.Build());
             }
         }
-
-        protected WikipediaService WikipediaService { get; }
     }
 }
