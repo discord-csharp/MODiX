@@ -47,10 +47,7 @@ namespace Modix.Services.EmojiStats
                 return;
 
             var message = await notification.Message.GetOrDownloadAsync();
-            if (message is null)
-                return;
-
-            if (message.Author.IsBot)
+            if (message is not { Author.IsBot: false })
                 return;
 
             var reaction = notification.Reaction;
@@ -101,10 +98,7 @@ namespace Modix.Services.EmojiStats
                 return;
 
             var message = await notification.Message.GetOrDownloadAsync();
-            if (message is null)
-                return;
-
-            if (message.Author.IsBot)
+            if (message is not { Author.IsBot: false })
                 return;
 
             var reaction = notification.Reaction;
@@ -151,15 +145,15 @@ namespace Modix.Services.EmojiStats
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            var newEmoji = EmojiRegex.Matches(notification.Message.Content);
-
-            if (newEmoji.Count == 0)
+            if (notification.Message.Channel is not ITextChannel channel)
                 return;
 
-            var channel = notification.Message.Channel as ITextChannel;
-            var message = notification.Message as IUserMessage;
+            if (notification.Message is not { Author.IsBot: false, Content: not null } message)
+                return;
 
-            if (message.Author.IsBot)
+            var newEmoji = EmojiRegex.Matches(message.Content);
+
+            if (newEmoji.Count == 0)
                 return;
 
             foreach (var (emoji, count) in newEmoji.Cast<Match>().GroupBy(x => x.Value).Select(x => (x.Key, x.Count())))
@@ -178,23 +172,17 @@ namespace Modix.Services.EmojiStats
             if (string.IsNullOrWhiteSpace(notification.NewMessage.Content))
                 return;
 
-            var channel = notification.Channel as ITextChannel;
+            if (notification.Channel is not ITextChannel channel)
+                return;
 
             await UnlogMessageContentEmojiAsync(channel, notification.OldMessage.Id);
 
-            var newMessage = notification.NewMessage as IUserMessage;
-
-            if(newMessage?.Content == null)
-            {
+            if (notification.NewMessage is not { Author.IsBot: false, Content: not null } newMessage)
                 return;
-            }
 
             var newEmoji = EmojiRegex.Matches(newMessage.Content);
 
             if (newEmoji.Count == 0)
-                return;
-
-            if (newMessage.Author.IsBot)
                 return;
 
             foreach (var (emoji, count) in newEmoji.Cast<Match>().GroupBy(x => x.Value).Select(x => (x.Key, x.Count())))
@@ -211,7 +199,7 @@ namespace Modix.Services.EmojiStats
                 return;
 
             var message = await notification.Message.GetOrDownloadAsync();
-            if (message is { Author: { IsBot: true } })
+            if (message is not { Author.IsBot: false })
                 return;
 
             var channel = (ITextChannel)await notification.Channel.GetOrDownloadAsync();
@@ -219,7 +207,7 @@ namespace Modix.Services.EmojiStats
             await UnlogAllEmojiAsync(channel, notification.Message.Id);
         }
 
-        private async Task LogMultipleMessageEmojiAsync(ITextChannel channel, IUserMessage message, string emoji, Emote emote, int count)
+        private async Task LogMultipleMessageEmojiAsync(ITextChannel channel, IMessage message, string emoji, Emote emote, int count)
         {
             using var transaction = await _emojiRepository.BeginMaintainTransactionAsync();
 
