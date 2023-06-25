@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
@@ -64,7 +64,7 @@ namespace Modix.Services.Quote
             foreach (Match match in Pattern.Matches(message.Content))
             {
                 // check if the link is surrounded with < and >. This was too annoying to do in regex
-                if (match.Groups["OpenBrace"].Success && match.Groups["CloseBrace"].Success)
+                if ((match.Groups["Prelink"].Value.EndsWith("<") || match.Groups["OpenBrace"].Success) && match.Groups["CloseBrace"].Success)
                     continue;
 
                 if (ulong.TryParse(match.Groups["GuildId"].Value, out var guildId)
