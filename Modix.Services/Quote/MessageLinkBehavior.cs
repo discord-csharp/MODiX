@@ -10,8 +10,8 @@ namespace Modix.Services.Quote
 {
     public class MessageLinkBehavior : BehaviorBase
     {
-        private static readonly Regex Pattern = new Regex(
-            @"(?<Prelink>\S+\s+\S*)?(?<OpenBrace><)?https?://(?:(?:ptb|canary)\.)?discord(app)?\.com/channels/(?<GuildId>\d+)/(?<ChannelId>\d+)/(?<MessageId>\d+)/?(?<CloseBrace>>)?(?<Postlink>\S*\s+\S+)?",
+        private static readonly Regex Pattern = new(
+            @"^(?<Prelink>[\s\S]*?)?(?<OpenBrace><)?https?://(?:(?:ptb|canary)\.)?discord(app)?\.com/channels/(?<GuildId>\d+)/(?<ChannelId>\d+)/(?<MessageId>\d+)/?(?<CloseBrace>>)?(?<Postlink>[\s\S]*)?$",
             RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
         public MessageLinkBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
@@ -64,7 +64,7 @@ namespace Modix.Services.Quote
             foreach (Match match in Pattern.Matches(message.Content))
             {
                 // check if the link is surrounded with < and >. This was too annoying to do in regex
-                if ((match.Groups["Prelink"].Value.EndsWith("<") || match.Groups["OpenBrace"].Success) && match.Groups["CloseBrace"].Success)
+                if (match.Groups["OpenBrace"].Success && match.Groups["CloseBrace"].Success)
                     continue;
 
                 if (ulong.TryParse(match.Groups["GuildId"].Value, out var guildId)
@@ -98,7 +98,8 @@ namespace Modix.Services.Quote
 
                             var msg = await messageChannel.GetMessageAsync(messageId, cacheMode);
 
-                            if (msg == null) return;
+                            if (msg == null)
+                                return;
 
                             var success = await SendQuoteEmbedAsync(msg, userMessage);
                             if (success
