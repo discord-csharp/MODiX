@@ -7,13 +7,13 @@ namespace Modix.Services.Utilities
     public static class UserExtensions
     {
         public static string GetFullUsername(this IUser user)
-            => $"{user.Username}#{user.Discriminator}";
+            => user.Discriminator == "0000" ? user.Username : $"{user.Username}#{user.Discriminator}";
 
         public static string GetFullUsername(this GuildUserSummary user)
-            => $"{user.Username}#{user.Discriminator}";
+            => user.Discriminator == "0000" ? user.Username : $"{user.Username}#{user.Discriminator}";
 
         public static string GetFullUsername(this GuildUserBrief user)
-            => $"{user.Username}#{user.Discriminator}";
+            => user.Discriminator == "0000" ? user.Username : $"{user.Username}#{user.Discriminator}";
 
         public static bool HasRole(this IGuildUser user, ulong roleId)
             => user.RoleIds.Contains(roleId);
