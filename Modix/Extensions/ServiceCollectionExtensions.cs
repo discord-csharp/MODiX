@@ -26,13 +26,10 @@ using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.Csharp;
-using Modix.Services.DocsMaster;
 using Modix.Services.EmojiStats;
-using Modix.Services.Giveaways;
 using Modix.Services.GuildStats;
 using Modix.Services.Images;
 using Modix.Services.Moderation;
-using Modix.Services.PopularityContest;
 using Modix.Services.Promotions;
 using Modix.Services.Quote;
 using Modix.Services.StackExchange;
@@ -93,9 +90,10 @@ namespace Microsoft.Extensions.DependencyInjection
                             GatewayIntents.GuildMessageReactions |  // MESSAGE_REACTION_ADD, MESSAGE_REACTION_REMOVE,
                                                                     //     MESSAGE_REACTION_REMOVE_ALL, MESSAGE_REACTION_REMOVE_EMOJI
                             GatewayIntents.GuildMessages |          // MESSAGE_CREATE, MESSAGE_UPDATE, MESSAGE_DELETE, MESSAGE_DELETE_BULK
-                            GatewayIntents.Guilds,                  // GUILD_CREATE, GUILD_UPDATE, GUILD_DELETE, GUILD_ROLE_CREATE,
+                            GatewayIntents.Guilds |                 // GUILD_CREATE, GUILD_UPDATE, GUILD_DELETE, GUILD_ROLE_CREATE,
                                                                     //     GUILD_ROLE_UPDATE, GUILD_ROLE_DELETE, CHANNEL_CREATE,
                                                                     //     CHANNEL_UPDATE, CHANNEL_DELETE, CHANNEL_PINS_UPDATE
+                            GatewayIntents.MessageContent,          // MESSAGE_CONTENT
                         LogLevel = LogSeverity.Debug,
                         MessageCacheSize = provider
                             .GetRequiredService<IOptions<ModixConfig>>()
@@ -144,6 +142,9 @@ namespace Microsoft.Extensions.DependencyInjection
                     AutoServiceScopes = false,
                 });
 
+                service.AddTypeConverter<IEmote>(new EmoteTypeConverter());
+                service.AddTypeConverter<Uri>(new Modix.Bot.TypeConverters.UriTypeConverter());
+
                 return service;
             })
             .AddScoped<Modix.Common.Messaging.INotificationHandler<InteractionCreatedNotification>, InteractionListeningBehavior>();
@@ -164,15 +165,12 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddStarboard()
                 .AddAutoRemoveMessage()
                 .AddEmojiStats()
-                .AddImages()
-                .AddGiveaways();
+                .AddImages();
 
             services.AddScoped<IQuoteService, QuoteService>();
             services.AddSingleton<IBehavior, MessageLinkBehavior>();
-            services.AddScoped<DocsMasterRetrievalService>();
             services.AddMemoryCache();
 
-            services.AddScoped<IPopularityContestService, PopularityContestService>();
             services.AddScoped<WikipediaService>();
             services.AddScoped<StackExchangeService>();
             services.AddScoped<DocumentationService>();

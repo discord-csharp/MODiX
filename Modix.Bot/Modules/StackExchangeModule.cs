@@ -1,39 +1,42 @@
-﻿using Discord;
-using Discord.Commands;
-using Modix.Services.StackExchange;
+﻿#nullable enable
+
 using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Modix.Data.Models.Core;
+using Discord;
+using Discord.Interactions;
 using Microsoft.Extensions.Options;
+using Modix.Data.Models.Core;
+using Modix.Services.CommandHelp;
+using Modix.Services.StackExchange;
 
 namespace Modix.Modules
 {
-    [Name("Stack Exchange"), Summary("Query any site from Stack Exchange.")]
-    public class StackExchangeModule : ModuleBase
+    [ModuleHelp("Stack Exchange", "Query any site from Stack Exchange.")]
+    public class StackExchangeModule : InteractionModuleBase
     {
-        private readonly string _stackOverflowToken;
+        private readonly StackExchangeService _stackExchangeService;
+        private readonly string? _stackOverflowToken;
 
         public StackExchangeModule(
             IOptions<ModixConfig> config,
             StackExchangeService stackExchangeService)
         {
-            StackExchangeService = stackExchangeService;
+            _stackExchangeService = stackExchangeService;
             _stackOverflowToken = config.Value.StackoverflowToken;
         }
 
-        [Command("stack"), Summary("Returns top results from a Stack Exchange site."), Remarks("Usage: `!stack how do i parse json with c#? [site=stackoverflow tags=c#,json]`")]
+        [SlashCommand("stackexchange", "Returns top results from a Stack Exchange site.")]
         public async Task RunAsync(
-            [Remainder]
-            [Summary("The phrase to search Stack Exchange for.")]
+            [Summary(description: "The phrase to search Stack Exchange for.")]
                 string phrase)
         {
             var startLocation = phrase.IndexOf("[");
             var endLocation = phrase.IndexOf("]");
 
-            string site = null;
-            string tags = null;
+            string? site = null;
+            string? tags = null;
 
             if (startLocation > 0 && endLocation > 0)
             {
@@ -42,11 +45,11 @@ namespace Modix.Modules
 
                 foreach (var part in parts)
                 {
-                    if (part.IndexOf("site=") >= 0)
+                    if (part.Contains("site=", StringComparison.OrdinalIgnoreCase))
                     {
                         site = part.Split(new[] { "site=" }, StringSplitOptions.None)[1];
                     }
-                    else if (part.IndexOf("tags=") >= 0)
+                    else if (part.Contains("tags=", StringComparison.OrdinalIgnoreCase))
                     {
                         tags = part.Split(new[] { "tags=" }, StringSplitOptions.None)[1];
                     }
@@ -55,18 +58,14 @@ namespace Modix.Modules
                 phrase = phrase.Remove(startLocation, endLocation - (startLocation - 1)).Trim();
             }
 
-            if (site == null)
-            {
-                site = "stackoverflow";
-            }
+            site ??= "stackoverflow";
+            tags ??= "c#";
 
-            if (tags == null)
-            {
-                tags = "c#";
-            }
-
-            var response = await StackExchangeService.GetStackExchangeResultsAsync(_stackOverflowToken, phrase, site, tags);
+            var response = await _stackExchangeService.GetStackExchangeResultsAsync(_stackOverflowToken, phrase, site, tags);
             var filteredRes = response.Items.Where(x => x.Tags.Contains(tags));
+
+            var firstResponse = true;
+
             foreach (var res in filteredRes.Take(3))
             {
                 var builder = new EmbedBuilder()
@@ -74,7 +73,15 @@ namespace Modix.Modules
                     .WithTitle($"{res.Score}: {WebUtility.HtmlDecode(res.Title)}")
                     .WithUrl(res.Link);
 
-                await ReplyAsync("", embed: builder.Build());
+                if (firstResponse)
+                {
+                    await FollowupAsync(embed: builder.Build());
+                    firstResponse = false;
+                }
+                else
+                {
+                    await ReplyAsync(embed: builder.Build());
+                }
             }
 
             var footer = new EmbedBuilder()
@@ -82,9 +89,7 @@ namespace Modix.Modules
                 .WithFooter(
                      new EmbedFooterBuilder().WithText($"tags: {tags} | site: {site}. !stack foobar [site=stackexchange tags=c#]"));
 
-            await ReplyAsync("", embed: footer.Build());
+            await ReplyAsync(embed: footer.Build());
         }
-
-        protected StackExchangeService StackExchangeService { get; }
     }
 }

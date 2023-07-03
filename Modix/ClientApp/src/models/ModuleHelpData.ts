@@ -11,6 +11,7 @@ export interface CommandHelpData
     name: string;
     summary: string;
     parameters: ParameterHelpData[];
+    isSlashCommand: boolean;
 }
 
 export interface ParameterHelpData

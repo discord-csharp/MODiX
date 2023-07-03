@@ -30,7 +30,7 @@ namespace Modix.Modules
         public async Task PingAsync()
         {
             await RespondAsync($"Pinging {_latencyEndpoints.Count} latency endpoints " +
-                $"and {_availabilityEndpoints.Count} availability endpoints...");
+                $"and {_availabilityEndpoints.Count} availability endpoints...", allowedMentions: AllowedMentions.None);
 
             var embed = new EmbedBuilder()
                 .WithTitle($"Pong! Checked {_latencyEndpoints.Count + _availabilityEndpoints.Count} endpoints");

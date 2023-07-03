@@ -14,11 +14,11 @@ namespace Modix.Bot.Modules
 {
     [Name("Link")]
     [Summary("Commands for working with links.")]
-    public class LinkModule : ModuleBase
+    public class LegacyLinkModule : ModuleBase
     {
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
 
-        public LinkModule(IAutoRemoveMessageService autoRemoveMessageService)
+        public LegacyLinkModule(IAutoRemoveMessageService autoRemoveMessageService)
         {
             _autoRemoveMessageService = autoRemoveMessageService;
         }
@@ -57,7 +57,8 @@ namespace Modix.Bot.Modules
             var embed = new EmbedBuilder()
                 .WithDescription(description)
                 .WithUserAsAuthor(Context.User)
-                .WithColor(Color.LightGrey);
+                .WithColor(Color.LightGrey)
+                .WithFooter("Try the /sharplab command!");
 
             await _autoRemoveMessageService.RegisterRemovableMessageAsync(Context.User, embed, async e => await ReplyAsync(embed: e.Build()));
 

@@ -130,10 +130,10 @@ namespace Modix.Modules
                 var favoriteEmoji = emojiCounts.First();
 
                 var emojiFormatted = ((SocketSelfUser)Context.Client.CurrentUser).CanAccessEmoji(favoriteEmoji.Emoji)
-                    ? Format.Url(favoriteEmoji.Emoji.ToString(), favoriteEmoji.Emoji.Url)
+                    ? favoriteEmoji.Emoji.ToString()
                     : $"{Format.Url("❔", favoriteEmoji.Emoji.Url)} (`{favoriteEmoji.Emoji.Name}`)";
 
-                stringBuilder.AppendLine($"Favorite reaction: {emojiFormatted} ({"time".ToQuantity(favoriteEmoji.Uses)})");
+                stringBuilder.AppendLine($"Favorite emoji: {emojiFormatted} ({"time".ToQuantity(favoriteEmoji.Uses)})");
             }
 
             stringBuilder.AppendLine();

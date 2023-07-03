@@ -343,7 +343,7 @@ namespace Modix.Services.Core
                 IsDeleted = false,
             }))
             {
-                throw new InvalidOperationException($"A claim mapping of type {type} to claim {claim} for user {user.GetFullUsername()} already exists");
+                throw new InvalidOperationException($"A claim mapping of type {type} to claim {claim} for user {user.GetDisplayName()} already exists");
             }
 
             await ClaimMappingRepository.CreateAsync(new ClaimMappingCreationData()
@@ -401,7 +401,7 @@ namespace Modix.Services.Core
             });
 
             if (!mappingIds.Any())
-                throw new InvalidOperationException($"A claim mapping of type {type} to claim {claim} for user {user.GetFullUsername()} does not exist");
+                throw new InvalidOperationException($"A claim mapping of type {type} to claim {claim} for user {user.GetDisplayName()} does not exist");
 
             await ClaimMappingRepository.TryDeleteAsync(mappingIds.First(), CurrentUserId.Value);
 

@@ -240,7 +240,7 @@ namespace Modix.Modules
             await ModerationService.DeleteMessagesAsync(
                 channel, user, count,
                     () => Context.GetUserConfirmationAsync(
-                        $"You are attempting to delete the past {count} messages by {user.GetFullUsername()} in {channel.Mention}.{Environment.NewLine}"));
+                        $"You are attempting to delete the past {count} messages by {user.GetDisplayName()} in {channel.Mention}.{Environment.NewLine}"));
         }
 
         private async Task ConfirmAndReplyWithCountsAsync(ulong userId)
@@ -299,11 +299,11 @@ namespace Modix.Modules
 
             var author = await UserService.GetUserAsync(userOrAuthor.UserId);
 
-            Debug.Assert(author is { }); // author should be nonnull, because we have a message written by someone with that ID
+            Debug.Assert(author is not null); // author should be nonnull, because we have a message written by someone with that ID
 
             return await Context.GetUserConfirmationAsync(
                 "Detected a message ID instead of a user ID. Do you want to perform this action on "
-                + $"{Format.Bold(author.GetFullUsername())} ({userOrAuthor.UserId}), the message's author?");
+                + $"{Format.Bold(author.GetDisplayName())} ({userOrAuthor.UserId}), the message's author?");
         }
 
         internal protected IModerationService ModerationService { get; }

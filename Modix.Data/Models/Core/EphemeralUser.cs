@@ -1,7 +1,6 @@
 ﻿using Discord;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 namespace Modix.Data.Models.Core
@@ -91,6 +90,10 @@ namespace Modix.Data.Models.Core
         public bool IsVideoing { get; private set; }
 
         public DateTimeOffset? RequestToSpeakTimestamp { get; private set; }
+
+        public GuildUserFlags Flags { get; private set; }
+
+        public string? GlobalName { get; private set; }
 
         public async Task AddRoleAsync(ulong roleId, RequestOptions? options = null)
             => await OnGuildUserOrThrowAsync(user => user.AddRoleAsync(roleId, options));
@@ -230,6 +233,9 @@ namespace Modix.Data.Models.Core
             if (user.DiscriminatorValue != default)
                 DiscriminatorValue = user.DiscriminatorValue;
 
+            if (user.GlobalName != default)
+                GlobalName = user.GlobalName;
+
             if (user.IsBot != default)
                 IsBot = user.IsBot;
 
@@ -305,6 +311,9 @@ namespace Modix.Data.Models.Core
 
             if (user.Nickname != default)
                 Nickname = user.Nickname;
+
+            if (user.Flags != default)
+                Flags = user.Flags;
 
             if (user.Guild != default)
                 Guild = user.Guild;

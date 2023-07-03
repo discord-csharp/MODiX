@@ -70,7 +70,7 @@ namespace Modix.Modules
 
             if (infractions.Count == 0)
             {
-                await FollowupAsync(Format.Code("No infractions"));
+                await FollowupAsync(Format.Code("No infractions"), allowedMentions: AllowedMentions.None);
                 return;
             }
 
@@ -94,7 +94,7 @@ namespace Modix.Modules
             }.RemoveDefaultPort().ToString();
 
             var builder = new EmbedBuilder()
-                .WithTitle($"Infractions for user: {user.GetFullUsername()}")
+                .WithTitle($"Infractions for user: {user.GetDisplayName()}")
                 .WithDescription(FormatUtilities.FormatInfractionCounts(counts))
                 .WithUrl(url)
                 .WithColor(new Color(0xA3BF0B));
@@ -149,7 +149,7 @@ namespace Modix.Modules
                     ? "Failed updating infraction."
                     : $"Failed updating infraction. {errorMessage}";
 
-                await FollowupAsync(replyMessage);
+                await FollowupAsync(replyMessage, allowedMentions: AllowedMentions.None);
                 return;
             }
 

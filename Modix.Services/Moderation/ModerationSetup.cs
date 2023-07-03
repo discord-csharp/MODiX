@@ -34,6 +34,6 @@ namespace Modix.Services.Moderation
                 .AddScoped<INotificationHandler<MessageReceivedNotification>, MessageContentCheckBehaviour>()
                 .AddScoped<INotificationHandler<MessageUpdatedNotification>, MessageContentCheckBehaviour>()
                 .AddScoped<INotificationHandler<UserJoinedNotification>, MutePersistingHandler>()
-                .AddScoped<INotificationHandler<UserBannedNotification>, InfractionSyncingHandler>();
+                .AddScoped<INotificationHandler<AuditLogCreatedNotification>, InfractionSyncingHandler>();
     }
 }

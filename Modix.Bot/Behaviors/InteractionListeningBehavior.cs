@@ -53,6 +53,7 @@ namespace Modix.Bot.Behaviors
 
             string interactionName;
             var isDeferred = false;
+            var requiresAuthentication = true;
 
             switch (interaction)
             {
@@ -87,12 +88,17 @@ namespace Modix.Bot.Behaviors
                     isDeferred = true;
                     interactionName = modal.Data.CustomId;
                     break;
+                case SocketAutocompleteInteraction autocomplete:
+                    requiresAuthentication = false;
+                    interactionName = $"Autocomplete for {autocomplete.Data.CommandName} command";
+                    break;
                 default:
                     interactionName = interaction.Type.ToString();
                     break;
             }
 
-            await _authorizationService.OnAuthenticatedAsync(author.Id, author.Guild.Id, author.RoleIds.ToArray());
+            if (requiresAuthentication)
+                await _authorizationService.OnAuthenticatedAsync(author.Id, author.Guild.Id, author.RoleIds.ToArray());
 
             var result = await _interactionService.ExecuteCommandAsync(context, _serviceProvider);
 

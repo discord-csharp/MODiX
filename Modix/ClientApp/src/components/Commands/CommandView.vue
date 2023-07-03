@@ -4,7 +4,7 @@
 
         <div :class="{'field is-grouped is-grouped-multiline': command.parameters.length > 0}" v-for="(alias, index) in command.aliases" :key="index">
             <span class="commandName">
-                !{{alias.toLowerCase()}}
+                {{command.isSlashCommand ? '/' : '!'}}{{alias.toLowerCase()}}
             </span>
 
             <div class="summary" v-if="alias == command.aliases[0]">

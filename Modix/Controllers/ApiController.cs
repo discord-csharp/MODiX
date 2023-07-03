@@ -1,8 +1,8 @@
-﻿using Discord.WebSocket;
+﻿using System.Linq;
+using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
-using Modix.Models;
+using Modix.Models.Core;
 using Modix.Services.Core;
-using System.Linq;
 
 namespace Modix.Controllers
 {
@@ -39,7 +39,7 @@ namespace Modix.Controllers
         {
             var guilds = DiscordSocketClient
                 .Guilds
-                .Where(d => d.GetUser(SocketUser?.Id??0) != null)
+                .Where(d => d.GetUser(SocketUser?.Id ?? 0) != null)
                 .Select(d => new { d.Name, d.Id, d.IconUrl });
 
             return Ok(guilds);

@@ -89,7 +89,7 @@ namespace Modix.Modules
                 string comment)
             => await PromotionsService.CreateCampaignAsync(subject.Id, comment,
                 c => Context.GetUserConfirmationAsync(
-                    $"You are nominating {subject.GetFullUsername()} ({subject.Id}) for promotion to {c.TargetRankRole.Name}.{Environment.NewLine}"));
+                    $"You are nominating {subject.GetDisplayName()} ({subject.Id}) for promotion to {c.TargetRankRole.Name}.{Environment.NewLine}"));
 
         [Command("comment")]
         [Summary("Comment on an ongoing campaign to promote a user.")]

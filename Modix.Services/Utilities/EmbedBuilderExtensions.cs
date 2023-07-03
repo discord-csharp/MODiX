@@ -14,7 +14,7 @@ namespace Modix.Services.Utilities
             }
 
             return builder
-                .WithAuthor(user.GetFullUsername() + suffix, user.GetDefiniteAvatarUrl());
+                .WithAuthor(user.GetDisplayName() + suffix, user.GetDefiniteAvatarUrl());
         }
     }
 }

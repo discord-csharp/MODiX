@@ -48,7 +48,7 @@ namespace Modix.Modules
                 }
             }
 
-            await FollowupAsync($"Check your private messages, {Context.User.Mention}.");
+            await FollowupAsync($"Check your private messages, {Context.User.Mention}.", allowedMentions: new AllowedMentions { UserIds = new() { Context.User.Id } });
         }
 
         [SlashCommand("help", "Retrieves help from a specific module or command.")]
