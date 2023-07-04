@@ -14,7 +14,7 @@ using Modix.Services.CommandHelp;
 using Modix.Services.Utilities;
 using Newtonsoft.Json;
 
-namespace Modix.Modules
+namespace Modix.Bot.Modules
 {
     public class Result
     {
@@ -59,7 +59,7 @@ namespace Modix.Modules
             [Summary("The code to execute.")]
                 string code)
         {
-            if (!(Context.Channel is IGuildChannel) || !(Context.User is IGuildUser guildUser))
+            if (Context.Channel is not IGuildChannel || Context.User is not IGuildUser guildUser)
             {
                 await ModifyOrSendErrorEmbed("The REPL can only be executed in public guild channels.");
                 return;
@@ -85,7 +85,6 @@ namespace Modix.Modules
             {
                 var client = _httpClientFactory.CreateClient(HttpClientNames.RetryOnTransientErrorPolicy);
                 res = await client.PostAsync(_replUrl, content);
-
             }
             catch (IOException ex)
             {
@@ -101,7 +100,7 @@ namespace Modix.Modules
                 return;
             }
 
-            if (!res.IsSuccessStatusCode & res.StatusCode != HttpStatusCode.BadRequest)
+            if (!res.IsSuccessStatusCode && res.StatusCode != HttpStatusCode.BadRequest)
             {
                 await ModifyOrSendErrorEmbed($"Status Code: {(int)res.StatusCode} {res.StatusCode}", message);
                 return;
@@ -172,7 +171,7 @@ namespace Modix.Modules
             {
                 embed.AddField(a => a.WithName("Console Output")
                                      .WithValue(Format.Code(consoleOut.TruncateTo(MaxFormattedFieldSize), "txt")));
-                await embed.UploadToServiceIfBiggerThan(consoleOut,  MaxFormattedFieldSize, _pasteService);
+                await embed.UploadToServiceIfBiggerThan(consoleOut, MaxFormattedFieldSize, _pasteService);
             }
 
             if (!string.IsNullOrWhiteSpace(parsedResult.Exception))
@@ -190,6 +189,7 @@ namespace Modix.Modules
         {
             if (string.IsNullOrWhiteSpace(input))
                 return "```\n```";
+
             return Format.Code(input, language);
         }
     }

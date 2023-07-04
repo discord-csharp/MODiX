@@ -21,7 +21,7 @@ namespace Modix.Services.Utilities
 {
     public static class FormatUtilities
     {
-        private static readonly Regex _buildContentRegex = new Regex(@"```([^\s]+|)");
+        private static readonly Regex _buildContentRegex = new(@"```([^\s]*)", RegexOptions.Compiled);
 
         /// <summary>
         /// Prepares a piece of input code for use in HTTP operations
@@ -34,54 +34,9 @@ namespace Modix.Services.Utilities
             return new StringContent(cleanCode, Encoding.UTF8, "text/plain");
         }
 
-        /// <summary>
-        /// Attempts to get the language of the code piece
-        /// </summary>
-        /// <param name="code">The code</param>
-        /// <returns>The code language if a match is found, null of none are found</returns>
-        public static string GetCodeLanguage(string message)
-        {
-            var match = _buildContentRegex.Match(message);
-            if (match.Success)
-            {
-                var codeLanguage = match.Groups[1].Value;
-                return string.IsNullOrEmpty(codeLanguage) ? null : codeLanguage;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        public static string StripFormatting(string code)
-        {
-            var cleanCode = _buildContentRegex.Replace(code.Trim(), string.Empty); //strip out the ` characters and code block markers
-            cleanCode = cleanCode.Replace("\t", "    "); //spaces > tabs
-            cleanCode = FixIndentation(cleanCode);
-            return cleanCode;
-        }
-
-        /// <summary>
-        /// Attempts to fix the indentation of a piece of code by aligning the left sidie.
-        /// </summary>
-        /// <param name="code">The code to align</param>
-        /// <returns>The newly aligned code</returns>
-        public static string FixIndentation(string code)
-        {
-            var lines = code.Split('\n');
-            var indentLine = lines.SkipWhile(d => d.FirstOrDefault() != ' ').FirstOrDefault();
-            
-            if (indentLine != null)
-            {
-                var indent = indentLine.LastIndexOf(' ') + 1;
-
-                var pattern = $@"^[^\S\n]{{{indent}}}";
-
-                return Regex.Replace(code, pattern, "", RegexOptions.Multiline);
-            }
-
-            return code;
-        }
+        public static string StripFormatting(string code) =>
+            //strip out the ` characters and code block markers
+            _buildContentRegex.Replace(code.Trim(), string.Empty);
 
         public static async Task UploadToServiceIfBiggerThan(this EmbedBuilder embed, string content, uint size, CodePasteService service)
         {
@@ -106,7 +61,7 @@ namespace Modix.Services.Utilities
                 return "This user is clean - no active infractions!";
             }
 
-            var formatted = 
+            var formatted =
                 counts.Select(d =>
                     {
                         var formattedKey = d.Key.Humanize().ToLower();
@@ -116,7 +71,7 @@ namespace Modix.Services.Utilities
 
             return $"This user has {formatted}";
         }
-        
+
         /// <summary>
         /// Collapses plural forms into a "singular(s)"-type format.
         /// </summary>
@@ -174,7 +129,7 @@ namespace Modix.Services.Utilities
                             ? word.First()
                             : word.Last();
 
-                        parenthesized[aliasIndex][wordIndex] = $"{longestForm.Substring(0, indexOfDifference)}({longestForm.Substring(indexOfDifference)})";
+                        parenthesized[aliasIndex][wordIndex] = $"{longestForm[..indexOfDifference]}({longestForm[indexOfDifference..]})";
                     }
                     else
                     {
@@ -319,7 +274,9 @@ namespace Modix.Services.Utilities
             }
 
             int GetRemainingLineCount()
-                => lines.Length - processedLines.Count - braceOnlyLinesEliminated;
+            {
+                return lines.Length - processedLines.Count - braceOnlyLinesEliminated;
+            }
 
             string GetRemainingLineCountComment(int remainingCount)
             {
@@ -337,6 +294,5 @@ namespace Modix.Services.Utilities
                 processedLines.Add(GetRemainingLineCountComment(GetRemainingLineCount()));
             }
         }
-#nullable restore
     }
 }

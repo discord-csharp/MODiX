@@ -1,10 +1,10 @@
-﻿using Discord;
+﻿using System;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Discord;
 using Modix.Data.Utilities;
 using Modix.Services.Utilities;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Net.Http;
-using System.Threading.Tasks;
 
 namespace Modix.Services.CodePaste
 {
@@ -63,22 +63,17 @@ namespace Modix.Services.CodePaste
             var formatted = string.Format(Header,
                 $"{msg.Author.Username}#{msg.Author.DiscriminatorValue}", msg.Channel.Name,
                 DateTimeOffset.UtcNow.ToString("dddd, MMMM d yyyy @ H:mm:ss"), msg.Id,
-                FormatUtilities.FixIndentation(code ?? msg.Content));
+                code ?? msg.Content);
 
             return await UploadCodeAsync(formatted);
         }
 
-        public Embed BuildEmbed(IUser user, string content, string url)
-        {
-            var cleanCode = FormatUtilities.FixIndentation(content);
-
-            return new EmbedBuilder()
+        public static Embed BuildEmbed(IUser user, string content, string url) => new EmbedBuilder()
                 .WithTitle("Your message was re-uploaded")
                 .WithUserAsAuthor(user)
-                .WithDescription(cleanCode.Trim().Truncate(200, 6))
+                .WithDescription(content.Trim().Truncate(200, 6))
                 .AddField("Auto-Paste", url, true)
                 .WithColor(new Color(95, 186, 125))
                 .Build();
-        }
     }
 }
