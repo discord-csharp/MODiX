@@ -150,11 +150,12 @@ namespace Modix.Bot.Modules
         {
             var returnValue = parsedResult.ReturnValue?.ToString() ?? " ";
             var consoleOut = parsedResult.ConsoleOut;
-            var status = string.IsNullOrEmpty(parsedResult.Exception) ? "Success" : "Failure";
+            var hasException = !string.IsNullOrEmpty(parsedResult.Exception);
+            var status = hasException ? "Failure" : "Success";
 
             var embed = new EmbedBuilder()
                     .WithTitle($"REPL Result: {status}")
-                    .WithColor(string.IsNullOrEmpty(parsedResult.Exception) ? Color.Green : Color.Red)
+                    .WithColor(hasException ? Color.Red : Color.Green)
                     .WithUserAsAuthor(guildUser)
                     .WithFooter(a => a.WithText($"Compile: {parsedResult.CompileTime.TotalMilliseconds:F}ms | Execution: {parsedResult.ExecutionTime.TotalMilliseconds:F}ms"));
 
@@ -162,7 +163,7 @@ namespace Modix.Bot.Modules
 
             if (parsedResult.ReturnValue != null)
             {
-                embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnTypeName ?? "null"}")
+                embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnTypeName}".TruncateTo(EmbedFieldBuilder.MaxFieldNameLength))
                                      .WithValue(FormatOrEmptyCodeblock(returnValue.TruncateTo(MaxFormattedFieldSize), "json")));
                 await embed.UploadToServiceIfBiggerThan(returnValue, MaxFormattedFieldSize, _pasteService);
             }
@@ -174,10 +175,10 @@ namespace Modix.Bot.Modules
                 await embed.UploadToServiceIfBiggerThan(consoleOut, MaxFormattedFieldSize, _pasteService);
             }
 
-            if (!string.IsNullOrWhiteSpace(parsedResult.Exception))
+            if (hasException)
             {
                 var diffFormatted = Regex.Replace(parsedResult.Exception, "^", "- ", RegexOptions.Multiline);
-                embed.AddField(a => a.WithName($"Exception: {parsedResult.ExceptionType}")
+                embed.AddField(a => a.WithName($"Exception: {parsedResult.ExceptionType}".TruncateTo(EmbedFieldBuilder.MaxFieldNameLength))
                                      .WithValue(Format.Code(diffFormatted.TruncateTo(MaxFormattedFieldSize), "diff")));
                 await embed.UploadToServiceIfBiggerThan(diffFormatted, MaxFormattedFieldSize, _pasteService);
             }
