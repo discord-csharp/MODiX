@@ -54,7 +54,10 @@ namespace Modix.Bot.Modules
         }
 
         [Command("exec"), Alias("eval", "e"), Summary("Executes the given C# code and returns the result.")]
-        public async Task ReplInvokeAsync([Remainder, Summary("The code to execute.")] string code)
+        public async Task ReplInvokeAsync(
+            [Remainder]
+            [Summary("The code to execute.")]
+                string code)
         {
             if (Context.Channel is not IGuildChannel || Context.User is not IGuildUser guildUser)
             {
@@ -147,18 +150,18 @@ namespace Modix.Bot.Modules
         {
             var returnValue = parsedResult.ReturnValue?.ToString() ?? " ";
             var consoleOut = parsedResult.ConsoleOut;
-            var exception = !string.IsNullOrEmpty(parsedResult.Exception);
-            var status = exception ? "Failure" : "Success";
+            var hasException = !string.IsNullOrEmpty(parsedResult.Exception);
+            var status = hasException ? "Failure" : "Success";
 
             var embed = new EmbedBuilder()
                     .WithTitle($"REPL Result: {status}")
-                    .WithColor(exception ? Color.Red : Color.Green)
+                    .WithColor(hasException ? Color.Red : Color.Green)
                     .WithUserAsAuthor(guildUser)
                     .WithFooter(a => a.WithText($"Compile: {parsedResult.CompileTime.TotalMilliseconds:F}ms | Execution: {parsedResult.ExecutionTime.TotalMilliseconds:F}ms"));
 
             embed.WithDescription(FormatOrEmptyCodeblock(parsedResult.Code, "cs"));
 
-            if (parsedResult.ReturnValue != null && parsedResult.ReturnTypeName != null)
+            if (parsedResult.ReturnValue != null)
             {
                 embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnTypeName}".TruncateTo(EmbedFieldBuilder.MaxFieldNameLength))
                                      .WithValue(FormatOrEmptyCodeblock(returnValue.TruncateTo(MaxFormattedFieldSize), "json")));
@@ -172,7 +175,7 @@ namespace Modix.Bot.Modules
                 await embed.UploadToServiceIfBiggerThan(consoleOut, MaxFormattedFieldSize, _pasteService);
             }
 
-            if (exception)
+            if (hasException)
             {
                 var diffFormatted = Regex.Replace(parsedResult.Exception, "^", "- ", RegexOptions.Multiline);
                 embed.AddField(a => a.WithName($"Exception: {parsedResult.ExceptionType}".TruncateTo(EmbedFieldBuilder.MaxFieldNameLength))
