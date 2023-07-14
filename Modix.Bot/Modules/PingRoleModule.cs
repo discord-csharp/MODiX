@@ -8,6 +8,7 @@ using Discord.WebSocket;
 
 using Humanizer;
 
+using Modix.Bot.Preconditions;
 using Modix.Data.Models.Core;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
@@ -110,7 +111,7 @@ namespace Modix.Modules
         }
 
         [SlashCommand("create", "Creates a new ping role.")]
-        [DefaultMemberPermissions(GuildPermission.ManageRoles)]
+        [RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate)]
         public async Task CreateRoleAsync(
             [Summary(description: "The name of the new ping role.")]
                 string targetRoleName)
@@ -133,7 +134,7 @@ namespace Modix.Modules
         }
 
         [SlashCommand("delete", "Deletes an existing ping role.")]
-        [DefaultMemberPermissions(GuildPermission.ManageRoles)]
+        [RequireClaims(AuthorizationClaim.DesignatedRoleMappingDelete)]
         public async Task DeleteRoleAsync(
             [Summary(description: "The ping role to delete.")]
                 IRole role)

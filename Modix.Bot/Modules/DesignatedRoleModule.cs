@@ -16,6 +16,7 @@ namespace Modix.Modules
 {
     [ModuleHelp("Role Designations", "Configures role designations for various bot services.")]
     [Group("role-designations", "Configures role designations for various bot services.")]
+    [DefaultMemberPermissions(GuildPermission.BanMembers)]
     public class DesignatedRoleModule : InteractionModuleBase
     {
         private readonly IDesignatedRoleService _designatedRoleService;
@@ -29,7 +30,6 @@ namespace Modix.Modules
 
         [SlashCommand("list", "Lists all of the roles designated for use by the bot.")]
         [RequireClaims(AuthorizationClaim.DesignatedRoleMappingRead)]
-        [DefaultMemberPermissions(GuildPermission.BanMembers)]
         public async Task ListAsync()
         {
             var roles = await _designatedRoleService.GetDesignatedRolesAsync(Context.Guild.Id);
@@ -71,7 +71,6 @@ namespace Modix.Modules
 
         [SlashCommand("add", "Assigns a designation to the given role.")]
         [RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate)]
-        [DefaultMemberPermissions(GuildPermission.BanMembers)]
         public async Task AddAsync(
             [Summary(description: "The role to be assigned a designation.")]
                 IRole role,
@@ -84,7 +83,6 @@ namespace Modix.Modules
 
         [SlashCommand("remove", "Removes a designation from the given role.")]
         [RequireClaims(AuthorizationClaim.DesignatedRoleMappingDelete)]
-        [DefaultMemberPermissions(GuildPermission.BanMembers)]
         public async Task RemoveAsync(
             [Summary(description: "The role whose designation is to be unassigned.")]
                 IRole role,

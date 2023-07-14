@@ -39,7 +39,6 @@ namespace Modix.Bot.Modules
 
         [SlashCommand("create", "Creates a new tag.")]
         [RequireClaims(AuthorizationClaim.CreateTag)]
-        [DefaultMemberPermissions(GuildPermission.ManageEmojisAndStickers)]
         [DoNotDefer]
         public async Task CreateTagAsync()
         {
