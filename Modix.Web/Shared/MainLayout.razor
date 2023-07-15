@@ -1,0 +1,35 @@
+﻿@inherits LayoutComponentBase
+
+<PageTitle>Modix.Web</PageTitle>
+<CascadingAuthenticationState>
+    
+    <div class="page">
+
+        <AuthorizeView>
+            <Authorized>
+                <div class="sidebar">
+                    <NavMenu />
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
+        <main>
+            <AuthorizeView>
+                <Authorized>
+                    <div class="top-row px-4">
+                        <a href="logout">Logout</a>
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    <div class="top-row px-4">
+                        <a href="login">Login</a>
+                    </div>
+                </NotAuthorized>
+            </AuthorizeView>
+
+            <article class="content px-4">
+                @Body
+            </article>
+        </main>
+    </div>
+</CascadingAuthenticationState>

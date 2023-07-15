@@ -1,0 +1,23 @@
+﻿@page "/stats"
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+
+            <PageTitle>Stats</PageTitle>
+            <h1>Statistics for C#</h1>
+            <p role="status">Current count: @currentCount</p>
+            <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+        </Authorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+@code {
+    private int currentCount = 0;
+
+    private void IncrementCount()
+    {
+        currentCount++;
+    }
+}
