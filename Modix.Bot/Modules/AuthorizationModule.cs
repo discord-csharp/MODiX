@@ -52,7 +52,6 @@ namespace Modix.Modules
 
         [SlashCommand("add", "Adds a claim to the given user or role.")]
         [RequireClaims(AuthorizationClaim.AuthorizationConfigure)]
-        [DefaultMemberPermissions(GuildPermission.Administrator)]
         public async Task AddClaimAsync(
             [Summary(description: "Claim to be added.")]
             [Autocomplete(typeof(AuthorizationClaimAutocompleteHandler))]
@@ -80,7 +79,6 @@ namespace Modix.Modules
 
         [SlashCommand("remove", "Removes a claim from the given user or role.")]
         [RequireClaims(AuthorizationClaim.AuthorizationConfigure)]
-        [DefaultMemberPermissions(GuildPermission.Administrator)]
         public async Task RemoveClaimAsync(
             [Summary(description: "Claim to be removed.")]
             [Autocomplete(typeof(AuthorizationClaimAutocompleteHandler))]

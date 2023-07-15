@@ -16,6 +16,7 @@ namespace Modix.Modules
 {
     [ModuleHelp("Channel Designations", "Configures channel designation for various bot services.")]
     [Group("channel-designations", "Configures channel designation for various bot services.")]
+    [DefaultMemberPermissions(GuildPermission.BanMembers)]
     public class DesignatedChannelModule : InteractionModuleBase
     {
         private readonly IDesignatedChannelService _designatedChannelService;
@@ -29,7 +30,6 @@ namespace Modix.Modules
 
         [SlashCommand("list", "Lists all of the channels designated for use by the bot.")]
         [RequireClaims(AuthorizationClaim.DesignatedChannelMappingRead)]
-        [DefaultMemberPermissions(GuildPermission.BanMembers)]
         public async Task ListAsync()
         {
             var channels = await _designatedChannelService.GetDesignatedChannelsAsync(Context.Guild.Id);
@@ -69,7 +69,6 @@ namespace Modix.Modules
 
         [SlashCommand("add", "Assigns a designation to the given channel.")]
         [RequireClaims(AuthorizationClaim.DesignatedChannelMappingCreate)]
-        [DefaultMemberPermissions(GuildPermission.BanMembers)]
         public async Task AddAsync(
             [Summary(description: "The channel to be assigned a designation.")]
                 IMessageChannel channel,
@@ -82,7 +81,6 @@ namespace Modix.Modules
 
         [SlashCommand("remove", "Removes a designation from the given channel.")]
         [RequireClaims(AuthorizationClaim.DesignatedChannelMappingDelete)]
-        [DefaultMemberPermissions(GuildPermission.BanMembers)]
         public async Task RemoveAsync(
             [Summary(description: "The channel whose designation is to be unassigned.")]
                 IMessageChannel channel,
