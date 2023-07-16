@@ -62,7 +62,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing the requested promotion comment, or null if no such comment exists.
         /// </returns>
-        Task<PromotionCommentSummary> ReadSummaryAsync(long commentId);
+        Task<PromotionCommentSummary?> ReadSummaryAsync(long commentId);
 
         /// <summary>
         /// Checks whether the repository contains any comments matching the given search criteria.
@@ -95,8 +95,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<PromotionActionSummary> CreateAsync(PromotionCommentCreationData data)
         {
-            if (data is null)
-                throw new ArgumentNullException(nameof(data));
+            ArgumentNullException.ThrowIfNull(data);
 
             var entity = data.ToEntity();
 
@@ -118,8 +117,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<PromotionActionSummary> TryUpdateAsync(long commentId, ulong userId, Action<PromotionCommentMutationData> updateAction)
         {
-            if (updateAction is null)
-                throw new ArgumentNullException(nameof(updateAction));
+            ArgumentNullException.ThrowIfNull(updateAction);
 
             var oldComment = await ModixContext.Set<PromotionCommentEntity>()
                                                .Include(x => x.Campaign)
@@ -128,7 +126,7 @@ namespace Modix.Data.Repositories
             var modifyAction = new PromotionActionEntity
             {
                 CampaignId = oldComment.CampaignId,
-                Created = DateTimeOffset.Now,
+                Created = DateTimeOffset.UtcNow,
                 CreatedById = userId,
                 GuildId = oldComment.Campaign.GuildId,
                 Type = PromotionActionType.CommentModified,
@@ -162,7 +160,7 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<PromotionCommentSummary> ReadSummaryAsync(long commentId)
+        public async Task<PromotionCommentSummary?> ReadSummaryAsync(long commentId)
             => await ModixContext.Set<PromotionCommentEntity>().AsNoTracking()
                 .Where(x => x.Id == commentId)
                 .AsExpandable()
@@ -176,9 +174,9 @@ namespace Modix.Data.Repositories
                 .AnyAsync();
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
-            = new RepositoryTransactionFactory();
+            = new();
 
         private static readonly RepositoryTransactionFactory _updateTransactionFactory
-            = new RepositoryTransactionFactory();
+            = new();
     }
 }

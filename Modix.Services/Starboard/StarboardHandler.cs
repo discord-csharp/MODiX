@@ -42,7 +42,7 @@ namespace Modix.Services.Starboard
             }
 
             var message = await cachedMessage.GetOrDownloadAsync();
-            if (!(message.Channel is IGuildChannel channel))
+            if (message.Channel is not IGuildChannel channel)
             {
                 return;
             }

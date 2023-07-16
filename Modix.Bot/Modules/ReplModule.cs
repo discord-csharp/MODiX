@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
@@ -12,26 +13,13 @@ using Modix.Services.AutoRemoveMessage;
 using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
 using Modix.Services.Utilities;
-using Newtonsoft.Json;
 
 namespace Modix.Bot.Modules
 {
-    public class Result
-    {
-        public object ReturnValue { get; set; }
-        public string Exception { get; set; }
-        public string Code { get; set; }
-        public string ExceptionType { get; set; }
-        public TimeSpan ExecutionTime { get; set; }
-        public TimeSpan CompileTime { get; set; }
-        public string ConsoleOut { get; set; }
-        public string ReturnTypeName { get; set; }
-    }
-
     [Name("Repl")]
     [Summary("Execute & demonstrate code snippets.")]
     [HelpTags("eval", "exec")]
-    public class ReplModule : ModuleBase
+    public partial class ReplModule : ModuleBase
     {
         private const int MaxFormattedFieldSize = 1000;
         private const string DefaultReplRemoteUrl = "http://csdiscord-repl-service:31337/Eval";
@@ -61,7 +49,7 @@ namespace Modix.Bot.Modules
         {
             if (Context.Channel is not IGuildChannel || Context.User is not IGuildUser guildUser)
             {
-                await ModifyOrSendErrorEmbed("The REPL can only be executed in public guild channels.");
+                await ModifyOrSendErrorEmbedAsync("The REPL can only be executed in public guild channels.");
                 return;
             }
 
@@ -88,13 +76,13 @@ namespace Modix.Bot.Modules
             }
             catch (IOException ex)
             {
-                await ModifyOrSendErrorEmbed("Recieved an invalid response from the REPL service." +
+                await ModifyOrSendErrorEmbedAsync("Received an invalid response from the REPL service." +
                                              $"\n\n{Format.Bold("Details:")}\n{ex.Message}", message);
                 return;
             }
             catch (Exception ex)
             {
-                await ModifyOrSendErrorEmbed("An error occurred while sending a request to the REPL service. " +
+                await ModifyOrSendErrorEmbedAsync("An error occurred while sending a request to the REPL service. " +
                                              "This may be due to a StackOverflowException or exceeding the 30 second timeout." +
                                              $"\n\n{Format.Bold("Details:")}\n{ex.Message}", message);
                 return;
@@ -102,11 +90,11 @@ namespace Modix.Bot.Modules
 
             if (!res.IsSuccessStatusCode && res.StatusCode != HttpStatusCode.BadRequest)
             {
-                await ModifyOrSendErrorEmbed($"Status Code: {(int)res.StatusCode} {res.StatusCode}", message);
+                await ModifyOrSendErrorEmbedAsync($"Status Code: {(int)res.StatusCode} {res.StatusCode}", message);
                 return;
             }
 
-            var parsedResult = JsonConvert.DeserializeObject<Result>(await res.Content.ReadAsStringAsync());
+            var parsedResult = JsonSerializer.Deserialize(await res.Content.ReadAsStringAsync(), JsonMetadataContext.Default.ReplResult);
 
             var embed = await BuildEmbedAsync(guildUser, parsedResult);
 
@@ -123,7 +111,7 @@ namespace Modix.Bot.Modules
             await Context.Message.DeleteAsync();
         }
 
-        private async Task ModifyOrSendErrorEmbed(string error, IUserMessage message = null)
+        private async Task ModifyOrSendErrorEmbedAsync(string error, IUserMessage message = null)
         {
             var embed = new EmbedBuilder()
                 .WithTitle("REPL Error")
@@ -146,7 +134,7 @@ namespace Modix.Bot.Modules
             }
         }
 
-        private async Task<EmbedBuilder> BuildEmbedAsync(IGuildUser guildUser, Result parsedResult)
+        private async Task<EmbedBuilder> BuildEmbedAsync(IGuildUser guildUser, ReplResult parsedResult)
         {
             var returnValue = parsedResult.ReturnValue?.ToString() ?? " ";
             var consoleOut = parsedResult.ConsoleOut;
@@ -165,22 +153,22 @@ namespace Modix.Bot.Modules
             {
                 embed.AddField(a => a.WithName($"Result: {parsedResult.ReturnTypeName}".TruncateTo(EmbedFieldBuilder.MaxFieldNameLength))
                                      .WithValue(FormatOrEmptyCodeblock(returnValue.TruncateTo(MaxFormattedFieldSize), "json")));
-                await embed.UploadToServiceIfBiggerThan(returnValue, MaxFormattedFieldSize, _pasteService);
+                await embed.UploadToServiceIfBiggerThanAsync(returnValue, MaxFormattedFieldSize, _pasteService);
             }
 
             if (!string.IsNullOrWhiteSpace(consoleOut))
             {
                 embed.AddField(a => a.WithName("Console Output")
                                      .WithValue(Format.Code(consoleOut.TruncateTo(MaxFormattedFieldSize), "txt")));
-                await embed.UploadToServiceIfBiggerThan(consoleOut, MaxFormattedFieldSize, _pasteService);
+                await embed.UploadToServiceIfBiggerThanAsync(consoleOut, MaxFormattedFieldSize, _pasteService);
             }
 
             if (hasException)
             {
-                var diffFormatted = Regex.Replace(parsedResult.Exception, "^", "- ", RegexOptions.Multiline);
+                var diffFormatted = ExceptionStartRegex().Replace(parsedResult.Exception, "- ");
                 embed.AddField(a => a.WithName($"Exception: {parsedResult.ExceptionType}".TruncateTo(EmbedFieldBuilder.MaxFieldNameLength))
                                      .WithValue(Format.Code(diffFormatted.TruncateTo(MaxFormattedFieldSize), "diff")));
-                await embed.UploadToServiceIfBiggerThan(diffFormatted, MaxFormattedFieldSize, _pasteService);
+                await embed.UploadToServiceIfBiggerThanAsync(diffFormatted, MaxFormattedFieldSize, _pasteService);
             }
 
             return embed;
@@ -193,5 +181,20 @@ namespace Modix.Bot.Modules
 
             return Format.Code(input, language);
         }
+
+        [GeneratedRegex("^", RegexOptions.Multiline)]
+        private static partial Regex ExceptionStartRegex();
+    }
+
+    public class ReplResult
+    {
+        public object ReturnValue { get; set; }
+        public string Exception { get; set; }
+        public string Code { get; set; }
+        public string ExceptionType { get; set; }
+        public TimeSpan ExecutionTime { get; set; }
+        public TimeSpan CompileTime { get; set; }
+        public string ConsoleOut { get; set; }
+        public string ReturnTypeName { get; set; }
     }
 }

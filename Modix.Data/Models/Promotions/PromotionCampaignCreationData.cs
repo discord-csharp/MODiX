@@ -28,7 +28,7 @@ namespace Modix.Data.Models.Promotions
         public ulong CreatedById { get; set; }
 
         internal PromotionCampaignEntity ToEntity()
-            => new PromotionCampaignEntity()
+            => new()
             {
                 GuildId = GuildId,
                 SubjectId = SubjectId,
@@ -36,7 +36,7 @@ namespace Modix.Data.Models.Promotions
                 CreateAction = new PromotionActionEntity()
                 {
                     GuildId = GuildId,
-                    Created = DateTimeOffset.Now,
+                    Created = DateTimeOffset.UtcNow,
                     Type = PromotionActionType.CampaignCreated,
                     CreatedById = CreatedById
                 }

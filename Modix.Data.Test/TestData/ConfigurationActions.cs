@@ -149,7 +149,7 @@ namespace Modix.Data.Test.TestData
             };
 
         public static ConfigurationActionEntity Clone(this ConfigurationActionEntity entity)
-            => new ConfigurationActionEntity()
+            => new()
             {
                 Id = entity.Id,
                 GuildId = entity.GuildId,

@@ -9,7 +9,7 @@
         public int Uses { get; set; }
 
         internal static EmojiUsageStatistics FromDto(EmojiStatsDto emojiStatsDto)
-            => new EmojiUsageStatistics()
+            => new()
             {
                 Emoji = EphemeralEmoji.FromRawData(emojiStatsDto.EmojiName, emojiStatsDto.EmojiId, emojiStatsDto.IsAnimated),
                 Rank = emojiStatsDto.Rank,

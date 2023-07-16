@@ -104,6 +104,6 @@ namespace Modix.Services.Images.ColorQuantization
             return r | g | b;
         }
 
-        private readonly HashSet<OctreeNode> _leaves = new HashSet<OctreeNode>();
+        private readonly HashSet<OctreeNode> _leaves = new();
     }
 }

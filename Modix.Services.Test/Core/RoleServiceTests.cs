@@ -50,7 +50,7 @@ namespace Modix.Services.Test.Core
             }
 
             public RoleService BuildUut()
-                => new RoleService(
+                => new(
                     MockGuildRoleRepository.Object,
                     LoggerFactory.CreateLogger<RoleService>());
 

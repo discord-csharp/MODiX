@@ -1,12 +1,5 @@
 ﻿using System;
-using System.Data;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using LinqKit;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Primitives;
 
 namespace Modix.Data.Utilities
 {

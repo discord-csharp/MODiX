@@ -49,7 +49,7 @@ namespace Modix.Services.Core
         /// <param name="guildId">The <see cref="IEntity{T}.Id" /> of the guild whose user is to be retrieved.</param>
         /// <param name="userId">The <see cref="IEntity{T}.Id" /> of the user to be retrieved.</param>
         /// <returns>The <see cref="GuildUserSummary"/> retrieved</returns>
-        Task<GuildUserSummary> GetGuildUserSummaryAsync(ulong guildId, ulong userId);
+        Task<GuildUserSummary?> GetGuildUserSummaryAsync(ulong guildId, ulong userId);
 
         /// <summary>
         /// Retrieves all available information on a user matching the supplied criteria.
@@ -134,13 +134,11 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public async Task<IGuildUser> GetGuildUserAsync(ulong guildId, ulong userId)
         {
-            var guild = await DiscordClient.GetGuildAsync(guildId);
-            if (guild == null)
-                throw new InvalidOperationException($"Discord guild {guildId} does not exist");
+            var guild = await DiscordClient.GetGuildAsync(guildId)
+                ?? throw new InvalidOperationException($"Discord guild {guildId} does not exist");
 
-            var user = await guild.GetUserAsync(userId);
-            if (user == null)
-                throw new InvalidOperationException($"Discord user {userId} does not exist");
+            var user = await guild.GetUserAsync(userId)
+                ?? throw new InvalidOperationException($"Discord user {userId} does not exist");
 
             await TrackUserAsync(user, default);
 
@@ -173,7 +171,7 @@ namespace Modix.Services.Core
             throw new InvalidOperationException($"Discord user {userId} does not exist");
         }
 
-        public async Task<GuildUserSummary> GetGuildUserSummaryAsync(ulong guildId, ulong userId)
+        public async Task<GuildUserSummary?> GetGuildUserSummaryAsync(ulong guildId, ulong userId)
         {
             var found = await GuildUserRepository.ReadSummaryAsync(userId, guildId);
             return found;
@@ -236,34 +234,33 @@ namespace Modix.Services.Core
         {
             var now = _systemClock.UtcNow;
 
-            using (var transaction = await GuildUserRepository.BeginCreateTransactionAsync(cancellationToken))
-            {
-                if (!await GuildUserRepository.TryUpdateAsync(user.Id, user.GuildId, data =>
-                {
-                    // Only update properties that we were given. Updates can be triggered from several different sources, not all of which have all the user's info.
-                    if (user.Username != null)
-                        data.Username = user.Username;
-                    if (user.DiscriminatorValue != 0)
-                        data.Discriminator = user.Discriminator;
-                    if ((user.Username != null) && (user.DiscriminatorValue != 0))
-                        data.Nickname = user.Nickname;
-                    data.LastSeen = now;
-                }, cancellationToken))
-                {
-                    await GuildUserRepository.CreateAsync(new GuildUserCreationData()
-                    {
-                        UserId = user.Id,
-                        GuildId = user.GuildId,
-                        Username = user.Username ?? "[UNKNOWN USERNAME]",
-                        Discriminator = (user.DiscriminatorValue == 0) ? "????" : user.Discriminator,
-                        Nickname = user.Nickname,
-                        FirstSeen = now,
-                        LastSeen = now
-                    }, cancellationToken);
-                }
+            using var transaction = await GuildUserRepository.BeginCreateTransactionAsync(cancellationToken);
 
-                transaction.Commit();
+            if (!await GuildUserRepository.TryUpdateAsync(user.Id, user.GuildId, data =>
+            {
+                // Only update properties that we were given. Updates can be triggered from several different sources, not all of which have all the user's info.
+                if (user.Username != null)
+                    data.Username = user.Username;
+                if (user.DiscriminatorValue != 0)
+                    data.Discriminator = user.Discriminator;
+                if ((user.Username != null) && (user.DiscriminatorValue != 0))
+                    data.Nickname = user.Nickname;
+                data.LastSeen = now;
+            }, cancellationToken))
+            {
+                await GuildUserRepository.CreateAsync(new GuildUserCreationData()
+                {
+                    UserId = user.Id,
+                    GuildId = user.GuildId,
+                    Username = user.Username ?? "[UNKNOWN USERNAME]",
+                    Discriminator = (user.DiscriminatorValue == 0) ? "????" : user.Discriminator,
+                    Nickname = user.Nickname,
+                    FirstSeen = now,
+                    LastSeen = now
+                }, cancellationToken);
             }
+
+            transaction.Commit();
         }
 
         /// <inheritdoc />

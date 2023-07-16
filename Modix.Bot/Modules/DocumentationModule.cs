@@ -12,7 +12,7 @@ namespace Modix.Modules
 {
     [ModuleHelp("Documentation", "Search for information within the .NET docs.")]
     [HelpTags("docs")]
-    public class DocumentationModule : InteractionModuleBase
+    public partial class DocumentationModule : InteractionModuleBase
     {
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
         private readonly DocumentationService _documentationService;
@@ -32,7 +32,7 @@ namespace Modix.Modules
             [Summary(description: "The term to search for in the documentation.")]
                 string term)
         {
-            var reg = new Regex(QueryPattern);
+            var reg = AllowedCharactersRegex();
             foreach (var c in term)
             {
                 if(!reg.IsMatch(c.ToString()))
@@ -91,5 +91,8 @@ namespace Modix.Modules
                 return message;
             });
         }
+
+        [GeneratedRegex(QueryPattern)]
+        private static partial Regex AllowedCharactersRegex();
     }
 }

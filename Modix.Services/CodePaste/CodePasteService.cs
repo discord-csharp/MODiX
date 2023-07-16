@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Net.Http;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Discord;
 using Modix.Data.Utilities;
 using Modix.Services.Utilities;
-using Newtonsoft.Json.Linq;
 
 namespace Modix.Services.CodePaste
 {
@@ -47,7 +48,7 @@ namespace Modix.Services.CodePaste
             }
 
             var urlResponse = await response.Content.ReadAsStringAsync();
-            var pasteKey = JObject.Parse(urlResponse)["key"]?.Value<string>();
+            var pasteKey = JsonSerializer.Deserialize(urlResponse, JsonMetadataContext.Default.PasteResponse).Key;
 
             return $"{ApiReferenceUrl}{pasteKey}";
         }
@@ -75,5 +76,11 @@ namespace Modix.Services.CodePaste
                 .AddField("Auto-Paste", url, true)
                 .WithColor(new Color(95, 186, 125))
                 .Build();
+    }
+
+    public class PasteResponse
+    {
+        [JsonPropertyName("key")]
+        public string Key { get; set; }
     }
 }

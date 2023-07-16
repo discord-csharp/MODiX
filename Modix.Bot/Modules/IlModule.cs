@@ -44,7 +44,7 @@ namespace Modix.Modules
             [Summary("The code to decompile.")]
                 string code)
         {
-            if (!(Context.Channel is IGuildChannel))
+            if (Context.Channel is not IGuildChannel)
             {
                 await ReplyAsync("il can only be executed in public guild channels.");
                 return;
@@ -121,7 +121,7 @@ namespace Modix.Modules
             embed.AddField(a => a.WithName($"Result:")
                  .WithValue(Format.Code(result.TruncateTo(990), "asm")));
 
-            await embed.UploadToServiceIfBiggerThan(result, 990, _pasteService);
+            await embed.UploadToServiceIfBiggerThanAsync(result, 990, _pasteService);
 
             return embed;
         }

@@ -120,7 +120,7 @@ namespace Modix.Services.MessageContentPatterns
                 .Where(x => x.Pattern == regexPattern)
                 .SingleOrDefaultAsync();
 
-            if (!(pattern is null))
+            if (pattern is not null)
             {
                 _db.Remove(pattern);
 

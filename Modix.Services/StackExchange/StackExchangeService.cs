@@ -1,9 +1,10 @@
-﻿using Modix.Services.Utilities;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
+
+using Modix.Services.Utilities;
 
 namespace Modix.Services.StackExchange
 {
@@ -39,7 +40,7 @@ namespace Modix.Services.StackExchange
             }
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<StackExchangeResponse>(jsonResponse);
+            return JsonSerializer.Deserialize(jsonResponse, JsonMetadataContext.Default.StackExchangeResponse);
         }
 
         protected IHttpClientFactory HttpClientFactory { get; }

@@ -32,7 +32,7 @@ namespace Modix.Data.Test.TestData
             };
 
         public static UserEntity Clone(this UserEntity entity)
-            => new UserEntity()
+            => new()
             {
                 Id = entity.Id,
                 Username = entity.Username,

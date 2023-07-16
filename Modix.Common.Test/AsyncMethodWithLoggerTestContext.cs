@@ -4,7 +4,7 @@
         : AsyncMethodTestContext
     {
         public readonly TestLoggerFactory LoggerFactory
-            = new TestLoggerFactory();
+            = new();
 
         protected override void Dispose(
             bool disposeManaged)

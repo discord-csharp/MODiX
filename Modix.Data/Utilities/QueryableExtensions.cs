@@ -93,11 +93,8 @@ namespace Modix.Data.Utilities
         /// <returns>The result of attaching a sequence of OrderThenBy clauses to <paramref name="source"/>.</returns>
         public static IQueryable<T> SortBy<T>(this IQueryable<T> source, IEnumerable<SortingCriteria>? criteria, IDictionary<string, Expression<Func<T, object?>>> sortablePropertyMap)
         {
-            if (source == null)
-                throw new ArgumentNullException(nameof(source));
-
-            if (sortablePropertyMap == null)
-                throw new ArgumentNullException(nameof(sortablePropertyMap));
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(sortablePropertyMap);
 
             if (criteria == null)
                 return source;

@@ -48,7 +48,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> that will complete when the operation has completed,
         /// containing the requested user guild data, or null if no such user exists.
         /// </returns>
-        Task<GuildUserSummary> ReadSummaryAsync(ulong userId, ulong guildId);
+        Task<GuildUserSummary?> ReadSummaryAsync(ulong userId, ulong guildId);
 
         /// <summary>
         /// Attempts to update guild information about a user, based on a pair of user and guild ID values.
@@ -94,8 +94,7 @@ namespace Modix.Data.Repositories
             GuildUserCreationData data,
             CancellationToken cancellationToken)
         {
-            if (data == null)
-                throw new ArgumentNullException(nameof(data));
+            ArgumentNullException.ThrowIfNull(data);
 
             var guildDataEntity = data.ToGuildDataEntity();
 
@@ -107,17 +106,17 @@ namespace Modix.Data.Repositories
 
             await ModixContext.Set<GuildUserEntity>().AddAsync(guildDataEntity, cancellationToken);
 
-            if ((guildDataEntity.User.Username != data.Username) && !(data.Username is null))
+            if ((guildDataEntity.User.Username != data.Username) && data.Username is not null)
                 guildDataEntity.User.Username = data.Username;
 
-            if ((guildDataEntity.User.Discriminator != data.Discriminator) && !(data.Discriminator is null))
+            if ((guildDataEntity.User.Discriminator != data.Discriminator) && data.Discriminator is not null)
                 guildDataEntity.User.Discriminator = data.Discriminator;
 
             await ModixContext.SaveChangesAsync(cancellationToken);
         }
 
         /// <inheritdoc />
-        public Task<GuildUserSummary> ReadSummaryAsync(ulong userId, ulong guildId)
+        public Task<GuildUserSummary?> ReadSummaryAsync(ulong userId, ulong guildId)
         {
             return ModixContext.Set<GuildUserEntity>()
                 .AsNoTracking()
@@ -135,8 +134,7 @@ namespace Modix.Data.Repositories
             Action<GuildUserMutationData> updateAction,
             CancellationToken cancellationToken)
         {
-            if (updateAction == null)
-                throw new ArgumentNullException(nameof(updateAction));
+            ArgumentNullException.ThrowIfNull(updateAction);
 
             var entity = await ModixContext.Set<GuildUserEntity>()
                 .Where(x => x.UserId == userId)
@@ -162,7 +160,7 @@ namespace Modix.Data.Repositories
         }
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
-            = new RepositoryTransactionFactory();
+            = new();
 
         private readonly ILogger<RepositoryTransactionFactory>? _repositoryTransactionFactoryLogger;
     }

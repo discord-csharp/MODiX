@@ -105,7 +105,7 @@ namespace Modix.Data.Models.Tags
             var deleteAction = new TagActionEntity
             {
                 GuildId = GuildId,
-                Created = DateTimeOffset.Now,
+                Created = DateTimeOffset.UtcNow,
                 Type = TagActionType.TagDeleted,
                 CreatedById = deletedByUserId,
                 OldTagId = Id,

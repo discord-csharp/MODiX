@@ -55,7 +55,7 @@ namespace Modix.Common.Test.Messaging
             }
 
             public MessageDispatcher BuildUut()
-                => new MessageDispatcher(
+                => new(
                     MockCancellationTokenSourceFactory.Object,
                     Logger,
                     Options,

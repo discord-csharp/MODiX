@@ -65,8 +65,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task CreateAsync(GuildChannelCreationData data, CancellationToken cancellationToken = default)
         {
-            if (data == null)
-                throw new ArgumentNullException(nameof(data));
+            ArgumentNullException.ThrowIfNull(data);
 
             var entity = data.ToEntity();
 
@@ -77,8 +76,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<bool> TryUpdateAsync(ulong channelId, Action<GuildChannelMutationData> updateAction, CancellationToken cancellationToken = default)
         {
-            if (updateAction == null)
-                throw new ArgumentNullException(nameof(updateAction));
+            ArgumentNullException.ThrowIfNull(updateAction);
 
             var entity = await ModixContext.Set<GuildChannelEntity>()
                 .Where(x => x.ChannelId == channelId)
@@ -99,6 +97,6 @@ namespace Modix.Data.Repositories
         }
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
-            = new RepositoryTransactionFactory();
+            = new();
     }
 }

@@ -32,7 +32,7 @@ namespace Modix.Services.MessageContentPatterns
 
         public static ServiceResponse<T> Fail<T>(string message)
         {
-            return new ServiceResponse<T>(default(T), false, message);
+            return new ServiceResponse<T>(default, false, message);
         }
 
         public static ServiceResponse Ok()

@@ -75,8 +75,7 @@ namespace Modix.Data.Repositories
             DeletedMessageCreationData data,
             CancellationToken cancellationToken)
         {
-            if (data == null)
-                throw new ArgumentNullException(nameof(data));
+            ArgumentNullException.ThrowIfNull(data);
 
             var entity = data.ToEntity();
 
@@ -114,6 +113,6 @@ namespace Modix.Data.Repositories
         }
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
-            = new RepositoryTransactionFactory();
+            = new();
     }
 }

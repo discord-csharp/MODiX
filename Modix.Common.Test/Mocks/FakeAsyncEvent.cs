@@ -22,7 +22,7 @@ namespace Modix.Common.Test.Mocks
         }
 
         private readonly List<Func<Task>> _handlers
-            = new List<Func<Task>>();
+            = new();
     }
 
     public class FakeAsyncEvent<T>
@@ -43,7 +43,7 @@ namespace Modix.Common.Test.Mocks
         }
 
         private readonly List<Func<T, Task>> _handlers
-            = new List<Func<T, Task>>();
+            = new();
     }
 
     public class FakeAsyncEvent<T1, T2>
@@ -64,7 +64,7 @@ namespace Modix.Common.Test.Mocks
         }
 
         private readonly List<Func<T1, T2, Task>> _handlers
-            = new List<Func<T1, T2, Task>>();
+            = new();
     }
 
     public class FakeAsyncEvent<T1, T2, T3>
@@ -85,6 +85,6 @@ namespace Modix.Common.Test.Mocks
         }
 
         private readonly List<Func<T1, T2, T3, Task>> _handlers
-            = new List<Func<T1, T2, T3, Task>>();
+            = new();
     }
 }

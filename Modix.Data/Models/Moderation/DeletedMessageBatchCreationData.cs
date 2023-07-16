@@ -24,11 +24,11 @@ namespace Modix.Data.Models.Moderation
         public ulong GuildId { get; set; }
         
         internal DeletedMessageBatchEntity ToEntity()
-            => new DeletedMessageBatchEntity()
+            => new()
             {
                 CreateAction = new ModerationActionEntity()
                 {
-                    Created = DateTimeOffset.Now,
+                    Created = DateTimeOffset.UtcNow,
                     CreatedById = CreatedById,
                     GuildId = GuildId,
                     Type = ModerationActionType.MessageBatchDeleted,

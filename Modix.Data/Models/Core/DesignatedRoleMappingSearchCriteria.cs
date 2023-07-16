@@ -30,7 +30,7 @@ namespace Modix.Data.Models.Core
         /// A set of <see cref="DesignatedRoleMappingEntity.RoleId"/> values, defining the <see cref="DesignatedRoleMappingEntity"/> entities to be returned.
         /// A <see cref="DesignatedRoleMappingEntity"/> is considered a match if it matches any of these values.
         /// </summary>
-        public IReadOnlyCollection<ulong>? RoleIds { get; set; }
+        public ulong[]? RoleIds { get; set; }
 
         /// <summary>
         /// A <see cref="DesignatedRoleMappingEntity.Type"/> value, defining the <see cref="Type"/> of the <see cref="DesignatedRoleMappingEntity"/> entities to be returned.
@@ -54,8 +54,7 @@ namespace Modix.Data.Models.Core
     {
         public static IQueryable<DesignatedRoleMappingEntity> FilterBy(this IQueryable<DesignatedRoleMappingEntity> query, DesignatedRoleMappingSearchCriteria criteria)
         {
-            if (query is null)
-                throw new ArgumentNullException(nameof(query));
+            ArgumentNullException.ThrowIfNull(query);
 
             if (criteria is null)
                 return query;
@@ -63,22 +62,22 @@ namespace Modix.Data.Models.Core
             return query
                 .FilterBy(
                     x => x.Id == criteria.Id,
-                    !(criteria.Id is null))
+                    criteria.Id is not null)
                 .FilterBy(
                     x => x.GuildId == criteria.GuildId,
-                    !(criteria.GuildId is null))
+                    criteria.GuildId is not null)
                 .FilterBy(
                     x => x.RoleId == criteria.RoleId,
-                    !(criteria.RoleId is null))
+                    criteria.RoleId is not null)
                 .FilterBy(
                     x => criteria.RoleIds!.Contains(x.RoleId),
-                    !(criteria.RoleIds is null))
+                    criteria.RoleIds is not null)
                 .FilterBy(
                     x => x.Type == criteria.Type,
-                    !(criteria.Type is null))
+                    criteria.Type is not null)
                 .FilterBy(
                     x => x.CreateAction.CreatedById == criteria.CreatedById,
-                    !(criteria.CreatedById is null))
+                    criteria.CreatedById is not null)
                 .FilterBy(
                     x => x.DeleteActionId != null,
                     criteria.IsDeleted == true)

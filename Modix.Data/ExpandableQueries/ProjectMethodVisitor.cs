@@ -44,7 +44,7 @@ namespace Modix.Data.ExpandableQueries
                 : base.VisitParameter(node);
 
         private readonly Dictionary<ParameterExpression, Expression> _parameterReplacements
-            = new Dictionary<ParameterExpression, Expression>();
+            = new();
 
         private static readonly MethodInfo _projectMethod;
     }

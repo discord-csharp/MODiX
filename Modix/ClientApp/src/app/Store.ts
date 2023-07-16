@@ -26,8 +26,6 @@ const modixState: ModixState =
 {
     user: null,
     errors: [],
-    pastes: [],
-    currentPaste: null,
     commands: [],
     campaigns: [],
     channelDesignations: [],

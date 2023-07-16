@@ -26,7 +26,7 @@
         public ulong? ParentChannelId { get; set; }
 
         internal GuildChannelEntity ToEntity()
-            => new GuildChannelEntity()
+            => new()
             {
                 ChannelId = ChannelId,
                 GuildId = GuildId,

@@ -7,11 +7,8 @@ namespace Shouldly
     {
         public static void EachShould<T>(this IEnumerable<T> sequence, Action<T> action)
         {
-            if (sequence is null)
-                throw new ArgumentNullException(nameof(sequence));
-
-            if (action is null)
-                throw new ArgumentNullException(nameof(action));
+            ArgumentNullException.ThrowIfNull(sequence);
+            ArgumentNullException.ThrowIfNull(action);
 
             foreach (var item in sequence)
                 action.Invoke(item);

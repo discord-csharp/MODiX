@@ -33,7 +33,7 @@ namespace Modix.Data.Models.Promotions
         public ulong CreatedById { get; set; }
 
         public PromotionCommentEntity ToEntity()
-            => new PromotionCommentEntity()
+            => new()
             {
                 CampaignId = CampaignId,
                 Sentiment = Sentiment,
@@ -41,7 +41,7 @@ namespace Modix.Data.Models.Promotions
                 CreateAction = new PromotionActionEntity()
                 {
                     GuildId = GuildId,
-                    Created = DateTimeOffset.Now,
+                    Created = DateTimeOffset.UtcNow,
                     Type = PromotionActionType.CommentCreated,
                     CreatedById = CreatedById,
                 }

@@ -40,7 +40,7 @@ namespace Modix.Services.Moderation
                 channelId,
                 authorId,
                 messageId);
-        private readonly static Func<ILogger, ulong?, ulong, ulong, ulong, IDisposable> _beginMessageScope
+        private static readonly Func<ILogger, ulong?, ulong, ulong, ulong, IDisposable> _beginMessageScope
             = LoggerMessageEx.DefineScope<ulong?, ulong, ulong, ulong>(
                 "GuildId: {GuildId}\r\n\tChannelId: {ChannelId}\r\n\tAuthorId: {AuthorId}\r\n\tMessageId: {MessageId}");
 

@@ -71,8 +71,7 @@ namespace Modix.Data.Models.Promotions
     {
         public static IQueryable<PromotionCampaignEntity> FilterBy(this IQueryable<PromotionCampaignEntity> query, PromotionCampaignSearchCriteria criteria)
         {
-            if (query is null)
-                throw new ArgumentNullException(nameof(query));
+            ArgumentNullException.ThrowIfNull(query);
 
             if (criteria is null)
                 return query;
@@ -80,34 +79,34 @@ namespace Modix.Data.Models.Promotions
             return query
                 .FilterBy(
                     x => x.Id == criteria.Id,
-                    !(criteria.Id is null))
+                    criteria.Id is not null)
                 .FilterBy(
                     x => x.GuildId == criteria.GuildId,
-                    !(criteria.GuildId is null))
+                    criteria.GuildId is not null)
                 .FilterBy(
                     x => x.SubjectId == criteria.SubjectId,
-                    !(criteria.SubjectId is null))
+                    criteria.SubjectId is not null)
                 .FilterBy(
                     x => x.TargetRoleId == criteria.TargetRoleId,
-                    !(criteria.TargetRoleId is null))
+                    criteria.TargetRoleId is not null)
                 .FilterBy(
                     x => x.CreateAction.Created >= criteria.CreatedRange!.Value.From!.Value,
-                    !(criteria.CreatedRange?.From is null))
+                    criteria.CreatedRange?.From is not null)
                 .FilterBy(
                     x => x.CreateAction.Created <= criteria.CreatedRange!.Value.To!.Value,
-                    !(criteria.CreatedRange?.To is null))
+                    criteria.CreatedRange?.To is not null)
                 .FilterBy(
                     x => x.CreateAction.CreatedById == criteria.CreatedById,
-                    !(criteria.CreatedById is null))
+                    criteria.CreatedById is not null)
                 .FilterBy(
                     x => x.CloseAction != null && x.CloseAction!.Created >= criteria.ClosedRange!.Value.From!.Value,
-                    !(criteria.ClosedRange?.From is null))
+                    criteria.ClosedRange?.From is not null)
                 .FilterBy(
                     x => x.CloseActionId != null && x.CloseAction!.Created <= criteria.ClosedRange!.Value.To!.Value,
-                    !(criteria.ClosedRange?.To is null))
+                    criteria.ClosedRange?.To is not null)
                 .FilterBy(
                     x => (x.CloseActionId != null) && (x.CloseAction!.CreatedById == criteria.ClosedById),
-                    !(criteria.ClosedById is null))
+                    criteria.ClosedById is not null)
                 .FilterBy(
                     x => x.CloseAction == null,
                     criteria.IsClosed == false)

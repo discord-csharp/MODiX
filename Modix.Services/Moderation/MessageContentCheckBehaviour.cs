@@ -46,9 +46,9 @@ namespace Modix.Services.Moderation
 
         private async Task TryCheckMessageAsync(IMessage message)
         {
-            if (!(message.Author is IGuildUser author)
+            if (message.Author is not IGuildUser author
                 || (author.Guild is null)
-                || !(message.Channel is IGuildChannel channel)
+                || message.Channel is not IGuildChannel channel
                 || (channel.Guild is null))
             {
                 Log.Debug(
@@ -60,7 +60,7 @@ namespace Modix.Services.Moderation
             if (author.Id == _discordSocketClient.CurrentUser.Id)
                 return;
 
-            var isContentBlocked = await IsContentBlocked(channel, message);
+            var isContentBlocked = await IsContentBlockedAsync(channel, message);
 
             if (!isContentBlocked)
             {
@@ -91,7 +91,7 @@ namespace Modix.Services.Moderation
                 $"Sorry {author.Mention} your message contained blocked content and has been removed!");
         }
 
-        private async Task<bool> IsContentBlocked(IGuildChannel channel, IMessage message)
+        private async Task<bool> IsContentBlockedAsync(IGuildChannel channel, IMessage message)
         {
             var patterns = await _messageContentPatternService.GetPatterns(channel.GuildId);
 

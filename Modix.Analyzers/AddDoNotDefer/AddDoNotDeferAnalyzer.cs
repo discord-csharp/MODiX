@@ -15,7 +15,7 @@ namespace Modix.Analyzers.AddDoNotDefer
 
         private const string Title = "Add DoNotDeferAttribute";
         private const string MessageFormat = "Command '{0}' should have DoNotDeferAttribute";
-        private const string Description = "DoNotDeferAttrbute should be added to commands that respond rather than followup to an interaction.";
+        private const string Description = "DoNotDeferAttribute should be added to commands that respond rather than follow-up to an interaction.";
         private const string Category = "Discord";
 
         private static readonly DiagnosticDescriptor _descriptor = new(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true, description: Description);
@@ -34,7 +34,9 @@ namespace Modix.Analyzers.AddDoNotDefer
         private static void Analyze(OperationAnalysisContext context)
         {
             var method = (IMethodBodyOperation)context.Operation;
-            var methodSyntax = (MethodDeclarationSyntax)method.Syntax;
+
+            if (method.Syntax is not MethodDeclarationSyntax methodSyntax)
+                return;
 
             var attributes = methodSyntax.AttributeLists.SelectMany(x => x.Attributes);
 

@@ -43,7 +43,7 @@ namespace Modix.Data.Models.Core
         public DateTimeOffset LastSeen { get; set; }
 
         internal UserEntity ToUserEntity()
-            => new UserEntity()
+            => new()
             {
                 Id = UserId,
                 Username = Username,
@@ -51,7 +51,7 @@ namespace Modix.Data.Models.Core
             };
 
         internal GuildUserEntity ToGuildDataEntity()
-            => new GuildUserEntity()
+            => new()
             {
                 UserId = UserId,
                 GuildId = GuildId,

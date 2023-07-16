@@ -1,7 +1,7 @@
-FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-preview AS base
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0 AS dotnet-build-base
+FROM mcr.microsoft.com/dotnet/sdk:8.0-preview AS dotnet-build-base
 WORKDIR /src
 RUN apt-get update && apt-get install curl -y \
   && curl -sL https://deb.nodesource.com/setup_14.x | bash -\

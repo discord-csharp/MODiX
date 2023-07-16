@@ -16,7 +16,7 @@ namespace Modix.Modules
 {
     [ModuleHelp("Fun", "A bunch of miscellaneous, fun commands.")]
     [HelpTags("jumbo")]
-    public class FunModule : InteractionModuleBase
+    public partial class FunModule : InteractionModuleBase
     {
         private static readonly string[] _owoFaces = {"(・`ω´・)", ";;w;;", "owo", "UwU", ">w<", "^w^"};
 
@@ -137,17 +137,41 @@ namespace Modix.Modules
         {
             var owoMessage = message;
 
-            owoMessage = Regex.Replace(owoMessage, "(?:r|l)", "w");
-            owoMessage = Regex.Replace(owoMessage, "(?:R|L)", "W");
-            owoMessage = Regex.Replace(owoMessage, "n([aeiou])", "ny$1");
-            owoMessage = Regex.Replace(owoMessage, "N([aeiou])", "Ny$1");
-            owoMessage = Regex.Replace(owoMessage, "N([AEIOU])", "Ny$1");
-            owoMessage = Regex.Replace(owoMessage, "ove", "uv");
-            owoMessage = Regex.Replace(owoMessage, "(?<!\\@)\\!+", " " + _owoFaces[new Random().Next(_owoFaces.Length)] + " ");
+            owoMessage = OwoRegex.LowercaseW().Replace(owoMessage, "w");
+            owoMessage = OwoRegex.UppercaseW().Replace(owoMessage, "W");
+            owoMessage = OwoRegex.LowercaseNy().Replace(owoMessage, "ny$1");
+            owoMessage = OwoRegex.TitlecaseNy().Replace(owoMessage, "Ny$1");
+            owoMessage = OwoRegex.UppercaseNy().Replace(owoMessage, "Ny$1");
+            owoMessage = OwoRegex.Uv().Replace(owoMessage, "uv");
+            owoMessage = OwoRegex.OwoFaces().Replace(owoMessage, " " + _owoFaces[Random.Shared.Next(_owoFaces.Length)] + " ");
 
             await FollowupAsync(owoMessage, allowedMentions: AllowedMentions.None);
         }
 
         protected IHttpClientFactory HttpClientFactory { get; }
+
+        private static partial class OwoRegex
+        {
+            [GeneratedRegex("(?:r|l)")]
+            public static partial Regex LowercaseW();
+
+            [GeneratedRegex("(?:R|L)")]
+            public static partial Regex UppercaseW();
+
+            [GeneratedRegex("n([aeiou])")]
+            public static partial Regex LowercaseNy();
+
+            [GeneratedRegex("N([aeiou])")]
+            public static partial Regex TitlecaseNy();
+
+            [GeneratedRegex("N([AEIOU])")]
+            public static partial Regex UppercaseNy();
+
+            [GeneratedRegex("ove")]
+            public static partial Regex Uv();
+
+            [GeneratedRegex("(?<!\\@)\\!+")]
+            public static partial Regex OwoFaces();
+        }
     }
 }

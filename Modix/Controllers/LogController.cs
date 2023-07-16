@@ -50,7 +50,7 @@ namespace Modix.Controllers
 
             var batchChannelId = deletedMessages.Records.First().Channel.Id;
 
-            if (!(UserGuild.GetChannel(batchChannelId) is ISocketMessageChannel foundChannel))
+            if (UserGuild.GetChannel(batchChannelId) is not ISocketMessageChannel foundChannel)
             {
                 return NotFound($"Couldn't recreate context - text channel with id {batchChannelId} not found");
             }

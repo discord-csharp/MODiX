@@ -168,7 +168,7 @@ namespace Modix.Data.Test.TestData
             };
 
         public static DesignatedChannelMappingEntity Clone(this DesignatedChannelMappingEntity entity)
-            => new DesignatedChannelMappingEntity()
+            => new()
             {
                 Id = entity.Id,
                 GuildId = entity.GuildId,

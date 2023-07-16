@@ -21,7 +21,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing the requested configuration action, or null if no such configuration action exists.
         /// </returns>
-        Task<ConfigurationActionSummary> ReadAsync(long actionId);
+        Task<ConfigurationActionSummary?> ReadAsync(long actionId);
     }
 
     /// <inheritdoc />
@@ -35,7 +35,7 @@ namespace Modix.Data.Repositories
             : base(modixContext) { }
 
         /// <inheritdoc />
-        public Task<ConfigurationActionSummary> ReadAsync(long actionId)
+        public Task<ConfigurationActionSummary?> ReadAsync(long actionId)
             => ModixContext.Set<ConfigurationActionEntity>().AsNoTracking()
                 .AsExpandable()
                 .Select(ConfigurationActionSummary.FromEntityProjection)

@@ -7,7 +7,7 @@ namespace Modix.Common.Test
         : IDisposable
     {
         public readonly CancellationTokenSource CancellationTokenSource
-            = new CancellationTokenSource();
+            = new();
 
         public CancellationToken CancellationToken
             => CancellationTokenSource.Token;

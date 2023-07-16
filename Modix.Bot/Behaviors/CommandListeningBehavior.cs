@@ -49,11 +49,11 @@ namespace Modix.Bot.Behaviors
             var stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            if (!(notification.Message is IUserMessage userMessage)
+            if (notification.Message is not IUserMessage userMessage
                 || (userMessage.Author is null))
                 return;
 
-            if (!(userMessage.Author is IGuildUser author)
+            if (userMessage.Author is not IGuildUser author
                 || (author.Guild is null)
                 || author.IsBot
                 || author.IsWebhook)

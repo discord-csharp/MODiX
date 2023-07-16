@@ -16,24 +16,24 @@ namespace Modix.Common.Messaging
             DispatchFailed      = CommonLogEventType.Messaging + 0x0600
         }
 
-        public static IDisposable BeginHandlerScope(
+        public static IDisposable? BeginHandlerScope(
                 ILogger logger,
                 object handler)
             => _beginHandlerScope.Invoke(
                 logger,
                 handler.GetType().Name);
-        private static readonly Func<ILogger, string, IDisposable> _beginHandlerScope
+        private static readonly Func<ILogger, string, IDisposable?> _beginHandlerScope
             = LoggerMessage.DefineScope<string>(
                 "NotificationHandlerType: {NotificationHandlerType}");
 
-        public static IDisposable BeginNotificationScope(
+        public static IDisposable? BeginNotificationScope(
                 ILogger logger,
                 object notification)
             => _beginNotificationScope.Invoke(
                 logger,
                 notification.GetType().Name,
                 notification.GetHashCode());
-        private static readonly Func<ILogger, string, int, IDisposable> _beginNotificationScope
+        private static readonly Func<ILogger, string, int, IDisposable?> _beginNotificationScope
             = LoggerMessage.DefineScope<string, int>(
                 "NotificationType: {NotificationType}\r\n\tNotificationHashCode: {NotificationHashCode}");
 

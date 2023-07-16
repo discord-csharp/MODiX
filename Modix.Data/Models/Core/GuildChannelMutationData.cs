@@ -16,7 +16,7 @@
         public ulong? ParentChannelId { get; set; }
 
         internal static GuildChannelMutationData FromEntity(GuildChannelEntity entity)
-            => new GuildChannelMutationData()
+            => new()
             {
                 Name = entity.Name,
                 ParentChannelId = entity.ParentChannelId,

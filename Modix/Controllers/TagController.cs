@@ -34,7 +34,7 @@ namespace Modix.Controllers
             {
                 Content = x.Content,
                 Created = x.CreateAction.Created,
-                IsOwnedByRole = !(x.OwnerRole is null),
+                IsOwnedByRole = x.OwnerRole is not null,
                 Name = x.Name,
                 OwnerUser = x.OwnerUser,
                 OwnerRole = x.OwnerRole,

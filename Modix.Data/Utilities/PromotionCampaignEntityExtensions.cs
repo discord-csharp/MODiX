@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using Modix.Data.Models.Promotions;
 
 namespace Modix.Data.Utilities
@@ -10,7 +9,7 @@ namespace Modix.Data.Utilities
 
         public static TimeSpan GetTimeUntilCampaignCanBeClosed(this PromotionCampaignSummary campaign)
         {
-            return campaign.CreateAction.Created.Add(CampaignAcceptCooldown) - DateTimeOffset.Now;
+            return campaign.CreateAction.Created.Add(CampaignAcceptCooldown) - DateTimeOffset.UtcNow;
         }
     }
 }

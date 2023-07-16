@@ -8,12 +8,8 @@ using Microsoft.Extensions.Logging;
 
 namespace Modix.Services.Quote
 {
-    public class MessageLinkBehavior : BehaviorBase
+    public partial class MessageLinkBehavior : BehaviorBase
     {
-        private static readonly Regex Pattern = new(
-            @"^(?<Prelink>[\s\S]*?)?(?<OpenBrace><)?https?://(?:(?:ptb|canary)\.)?discord(app)?\.com/channels/(?<GuildId>\d+)/(?<ChannelId>\d+)/(?<MessageId>\d+)/?(?<CloseBrace>>)?(?<Postlink>[\s\S]*)?$",
-            RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
-
         public MessageLinkBehavior(DiscordSocketClient discordClient, IServiceProvider serviceProvider)
             : base(serviceProvider)
         {
@@ -25,7 +21,7 @@ namespace Modix.Services.Quote
 
         private ILogger<MessageLinkBehavior> Log { get; }
 
-        protected internal override Task OnStartingAsync()
+        internal protected override Task OnStartingAsync()
         {
             DiscordClient.MessageReceived += OnMessageReceivedAsync;
             DiscordClient.MessageUpdated += OnMessageUpdatedAsync;
@@ -33,7 +29,7 @@ namespace Modix.Services.Quote
             return Task.CompletedTask;
         }
 
-        protected internal override Task OnStoppedAsync()
+        internal protected override Task OnStoppedAsync()
         {
             DiscordClient.MessageReceived -= OnMessageReceivedAsync;
             DiscordClient.MessageUpdated -= OnMessageUpdatedAsync;
@@ -45,7 +41,7 @@ namespace Modix.Services.Quote
         {
             var cachedMessage = await cached.GetOrDownloadAsync();
 
-            if (Pattern.IsMatch(cachedMessage.Content))
+            if (MessageLinkRegex().IsMatch(cachedMessage.Content))
                 return;
 
             await OnMessageReceivedAsync(message);
@@ -61,7 +57,7 @@ namespace Modix.Services.Quote
                 return;
             }
 
-            foreach (Match match in Pattern.Matches(message.Content))
+            foreach (Match match in MessageLinkRegex().Matches(message.Content))
             {
                 // check if the link is surrounded with < and >. This was too annoying to do in regex
                 if (match.Groups["OpenBrace"].Success && match.Groups["CloseBrace"].Success)
@@ -112,7 +108,7 @@ namespace Modix.Services.Quote
                     }
                     catch (Exception ex)
                     {
-                        Log.LogError(ex, "An error occured while attempting to create a quote embed.");
+                        Log.LogError(ex, "An error occurred while attempting to create a quote embed.");
                     }
                 }
             }
@@ -143,5 +139,8 @@ namespace Modix.Services.Quote
 
             return success;
         }
+
+        [GeneratedRegex(@"^(?<Prelink>[\s\S]*?)?(?<OpenBrace><)?https?://(?:(?:ptb|canary)\.)?discord(app)?\.com/channels/(?<GuildId>\d+)/(?<ChannelId>\d+)/(?<MessageId>\d+)/?(?<CloseBrace>>)?(?<Postlink>[\s\S]*)?$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+        private static partial Regex MessageLinkRegex();
     }
 }

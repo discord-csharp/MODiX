@@ -31,7 +31,7 @@ namespace Modix.Data.Repositories
         public DateTimeOffset Timestamp { get; set; }
 
         internal MessageEntity ToEntity()
-            => new MessageEntity()
+            => new()
             {
                 GuildId = GuildId,
                 ChannelId = ChannelId,

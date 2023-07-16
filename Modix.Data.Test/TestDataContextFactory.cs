@@ -22,7 +22,7 @@ namespace Modix.Data.Test
                 })
                 .Options);
 
-            if (!(initializeAction is null))
+            if (initializeAction is not null)
             {
                 initializeAction.Invoke(modixContext);
 

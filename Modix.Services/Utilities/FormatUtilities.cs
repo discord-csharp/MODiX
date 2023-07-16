@@ -19,10 +19,8 @@ using Modix.Services.CodePaste;
 
 namespace Modix.Services.Utilities
 {
-    public static class FormatUtilities
+    public static partial class FormatUtilities
     {
-        private static readonly Regex _buildContentRegex = new(@"```([^\s]*)", RegexOptions.Compiled);
-
         /// <summary>
         /// Prepares a piece of input code for use in HTTP operations
         /// </summary>
@@ -36,9 +34,9 @@ namespace Modix.Services.Utilities
 
         public static string StripFormatting(string code) =>
             //strip out the ` characters and code block markers
-            _buildContentRegex.Replace(code.Trim(), string.Empty);
+            BuildContentRegex().Replace(code.Trim(), string.Empty);
 
-        public static async Task UploadToServiceIfBiggerThan(this EmbedBuilder embed, string content, uint size, CodePasteService service)
+        public static async Task UploadToServiceIfBiggerThanAsync(this EmbedBuilder embed, string content, uint size, CodePasteService service)
         {
             if (content.Length > size)
             {
@@ -155,10 +153,7 @@ namespace Modix.Services.Utilities
         }
 
         public static bool ContainsSpoiler(string text)
-            => _containsSpoilerRegex.IsMatch(text);
-
-        private static readonly Regex _containsSpoilerRegex
-            = new(@"\|\|.+\|\|", RegexOptions.Compiled);
+            => SpoilerRegex().IsMatch(text);
 
 #nullable enable
         public static string FormatCodeForEmbed(string language, string sourceCode, int maxLength)
@@ -294,5 +289,11 @@ namespace Modix.Services.Utilities
                 processedLines.Add(GetRemainingLineCountComment(GetRemainingLineCount()));
             }
         }
+
+        [GeneratedRegex(@"```([^\s]*)")]
+        private static partial Regex BuildContentRegex();
+
+        [GeneratedRegex(@"\|\|.+\|\|")]
+        private static partial Regex SpoilerRegex();
     }
 }

@@ -28,7 +28,7 @@ namespace Modix.Data.Test.Repositories
                 x.Set<UserEntity>().AddRange(Users.Entities.Clone());
                 x.Set<GuildUserEntity>().AddRange(GuildUsers.Entities.Clone());
                 x.Set<ClaimMappingEntity>().AddRange(ClaimMappings.Entities.Clone());
-                x.Set<ConfigurationActionEntity>().AddRange(ConfigurationActions.Entities.Where(y => !(y.ClaimMappingId is null)).Clone());
+                x.Set<ConfigurationActionEntity>().AddRange(ConfigurationActions.Entities.Where(y => y.ClaimMappingId is not null).Clone());
             });
 
             var uut = new ClaimMappingRepository(modixContext);
@@ -200,8 +200,8 @@ namespace Modix.Data.Test.Repositories
             createAction.GuildId.ShouldBe(data.GuildId);
             createAction.Type.ShouldBe(ConfigurationActionType.ClaimMappingCreated);
             createAction.Created.ShouldBeInRange(
-                DateTimeOffset.Now - TimeSpan.FromSeconds(1),
-                DateTimeOffset.Now + TimeSpan.FromSeconds(1));
+                DateTimeOffset.UtcNow - TimeSpan.FromSeconds(1),
+                DateTimeOffset.UtcNow + TimeSpan.FromSeconds(1));
             createAction.CreatedById.ShouldBe(data.CreatedById);
             createAction.ClaimMappingId.ShouldBe(id);
             createAction.DesignatedChannelMappingId.ShouldBeNull();
@@ -359,8 +359,8 @@ namespace Modix.Data.Test.Repositories
             deleteAction.GuildId.ShouldBe(claimMapping.GuildId);
             deleteAction.Type.ShouldBe(ConfigurationActionType.ClaimMappingDeleted);
             deleteAction.Created.ShouldBeInRange(
-                DateTimeOffset.Now - TimeSpan.FromSeconds(1),
-                DateTimeOffset.Now + TimeSpan.FromSeconds(1));
+                DateTimeOffset.UtcNow - TimeSpan.FromSeconds(1),
+                DateTimeOffset.UtcNow + TimeSpan.FromSeconds(1));
             deleteAction.CreatedById.ShouldBe(deletedById);
             deleteAction.ClaimMappingId.ShouldBe(claimMapping.Id);
             deleteAction.DesignatedChannelMappingId.ShouldBeNull();
@@ -370,7 +370,7 @@ namespace Modix.Data.Test.Repositories
                 .Where(x => x.Id != deleteAction.Id)
                 .Select(x => x.Id)
                 .ShouldBe(ConfigurationActions.Entities
-                    .Where(x => !(x.ClaimMappingId is null))
+                    .Where(x => x.ClaimMappingId is not null)
                     .Select(x => x.Id));
 
             modixContext.Set<ConfigurationActionEntity>()
@@ -405,7 +405,7 @@ namespace Modix.Data.Test.Repositories
                 .AsQueryable()
                 .Select(x => x.Id)
                 .ShouldBe(ConfigurationActions.Entities
-                    .Where(x => !(x.ClaimMappingId is null))
+                    .Where(x => x.ClaimMappingId is not null)
                     .Select(x => x.Id));
 
             modixContext.Set<ConfigurationActionEntity>()
@@ -459,7 +459,7 @@ namespace Modix.Data.Test.Repositories
 
         public static readonly IEnumerable<TestCaseData> DeletedClaimMappingWithValidUserIdTestCases
             = ClaimMappings.Entities
-                .Where(x => !(x.DeleteActionId is null))
+                .Where(x => x.DeleteActionId is not null)
                 .SelectMany(x => Users.Entities
                     .Where(y => GuildUsers.Entities.Any(z => z.GuildId == x.GuildId))
                     .Select(y => new TestCaseData(x.Id, y.Id)));

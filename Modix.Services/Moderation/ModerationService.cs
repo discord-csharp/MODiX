@@ -54,7 +54,7 @@ namespace Modix.Services.Moderation
 
         Task<IDictionary<InfractionType, int>> GetInfractionCountsForUserAsync(ulong subjectId);
 
-        Task<ModerationActionSummary> GetModerationActionSummaryAsync(long moderationActionId);
+        Task<ModerationActionSummary?> GetModerationActionSummaryAsync(long moderationActionId);
 
         Task<DateTimeOffset?> GetNextInfractionExpiration();
 
@@ -228,7 +228,7 @@ namespace Modix.Services.Moderation
         {
             var expiredInfractions = await _infractionRepository.SearchSummariesAsync(new InfractionSearchCriteria()
             {
-                ExpiresRange = new DateTimeOffsetRange() {To = DateTimeOffset.Now},
+                ExpiresRange = new DateTimeOffsetRange() { To = DateTimeOffset.UtcNow },
                 IsRescinded = false,
                 IsDeleted = false
             });
@@ -270,8 +270,7 @@ namespace Modix.Services.Moderation
         {
             _authorizationService.RequireClaims(_createInfractionClaimsByType[type]);
 
-            if (reason is null)
-                throw new ArgumentNullException(nameof(reason));
+            ArgumentNullException.ThrowIfNull(reason);
 
             if (reason.Length >= MaxReasonLength)
                 throw new ArgumentException($"Reason must be less than {MaxReasonLength} characters in length",
@@ -463,10 +462,9 @@ namespace Modix.Services.Moderation
         {
             _authorizationService.RequireClaims(AuthorizationClaim.ModerationMassDeleteMessages);
 
-            if (confirmDelegate is null)
-                throw new ArgumentNullException(nameof(confirmDelegate));
+            ArgumentNullException.ThrowIfNull(confirmDelegate);
 
-            if (!(channel is IGuildChannel guildChannel))
+            if (channel is not IGuildChannel guildChannel)
                 throw new InvalidOperationException(
                     $"Cannot delete messages in {channel.Name} because it is not a guild channel.");
 
@@ -492,10 +490,9 @@ namespace Modix.Services.Moderation
         {
             _authorizationService.RequireClaims(AuthorizationClaim.ModerationMassDeleteMessages);
 
-            if (confirmDelegate is null)
-                throw new ArgumentNullException(nameof(confirmDelegate));
+            ArgumentNullException.ThrowIfNull(confirmDelegate);
 
-            if (!(channel is IGuildChannel guildChannel))
+            if (channel is not IGuildChannel guildChannel)
                 throw new InvalidOperationException(
                     $"Cannot delete messages in {channel.Name} because it is not a guild channel.");
 
@@ -551,7 +548,7 @@ namespace Modix.Services.Moderation
             });
         }
 
-        public Task<ModerationActionSummary> GetModerationActionSummaryAsync(long moderationActionId)
+        public Task<ModerationActionSummary?> GetModerationActionSummaryAsync(long moderationActionId)
         {
             return _moderationActionRepository.ReadSummaryAsync(moderationActionId);
         }
@@ -588,8 +585,7 @@ namespace Modix.Services.Moderation
 
         public async Task<bool> AnyInfractionsAsync(InfractionSearchCriteria criteria)
         {
-            if (criteria is null)
-                throw new ArgumentNullException(nameof(criteria));
+            ArgumentNullException.ThrowIfNull(criteria);
 
             return await _infractionRepository.AnyAsync(criteria);
         }
@@ -610,7 +606,7 @@ namespace Modix.Services.Moderation
                     GuildId = guild.Id, Type = DesignatedRoleType.ModerationMute, IsDeleted = false
                 })).FirstOrDefault();
 
-            if (!(mapping is null))
+            if (mapping is not null)
                 return guild.Roles.First(x => x.Id == mapping.Role.Id);
 
             var role = guild.Roles.FirstOrDefault(x => x.Name == MuteRoleName)
@@ -644,13 +640,13 @@ namespace Modix.Services.Moderation
             // validation and update their own infraction
             if (infraction.CreateAction.CreatedBy.Id == currentUserId)
             {
-                return (await _infractionRepository.TryUpdateAync(infractionId, newReason, currentUserId), null);
+                return (await _infractionRepository.TryUpdateAsync(infractionId, newReason, currentUserId), null);
             }
 
             // Else we know it's not the user's infraction
             _authorizationService.RequireClaims(AuthorizationClaim.ModerationUpdateInfraction);
 
-            return (await _infractionRepository.TryUpdateAync(infractionId, newReason, currentUserId), null);
+            return (await _infractionRepository.TryUpdateAsync(infractionId, newReason, currentUserId), null);
         }
 
         private static async Task ConfigureChannelMuteRolePermissionsAsync(IGuildChannel channel, IRole muteRole)

@@ -21,7 +21,7 @@
         public string Content { get; set; } = null!;
 
         internal static PromotionCommentMutationData FromEntity(PromotionCommentEntity entity)
-            => new PromotionCommentMutationData
+            => new()
             {
                 CampaignId = entity.CampaignId,
                 Sentiment = entity.Sentiment,
@@ -29,7 +29,7 @@
             };
 
         internal PromotionCommentEntity ToEntity()
-            => new PromotionCommentEntity
+            => new()
             {
                 CampaignId = CampaignId,
                 Sentiment = Sentiment,

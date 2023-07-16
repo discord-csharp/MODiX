@@ -16,7 +16,7 @@
         public int Position { get; set; }
 
         internal static GuildRoleMutationData FromEntity(GuildRoleEntity entity)
-            => new GuildRoleMutationData()
+            => new()
             {
                 Name = entity.Name,
                 Position = entity.Position

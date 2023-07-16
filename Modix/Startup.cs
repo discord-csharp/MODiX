@@ -7,8 +7,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
@@ -18,7 +16,6 @@ using Modix.Authentication;
 using Modix.Configuration;
 using Modix.Data;
 using Modix.Data.Models.Core;
-using Modix.Services.CodePaste;
 using Newtonsoft.Json.Converters;
 using Serilog;
 
@@ -30,12 +27,10 @@ namespace Modix
             = "/logfiles";
 
         private readonly IConfiguration _configuration;
-        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public Startup(IConfiguration configuration, IWebHostEnvironment webHostEnvironment)
+        public Startup(IConfiguration configuration)
         {
             _configuration = configuration;
-            _webHostEnvironment = webHostEnvironment;
             Log.Information("Configuration loaded. ASP.NET Startup is a go.");
         }
 
@@ -54,7 +49,6 @@ namespace Modix
                     options.LoginPath = "/api/unauthorized";
                     //options.LogoutPath = "/logout";
                     options.ExpireTimeSpan = new TimeSpan(7, 0, 0, 0);
-
                 })
                 .AddDiscordAuthentication();
 
@@ -66,16 +60,13 @@ namespace Modix
 
             services
                 .AddServices(typeof(ModixContext).Assembly, _configuration)
-                .AddDbContext<ModixContext>(options => options
-                    .UseNpgsql(_configuration.GetValue<string>(nameof(ModixConfig.DbConnection)), npgsqlOptions => npgsqlOptions
-                        .UseDateTimeOffsetTranslations()));
+                .AddNpgsql<ModixContext>(_configuration.GetValue<string>(nameof(ModixConfig.DbConnection)));
 
             services
                 .AddModixHttpClients()
                 .AddModix(_configuration);
 
             services.AddMvc(d => d.EnableEndpointRouting = false)
-                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
                 .AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.Converters.Add(new StringEnumConverter());
@@ -84,7 +75,7 @@ namespace Modix
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostEnvironment env, CodePasteService codePasteService)
+        public void Configure(IApplicationBuilder app, IHostEnvironment env)
         {
             var options = new ForwardedHeadersOptions
             {

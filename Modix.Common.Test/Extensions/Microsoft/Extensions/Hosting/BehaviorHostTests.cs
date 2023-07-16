@@ -35,19 +35,19 @@ namespace Modix.Common.Test.Extensions.Microsoft.Extensions.Hosting
                 => _stopCompletionSource.SetResult(null);
 
             private readonly TaskCompletionSource<object?> _startCompletionSource
-                = new TaskCompletionSource<object?>();
+                = new();
             private readonly TaskCompletionSource<object?> _stopCompletionSource
-                = new TaskCompletionSource<object?>();
+                = new();
         }
 
         internal class TestContext
             : AsyncMethodWithLoggerTestContext
         {
             public readonly List<MockBehavior> MockBehaviors
-                = new List<MockBehavior>();
+                = new();
 
             public BehaviorHost BuildUut()
-                => new BehaviorHost(
+                => new(
                     MockBehaviors.Select(x => x.Object),
                     LoggerFactory.CreateLogger<BehaviorHost>());
         }

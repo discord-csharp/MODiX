@@ -31,8 +31,7 @@ namespace Modix.Data.Repositories
         /// </returns>
         public async Task<IRepositoryTransaction> BeginTransactionAsync(DatabaseFacade database)
         {
-            if (database == null)
-                throw new ArgumentNullException(nameof(database));
+            ArgumentNullException.ThrowIfNull(database);
 
             return new RepositoryTransaction(
                 (database.CurrentTransaction is null)
@@ -57,8 +56,7 @@ namespace Modix.Data.Repositories
         /// </returns>
         public async Task<IRepositoryTransaction> BeginTransactionAsync(DatabaseFacade database, CancellationToken cancellationToken, ILogger<RepositoryTransactionFactory>? logger = null)
         {
-            if (database == null)
-                throw new ArgumentNullException(nameof(database));
+            ArgumentNullException.ThrowIfNull(database);
 
             var databaseTransaction = (database.CurrentTransaction is null)
                 ? await database.BeginTransactionAsync(cancellationToken)

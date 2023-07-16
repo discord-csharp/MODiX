@@ -11,7 +11,7 @@ namespace Modix
         public ulong Id { get; }
         public DiscordUserEntity(ulong id) { Id = id; }
 
-        public static DiscordUserEntity FromIUser(IUser user) => new DiscordUserEntity(user.Id);
+        public static DiscordUserEntity FromIUser(IUser user) => new(user.Id);
     }
 
     public class UserEntityTypeReader : UserTypeReader<IGuildUser>

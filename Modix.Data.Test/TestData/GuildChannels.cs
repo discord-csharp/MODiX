@@ -31,7 +31,7 @@ namespace Modix.Data.Test.TestData
             };
 
         public static GuildChannelEntity Clone(this GuildChannelEntity entity)
-            => new GuildChannelEntity()
+            => new()
             {
                 ChannelId = entity.ChannelId,
                 GuildId = entity.GuildId,

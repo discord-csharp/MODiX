@@ -13,7 +13,7 @@ namespace Modix.Data.ExpandableQueries
         private static bool IsExpansionExpression(MemberExpression node)
             => (node.Member is FieldInfo fieldInfo)
                 && fieldInfo.IsStatic
-                && !(fieldInfo.GetCustomAttribute<ExpansionExpressionAttribute>() is null);
+                && fieldInfo.GetCustomAttribute<ExpansionExpressionAttribute>() is not null;
 
         private static Expression GetExpansionExpression(MemberExpression node)
             => (Expression)((FieldInfo)node.Member).GetValue(null)!;

@@ -34,7 +34,7 @@ namespace Modix.Data.Test.TestData
             };
 
         public static GuildRoleEntity Clone(this GuildRoleEntity entity)
-            => new GuildRoleEntity()
+            => new()
             {
                 RoleId = entity.RoleId,
                 GuildId = entity.GuildId,

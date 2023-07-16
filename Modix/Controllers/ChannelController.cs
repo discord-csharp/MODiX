@@ -22,11 +22,11 @@ namespace Modix.Controllers
         [HttpGet("types")]
         public IActionResult ChannelDesignationTypes()
         {
-            return Ok(Enum.GetNames(typeof(DesignatedChannelType)));
+            return Ok(Enum.GetNames<DesignatedChannelType>());
         }
 
         [HttpGet]
-        public async Task<IActionResult> ChannelDesignations()
+        public async Task<IActionResult> ChannelDesignationsAsync()
         {
             var designatedChannels = await ChannelService.GetDesignatedChannelsAsync(ModixAuth.CurrentGuildId.Value);
 
@@ -42,20 +42,20 @@ namespace Modix.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> RemoveDesignation(long id)
+        public async Task<IActionResult> RemoveDesignationAsync(long id)
         {
             await ChannelService.RemoveDesignatedChannelByIdAsync(id);
             return Ok();
         }
 
         [HttpPut]
-        public async Task<IActionResult> CreateDesignation([FromBody] DesignatedChannelCreationData creationData)
+        public async Task<IActionResult> CreateDesignationAsync([FromBody] DesignatedChannelCreationData creationData)
         {
             var foundChannel = DiscordSocketClient
                 ?.GetGuild(ModixAuth.CurrentGuildId.Value)
                 ?.GetChannel(creationData.ChannelId);
 
-            if (foundChannel == null || !(foundChannel is ISocketMessageChannel messageChannel))
+            if (foundChannel == null || foundChannel is not ISocketMessageChannel messageChannel)
             {
                 return BadRequest($"A message channel was not found with id {creationData.ChannelId} in guild with id {ModixAuth.CurrentGuildId}");
             }

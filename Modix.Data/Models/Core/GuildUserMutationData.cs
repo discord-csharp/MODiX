@@ -28,7 +28,7 @@ namespace Modix.Data.Models.Core
         public DateTimeOffset LastSeen { get; set; }
 
         internal static GuildUserMutationData FromEntity(GuildUserEntity entity)
-            => new GuildUserMutationData()
+            => new()
             {
                 Username = entity.User.Username,
                 Discriminator = entity.User.Discriminator,

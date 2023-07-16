@@ -61,8 +61,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task CreateAsync(GuildRoleCreationData data)
         {
-            if (data == null)
-                throw new ArgumentNullException(nameof(data));
+            ArgumentNullException.ThrowIfNull(data);
 
             var entity = data.ToEntity();
 
@@ -73,8 +72,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<bool> TryUpdateAsync(ulong roleId, Action<GuildRoleMutationData> updateAction)
         {
-            if (updateAction == null)
-                throw new ArgumentNullException(nameof(updateAction));
+            ArgumentNullException.ThrowIfNull(updateAction);
 
             var entity = await ModixContext.Set<GuildRoleEntity>()
                 .Where(x => x.RoleId == roleId)
@@ -96,6 +94,6 @@ namespace Modix.Data.Repositories
         }
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
-            = new RepositoryTransactionFactory();
+            = new();
     }
 }

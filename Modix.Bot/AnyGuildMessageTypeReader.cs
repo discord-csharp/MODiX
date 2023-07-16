@@ -25,7 +25,7 @@ namespace Modix.Bot
             if (message is null)
                 return TypeReaderResult.FromError(CommandError.ObjectNotFound, "Message not found. Are you sure I have permission to read the appropriate channels and message histories?");
 
-            if (!(message is TMessage result))
+            if (message is not TMessage result)
                 return TypeReaderResult.FromError(CommandError.Exception, "Incompatible message.");
 
             return TypeReaderResult.FromSuccess(AnyGuildMessage.FromMessage(result));

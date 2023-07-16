@@ -32,7 +32,7 @@ namespace Modix.Controllers
                 query = query.Substring(1);
             }
 
-            var result = UserGuild.Channels
+            var result = UserGuild!.Channels
                 .Where(d => d is SocketTextChannel)
                 .Where(d => d.Name.OrdinalContains(query))
                 .Take(10)
@@ -42,7 +42,7 @@ namespace Modix.Controllers
         }
 
         [HttpGet("users")]
-        public async Task<IActionResult> AutocompleteUsers(string query)
+        public async Task<IActionResult> AutocompleteUsersAsync(string query)
         {
             var result = UserGuild?.Users is null
                 ? Enumerable.Empty<ModixUser>()
@@ -53,7 +53,7 @@ namespace Modix.Controllers
 
             if (!result.Any() && ulong.TryParse(query, out var userId))
             {
-                var user = await _userService.GetUserInformationAsync(UserGuild.Id, userId);
+                var user = await _userService.GetUserInformationAsync(UserGuild!.Id, userId);
 
                 if(user != null)
                     result = result.Append(ModixUser.FromIGuildUser(user));
@@ -62,7 +62,7 @@ namespace Modix.Controllers
         }
 
         [HttpGet("roles")]
-        public async Task<IActionResult> AutocompleteRoles(string query, [FromQuery] bool rankOnly)
+        public async Task<IActionResult> AutocompleteRolesAsync(string query, [FromQuery] bool rankOnly)
         {
             if (query.StartsWith('@'))
             {
@@ -73,7 +73,7 @@ namespace Modix.Controllers
             {
                 var criteria = new DesignatedRoleMappingSearchCriteria
                 {
-                    GuildId = UserGuild.Id,
+                    GuildId = UserGuild!.Id,
                     Type = DesignatedRoleType.Rank,
                     IsDeleted = false
                 };
@@ -89,7 +89,7 @@ namespace Modix.Controllers
             }
             else
             {
-                IEnumerable<IRole> result = UserGuild.Roles;
+                IEnumerable<IRole> result = UserGuild!.Roles;
 
                 if (!string.IsNullOrWhiteSpace(query))
                 {

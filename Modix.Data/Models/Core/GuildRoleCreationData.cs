@@ -26,7 +26,7 @@
         public int Position { get; set; }
 
         internal GuildRoleEntity ToEntity()
-            => new GuildRoleEntity()
+            => new()
             {
                 RoleId = RoleId,
                 GuildId = GuildId,

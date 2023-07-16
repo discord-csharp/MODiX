@@ -47,8 +47,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task CreateAsync(DeletedMessageBatchCreationData data)
         {
-            if (data is null)
-                throw new ArgumentNullException(nameof(data));
+            ArgumentNullException.ThrowIfNull(data);
 
             var entity = data.ToEntity();
 
@@ -71,6 +70,6 @@ namespace Modix.Data.Repositories
         }
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
-            = new RepositoryTransactionFactory();
+            = new();
     }
 }

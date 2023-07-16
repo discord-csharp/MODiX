@@ -33,7 +33,7 @@ namespace Modix.Services.Test.Core
             }
 
             public DesignatedRoleService BuildUut()
-                => new DesignatedRoleService(
+                => new(
                     MockAuthorizationService.Object,
                     MockDesignatedRoleMappingRepository.Object);
 

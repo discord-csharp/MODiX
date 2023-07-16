@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -203,7 +204,7 @@ namespace Modix.Services.Core
             => DesignatedRoleMappingRepository.AnyAsync(new DesignatedRoleMappingSearchCriteria()
             {
                 GuildId = guildId,
-                RoleIds = roleIds,
+                RoleIds = roleIds.ToArray(),
                 IsDeleted = false,
                 Type = designation
             }, default);

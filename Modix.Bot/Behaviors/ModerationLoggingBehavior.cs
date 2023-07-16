@@ -107,7 +107,7 @@ namespace Modix.Behaviors
                 }.RemoveDefaultPort().ToString();
 
         private static readonly Dictionary<(ModerationActionType, InfractionType?), string> _renderTemplates
-            = new Dictionary<(ModerationActionType, InfractionType?), string>()
+            = new()
             {
                 { (ModerationActionType.InfractionCreated,   InfractionType.Notice),  "`[{0}]` `[{2}]` **{1}** recorded the following note for **{3}** (`{4}`) ```\n{5}```" },
                 { (ModerationActionType.InfractionCreated,   InfractionType.Warning), "`[{0}]` `[{2}]` **{1}** recorded the following warning for **{3}** (`{4}`) ```\n{5}```" },

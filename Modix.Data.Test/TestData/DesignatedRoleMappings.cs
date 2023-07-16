@@ -194,7 +194,7 @@ namespace Modix.Data.Test.TestData
             };
 
         public static DesignatedRoleMappingEntity Clone(this DesignatedRoleMappingEntity entity)
-            => new DesignatedRoleMappingEntity()
+            => new()
             {
                 Id = entity.Id,
                 GuildId = entity.GuildId,

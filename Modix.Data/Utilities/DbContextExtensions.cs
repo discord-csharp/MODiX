@@ -22,11 +22,8 @@ namespace Modix.Data.Utilities
         /// <exception cref="ArgumentNullException">Throws for <paramref name="dbContext"/> and <paramref name="propertySelector"/>.</exception>
         public static void UpdateProperty<TEntity, TValue>(this DbContext dbContext, TEntity entity, Expression<Func<TEntity, TValue>> propertySelector) where TEntity : class
         {
-            if (dbContext == null)
-                throw new ArgumentNullException(nameof(dbContext));
-
-            if (propertySelector == null)
-                throw new ArgumentNullException(nameof(propertySelector));
+            ArgumentNullException.ThrowIfNull(dbContext);
+            ArgumentNullException.ThrowIfNull(propertySelector);
 
             dbContext.Entry(entity).Property(propertySelector).IsModified = true;
         }

@@ -52,7 +52,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing the requested mapping, or null if no such mapping exists.
         /// </returns>
-        Task<ClaimMappingSummary> ReadAsync(long claimMappingId);
+        Task<ClaimMappingSummary?> ReadAsync(long claimMappingId);
 
         /// <summary>
         /// Checks whether any claims exist, for an arbitrary set of criteria.
@@ -110,8 +110,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<long> CreateAsync(ClaimMappingCreationData data)
         {
-            if (data == null)
-                throw new ArgumentNullException(nameof(data));
+            ArgumentNullException.ThrowIfNull(data);
 
             var entity = data.ToEntity();
 
@@ -125,7 +124,7 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public Task<ClaimMappingSummary> ReadAsync(long claimMappingId)
+        public Task<ClaimMappingSummary?> ReadAsync(long claimMappingId)
             => ModixContext.Set<ClaimMappingEntity>().AsNoTracking()
                 .AsExpandable()
                 .Select(ClaimMappingSummary.FromEntityProjection)
@@ -166,7 +165,7 @@ namespace Modix.Data.Repositories
             {
                 GuildId = entity.GuildId,
                 Type = ConfigurationActionType.ClaimMappingDeleted,
-                Created = DateTimeOffset.Now,
+                Created = DateTimeOffset.UtcNow,
                 CreatedById = rescindedById,
                 ClaimMappingId = entity.Id
             };
@@ -176,9 +175,9 @@ namespace Modix.Data.Repositories
         }
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
-            = new RepositoryTransactionFactory();
+            = new();
 
         private static readonly RepositoryTransactionFactory _deleteTransactionFactory
-            = new RepositoryTransactionFactory();
+            = new();
     }
 }

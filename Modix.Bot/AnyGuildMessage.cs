@@ -18,7 +18,7 @@ namespace Modix.Bot
         /// <returns>A <see cref="AnyGuildMessage"/> value containing the given <see cref="IMessage"/> object.</returns>
         public static AnyGuildMessage<TMessage> FromMessage<TMessage>(TMessage message)
                 where TMessage : IMessage
-            => new AnyGuildMessage<TMessage>(message);
+            => new(message);
     }
 
     /// <summary>

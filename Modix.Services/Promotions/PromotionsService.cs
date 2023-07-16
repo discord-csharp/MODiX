@@ -165,7 +165,7 @@ namespace Modix.Services.Promotions
                 NominatingUserId = AuthorizationService.CurrentUserId.Value
             };
 
-            if (!(confirmDelegate is null))
+            if (confirmDelegate is not null)
             {
                 var confirmed = await confirmDelegate(proposedPromotionCampaign);
 
@@ -271,7 +271,7 @@ namespace Modix.Services.Promotions
                 var oldComment = await PromotionCommentRepository.ReadSummaryAsync(commentId);
                 var campaign = await PromotionCampaignRepository.ReadDetailsAsync(oldComment.Campaign.Id);
 
-                if (!(campaign.CloseAction is null))
+                if (campaign.CloseAction is not null)
                     throw new InvalidOperationException($"Campaign {oldComment.Campaign.Id} has already been closed");
 
                 resultAction = await PromotionCommentRepository.TryUpdateAsync(commentId, AuthorizationService.CurrentUserId.Value,
@@ -301,7 +301,7 @@ namespace Modix.Services.Promotions
                 if (campaign is null)
                     throw new InvalidOperationException($"Campaign {campaignId} does not exist");
 
-                if (!(campaign.CloseAction is null))
+                if (campaign.CloseAction is not null)
                     throw new InvalidOperationException($"Campaign {campaignId} is already closed");
 
                 var timeSince = DateTime.UtcNow - campaign.CreateAction.Created;
@@ -326,7 +326,7 @@ namespace Modix.Services.Promotions
                         .TakeWhile(x => x.Id != targetRole.Id))
                     {
                         var lowerRole = guild.GetRole(lowerRankRole.Id);
-                        if (!(lowerRole is null) && subject.RoleIds.Contains(lowerRole.Id))
+                        if (lowerRole is not null && subject.RoleIds.Contains(lowerRole.Id))
                             await subject.RemoveRoleAsync(lowerRole);
                     }
 
@@ -353,7 +353,7 @@ namespace Modix.Services.Promotions
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsCloseCampaign);
 
-            if (!(await PromotionCampaignRepository.TryCloseAsync(campaignId, AuthorizationService.CurrentUserId.Value, PromotionCampaignOutcome.Rejected) is PromotionActionSummary resultAction))
+            if (await PromotionCampaignRepository.TryCloseAsync(campaignId, AuthorizationService.CurrentUserId.Value, PromotionCampaignOutcome.Rejected) is not PromotionActionSummary resultAction)
                 throw new InvalidOperationException($"Campaign {campaignId} doesn't exist or is already closed");
 
             PublishActionNotificationAsync(resultAction);
@@ -517,7 +517,7 @@ namespace Modix.Services.Promotions
 
             // JoinedAt is null, when it cannot be obtained
             if (subject.JoinedAt.HasValue)
-                if (subject.JoinedAt.Value.DateTime > (DateTimeOffset.Now - TimeSpan.FromDays(20)))
+                if (subject.JoinedAt.Value.DateTime > (DateTimeOffset.UtcNow - TimeSpan.FromDays(20)))
                     throw new InvalidOperationException($"{subject.GetDisplayName()} has joined less than 20 days prior");
 
             if (!await CheckIfUserIsRankOrHigherAsync(rankRoles, AuthorizationService.CurrentUserId.Value, targetRankRole.Id))

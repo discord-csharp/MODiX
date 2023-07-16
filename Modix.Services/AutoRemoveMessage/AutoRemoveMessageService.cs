@@ -62,8 +62,7 @@ namespace Modix.Services.AutoRemoveMessage
         /// <inheritdoc />
         public async Task RegisterRemovableMessageAsync(IUser[] user, EmbedBuilder embed, Func<EmbedBuilder, Task<IUserMessage>> callback)
         {
-            if (callback == null)
-                throw new ArgumentNullException(nameof(callback));
+            ArgumentNullException.ThrowIfNull(callback);
 
             if (embed.Footer?.Text == null)
             {

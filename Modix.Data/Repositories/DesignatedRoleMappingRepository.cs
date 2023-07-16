@@ -111,8 +111,7 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<long> CreateAsync(DesignatedRoleMappingCreationData data)
         {
-            if (data == null)
-                throw new ArgumentNullException(nameof(data));
+            ArgumentNullException.ThrowIfNull(data);
 
             var entity = data.ToEntity();
 
@@ -175,16 +174,16 @@ namespace Modix.Data.Repositories
         }
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
-            = new RepositoryTransactionFactory();
+            = new();
 
         private static readonly RepositoryTransactionFactory _deleteTransactionFactory
-            = new RepositoryTransactionFactory();
+            = new();
 
         private void DoEntityDelete(DesignatedRoleMappingEntity entity, ulong deletedById)
             => entity.DeleteAction = new ConfigurationActionEntity()
             {
                 Type = ConfigurationActionType.DesignatedRoleMappingDeleted,
-                Created = DateTimeOffset.Now,
+                Created = DateTimeOffset.UtcNow,
                 CreatedById = deletedById,
                 DesignatedRoleMappingId = entity.Id,
                 GuildId = entity.GuildId

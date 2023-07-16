@@ -41,7 +41,7 @@ namespace Modix.Common.Test.Extensions.Microsoft.Extensions.Hosting
             }
 
             public HostLifetimeNotificationBehavior BuildUut()
-                => new HostLifetimeNotificationBehavior(
+                => new(
                     LoggerFactory.CreateLogger<HostLifetimeNotificationBehavior>(),
                     MockServiceScopeFactory.Object);
 

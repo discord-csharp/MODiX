@@ -1,4 +1,6 @@
-﻿using System;
+﻿#nullable enable
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -7,7 +9,6 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Modix.Data;
 using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
@@ -27,7 +28,7 @@ namespace Modix.Services.Tags
 
         Task DeleteTagAsync(ulong guildId, ulong deleterId, string name);
 
-        Task<TagSummary> GetTagAsync(ulong guildId, string name);
+        Task<TagSummary?> GetTagAsync(ulong guildId, string name);
 
         Task<IReadOnlyCollection<TagSummary>> GetSummariesAsync(TagSearchCriteria criteria);
 
@@ -44,7 +45,7 @@ namespace Modix.Services.Tags
         Task RefreshCache(ulong guildId);
     }
 
-    internal class TagService : ITagService
+    internal partial class TagService : ITagService
     {
         private readonly IDiscordClient _discordClient;
         private readonly IAuthorizationService _authorizationService;
@@ -52,8 +53,6 @@ namespace Modix.Services.Tags
         private readonly IDesignatedRoleMappingRepository _designatedRoleMappingRepository;
         private readonly ITagCache _tagCache;
         private readonly ModixContext _modixContext;
-
-        private static readonly Regex _tagNameRegex = new(@"^\S+\b$");
 
         public TagService(
             IDiscordClient discordClient,
@@ -71,7 +70,6 @@ namespace Modix.Services.Tags
             _tagCache = tagCache;
         }
 
-#nullable enable
         public async Task CreateTagAsync(ulong guildId, ulong creatorId, string name, string content)
         {
             _authorizationService.RequireClaims(AuthorizationClaim.CreateTag);
@@ -82,7 +80,7 @@ namespace Modix.Services.Tags
             if (string.IsNullOrWhiteSpace(content))
                 throw new ArgumentException("The tag content cannot be blank or whitespace.", nameof(content));
 
-            if (!_tagNameRegex.IsMatch(name))
+            if (!ValidTagNameRegex().IsMatch(name))
                 throw new ArgumentException("The tag name cannot have punctuation at the end.", nameof(name));
 
             name = name.Trim().ToLower();
@@ -109,7 +107,7 @@ namespace Modix.Services.Tags
             var createAction = new TagActionEntity()
             {
                 GuildId = guildId,
-                Created = DateTimeOffset.Now,
+                Created = DateTimeOffset.UtcNow,
                 Type = TagActionType.TagCreated,
                 CreatedById = creatorId,
             };
@@ -122,7 +120,6 @@ namespace Modix.Services.Tags
 
             _tagCache.Add(guildId, name);
         }
-#nullable restore
 
         public async Task UseTagAsync(ulong guildId, ulong channelId, string name, IMessage invokingMessage)
         {
@@ -212,7 +209,7 @@ namespace Modix.Services.Tags
             _tagCache.Remove(guildId, name);
         }
 
-        public async Task<TagSummary> GetTagAsync(ulong guildId, string name)
+        public async Task<TagSummary?> GetTagAsync(ulong guildId, string name)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("The tag name cannot be blank or whitespace.", nameof(name));
@@ -231,8 +228,7 @@ namespace Modix.Services.Tags
 
         public async Task<IReadOnlyCollection<TagSummary>> GetSummariesAsync(TagSearchCriteria criteria)
         {
-            if (criteria is null)
-                throw new ArgumentNullException(nameof(criteria));
+            ArgumentNullException.ThrowIfNull(criteria);
 
             return await _modixContext.Set<TagEntity>()
                 .Where(x => x.DeleteActionId == null)
@@ -348,7 +344,7 @@ namespace Modix.Services.Tags
             {
                 if (tag.OwnerUser is null)
                 {
-                    if (!await CanUserMaintainTagOwnedByRoleAsync(currentUser, tag.OwnerRole))
+                    if (!await CanUserMaintainTagOwnedByRoleAsync(currentUser, tag.OwnerRole!))
                         throw new InvalidOperationException("User rank insufficient to transfer the tag.");
                 }
                 else if (currentUserId != tag.OwnerUser.UserId)
@@ -386,7 +382,7 @@ namespace Modix.Services.Tags
                 GuildId = user.GuildId,
                 Type = DesignatedRoleType.Rank,
                 IsDeleted = false,
-                RoleIds = user.RoleIds,
+                RoleIds = user.RoleIds.ToArray(),
             }))
             .OrderBy(x => x.Role.Position)
             .FirstOrDefault();
@@ -424,5 +420,8 @@ namespace Modix.Services.Tags
                     IsDeleted = false,
                 }))
                 .Select(r => r.Role);
+
+        [GeneratedRegex(@"^\S+\b$")]
+        private static partial Regex ValidTagNameRegex();
     }
 }

@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 
 namespace Modix.Services.Wikipedia
 {
@@ -27,7 +27,7 @@ namespace Modix.Services.Wikipedia
             }
 
             var jsonResponse = await response.Content.ReadAsStringAsync();
-            return JsonConvert.DeserializeObject<WikipediaResponse>(jsonResponse);
+            return JsonSerializer.Deserialize(jsonResponse, JsonMetadataContext.Default.WikipediaResponse);
         }
 
         protected IHttpClientFactory HttpClientFactory { get; }

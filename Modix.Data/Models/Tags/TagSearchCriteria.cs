@@ -36,15 +36,15 @@ namespace Modix.Data.Models.Tags
             => query
                 .FilterBy(
                     x => x.GuildId == criteria.GuildId!.Value,
-                    !(criteria.GuildId is null))
+                    criteria.GuildId is not null)
                 .FilterBy(
                     x => x.Name.Contains(criteria.Name!.ToLower()),
-                    !(criteria.Name is null))
+                    criteria.Name is not null)
                 .FilterBy(
                     x => x.OwnerUserId != null && x.OwnerUserId == criteria.OwnerUserId!.Value,
-                    !(criteria.OwnerUserId is null))
+                    criteria.OwnerUserId is not null)
                 .FilterBy(
                     x => x.OwnerRoleId != null && x.OwnerRoleId == criteria.OwnerRoleId!.Value,
-                    !(criteria.OwnerRoleId is null));
+                    criteria.OwnerRoleId is not null);
     }
 }

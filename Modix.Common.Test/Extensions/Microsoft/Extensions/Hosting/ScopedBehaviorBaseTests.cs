@@ -34,7 +34,7 @@ namespace Modix.Common.Test.Extensions.Microsoft.Extensions.Hosting
             }
 
             public Mock<ScopedBehaviorBase> BuildMockUut()
-                => new Mock<ScopedBehaviorBase>(
+                => new(
                     LoggerFactory.CreateLogger<ScopedBehaviorBase>(),
                     MockServiceScopeFactory.Object)
                 {

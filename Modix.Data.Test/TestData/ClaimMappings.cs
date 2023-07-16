@@ -247,7 +247,7 @@ namespace Modix.Data.Test.TestData
             };
 
         public static ClaimMappingEntity Clone(this ClaimMappingEntity entity)
-            => new ClaimMappingEntity()
+            => new()
             {
                 Id = entity.Id,
                 Type = entity.Type,
