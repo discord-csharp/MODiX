@@ -48,7 +48,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> that will complete when the operation has completed,
         /// containing the requested user guild data, or null if no such user exists.
         /// </returns>
-        Task<GuildUserSummary> ReadSummaryAsync(ulong userId, ulong guildId);
+        Task<GuildUserSummary?> ReadSummaryAsync(ulong userId, ulong guildId);
 
         /// <summary>
         /// Attempts to update guild information about a user, based on a pair of user and guild ID values.
@@ -117,7 +117,7 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public Task<GuildUserSummary> ReadSummaryAsync(ulong userId, ulong guildId)
+        public Task<GuildUserSummary?> ReadSummaryAsync(ulong userId, ulong guildId)
         {
             return ModixContext.Set<GuildUserEntity>()
                 .AsNoTracking()

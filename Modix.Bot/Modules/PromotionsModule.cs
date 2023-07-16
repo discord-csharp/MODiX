@@ -56,7 +56,7 @@ namespace Modix.Modules
                 Title = Format.Bold("Active Promotion Campaigns"),
                 Url = url,
                 Color = Color.Gold,
-                Timestamp = DateTimeOffset.Now,
+                Timestamp = DateTimeOffset.UtcNow,
                 Description = campaigns.Any() ? null : "There are no active promotion campaigns."
             };
 

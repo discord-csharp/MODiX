@@ -58,7 +58,7 @@ namespace Modix.Data.Models.Emoji
                 EmojiName = EmojiName,
                 IsAnimated = IsAnimated,
                 UsageType = UsageType,
-                Timestamp = DateTimeOffset.Now,
+                Timestamp = DateTimeOffset.UtcNow,
             };
 
         internal EmojiEntity ToEntity(DateTimeOffset timestamp)

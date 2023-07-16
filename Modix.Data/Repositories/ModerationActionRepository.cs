@@ -22,7 +22,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> that will complete when the operation has completed,
         /// containing the requested moderation action, or null if no such action exists.
         /// </returns>
-        Task<ModerationActionSummary> ReadSummaryAsync(long moderationActionId);
+        Task<ModerationActionSummary?> ReadSummaryAsync(long moderationActionId);
 
         /// <summary>
         /// Searches the repository for moderation action information, based on an arbitrary set of criteria.
@@ -46,7 +46,7 @@ namespace Modix.Data.Repositories
             : base(modixContext) { }
 
         /// <inheritdoc />
-        public Task<ModerationActionSummary> ReadSummaryAsync(long moderationActionId)
+        public Task<ModerationActionSummary?> ReadSummaryAsync(long moderationActionId)
             => ModixContext.Set<ModerationActionEntity>().AsNoTracking()
                 .Where(x => x.Id == moderationActionId)
                 .AsExpandable()

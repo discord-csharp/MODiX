@@ -52,7 +52,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing the requested mapping, or null if no such mapping exists.
         /// </returns>
-        Task<ClaimMappingSummary> ReadAsync(long claimMappingId);
+        Task<ClaimMappingSummary?> ReadAsync(long claimMappingId);
 
         /// <summary>
         /// Checks whether any claims exist, for an arbitrary set of criteria.
@@ -125,7 +125,7 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public Task<ClaimMappingSummary> ReadAsync(long claimMappingId)
+        public Task<ClaimMappingSummary?> ReadAsync(long claimMappingId)
             => ModixContext.Set<ClaimMappingEntity>().AsNoTracking()
                 .AsExpandable()
                 .Select(ClaimMappingSummary.FromEntityProjection)
@@ -166,7 +166,7 @@ namespace Modix.Data.Repositories
             {
                 GuildId = entity.GuildId,
                 Type = ConfigurationActionType.ClaimMappingDeleted,
-                Created = DateTimeOffset.Now,
+                Created = DateTimeOffset.UtcNow,
                 CreatedById = rescindedById,
                 ClaimMappingId = entity.Id
             };

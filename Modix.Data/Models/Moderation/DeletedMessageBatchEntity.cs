@@ -25,7 +25,6 @@ namespace Modix.Data.Models.Moderation
         /// The <see cref="ModerationActionEntity.Id"/> of the action that created this batch.
         /// </summary>
         [Required]
-        [ForeignKey(nameof(CreateAction))]
         public long CreateActionId { get; set; }
 
         /// <summary>

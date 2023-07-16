@@ -184,7 +184,7 @@ namespace Modix.Data.Repositories
             => entity.DeleteAction = new ConfigurationActionEntity()
             {
                 Type = ConfigurationActionType.DesignatedRoleMappingDeleted,
-                Created = DateTimeOffset.Now,
+                Created = DateTimeOffset.UtcNow,
                 CreatedById = deletedById,
                 DesignatedRoleMappingId = entity.Id,
                 GuildId = entity.GuildId

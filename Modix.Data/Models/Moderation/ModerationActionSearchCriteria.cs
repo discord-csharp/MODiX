@@ -19,7 +19,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// A set of <see cref="ModerationActionEntity.Type"/> values, defining the <see cref="ModerationActionEntity"/> entities to be returned.
         /// </summary>
-        public IReadOnlyCollection<ModerationActionType>? Types { get; set; }
+        public ModerationActionType[]? Types { get; set; }
 
         /// <summary>
         /// A range of <see cref="ModerationActionEntity.Created"/> values, defining the <see cref="ModerationActionEntity"/> entities to be returned.

@@ -6,7 +6,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
+using Microsoft.Extensions.Hosting;
 using Modix.Data.Models.Core;
 using Modix.Services.CodePaste;
 using Modix.Services.Utilities;
@@ -39,7 +39,6 @@ namespace Modix
             var config = new ModixConfig();
             builtConfig.Bind(config);
 
-
             var loggerConfig = new LoggerConfiguration()
                 .MinimumLevel.Verbose()
                 .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
@@ -48,12 +47,13 @@ namespace Modix
                 .WriteTo.Logger(subLoggerConfig => subLoggerConfig
                     .MinimumLevel.Information()
                     // .MinimumLevel.Override() is not supported for sub-loggers, even though the docs don't specify this. See https://github.com/serilog/serilog/pull/1033
-                    .Filter.ByExcluding("SourceContext like 'Microsoft.%' and @Level in ['Information', 'Debug', 'Verbose']")
+                    .Filter.ByExcluding("SourceContext like 'Microsoft.%' and @l in ['Information', 'Debug', 'Verbose']")
                     .WriteTo.Console()
-                    .WriteTo.RollingFile(Path.Combine("logs", "{Date}.log")))
-                .WriteTo.RollingFile(
+                    .WriteTo.File(Path.Combine("logs", "{Date}.log"), rollingInterval: RollingInterval.Day))
+                .WriteTo.File(
                     new RenderedCompactJsonFormatter(),
                     Path.Combine("logs", "{Date}.clef"),
+                    rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 2);
 
             var seqEndpoint = config.SeqEndpoint;
@@ -63,7 +63,7 @@ namespace Modix
             { 
                 loggerConfig = loggerConfig.WriteTo.Seq(seqEndpoint);
             }
-            else if(seqEndpoint != null && seqKey != null) //seq is enabled with a key
+            else if (seqEndpoint != null && seqKey != null) //seq is enabled with a key
             {
                 loggerConfig = loggerConfig.WriteTo.Seq(seqEndpoint, apiKey: seqKey);
             }
@@ -71,19 +71,19 @@ namespace Modix
             var webhookId = config.LogWebhookId;
             var webhookToken = config.LogWebhookToken;
 
-            var webHost = CreateWebHostBuilder(args, builtConfig).Build();
+            var host = CreateHostBuilder(args, builtConfig).Build();
 
             if (webhookId.HasValue && webhookToken != null)
             {
                 loggerConfig = loggerConfig
-                    .WriteTo.DiscordWebhookSink(webhookId.Value, webhookToken, LogEventLevel.Error, webHost.Services.GetRequiredService<CodePasteService>());
+                    .WriteTo.DiscordWebhookSink(webhookId.Value, webhookToken, LogEventLevel.Error, host.Services.GetRequiredService<CodePasteService>());
             }
 
             Log.Logger = loggerConfig.CreateLogger();
 
             try
             {
-                webHost.Run();
+                host.Run();
                 return 0;
             }
             catch (Exception ex)
@@ -105,10 +105,14 @@ namespace Modix
             }
         }
 
-        public static IWebHostBuilder CreateWebHostBuilder(string[] args, IConfiguration config) =>
-            WebHost.CreateDefaultBuilder(args)
-                .UseConfiguration(config)
-                .UseSerilog()
-                .UseStartup<Startup>();
+        public static IHostBuilder CreateHostBuilder(string[] args, IConfiguration config)
+            => Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder
+                        .UseConfiguration(config)
+                        .UseStartup<Startup>();
+                })
+                .UseSerilog();
     }
 }

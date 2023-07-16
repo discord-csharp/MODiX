@@ -21,7 +21,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> that will complete when the operation has completed,
         /// containing the requested promotion action, or null if no such action exists.
         /// </returns>
-        Task<PromotionActionSummary> ReadSummaryAsync(long promotionActionId);
+        Task<PromotionActionSummary?> ReadSummaryAsync(long promotionActionId);
     }
 
     /// <inheritdoc />
@@ -31,7 +31,7 @@ namespace Modix.Data.Repositories
             : base(modixContext) { }
 
         /// <inheritdoc />
-        public Task<PromotionActionSummary> ReadSummaryAsync(long promotionActionId)
+        public Task<PromotionActionSummary?> ReadSummaryAsync(long promotionActionId)
             => ModixContext.Set<PromotionActionEntity>().AsNoTracking()
                 .Where(x => x.Id == promotionActionId)
                 .AsExpandable()

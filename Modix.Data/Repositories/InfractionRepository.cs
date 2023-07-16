@@ -118,7 +118,7 @@ namespace Modix.Data.Repositories
         /// containing a flag indicating whether the operation was successful (I.E. whether the specified infraction could be found).
         Task<bool> TryDeleteAsync(long infractionId, ulong deletedById);
 
-        Task<bool> TryUpdateAync(long infractionId, string newReason, ulong updatedById);
+        Task<bool> TryUpdateAsync(long infractionId, string newReason, ulong updatedById);
     }
 
     /// <inheritdoc />
@@ -260,7 +260,7 @@ namespace Modix.Data.Repositories
             {
                 GuildId = entity.GuildId,
                 Type = ModerationActionType.InfractionRescinded,
-                Created = DateTimeOffset.Now,
+                Created = DateTimeOffset.UtcNow,
                 CreatedById = rescindedById,
                 InfractionId = entity.Id
             };
@@ -287,7 +287,7 @@ namespace Modix.Data.Repositories
             {
                 GuildId = entity.GuildId,
                 Type = ModerationActionType.InfractionDeleted,
-                Created = DateTimeOffset.Now,
+                Created = DateTimeOffset.UtcNow,
                 CreatedById = deletedById,
                 InfractionId = entity.Id
             };
@@ -298,7 +298,7 @@ namespace Modix.Data.Repositories
             return true;
         }
 
-        public async Task<bool> TryUpdateAync(long infractionId, string newReason, ulong updatedById)
+        public async Task<bool> TryUpdateAsync(long infractionId, string newReason, ulong updatedById)
         {
             var entity = await ModixContext.Set<InfractionEntity>()
                 .Where(x => x.Id == infractionId)
@@ -315,7 +315,7 @@ namespace Modix.Data.Repositories
             {
                 GuildId = entity.GuildId,
                 Type = ModerationActionType.InfractionUpdated,
-                Created = DateTimeOffset.Now,
+                Created = DateTimeOffset.UtcNow,
                 CreatedById = updatedById,
                 InfractionId = entity.Id,
                 OriginalInfractionReason = originalReason,

@@ -1,7 +1,6 @@
 ﻿#nullable enable
 
 using System;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -49,7 +48,7 @@ namespace Modix.Services.Core
         /// <param name="guildId">The <see cref="IEntity{T}.Id" /> of the guild whose user is to be retrieved.</param>
         /// <param name="userId">The <see cref="IEntity{T}.Id" /> of the user to be retrieved.</param>
         /// <returns>The <see cref="GuildUserSummary"/> retrieved</returns>
-        Task<GuildUserSummary> GetGuildUserSummaryAsync(ulong guildId, ulong userId);
+        Task<GuildUserSummary?> GetGuildUserSummaryAsync(ulong guildId, ulong userId);
 
         /// <summary>
         /// Retrieves all available information on a user matching the supplied criteria.
@@ -173,7 +172,7 @@ namespace Modix.Services.Core
             throw new InvalidOperationException($"Discord user {userId} does not exist");
         }
 
-        public async Task<GuildUserSummary> GetGuildUserSummaryAsync(ulong guildId, ulong userId)
+        public async Task<GuildUserSummary?> GetGuildUserSummaryAsync(ulong guildId, ulong userId)
         {
             var found = await GuildUserRepository.ReadSummaryAsync(userId, guildId);
             return found;
@@ -243,9 +242,8 @@ namespace Modix.Services.Core
                     // Only update properties that we were given. Updates can be triggered from several different sources, not all of which have all the user's info.
                     if (user.Username != null)
                         data.Username = user.Username;
-                    if (user.DiscriminatorValue != 0)
-                        data.Discriminator = user.Discriminator;
-                    if ((user.Username != null) && (user.DiscriminatorValue != 0))
+                    data.Discriminator = user.Discriminator;
+                    if (user.Username != null)
                         data.Nickname = user.Nickname;
                     data.LastSeen = now;
                 }, cancellationToken))
@@ -255,7 +253,7 @@ namespace Modix.Services.Core
                         UserId = user.Id,
                         GuildId = user.GuildId,
                         Username = user.Username ?? "[UNKNOWN USERNAME]",
-                        Discriminator = (user.DiscriminatorValue == 0) ? "????" : user.Discriminator,
+                        Discriminator = user.Discriminator,
                         Nickname = user.Nickname,
                         FirstSeen = now,
                         LastSeen = now

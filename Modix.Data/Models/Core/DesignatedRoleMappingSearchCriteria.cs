@@ -30,7 +30,7 @@ namespace Modix.Data.Models.Core
         /// A set of <see cref="DesignatedRoleMappingEntity.RoleId"/> values, defining the <see cref="DesignatedRoleMappingEntity"/> entities to be returned.
         /// A <see cref="DesignatedRoleMappingEntity"/> is considered a match if it matches any of these values.
         /// </summary>
-        public IReadOnlyCollection<ulong>? RoleIds { get; set; }
+        public ulong[]? RoleIds { get; set; }
 
         /// <summary>
         /// A <see cref="DesignatedRoleMappingEntity.Type"/> value, defining the <see cref="Type"/> of the <see cref="DesignatedRoleMappingEntity"/> entities to be returned.

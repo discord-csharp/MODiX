@@ -208,7 +208,6 @@ namespace Modix.Data.Test.Repositories
             designatedRoleMapping.GuildId.ShouldBe(data.GuildId);
             designatedRoleMapping.Type.ShouldBe(data.Type);
             designatedRoleMapping.RoleId.ShouldBe(data.RoleId);
-            designatedRoleMapping.CreateActionId.ShouldNotBeNull();
             designatedRoleMapping.DeleteActionId.ShouldBeNull();
 
             modixContext.Set<DesignatedRoleMappingEntity>().Where(x => x.Id != designatedRoleMapping.Id).Select(x => x.Id).ShouldBe(DesignatedRoleMappings.Entities.Select(x => x.Id));
@@ -220,8 +219,8 @@ namespace Modix.Data.Test.Repositories
             createAction.GuildId.ShouldBe(data.GuildId);
             createAction.Type.ShouldBe(ConfigurationActionType.DesignatedRoleMappingCreated);
             createAction.Created.ShouldBeInRange(
-                DateTimeOffset.Now - TimeSpan.FromSeconds(1),
-                DateTimeOffset.Now + TimeSpan.FromSeconds(1));
+                DateTimeOffset.UtcNow - TimeSpan.FromSeconds(1),
+                DateTimeOffset.UtcNow + TimeSpan.FromSeconds(1));
             createAction.CreatedById.ShouldBe(data.CreatedById);
             createAction.DesignatedChannelMappingId.ShouldBeNull();
             createAction.DesignatedRoleMappingId.ShouldNotBeNull();
@@ -324,8 +323,8 @@ namespace Modix.Data.Test.Repositories
                     deleteAction.GuildId.ShouldBe(entity.GuildId);
                     deleteAction.Type.ShouldBe(ConfigurationActionType.DesignatedRoleMappingDeleted);
                     deleteAction.Created.ShouldBeInRange(
-                        DateTimeOffset.Now - TimeSpan.FromMinutes(1),
-                        DateTimeOffset.Now + TimeSpan.FromMinutes(1));
+                        DateTimeOffset.UtcNow - TimeSpan.FromMinutes(1),
+                        DateTimeOffset.UtcNow + TimeSpan.FromMinutes(1));
                     deleteAction.CreatedById.ShouldBe(deletedById);
                     deleteAction.DesignatedRoleMappingId.ShouldBeNull();
                     deleteAction.DesignatedRoleMappingId.ShouldBe(entity.Id);
@@ -425,8 +424,8 @@ namespace Modix.Data.Test.Repositories
             deleteAction.GuildId.ShouldBe(designatedRoleMapping.GuildId);
             deleteAction.Type.ShouldBe(ConfigurationActionType.DesignatedRoleMappingDeleted);
             deleteAction.Created.ShouldBeInRange(
-                DateTimeOffset.Now - TimeSpan.FromSeconds(1),
-                DateTimeOffset.Now + TimeSpan.FromSeconds(1));
+                DateTimeOffset.UtcNow - TimeSpan.FromSeconds(1),
+                DateTimeOffset.UtcNow + TimeSpan.FromSeconds(1));
             deleteAction.CreatedById.ShouldBe(deletedById);
             deleteAction.DesignatedChannelMappingId.ShouldBeNull();
             deleteAction.DesignatedRoleMappingId.ShouldNotBeNull();

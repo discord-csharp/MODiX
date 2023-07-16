@@ -1,11 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 using NUnit.Framework;
+
 using Shouldly;
 
 namespace Modix.Data.Test
@@ -22,24 +21,25 @@ namespace Modix.Data.Test
             var context = new ModixContext(optionsBuilder.Options);
 
             var migrationsAssembly = context.GetService<IMigrationsAssembly>();
-            var dependencies = context.GetService<ProviderConventionSetBuilderDependencies>();
-            var relationalDependencies = context.GetService<RelationalConventionSetBuilderDependencies>();
+            var modelRuntimeInitializer = context.GetService<IModelRuntimeInitializer>();
             var modelDiffer = context.GetService<IMigrationsModelDiffer>();
+            var designTimeModel = context.GetService<IDesignTimeModel>();
 
-            var hasDifferences = false;
+            var snapshotModel = migrationsAssembly.ModelSnapshot?.Model;
 
-            if (migrationsAssembly.ModelSnapshot != null)
+            if (snapshotModel is IMutableModel mutableModel)
             {
-                var typeMappingConvention = new TypeMappingConvention(dependencies);
-                typeMappingConvention.ProcessModelFinalizing(((IConventionModel)migrationsAssembly.ModelSnapshot.Model).Builder, null!);
-
-                var relationalModelConvention = new RelationalModelConvention(dependencies, relationalDependencies);
-                var sourceModel = relationalModelConvention.ProcessModelFinalized(migrationsAssembly.ModelSnapshot.Model);
-
-                hasDifferences = modelDiffer.HasDifferences(
-                    ((IMutableModel)sourceModel).FinalizeModel().GetRelationalModel(),
-                    context.Model.GetRelationalModel());
+                snapshotModel = mutableModel.FinalizeModel();
             }
+
+            if (snapshotModel is not null)
+            {
+                snapshotModel = modelRuntimeInitializer.Initialize(snapshotModel);
+            }
+
+            var hasDifferences = modelDiffer.HasDifferences(
+                snapshotModel?.GetRelationalModel(),
+                designTimeModel.Model.GetRelationalModel());
 
             hasDifferences.ShouldBeFalse();
         }

@@ -6,7 +6,6 @@ namespace Modix.Services.CodePaste
     {
         public static IServiceCollection AddCodePaste(this IServiceCollection services)
             => services
-                .AddSingleton<CodePasteService>()
-                .AddSingleton<ICodePasteRepository, MemoryCodePasteRepository>();
+                .AddSingleton<CodePasteService>();
     }
 }

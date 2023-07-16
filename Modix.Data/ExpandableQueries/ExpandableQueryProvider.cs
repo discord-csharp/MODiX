@@ -4,7 +4,6 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using Microsoft.EntityFrameworkCore.Query;
-using Microsoft.EntityFrameworkCore.Query.Internal;
 
 namespace Modix.Data.ExpandableQueries
 {
@@ -20,8 +19,7 @@ namespace Modix.Data.ExpandableQueries
 
         public IQueryable CreateQuery(Expression expression)
         {
-            if (expression is null)
-                throw new ArgumentNullException(nameof(expression));
+            ArgumentNullException.ThrowIfNull(expression);
 
             var elementType = expression.Type.GetElementType()!;
 
@@ -46,9 +44,7 @@ namespace Modix.Data.ExpandableQueries
             => _provider.Execute(Visit(expression));
 
         TResult IAsyncQueryProvider.ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
-#pragma warning disable EF1001 // Internal EF Core API usage.
-            => ((IAsyncQueryProvider)_provider).ExecuteAsync<TResult>(Visit(expression));
-#pragma warning restore EF1001 // Internal EF Core API usage.
+            => ((IAsyncQueryProvider)_provider).ExecuteAsync<TResult>(Visit(expression), cancellationToken);
 
         internal readonly IQueryProvider _provider;
 

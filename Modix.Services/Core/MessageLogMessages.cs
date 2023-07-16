@@ -25,7 +25,7 @@ namespace Modix.Services.Core
             TransactionCommitted    = ServicesLogEventType.MessageTracking + 0x000D
         }
 
-        public static IDisposable BeginMessageNotificationScope(
+        public static IDisposable? BeginMessageNotificationScope(
                 ILogger logger,
                 ulong? guildId,
                 ulong channelId,
@@ -35,7 +35,7 @@ namespace Modix.Services.Core
                 guildId,
                 channelId,
                 messageId);
-        private static readonly Func<ILogger, ulong?, ulong, ulong, IDisposable> _beginMessageNotificationScope
+        private static readonly Func<ILogger, ulong?, ulong, ulong, IDisposable?> _beginMessageNotificationScope
             = LoggerMessage.DefineScope<ulong?, ulong, ulong>(
                 "GuildId: {GuildId}\r\n\tChannelId: {ChannelId}\r\n\tMessageId: {MessageId}");
 

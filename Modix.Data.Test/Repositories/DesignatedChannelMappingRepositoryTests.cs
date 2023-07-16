@@ -211,7 +211,6 @@ namespace Modix.Data.Test.Repositories
             designatedChannelMapping.GuildId.ShouldBe(data.GuildId);
             designatedChannelMapping.Type.ShouldBe(data.Type);
             designatedChannelMapping.ChannelId.ShouldBe(data.ChannelId);
-            designatedChannelMapping.CreateActionId.ShouldNotBeNull();
             designatedChannelMapping.DeleteActionId.ShouldBeNull();
 
             modixContext.Set<DesignatedChannelMappingEntity>().Where(x => x.Id != designatedChannelMapping.Id).Select(x => x.Id).ShouldBe(DesignatedChannelMappings.Entities.Select(x => x.Id));
@@ -223,8 +222,8 @@ namespace Modix.Data.Test.Repositories
             createAction.GuildId.ShouldBe(data.GuildId);
             createAction.Type.ShouldBe(ConfigurationActionType.DesignatedChannelMappingCreated);
             createAction.Created.ShouldBeInRange(
-                DateTimeOffset.Now - TimeSpan.FromSeconds(1),
-                DateTimeOffset.Now + TimeSpan.FromSeconds(1));
+                DateTimeOffset.UtcNow - TimeSpan.FromSeconds(1),
+                DateTimeOffset.UtcNow + TimeSpan.FromSeconds(1));
             createAction.CreatedById.ShouldBe(data.CreatedById);
             createAction.ClaimMappingId.ShouldBeNull();
             createAction.DesignatedChannelMappingId.ShouldBe(designatedChannelMapping.Id);
@@ -353,8 +352,8 @@ namespace Modix.Data.Test.Repositories
                     deleteAction.GuildId.ShouldBe(entity.GuildId);
                     deleteAction.Type.ShouldBe(ConfigurationActionType.DesignatedChannelMappingDeleted);
                     deleteAction.Created.ShouldBeInRange(
-                        DateTimeOffset.Now - TimeSpan.FromMinutes(1),
-                        DateTimeOffset.Now + TimeSpan.FromMinutes(1));
+                        DateTimeOffset.UtcNow - TimeSpan.FromMinutes(1),
+                        DateTimeOffset.UtcNow + TimeSpan.FromMinutes(1));
                     deleteAction.CreatedById.ShouldBe(deletedById);
                     deleteAction.ClaimMappingId.ShouldBeNull();
                     deleteAction.DesignatedChannelMappingId.ShouldBe(entity.Id);
@@ -454,8 +453,8 @@ namespace Modix.Data.Test.Repositories
             deleteAction.GuildId.ShouldBe(designatedChannelMapping.GuildId);
             deleteAction.Type.ShouldBe(ConfigurationActionType.DesignatedChannelMappingDeleted);
             deleteAction.Created.ShouldBeInRange(
-                DateTimeOffset.Now - TimeSpan.FromSeconds(1),
-                DateTimeOffset.Now + TimeSpan.FromSeconds(1));
+                DateTimeOffset.UtcNow - TimeSpan.FromSeconds(1),
+                DateTimeOffset.UtcNow + TimeSpan.FromSeconds(1));
             deleteAction.CreatedById.ShouldBe(deletedById);
             deleteAction.ClaimMappingId.ShouldBeNull();
             deleteAction.DesignatedChannelMappingId.ShouldBe(designatedChannelMapping.Id);

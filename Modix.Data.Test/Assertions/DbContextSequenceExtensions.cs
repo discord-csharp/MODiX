@@ -64,21 +64,17 @@ namespace Microsoft.EntityFrameworkCore
                 where TContext : DbContext
                 where TEntity : class
         {
-            if (context is null)
-                throw new ArgumentNullException(nameof(context));
+            ArgumentNullException.ThrowIfNull(context);
+            ArgumentNullException.ThrowIfNull(tableSelector);
+            ArgumentNullException.ThrowIfNull(propertySelector);
 
-            if (tableSelector is null)
-                throw new ArgumentNullException(nameof(tableSelector));
+            var entity = context.Model.FindEntityType(typeof(TEntity).FullName!)
+                ?? throw new ArgumentException($"Could not find entity of type {typeof(TEntity).FullName}");
 
-            if (propertySelector is null)
-                throw new ArgumentNullException(nameof(propertySelector));
+            if (propertySelector.Body is not MemberExpression memberSelector || (memberSelector.Member.MemberType != MemberTypes.Property))
+                throw new ArgumentException($"Expression {propertySelector.Body} does not select a property of record type {entity.Name}", nameof(propertySelector));
 
-            var entity = context.Model.FindEntityType(typeof(TEntity).FullName);
-
-            if (!(propertySelector.Body is MemberExpression memberSelector) || (memberSelector.Member.MemberType != MemberTypes.Property))
-                throw new ArgumentException($"Expression {propertySelector.Body.ToString()} does not select a property of record type {entity.Name}", nameof(propertySelector));
-
-            var property = entity.FindProperty(memberSelector.Member.Name);
+            var property = entity.FindProperty(memberSelector.Member.Name)!;
 
             if (property.ValueGenerated == ValueGenerated.Never)
                 throw new ArgumentException($"Property {property.Name} of entity {entity.Name} is not configured for value generation");
@@ -90,7 +86,7 @@ namespace Microsoft.EntityFrameworkCore
                                                                        .GetOrAdd(property, entity, valueGeneratorConstructor);
         }
 
-        private static Dictionary<Type, Func<IProperty, IEntityType, ValueGenerator>> _valueGeneratorConstructorsByValueType
+        private static readonly Dictionary<Type, Func<IProperty, IEntityType, ValueGenerator>> _valueGeneratorConstructorsByValueType
             = new Dictionary<Type, Func<IProperty, IEntityType, ValueGenerator>>()
             {
                 [typeof(long)] = (p, e) => new ResettableInt64SequenceValueGenerator()

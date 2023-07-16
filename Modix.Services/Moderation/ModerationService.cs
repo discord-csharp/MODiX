@@ -54,7 +54,7 @@ namespace Modix.Services.Moderation
 
         Task<IDictionary<InfractionType, int>> GetInfractionCountsForUserAsync(ulong subjectId);
 
-        Task<ModerationActionSummary> GetModerationActionSummaryAsync(long moderationActionId);
+        Task<ModerationActionSummary?> GetModerationActionSummaryAsync(long moderationActionId);
 
         Task<DateTimeOffset?> GetNextInfractionExpiration();
 
@@ -228,7 +228,7 @@ namespace Modix.Services.Moderation
         {
             var expiredInfractions = await _infractionRepository.SearchSummariesAsync(new InfractionSearchCriteria()
             {
-                ExpiresRange = new DateTimeOffsetRange() {To = DateTimeOffset.Now},
+                ExpiresRange = new DateTimeOffsetRange() { To = DateTimeOffset.UtcNow },
                 IsRescinded = false,
                 IsDeleted = false
             });
@@ -551,7 +551,7 @@ namespace Modix.Services.Moderation
             });
         }
 
-        public Task<ModerationActionSummary> GetModerationActionSummaryAsync(long moderationActionId)
+        public Task<ModerationActionSummary?> GetModerationActionSummaryAsync(long moderationActionId)
         {
             return _moderationActionRepository.ReadSummaryAsync(moderationActionId);
         }
@@ -644,13 +644,13 @@ namespace Modix.Services.Moderation
             // validation and update their own infraction
             if (infraction.CreateAction.CreatedBy.Id == currentUserId)
             {
-                return (await _infractionRepository.TryUpdateAync(infractionId, newReason, currentUserId), null);
+                return (await _infractionRepository.TryUpdateAsync(infractionId, newReason, currentUserId), null);
             }
 
             // Else we know it's not the user's infraction
             _authorizationService.RequireClaims(AuthorizationClaim.ModerationUpdateInfraction);
 
-            return (await _infractionRepository.TryUpdateAync(infractionId, newReason, currentUserId), null);
+            return (await _infractionRepository.TryUpdateAsync(infractionId, newReason, currentUserId), null);
         }
 
         private static async Task ConfigureChannelMuteRolePermissionsAsync(IGuildChannel channel, IRole muteRole)

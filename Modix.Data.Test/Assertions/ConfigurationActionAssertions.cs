@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 using Modix.Data.Models.Core;
 using Modix.Data.Test.TestData;
@@ -7,7 +8,7 @@ namespace Shouldly
 {
     public static class ConfigurationActionAssertions
     {
-        public static void ShouldMatchTestData(this ConfigurationActionBrief brief, ulong guildId)
+        public static void ShouldMatchTestData([NotNull] this ConfigurationActionBrief? brief, ulong guildId)
         {
             brief.ShouldNotBeNull();
             brief.Id.ShouldBeOneOf(ConfigurationActions.Entities.Select(x => x.Id).ToArray());
@@ -19,7 +20,7 @@ namespace Shouldly
             brief.CreatedBy.ShouldMatchTestData(guildId);
         }
 
-        public static void ShouldMatchTestData(this ConfigurationActionSummary summary)
+        public static void ShouldMatchTestData([NotNull] this ConfigurationActionSummary? summary)
         {
             summary.ShouldNotBeNull();
             summary.Id.ShouldBeOneOf(ConfigurationActions.Entities.Select(x => x.Id).ToArray());
@@ -47,7 +48,7 @@ namespace Shouldly
                 summary.DesignatedRoleMapping!.ShouldMatchTestData();
         }
 
-        public static void ShouldNotHaveChanged(this ConfigurationActionEntity entity)
+        public static void ShouldNotHaveChanged([NotNull] this ConfigurationActionEntity? entity)
         {
             entity.ShouldNotBeNull();
             entity.Id.ShouldBeOneOf(ConfigurationActions.Entities.Select(x => x.Id).ToArray());

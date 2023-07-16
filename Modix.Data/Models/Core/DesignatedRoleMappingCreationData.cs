@@ -37,7 +37,7 @@ namespace Modix.Data.Models.Core
                 {
                     GuildId = GuildId,
                     Type = ConfigurationActionType.DesignatedRoleMappingCreated,
-                    Created = DateTimeOffset.Now,
+                    Created = DateTimeOffset.UtcNow,
                     CreatedById = CreatedById
                 }
             };

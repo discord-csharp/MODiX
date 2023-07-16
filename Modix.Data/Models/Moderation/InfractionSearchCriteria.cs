@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Text.RegularExpressions;
 using LinqKit;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Data.Utilities;
-using Extensions = LinqKit.Extensions;
 
 namespace Modix.Data.Models.Moderation
 {
@@ -29,7 +26,7 @@ namespace Modix.Data.Models.Moderation
         /// <summary>
         /// A set of <see cref="InfractionEntity.Type"/> values, defining the <see cref="InfractionEntity"/> entities to be returned.
         /// </summary>
-        public IReadOnlyCollection<InfractionType>? Types { get; set; }
+        public InfractionType[]? Types { get; set; }
 
         /// <summary>
         /// A <see cref="GuildUserBrief.DisplayName"/> value, defining the <see cref="InfractionEntity"/> entities to be returned.

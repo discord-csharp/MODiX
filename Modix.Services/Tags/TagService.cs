@@ -109,7 +109,7 @@ namespace Modix.Services.Tags
             var createAction = new TagActionEntity()
             {
                 GuildId = guildId,
-                Created = DateTimeOffset.Now,
+                Created = DateTimeOffset.UtcNow,
                 Type = TagActionType.TagCreated,
                 CreatedById = creatorId,
             };
@@ -386,7 +386,7 @@ namespace Modix.Services.Tags
                 GuildId = user.GuildId,
                 Type = DesignatedRoleType.Rank,
                 IsDeleted = false,
-                RoleIds = user.RoleIds,
+                RoleIds = user.RoleIds.ToArray(),
             }))
             .OrderBy(x => x.Role.Position)
             .FirstOrDefault();
