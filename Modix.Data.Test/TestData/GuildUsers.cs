@@ -65,6 +65,8 @@ namespace Modix.Data.Test.TestData
                 {
                     UserId = 4,
                     GuildId = 1,
+                    Username = "NewUsername",
+                    Discriminator = "0000",
                     Nickname = "NewNickname2",
                     FirstSeen = DateTimeOffset.Parse("2018-02-03T00:00:00Z"),
                     LastSeen = DateTimeOffset.Parse("2018-02-04T00:00:00Z")

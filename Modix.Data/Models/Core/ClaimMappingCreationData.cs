@@ -49,7 +49,7 @@ namespace Modix.Data.Models.Core
                 {
                     GuildId = GuildId,
                     Type = ConfigurationActionType.ClaimMappingCreated,
-                    Created = DateTimeOffset.Now,
+                    Created = DateTimeOffset.UtcNow,
                     CreatedById = CreatedById,
                 }
             };

@@ -10,9 +10,7 @@
     [Group("random", "A bunch of commands related to randomness.")]
     public class RandomModule : InteractionModuleBase
     {
-        private static readonly Random _random = new();
-
-        private Embed GetEmbed(object description)
+        private static Embed GetEmbed(object description)
         {
             return new EmbedBuilder()
                 .WithTitle("🎱 Magic 8 ball says...")
@@ -24,7 +22,7 @@
         public async Task RandomNumberAsync(
             [Summary(description: "The inclusive minimum possible number.")]
                 int min = 0,
-            [Summary(description: "The exlusive maximum possible number.")]
+            [Summary(description: "The exclusive maximum possible number.")]
                 int max = 10)
         {
             if (min >= max)
@@ -33,7 +31,7 @@
                 return;
             }
 
-            var number = _random.Next(min, max);
+            var number = Random.Shared.Next(min, max);
 
             await FollowupAsync(embed: GetEmbed(number));
         }
@@ -41,7 +39,7 @@
         [SlashCommand("coin", "Flips a coin.")]
         public async Task FlipCoinAsync()
         {
-            var coin = _random.Next(0, 2);
+            var coin = Random.Shared.Next(0, 2);
 
             if (coin == 0)
             {

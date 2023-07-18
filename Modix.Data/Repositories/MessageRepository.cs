@@ -49,7 +49,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing a <see cref="MessageBrief"/> containing information for the message or a default value if no match is found.
         /// </returns>
-        Task<MessageBrief> GetMessage(ulong messageId);
+        Task<MessageBrief?> GetMessage(ulong messageId);
 
         /// <summary>
         /// Searches the message logs for message records matching the supplied guild ID and user ID within a given timeframe.
@@ -166,17 +166,14 @@ namespace Modix.Data.Repositories
         public async Task<IReadOnlyList<MessageCountByDate>> GetGuildUserMessageCountByDate(ulong guildId, ulong userId, TimeSpan timespan)
         {
             var earliestDateTime = DateTimeOffset.UtcNow - timespan;
-            var results = await ModixContext.Set<MessageCountByDate>()
-                .FromSqlRaw(
-                    @"select date(""Timestamp""::timestamp AT TIME ZONE 'UTC') as ""Date"", count(""Id"") as ""MessageCount""
+            var results = await ModixContext.Database
+                .SqlQuery<MessageCountByDate>(
+                    $@"select date(""Timestamp""::timestamp AT TIME ZONE 'UTC') as ""Date"", count(""Id"") as ""MessageCount""
                       from ""Messages""
-                      where ""GuildId"" = :GuildId
-                      and ""AuthorId"" = :UserId
-                      and ""Timestamp"" > :StartTimestamp
-                      group by date(""Timestamp""::timestamp AT TIME ZONE 'UTC')",
-                    new NpgsqlParameter(":GuildId", NpgsqlDbType.Bigint) { Value = unchecked((long)guildId) },
-                    new NpgsqlParameter(":UserId", NpgsqlDbType.Bigint) { Value = unchecked((long)userId) },
-                    new NpgsqlParameter(":StartTimestamp", NpgsqlDbType.TimestampTz) { Value = earliestDateTime })
+                      where ""GuildId"" = {unchecked((long)guildId)}
+                      and ""AuthorId"" = {unchecked((long)userId)}
+                      and ""Timestamp"" > {earliestDateTime}
+                      group by date(""Timestamp""::timestamp AT TIME ZONE 'UTC')")
                 .ToArrayAsync();
 
             return results;
@@ -187,27 +184,22 @@ namespace Modix.Data.Repositories
         {
             var earliestDateTime = DateTimeOffset.UtcNow - timespan;
 
-            var counts = await ModixContext
-                .Set<MessageCountPerChannel>()
-                .FromSqlRaw(
-                    @"with user_messages as
+            var counts = await ModixContext.Database
+                .SqlQuery<MessageCountPerChannel>(
+                    $@"with user_messages as
                     (
                         select coalesce(c.""ParentChannelId"", c.""ChannelId"") as ""ChannelId"", count(""Id"") as ""MessageCount""
                         from ""Messages"" as m
                         inner join ""GuildChannels"" as c on m.""ChannelId"" = c.""ChannelId""
-                        where m.""GuildId"" = :GuildId
-                        and m.""AuthorId"" = :UserId
-                        and m.""Timestamp"" > :StartTimestamp
+                        where m.""GuildId"" = {unchecked((long)guildId)}
+                        and m.""AuthorId"" = {unchecked((long)userId)}
+                        and m.""Timestamp"" > {earliestDateTime}
                         group by coalesce(c.""ParentChannelId"", c.""ChannelId"")
                     )
                     select gc.""ChannelId"", gc.""Name"" as ""ChannelName"", um.""MessageCount""
                     from ""GuildChannels"" as gc
                     inner join user_messages as um on gc.""ChannelId"" = um.""ChannelId""
-                    order by um.""MessageCount"" desc",
-                    new NpgsqlParameter(":GuildId", NpgsqlDbType.Bigint) { Value = unchecked((long)guildId) },
-                    new NpgsqlParameter(":UserId", NpgsqlDbType.Bigint) { Value = unchecked((long)userId) },
-                    new NpgsqlParameter(":StartTimestamp", NpgsqlDbType.TimestampTz) { Value = earliestDateTime })
-                .AsNoTracking()
+                    order by um.""MessageCount"" desc")
                 .ToArrayAsync();
 
             return counts;
@@ -219,13 +211,11 @@ namespace Modix.Data.Repositories
             var earliestDateTime = DateTimeOffset.UtcNow - timespan;
             var query = GetQuery();
 
-            var counts = await ModixContext
-                .Set<PerUserMessageCount>()
-                .FromSqlRaw(query,
+            var counts = await ModixContext.Database
+                .SqlQueryRaw<PerUserMessageCount>(query,
                     new NpgsqlParameter(":GuildId", NpgsqlDbType.Bigint) { Value = unchecked((long)guildId) },
                     new NpgsqlParameter(":UserId", NpgsqlDbType.Bigint) { Value = unchecked((long)userId) },
                     new NpgsqlParameter(":StartTimestamp", NpgsqlDbType.TimestampTz) { Value = earliestDateTime })
-                .AsNoTracking()
                 .ToArrayAsync();
 
             return counts;
@@ -275,15 +265,14 @@ namespace Modix.Data.Repositories
         /// <inheritdoc />
         public async Task<GuildUserParticipationStatistics> GetGuildUserParticipationStatistics(ulong guildId, ulong userId)
         {
-            var stats = await ModixContext
-                .Set<GuildUserParticipationStatistics>()
-                .FromSqlRaw(
-                    @"with msgs as (
+            var stats = await ModixContext.Database
+                .SqlQuery<GuildUserParticipationStatistics>(
+                    $@"with msgs as (
                         select msg.""AuthorId"", msg.""Id"" as ""MessageId"", msg.""GuildId""
                         from ""Messages"" as msg
                         inner join ""GuildChannels"" as c on c.""ChannelId"" = msg.""ChannelId""
                         inner join ""DesignatedChannelMappings"" as dcm on coalesce(c.""ParentChannelId"", c.""ChannelId"") = dcm.""ChannelId""
-                        where msg.""GuildId"" = cast(:GuildId as bigint)
+                        where msg.""GuildId"" = {unchecked((long)guildId)}
                         and dcm.""Type"" = 'CountsTowardsParticipation'
                         and ""Timestamp"" >= (current_date - interval '30 day')
                     ),
@@ -309,21 +298,19 @@ namespace Modix.Data.Repositories
                     )
                     select ""AveragePerDay"", ""Percentile"", ""Rank"", ""GuildId"", ""UserId""
                     from ranked_users
-                    where ""UserId"" = cast(:UserId as bigint)",
-                    new NpgsqlParameter(":GuildId", guildId.ToString()),
-                    new NpgsqlParameter(":UserId", userId.ToString()))
-                .AsAsyncEnumerable()
+                    where ""UserId"" = {unchecked((long)userId)}")
                 .OrderByDescending(x => x.AveragePerDay)
-                .FirstOrDefaultAsync() ?? new GuildUserParticipationStatistics();
+                .FirstOrDefaultAsync();
 
-            stats.GuildId = guildId;
-            stats.UserId = userId;
-
-            return stats;
+            return stats ?? new()
+            {
+                GuildId = guildId,
+                UserId = userId
+            };
         }
 
         /// <inheritdoc />
-        public async Task<MessageBrief> GetMessage(ulong messageId)
+        public async Task<MessageBrief?> GetMessage(ulong messageId)
         {
             return await ModixContext.Set<MessageEntity>()
                 .AsNoTracking()
@@ -337,7 +324,7 @@ namespace Modix.Data.Repositories
         {
             var entity = await ModixContext.Set<MessageEntity>()
                 .Where(x => x.Id == messageId)
-                .FirstOrDefaultAsync();
+                .FirstAsync();
 
             entity.StarboardEntryId = starboardEntryId;
 

@@ -36,7 +36,7 @@ namespace Modix.Data.Models.Promotions
                 CreateAction = new PromotionActionEntity()
                 {
                     GuildId = GuildId,
-                    Created = DateTimeOffset.Now,
+                    Created = DateTimeOffset.UtcNow,
                     Type = PromotionActionType.CampaignCreated,
                     CreatedById = CreatedById
                 }

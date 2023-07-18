@@ -39,7 +39,7 @@ namespace Modix.Services.Moderation
         {
             if (data.Duration is TimeSpan dataDuration
                 && (!UpdateTimer.Enabled
-                    || (DateTimeOffset.Now + dataDuration) < _nextTick))
+                    || (DateTimeOffset.UtcNow + dataDuration) < _nextTick))
             {
                 SetNextUpdateTimerTrigger(dataDuration);
             }
@@ -93,7 +93,7 @@ namespace Modix.Services.Moderation
                 var nextExpiration = await moderationService.GetNextInfractionExpiration();
 
                 if (nextExpiration != null)
-                    SetNextUpdateTimerTrigger(nextExpiration.Value - DateTimeOffset.Now);
+                    SetNextUpdateTimerTrigger(nextExpiration.Value - DateTimeOffset.UtcNow);
             });
 #pragma warning restore CS4014
         }
@@ -105,7 +105,7 @@ namespace Modix.Services.Moderation
                 (interval.TotalMilliseconds > MaxTimerInterval) ? MaxTimerInterval :
                 interval.TotalMilliseconds;
 
-            _nextTick = DateTimeOffset.Now.AddMilliseconds(newInterval);
+            _nextTick = DateTimeOffset.UtcNow.AddMilliseconds(newInterval);
 
             UpdateTimer.Interval = newInterval;
 

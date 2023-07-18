@@ -83,7 +83,7 @@ namespace Modix.Data.Repositories
         Task<PromotionActionSummary?> TryCloseAsync(long campaignId, ulong closedById, PromotionCampaignOutcome outcome);
 
         /// <summary>
-        /// Retireves the promotion progression for the supplied user.
+        /// Retrieves the promotion progression for the supplied user.
         /// </summary>
         /// <param name="guildId">The unique Discord snowflake ID of the guild in which the desired promotions took place.</param>
         /// <param name="userId">The unique Discord snowflake ID of the user for whom to retrieve promotions.</param>
@@ -171,7 +171,7 @@ namespace Modix.Data.Repositories
             {
                 GuildId = entity.GuildId,
                 Type = PromotionActionType.CampaignClosed,
-                Created = DateTimeOffset.Now,
+                Created = DateTimeOffset.UtcNow,
                 CreatedById = closedById,
                 CampaignId = entity.Id
             };

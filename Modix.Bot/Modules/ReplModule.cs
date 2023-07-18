@@ -88,7 +88,7 @@ namespace Modix.Bot.Modules
             }
             catch (IOException ex)
             {
-                await ModifyOrSendErrorEmbed("Recieved an invalid response from the REPL service." +
+                await ModifyOrSendErrorEmbed("Received an invalid response from the REPL service." +
                                              $"\n\n{Format.Bold("Details:")}\n{ex.Message}", message);
                 return;
             }

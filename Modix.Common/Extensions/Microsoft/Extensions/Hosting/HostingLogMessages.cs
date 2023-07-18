@@ -20,13 +20,13 @@ namespace Microsoft.Extensions.Hosting
             BehaviorStopped     = CommonLogEventType.Hosting + 0x0008
         }
 
-        public static IDisposable BeginBehaviorScope(
+        public static IDisposable? BeginBehaviorScope(
                 ILogger logger,
                 IBehavior behavior)
             => _beginBehaviorScope.Invoke(
                 logger,
                 behavior);
-        private static readonly Func<ILogger, IBehavior, IDisposable> _beginBehaviorScope
+        private static readonly Func<ILogger, IBehavior, IDisposable?> _beginBehaviorScope
             = LoggerMessage.DefineScope<IBehavior>(
                 "Behavior: {Behavior}");
 

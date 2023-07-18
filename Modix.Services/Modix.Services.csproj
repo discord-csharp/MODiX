@@ -1,9 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <PackageReference Include="AsyncEvent" />
     <PackageReference Include="Discord.Net" />
     <PackageReference Include="Humanizer.Core" />
-    <PackageReference Include="Kitsu" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Newtonsoft.Json" />

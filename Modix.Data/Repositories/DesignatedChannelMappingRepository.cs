@@ -198,7 +198,7 @@ namespace Modix.Data.Repositories
             => entity.DeleteAction = new ConfigurationActionEntity()
             {
                 Type = ConfigurationActionType.DesignatedChannelMappingDeleted,
-                Created = DateTimeOffset.Now,
+                Created = DateTimeOffset.UtcNow,
                 CreatedById = deletedById,
                 DesignatedChannelMappingId = entity.Id,
                 GuildId = entity.GuildId

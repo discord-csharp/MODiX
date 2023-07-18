@@ -58,7 +58,8 @@ namespace Modix.Services.Test.Tags
 
             db.Set<TagEntity>().Add(new Data.Models.Tags.TagEntity
             {
-                Name = "modix"
+                Name = "modix",
+                Content = "some content",
             });
 
             db.SaveChanges();
@@ -73,7 +74,8 @@ namespace Modix.Services.Test.Tags
 
             db.Set<TagEntity>().Add(new Data.Models.Tags.TagEntity
             {
-                Name = "modix"
+                Name = "modix",
+                Content = "some content",
             });
 
             db.SaveChanges();

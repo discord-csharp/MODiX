@@ -21,7 +21,7 @@ namespace Modix.Services.Core
             TransactionCommitting    = 0x0009
         }
 
-        public static IDisposable BeginRoleScope(
+        public static IDisposable? BeginRoleScope(
                 ILogger logger,
                 ulong guildId,
                 ulong roleId)
@@ -29,7 +29,7 @@ namespace Modix.Services.Core
                 logger,
                 guildId,
                 roleId);
-        private static readonly Func<ILogger, ulong, ulong, IDisposable> _beginRoleScope
+        private static readonly Func<ILogger, ulong, ulong, IDisposable?> _beginRoleScope
             = LoggerMessage.DefineScope<ulong, ulong>(
                 "GuildId: {GuildId}\r\n\tRoleId: {RoleId}");
 

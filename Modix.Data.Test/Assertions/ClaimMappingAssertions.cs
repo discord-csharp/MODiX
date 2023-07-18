@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 
 using Modix.Data.Models.Core;
 using Modix.Data.Test.TestData;
@@ -7,7 +8,7 @@ namespace Shouldly
 {
     public static class ClaimMappingAssertions
     {
-        public static void ShouldMatchTestData(this ClaimMappingBrief summary)
+        public static void ShouldMatchTestData([NotNull] this ClaimMappingBrief? summary)
         {
             summary.ShouldNotBeNull();
             summary.Id.ShouldBeOneOf(ClaimMappings.Entities.Select(x => x.Id).ToArray());
@@ -22,7 +23,7 @@ namespace Shouldly
             summary.Claim.ShouldBe(entity.Claim);
         }
 
-        public static void ShouldMatchTestData(this ClaimMappingSummary summary)
+        public static void ShouldMatchTestData([NotNull] this ClaimMappingSummary? summary)
         {
             summary.ShouldNotBeNull();
             summary.Id.ShouldBeOneOf(ClaimMappings.Entities.Select(x => x.Id).ToArray());
@@ -43,7 +44,7 @@ namespace Shouldly
                 summary.DeleteAction!.ShouldMatchTestData(entity.GuildId);
         }
 
-        public static void ShouldNotHaveChanged(this ClaimMappingEntity entity)
+        public static void ShouldNotHaveChanged([NotNull] this ClaimMappingEntity? entity)
         {
             entity.ShouldNotBeNull();
             entity.Id.ShouldBeOneOf(ClaimMappings.Entities.Select(x => x.Id).ToArray());

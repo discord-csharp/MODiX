@@ -7,10 +7,6 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Newtonsoft.Json" />
-    <PackageReference Include="Serilog" />
-    <PackageReference Include="Serilog.Extensions.Logging" />
-    <PackageReference Include="Serilog.Sinks.Literate" />
-    <PackageReference Include="Serilog.Sinks.RollingFile" />
     <PackageReference Include="LZStringCSharp" />
   </ItemGroup>
   <ItemGroup>

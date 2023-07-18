@@ -62,7 +62,7 @@ namespace Modix.Data.Repositories
         /// A <see cref="Task"/> which will complete when the operation is complete,
         /// containing the requested promotion comment, or null if no such comment exists.
         /// </returns>
-        Task<PromotionCommentSummary> ReadSummaryAsync(long commentId);
+        Task<PromotionCommentSummary?> ReadSummaryAsync(long commentId);
 
         /// <summary>
         /// Checks whether the repository contains any comments matching the given search criteria.
@@ -128,7 +128,7 @@ namespace Modix.Data.Repositories
             var modifyAction = new PromotionActionEntity
             {
                 CampaignId = oldComment.CampaignId,
-                Created = DateTimeOffset.Now,
+                Created = DateTimeOffset.UtcNow,
                 CreatedById = userId,
                 GuildId = oldComment.Campaign.GuildId,
                 Type = PromotionActionType.CommentModified,
@@ -162,7 +162,7 @@ namespace Modix.Data.Repositories
         }
 
         /// <inheritdoc />
-        public async Task<PromotionCommentSummary> ReadSummaryAsync(long commentId)
+        public async Task<PromotionCommentSummary?> ReadSummaryAsync(long commentId)
             => await ModixContext.Set<PromotionCommentEntity>().AsNoTracking()
                 .Where(x => x.Id == commentId)
                 .AsExpandable()

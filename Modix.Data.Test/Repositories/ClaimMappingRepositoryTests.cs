@@ -200,8 +200,8 @@ namespace Modix.Data.Test.Repositories
             createAction.GuildId.ShouldBe(data.GuildId);
             createAction.Type.ShouldBe(ConfigurationActionType.ClaimMappingCreated);
             createAction.Created.ShouldBeInRange(
-                DateTimeOffset.Now - TimeSpan.FromSeconds(1),
-                DateTimeOffset.Now + TimeSpan.FromSeconds(1));
+                DateTimeOffset.UtcNow - TimeSpan.FromSeconds(1),
+                DateTimeOffset.UtcNow + TimeSpan.FromSeconds(1));
             createAction.CreatedById.ShouldBe(data.CreatedById);
             createAction.ClaimMappingId.ShouldBe(id);
             createAction.DesignatedChannelMappingId.ShouldBeNull();
@@ -359,8 +359,8 @@ namespace Modix.Data.Test.Repositories
             deleteAction.GuildId.ShouldBe(claimMapping.GuildId);
             deleteAction.Type.ShouldBe(ConfigurationActionType.ClaimMappingDeleted);
             deleteAction.Created.ShouldBeInRange(
-                DateTimeOffset.Now - TimeSpan.FromSeconds(1),
-                DateTimeOffset.Now + TimeSpan.FromSeconds(1));
+                DateTimeOffset.UtcNow - TimeSpan.FromSeconds(1),
+                DateTimeOffset.UtcNow + TimeSpan.FromSeconds(1));
             deleteAction.CreatedById.ShouldBe(deletedById);
             deleteAction.ClaimMappingId.ShouldBe(claimMapping.Id);
             deleteAction.DesignatedChannelMappingId.ShouldBeNull();

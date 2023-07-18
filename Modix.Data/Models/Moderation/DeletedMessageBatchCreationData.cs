@@ -28,7 +28,7 @@ namespace Modix.Data.Models.Moderation
             {
                 CreateAction = new ModerationActionEntity()
                 {
-                    Created = DateTimeOffset.Now,
+                    Created = DateTimeOffset.UtcNow,
                     CreatedById = CreatedById,
                     GuildId = GuildId,
                     Type = ModerationActionType.MessageBatchDeleted,

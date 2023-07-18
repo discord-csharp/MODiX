@@ -1,7 +1,4 @@
-﻿using Modix.Data.Models.Core;
-using Modix.Data.Models.Emoji;
-
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Modix.Data
 {

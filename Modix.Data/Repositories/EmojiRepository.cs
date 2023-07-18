@@ -141,7 +141,7 @@ namespace Modix.Data.Repositories
 
             var entity = data.ToEntity();
 
-            await ModixContext.Set<EmojiEntity>().AddAsync(entity);
+            ModixContext.Set<EmojiEntity>().Add(entity);
             await ModixContext.SaveChangesAsync();
 
             return entity.Id;
@@ -156,7 +156,7 @@ namespace Modix.Data.Repositories
             if (count <= 0)
                 return;
 
-            var now = DateTimeOffset.Now;
+            var now = DateTimeOffset.UtcNow;
             var entities = Enumerable.Range(0, count).Select(_ => data.ToEntity(now));
 
             await ModixContext.Set<EmojiEntity>().AddRangeAsync(entities);
@@ -225,10 +225,8 @@ namespace Modix.Data.Repositories
             var query = GetQuery();
             var parameters = GetParameters();
 
-            var stats = await ModixContext
-                .Set<SingleEmojiStatsDto>()
-                .FromSqlRaw(query, parameters)
-                .AsAsyncEnumerable()
+            var stats = await ModixContext.Database
+                .SqlQueryRaw<SingleEmojiStatsDto>(query, parameters)
                 .FirstOrDefaultAsync();
 
             return SingleEmojiUsageStatistics.FromDto(stats ?? new SingleEmojiStatsDto());
@@ -253,7 +251,7 @@ namespace Modix.Data.Repositories
                     {
                         Value = dateFilter is null
                             ? DateTimeOffset.MinValue
-                            : DateTimeOffset.Now - dateFilter
+                            : DateTimeOffset.UtcNow - dateFilter
                     }
                 };
 
@@ -288,10 +286,8 @@ namespace Modix.Data.Repositories
             var parameters = GetParameters();
             var query = GetQuery();
 
-            var stats = await ModixContext
-                .Set<EmojiStatsDto>()
-                .FromSqlRaw(query, parameters)
-                .AsAsyncEnumerable()
+            var stats = await ModixContext.Database
+                .SqlQueryRaw<EmojiStatsDto>(query, parameters)
                 .ToArrayAsync();
 
             return stats.Select(x => EmojiUsageStatistics.FromDto(x ?? new EmojiStatsDto())).ToArray();
@@ -308,7 +304,7 @@ namespace Modix.Data.Repositories
                     {
                         Value = dateFilter is null
                             ? DateTimeOffset.MinValue
-                            : DateTimeOffset.Now - dateFilter
+                            : DateTimeOffset.UtcNow - dateFilter
                     }
                 };
 
@@ -355,13 +351,11 @@ namespace Modix.Data.Repositories
             var parameters = GetParameters();
             var query = GetQuery();
 
-            var stats = await ModixContext
-                .Set<GuildEmojiStats>()
-                .FromSqlRaw(query, parameters)
-                .AsAsyncEnumerable()
+            var stats = await ModixContext.Database
+                .SqlQueryRaw<GuildEmojiStats>(query, parameters)
                 .FirstOrDefaultAsync();
 
-            return stats;
+            return stats ?? new();
 
             NpgsqlParameter[] GetParameters()
             {

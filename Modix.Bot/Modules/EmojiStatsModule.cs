@@ -73,7 +73,7 @@ namespace Modix.Modules
             var emojiStats = await _emojiRepository.GetEmojiStatsAsync(guildId, SortDirection.Ascending, count, userId: userId);
             var userTotalUses = await _emojiRepository.GetGuildStatsAsync(guildId, userId);
 
-            var numberOfDays = Math.Max((DateTime.Now - userTotalUses.OldestTimestamp).Days, 1);
+            var numberOfDays = Math.Max((DateTime.UtcNow - userTotalUses.OldestTimestamp).Days, 1);
 
             var sb = new StringBuilder();
             BuildEmojiStatString(sb, userTotalUses.TotalUses, emojiStats, (emoji) => (double)emoji.Uses / numberOfDays);
@@ -122,7 +122,7 @@ namespace Modix.Modules
                 percentUsage = 0;
 
             var emojiCreated = ephemeralEmoji.CreatedAt ?? guildStats.OldestTimestamp;
-            var numberOfDays = Math.Max((DateTimeOffset.Now - emojiCreated).Days, 1);
+            var numberOfDays = Math.Max((DateTimeOffset.UtcNow - emojiCreated).Days, 1);
             var perDay = (double)emojiStats.Uses / numberOfDays;
 
             var sb = new StringBuilder(emojiFormatted);
@@ -162,11 +162,11 @@ namespace Modix.Modules
             BuildEmojiStatString(sb, guildStats.TotalUses, emojiStats, (emoji) =>
             {
                 var emojiCreated = emoji.Emoji.CreatedAt ?? guildStats.OldestTimestamp;
-                var numberOfDays = Math.Max((DateTimeOffset.Now - emojiCreated).Days, 1);
+                var numberOfDays = Math.Max((DateTimeOffset.UtcNow - emojiCreated).Days, 1);
                 return (double)emoji.Uses / numberOfDays;
             });
 
-            var daysSinceOldestEmojiUse = Math.Max((DateTime.Now - guildStats.OldestTimestamp).Days, 1);
+            var daysSinceOldestEmojiUse = Math.Max((DateTimeOffset.UtcNow - guildStats.OldestTimestamp).Days, 1);
             var totalEmojiUsesPerDay = (double)guildStats.TotalUses / daysSinceOldestEmojiUse;
 
             return new EmbedBuilder()

@@ -112,7 +112,7 @@ namespace Modix.Services.Quote
                     }
                     catch (Exception ex)
                     {
-                        Log.LogError(ex, "An error occured while attempting to create a quote embed.");
+                        Log.LogError(ex, "An error occurred while attempting to create a quote embed.");
                     }
                 }
             }

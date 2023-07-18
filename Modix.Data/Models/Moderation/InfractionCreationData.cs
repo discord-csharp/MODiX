@@ -49,7 +49,7 @@ namespace Modix.Data.Models.Moderation
                 {
                     GuildId = GuildId,
                     Type = ModerationActionType.InfractionCreated,
-                    Created = DateTimeOffset.Now,
+                    Created = DateTimeOffset.UtcNow,
                     CreatedById = CreatedById
                 }
             };

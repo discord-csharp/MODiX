@@ -314,6 +314,7 @@ namespace Modix.Data.Test.Repositories
 
             var result = await uut.ReadSummaryAsync(userId, guildId);
 
+            result.ShouldNotBeNull();
             result.UserId.ShouldBe(userId);
             result.GuildId.ShouldBe(guildId);
             result.ShouldMatchTestData();
@@ -375,7 +376,7 @@ namespace Modix.Data.Test.Repositories
                 Username = "UpdatedUsername",
                 Discriminator = "UpdatedDiscriminator",
                 Nickname = "UpdatedNickname",
-                LastSeen = DateTimeOffset.Now
+                LastSeen = DateTimeOffset.UtcNow
             };
 
             var result = await uut.TryUpdateAsync(userId, guildId, data =>

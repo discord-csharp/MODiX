@@ -14,7 +14,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// A set of <see cref="ClaimMappingEntity.Type"/> values, defining the <see cref="ClaimMappingEntity"/> entities to be returned.
         /// </summary>
-        public IReadOnlyCollection<ClaimMappingType>? Types { get; set; }
+        public ClaimMappingType[]? Types { get; set; }
 
         /// <summary>
         /// A <see cref="ClaimMappingEntity.GuildId"/> value, defining the <see cref="ClaimMappingEntity"/> entities to be returned.
@@ -24,7 +24,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// A set of <see cref="ClaimMappingEntity.RoleId"/> values, defining the <see cref="ClaimMappingEntity"/> entities to be returned.
         /// </summary>
-        public IReadOnlyCollection<ulong>? RoleIds { get; set; }
+        public ulong[]? RoleIds { get; set; }
 
         /// <summary>
         /// A <see cref="ClaimMappingEntity.UserId"/> value, defining the <see cref="ClaimMappingEntity"/> entities to be returned.
@@ -34,7 +34,7 @@ namespace Modix.Data.Models.Core
         /// <summary>
         /// A set of <see cref="ClaimMappingEntity.Claim"/> values, defining the <see cref="ClaimMappingEntity"/> entities to be returned.
         /// </summary>
-        public IReadOnlyCollection<AuthorizationClaim>? Claims { get; set; }
+        public AuthorizationClaim[]? Claims { get; set; }
 
         /// <summary>
         /// A range of values defining the <see cref="ClaimMappingEntity"/> entities to be returned,
