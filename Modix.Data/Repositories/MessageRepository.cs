@@ -324,10 +324,7 @@ namespace Modix.Data.Repositories
         {
             var entity = await ModixContext.Set<MessageEntity>()
                 .Where(x => x.Id == messageId)
-                .FirstOrDefaultAsync();
-
-            if (entity is null)
-                return;
+                .FirstAsync();
 
             entity.StarboardEntryId = starboardEntryId;
 
