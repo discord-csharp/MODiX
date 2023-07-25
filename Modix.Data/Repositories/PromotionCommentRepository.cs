@@ -73,6 +73,8 @@ namespace Modix.Data.Repositories
         /// containing a flag indicating whether any matching comments exist.
         /// </returns>
         Task<bool> AnyAsync(PromotionCommentSearchCriteria searchCriteria);
+
+        Task<PromotionCommentSummary[]> SearchAsync(PromotionCommentSearchCriteria searchCriteria);
     }
 
     /// <inheritdoc />
@@ -174,6 +176,13 @@ namespace Modix.Data.Repositories
             => ModixContext.Set<PromotionCommentEntity>().AsNoTracking()
                 .FilterBy(searchCriteria)
                 .AnyAsync();
+
+        public async Task<PromotionCommentSummary[]> SearchAsync(PromotionCommentSearchCriteria searchCriteria)
+            => await ModixContext.Set<PromotionCommentEntity>().AsNoTracking()
+                .FilterBy(searchCriteria)
+                .AsExpandable()
+                .Select(PromotionCommentSummary.FromEntityProjection)
+                .ToArrayAsync();
 
         private static readonly RepositoryTransactionFactory _createTransactionFactory
             = new RepositoryTransactionFactory();

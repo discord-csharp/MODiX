@@ -52,8 +52,9 @@ namespace Modix.Bot.Behaviors
             var stopwatch = Stopwatch.StartNew();
 
             string interactionName;
-            var isDeferred = false;
+            var defer = false;
             var requiresAuthentication = true;
+            var ephemeralErrors = false;
 
             switch (interaction)
             {
@@ -66,31 +67,32 @@ namespace Modix.Bot.Behaviors
                         _ => null,
                     };
 
-                    if (commandInfo is not null)
-                    {
-                        if (!commandInfo.Attributes.Any(x => x is DoNotDeferAttribute))
-                        {
-                            isDeferred = true;
-                            await command.DeferAsync(ephemeral: command is not ISlashCommandInteraction);
-                        }
-                    }
-                    else
-                    {
-                        Log.Error("Could not find command {Name}.", command.CommandName);
-                        isDeferred = true;
-                        await command.DeferAsync();
-                    }
-
                     interactionName = commandInfo?.ToString() ?? command.CommandName;
+                    (defer, ephemeralErrors) = GetCommandInfoData(commandInfo, interactionName);
+
+                    if (defer)
+                        await command.DeferAsync(ephemeral: command is not ISlashCommandInteraction);
                     break;
                 case SocketModal modal:
-                    await interaction.DeferAsync();
-                    isDeferred = true;
                     interactionName = modal.Data.CustomId;
+                    var modalBaseCustomId = GetBaseCustomId(modal.Data.CustomId);
+                    var modalCommandInfo = _interactionService.ModalCommands.FirstOrDefault(x => GetBaseCustomId(x.Name) == modalBaseCustomId);
+                    (defer, ephemeralErrors) = GetCommandInfoData(modalCommandInfo, interactionName);
+
+                    if (defer)
+                        await modal.DeferAsync();
                     break;
                 case SocketAutocompleteInteraction autocomplete:
                     requiresAuthentication = false;
                     interactionName = $"Autocomplete for {autocomplete.Data.CommandName} command";
+                    break;
+                case SocketMessageComponent messageComponent:
+                    interactionName = messageComponent.Data.CustomId;
+                    var messageComponentInfo = _interactionService.SearchComponentCommand(messageComponent).Command;
+                    (defer, ephemeralErrors) = GetCommandInfoData(messageComponentInfo, interactionName);
+
+                    if (defer)
+                        await messageComponent.DeferAsync();
                     break;
                 default:
                     interactionName = interaction.Type.ToString();
@@ -106,18 +108,48 @@ namespace Modix.Bot.Behaviors
             {
                 var errorMessage = $"Error: {result.ErrorReason}";
 
-                if (isDeferred)
+                if (defer)
                 {
-                    await context.Interaction.FollowupAsync(errorMessage, allowedMentions: AllowedMentions.None);
+                    await context.Interaction.FollowupAsync(errorMessage, ephemeral: ephemeralErrors, allowedMentions: AllowedMentions.None);
                 }
                 else
                 {
-                    await context.Interaction.RespondAsync(errorMessage, allowedMentions: AllowedMentions.None);
+                    await context.Interaction.RespondAsync(errorMessage, ephemeral: ephemeralErrors, allowedMentions: AllowedMentions.None);
                 }
             }
 
             stopwatch.Stop();
             Log.Information("Interaction took {Duration}ms to process: {Name}", stopwatch.ElapsedMilliseconds, interactionName);
+
+            static (bool defer, bool ephemeralErrors) GetCommandInfoData(ICommandInfo? commandInfo, string commandName)
+            {
+                var (defer, ephemeralErrors) = (false, commandInfo is ComponentCommandInfo);
+
+                if (commandInfo is not null)
+                {
+                    if (commandInfo.Attributes.Any(x => x is EphemeralErrorsAttribute))
+                        ephemeralErrors = true;
+
+                    if (!commandInfo.Attributes.Any(x => x is DoNotDeferAttribute))
+                        defer = true;
+                }
+                else
+                {
+                    Log.Error("Could not find command {Name}.", commandName);
+                    defer = true;
+                }
+
+                return (defer, ephemeralErrors);
+            }
+
+            static string GetBaseCustomId(string customId)
+            {
+                var colonIndex = customId.IndexOf(':');
+
+                return colonIndex > -1
+                    ? customId[..colonIndex]
+                    : customId;
+            }
         }
     }
 }

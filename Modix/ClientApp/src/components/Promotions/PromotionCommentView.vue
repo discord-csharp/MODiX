@@ -27,7 +27,7 @@ export default class PromotionCommentView extends ModixComponent
     loadingUpdate: boolean = false;
     showModal: boolean = false;
 
-    newComment: PromotionCommentData = { body: "", sentiment: PromotionSentiment.Abstain };
+    newComment: PromotionCommentData = { body: "", sentiment: PromotionSentiment.Approve };
 
     @Prop() private comment!: PromotionComment;
     @Prop() private hidden!: boolean;

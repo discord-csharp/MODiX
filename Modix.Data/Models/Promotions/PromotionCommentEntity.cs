@@ -43,8 +43,7 @@ namespace Modix.Data.Models.Promotions
         /// <summary>
         /// The text content of the comment, supplied by the commenter.
         /// </summary>
-        [Required]
-        public string Content { get; set; } = null!;
+        public string? Content { get; set; }
 
         /// <summary>
         /// The <see cref="PromotionActionEntity.Id"/> value of <see cref="CreateAction"/>.

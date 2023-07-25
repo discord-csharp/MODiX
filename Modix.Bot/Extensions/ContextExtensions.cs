@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,7 +15,7 @@ namespace Modix.Bot.Extensions
         private static readonly Emoji _checkmarkEmoji = new("✅");
         private static readonly Emoji _xEmoji = new("❌");
 
-        private const int ConfirmationTimeoutSeconds = 10;
+        private const int ConfirmationTimeoutSeconds = 30;
 
         public static async Task AddConfirmationAsync(this ICommandContext context)
         {
@@ -99,5 +100,39 @@ namespace Modix.Bot.Extensions
                 await confirmationMessage.ModifyAsync(m => m.Content = mainMessage + bottomMessage);
             }
         }
+
+        public static async Task GetUserConfirmationAsync(this IInteractionContext context, string message, string customIdSuffix)
+        {
+            message = $"{message}\nRespond in the next {ConfirmationTimeoutSeconds} seconds to finalize or cancel the operation.";
+
+            var embedBuilder = new EmbedBuilder()
+                .WithTitle("Confirmation")
+                .WithDescription(message);
+
+            var componentBuilder = new ComponentBuilder()
+                .WithButton("Confirm", style: ButtonStyle.Success, customId: $"button_confirm_{customIdSuffix}")
+                .WithButton("Cancel", style: ButtonStyle.Danger, customId: $"button_cancel_{customIdSuffix}");
+
+            var confirmationMessage = await context.Interaction.FollowupAsync(embed: embedBuilder.Build(), components: componentBuilder.Build());
+
+            _confirmationDialogs.TryAdd(confirmationMessage.Id, default);
+
+            await Task.Delay(TimeSpan.FromSeconds(ConfirmationTimeoutSeconds));
+
+            if (_confirmationDialogs.TryRemove(confirmationMessage.Id, out _))
+            {
+                await confirmationMessage.ModifyAsync(x =>
+                {
+                    x.Content = "\\❌ Canceled.";
+                    x.Embeds = null;
+                    x.Components = null;
+                });
+            }
+        }
+
+        public static void StopMonitoringConfirmationDialog(this IInteractionContext context, IUserMessage dialogMessage)
+            => _confirmationDialogs.TryRemove(dialogMessage.Id, out _);
+
+        private static readonly ConcurrentDictionary<ulong, byte> _confirmationDialogs = new();
     }
 }

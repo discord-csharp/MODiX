@@ -13,7 +13,6 @@
                     <p class="control">
                         <span class="select">
                             <select v-model="newComment.sentiment">
-                                <option value="Abstain" v-html="sentimentIcon('Abstain')"></option>
                                 <option value="Approve" v-html="sentimentIcon('Approve')"></option>
                                 <option value="Oppose" v-html="sentimentIcon('Oppose')"></option>
                             </select>
@@ -35,7 +34,7 @@
                 </div>
                 <div class="level-right">
                     <button class="button is-success" v-bind:class="{'is-loading': loadingCommentUpdate}"
-                            v-on:click="updateComment()" v-bind:disabled="!allowUpdate">Update</button>
+                            v-on:click="updateComment()">Update</button>
                 </div>
             </footer>
         </div>
@@ -68,7 +67,7 @@ export default class PromotionCommentEditModal extends ModixComponent
     @Prop({ default: false }) public showUpdateModal!: boolean;
 
     loadingCommentUpdate: boolean = false;
-    newComment: PromotionCommentData = { body: "", sentiment: PromotionSentiment.Abstain };
+    newComment: PromotionCommentData = { body: "", sentiment: PromotionSentiment.Approve };
     error: string = "";
 
     @Watch('showUpdateModal')
@@ -87,11 +86,6 @@ export default class PromotionCommentEditModal extends ModixComponent
         {
             this.$emit('comment-edit-modal-closed')
         }
-    }
-
-    get allowUpdate(): boolean
-    {
-        return this.newComment.body.length > 3;
     }
 
     close()

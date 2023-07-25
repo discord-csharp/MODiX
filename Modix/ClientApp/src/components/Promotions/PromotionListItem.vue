@@ -2,7 +2,7 @@
 
     <div class="campaign box" :class="{'expanded': expanded, 'inactive': campaign.closeAction}" v-if="campaign">
 
-        <div class="columns is-mobile is-multiline titleBar" @click="expandWithSentiment('Abstain')">
+        <div class="columns is-mobile is-multiline titleBar" @click="expandWithSentiment('Approve')">
             <div class="column is-12-mobile columns is-gapless is-mobile nameBar">
 
                 <div class="leftSide">
@@ -70,7 +70,6 @@
                 <p class="control">
                     <span class="select">
                         <select v-model="newComment.sentiment">
-                            <option value="Abstain" v-html="sentimentIcon('Abstain')"></option>
                             <option value="Approve" v-html="sentimentIcon('Approve')"></option>
                             <option value="Oppose" v-html="sentimentIcon('Oppose')"></option>
                         </select>
@@ -118,7 +117,7 @@ export default class PromotionListItem extends ModixComponent
     @Prop() private campaign!: PromotionCampaign;
     @Prop({default: false}) private dialogLoading!: boolean;
 
-    newComment: PromotionCommentData = { body: "", sentiment: PromotionSentiment.Abstain };
+    newComment: PromotionCommentData = { body: "", sentiment: PromotionSentiment.Approve };
     expanded: boolean = false;
     error: string = "";
     commentSubmitting: boolean = false;
@@ -142,7 +141,7 @@ export default class PromotionListItem extends ModixComponent
 
     resetNewComment()
     {
-        this.newComment.sentiment = PromotionSentiment.Abstain;
+        this.newComment.sentiment = PromotionSentiment.Approve;
         this.newComment.body = "";
 
         this.error = "";

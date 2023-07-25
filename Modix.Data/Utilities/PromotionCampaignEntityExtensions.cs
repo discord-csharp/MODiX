@@ -8,8 +8,9 @@ namespace Modix.Data.Utilities
         public static readonly TimeSpan CampaignAcceptCooldown = TimeSpan.FromHours(48);
 
         public static TimeSpan GetTimeUntilCampaignCanBeClosed(this PromotionCampaignSummary campaign)
-        {
-            return campaign.CreateAction.Created.Add(CampaignAcceptCooldown) - DateTimeOffset.UtcNow;
-        }
+            => campaign.CreateAction.Created.Add(CampaignAcceptCooldown) - DateTimeOffset.UtcNow;
+
+        public static DateTimeOffset GetExpectedCampaignCloseTimeStamp(this PromotionCampaignSummary campaign)
+            => campaign.CreateAction.Created.Add(CampaignAcceptCooldown);
     }
 }
