@@ -115,6 +115,7 @@ namespace Modix
                 Log.LogInformation("Loaded {SlashCommands} slash commands.", modules.SelectMany(x => x.SlashCommands).Count());
                 Log.LogInformation("Loaded {ContextCommands} context commands.", modules.SelectMany(x => x.ContextCommands).Count());
                 Log.LogInformation("Loaded {ModalCommands} modal commands.", modules.SelectMany(x => x.ModalCommands).Count());
+                Log.LogInformation("Loaded {ComponentCommands} component commands.", modules.SelectMany(x => x.ComponentCommands).Count());
 
                 await Task.Delay(-1);
             }
