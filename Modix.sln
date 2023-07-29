@@ -61,7 +61,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Analyzers", "Modix.An
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Analyzers.Test", "Modix.Analyzers.Test\Modix.Analyzers.Test.csproj", "{9A28A475-067B-4CBD-94BC-CA31C0D1555A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modix.Web", "Modix.Web\Modix.Web.csproj", "{2280A9D0-358E-4668-8855-6832725C740A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Web", "Modix.Web\Modix.Web.csproj", "{2280A9D0-358E-4668-8855-6832725C740A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
