@@ -1,23 +1,215 @@
 ﻿@page "/promotions"
+@using Modix.Data.Models.Core;
+@using Modix.Data.Models.Promotions;
+@using Modix.Services.Promotions;
+@using Modix.Web.Components;
+@using Modix.Web.Services;
+@using MudBlazor
+
+@attribute [Authorize(Policy = nameof(AuthorizationClaim.PromotionsRead))]
 
 <CascadingAuthenticationState>
-    <AuthorizeView>
-        <Authorized>
 
-            <PageTitle>Promotions</PageTitle>
-            <h1>Promotion Campaigns</h1>
-            <p role="status">Current count: @currentCount</p>
-            <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+    <PageTitle>Promotions</PageTitle>
 
-        </Authorized>
-    </AuthorizeView>
+    <MudContainer>
+        <MudText Typo="Typo.h4">Promotion Campaigns</MudText>
+        <div class="d-flex" style="justify-content: end; margin-bottom: 1rem">
+            <MudCheckBox @bind-Checked="_showInactive" Label="Show Inactive" Color="Color.Primary"></MudCheckBox>
+            <MudButton Href="/promotions/create" Style="margin-left: 1rem" Variant="Variant.Filled" Color="Color.Primary">Start One</MudButton>
+        </div>
+        <MudExpansionPanels MultiExpansion="true">
+            @foreach(var campaign in Campaigns.Where(x => _showInactive ? true : (x.Outcome is null)).OrderByDescending(x => x.Outcome is null).ThenByDescending(x => x.CreateAction.Created))
+            {
+                var isCurrentUserCampaign = CurrentUserId == campaign.Subject.Id;
+
+                var icon = campaign.Outcome switch
+                {
+                    PromotionCampaignOutcome.Accepted => Icons.Material.Filled.Check,
+                    PromotionCampaignOutcome.Rejected => Icons.Material.Filled.NotInterested,
+                    PromotionCampaignOutcome.Failed => Icons.Material.Filled.Error,
+                    _ => Icons.Material.Filled.HowToVote
+                };
+
+                var sentimentRatio = isCurrentUserCampaign ? 0d : (double)campaign.ApproveCount / (campaign.ApproveCount + campaign.OpposeCount);
+                var sentimentColor = sentimentRatio switch
+                {
+                    _ when isCurrentUserCampaign => Color.Transparent,
+                    _ when sentimentRatio > 0.67 => Color.Success,
+                    _ when sentimentRatio > 0.33 => Color.Warning,
+                    _ => Color.Error
+                };
+
+                <MudExpansionPanel IsExpandedChanged="async (wasExpanded) => _ = CampaignExpanded(wasExpanded, campaign.Id, campaign.Subject.Id)">
+                    <TitleContent>
+                        <div class="d-flex" style="align-items: center;">
+                            <div style="flex-grow: 1">
+                                <MudTooltip RootStyle="vertical-align: bottom" Placement="Placement.Top" Text="@($"Status: " + (campaign.Outcome.HasValue ? campaign.Outcome.Value.ToString() : "Active"))">
+                                    <MudIcon Size="Size.Large" Icon="@icon"/>
+                                </MudTooltip>
+                                <MudText Style="margin-left: .5em" Typo="Typo.h4" Inline="true">
+                                    @($"{campaign.Subject.Username + (campaign.Subject.Discriminator == "0000" ? "" : "#" + campaign.Subject.Discriminator)}")
+                                </MudText>
+                                <MudText Class="targetRole" Inline="true" Style="@($"color: {RoleColors[campaign.TargetRole.Id]}; vertical-align: text-bottom")">&#10149; @campaign.TargetRole.Name</MudText>
+                            </div>
+                            <div style="width: 20%; margin-right: 1rem">
+                                <div class="d-flex" style="justify-content: space-around;">
+                                    <div class="d-flex">
+                                        <MudIcon Icon="@Icons.Material.Filled.ThumbUp"/>
+                                        <MudText Style="margin-left: .33rem">@(isCurrentUserCampaign ? "?" : campaign.ApproveCount.ToString())</MudText>
+                                    </div>
+                                    <div class="d-flex">
+                                        <MudIcon Icon="@Icons.Material.Filled.ThumbDown"/>
+                                        <MudText Style="margin-left: .33rem">@(isCurrentUserCampaign ? "?" : campaign.OpposeCount.ToString())</MudText>
+                                    </div>
+                                </div>
+                                <MudProgressLinear Striped="true" Color="sentimentColor" Size="Size.Small" Value="sentimentRatio*100" />
+                            </div>
+                        </div>
+                    </TitleContent>
+                    <ChildContent>
+                        <MudText>Campaign started @campaign.CreateAction.Created.ToString("dd/MM/yy, h:MM:ss tt")</MudText>
+                        <MudDivider Light="true"/>
+                        @if(campaign.Subject.Id == CurrentUserId)
+                        {
+                            <MudText Style="text-align: center; font-weight: bold; margin: 1em 0 .5em 0">Sorry, you aren't allowed to see comments on your own campaign.</MudText>
+                        }
+                        else if(!campaignCommentData.ContainsKey(campaign.Id))
+                        {
+                            <MudProgressCircular Indeterminate="true" Class="d-flex" Style="margin: auto"/>
+                        }
+                        else
+                        {
+                            foreach(var comment in campaignCommentData[campaign.Id])
+                            {
+                                var sentimentIcon = comment.PromotionSentiment == PromotionSentiment.Approve ? Icons.Material.Filled.ThumbUp : Icons.Material.Filled.ThumbDown;
+                                <div class="d-flex" style="margin: 1rem; align-items: center;">
+                                    <MudIcon Icon="@sentimentIcon"></MudIcon>
+                                    <MudText Style="margin-left: 1rem; flex-grow: 1" Inline="true">@comment.Content</MudText>
+                                    @if (comment.IsFromCurrentUser)
+                                    {
+                                        <MudButton OnClick="() => ToggleEditDialog(comment.Id, comment.PromotionSentiment, comment.Content)" Color="Color.Primary" Style="margin-right: 1rem;">Edit</MudButton>
+                                    }
+                                    <MudText Style="color: grey" Inline="true">@comment.CreatedAt.ToString("dd/MM/yy, h:MM:ss tt")</MudText>
+                                </div>
+                                <MudDivider Light="true"/>
+                            }
+                        }
+                    </ChildContent>
+                </MudExpansionPanel>
+            }
+        </MudExpansionPanels>
+    </MudContainer>
+
 </CascadingAuthenticationState>
 
-@code {
-    private int currentCount = 0;
+<style>
+    .targetRole{
+        font-weight: 400 !important;
+        padding: 4px 8px;
+        border: 2px solid currentColor;
+        border-top-color: currentcolor;
+        border-right-color: currentcolor;
+        border-bottom-color: currentcolor;
+        border-left-color: currentcolor;
+        border-color: currentColor !important;
+        border-radius: 3px;
+        margin-left: .5em
+    }
+</style>
 
-    private void IncrementCount()
+@code {
+
+    public record CampaignCommentData(long Id, PromotionSentiment PromotionSentiment, string Content, DateTimeOffset CreatedAt, bool IsFromCurrentUser);
+
+
+    [Inject]
+    public DiscordUserService DiscordUserService { get; set; } = null!;
+
+    [Inject]
+    public IPromotionsService PromotionsService { get; set; } = null!;
+
+    [Inject]
+    public IDialogService DialogService { get; set; } = null!;
+
+    private ulong CurrentUserId { get; set; }
+
+    private IReadOnlyCollection<PromotionCampaignSummary> Campaigns = Array.Empty<PromotionCampaignSummary>();
+    private Dictionary<ulong, string> RoleColors = new Dictionary<ulong, string>();
+    private Dictionary<long, List<CampaignCommentData>> campaignCommentData = new Dictionary<long, List<CampaignCommentData>>();
+
+    private bool _showInactive;
+
+    protected override async Task OnInitializedAsync()
     {
-        currentCount++;
+        var currentGuild = DiscordUserService.GetUserGuild();
+        RoleColors = currentGuild.Roles.ToDictionary(x => x.Id, x => x.Color.ToString());
+
+        Campaigns = await PromotionsService.SearchCampaignsAsync(new PromotionCampaignSearchCriteria
+        {
+            GuildId = currentGuild.Id
+        });
+
+        var currentUser = await DiscordUserService.GetCurrentUserAsync();
+        CurrentUserId = currentUser!.Id;
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+    }
+
+    private async Task CampaignExpanded(bool wasExpanded, long campaignId, ulong userId)
+    {
+        if (!wasExpanded)
+            return;
+
+        if (CurrentUserId == userId)
+            return;
+
+        if (campaignCommentData.ContainsKey(campaignId))
+            return;
+
+        var result = await PromotionsService.GetCampaignDetailsAsync(campaignId);
+
+        if (result is null) // TODO: What to do here?
+            return;
+
+        //TODO: Fix IsFromCurrentUser
+        campaignCommentData[campaignId] = result.Comments
+            .Where(x => x.ModifyAction is null)
+            .Select(c => new CampaignCommentData(c.Id, c.Sentiment, c.Content, c.CreateAction.Created, c.CreateAction.CreatedBy.Id == CurrentUserId))
+            .ToList();
+
+        StateHasChanged();
+
+
+        // {
+        //     c.Id,
+        //     c.Sentiment,
+        //     c.Content,
+        //     CreateAction = new { c.CreateAction.Id, c.CreateAction.Created },
+        //     IsModified = !(c.ModifyAction is null),
+        //     IsFromCurrentUser = c.CreateAction.CreatedBy.Id == ModixAuth.CurrentUserId,
+        // }));
+    }
+
+    private async Task ToggleEditDialog(long commentId, PromotionSentiment oldPromotionSentiment, string oldContent)
+    {
+        var dialogParams = new DialogParameters
+        {
+            { nameof(EditPromotionCommentDialog.PromotionSentiment), oldPromotionSentiment },
+            { nameof(EditPromotionCommentDialog.Content), oldContent}
+        };
+
+        var dialog = DialogService.Show<EditPromotionCommentDialog>("", dialogParams);
+        var result = await dialog.Result;
+
+        if (result.Canceled)
+            return;
+
+        var (newPromotionSentiment, newContent) = ((PromotionSentiment, string))result.Data;
+
+        await PromotionsService.UpdateCommentAsync(commentId, newPromotionSentiment, newContent);
     }
 }
