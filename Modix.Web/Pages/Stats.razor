@@ -1,23 +1,128 @@
 ﻿@page "/stats"
+@using Modix.Data.Models.Core;
+@using Modix.Services.GuildStats;
+@using Modix.Web.Services;
+@using MudBlazor
 
 <CascadingAuthenticationState>
     <AuthorizeView>
         <Authorized>
-
             <PageTitle>Stats</PageTitle>
-            <h1>Statistics for C#</h1>
-            <p role="status">Current count: @currentCount</p>
-            <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
 
+            @if(Data is not null)
+            {
+                <MudContainer>
+                    <MudText Typo="Typo.h3">Statistics for C#</MudText>
+                    <MudGrid Spacing="6" Style="flex-flow:row;">
+                        <MudItem>
+                            <MudPaper>
+                                <MudContainer Class="mud-theme-primary statsContainer">
+                                    <MudText Typo="Typo.h3">Role Distribution</MudText>
+                                </MudContainer>
+
+                                <MudCard Class="d-flex" Style="align-items:center; flex-direction:column">
+
+                                    <MudChipSet Style="display: flex; flex-wrap: wrap; justify-content: center;" MultiSelection="true" Filter="true" SelectedChipsChanged="SelectedChannelsChanged">
+                                        @foreach (var role in Data.GuildRoleCounts)
+                                        {
+                                            var channelColorStyle = $"border: 1px solid {role.Color}";
+                                            <MudChip Style="@channelColorStyle"
+                                                     Value="@role.Name"
+                                                     Default="true"
+                                                     Size="Size.Small"
+                                                     Variant="Variant.Outlined">
+                                                @($"{role.Name} ({role.Count})")
+                                            </MudChip>
+                                        }
+                                    </MudChipSet>
+
+                                    <MudChart ChartType="ChartType.Donut"
+                                              InputData="@GuildRoleCountView.Select(x => (double)x.Count).ToArray()"
+                                              ChartOptions="@(new ChartOptions
+                                            {
+                                                LineStrokeWidth = 25,
+                                                DisableLegend = true,
+                                                ChartPalette = GuildRoleCountView.Select(x => x.Color).ToArray()
+                                            })" />
+                                </MudCard>
+
+                            </MudPaper>
+                        </MudItem>
+                        <MudItem>
+                            <MudPaper>
+                                <MudContainer Class="mud-theme-primary statsContainer">
+                                    <MudText Typo="Typo.h3">Most Active Users</MudText>
+                                    <MudText Typo="Typo.body1">of the last 30 days</MudText>
+                                </MudContainer>
+                                <MudList>
+                                    @foreach (var stat in Data.TopUserMessageCounts)
+                                    {
+                                        var rankSymbol = stat.Rank switch
+                                        {
+                                            1 => "🥇",
+                                            2 => "🥈",
+                                            3 => "🥉",
+                                            _ => null
+                                        };
+
+                                        var username = stat.Username;
+                                        username += stat.Discriminator == "0000" ? string.Empty : $"#{stat.Discriminator}";
+                                        <MudListItem>
+                                            <MudText Inline="true" Typo="Typo.h5" Style="@(stat.Rank <= 3 ? "font-weight: bold;" : string.Empty)">
+                                                @($"{rankSymbol ?? $"{stat.Rank}."} {username}")
+                                            </MudText>
+                                            <MudText Inline="true" Typo="Typo.subtitle2">@($"{stat.MessageCount} messages")</MudText>
+                                        </MudListItem>
+                                    }
+                                </MudList>
+
+                            </MudPaper>
+                        </MudItem>
+                    </MudGrid>
+
+                </MudContainer>
+            }
         </Authorized>
     </AuthorizeView>
 </CascadingAuthenticationState>
 
-@code {
-    private int currentCount = 0;
+<style>
+    .statsContainer {
+        padding: 3rem;
+    }
+</style>
 
-    private void IncrementCount()
+@code {
+
+    public record GuildStatData(string GuildName, List<GuildRoleCount> GuildRoleCounts, IReadOnlyCollection<PerUserMessageCount> TopUserMessageCounts);
+
+    GuildStatData Data { get; set;} = null!;
+    List<GuildRoleCount> GuildRoleCountView { get; set; } = null!;
+
+    [Inject]
+    IGuildStatService GuildStatService { get; set; } = null!;
+
+    [Inject]
+    DiscordUserService DiscordUserService { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
     {
-        currentCount++;
+        var userGuild = DiscordUserService.GetUserGuild();
+        var currentUser = await DiscordUserService.GetCurrentUserAsync();
+
+        if (currentUser is null)
+            throw new InvalidOperationException("Could not find currently logged in user.");
+
+        var roleCounts = await GuildStatService.GetGuildMemberDistributionAsync(userGuild);
+        var messageCounts = await GuildStatService.GetTopMessageCounts(userGuild, currentUser.Id);
+
+        Data = new GuildStatData(userGuild.Name, roleCounts, messageCounts);
+        GuildRoleCountView = roleCounts;
+    }
+
+    private void SelectedChannelsChanged(MudChip[] chips)
+    {
+        var roles = chips.Select(x => x.Value).Cast<string>();
+        GuildRoleCountView = Data.GuildRoleCounts.Where(x => roles.Contains(x.Name)).ToList();
     }
 }
