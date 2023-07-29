@@ -1,0 +1,37 @@
+﻿@using Modix.Web.Models;
+@using Modix.Web.Services;
+@using MudBlazor
+
+<MudText Typo="Typo.h5">Tell us their username</MudText>
+<MudAutocomplete T="ModixUser"
+                    Label="Username or ID"
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    SearchFunc="Search"
+                    MinCharacters="3"
+                    Immediate="false"
+                    ResetValueOnEmptyText="true"
+                    ValueChanged="SelectedUserChanged"
+                    ToStringFunc="user => user?.Name"
+                    Clearable="true"
+                    Adornment="Adornment.Start"
+                    SelectValueOnTab="true">
+    <ItemTemplate Context="user">
+        <MudImage style="vertical-align: bottom" Src="@user.AvatarUrl" Height="24" Width="24" Class="rounded-lg" />
+        @user.Name
+    </ItemTemplate>
+</MudAutocomplete>
+
+
+@code {
+    [Inject]
+    public DiscordUserService DiscordUserService { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<ModixUser> SelectedUserChanged { get; set; }
+
+
+    private async Task<IEnumerable<ModixUser>> Search(string user)
+    {
+        return await DiscordUserService.AutoCompleteAsync(user);
+    }
+}

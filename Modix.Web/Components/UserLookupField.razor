@@ -1,0 +1,43 @@
+﻿@using MudBlazor
+@typeparam T
+
+<div class="d-flex profileField" style="align-items: center;">
+    <MudText Class="lookup-text-item" Style="font-weight: bold;">@Label</MudText>
+    @if(ChildContent is not null)
+    {
+        @ChildContent
+    }
+    else if(Value is not null)
+    {
+        <MudText Class="lookup-text-item">@Value</MudText>
+    }
+    else
+    {
+        <em class="lookup-text-item">@Default</em>
+    }
+</div>
+
+<style>
+    .profileField {
+        margin-bottom: .5em;
+    }
+
+    .lookup-text-item {
+        margin-left: 10px !important;
+    }
+</style>
+
+@code {
+
+    [Parameter]
+    public string? Label { get; set; }
+
+    [Parameter]
+    public T? Value { get; set; }
+
+    [Parameter]
+    public T? Default { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}
