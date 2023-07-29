@@ -1,23 +1,175 @@
 ﻿@page "/tags"
+@using Modix.Data.Models.Core;
+@using Modix.Data.Models.Tags;
+@using Modix.Services.Tags;
+@using Modix.Web.Services;
+@using MudBlazor
+@using System.Globalization;
+@using Modix.Data.Models.Core;
 
 <CascadingAuthenticationState>
     <AuthorizeView>
         <Authorized>
 
             <PageTitle>Tags</PageTitle>
-            <h1>Tags</h1>
-            <p role="status">Current count: @currentCount</p>
-            <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+            <MudContainer>
+                <MudText Typo="Typo.h3">Tags</MudText>
+                @if (Data is not null)
+                {
+                    <MudDialog @bind-IsVisible="_createDialogVisible" Options="new DialogOptions { FullWidth= true }">
+                        <TitleContent>
+                            <MudText Typo="Typo.h5">Create Tag</MudText>
+                        </TitleContent>
+                        <DialogContent>
+                            <MudTextField @bind-Value="_tagNameValue" Label="Name"></MudTextField>
+                            <MudTextField @bind-Value="_tagContentValue" Label="Content" Lines="5" Immediate="true"></MudTextField>
+                            <MudText Typo="Typo.subtitle1">Preview</MudText>
+                            <MudMarkdown Value="@_tagContentValue" />
+                        </DialogContent>
+                        <DialogActions>
+                            <div style="justify-content: left; flex-grow: 1;">
+                                <MudButton Disabled="@(_tagNameValue is null || _tagContentValue is null)" Color="Color.Success" OnClick="SaveTag">Save</MudButton>
+                            </div>
+                            <MudButton Color="Color.Error" OnClick="ToggleDialog">Cancel</MudButton>
+                        </DialogActions>
+                    </MudDialog>
+
+                    <MudTable Items="Data" SortLabel="Sort By" Bordered="true" Filter="FilterFunction">
+                        <ToolBarContent>
+                            <AuthorizeView Context="e" Policy="@nameof(AuthorizationClaim.CreateTag)">
+                                <MudButton OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
+                            </AuthorizeView>
+                            <MudButton OnClick="FetchData" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
+                            <MudSpacer/>
+                            <MudTextField DebounceInterval="1000" @bind-Value="query" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                        </ToolBarContent>
+                        <HeaderContent>
+                            <MudTh Style="text-align:center"><MudTableSortLabel T="TagData" SortBy="x => x.Name">Name</MudTableSortLabel></MudTh>
+                            <MudTh Style="text-align:center"><MudTableSortLabel T="TagData" SortBy="x => x.Created">Last Modified</MudTableSortLabel></MudTh>
+                            <MudTh Style="text-align:center"><MudTableSortLabel T="TagData" SortBy="x => x.OwnerName">Owner</MudTableSortLabel></MudTh>
+                            <MudTh Style="text-align:center"><MudTableSortLabel T="TagData" SortBy="x => x.Content">Content</MudTableSortLabel></MudTh>
+                            <MudTh Style="text-align:center"><MudTableSortLabel T="TagData" SortBy="x => x.Uses">Uses</MudTableSortLabel></MudTh>
+                        </HeaderContent>
+                        <RowTemplate Context="tag">
+                            <MudTd DataLabel="Name">@tag.Name</MudTd>
+                            <MudTd style="white-space:nowrap" DataLabel="Last Modified">@tag.Created.ToString("dd/MM/yy, h:MM:ss tt")</MudTd>
+                            <MudTd DataLabel="Owner">@tag.OwnerName</MudTd>
+                            <MudTd DataLabel="Content">
+                                <MudMarkdown Value="@tag.Content"/>
+                            </MudTd>
+                            <MudTd DataLabel="Uses">@tag.Uses</MudTd>
+                        </RowTemplate>
+                        <PagerContent>
+                            <MudTablePager PageSizeOptions="new [] { 10, 20, 30, 40, 50, int.MaxValue }" ></MudTablePager>
+                        </PagerContent>
+                    </MudTable>
+                }
+            </MudContainer>
 
         </Authorized>
     </AuthorizeView>
 </CascadingAuthenticationState>
 
 @code {
-    private int currentCount = 0;
 
-    private void IncrementCount()
+    public record TagData(
+            string Name,
+            DateTimeOffset Created,
+            bool IsOwnedByRole,
+            GuildUserBrief? OwnerUser,
+            GuildRoleBrief? OwnerRole,
+            string? OwnerName,
+            string Content,
+            uint Uses,
+            bool CanMaintain,
+            TagSummary TagSummary);
+
+
+    [Inject]
+    ITagService TagService { get; set; } = null!;
+
+    [Inject]
+    DiscordUserService DiscordUserService { get; set; } = null!;
+
+    [Inject]
+    IDialogService DialogService { get; set; } = null!;
+
+    TagData[]? Data { get; set; }
+    string? query;
+    string? _tagNameValue;
+    string? _tagContentValue;
+    bool _createDialogVisible;
+
+    protected override async Task OnInitializedAsync() => await FetchData();
+
+    private async Task FetchData()
     {
-        currentCount++;
+        var currentGuild = DiscordUserService.GetUserGuild();
+
+        var summaries = await TagService.GetSummariesAsync(new TagSearchCriteria
+        {
+            GuildId = currentGuild.Id,
+        });
+
+        Data = summaries
+            .Select(x => CreateTagData(x))
+            .ToArray();
+
+        // foreach (var tag in data)
+        // {
+        //     // TODO Revisit this functionality
+        //     tag.CanMaintain = false;
+        // }
+    }
+
+    private bool FilterFunction(TagData tag)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return true;
+
+        if (tag.OwnerUser is not null && (tag.OwnerUser.Username.Contains(query) || tag.OwnerUser.Id.ToString() == query))
+            return true;
+
+        if (tag.OwnerRole?.Name.Contains(query) ?? false)
+            return true;
+
+        if (tag.Name.Contains(query))
+            return true;
+
+        if (tag.Content.Contains(query))
+            return true;
+
+        return false;
+    }
+
+    private async Task SaveTag()
+    {
+        var currentGuild = DiscordUserService.GetUserGuild();
+        var currentUser = await DiscordUserService.GetCurrentUserAsync();
+        await TagService.CreateTagAsync(currentGuild.Id, currentUser.Id, _tagNameValue, _tagContentValue);
+        var createdTag = await TagService.GetTagAsync(currentGuild.Id, _tagNameValue);
+        Data = Data!.Append(CreateTagData(createdTag)).ToArray();
+
+        _createDialogVisible = false;
+    }
+
+    private TagData CreateTagData(TagSummary summary)
+    {
+        return new TagData(
+                summary.Name,
+                summary.CreateAction.Created,
+                summary.OwnerRole is not null,
+                summary.OwnerUser,
+                summary.OwnerRole,
+                summary.OwnerRole?.Name ?? summary.OwnerUser?.Username,
+                summary.Content,
+                summary.Uses,
+                false,
+                summary);
+    }
+
+    private void ToggleDialog()
+    {
+        _createDialogVisible = !_createDialogVisible;
     }
 }
