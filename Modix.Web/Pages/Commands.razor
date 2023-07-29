@@ -1,24 +1,171 @@
 ﻿@page "/commands"
+@using Modix.Services.CommandHelp;
+@using Modix.Services.Utilities;
+@using MudBlazor;
 
-<CascadingAuthenticationState>
-    <AuthorizeView>
-        <Authorized>
-            <PageTitle>Commands</PageTitle>
+<PageTitle>Commands</PageTitle>
 
-            <h1>Commands</h1>
+<MudDrawerContainer Class="mud-height-full">
+    <MudDrawer Open="true" Elevation="0" Variant="DrawerVariant.Persistent" Style="position: fixed;">
+        <MudNavMenu Class="d-flex flex-column px-5">
+            @foreach (var module in Modules.OrderBy(m => m.Name))
+            {
+                <a href="@("commands/#" + module.Name)"
+                    style="margin: 0.25em 0"
+                    onclick="document.getElementsByName('@module.Name')[0].scrollIntoView({behavior:'smooth'})"
+                    class="mud-typography mud-link mud-primary-text mud-link-underline-hover mud-typography-body1"
+                >
+                    @module.Name
+                </a>
+            }
+        </MudNavMenu>
+    </MudDrawer>
 
-            <p role="status">Current count: @currentCount</p>
+<div class="d-flex justify-center mud-height-full flex-column">
+    <MudText Typo="Typo.h2">Commands</MudText>
+    @foreach (var module in Modules.OrderBy(m => m.Name))
+    {
+        <MudLink Underline="Underline.None" Href="@("commands/#" + module.Name)" UserAttributes="@(new Dictionary<string, object>{ { "name", module.Name } })">
+            <MudText Typo="Typo.h4">@module.Name</MudText>
+        </MudLink>
+        <MudText Typo="Typo.h5">@module.Summary</MudText>
 
-            <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
-        </Authorized>
-    </AuthorizeView>
-</CascadingAuthenticationState>
+        foreach (var command in module.Commands)
+        {
+            <MudContainer MaxWidth="MaxWidth.False">
+                <MudCard Style="background-color:#f5f5f5" Elevation="2">
+                    @foreach (var alias in command.Aliases)
+                    {
+                        <div class="control">
+                            <MudText Class="command" Typo="Typo.h6">@(command.IsSlashCommand ? '/' : '!')@alias.ToLower()</MudText>
+                            @if (alias == command.Aliases.First())
+                            {
+                                <MudText Class="summary">@command.Summary</MudText>
+                                @foreach (var parameter in command.Parameters)
+                                {
+                                    @*TODO: Add pointer styling?*@
+
+                                    <div class="tags">
+                                        <MudText Inline="true" Class="tag is-dark">@parameter.Name</MudText>
+
+                                        @if (parameter.Summary is not null || parameter.Options.Count > 0)
+                                        {
+                                            var description = $"{parameter.Summary} {string.Join(", ", parameter.Options)}";
+                                            <MudTooltip Inline="true"
+                                                        ShowOnHover="true"
+                                                        Placement="Placement.Top"
+                                                        Text="@description"
+                                                        RootClass="tag"
+                                                        RootStyle="background-color:#f5f5f5">
+                                                &hellip;
+                                            </MudTooltip>
+                                        }
+
+                                        <span class="tag is-info">@parameter.Type</span>
+
+                                        @if (parameter.IsOptional)
+                                        {
+
+                                            <MudTooltip Inline="true"
+                                                        ShowOnHover="true"
+                                                        Placement="Placement.Top"
+                                                        Text="Optional"
+                                                        RootClass="tag"
+                                                        RootStyle="background-color:#ffdd57;color:rgba(0,0,0,.7)">
+                                                ?
+                                            </MudTooltip>
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+                    }
+                </MudCard>
+            </MudContainer>
+            <MudDivider Light="true" Style="margin:10px 0 10px 0"></MudDivider>
+        }
+    }
+</div>
+</MudDrawerContainer>
+
+<style>
+
+    .summary {
+        display: flex;
+        align-items: center;
+        margin-right: .25rem;
+    }
+
+    .command {
+        margin-right: .75rem;
+        font-family: Consolas,monospace;
+        font-weight: 700;
+    }
+
+    .control {
+        padding: .5em 1em;
+        display: flex;
+    }
+
+    .tags {
+        margin-right: 1rem;
+        white-space: nowrap;
+        flex-wrap: nowrap;
+    }
+
+        .tags .tag {
+            border-radius: 4px;
+            display: inline-flex;
+            height: 2em;
+            margin: 0.16em 0 0.16em 0 !important;
+            align-items: center;
+            padding-left: .75em;
+            padding-right: .75em;
+            font-size: .75rem;
+        }
+
+            .tags .tag.is-dark {
+                background-color: #363636;
+                color: #fff
+            }
+
+            .tags .tag.is-info {
+                background-color: #3298dc;
+                color: #fff
+            }
+
+    .tag:not(:last-child) {
+        border-bottom-right-radius: 0;
+        border-top-right-radius: 0;
+    }
+
+    .tag:not(:first-child) {
+        margin-left: 0;
+        border-bottom-left-radius: 0;
+        border-top-left-radius: 0;
+    }
+
+</style>
 
 @code {
-    private int currentCount = 0;
 
-    private void IncrementCount()
+    record Command(string Name, string Summary, IReadOnlyCollection<string> Aliases, IReadOnlyCollection<ParameterHelpData> Parameters, bool IsSlashCommand);
+
+    record Module(string Name, string Summary, IEnumerable<Command> Commands);
+
+    [Inject]
+    ICommandHelpService CommandHelpService { get; set; } = null!;
+
+    IReadOnlyCollection<Module> Modules = null!;
+
+    protected override void OnInitialized()
     {
-        currentCount++;
+        var modules = CommandHelpService.GetModuleHelpData();
+
+        Modules = modules.Select(m =>
+        {
+            var commands = m.Commands.Select(c => new Command(c.Name, c.Summary, FormatUtilities.CollapsePlurals(c.Aliases), c.Parameters, c.IsSlashCommand));
+            return new Module(m.Name, m.Summary, commands);
+        }).ToArray();
     }
 }
