@@ -9,7 +9,6 @@ namespace Modix.Web.Shared;
 
 public partial class MainLayout : LayoutComponentBase
 {
-    //TODO: Move all of this into NavBar?
     [Inject]
     public AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
 

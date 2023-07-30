@@ -1,59 +1,53 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">Modix</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-    </div>
-</div>
+﻿@using Modix.Data.Models.Core;
+@using MudBlazor;
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="stats">
-                <span class="oi oi-plus" aria-hidden="true"></span> Stats
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="commands">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Commands
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="userlookup">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> User Lookup
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="tags">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Tags
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="promotions">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Promotions
-            </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="logs">
-                <span class="oi oi-list-rich" aria-hidden="true"></span> Logs
-            </NavLink>
-        </div>
-    </nav>
-</div>
+<CascadingAuthenticationState>
+   <MudAppBar Elevation="0" Dense="true" Fixed="false">
+        <AuthorizeView>
+            <Authorized>
+                <div class="d-flex">
+                    <MudNavLink Style="width:auto" Href="" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+                    <MudNavLink Style="width:auto" Href="stats" Icon="@Icons.Material.Filled.FormatListNumbered">Stats</MudNavLink>
+                    <MudNavLink Style="width:auto" Href="commands" Icon="@Icons.Material.Filled.KeyboardCommandKey">Commands</MudNavLink>
+                    <MudNavLink Style="width:auto" Href="userlookup" Icon="@Icons.Material.Filled.Search">User Lookup</MudNavLink>
+                    <MudNavLink Style="width:auto" Href="tags" Icon="@Icons.Material.Filled.Tag">Tags</MudNavLink>
+                    <AuthorizeView Context="e" Policy="@nameof(AuthorizationClaim.PromotionsRead)">
+                        <MudNavLink Style="width:auto" Href="promotions" Icon="@Icons.Material.Filled.Celebration">Promotions</MudNavLink>
+                    </AuthorizeView>
+                    <AuthorizeView Context="e" Policy="@nameof(AuthorizationClaim.ModerationRead)">
+                        <MudNavLink Style="width:auto" H Href="logs" Icon="@Icons.Material.Filled.DocumentScanner">Logs</MudNavLink>
+                    </AuthorizeView>
+                </div>
+                <MudSpacer />
+
+                <div class="d-flex" style="align-items:center">
+                    @if (AvatarUrl is not null && Username is not null)
+                    {
+                        <MudImage Src="@AvatarUrl" Style="margin-right:0.5em; border-radius:4px; height:32px; max-height:32px;" />
+                        <MudText Style="font-size:24px;font-weight:600">@Username</MudText>
+                    }
+                    <MudNavLink Icon="@Icons.Material.Filled.Logout" Href="logout"/>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <div class="d-flex" style="flex-grow:1">
+                    <div class="d-flex" style="justify-content:flex-start;flex-grow:1">
+                        <MudNavLink Style="width:auto" Href="" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+                        <MudNavLink Style="width:auto" Href="commands" Icon="@Icons.Material.Filled.KeyboardCommandKey">Commands</MudNavLink>
+                    </div>
+                    <div class="d-flex" style="width:fit-content;">
+                        <MudNavLink Href="login" Icon="@Icons.Material.Filled.Login"></MudNavLink>
+                    </div>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
+    </MudAppBar>
+</CascadingAuthenticationState>
 
 @code {
-    private bool collapseNavMenu = true;
+    [Parameter]
+    public string? AvatarUrl { get; set; }
 
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
+    [Parameter]
+    public string? Username { get; set; }
 }

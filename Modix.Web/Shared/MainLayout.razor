@@ -12,46 +12,8 @@
     <div class="page">
         <main>
             <MudLayout>
-                <MudAppBar Elevation="0" Dense="true" Fixed="false">
-                    <AuthorizeView>
-                        <Authorized>
-                            <div class="d-flex">
-                                <MudNavLink Style="width:auto" Href="" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-                                <MudNavLink Style="width:auto" Href="stats" Icon="@Icons.Material.Filled.FormatListNumbered">Stats</MudNavLink>
-                                <MudNavLink Style="width:auto" Href="commands" Icon="@Icons.Material.Filled.KeyboardCommandKey">Commands</MudNavLink>
-                                <MudNavLink Style="width:auto" Href="userlookup" Icon="@Icons.Material.Filled.Search">User Lookup</MudNavLink>
-                                <MudNavLink Style="width:auto" Href="tags" Icon="@Icons.Material.Filled.Tag">Tags</MudNavLink>
-                                <AuthorizeView Context="e" Policy="@nameof(AuthorizationClaim.PromotionsRead)">
-                                    <MudNavLink Style="width:auto" Href="promotions" Icon="@Icons.Material.Filled.Celebration">Promotions</MudNavLink>
-                                </AuthorizeView>
-                                <AuthorizeView Context="e" Policy="@nameof(AuthorizationClaim.ModerationRead)">
-                                    <MudNavLink Style="width:auto" H Href="logs" Icon="@Icons.Material.Filled.DocumentScanner">Logs</MudNavLink>
-                                </AuthorizeView>
-                            </div>
-                            <MudSpacer />
 
-                            <div class="d-flex" style="align-items:center">
-                                @if (AvatarUrl is not null && Username is not null)
-                                {
-                                    <MudImage Src="@AvatarUrl" Style="margin-right:0.5em; border-radius:4px; height:32px; max-height:32px;" />
-                                    <MudText Style="font-size:24px;font-weight:600">@Username</MudText>
-                                }
-                                <MudNavLink Icon="@Icons.Material.Filled.Logout" Href="logout"/>
-                            </div>
-                        </Authorized>
-                        <NotAuthorized>
-                            <div class="d-flex" style="flex-grow:1">
-                                <div class="d-flex" style="justify-content:flex-start;flex-grow:1">
-                                    <MudNavLink Style="width:auto" Href="" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-                                    <MudNavLink Style="width:auto" Href="commands" Icon="@Icons.Material.Filled.KeyboardCommandKey">Commands</MudNavLink>
-                                </div>
-                                <div class="d-flex" style="width:fit-content;">
-                                    <MudNavLink Href="login" Icon="@Icons.Material.Filled.Login"></MudNavLink>
-                                </div>
-                            </div>
-                        </NotAuthorized>
-                    </AuthorizeView>
-                </MudAppBar>
+                <NavMenu AvatarUrl="@AvatarUrl" Username="@Username"/>
 
                 <MudMainContent>
                     @Body
