@@ -2,7 +2,7 @@
 @using Modix.Web.Services;
 @using MudBlazor
 
-<MudText Typo="Typo.h5">Tell us their username</MudText>
+<MudText Typo="Typo.h5">@Title</MudText>
 <MudAutocomplete T="ModixUser"
                     Label="Username or ID"
                     AdornmentIcon="@Icons.Material.Filled.Search"
@@ -29,6 +29,8 @@
     [Parameter]
     public EventCallback<ModixUser> SelectedUserChanged { get; set; }
 
+    [Parameter]
+    public string? Title { get; set; } = "Tell us their username";
 
     private async Task<IEnumerable<ModixUser>> Search(string user)
     {

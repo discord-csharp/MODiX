@@ -1,22 +1,39 @@
-﻿@page "/logs"
+﻿@page "/logs/{SubPage}"
+@page "/logs"
+@using Modix.Data.Models.Core;
+@using Modix.Web.Components
+@using MudBlazor
+@attribute [Authorize(Policy = nameof(AuthorizationClaim.ModerationRead))]
+
 <CascadingAuthenticationState>
-    <AuthorizeView>
-        <Authorized>
+    <PageTitle>Logs</PageTitle>
+    <MudText Typo="Typo.h6">Logs</MudText>
 
-        <PageTitle>Logs</PageTitle>
-        <h1>Logs</h1>
-        <p role="status">Current count: @currentCount</p>
-        <button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
-
-        </Authorized>
-    </AuthorizeView>
+    <MudDrawerContainer Class="mud-height-full">
+        <MudDrawer Open="true" Elevation="0" Variant="DrawerVariant.Persistent" Style="position: fixed;">
+            <MudNavMenu Class="d-flex flex-column px-5">
+                <MudLink Href="/logs/deletedMessages">Deletions</MudLink>
+                <MudLink Href="/logs/infractions">Infractions</MudLink>
+            </MudNavMenu>
+        </MudDrawer>
+        <div class="d-flex justify-center mud-height-full flex-column">
+            @if(SubPage == "infractions")
+            {
+                <AuthorizeView Policy="@nameof(AuthorizationClaim.ModerationRead)">
+                    <Infractions/>
+                </AuthorizeView>
+            }
+            else if(SubPage == "deletedMessages")
+            {
+                <AuthorizeView Policy="@nameof(AuthorizationClaim.LogViewDeletedMessages)">
+                    <DeletedMessages/>
+                </AuthorizeView>
+            }
+        </div>
+    </MudDrawerContainer>
 </CascadingAuthenticationState>
 
 @code {
-    private int currentCount = 0;
-
-    private void IncrementCount()
-    {
-        currentCount++;
-    }
+    [Parameter]
+    public string SubPage { get; set; } = "infractions";
 }
