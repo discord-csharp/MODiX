@@ -87,7 +87,13 @@
                 </MudTh>
                 <MudTh Style="text-align:center">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.Type">Type</MudTableSortLabel>
-                    <MudTextField DebounceInterval="1000" ValueChanged="(string? type) => FilterChanged(() => _tableFilter.Type = type)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                    <MudSelect Clearable="true" SelectedValuesChanged="(IEnumerable<InfractionType> values) => FilterChanged(() => _tableFilter.Type = values.Any() ? values.First() : null)">
+                        @foreach(var infractionType in Enum.GetValues<InfractionType>())
+                        {
+                            <MudSelectItem Value="@infractionType"></MudSelectItem>
+                        }
+                    </MudSelect>
+                    @* <MudTextField DebounceInterval="1000" ValueChanged="(string? type) => FilterChanged(() => _tableFilter.Type = type)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField> *@
                 </MudTh>
                 <MudTh Style="text-align:center"><MudTableSortLabel T="InfractionData" SortBy="x => x.CreateAction.Created">Created On</MudTableSortLabel></MudTh>
                 <MudTh Style="text-align:center">
@@ -179,7 +185,7 @@
     private class TableFilter
     {
         public string? Id { get; set; }
-        public string? Type { get; set; }
+        public InfractionType? Type { get; set; }
         public string? Subject { get; set; }
         public string? Creator { get; set; }
         public bool ShowDeleted { get; set; }
@@ -361,7 +367,7 @@
         };
 
         var Id = long.TryParse(_tableFilter.Id, out var id) ? id : (long?)null; 
-        var Types = Enum.TryParse<InfractionType>(_tableFilter.Type, out var parsed) ? new[] { parsed } : null;
+        var Types = _tableFilter.Type is not null ? new[] { _tableFilter.Type.Value } : null;
         var Subject = ulong.TryParse(_tableFilter.Subject, out _) ? null : _tableFilter.Subject;
         var SubjectId = ulong.TryParse(_tableFilter.Subject, out var subjectSnowflake) ? subjectSnowflake : (ulong?)null;
 
