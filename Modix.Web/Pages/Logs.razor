@@ -5,8 +5,9 @@
 @using MudBlazor
 @attribute [Authorize(Policy = nameof(AuthorizationClaim.ModerationRead))]
 
+<PageTitle>Modix - Logs</PageTitle>
+
 <CascadingAuthenticationState>
-    <PageTitle>Logs</PageTitle>
     <MudText Typo="Typo.h6">Logs</MudText>
 
     <MudDrawerContainer Class="mud-height-full">

@@ -13,11 +13,12 @@
 @using System.Globalization;
 @using Humanizer;
 
+<PageTitle>Modix - User Lookup</PageTitle>
+
 <CascadingAuthenticationState>
     <AuthorizeView>
         <Authorized>
 
-            <PageTitle>UserLookup</PageTitle>
             <MudContainer Style="background-color:#f5f5f5">
                 <MudText Typo="Typo.h4">
                     User Lookup@(userInformation is null ? null : $" - {userInformation.Username + (userInformation.Discriminator == "0000" ? "" : "#" + userInformation.Discriminator)}")
