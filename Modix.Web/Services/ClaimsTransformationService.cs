@@ -31,7 +31,6 @@ public class ClaimsTransformationService : IClaimsTransformation
         // TODO: Get selected guild from cookie
         var currentGuild = _discordUserService.GetUserGuild();
         var currentUser = currentGuild.GetUser(userSnowflake);
-        await _authorizationService.OnAuthenticatedAsync(currentUser.Id, currentGuild.Id, currentUser.Roles.Select(x => x.Id).ToList());
 
         var claims = (await _authorizationService.GetGuildUserClaimsAsync(currentUser))
             .Select(d => new Claim(ClaimTypes.Role, d.ToString()));

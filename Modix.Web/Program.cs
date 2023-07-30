@@ -157,10 +157,7 @@ public class Program
         builder.Services.AddScoped<DiscordUserService>();
         builder.Services.AddMudServices();
         builder.Services.AddMudMarkdownServices();
-        builder.Services.AddRazorPages(config =>
-        {
-            config.Conventions.AuthorizePage("/Promotions", nameof(AuthorizationClaim.PromotionsRead));
-        });
+        builder.Services.AddRazorPages();
         builder.Services.AddServerSideBlazor();
 
         builder.Services.AddServices(Assembly.GetExecutingAssembly(), configuration);
