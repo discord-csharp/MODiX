@@ -93,7 +93,6 @@
                             <MudSelectItem Value="@infractionType"></MudSelectItem>
                         }
                     </MudSelect>
-                    @* <MudTextField DebounceInterval="1000" ValueChanged="(string? type) => FilterChanged(() => _tableFilter.Type = type)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField> *@
                 </MudTh>
                 <MudTh Style="text-align:center"><MudTableSortLabel T="InfractionData" SortBy="x => x.CreateAction.Created">Created On</MudTableSortLabel></MudTh>
                 <MudTh Style="text-align:center">

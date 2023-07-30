@@ -175,23 +175,12 @@
         if (result is null) // TODO: What to do here?
             return;
 
-        //TODO: Fix IsFromCurrentUser
         campaignCommentData[campaignId] = result.Comments
             .Where(x => x.ModifyAction is null)
             .Select(c => new CampaignCommentData(c.Id, c.Sentiment, c.Content, c.CreateAction.Created, c.CreateAction.CreatedBy.Id == CurrentUserId))
             .ToList();
 
         StateHasChanged();
-
-
-        // {
-        //     c.Id,
-        //     c.Sentiment,
-        //     c.Content,
-        //     CreateAction = new { c.CreateAction.Id, c.CreateAction.Created },
-        //     IsModified = !(c.ModifyAction is null),
-        //     IsFromCurrentUser = c.CreateAction.CreatedBy.Id == ModixAuth.CurrentUserId,
-        // }));
     }
 
     private async Task ToggleEditDialog(long commentId, PromotionSentiment oldPromotionSentiment, string oldContent)
