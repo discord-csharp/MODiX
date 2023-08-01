@@ -1,9 +1,9 @@
 ﻿@page "/logs/{SubPage}"
 @page "/logs"
+@attribute [Authorize(Policy = nameof(AuthorizationClaim.ModerationRead))]
 @using Modix.Data.Models.Core;
 @using Modix.Web.Components
 @using MudBlazor
-@attribute [Authorize(Policy = nameof(AuthorizationClaim.ModerationRead))]
 
 <PageTitle>Modix - Logs</PageTitle>
 

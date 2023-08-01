@@ -1,12 +1,11 @@
 ﻿@page "/promotions/create"
+@attribute [Authorize(Policy = nameof(AuthorizationClaim.PromotionsCreateCampaign))]
 @using Modix.Data.Models.Core;
 @using Modix.Services.Promotions;
 @using Modix.Web.Components
 @using Modix.Web.Models;
 @using Modix.Web.Services;
 @using MudBlazor
-
-@attribute [Authorize(Policy = nameof(AuthorizationClaim.PromotionsCreateCampaign))]
 
 <PageTitle>Modix - Start A Campaign</PageTitle>
 

@@ -1,4 +1,5 @@
 ﻿@page "/tags"
+@attribute [Authorize]
 @using Modix.Data.Models.Core;
 @using Modix.Data.Models.Tags;
 @using Modix.Services.Tags;
@@ -10,8 +11,6 @@
 <PageTitle>Modix - Tags</PageTitle>
 
 <CascadingAuthenticationState>
-    <AuthorizeView>
-        <Authorized>
 
             <MudContainer>
                 <MudText Typo="Typo.h3">Tags</MudText>
@@ -67,8 +66,6 @@
                 }
             </MudContainer>
 
-        </Authorized>
-    </AuthorizeView>
 </CascadingAuthenticationState>
 
 @code {
