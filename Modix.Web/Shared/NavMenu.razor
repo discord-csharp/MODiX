@@ -23,18 +23,29 @@
                         <MudNavLink IconColor="Color.Surface" Style="width:auto" H Href="logs" Icon="@Icons.Material.Filled.DocumentScanner">Logs</MudNavLink>
                     </AuthorizeView>
                 </div>
+
                 <MudSpacer />
 
                 <div class="d-flex" style="align-items:center">
                     @if (AvatarUrl is not null && Username is not null)
                     {
-                        <MudImage Src="@AvatarUrl" Style="margin-right:0.5em; border-radius:4px; height:32px; max-height:32px;" />
-                        <MudText Style="font-size:24px;font-weight:600">@Username</MudText>
+                        <MudMenu AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.BottomCenter" FullWidth="true">
+                            <ActivatorContent>
+                                <div class="d-flex" style="align-items: center">
+                                    <MudImage Src="@AvatarUrl" Style="margin-right:0.5em; border-radius:4px; height:32px; max-height:32px;" />
+                                    <MudText Style="font-size:24px;font-weight:600">@Username</MudText>
+                                    <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" />
+                                </div>
+                            </ActivatorContent>
+                            <ChildContent>
+                                <MudNavLink IconColor="Color.Surface" Icon="@Icons.Material.Filled.Logout" Href="logout">Log Out</MudNavLink>
+                            </ChildContent>
+                        </MudMenu>
                     }
-                    <MudMenu AnchorOrigin="Origin.BottomLeft">
+                    <MudDivider Style="margin-right: .66rem" Vertical="true" FlexItem="true"/>
+                    <MudMenu AnchorOrigin="Origin.BottomRight">
                         <ActivatorContent>
-                            <div class="d-flex" style="margin-left: .33rem">
-                                <MudDivider Style="margin-right: .33rem" Vertical="true" FlexItem="true"/>
+                            <div class="d-flex" style="align-items: center">
                                 <MudImage Style="vertical-align: bottom" Src="@(SelectedGuild?.IconUrl)" Height="32" Width="32" Class="rounded-lg" />
                                 <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown"/>
                             </div>
@@ -42,25 +53,23 @@
                         <ChildContent>
                         @foreach (var guildOption in GuildOptions)
                         {
-                            <MudMenuItem OnClick="() => SelectGuild(guildOption.Id)">
+                            <MudMenuItem Style="white-space: nowrap" OnClick="() => SelectGuild(guildOption.Id)">
                                 <MudImage style="vertical-align: bottom" Src="@guildOption.IconUrl" Height="24" Width="24" Class="rounded-lg" />
                                 @guildOption.Name
                             </MudMenuItem>
                         }
                         </ChildContent>
                     </MudMenu>
-                    <MudNavLink IconColor="Color.Surface" Icon="@Icons.Material.Filled.Logout" Href="logout"/>
                 </div>
             </Authorized>
             <NotAuthorized>
-                <div class="d-flex" style="flex-grow:1">
-                    <div class="d-flex" style="justify-content:flex-start;flex-grow:1">
-                        <MudNavLink IconColor="Color.Surface" Style="width:auto" Href="" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-                        <MudNavLink IconColor="Color.Surface" Style="width:auto" Href="commands" Icon="@Icons.Material.Filled.KeyboardCommandKey">Commands</MudNavLink>
-                    </div>
-                    <div class="d-flex" style="width:fit-content;">
-                        <MudNavLink IconColor="Color.Surface" Href="login" Icon="@Icons.Material.Filled.Login"></MudNavLink>
-                    </div>
+                <div class="d-flex">
+                    <MudNavLink IconColor="Color.Surface" Style="width:auto" Href="" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+                    <MudNavLink IconColor="Color.Surface" Style="width:auto" Href="commands" Icon="@Icons.Material.Filled.KeyboardCommandKey">Commands</MudNavLink>
+                </div>
+                <MudSpacer/>
+                <div class="d-flex">
+                    <MudNavLink IconColor="Color.Surface" Href="login" Icon="@Icons.Material.Filled.Login">Log In</MudNavLink>
                 </div>
             </NotAuthorized>
         </AuthorizeView>
