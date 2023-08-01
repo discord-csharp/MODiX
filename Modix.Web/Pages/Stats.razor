@@ -106,8 +106,11 @@
     [Inject]
     DiscordUserService DiscordUserService { get; set; } = null!;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender)
+            return;
+
         var currentUser = await DiscordUserService.GetCurrentUserAsync();
 
         var roleCounts = await GuildStatService.GetGuildMemberDistributionAsync(currentUser!.Guild);
@@ -115,6 +118,8 @@
 
         Data = new GuildStatData(currentUser.Guild.Name, roleCounts, messageCounts);
         GuildRoleCountView = roleCounts;
+
+        StateHasChanged();
     }
 
     private void SelectedChannelsChanged(MudChip[] chips)

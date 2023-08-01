@@ -100,7 +100,15 @@
     string? _tagContentValue;
     bool _createDialogVisible;
 
-    protected override async Task OnInitializedAsync() => await FetchData();
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        await FetchData();
+
+        StateHasChanged();
+    }
 
     private async Task FetchData()
     {
