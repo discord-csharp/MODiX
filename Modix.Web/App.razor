@@ -1,5 +1,6 @@
 ﻿@using Discord.WebSocket;
 @using Modix.Web.Models;
+@using Modix.Web.Services;
 @using MudBlazor
 @using System.Security.Claims;
 @using Modix.Services.Core;
@@ -34,7 +35,7 @@
     public SessionState SessionState { get; set; } = null!;
 
     [Inject]
-    public DiscordSocketClient DiscordClient { get; set; } = null!;
+    public DiscordUserService DiscordUserService { get; set; } = null!;
 
     [Inject]
     public AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
@@ -48,27 +49,12 @@
         if (!authState.User.Identity?.IsAuthenticated ?? false)
             return;
 
-        var userId = authState.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
-
-        if (!ulong.TryParse(userId, out var userSnowflake))
-            return;
-
         if (!ulong.TryParse(SelectedGuild, out var selectedGuildId))
             return;
 
         SessionState.SelectedGuild = selectedGuildId;
 
-        var currentGuild = DiscordClient.GetGuild(SessionState.SelectedGuild) ?? DiscordClient.Guilds.First();
-        var currentUser = currentGuild.GetUser(userSnowflake);
-
-        if (authState.User.Identity is not ClaimsIdentity claimsIdentity)
-            return;
-
-        var claims = (await AuthorizationService.GetGuildUserClaimsAsync(currentUser))
-            .Select(d => new Claim(ClaimTypes.Role, d.ToString()));
-
-        claimsIdentity.AddClaims(claims);
-
-        await AuthorizationService.OnAuthenticatedAsync(currentUser.Id, currentGuild.Id, currentUser.Roles.Select(x => x.Id).ToList());
+        var currentUser = await DiscordUserService.GetCurrentUserAsync();
+        await AuthorizationService.OnAuthenticatedAsync(currentUser!.Id, currentUser.Guild.Id, currentUser.Roles.Select(x => x.Id).ToList());
     }
 }

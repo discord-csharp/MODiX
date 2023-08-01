@@ -10,6 +10,7 @@ using Modix.Data.Models.Core;
 using Modix.Services.CodePaste;
 using Modix.Services.Utilities;
 using Modix.Web.Models;
+using Modix.Web.Security;
 using Modix.Web.Services;
 using MudBlazor;
 using MudBlazor.Services;
@@ -99,6 +100,8 @@ public class Program
 
         host.UseResponseCompression();
         host.UseAuthentication();
+        host.UseMiddleware<ClaimsMiddleware>();
+
         host.UseAuthorization();
 
         host.MapGet("/login", async (context) => await context.ChallengeAsync(DiscordAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/" }));

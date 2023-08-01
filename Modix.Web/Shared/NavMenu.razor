@@ -96,11 +96,11 @@
         if (!authState.User.Identity?.IsAuthenticated ?? false)
             return;
 
-        var avatarHash = authState.User.Claims.FirstOrDefault(x => x.Type == DiscordAuthenticationConstants.Claims.AvatarHash)?.Value;
-        var userId = authState.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+        var avatarHash = authState.User.FindFirst(x => x.Type == DiscordAuthenticationConstants.Claims.AvatarHash)?.Value;
+        var userId = authState.User.FindFirst(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
 
         AvatarUrl = $"https://cdn.discordapp.com/avatars/{userId}/{avatarHash}.png";
-        Username = authState.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
+        Username = authState.User.Identity?.Name;
 
         GuildOptions = await DiscordUserService.GetGuildOptionsAsync();
         SelectedGuild = DiscordUserService.GetUserGuild();
