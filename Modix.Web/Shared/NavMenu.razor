@@ -85,7 +85,7 @@
     public DiscordUserService DiscordUserService { get; set; } = null!;
 
     [Inject]
-    public LocalStorageService LocalStorage { get; set; } = null!;
+    public CookieService CookieService { get; set; } = null!;
 
     [Inject]
     public NavigationManager NavigationManager { get; set; } = null!;
@@ -117,7 +117,7 @@
 
     private async Task SelectGuild(ulong guildId)
     {
-        await LocalStorage.SetSelectedGuildAsync(guildId);
+        await CookieService.SetSelectedGuildAsync(guildId);
         NavigationManager.NavigateTo(NavigationManager.Uri, true);
     }
 }

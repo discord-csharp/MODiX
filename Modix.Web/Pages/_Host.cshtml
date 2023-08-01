@@ -21,7 +21,7 @@
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
 </head>
 <body>
-    <component type="typeof(App)" render-mode="ServerPrerendered" param-SelectedGuild="@Request.Cookies[LocalStorageService.GuildCookieKey]" />
+    <component type="typeof(App)" render-mode="ServerPrerendered" param-SelectedGuild="@Request.Cookies[CookieService.GuildCookieKey]" />
 
     <div id="blazor-error-ui">
         <environment include="Staging,Production">

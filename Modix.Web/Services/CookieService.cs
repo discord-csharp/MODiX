@@ -1,20 +1,17 @@
-﻿using Discord.WebSocket;
-using Microsoft.JSInterop;
+﻿using Microsoft.JSInterop;
 using Modix.Web.Models;
 
 namespace Modix.Web.Services;
 
-public class LocalStorageService
+public class CookieService
 {
     private readonly IJSRuntime _jsRuntime;
-    private readonly DiscordSocketClient _client;
     private readonly SessionState _sessionState;
     public const string GuildCookieKey = "SelectedGuild";
 
-    public LocalStorageService(IJSRuntime jsRuntime, DiscordSocketClient client, SessionState sessionState)
+    public CookieService(IJSRuntime jsRuntime, SessionState sessionState)
     {
         _jsRuntime = jsRuntime;
-        _client = client;
         _sessionState = sessionState;
     }
 
