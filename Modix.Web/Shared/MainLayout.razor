@@ -7,12 +7,11 @@
 <MudSnackbarProvider/>
 
 <CascadingAuthenticationState>
-
     <div class="page">
         <main>
             <MudLayout>
 
-                <NavMenu AvatarUrl="@AvatarUrl" Username="@Username"/>
+                <NavMenu/>
 
                 <MudMainContent>
                     @Body
@@ -23,6 +22,7 @@
 </CascadingAuthenticationState>
 
 @code {
+
     private MudTheme _theme = new()
     {
         Typography = new()

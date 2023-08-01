@@ -9,6 +9,7 @@ using Modix.Data;
 using Modix.Data.Models.Core;
 using Modix.Services.CodePaste;
 using Modix.Services.Utilities;
+using Modix.Web.Models;
 using Modix.Web.Services;
 using MudBlazor;
 using MudBlazor.Services;
@@ -155,6 +156,8 @@ public class Program
     private static void ConfigureServices(WebApplicationBuilder builder, IConfiguration configuration, ModixConfig modixConfig)
     {
         builder.Services.AddScoped<DiscordUserService>();
+        builder.Services.AddScoped<LocalStorageService>();
+        builder.Services.AddScoped<SessionState>();
         builder.Services.AddMudServices();
         builder.Services.AddMudMarkdownServices();
         builder.Services.AddRazorPages();
@@ -195,8 +198,6 @@ public class Program
                 config.AddPolicy(claim.ToString(), builder => builder.RequireClaim(ClaimTypes.Role, claim.ToString()));
             }
         });
-
-        builder.Services.AddScoped<IClaimsTransformation, ClaimsTransformationService>();
 
         //services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
         //    .AddCookie(options =>

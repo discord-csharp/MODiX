@@ -2,6 +2,7 @@
 @using Modix.Data.Models.Core;
 @using Modix.Data.Models.Tags;
 @using Modix.Services.Tags;
+@using Modix.Web.Models;
 @using Modix.Web.Services;
 @using MudBlazor
 @using System.Globalization;
@@ -92,6 +93,9 @@
     DiscordUserService DiscordUserService { get; set; } = null!;
 
     [Inject]
+    SessionState SessionState { get; set; } = null!;
+
+    [Inject]
     IDialogService DialogService { get; set; } = null!;
 
     TagData[]? Data { get; set; }
@@ -112,11 +116,11 @@
 
     private async Task FetchData()
     {
-        var currentGuild = DiscordUserService.GetUserGuild();
+        var currentGuild = SessionState.SelectedGuild;
 
         var summaries = await TagService.GetSummariesAsync(new TagSearchCriteria
         {
-            GuildId = currentGuild.Id,
+            GuildId = currentGuild,
         });
 
         Data = summaries

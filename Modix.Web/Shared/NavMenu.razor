@@ -1,21 +1,26 @@
-﻿@using Modix.Data.Models.Core;
+﻿@using AspNet.Security.OAuth.Discord;
+@using Discord.WebSocket;
+@using Modix.Data.Models.Core;
+@using Modix.Web.Models;
+@using Modix.Web.Services;
 @using MudBlazor;
+@using System.Security.Claims;
 
 <CascadingAuthenticationState>
-   <MudAppBar Elevation="0" Dense="true" Fixed="false">
+   <MudAppBar Elevation="0" Dense="true" Fixed="false" DisableGutters="true">
         <AuthorizeView>
             <Authorized>
                 <div class="d-flex">
-                    <MudNavLink Style="width:auto" Href="" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-                    <MudNavLink Style="width:auto" Href="stats" Icon="@Icons.Material.Filled.FormatListNumbered">Stats</MudNavLink>
-                    <MudNavLink Style="width:auto" Href="commands" Icon="@Icons.Material.Filled.KeyboardCommandKey">Commands</MudNavLink>
-                    <MudNavLink Style="width:auto" Href="userlookup" Icon="@Icons.Material.Filled.Search">User Lookup</MudNavLink>
-                    <MudNavLink Style="width:auto" Href="tags" Icon="@Icons.Material.Filled.Tag">Tags</MudNavLink>
+                    <MudNavLink Style="width:auto" IconColor="Color.Surface" Href="" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+                    <MudNavLink Style="width:auto" IconColor="Color.Surface" Href="stats" Icon="@Icons.Material.Filled.FormatListNumbered">Stats</MudNavLink>
+                    <MudNavLink Style="width:auto" IconColor="Color.Surface" Href="commands" Icon="@Icons.Material.Filled.KeyboardCommandKey">Commands</MudNavLink>
+                    <MudNavLink Style="width:auto" IconColor="Color.Surface" Href="userlookup" Icon="@Icons.Material.Filled.Search">User Lookup</MudNavLink>
+                    <MudNavLink Style="width:auto" IconColor="Color.Surface" Href="tags" Icon="@Icons.Material.Filled.Tag">Tags</MudNavLink>
                     <AuthorizeView Context="e" Policy="@nameof(AuthorizationClaim.PromotionsRead)">
-                        <MudNavLink Style="width:auto" Href="promotions" Icon="@Icons.Material.Filled.Celebration">Promotions</MudNavLink>
+                        <MudNavLink IconColor="Color.Surface" Style="width:auto" Href="promotions" Icon="@Icons.Material.Filled.Celebration">Promotions</MudNavLink>
                     </AuthorizeView>
                     <AuthorizeView Context="e" Policy="@nameof(AuthorizationClaim.ModerationRead)">
-                        <MudNavLink Style="width:auto" H Href="logs" Icon="@Icons.Material.Filled.DocumentScanner">Logs</MudNavLink>
+                        <MudNavLink IconColor="Color.Surface" Style="width:auto" H Href="logs" Icon="@Icons.Material.Filled.DocumentScanner">Logs</MudNavLink>
                     </AuthorizeView>
                 </div>
                 <MudSpacer />
@@ -26,7 +31,25 @@
                         <MudImage Src="@AvatarUrl" Style="margin-right:0.5em; border-radius:4px; height:32px; max-height:32px;" />
                         <MudText Style="font-size:24px;font-weight:600">@Username</MudText>
                     }
-                    <MudNavLink Icon="@Icons.Material.Filled.Logout" Href="logout"/>
+                    <MudMenu AnchorOrigin="Origin.BottomLeft">
+                        <ActivatorContent>
+                            <div class="d-flex" style="margin-left: .33rem">
+                                <MudDivider Style="margin-right: .33rem" Vertical="true" FlexItem="true"/>
+                                <MudImage Style="vertical-align: bottom" Src="@(SelectedGuild?.IconUrl)" Height="32" Width="32" Class="rounded-lg" />
+                                <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown"/>
+                            </div>
+                        </ActivatorContent>
+                        <ChildContent>
+                        @foreach (var guildOption in GuildOptions)
+                        {
+                            <MudMenuItem OnClick="() => SelectGuild(guildOption.Id)">
+                                <MudImage style="vertical-align: bottom" Src="@guildOption.IconUrl" Height="24" Width="24" Class="rounded-lg" />
+                                @guildOption.Name
+                            </MudMenuItem>
+                        }
+                        </ChildContent>
+                    </MudMenu>
+                    <MudNavLink IconColor="Color.Surface" Icon="@Icons.Material.Filled.Logout" Href="logout"/>
                 </div>
             </Authorized>
             <NotAuthorized>
@@ -45,9 +68,47 @@
 </CascadingAuthenticationState>
 
 @code {
-    [Parameter]
-    public string? AvatarUrl { get; set; }
 
-    [Parameter]
-    public string? Username { get; set; }
+    [CascadingParameter]
+    public Task<AuthenticationState>? AuthenticationState { get; set; } = null!;
+
+    [Inject]
+    public DiscordUserService DiscordUserService { get; set; } = null!;
+
+    [Inject]
+    public LocalStorageService LocalStorage { get; set; } = null!;
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; } = null!;
+
+    private string? AvatarUrl { get; set; }
+    private string? Username { get; set; }
+
+    private IEnumerable<DiscordUserService.GuildOption> GuildOptions { get; set; } = Array.Empty<DiscordUserService.GuildOption>();
+    private SocketGuild? SelectedGuild { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (AuthenticationState is null)
+            return;
+
+        var authState = await AuthenticationState;
+        if (!authState.User.Identity?.IsAuthenticated ?? false)
+            return;
+
+        var avatarHash = authState.User.Claims.FirstOrDefault(x => x.Type == DiscordAuthenticationConstants.Claims.AvatarHash)?.Value;
+        var userId = authState.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        AvatarUrl = $"https://cdn.discordapp.com/avatars/{userId}/{avatarHash}.png";
+        Username = authState.User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
+
+        GuildOptions = await DiscordUserService.GetGuildOptionsAsync();
+        SelectedGuild = DiscordUserService.GetUserGuild();
+    }
+
+    private async Task SelectGuild(ulong guildId)
+    {
+        await LocalStorage.SetSelectedGuildAsync(guildId);
+        NavigationManager.NavigateTo(NavigationManager.Uri, true);
+    }
 }

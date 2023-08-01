@@ -11,15 +11,41 @@ public class DiscordUserService
     private readonly DiscordSocketClient _client;
     private readonly AuthenticationStateProvider _authenticationStateProvider;
     private readonly IUserService _userService;
+    private readonly SessionState _sessionState;
 
-    public DiscordUserService(DiscordSocketClient client, AuthenticationStateProvider authenticationStateProvider, IUserService userService)
+    public DiscordUserService(
+        DiscordSocketClient client,
+        AuthenticationStateProvider authenticationStateProvider,
+        IUserService userService,
+        SessionState sessionState)
     {
         _client = client;
         _authenticationStateProvider = authenticationStateProvider;
         _userService = userService;
+        _sessionState = sessionState;
     }
 
-    public SocketGuild GetUserGuild() => _client.Guilds.First();
+    public SocketGuild GetUserGuild()
+    {
+        if (_sessionState.SelectedGuild != 0)
+            return _client.GetGuild(_sessionState.SelectedGuild);
+
+        return _client.Guilds.First();
+    }
+
+    public record GuildOption(ulong Id, string Name, string IconUrl);
+
+    public async Task<IEnumerable<GuildOption>> GetGuildOptionsAsync()
+    {
+        var currentUser = await GetCurrentUserAsync();
+        if (currentUser is null)
+            return Array.Empty<GuildOption>();
+
+        return _client
+            .Guilds
+            .Where(d => d.GetUser(currentUser.Id) != null)
+            .Select(d => new GuildOption(d.Id, d.Name, d.IconUrl));
+    }
 
     public async Task<SocketGuildUser?> GetCurrentUserAsync()
     {
