@@ -140,7 +140,7 @@
 
     private async Task SaveTag()
     {
-        var currentUser = await DiscordUserService.GetCurrentUserAsync();
+        var currentUser = DiscordUserService.GetCurrentUser();
         await TagService.CreateTagAsync(currentUser!.Guild.Id, currentUser.Id, _tagNameValue, _tagContentValue);
         var createdTag = await TagService.GetTagAsync(currentUser.Guild.Id, _tagNameValue);
         Data = Data!.Append(TagData.CreateFromSummary(createdTag)).ToArray();

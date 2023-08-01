@@ -141,7 +141,7 @@
         if (!firstRender)
             return;
 
-        var currentUser = await DiscordUserService.GetCurrentUserAsync();
+        var currentUser = DiscordUserService.GetCurrentUser();
         RoleColors = currentUser!.Guild.Roles.ToDictionary(x => x.Id, x => x.Color.ToString());
 
         Campaigns = await PromotionsService.SearchCampaignsAsync(new PromotionCampaignSearchCriteria

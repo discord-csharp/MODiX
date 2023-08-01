@@ -103,7 +103,7 @@
         if (!firstRender)
             return;
 
-        var currentUser = await DiscordUserService.GetCurrentUserAsync();
+        var currentUser = DiscordUserService.GetCurrentUser();
 
         var roleCounts = await GuildStatService.GetGuildMemberDistributionAsync(currentUser!.Guild);
         var messageCounts = await GuildStatService.GetTopMessageCounts(currentUser.Guild, currentUser.Id);

@@ -52,9 +52,15 @@
         if (!ulong.TryParse(SelectedGuild, out var selectedGuildId))
             return;
 
-        SessionState.SelectedGuild = selectedGuildId;
+        var userId = authState.User.FindFirst(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+        if (!ulong.TryParse(userId, out var userSnowflake))
+            return;
 
-        var currentUser = await DiscordUserService.GetCurrentUserAsync();
+        SessionState.SelectedGuild = selectedGuildId;
+        SessionState.CurrentUserId = userSnowflake;
+
+        var currentUser = DiscordUserService.GetCurrentUser();
+
         await AuthorizationService.OnAuthenticatedAsync(currentUser!.Id, currentUser.Guild.Id, currentUser.Roles.Select(x => x.Id).ToList());
     }
 }

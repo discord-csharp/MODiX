@@ -106,13 +106,13 @@
             return;
 
         var avatarHash = authState.User.FindFirst(x => x.Type == DiscordAuthenticationConstants.Claims.AvatarHash)?.Value;
-        var userId = authState.User.FindFirst(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+        var user = DiscordUserService.GetCurrentUser();
 
-        AvatarUrl = $"https://cdn.discordapp.com/avatars/{userId}/{avatarHash}.png";
+        AvatarUrl = $"https://cdn.discordapp.com/avatars/{user!.Id}/{avatarHash}.png";
         Username = authState.User.Identity?.Name;
 
-        GuildOptions = await DiscordUserService.GetGuildOptionsAsync();
-        SelectedGuild = DiscordUserService.GetUserGuild();
+        GuildOptions = DiscordUserService.GetGuildOptionsAsync();
+        SelectedGuild = user.Guild;
     }
 
     private async Task SelectGuild(ulong guildId)

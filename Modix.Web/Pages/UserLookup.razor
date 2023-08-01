@@ -124,7 +124,7 @@
         if(!firstRender)
             return;
 
-        var currentUser = await DiscordUserService.GetCurrentUserAsync();
+        var currentUser = DiscordUserService.GetCurrentUser();
         await SelectedUserChanged(ModixUser.FromIGuildUser(currentUser!));
 
         StateHasChanged();

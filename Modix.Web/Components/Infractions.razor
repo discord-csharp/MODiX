@@ -286,7 +286,7 @@
 
         try
         {
-            var currentUser = await DiscordUserService.GetCurrentUserAsync();
+            var currentUser = DiscordUserService.GetCurrentUser();
             await ModerationService.CreateInfractionAsync(currentUser!.Guild.Id, currentUser.Id, _infractionType, _selectedUser!.UserId, _infractionReason!, duration);
         }
         catch (InvalidOperationException ex)
@@ -348,7 +348,7 @@
 
     private async Task<TableData<InfractionData>> LoadInfractions(TableState tableState)
     {
-        var currentUser = await DiscordUserService.GetCurrentUserAsync();
+        var currentUser = DiscordUserService.GetCurrentUser();
 
         var sortingCriteria = new[]
         {
