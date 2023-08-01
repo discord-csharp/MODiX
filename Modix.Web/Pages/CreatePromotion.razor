@@ -4,6 +4,7 @@
 @using Modix.Services.Promotions;
 @using Modix.Web.Components
 @using Modix.Web.Models;
+@using Modix.Web.Models.Promotions;
 @using Modix.Web.Services;
 @using MudBlazor
 
@@ -70,7 +71,6 @@
 </style>
 
 @code {
-    public record NextRank(string? Name, string Color);
 
     [Inject]
     public IPromotionsService PromotionsService { get; set; } = null!;

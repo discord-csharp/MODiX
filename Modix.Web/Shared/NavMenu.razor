@@ -93,7 +93,7 @@
     private string? AvatarUrl { get; set; }
     private string? Username { get; set; }
 
-    private IEnumerable<DiscordUserService.GuildOption> GuildOptions { get; set; } = Array.Empty<DiscordUserService.GuildOption>();
+    private IEnumerable<GuildOption> GuildOptions { get; set; } = Array.Empty<GuildOption>();
     private SocketGuild? SelectedGuild { get; set; }
 
     protected override async Task OnInitializedAsync()

@@ -4,6 +4,7 @@
 @using Modix.Data.Models.Promotions;
 @using Modix.Services.Promotions;
 @using Modix.Web.Components;
+@using Modix.Web.Models.Promotions;
 @using Modix.Web.Services;
 @using MudBlazor
 
@@ -118,10 +119,6 @@
 </style>
 
 @code {
-
-    public record CampaignCommentData(long Id, PromotionSentiment PromotionSentiment, string Content, DateTimeOffset CreatedAt, bool IsFromCurrentUser);
-
-
     [Inject]
     public DiscordUserService DiscordUserService { get; set; } = null!;
 

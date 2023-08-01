@@ -3,6 +3,7 @@
 @using Modix.Data.Models.Moderation;
 @using Modix.Services.Moderation;
 @using Modix.Web.Models;
+@using Modix.Web.Models.Infractions;
 @using Modix.Web.Services;
 @using MudBlazor;
 @using System.Security.Claims;
@@ -85,7 +86,7 @@
             <HeaderContent>
                 <MudTh Style="text-align:center">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.Id">Id</MudTableSortLabel>
-                    <MudTextField DebounceInterval="1000" ValueChanged="(string? id) => FilterChanged(() => _tableFilter.Id = id)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                    <MudTextField DebounceInterval="1000" ValueChanged="(string? id) => FilterChanged(() => _tableFilter.IdString = id)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                 </MudTh>
                 <MudTh Style="text-align:center">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.Type">Type</MudTableSortLabel>
@@ -159,17 +160,16 @@
     [Inject]
     public ISnackbar Snackbar { get; set; } = null!;
 
-    [CascadingParameter]
-    private Task<AuthenticationState>? AuthState { get; set; }
-
     [Inject]
     public IDialogService DialogService { get; set; } = null!;
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? AuthState { get; set; }
 
     private MudTable<InfractionData> TableRef;
 
     private bool _showState;
 
-    private HashSet<InfractionData> _selectedInfractions;
     private bool _canRescind;
     private bool _canDeleteInfractions;
 
@@ -183,15 +183,7 @@
     private int? _newInfractionMinutes;
     private int? _newInfractionSeconds;
 
-    private class TableFilter
-    {
-        public string? Id { get; set; }
-        public InfractionType? Type { get; set; }
-        public string? Subject { get; set; }
-        public string? Creator { get; set; }
-        public bool ShowDeleted { get; set; }
-    }
-    TableFilter _tableFilter = new();
+    private TableFilter _tableFilter = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -369,23 +361,15 @@
             }
         };
 
-        var Id = long.TryParse(_tableFilter.Id, out var id) ? id : (long?)null; 
-        var Types = _tableFilter.Type is not null ? new[] { _tableFilter.Type.Value } : null;
-        var Subject = ulong.TryParse(_tableFilter.Subject, out _) ? null : _tableFilter.Subject;
-        var SubjectId = ulong.TryParse(_tableFilter.Subject, out var subjectSnowflake) ? subjectSnowflake : (ulong?)null;
-
-        var Creator = ulong.TryParse(_tableFilter.Creator, out _) ? null : _tableFilter.Creator;
-        var CreatedById = ulong.TryParse(_tableFilter.Creator, out var createdById) ? createdById : (ulong?)null;
-
         var searchCriteria = new InfractionSearchCriteria
         {
             GuildId = currentUser!.Guild.Id,
-            Id = Id,
-            Types = Types,
-            Subject = Subject,
-            SubjectId = SubjectId,
-            Creator = Creator,
-            CreatedById = CreatedById,
+            Id = _tableFilter.Id,
+            Types = _tableFilter.Types,
+            Subject = _tableFilter.Subject,
+            SubjectId = _tableFilter.SubjectId,
+            Creator = _tableFilter.Creator,
+            CreatedById = _tableFilter.CreatedById,
             IsDeleted = _tableFilter.ShowDeleted ? null : false
         };
 
@@ -410,28 +394,7 @@
                 = await ModerationService.DoesModeratorOutrankUserAsync(guildId, currentUser.Id, subjectId);
         }
 
-        var mapped = result.Records.Select(
-            x => new InfractionData(
-                    x.Id,
-                    x.GuildId,
-                    x.Type,
-                    x.Reason,
-                    x.Duration,
-                    x.Subject,
-
-                    x.CreateAction,
-                    x.RescindAction,
-                    x.DeleteAction,
-
-                    x.RescindAction is null
-                            && x.DeleteAction is null
-                            && (x.Type == InfractionType.Mute || x.Type == InfractionType.Ban)
-                            && outranksValues[x.Subject.Id],
-
-                    x.DeleteAction is null
-                        && outranksValues[x.Subject.Id]
-                    )
-                ).ToArray();
+        var mapped = result.Records.Select(x => InfractionData.FromInfractionSummary(x, outranksValues)).ToArray();
 
         return new TableData<InfractionData>
         {
@@ -439,18 +402,4 @@
             TotalItems = mapped.Length
         };
     }
-
-    public record InfractionData(
-        long Id,
-        ulong GuildId,
-        InfractionType Type,
-        string Reason,
-        TimeSpan? Duration,
-        GuildUserBrief Subject,
-        ModerationActionBrief CreateAction,
-        ModerationActionBrief? RescindAction,
-        ModerationActionBrief? DeleteAction,
-        bool CanBeRescind,
-        bool CanBeDeleted
-    );
 }

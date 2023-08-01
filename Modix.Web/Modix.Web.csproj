@@ -6,9 +6,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="dataprotection\**" />
+    <None Remove="logs\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AspNet.Security.OAuth.Discord" />
     <PackageReference Include="Discord.Net" />
-    <PackageReference Include="Microsoft.Extensions.Http.Polly"/>
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" />
     <PackageReference Include="MudBlazor" Version="6.7.0" />
     <PackageReference Include="MudBlazor.Markdown" Version="0.1.1" />
     <PackageReference Include="Serilog.AspNetCore" />

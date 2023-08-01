@@ -1,6 +1,7 @@
 ﻿@page "/commands"
 @using Modix.Services.CommandHelp;
 @using Modix.Services.Utilities;
+@using Modix.Web.Models.Commands;
 @using MudBlazor;
 
 <PageTitle>Modix - Commands</PageTitle>
@@ -113,26 +114,26 @@
         flex-wrap: nowrap;
     }
 
-        .tags .tag {
-            border-radius: 4px;
-            display: inline-flex;
-            height: 2em;
-            margin: 0.16em 0 0.16em 0 !important;
-            align-items: center;
-            padding-left: .75em;
-            padding-right: .75em;
-            font-size: .75rem;
-        }
+    .tags .tag {
+        border-radius: 4px;
+        display: inline-flex;
+        height: 2em;
+        margin: 0.16em 0 0.16em 0 !important;
+        align-items: center;
+        padding-left: .75em;
+        padding-right: .75em;
+        font-size: .75rem;
+    }
 
-            .tags .tag.is-dark {
-                background-color: #363636;
-                color: #fff
-            }
+    .tags .tag.is-dark {
+        background-color: #363636;
+        color: #fff
+    }
 
-            .tags .tag.is-info {
-                background-color: #3298dc;
-                color: #fff
-            }
+    .tags .tag.is-info {
+        background-color: #3298dc;
+        color: #fff
+    }
 
     .tag:not(:last-child) {
         border-bottom-right-radius: 0;
@@ -148,11 +149,6 @@
 </style>
 
 @code {
-
-    record Command(string Name, string Summary, IReadOnlyCollection<string> Aliases, IReadOnlyCollection<ParameterHelpData> Parameters, bool IsSlashCommand);
-
-    record Module(string Name, string Summary, IEnumerable<Command> Commands);
-
     [Inject]
     ICommandHelpService CommandHelpService { get; set; } = null!;
 

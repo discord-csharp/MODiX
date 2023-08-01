@@ -33,8 +33,6 @@ public class DiscordUserService
         return _client.Guilds.First();
     }
 
-    public record GuildOption(ulong Id, string Name, string IconUrl);
-
     public async Task<IEnumerable<GuildOption>> GetGuildOptionsAsync()
     {
         var currentUser = await GetCurrentUserAsync();

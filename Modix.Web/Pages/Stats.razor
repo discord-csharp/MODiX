@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @using Modix.Data.Models.Core;
 @using Modix.Services.GuildStats;
+@using Modix.Web.Models.Stats;
 @using Modix.Web.Services;
 @using MudBlazor
 
@@ -88,9 +89,6 @@
 </style>
 
 @code {
-
-    public record GuildStatData(string GuildName, List<GuildRoleCount> GuildRoleCounts, IReadOnlyCollection<PerUserMessageCount> TopUserMessageCounts);
-
     GuildStatData Data { get; set;} = null!;
     List<GuildRoleCount> GuildRoleCountView { get; set; } = null!;
 
