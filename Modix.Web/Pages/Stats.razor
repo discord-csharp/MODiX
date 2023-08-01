@@ -108,16 +108,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var userGuild = DiscordUserService.GetUserGuild();
         var currentUser = await DiscordUserService.GetCurrentUserAsync();
 
-        if (currentUser is null)
-            throw new InvalidOperationException("Could not find currently logged in user.");
+        var roleCounts = await GuildStatService.GetGuildMemberDistributionAsync(currentUser!.Guild);
+        var messageCounts = await GuildStatService.GetTopMessageCounts(currentUser.Guild, currentUser.Id);
 
-        var roleCounts = await GuildStatService.GetGuildMemberDistributionAsync(userGuild);
-        var messageCounts = await GuildStatService.GetTopMessageCounts(userGuild, currentUser.Id);
-
-        Data = new GuildStatData(userGuild.Name, roleCounts, messageCounts);
+        Data = new GuildStatData(currentUser.Guild.Name, roleCounts, messageCounts);
         GuildRoleCountView = roleCounts;
     }
 

@@ -353,7 +353,6 @@
 
     private async Task<TableData<InfractionData>> LoadInfractions(TableState tableState)
     {
-        var currentGuild = DiscordUserService.GetUserGuild();
         var currentUser = await DiscordUserService.GetCurrentUserAsync();
 
         var sortingCriteria = new[]
@@ -377,7 +376,7 @@
 
         var searchCriteria = new InfractionSearchCriteria
         {
-            GuildId = currentGuild.Id,
+            GuildId = currentUser!.Guild.Id,
             Id = Id,
             Types = Types,
             Subject = Subject,

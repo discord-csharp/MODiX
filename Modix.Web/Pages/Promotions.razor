@@ -142,21 +142,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var currentGuild = DiscordUserService.GetUserGuild();
-        RoleColors = currentGuild.Roles.ToDictionary(x => x.Id, x => x.Color.ToString());
+        var currentUser = await DiscordUserService.GetCurrentUserAsync();
+        RoleColors = currentUser!.Guild.Roles.ToDictionary(x => x.Id, x => x.Color.ToString());
 
         Campaigns = await PromotionsService.SearchCampaignsAsync(new PromotionCampaignSearchCriteria
         {
-            GuildId = currentGuild.Id
+            GuildId = currentUser.Guild.Id
         });
 
-        var currentUser = await DiscordUserService.GetCurrentUserAsync();
-        CurrentUserId = currentUser!.Id;
-    }
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        base.OnAfterRender(firstRender);
+        CurrentUserId = currentUser.Id;
     }
 
     private async Task CampaignExpanded(bool wasExpanded, long campaignId, ulong userId)
