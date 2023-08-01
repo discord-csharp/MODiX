@@ -17,7 +17,7 @@ public class CookieService
 
     public async Task SetSelectedGuildAsync(ulong guildId)
     {
-        await _jsRuntime.InvokeVoidAsync("eval", $"document.cookie = \"{GuildCookieKey}={guildId}\"");
+        await _jsRuntime.InvokeVoidAsync("eval", $"document.cookie = \"{GuildCookieKey}={guildId}; path=/\";");
         _sessionState.SelectedGuild = guildId;
     }
 }
