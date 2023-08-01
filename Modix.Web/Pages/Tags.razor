@@ -28,10 +28,16 @@
                     <MudMarkdown Value="@_tagContentValue" />
                 </DialogContent>
                 <DialogActions>
-                    <div style="justify-content: left; flex-grow: 1;">
-                        <MudButton Disabled="@(_tagNameValue is null || _tagContentValue is null)" Color="Color.Success" OnClick="SaveTag">Save</MudButton>
-                    </div>
-                    <MudButton Color="Color.Error" OnClick="ToggleDialog">Cancel</MudButton>
+                        <MudButton
+                            Variant="Variant.Filled"
+                            Disabled="@(string.IsNullOrWhiteSpace(_tagNameValue) || string.IsNullOrWhiteSpace(_tagContentValue))"
+                            Color="Color.Success"
+                            OnClick="SaveTag"
+                        >
+                        Save
+                        </MudButton>
+                        <MudSpacer/>
+                    <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="ToggleDialog">Cancel</MudButton>
                 </DialogActions>
             </MudDialog>
 
@@ -71,16 +77,19 @@
 
 @code {
     [Inject]
-    ITagService TagService { get; set; } = null!;
+    private ITagService TagService { get; set; } = null!;
 
     [Inject]
-    DiscordUserService DiscordUserService { get; set; } = null!;
+    private DiscordUserService DiscordUserService { get; set; } = null!;
 
     [Inject]
-    SessionState SessionState { get; set; } = null!;
+    private SessionState SessionState { get; set; } = null!;
 
     [Inject]
-    IDialogService DialogService { get; set; } = null!;
+    private IDialogService DialogService { get; set; } = null!;
+
+    [Inject]
+    private ISnackbar Snackbar { get; set; } = null!;
 
     TagData[]? Data { get; set; }
     string? query;
@@ -140,12 +149,27 @@
 
     private async Task SaveTag()
     {
-        var currentUser = DiscordUserService.GetCurrentUser();
-        await TagService.CreateTagAsync(currentUser!.Guild.Id, currentUser.Id, _tagNameValue, _tagContentValue);
-        var createdTag = await TagService.GetTagAsync(currentUser.Guild.Id, _tagNameValue);
-        Data = Data!.Append(TagData.CreateFromSummary(createdTag)).ToArray();
+        try
+        {
+            var currentUser = DiscordUserService.GetCurrentUser();
 
-        _createDialogVisible = false;
+            await TagService.CreateTagAsync(currentUser!.Guild.Id, currentUser.Id, _tagNameValue, _tagContentValue);
+            var createdTag = await TagService.GetTagAsync(currentUser.Guild.Id, _tagNameValue);
+
+            Data = Data!.Append(TagData.CreateFromSummary(createdTag)).ToArray();
+            Snackbar.Add($"Tag '{_tagNameValue}' created.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
+        finally
+        {
+            _tagNameValue = null;
+            _tagContentValue = null;
+
+            _createDialogVisible = false;
+        }
     }
 
     private void ToggleDialog()
