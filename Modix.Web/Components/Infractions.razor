@@ -90,10 +90,10 @@
                 </MudTh>
                 <MudTh Style="text-align:center">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.Type">Type</MudTableSortLabel>
-                    <MudSelect Clearable="true" SelectedValuesChanged="(IEnumerable<InfractionType> values) => FilterChanged(() => _tableFilter.Type = values.Any() ? values.First() : null)">
+                    <MudSelect Clearable="true" SelectedValuesChanged="(IEnumerable<InfractionType?> values) => FilterChanged(() => _tableFilter.Type = values.FirstOrDefault())">
                         @foreach(var infractionType in Enum.GetValues<InfractionType>())
                         {
-                            <MudSelectItem Value="@infractionType"></MudSelectItem>
+                            <MudSelectItem T="InfractionType?" Value="@infractionType"/>
                         }
                     </MudSelect>
                 </MudTh>
