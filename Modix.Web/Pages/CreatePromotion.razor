@@ -48,14 +48,7 @@
                     </MudCard>
                 </div>
 
-                <MudButton
-                    Disabled="@(string.IsNullOrWhiteSpace(_promotionComment))"
-                    Variant="Variant.Filled"
-                    Color="Color.Primary"
-                    OnClick="CreateCampaign"
-                >
-                    Submit
-                </MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateCampaign">Submit</MudButton>
             }
 
         </MudItem>

@@ -15,14 +15,13 @@
                     <MudIcon Icon="@Icons.Material.Filled.ThumbDown"></MudIcon>
                 </MudSelectItem>
             </MudSelect>
-            <MudTextField Style="width: 100%" T="string" Required="true" Label="Comment" Immediate="true" Text="@Content" @bind-Value="@Content"/>
+            <MudTextField Style="width: 100%" T="string" Label="Comment" Immediate="true" Text="@Content" @bind-Value="@Content"/>
         </div>
     </DialogContent>
     <DialogActions>
-        <div style="justify-content: left; flex-grow: 1;">
-            <MudButton Disabled="@(Content is null)" Color="Color.Success" OnClick="Submit">Update</MudButton>
-        </div>
-        <MudButton Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Submit">Update</MudButton>
+        <MudSpacer/>
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
