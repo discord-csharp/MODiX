@@ -123,16 +123,16 @@
         if (string.IsNullOrWhiteSpace(query))
             return true;
 
-        if (tag.OwnerUser is not null && (tag.OwnerUser.Username.Contains(query) || tag.OwnerUser.Id.ToString() == query))
+        if (tag.OwnerUser is not null && (tag.OwnerUser.Username.Contains(query, StringComparison.OrdinalIgnoreCase) || tag.OwnerUser.Id.ToString() == query))
             return true;
 
-        if (tag.OwnerRole?.Name.Contains(query) ?? false)
+        if (tag.OwnerRole is not null && (tag.OwnerRole.Name.Contains(query, StringComparison.OrdinalIgnoreCase) || tag.OwnerRole.Id.ToString() == query))
             return true;
 
-        if (tag.Name.Contains(query))
+        if (tag.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        if (tag.Content.Contains(query))
+        if (tag.Content.Contains(query, StringComparison.OrdinalIgnoreCase))
             return true;
 
         return false;
