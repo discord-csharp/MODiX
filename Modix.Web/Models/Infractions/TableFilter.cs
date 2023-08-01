@@ -16,7 +16,12 @@ public class TableFilter
         get => _subject;
         set
         {
-            if (ulong.TryParse(value, out var subjectId))
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                _subject = null;
+                SubjectId = null;
+            }
+            else if (ulong.TryParse(value, out var subjectId))
             {
                 SubjectId = subjectId;
             }
@@ -35,7 +40,12 @@ public class TableFilter
         get => _creator;
         set
         {
-            if (ulong.TryParse(value, out var createdById))
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                _creator = null;
+                CreatedById = null;
+            }
+            else if (ulong.TryParse(value, out var createdById))
             {
                 CreatedById = createdById;
             }
