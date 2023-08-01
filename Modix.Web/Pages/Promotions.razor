@@ -140,8 +140,11 @@
 
     private bool _showInactive;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender)
+            return;
+
         var currentUser = await DiscordUserService.GetCurrentUserAsync();
         RoleColors = currentUser!.Guild.Roles.ToDictionary(x => x.Id, x => x.Color.ToString());
 
@@ -151,6 +154,8 @@
         });
 
         CurrentUserId = currentUser.Id;
+
+        StateHasChanged();
     }
 
     private async Task CampaignExpanded(bool wasExpanded, long campaignId, ulong userId)

@@ -193,8 +193,11 @@
     }
     TableFilter _tableFilter = new();
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (!firstRender)
+            return;
+
         if (AuthState is null)
             return;
 
