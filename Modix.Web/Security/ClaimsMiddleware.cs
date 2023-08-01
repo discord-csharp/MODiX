@@ -24,11 +24,7 @@ public class ClaimsMiddleware
         }
 
         var selectedGuild = context.Request.Cookies[CookieService.GuildCookieKey];
-        if (!ulong.TryParse(selectedGuild, out var selectedGuildId))
-        {
-            await _next(context);
-            return;
-        }
+        _ = ulong.TryParse(selectedGuild, out var selectedGuildId);
 
         if (context.User.Identity is not ClaimsIdentity claimsIdentity)
         {

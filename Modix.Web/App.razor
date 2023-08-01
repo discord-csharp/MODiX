@@ -49,15 +49,13 @@
         if (!authState.User.Identity?.IsAuthenticated ?? false)
             return;
 
-        if (!ulong.TryParse(SelectedGuild, out var selectedGuildId))
-            return;
-
         var userId = authState.User.FindFirst(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
-        if (!ulong.TryParse(userId, out var userSnowflake))
-            return;
 
-        SessionState.SelectedGuild = selectedGuildId;
+        _ = ulong.TryParse(userId, out var userSnowflake);
+        _ = ulong.TryParse(SelectedGuild, out var selectedGuildId);
+
         SessionState.CurrentUserId = userSnowflake;
+        SessionState.SelectedGuild = selectedGuildId;
 
         var currentUser = DiscordUserService.GetCurrentUser();
 
