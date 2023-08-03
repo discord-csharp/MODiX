@@ -56,7 +56,10 @@
                                 @foreach (var designatedRoleMapping in DesignatedRoleMappings[designatedRoleType])
                                 {
                                     <IndividualDesignation
-                                        DesignatedRoleMapping="@designatedRoleMapping"
+                                        AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedRoleMappingDelete)"
+                                        Id="@designatedRoleMapping.Id"
+                                        NamePrefix="@("@")"
+                                        Name="@designatedRoleMapping.Name"
                                         RemoveDesignation="(id) => RemoveDesignation(id, designatedRoleMapping.RoleDesignation)"
                                     />
                                 }

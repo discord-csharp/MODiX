@@ -3,8 +3,6 @@
 @using MudBlazor
 
 <CascadingAuthenticationState>
-@if (DesignatedRoleMapping is not null)
-{
     <MudButtonGroup Class="mr-1" OverrideStyles="false">
         <MudButton
         Style="text-transform: unset"
@@ -13,10 +11,9 @@
         Variant="Variant.Filled"
         Color="Color.Info"
         >
-            @($"@{DesignatedRoleMapping.Name}")
+            @NamePrefix@Name
         </MudButton>
-
-        <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedRoleMappingDelete)">
+        <AuthorizeView Roles="@AuthorizationRoleForDelete">
             @if (!_showConfirm)
             {
                 <MudButton
@@ -35,7 +32,7 @@
                 <MudButton Disabled="true">Remove Designation?</MudButton>
 
                 <MudButton
-                OnClick="() => RemoveDesignation.InvokeAsync(DesignatedRoleMapping.Id)"
+                OnClick="() => RemoveDesignation.InvokeAsync(Id)"
                 DisableElevation="true"
                 Size="Size.Small"
                 Variant="Variant.Filled"
@@ -55,16 +52,23 @@
             }
         </AuthorizeView>
     </MudButtonGroup>
-}
 </CascadingAuthenticationState>
 
 @code {
-
-    [Parameter, EditorRequired]
-    public DesignatedRoleData? DesignatedRoleMapping { get; set; }
-
     [Parameter, EditorRequired]
     public EventCallback<long> RemoveDesignation { get; set; }
+
+    [Parameter, EditorRequired]
+    public string? AuthorizationRoleForDelete { get; set; }
+
+    [Parameter, EditorRequired]
+    public string? NamePrefix { get; set; }
+
+    [Parameter, EditorRequired]
+    public string? Name { get; set; }
+
+    [Parameter, EditorRequired]
+    public long Id { get; set; }
 
     private bool _showConfirm;
 }
