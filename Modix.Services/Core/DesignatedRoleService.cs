@@ -21,7 +21,7 @@ namespace Modix.Services.Core
         /// <param name="roleId">The Discord snowflake ID of the role being designated</param>
         /// <param name="type">The type of designation to be made</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task AddDesignatedRoleAsync(ulong guildId, ulong roleId, DesignatedRoleType type);
+        Task<long> AddDesignatedRoleAsync(ulong guildId, ulong roleId, DesignatedRoleType type);
 
         /// <summary>
         /// Unassigns a role's previously given designation.
@@ -95,7 +95,7 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task AddDesignatedRoleAsync(ulong guildId, ulong roleId, DesignatedRoleType type)
+        public async Task<long> AddDesignatedRoleAsync(ulong guildId, ulong roleId, DesignatedRoleType type)
         {
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
@@ -111,7 +111,7 @@ namespace Modix.Services.Core
                 }, default))
                     throw new InvalidOperationException($"Role {roleId} already has a {type} designation");
 
-                await DesignatedRoleMappingRepository.CreateAsync(new DesignatedRoleMappingCreationData()
+                var entityId = await DesignatedRoleMappingRepository.CreateAsync(new DesignatedRoleMappingCreationData()
                 {
                     GuildId = guildId,
                     RoleId = roleId,
@@ -120,6 +120,8 @@ namespace Modix.Services.Core
                 });
 
                 transaction.Commit();
+
+                return entityId;
             }
         }
 
