@@ -48,13 +48,13 @@
                         <div class="d-flex align-center">
                             <div>
                                 <MudText Style="font-weight: bold">@designatedChannelType.ToString().Titleize()</MudText>
-                                @if (!DesignatedChannelMappings.ContainsKey(designatedChannelType))
+                                @if (!DesignatedChannelMappings.TryGetValue(designatedChannelType, out var channelDesignations) || !channelDesignations.Any())
                                 {
                                     <MudText Style="color: grey; text-transform: uppercase; font-weight: bold; letter-spacing: 1px" Typo="Typo.caption">None Assigned</MudText>
                                 }
                                 else
                                 {
-                                    @foreach (var designatedChannelMapping in DesignatedChannelMappings[designatedChannelType])
+                                    @foreach (var designatedChannelMapping in channelDesignations)
                                     {
                                         <IndividualDesignation
                                             AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedChannelMappingDelete)"

@@ -47,13 +47,13 @@
                     <div class="d-flex align-center">
                         <div>
                             <MudText Style="font-weight: bold">@designatedRoleType.ToString().Titleize()</MudText>
-                            @if (!DesignatedRoleMappings.ContainsKey(designatedRoleType))
+                            @if (!DesignatedRoleMappings.TryGetValue(designatedRoleType, out var roleDesignations) || !roleDesignations.Any())
                             {
                                 <MudText Style="color: grey; text-transform: uppercase; font-weight: bold; letter-spacing: 1px" Typo="Typo.caption">None Assigned</MudText>
                             }
                             else
                             {
-                                @foreach (var designatedRoleMapping in DesignatedRoleMappings[designatedRoleType])
+                                @foreach (var designatedRoleMapping in roleDesignations)
                                 {
                                     <IndividualDesignation
                                         AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedRoleMappingDelete)"
