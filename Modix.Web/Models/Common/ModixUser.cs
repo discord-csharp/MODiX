@@ -1,9 +1,9 @@
 ﻿using Discord;
 using Modix.Services.Utilities;
 
-namespace Modix.Web.Models;
+namespace Modix.Web.Models.Common;
 
-public class ModixUser
+public class ModixUser : IAutoCompleteItem
 {
     public string Name { get; set; }
     public ulong UserId { get; set; }

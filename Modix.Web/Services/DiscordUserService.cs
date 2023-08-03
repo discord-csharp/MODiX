@@ -3,7 +3,6 @@ using Discord.WebSocket;
 using Modix.Services.Core;
 using Modix.Web.Models;
 using Modix.Web.Models.Common;
-using Modix.Web.Models.UserLookup;
 
 namespace Modix.Web.Services;
 

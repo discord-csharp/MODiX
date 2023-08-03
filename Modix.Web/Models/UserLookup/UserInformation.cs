@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Modix.Data.Models.Core;
+using Modix.Web.Models.Common;
 
 namespace Modix.Web.Models.UserLookup;
 
