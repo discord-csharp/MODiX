@@ -80,24 +80,25 @@
                         }
                         else
                         {
-                            foreach(var comment in campaignCommentData[campaign.Id].Values)
+                            foreach(var comment in campaignCommentData[campaign.Id].Values.OrderByDescending(x => x.CreatedAt))
                             {
                                 var sentimentIcon = comment.PromotionSentiment == PromotionSentiment.Approve ? Icons.Material.Filled.ThumbUp : Icons.Material.Filled.ThumbDown;
-                                <div class="d-flex" style="margin: 1rem; align-items: center;">
+                                <div class="d-flex align-center ma-4">
                                     <MudIcon Icon="@sentimentIcon"></MudIcon>
-                                    <MudText Style="margin-left: 1rem; flex-grow: 1" Inline="true">@comment.Content</MudText>
-                                    @if (comment.IsFromCurrentUser && campaign.CloseAction is null)
-                                    {
-                                        <MudButton
-                                            Variant="Variant.Filled"
-                                            OnClick="() => ToggleEditDialog(campaign.Id, comment.Id, comment.PromotionSentiment, comment.Content)"
-                                            Color="Color.Primary"
-                                            Style="margin-right: 1rem;"
-                                        >
-                                        Edit
-                                        </MudButton>
-                                    }
-                                    <MudText Style="color: grey" Inline="true">@comment.CreatedAt.ToString("dd/MM/yy, h:MM:ss tt")</MudText>
+                                    <MudText Class="ml-4" Inline="true">@comment.Content</MudText>
+                                    <MudSpacer/>
+                                        @if (comment.IsFromCurrentUser && campaign.CloseAction is null)
+                                        {
+                                            <MudButton
+                                                Variant="Variant.Filled"
+                                                OnClick="() => ToggleEditDialog(campaign.Id, comment.Id, comment.PromotionSentiment, comment.Content)"
+                                                Color="Color.Primary"
+                                                Class="mr-4"
+                                            >
+                                            Edit
+                                            </MudButton>
+                                        }
+                                        <MudText Style="color: grey" Inline="true">@comment.CreatedAt.ToString("dd/MM/yy, h:MM:ss tt")</MudText>
                                 </div>
                                 <MudDivider Light="true"/>
                             }
@@ -206,9 +207,11 @@
 
         try
         {
-            await PromotionsService.UpdateCommentAsync(commentId, newPromotionSentiment, newContent);
-            var campaignVoteData = campaignCommentData[campaignId][commentId];
-            campaignCommentData[campaignId][commentId] = campaignVoteData with { Content = newContent, PromotionSentiment = newPromotionSentiment };
+            var promotionActionSummary = await PromotionsService.UpdateCommentAsync(commentId, newPromotionSentiment, newContent);
+            var newComment = promotionActionSummary.NewComment;
+
+            campaignCommentData[campaignId].Remove(commentId);
+            campaignCommentData[campaignId][newComment!.Id] = new CampaignCommentData(newComment.Id, newComment.Sentiment, newComment.Content, promotionActionSummary.Created, true);
         }
         catch (InvalidOperationException ex)
         {

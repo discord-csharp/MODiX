@@ -59,7 +59,7 @@ namespace Modix.Services.Promotions
         /// <param name="newSentiment">The <see cref="PromotionCommentEntity.Sentiment"/> value of the updated comment.</param>
         /// <param name="newContent">The <see cref="PromotionCommentEntity.Content"/> value of the updated comment.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task UpdateCommentAsync(long commentId, PromotionSentiment newSentiment, string? newContent);
+        Task<PromotionActionSummary> UpdateCommentAsync(long commentId, PromotionSentiment newSentiment, string? newContent);
 
         Task AddOrUpdateCommentAsync(long campaignId, Optional<PromotionSentiment> sentiment, Optional<string?> comment = default);
 
@@ -237,7 +237,7 @@ namespace Modix.Services.Promotions
         }
 
         /// <inheritdoc />
-        public async Task UpdateCommentAsync(long commentId, PromotionSentiment newSentiment, string? newContent)
+        public async Task<PromotionActionSummary> UpdateCommentAsync(long commentId, PromotionSentiment newSentiment, string? newContent)
         {
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsComment);
@@ -263,6 +263,8 @@ namespace Modix.Services.Promotions
             }
 
             PublishActionNotificationAsync(resultAction);
+
+            return resultAction;
         }
 
         public async Task AddOrUpdateCommentAsync(long campaignId, Optional<PromotionSentiment> sentiment, Optional<string?> content = default)
