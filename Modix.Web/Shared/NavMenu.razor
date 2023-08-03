@@ -16,11 +16,17 @@
                     <MudNavLink Style="width:auto" IconColor="Color.Surface" Href="commands" Icon="@Icons.Material.Filled.KeyboardCommandKey">Commands</MudNavLink>
                     <MudNavLink Style="width:auto" IconColor="Color.Surface" Href="userlookup" Icon="@Icons.Material.Filled.Search">User Lookup</MudNavLink>
                     <MudNavLink Style="width:auto" IconColor="Color.Surface" Href="tags" Icon="@Icons.Material.Filled.Tag">Tags</MudNavLink>
+
                     <AuthorizeView Context="e" Policy="@nameof(AuthorizationClaim.PromotionsRead)">
                         <MudNavLink IconColor="Color.Surface" Style="width:auto" Href="promotions" Icon="@Icons.Material.Filled.Celebration">Promotions</MudNavLink>
                     </AuthorizeView>
+
                     <AuthorizeView Context="e" Policy="@nameof(AuthorizationClaim.ModerationRead)">
-                        <MudNavLink IconColor="Color.Surface" Style="width:auto" H Href="logs" Icon="@Icons.Material.Filled.DocumentScanner">Logs</MudNavLink>
+                        <MudNavLink IconColor="Color.Surface" Style="width:auto" Href="logs" Icon="@Icons.Material.Filled.DocumentScanner">Logs</MudNavLink>
+                    </AuthorizeView>
+
+                    <AuthorizeView Context="e" Roles="@($"{nameof(AuthorizationClaim.DesignatedRoleMappingRead)},{nameof(AuthorizationClaim.DesignatedChannelMappingRead)},{nameof(AuthorizationClaim.AuthorizationConfigure)}")">
+                        <MudNavLink IconColor="Color.Surface" Style="width:auto" Href="config" Icon="@Icons.Material.Filled.Settings">Config</MudNavLink>
                     </AuthorizeView>
                 </div>
 

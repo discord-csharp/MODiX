@@ -1,0 +1,56 @@
+﻿@page "/config"
+@page "/config/{SubPage}"
+
+@attribute [Authorize(
+    Roles = $@"
+        {nameof(AuthorizationClaim.DesignatedRoleMappingRead)},
+        {nameof(AuthorizationClaim.DesignatedChannelMappingRead)},
+        {nameof(AuthorizationClaim.AuthorizationConfigure)}")]
+
+@using Modix.Data.Models.Core;
+@using Modix.Web.Components
+@using Modix.Web.Components.Configuration
+@using MudBlazor
+
+<PageTitle>Modix - Configuration</PageTitle>
+
+<CascadingAuthenticationState>
+    <MudText Typo="Typo.h6">Logs</MudText>
+
+    <MudDrawerContainer Class="mud-height-full">
+        <MudDrawer Open="true" Elevation="0" Variant="DrawerVariant.Persistent" Fixed="true">
+            <MudNavMenu Class="d-flex flex-column px-5">
+                <MudLink Href="/config/roles">Roles</MudLink>
+                <MudLink Href="/config/channels">Channels</MudLink>
+                <MudLink Href="/config/claims">Claims</MudLink>
+            </MudNavMenu>
+        </MudDrawer>
+        <div class="d-flex justify-center mud-height-full flex-column">
+            @if (SubPage == "roles")
+            {
+                <AuthorizeView Policy="@nameof(AuthorizationClaim.DesignatedRoleMappingRead)">
+                    <Roles />
+                </AuthorizeView>
+            }
+            else if (SubPage == "channels")
+            {
+                <AuthorizeView Policy="@nameof(AuthorizationClaim.DesignatedChannelMappingRead)">
+                    <Channels />
+                </AuthorizeView>
+            }
+            else if (SubPage == "claims")
+            {
+                <AuthorizeView Policy="@nameof(AuthorizationClaim.AuthorizationConfigure)">
+                    <Claims />
+                </AuthorizeView>
+            }
+        </div>
+    </MudDrawerContainer>
+</CascadingAuthenticationState>
+
+@code {
+
+    [Parameter]
+    public string? SubPage { get; set; }
+
+}
