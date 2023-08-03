@@ -7,18 +7,15 @@
 <MudSnackbarProvider/>
 
 <CascadingAuthenticationState>
-    <div class="page">
-        <main>
-            <MudLayout>
+    <MudLayout>
 
-                <NavMenu/>
+        <NavMenu/>
 
-                <MudMainContent>
-                    @Body
-                </MudMainContent>
-            </MudLayout>
-        </main>
-    </div>
+        <MudMainContent>
+            @Body
+        </MudMainContent>
+
+    </MudLayout>
 </CascadingAuthenticationState>
 
 @code {
