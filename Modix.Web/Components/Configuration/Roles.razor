@@ -18,7 +18,14 @@
             <MudText Typo="Typo.h5">Assign a Role</MudText>
         </TitleContent>
         <DialogContent>
-            <RoleSearchAutoComplete SelectedRoleChanged="SelectedRoleChanged" />
+            <AutoComplete
+                T="RoleInformation"
+                SearchFunc="(query) => Task.FromResult(DiscordUserService.AutoCompleteRoles(query))"
+                Placeholder="@("@Administrator")"
+                SelectedItemChanged="SelectedRoleChanged"
+                Title="Role Name"
+            />
+
             <MudText Class="mt-5" Typo="Typo.h5">Designation</MudText>
             <MudSelect T="DesignatedRoleType?" @bind-Value="_selectedDesignatedRoleType">
                 @foreach (var designation in DesignatedRoleTypes)

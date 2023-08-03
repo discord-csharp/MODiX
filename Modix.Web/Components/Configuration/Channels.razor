@@ -19,7 +19,13 @@
                 <MudText Typo="Typo.h5">Assign a Channel</MudText>
             </TitleContent>
             <DialogContent>
-                <ChannelSearchAutoComplete SelectedChannelChanged="SelectedChannelChanged" />
+                <AutoComplete
+                    T="ChannelInformation"
+                    SearchFunc="(query) => Task.FromResult(DiscordUserService.AutocompleteChannels(query))"
+                    Placeholder="@("#general")"
+                    SelectedItemChanged="SelectedChannelChanged"
+                    Title="Channel Name"
+                />
                 <MudText Class="mt-5" Typo="Typo.h5">Designation</MudText>
                 <MudSelect T="DesignatedChannelType?" @bind-Value="_selectedDesignatedChannelType">
                     @foreach (var designation in DesignatedChannelTypes)

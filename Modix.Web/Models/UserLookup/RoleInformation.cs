@@ -1,4 +1,6 @@
-﻿namespace Modix.Web.Models.UserLookup;
+﻿using Modix.Web.Models.Common;
 
-public record RoleInformation(ulong Id, string Name, string Color);
+namespace Modix.Web.Models.UserLookup;
+
+public record RoleInformation(ulong Id, string Name, string Color) : IAutoCompleteItem;
 

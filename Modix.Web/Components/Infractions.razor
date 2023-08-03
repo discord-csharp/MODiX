@@ -17,7 +17,18 @@
             <MudText Typo="Typo.h5">Create Infraction</MudText>
         </TitleContent>
         <DialogContent>
-            <UserSearchAutoComplete SelectedUserChanged="SelectedUserChanged" Title="Subject" />
+            <AutoComplete T="ModixUser"
+                          SearchFunc="(query) => DiscordUserService.AutoCompleteAsync(query)"
+                          Placeholder="Username or ID"
+                          SelectedItemChanged="SelectedUserChanged"
+                          Title="Subject"
+            >
+                <ItemTemplate Context="user">
+                    <MudImage style="vertical-align: bottom" Src="@user.AvatarUrl" Height="24" Width="24" Class="rounded-lg" />
+                    @user.Name
+                </ItemTemplate>
+            </AutoComplete>
+
             <MudText Typo="Typo.h5" Style="margin-top: 1rem">Infraction</MudText>
             <div class="d-flex" style="column-gap: 1rem">
                 <div style="max-width: 6rem">

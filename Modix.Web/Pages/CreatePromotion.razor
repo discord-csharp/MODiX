@@ -26,7 +26,17 @@
         </MudItem>
         <MudItem xs="9">
             <MudItem Style="margin-bottom: 1.5rem">
-                <UserSearchAutoComplete SelectedUserChanged="SelectedUserChanged"/>
+                <AutoComplete T="ModixUser"
+                              SearchFunc="(query) => DiscordUserService.AutoCompleteAsync(query)"
+                              Placeholder="Username or ID"
+                              SelectedItemChanged="SelectedUserChanged"
+                              Title="Tell us their username"
+                >
+                    <ItemTemplate Context="user">
+                        <MudImage style="vertical-align: bottom" Src="@user.AvatarUrl" Height="24" Width="24" Class="rounded-lg" />
+                        @user.Name
+                    </ItemTemplate>
+                </AutoComplete>
             </MudItem>
             @if(_selectedUser is not null && _nextRank is not null)
             {
