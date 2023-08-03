@@ -1,6 +1,8 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using Modix.Services.Core;
 using Modix.Web.Models;
+using Modix.Web.Models.UserLookup;
 
 namespace Modix.Web.Services;
 
@@ -71,4 +73,21 @@ public class DiscordUserService
         return result;
     }
 
+    public IEnumerable<RoleInformation> AutoCompleteRoles(string query)
+    {
+        if (query.StartsWith('@'))
+        {
+            query = query[1..];
+        }
+
+        var currentGuild = GetUserGuild();
+        IEnumerable<IRole> result = currentGuild.Roles;
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            result = result.Where(d => d.Name.Contains(query, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return result.Take(10).Select(d => new RoleInformation(d.Id, d.Name, d.Color.ToString()));
+    }
 }

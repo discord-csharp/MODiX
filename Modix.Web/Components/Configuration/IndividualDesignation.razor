@@ -1,0 +1,70 @@
+﻿@using Modix.Data.Models.Core;
+@using Modix.Web.Models.Configuration;
+@using MudBlazor
+
+<CascadingAuthenticationState>
+@if (DesignatedRoleMapping is not null)
+{
+    <MudButtonGroup Class="mr-1" OverrideStyles="false">
+        <MudButton
+        Style="text-transform: unset"
+        DisableElevation="true"
+        Size="Size.Small"
+        Variant="Variant.Filled"
+        Color="Color.Info"
+        >
+            @($"@{DesignatedRoleMapping.Name}")
+        </MudButton>
+
+        <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedRoleMappingDelete)">
+            @if (!_showConfirm)
+            {
+                <MudButton
+                OnClick="() => _showConfirm = true"
+                Style="min-width: unset"
+                DisableElevation="true"
+                Size="Size.Small"
+                Variant="Variant.Filled"
+                Color="Color.Error"
+                >
+                    X
+                </MudButton>
+            }
+            else
+            {
+                <MudButton Disabled="true">Remove Designation?</MudButton>
+
+                <MudButton
+                OnClick="() => RemoveDesignation.InvokeAsync(DesignatedRoleMapping.Id)"
+                DisableElevation="true"
+                Size="Size.Small"
+                Variant="Variant.Filled"
+                Color="Color.Success"
+                >
+                    Yes
+                </MudButton>
+                <MudButton
+                OnClick="() => _showConfirm = false"
+                DisableElevation="true"
+                Size="Size.Small"
+                Variant="Variant.Filled"
+                Color="Color.Error"
+                >
+                    No
+                </MudButton>
+            }
+        </AuthorizeView>
+    </MudButtonGroup>
+}
+</CascadingAuthenticationState>
+
+@code {
+
+    [Parameter, EditorRequired]
+    public DesignatedRoleData? DesignatedRoleMapping { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<long> RemoveDesignation { get; set; }
+
+    private bool _showConfirm;
+}

@@ -1,0 +1,36 @@
+﻿@using Modix.Web.Models;
+@using Modix.Web.Models.UserLookup;
+@using Modix.Web.Services;
+@using MudBlazor
+
+<MudText Typo="Typo.h5">@Title</MudText>
+<MudAutocomplete T="RoleInformation"
+                    Placeholder="@("@Administrator")"
+                    AdornmentIcon="@Icons.Material.Filled.Search"
+                    SearchFunc="Search"
+                    MinCharacters="3"
+                    Immediate="false"
+                    ResetValueOnEmptyText="true"
+                    ValueChanged="SelectedRoleChanged"
+                    ToStringFunc="role => role?.Name"
+                    Clearable="true"
+                    Adornment="Adornment.Start"
+                    SelectValueOnTab="true">
+</MudAutocomplete>
+
+
+@code {
+    [Inject]
+    public DiscordUserService DiscordUserService { get; set; } = null!;
+
+    [Parameter]
+    public EventCallback<RoleInformation> SelectedRoleChanged { get; set; }
+
+    [Parameter]
+    public string? Title { get; set; } = "Role Name";
+
+    private Task<IEnumerable<RoleInformation>> Search(string query)
+    {
+        return Task.FromResult(DiscordUserService.AutoCompleteRoles(query));
+    }
+}
