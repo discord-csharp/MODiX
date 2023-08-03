@@ -8,16 +8,19 @@
 <PageTitle>Modix - Logs</PageTitle>
 
 <CascadingAuthenticationState>
-    <MudText Typo="Typo.h6">Logs</MudText>
 
-    <MudDrawerContainer Class="mud-height-full">
-        <MudDrawer Open="true" Elevation="0" Variant="DrawerVariant.Persistent" Style="position: fixed;">
-            <MudNavMenu Class="d-flex flex-column px-5">
-                <MudLink Href="/logs/deletedMessages">Deletions</MudLink>
-                <MudLink Href="/logs/infractions">Infractions</MudLink>
-            </MudNavMenu>
-        </MudDrawer>
-        <div class="d-flex justify-center mud-height-full flex-column">
+    <MudGrid>
+        <MudItem xs="2">
+            <MudText Typo="Typo.h6">Logs</MudText>
+            <MudPaper>
+                <MudList SelectedValue="@SubPage" Clickable="true">
+                    <MudListItem Value="@("deletedMessages")" Href="/logs/deletedMessages" Text="Deletions"/>
+                    <MudDivider/>
+                    <MudListItem Value="@("infractions")" Href="/logs/infractions" Text="Infractions"/>
+                </MudList>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="9">
             @if(SubPage == "infractions")
             {
                 <AuthorizeView Policy="@nameof(AuthorizationClaim.ModerationRead)">
@@ -30,8 +33,8 @@
                     <DeletedMessages/>
                 </AuthorizeView>
             }
-        </div>
-    </MudDrawerContainer>
+        </MudItem>
+    </MudGrid>
 </CascadingAuthenticationState>
 
 @code {

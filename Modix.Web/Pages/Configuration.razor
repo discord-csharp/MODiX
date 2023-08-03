@@ -15,16 +15,21 @@
 <PageTitle>Modix - Configuration</PageTitle>
 
 <CascadingAuthenticationState>
-    <MudText Typo="Typo.h6">Configuration</MudText>
-    <MudDrawerContainer Class="mud-height-full">
-        <MudDrawer Open="true" Elevation="0" Variant="DrawerVariant.Persistent" Fixed="false">
-            <MudNavMenu Class="d-flex flex-column px-5">
-                <MudLink Href="/config/roles">Roles</MudLink>
-                <MudLink Href="/config/channels">Channels</MudLink>
-                <MudLink Href="/config/claims">Claims</MudLink>
-            </MudNavMenu>
-        </MudDrawer>
-        <div class="d-flex justify-center mud-height-full flex-column">
+
+    <MudGrid>
+        <MudItem xs="2">
+            <MudText Typo="Typo.h6">Configuration</MudText>
+            <MudPaper>
+                <MudList SelectedValue="@SubPage" Clickable="true">
+                    <MudListItem Value="@("roles")" Href="/config/roles" Text="Roles"/>
+                    <MudDivider/>
+                    <MudListItem Value="@("channels")" Href="/config/channels" Text="Channels" />
+                    <MudDivider/>
+                    <MudListItem Value="@("claims")" Href="/config/claims" Text="Claims" />
+                </MudList>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="9">
             @if (SubPage == "roles")
             {
                 <AuthorizeView Policy="@nameof(AuthorizationClaim.DesignatedRoleMappingRead)">
@@ -43,8 +48,8 @@
                     <Claims />
                 </AuthorizeView>
             }
-        </div>
-    </MudDrawerContainer>
+        </MudItem>
+    </MudGrid>
 </CascadingAuthenticationState>
 
 @code {
