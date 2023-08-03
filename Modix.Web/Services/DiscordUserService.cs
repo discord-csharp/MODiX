@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using Modix.Services.Core;
 using Modix.Web.Models;
+using Modix.Web.Models.Common;
 using Modix.Web.Models.UserLookup;
 
 namespace Modix.Web.Services;
@@ -89,5 +90,20 @@ public class DiscordUserService
         }
 
         return result.Take(10).Select(d => new RoleInformation(d.Id, d.Name, d.Color.ToString()));
+    }
+
+    public IEnumerable<ChannelInformation> AutocompleteChannels(string query)
+    {
+        if (query.StartsWith('#'))
+        {
+            query = query[1..];
+        }
+
+        var currentGuild = GetUserGuild();
+        return currentGuild.Channels
+            .Where(d => d is SocketTextChannel)
+            .Where(d => d.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .Take(10)
+            .Select(d => new ChannelInformation(d.Id, d.Name));
     }
 }
