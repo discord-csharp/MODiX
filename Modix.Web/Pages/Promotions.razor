@@ -1,12 +1,16 @@
 ﻿@page "/promotions"
+
 @attribute [Authorize(Policy = nameof(AuthorizationClaim.PromotionsRead))]
+
 @using Modix.Data.Models.Core;
 @using Modix.Data.Models.Promotions;
+@using Modix.Data.Utilities;
 @using Modix.Services.Promotions;
 @using Modix.Web.Components;
 @using Modix.Web.Models.Promotions;
 @using Modix.Web.Services;
 @using MudBlazor
+@using Humanizer;
 
 <PageTitle>Modix - Promotions</PageTitle>
 
@@ -48,10 +52,29 @@
                                     <MudIcon Size="Size.Large" Icon="@icon"/>
                                 </MudTooltip>
                                 <MudText Style="margin-left: .5em" Typo="Typo.h4" Inline="true">
-                                    @($"{campaign.Subject.Username + (campaign.Subject.Discriminator == "0000" ? "" : "#" + campaign.Subject.Discriminator)}")
+                                    @GetUsername(campaign.Subject)
                                 </MudText>
                                 <MudText Class="targetRole" Inline="true" Style="@($"color: {RoleColors[campaign.TargetRole.Id]}; vertical-align: text-bottom")">&#10149; @campaign.TargetRole.Name</MudText>
                             </div>
+
+                            @if (campaign.Outcome is null)
+                            {
+                                <AuthorizeView Roles="@nameof(AuthorizationClaim.PromotionsCloseCampaign)">
+                                    <MudButtonGroup OverrideStyles="false">
+                                        <MudButton OnClick="() => AcceptCampaign(campaign)" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Success">Accept</MudButton>
+                                        <MudButton OnClick="() => RejectCampaign(campaign)" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error">Reject</MudButton>
+                                    </MudButtonGroup>
+                                </AuthorizeView>
+                            }
+                            <MudIconButton
+                                Href="@($"/infractions?subject={campaign.Subject.Id}")"
+                                Size="Size.Small"
+                                Class="mx-3"
+                                Icon="@Icons.Material.Filled.OpenInNew"
+                                Color="Color.Info"
+                                Title="Infractions"
+                            />
+
                             <div style="width: 20%; margin-right: 1rem">
                                 <div class="d-flex" style="justify-content: space-around;">
                                     <div class="d-flex">
@@ -165,6 +188,13 @@
         StateHasChanged();
     }
 
+    private string GetUsername(GuildUserBrief guildUser)
+    {
+        var username = guildUser.Username;
+        var discriminator = guildUser.Discriminator == "0000" ? string.Empty : $"#{guildUser.Discriminator}";
+        return $"{username}{discriminator}";
+    }
+
     private async Task CampaignExpanded(bool wasExpanded, long campaignId, ulong userId)
     {
         if (!wasExpanded)
@@ -220,5 +250,63 @@
         }
 
         Snackbar.Add("Campaign vote was updated.", Severity.Success);
+    }
+
+    private async Task AcceptCampaign(PromotionCampaignSummary campaign)
+    {
+        var timeSince = DateTime.UtcNow - campaign.CreateAction.Created;
+
+        var username = GetUsername(campaign.Subject);
+        bool force = false;
+        if (timeSince < PromotionCampaignEntityExtensions.CampaignAcceptCooldown)
+        {
+            var timeLeftHumanized = campaign.GetTimeUntilCampaignCanBeClosed().Humanize(3);
+            var dialogParams = new DialogParameters
+            {
+                { nameof(ConfirmationDialog.Content), $"There is {timeLeftHumanized} left on the campaign. Do you want to force accept the campaign for {username}?" }
+            };
+
+            var dialog = DialogService.Show<ConfirmationDialog>("", dialogParams);
+            var confirmationResult = await dialog.Result;
+
+            if (confirmationResult.Canceled)
+            {
+                Snackbar.Add("Action was cancelled", Severity.Info);
+                return;
+            }
+
+            force = true;
+        }
+
+        try
+        {
+            await PromotionsService.AcceptCampaignAsync(campaign.Id, force);
+        }
+        catch (InvalidOperationException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+            return;
+        }
+
+        campaign.Outcome = PromotionCampaignOutcome.Accepted;
+        Snackbar.Add($"Campaign for '{username}' was accepted.", Severity.Success);
+    }
+
+    private async Task RejectCampaign(PromotionCampaignSummary campaign)
+    {
+        try
+        {
+            await PromotionsService.RejectCampaignAsync(campaign.Id);
+
+        }
+        catch (InvalidOperationException ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+            return;
+        }
+
+        var username = GetUsername(campaign.Subject);
+        campaign.Outcome = PromotionCampaignOutcome.Rejected;
+        Snackbar.Add($"Campaign for '{username}' was rejected.", Severity.Success);
     }
 }
