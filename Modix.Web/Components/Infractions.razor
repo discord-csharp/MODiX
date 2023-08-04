@@ -98,7 +98,7 @@
             <HeaderContent>
                 <MudTh Style="text-align:center">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.Id">Id</MudTableSortLabel>
-                    <MudTextField DebounceInterval="1000" ValueChanged="(string? id) => FilterChanged(() => _tableFilter.IdString = id)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                    <MudTextField Value="@Id" DebounceInterval="1000" ValueChanged="(string? id) => FilterChanged(() => _tableFilter.IdString = id)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                 </MudTh>
                 <MudTh Style="text-align:center">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.Type">Type</MudTableSortLabel>
@@ -112,7 +112,7 @@
                 <MudTh Style="text-align:center"><MudTableSortLabel T="InfractionData" SortBy="x => x.CreateAction.Created">Created On</MudTableSortLabel></MudTh>
                 <MudTh Style="text-align:center">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.Subject.Username">Subject</MudTableSortLabel>
-                    <MudTextField DebounceInterval="1000" ValueChanged="(string? subject) => FilterChanged(() => _tableFilter.Subject = subject)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                    <MudTextField Value="@Subject" DebounceInterval="1000" ValueChanged="(string? subject) => FilterChanged(() => _tableFilter.Subject = subject)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                 </MudTh>
                 <MudTh Style="text-align:center">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.CreateAction.CreatedBy.Username">Creator</MudTableSortLabel>
@@ -163,6 +163,12 @@
 </CascadingAuthenticationState>
 @code {
 
+    [Parameter]
+    public string? Subject { get; set; }
+
+    [Parameter]
+    public string? Id { get; set; }
+
     [Inject]
     public IModerationService ModerationService { get; set; } = null!;
 
@@ -196,6 +202,12 @@
     private int? _newInfractionSeconds;
 
     private TableFilter _tableFilter = new();
+
+    protected override void OnParametersSet()
+    {
+        _tableFilter.Subject = Subject;
+        _tableFilter.IdString = Id;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
