@@ -61,8 +61,8 @@
                             {
                                 <AuthorizeView Roles="@nameof(AuthorizationClaim.PromotionsCloseCampaign)">
                                     <MudButtonGroup OverrideStyles="false">
-                                        <MudButton OnClick="() => AcceptCampaign(campaign)" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Success">Accept</MudButton>
-                                        <MudButton OnClick="() => RejectCampaign(campaign)" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Error">Reject</MudButton>
+                                        <MudIconButton Color="Color.Success" Size="Size.Small" OnClick="() => AcceptCampaign(campaign)" Icon="@Icons.Material.Filled.Check" Title="Accept"/>
+                                        <MudIconButton Color="Color.Error" Size="Size.Small" OnClick="() => RejectCampaign(campaign)" Icon="@Icons.Material.Filled.Close" Title="Reject"/>
                                     </MudButtonGroup>
                                 </AuthorizeView>
                             }
