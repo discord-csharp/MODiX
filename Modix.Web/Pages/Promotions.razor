@@ -11,6 +11,7 @@
 @using Modix.Web.Services;
 @using MudBlazor
 @using Humanizer;
+@using Modix.Services.Utilities;
 
 <PageTitle>Modix - Promotions</PageTitle>
 
@@ -52,7 +53,7 @@
                                     <MudIcon Size="Size.Large" Icon="@icon"/>
                                 </MudTooltip>
                                 <MudText Style="margin-left: .5em" Typo="Typo.h4" Inline="true">
-                                    @GetUsername(campaign.Subject)
+                                    @campaign.Subject.GetFullUsername()
                                 </MudText>
                                 <MudText Class="targetRole" Inline="true" Style="@($"color: {RoleColors[campaign.TargetRole.Id]}; vertical-align: text-bottom")">&#10149; @campaign.TargetRole.Name</MudText>
                             </div>
@@ -188,13 +189,6 @@
         StateHasChanged();
     }
 
-    private string GetUsername(GuildUserBrief guildUser)
-    {
-        var username = guildUser.Username;
-        var discriminator = guildUser.Discriminator == "0000" ? string.Empty : $"#{guildUser.Discriminator}";
-        return $"{username}{discriminator}";
-    }
-
     private async Task CampaignExpanded(bool wasExpanded, long campaignId, ulong userId)
     {
         if (!wasExpanded)
@@ -256,7 +250,7 @@
     {
         var timeSince = DateTime.UtcNow - campaign.CreateAction.Created;
 
-        var username = GetUsername(campaign.Subject);
+        var username = campaign.Subject.GetFullUsername();
         bool force = false;
         if (timeSince < PromotionCampaignEntityExtensions.CampaignAcceptCooldown)
         {
@@ -305,7 +299,7 @@
             return;
         }
 
-        var username = GetUsername(campaign.Subject);
+        var username = campaign.Subject.GetFullUsername();
         campaign.Outcome = PromotionCampaignOutcome.Rejected;
         Snackbar.Add($"Campaign for '{username}' was rejected.", Severity.Success);
     }
