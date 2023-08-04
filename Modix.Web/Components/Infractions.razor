@@ -70,13 +70,15 @@
                 }
         </DialogContent>
         <DialogActions>
-            <div style="justify-content: left; flex-grow: 1;">
                 <MudButton
                     Variant="Variant.Filled"
                     Disabled="@(_selectedUser is null || string.IsNullOrWhiteSpace(_infractionReason))"
                     Color="Color.Success"
-                    OnClick="SaveInfraction">Save</MudButton>
-            </div>
+                OnClick="SaveInfraction"
+            >
+                Save
+            </MudButton>
+            <MudSpacer/>
             <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="ToggleDialog">Cancel</MudButton>
         </DialogActions>
     </MudDialog>
@@ -84,48 +86,43 @@
     <MudContainer MaxWidth="MaxWidth.False">
         <MudTable @ref="@TableRef" SortLabel="Sort By" Bordered="true" ServerData="LoadInfractions">
             <ToolBarContent>
-                <div class="d-flex" style="align-items: center; flex-grow: 1">
-                    <div class="d-flex" style="flex-grow: 1; column-gap: .33rem">
                         <MudButton Variant="Variant.Filled" OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
-                        <MudButton Variant="Variant.Filled" OnClick="Refresh" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
-                    </div>
-                    <div class="d-flex">
-                        <MudCheckBox @bind-Checked="_showState" Label="Show State" Color="Color.Primary"/>
-                        <MudCheckBox CheckedChanged="(bool value) => FilterChanged(() => _tableFilter.ShowDeleted = value)" Label="Show Deleted" Color="Color.Primary"/>
-                    </div>
-                </div>
+                <MudButton Class="ml-1" Variant="Variant.Filled" OnClick="Refresh" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
+                <MudSpacer/>
+                <MudCheckBox @bind-Checked="_showState" Label="Show State" Color="Color.Primary" />
+                <MudCheckBox CheckedChanged="(bool value) => FilterChanged(() => _tableFilter.ShowDeleted = value)" Label="Show Deleted" Color="Color.Primary" />
             </ToolBarContent>
             <HeaderContent>
-                <MudTh Style="text-align:center">
+                <MudTh Style="text-align:center; vertical-align: top">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.Id">Id</MudTableSortLabel>
                     <MudTextField Value="@Id" DebounceInterval="1000" ValueChanged="(string? id) => FilterChanged(() => _tableFilter.IdString = id)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                 </MudTh>
-                <MudTh Style="text-align:center">
+                <MudTh Style="text-align:center; vertical-align: top">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.Type">Type</MudTableSortLabel>
-                    <MudSelect Clearable="true" SelectedValuesChanged="(IEnumerable<InfractionType?> values) => FilterChanged(() => _tableFilter.Type = values.FirstOrDefault())">
+                    <MudSelect Placeholder="Filter" Clearable="true" SelectedValuesChanged="(IEnumerable<InfractionType?> values) => FilterChanged(() => _tableFilter.Type = values.FirstOrDefault())">
                         @foreach(var infractionType in Enum.GetValues<InfractionType>())
                         {
                             <MudSelectItem T="InfractionType?" Value="@infractionType"/>
                         }
                     </MudSelect>
                 </MudTh>
-                <MudTh Style="text-align:center"><MudTableSortLabel T="InfractionData" SortBy="x => x.CreateAction.Created">Created On</MudTableSortLabel></MudTh>
-                <MudTh Style="text-align:center">
+                <MudTh Style="text-align:center; vertical-align: top"><MudTableSortLabel T="InfractionData" SortBy="x => x.CreateAction.Created">Created On</MudTableSortLabel></MudTh>
+                <MudTh Style="text-align:center; vertical-align: top">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.Subject.Username">Subject</MudTableSortLabel>
                     <MudTextField Value="@Subject" DebounceInterval="1000" ValueChanged="(string? subject) => FilterChanged(() => _tableFilter.Subject = subject)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                 </MudTh>
-                <MudTh Style="text-align:center">
+                <MudTh Style="text-align:center; vertical-align: top">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.CreateAction.CreatedBy.Username">Creator</MudTableSortLabel>
                     <MudTextField DebounceInterval="1000" ValueChanged="(string? creator) => FilterChanged(() => _tableFilter.Creator = creator)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                 </MudTh>
-                <MudTh Style="text-align:center">Reason</MudTh>
+                <MudTh Style="text-align:center; vertical-align: top">Reason</MudTh>
                 @if(_showState)
                 {
-                    <MudTh Style="text-align:center">State</MudTh>
+                    <MudTh Style="text-align:center; vertical-align: top">State</MudTh>
                 }
                 @if (_canDeleteInfractions || _canRescind)
                 {
-                    <MudTh Style="text-align:center">Actions</MudTh>
+                    <MudTh Style="text-align:center; vertical-align: top">Actions</MudTh>
                 }
             </HeaderContent>
             <RowTemplate Context="infraction">
