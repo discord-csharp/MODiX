@@ -49,7 +49,7 @@
                     </AuthorizeView>
                     <MudButton Variant="Variant.Filled" OnClick="FetchData" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
                     <MudSpacer/>
-                    <MudTextField DebounceInterval="1000" @bind-Value="query" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                    <MudTextField DebounceInterval="1000" @bind-Value="Query" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                 </ToolBarContent>
                 <HeaderContent>
                     <MudTh Style="text-align:center"><MudTableSortLabel T="TagData" SortBy="x => x.Name">Name</MudTableSortLabel></MudTh>
@@ -97,10 +97,13 @@
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
 
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? Query { get; set; }
+
     private Dictionary<ulong, RoleInformation>? Roles { get; set; }
     private TagData[]? Data { get; set; }
 
-    private string? query;
     private string? _tagNameValue;
     private string? _tagContentValue;
     private bool _createDialogVisible;
@@ -135,19 +138,19 @@
 
     private bool FilterFunction(TagData tag)
     {
-        if (string.IsNullOrWhiteSpace(query))
+        if (string.IsNullOrWhiteSpace(Query))
             return true;
 
-        if (tag.OwnerUser is not null && (tag.OwnerUser.Username.Contains(query, StringComparison.OrdinalIgnoreCase) || tag.OwnerUser.Id.ToString() == query))
+        if (tag.OwnerUser is not null && (tag.OwnerUser.Username.Contains(Query, StringComparison.OrdinalIgnoreCase) || tag.OwnerUser.Id.ToString() == Query))
             return true;
 
-        if (tag.OwnerRole is not null && (tag.OwnerRole.Name.Contains(query, StringComparison.OrdinalIgnoreCase) || tag.OwnerRole.Id.ToString() == query))
+        if (tag.OwnerRole is not null && (tag.OwnerRole.Name.Contains(Query, StringComparison.OrdinalIgnoreCase) || tag.OwnerRole.Id.ToString() == Query))
             return true;
 
-        if (tag.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+        if (tag.Name.Contains(Query, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        if (tag.Content.Contains(query, StringComparison.OrdinalIgnoreCase))
+        if (tag.Content.Contains(Query, StringComparison.OrdinalIgnoreCase))
             return true;
 
         return false;
