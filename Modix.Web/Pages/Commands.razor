@@ -6,8 +6,7 @@
 
 <PageTitle>Modix - Commands</PageTitle>
 
-<MudDrawerContainer Class="mud-height-full">
-    <MudDrawer Open="true" Elevation="0" Variant="DrawerVariant.Persistent" Style="position: fixed;">
+    <MudDrawer Open="true" Elevation="0" Variant="DrawerVariant.Responsive" Fixed="true" ClipMode="DrawerClipMode.Always" PreserveOpenState="false" DisableOverlay="true">
         <MudNavMenu Class="d-flex flex-column px-5">
             @foreach (var module in Modules.OrderBy(m => m.Name))
             {
@@ -37,11 +36,12 @@
                 <MudCard Style="background-color:#f5f5f5" Elevation="2">
                     @foreach (var alias in command.Aliases)
                     {
-                        <div class="control">
+                            <div class="control flex-md-row flex-column">
                             <MudText Class="command" Typo="Typo.h6">@(command.IsSlashCommand ? '/' : '!')@alias.ToLower()</MudText>
                             @if (alias == command.Aliases.First())
                             {
                                 <MudText Class="summary">@command.Summary</MudText>
+                                    <div class="d-flex flex-wrap">
                                 @foreach (var parameter in command.Parameters)
                                 {
                                     @*TODO: Add pointer styling?*@
@@ -78,6 +78,8 @@
                                         }
                                     </div>
                                 }
+                                    </div>
+
                             }
                         </div>
                     }
@@ -85,9 +87,10 @@
             </MudContainer>
             <MudDivider Light="true" Style="margin:10px 0 10px 0"></MudDivider>
         }
+
     }
+
 </div>
-</MudDrawerContainer>
 
 <style>
 
