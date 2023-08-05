@@ -215,10 +215,10 @@
 
     private async Task ToggleEditDialog(long campaignId, long commentId, PromotionSentiment oldPromotionSentiment, string oldContent)
     {
-        var dialogParams = new DialogParameters
+        var dialogParams = new DialogParameters<EditPromotionCommentDialog>
         {
-            { nameof(EditPromotionCommentDialog.PromotionSentiment), oldPromotionSentiment },
-            { nameof(EditPromotionCommentDialog.Content), oldContent}
+            { x => x.PromotionSentiment, oldPromotionSentiment },
+            { x => x.Content, oldContent}
         };
 
         var dialog = DialogService.Show<EditPromotionCommentDialog>("", dialogParams);
@@ -255,9 +255,9 @@
         if (timeSince < PromotionCampaignEntityExtensions.CampaignAcceptCooldown)
         {
             var timeLeftHumanized = campaign.GetTimeUntilCampaignCanBeClosed().Humanize(3);
-            var dialogParams = new DialogParameters
+            var dialogParams = new DialogParameters<ConfirmationDialog>
             {
-                { nameof(ConfirmationDialog.Content), $"There is {timeLeftHumanized} left on the campaign. Do you want to force accept the campaign for {username}?" }
+                { x => x.Content, $"There is {timeLeftHumanized} left on the campaign. Do you want to force accept the campaign for {username}?" }
             };
 
             var dialog = DialogService.Show<ConfirmationDialog>("", dialogParams);

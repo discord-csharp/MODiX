@@ -244,9 +244,9 @@
     {
         try
         {
-            var dialogParams = new DialogParameters
+            var dialogParams = new DialogParameters<ConfirmationDialog>
             {
-                { nameof(ConfirmationDialog.Content), $"Are you sure you want to rescind infraction #{infraction.Id}?"}
+                { x => x.Content, $"Are you sure you want to rescind infraction #{infraction.Id}?"}
             };
 
             var dialog = DialogService.Show<ConfirmationDialog>("", dialogParams);
@@ -271,9 +271,9 @@
     {
         try
         {
-            var dialogParams = new DialogParameters
+            var dialogParams = new DialogParameters<ConfirmationDialog>
             {
-                { nameof(ConfirmationDialog.Content), $"Are you sure you want to delete infraction #{infraction.Id}?"}
+                { x => x.Content, $"Are you sure you want to delete infraction #{infraction.Id}?"}
             };
 
             var dialog = DialogService.Show<ConfirmationDialog>("", dialogParams);
