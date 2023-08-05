@@ -217,10 +217,10 @@
 
     private async Task GetDeletionContext(long batchId)
     {
+        _currentContext = batchId;
+
         if (DeletedMessagesContext.ContainsKey(batchId))
             return;
-
-        _currentContext = batchId;
 
         var deletedMessages = await ModerationService.SearchDeletedMessagesAsync(new DeletedMessageSearchCriteria
             {
@@ -238,6 +238,7 @@
 
         if (firstMessage is null)
         {
+            CloseDialog();
             Snackbar.Add($"Couldn't find messages for batch id {batchId}", Severity.Error);
             return;
         }
@@ -246,12 +247,14 @@
         var batchChannelId = deletedMessages.Records.First().Channel.Id;
         if (currentUser!.Guild.GetChannel(batchChannelId) is not ISocketMessageChannel foundChannel)
         {
+            CloseDialog();
             Snackbar.Add($"Couldn't recreate context - text channel with id {batchChannelId} not found", Severity.Error);
             return;
         }
 
         if (currentUser.GetPermissions(foundChannel as IGuildChannel).ReadMessageHistory == false)
         {
+            CloseDialog();
             Snackbar.Add($"You don't have read permissions for the channel this batch was deleted in (#{foundChannel.Name})", Severity.Error);
             return;
         }
