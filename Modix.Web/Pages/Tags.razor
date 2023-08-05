@@ -4,6 +4,7 @@
 @using Modix.Data.Models.Tags;
 @using Modix.Services.Tags;
 @using Modix.Web.Models;
+@using Modix.Web.Models.Common;
 @using Modix.Web.Models.Tags;
 @using Modix.Web.Services;
 @using MudBlazor
@@ -15,7 +16,7 @@
 
     <MudContainer>
         <MudText Typo="Typo.h3">Tags</MudText>
-        @if (Data is not null)
+        @if (Data is not null && Roles is not null)
         {
             <MudDialog @bind-IsVisible="_createDialogVisible" Options="new DialogOptions { FullWidth= true }">
                 <TitleContent>
@@ -44,9 +45,9 @@
             <MudTable Items="Data" SortLabel="Sort By" Bordered="true" Filter="FilterFunction">
                 <ToolBarContent>
                     <AuthorizeView Context="e" Policy="@nameof(AuthorizationClaim.CreateTag)">
-                        <MudButton OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
+                        <MudButton Class="mr-1" Variant="Variant.Filled" OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
                     </AuthorizeView>
-                    <MudButton OnClick="FetchData" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
+                    <MudButton Variant="Variant.Filled" OnClick="FetchData" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
                     <MudSpacer/>
                     <MudTextField DebounceInterval="1000" @bind-Value="query" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                 </ToolBarContent>
@@ -60,7 +61,15 @@
                 <RowTemplate Context="tag">
                     <MudTd DataLabel="Name">@tag.Name</MudTd>
                     <MudTd style="white-space:nowrap" DataLabel="Last Modified">@tag.Created.ToString("dd/MM/yy, h:MM:ss tt")</MudTd>
-                    <MudTd DataLabel="Owner">@tag.OwnerName</MudTd>
+                    @if(tag.OwnerRole is not null)
+                    {
+                        var roleColor = Roles[tag.OwnerRole.Id].Color;
+                        <MudTd DataLabel="Owner" Style="@($"color: {roleColor}")">@@@tag.OwnerName</MudTd>
+                    }
+                    else
+                    {
+                        <MudTd DataLabel="Owner">@tag.OwnerName</MudTd>
+                    }
                     <MudTd DataLabel="Content">
                         <MudMarkdown Value="@tag.Content"/>
                     </MudTd>
@@ -83,19 +92,18 @@
     private DiscordUserService DiscordUserService { get; set; } = null!;
 
     [Inject]
-    private SessionState SessionState { get; set; } = null!;
-
-    [Inject]
     private IDialogService DialogService { get; set; } = null!;
 
     [Inject]
     private ISnackbar Snackbar { get; set; } = null!;
 
-    TagData[]? Data { get; set; }
-    string? query;
-    string? _tagNameValue;
-    string? _tagContentValue;
-    bool _createDialogVisible;
+    private Dictionary<ulong, RoleInformation>? Roles { get; set; }
+    private TagData[]? Data { get; set; }
+
+    private string? query;
+    private string? _tagNameValue;
+    private string? _tagContentValue;
+    private bool _createDialogVisible;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -109,22 +117,20 @@
 
     private async Task FetchData()
     {
-        var currentGuild = SessionState.SelectedGuild;
+        var currentGuild = DiscordUserService.GetUserGuild();
 
         var summaries = await TagService.GetSummariesAsync(new TagSearchCriteria
         {
-            GuildId = currentGuild,
+            GuildId = currentGuild.Id,
         });
 
         Data = summaries
             .Select(TagData.CreateFromSummary)
             .ToArray();
 
-        // foreach (var tag in data)
-        // {
-        //     // TODO Revisit this functionality
-        //     tag.CanMaintain = false;
-        // }
+        Roles = currentGuild.Roles
+            .Select(x => new RoleInformation(x.Id, x.Name, x.Color.ToString()))
+            .ToDictionary(x => x.Id, x => x);
     }
 
     private bool FilterFunction(TagData tag)
