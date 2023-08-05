@@ -30,7 +30,7 @@ public class DiscordUserService
         return _client.Guilds.First();
     }
 
-    public IEnumerable<GuildOption> GetGuildOptionsAsync()
+    public IEnumerable<GuildOption> GetGuildOptions()
     {
         var currentUser = GetCurrentUser();
         if (currentUser is null)

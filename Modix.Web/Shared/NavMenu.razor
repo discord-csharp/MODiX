@@ -7,123 +7,44 @@
 @using System.Security.Claims;
 
 <CascadingAuthenticationState>
-   <MudAppBar Elevation="0" Dense="true" Fixed="false" DisableGutters="true">
-        <AuthorizeView>
-            <Authorized>
-                <div class="d-flex">
-                    <MudNavLink Style="width:auto" IconColor="Color.Surface" Href="" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-                    <MudNavLink Style="width:auto" IconColor="Color.Surface" Href="stats" Icon="@Icons.Material.Filled.FormatListNumbered">Stats</MudNavLink>
-                    <MudNavLink Style="width:auto" IconColor="Color.Surface" Href="commands" Icon="@Icons.Material.Filled.KeyboardCommandKey">Commands</MudNavLink>
-                    <MudNavLink Style="width:auto" IconColor="Color.Surface" Href="userlookup" Icon="@Icons.Material.Filled.Search">User Lookup</MudNavLink>
-                    <MudNavLink Style="width:auto" IconColor="Color.Surface" Href="tags" Icon="@Icons.Material.Filled.Tag">Tags</MudNavLink>
 
-                    <AuthorizeView Context="e" Policy="@nameof(AuthorizationClaim.PromotionsRead)">
-                        <MudNavLink IconColor="Color.Surface" Style="width:auto" Href="promotions" Icon="@Icons.Material.Filled.Celebration">Promotions</MudNavLink>
-                    </AuthorizeView>
-
-                    <AuthorizeView Context="e" Policy="@nameof(AuthorizationClaim.ModerationRead)">
-                        <MudNavLink IconColor="Color.Surface" Style="width:auto" Href="logs" Icon="@Icons.Material.Filled.DocumentScanner">Logs</MudNavLink>
-                    </AuthorizeView>
-
-                    <AuthorizeView Context="e" Roles="@($"{nameof(AuthorizationClaim.DesignatedRoleMappingRead)},{nameof(AuthorizationClaim.DesignatedChannelMappingRead)},{nameof(AuthorizationClaim.AuthorizationConfigure)}")">
-                        <MudNavLink IconColor="Color.Surface" Style="width:auto" Href="config" Icon="@Icons.Material.Filled.Settings">Config</MudNavLink>
-                    </AuthorizeView>
-                </div>
-
-                <MudSpacer />
-
-                <div class="d-flex" style="align-items:center">
-                    @if (AvatarUrl is not null && Username is not null)
-                    {
-                        <MudMenu AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.BottomCenter" FullWidth="true">
-                            <ActivatorContent>
-                                <div class="d-flex" style="align-items: center">
-                                    <MudImage Src="@AvatarUrl" Style="margin-right:0.5em; border-radius:4px; height:32px; max-height:32px;" />
-                                    <MudText Style="font-size:24px;font-weight:600">@Username</MudText>
-                                    <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" />
-                                </div>
-                            </ActivatorContent>
-                            <ChildContent>
-                                <MudNavLink IconColor="Color.Surface" Icon="@Icons.Material.Filled.Logout" Href="logout">Log Out</MudNavLink>
-                            </ChildContent>
-                        </MudMenu>
-                    }
-                    <MudDivider Style="margin-right: .66rem" Vertical="true" FlexItem="true"/>
-                    <MudMenu AnchorOrigin="Origin.BottomRight">
-                        <ActivatorContent>
-                            <div class="d-flex" style="align-items: center">
-                                <MudImage Style="vertical-align: bottom" Src="@(SelectedGuild?.IconUrl)" Height="32" Width="32" Class="rounded-lg" />
-                                <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown"/>
-                            </div>
-                        </ActivatorContent>
-                        <ChildContent>
-                        @foreach (var guildOption in GuildOptions)
-                        {
-                            <MudMenuItem Style="white-space: nowrap" OnClick="() => SelectGuild(guildOption.Id)">
-                                <MudImage style="vertical-align: bottom" Src="@guildOption.IconUrl" Height="24" Width="24" Class="rounded-lg" />
-                                @guildOption.Name
-                            </MudMenuItem>
-                        }
-                        </ChildContent>
-                    </MudMenu>
-                </div>
-            </Authorized>
-            <NotAuthorized>
-                <div class="d-flex">
-                    <MudNavLink IconColor="Color.Surface" Style="width:auto" Href="" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-                    <MudNavLink IconColor="Color.Surface" Style="width:auto" Href="commands" Icon="@Icons.Material.Filled.KeyboardCommandKey">Commands</MudNavLink>
-                </div>
+    <div class="d-flex d-lg-none">
+        <MudAppBar Elevation="0" Fixed="false">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="ToggleDrawer" />
+            <AuthorizeView>
                 <MudSpacer/>
-                <div class="d-flex">
-                    <MudNavLink IconColor="Color.Surface" Href="login" Icon="@Icons.Material.Filled.Login">Log In</MudNavLink>
-                </div>
-            </NotAuthorized>
-        </AuthorizeView>
-    </MudAppBar>
+                <MiniUser/>
+            </AuthorizeView>
+        </MudAppBar>
+        <MudDrawer Color="Color.Primary" @bind-Open="_drawerVisible" Elevation="1" Anchor="Anchor.Top" DisableOverlay="false" ClipMode="DrawerClipMode.Never" Variant="DrawerVariant.Temporary" Fixed="false" >
+            <MudNavMenu Color="Color.Surface" Bordered="true">
+                <NavMenuLinks/>
+            </MudNavMenu>
+        </MudDrawer>
+    </div>
+
+    <div class="d-none d-lg-flex">
+        <MudAppBar Elevation="0" Dense="true" Fixed="false" DisableGutters="true">
+            <NavMenuLinks/>
+
+            <AuthorizeView>
+                <MudSpacer/>
+                <MiniUser/>
+            </AuthorizeView>
+        </MudAppBar>
+    </div>
 </CascadingAuthenticationState>
+
+<style>
+    .navmenu-item {
+        white-space: nowrap;
+        width: auto;
+    }
+</style>
 
 @code {
 
-    [CascadingParameter]
-    public Task<AuthenticationState>? AuthenticationState { get; set; } = null!;
+    private bool _drawerVisible;
 
-    [Inject]
-    public DiscordUserService DiscordUserService { get; set; } = null!;
-
-    [Inject]
-    public CookieService CookieService { get; set; } = null!;
-
-    [Inject]
-    public NavigationManager NavigationManager { get; set; } = null!;
-
-    private string? AvatarUrl { get; set; }
-    private string? Username { get; set; }
-
-    private IEnumerable<GuildOption> GuildOptions { get; set; } = Array.Empty<GuildOption>();
-    private SocketGuild? SelectedGuild { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        if (AuthenticationState is null)
-            return;
-
-        var authState = await AuthenticationState;
-        if (!authState.User.Identity?.IsAuthenticated ?? false)
-            return;
-
-        var avatarHash = authState.User.FindFirst(x => x.Type == DiscordAuthenticationConstants.Claims.AvatarHash)?.Value;
-        var user = DiscordUserService.GetCurrentUser();
-
-        AvatarUrl = $"https://cdn.discordapp.com/avatars/{user!.Id}/{avatarHash}.png";
-        Username = authState.User.Identity?.Name;
-
-        GuildOptions = DiscordUserService.GetGuildOptionsAsync();
-        SelectedGuild = user.Guild;
-    }
-
-    private async Task SelectGuild(ulong guildId)
-    {
-        await CookieService.SetSelectedGuildAsync(guildId);
-        NavigationManager.NavigateTo(NavigationManager.Uri, true);
-    }
+    private void ToggleDrawer() => _drawerVisible = !_drawerVisible;
 }
