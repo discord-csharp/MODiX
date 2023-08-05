@@ -10,18 +10,18 @@
 
 @if(Data is not null)
 {
-    <MudContainer>
+    <MudContainer MaxWidth="MaxWidth.False">
         <MudText Typo="Typo.h3">Statistics for C#</MudText>
-        <MudGrid Spacing="6" Style="flex-flow:row;">
-            <MudItem>
+        <MudGrid Spacing="6">
+            <MudItem lg="6" md="6" xs="12">
                 <MudPaper>
-                    <MudContainer Class="mud-theme-primary statsContainer">
+                    <MudContainer Class="mud-theme-primary pa-12">
                         <MudText Typo="Typo.h3">Role Distribution</MudText>
                     </MudContainer>
 
-                    <MudCard Class="d-flex" Style="align-items:center; flex-direction:column">
+                    <MudCard Class="d-flex flex-column align-center">
 
-                        <MudChipSet Style="display: flex; flex-wrap: wrap; justify-content: center;" MultiSelection="true" Filter="true" SelectedChipsChanged="SelectedChannelsChanged">
+                        <MudChipSet Class="d-flex flex-wrap justify-center" MultiSelection="true" Filter="true" SelectedChipsChanged="SelectedChannelsChanged">
                             @foreach (var role in Data.GuildRoleCounts)
                             {
                                 var channelColorStyle = $"border: 1px solid {role.Color}";
@@ -47,9 +47,9 @@
 
                 </MudPaper>
             </MudItem>
-            <MudItem>
+            <MudItem lg="6" md="6" xs="12">
                 <MudPaper>
-                    <MudContainer Class="mud-theme-primary statsContainer">
+                    <MudContainer Class="mud-theme-primary pa-12">
                         <MudText Typo="Typo.h3">Most Active Users</MudText>
                         <MudText Typo="Typo.body1">of the last 30 days</MudText>
                     </MudContainer>
@@ -70,7 +70,7 @@
                                 <MudText Inline="true" Typo="Typo.h5" Style="@(stat.Rank <= 3 ? "font-weight: bold;" : string.Empty)">
                                     @($"{rankSymbol ?? $"{stat.Rank}."} {username}")
                                 </MudText>
-                                <MudText Inline="true" Typo="Typo.subtitle2">@($"{stat.MessageCount} messages")</MudText>
+                                <MudText Inline="true" Typo="Typo.subtitle2">@stat.MessageCount messages</MudText>
                             </MudListItem>
                         }
                     </MudList>
@@ -81,12 +81,6 @@
 
     </MudContainer>
 }
-
-<style>
-    .statsContainer {
-        padding: 3rem;
-    }
-</style>
 
 @code {
     GuildStatData Data { get; set;} = null!;
