@@ -60,7 +60,7 @@
                 </HeaderContent>
                 <RowTemplate Context="tag">
                     <MudTd DataLabel="Name">@tag.Name</MudTd>
-                    <MudTd style="white-space:nowrap" DataLabel="Last Modified">@tag.Created.ToString("dd/MM/yy, h:MM:ss tt")</MudTd>
+                    <MudTd style="white-space:nowrap" DataLabel="Last Modified">@tag.Created.ToString("MM/dd/yy, h:mm:ss tt")</MudTd>
                     @if(tag.OwnerRole is not null)
                     {
                         var roleColor = Roles[tag.OwnerRole.Id].Color;

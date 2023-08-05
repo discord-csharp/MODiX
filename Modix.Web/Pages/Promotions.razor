@@ -92,7 +92,7 @@
                         </div>
                     </TitleContent>
                     <ChildContent>
-                        <MudText>Campaign started @campaign.CreateAction.Created.ToString("dd/MM/yy, h:MM:ss tt")</MudText>
+                        <MudText>Campaign started @campaign.CreateAction.Created.ToString("MM/dd/yy, h:mm:ss tt")</MudText>
                         <MudDivider Light="true"/>
                         @if(campaign.Subject.Id == CurrentUserId)
                         {
@@ -122,7 +122,7 @@
                                             Edit
                                             </MudButton>
                                         }
-                                        <MudText Style="color: grey" Inline="true">@comment.CreatedAt.ToString("dd/MM/yy, h:MM:ss tt")</MudText>
+                                    <MudText Style="color: grey" Inline="true">@comment.CreatedAt.ToString("MM/dd/yy, h:mm:ss tt")</MudText>
                                 </div>
                                 <MudDivider Light="true"/>
                             }

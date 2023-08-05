@@ -128,7 +128,7 @@
             <RowTemplate Context="infraction">
                 <MudTd DataLabel="Id">@infraction.Id</MudTd>
                 <MudTd DataLabel="Type">@infraction.Type</MudTd>
-                <MudTd DataLabel="Created On">@infraction.CreateAction.Created.ToString("dd/MM/yy, h:MM:ss tt")</MudTd>
+                <MudTd DataLabel="Created On">@infraction.CreateAction.Created.ToString("MM/dd/yy, h:mm:ss tt")</MudTd>
                 <MudTd DataLabel="Subject">@(GetUsername(infraction.Subject))</MudTd>
                 <MudTd DataLabel="Creator">@(GetUsername(infraction.CreateAction.CreatedBy))</MudTd>
                 <MudTd DataLabel="Reason">@infraction.Reason</MudTd>

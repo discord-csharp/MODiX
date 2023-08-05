@@ -41,11 +41,11 @@
     {
         <MudText Typo="Typo.h4">User Information</MudText>
         <div class="d-flex" style="margin-bottom: 1.5em">
-                <MudCard Elevation="2" Style="flex-grow: 1; flex-basis: 100%; padding: 1.25rem; margin-bottom: inherit">
-                    <UserLookupField Label="ID" Value="@userInformation.Id"/>
-                    <UserLookupField Label="First seen" Value="@userInformation.FirstSeen?.ToString("dd/MM/yy, h:MM:ss tt")" Default="@("Never")" />
-                    <UserLookupField Label="Last seen" Value="@userInformation.LastSeen?.ToString("dd/MM/yy, h:MM:ss tt")" Default="@("Never")" />
-                </MudCard>
+            <MudCard Elevation="2" Style="flex-grow: 1; flex-basis: 100%; padding: 1.25rem; margin-bottom: inherit">
+                <UserLookupField Label="ID" Value="@userInformation.Id"/>
+                <UserLookupField Label="First seen" Value="@userInformation.FirstSeen?.ToString("MM/dd/yy, h:mm:ss tt")" Default="@("Never")" />
+                <UserLookupField Label="Last seen" Value="@userInformation.LastSeen?.ToString("MM/dd/yy, h:mm:ss tt")" Default="@("Never")" />
+            </MudCard>
             <div style="margin-left: 1em">
                 <MudImage Src="@userInformation.AvatarUrl" Class="rounded-lg" Elevation="4" Fluid="true" Style="min-width: 200px" />
             </div>
@@ -64,8 +64,8 @@
         <MudCard Elevation="2" Style="margin-bottom: 1.5em; padding: 1.25rem">
 
             <UserLookupField Label="Nickname" Value="@userInformation.Nickname" Default="@("No Nickname")" />
-            <UserLookupField Label="Created" Value="@userInformation.CreatedAt.ToString("dd/MM/yy, h:MM:ss tt")" />
-            <UserLookupField Label="Joined" Value="@userInformation.JoinedAt?.ToString("dd/MM/yy, h:MM:ss tt")" Default="@("Never")" />
+            <UserLookupField Label="Created" Value="@userInformation.CreatedAt.ToString("MM/dd/yy, h:mm:ss tt")" />
+            <UserLookupField Label="Joined" Value="@userInformation.JoinedAt?.ToString("MM/dd/yy, h:mm:ss tt")" Default="@("Never")" />
 
             <UserLookupField Label="Roles" T="string">
                 <div style="display: inline-flex; align-items:center">
