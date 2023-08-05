@@ -1,6 +1,6 @@
 ﻿@page "/"
 @using Microsoft.AspNetCore.Components.Web
-@using Modix.Web.Services;
+@using Modix.Web.Models;
 @namespace Modix.Web.Pages
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
@@ -21,7 +21,7 @@
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
 </head>
 <body>
-    <component type="typeof(App)" render-mode="ServerPrerendered" param-SelectedGuild="@Request.Cookies[CookieService.GuildCookieKey]" />
+    <component type="typeof(App)" render-mode="ServerPrerendered" param-SelectedGuild="@Request.Cookies[CookieConstants.SelectedGuild]" />
 
     <div id="blazor-error-ui">
         <environment include="Staging,Production">

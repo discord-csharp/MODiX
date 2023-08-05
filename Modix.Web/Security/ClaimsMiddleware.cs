@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using Discord.WebSocket;
 using Modix.Services.Core;
-using Modix.Web.Services;
+using Modix.Web.Models;
 
 namespace Modix.Web.Security;
 
@@ -23,7 +23,7 @@ public class ClaimsMiddleware
             return;
         }
 
-        var selectedGuild = context.Request.Cookies[CookieService.GuildCookieKey];
+        var selectedGuild = context.Request.Cookies[CookieConstants.SelectedGuild];
         _ = ulong.TryParse(selectedGuild, out var selectedGuildId);
 
         if (context.User.Identity is not ClaimsIdentity claimsIdentity)

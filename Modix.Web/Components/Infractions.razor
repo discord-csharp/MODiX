@@ -70,10 +70,10 @@
                 }
         </DialogContent>
         <DialogActions>
-                <MudButton
-                    Variant="Variant.Filled"
-                    Disabled="@(_selectedUser is null || string.IsNullOrWhiteSpace(_infractionReason))"
-                    Color="Color.Success"
+            <MudButton
+                Variant="Variant.Filled"
+                Disabled="@(_selectedUser is null || string.IsNullOrWhiteSpace(_infractionReason))"
+                Color="Color.Success"
                 OnClick="SaveInfraction"
             >
                 Save
@@ -86,11 +86,11 @@
     <MudContainer MaxWidth="MaxWidth.False">
         <MudTable @ref="@TableRef" SortLabel="Sort By" Bordered="true" ServerData="LoadInfractions">
             <ToolBarContent>
-                        <MudButton Variant="Variant.Filled" OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
+                <MudButton Variant="Variant.Filled" OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
                 <MudButton Class="ml-1" Variant="Variant.Filled" OnClick="Refresh" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
                 <MudSpacer/>
-                <MudCheckBox @bind-Checked="_showState" Label="Show State" Color="Color.Primary" />
-                <MudCheckBox CheckedChanged="(bool value) => FilterChanged(() => _tableFilter.ShowDeleted = value)" Label="Show Deleted" Color="Color.Primary" />
+                <MudCheckBox T="bool" Checked="@_showState" CheckedChanged="ShowStateChanged" Label="Show State" Color="Color.Primary" />
+                <MudCheckBox T="bool" Checked="_tableFilter.ShowDeleted" CheckedChanged="ShowDeletedChanged" Label="Show Deleted" Color="Color.Primary" />
             </ToolBarContent>
             <HeaderContent>
                 <MudTh Style="text-align:center; vertical-align: top">
@@ -178,6 +178,9 @@
     [Inject]
     public IDialogService DialogService { get; set; } = null!;
 
+    [Inject]
+    public LocalStorageService LocalStorage { get; set; } = null!;
+
     [CascadingParameter]
     private Task<AuthenticationState>? AuthState { get; set; }
 
@@ -217,6 +220,23 @@
         var auth = await AuthState;
         _canRescind = auth.User.HasClaim(ClaimTypes.Role, nameof(AuthorizationClaim.ModerationRescind));
         _canDeleteInfractions = auth.User.HasClaim(ClaimTypes.Role, nameof(AuthorizationClaim.ModerationDeleteInfraction));
+
+        _tableFilter.ShowDeleted = await LocalStorage.GetBoolAsync("showDeleted");
+        _showState = await LocalStorage.GetBoolAsync("showState");
+
+        StateHasChanged();
+    }
+
+    private async Task ShowStateChanged(bool showState)
+    {
+        _showState = showState;
+        await LocalStorage.SetBoolAsync(CookieConstants.ShowState, showState);
+    }
+
+    private async Task ShowDeletedChanged(bool showDeleted)
+    {
+        await FilterChanged(() => _tableFilter.ShowDeleted = showDeleted);
+        await LocalStorage.SetBoolAsync(CookieConstants.ShowDeleted, showDeleted);
     }
 
     private void ToggleDialog()

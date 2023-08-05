@@ -7,7 +7,6 @@ public class CookieService
 {
     private readonly IJSRuntime _jsRuntime;
     private readonly SessionState _sessionState;
-    public const string GuildCookieKey = "SelectedGuild";
 
     public CookieService(IJSRuntime jsRuntime, SessionState sessionState)
     {
@@ -17,7 +16,7 @@ public class CookieService
 
     public async Task SetSelectedGuildAsync(ulong guildId)
     {
-        await _jsRuntime.InvokeVoidAsync("eval", $"document.cookie = \"{GuildCookieKey}={guildId}; path=/\";");
+        await _jsRuntime.InvokeVoidAsync("eval", $"document.cookie = \"{CookieConstants.SelectedGuild}={guildId}; path=/\";");
         _sessionState.SelectedGuild = guildId;
     }
 }

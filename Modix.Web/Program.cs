@@ -161,6 +161,7 @@ public class Program
         builder.Services.AddScoped<DiscordUserService>();
         builder.Services.AddScoped<CookieService>();
         builder.Services.AddScoped<SessionState>();
+        builder.Services.AddScoped<LocalStorageService>();
         builder.Services.AddMudServices();
         builder.Services.AddMudMarkdownServices();
         builder.Services.AddRazorPages();
