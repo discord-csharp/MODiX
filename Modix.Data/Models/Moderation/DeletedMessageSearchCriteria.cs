@@ -132,10 +132,16 @@ namespace Modix.Data.Models.Moderation
                     x => ReusableQueries.StringContainsUser.Invoke(x.Author, criteria!.Author!),
                     !string.IsNullOrWhiteSpace(criteria?.Author))
                 .FilterBy(
-                    x => x.CreateAction.CreatedById == criteria!.CreatedById,
+                    x => x.Batch == null
+                        ? x.CreateAction.CreatedById == criteria!.CreatedById
+                        : x.Batch.CreateAction.CreatedById == criteria!.CreatedById,
                     criteria?.CreatedById != null)
                 .FilterBy(
-                    x => ReusableQueries.StringContainsUser.Invoke(x.CreateAction.CreatedBy!, criteria!.CreatedBy!),
+                    x => ReusableQueries.StringContainsUser.Invoke(
+                        x.Batch == null
+                            ? x.CreateAction.CreatedBy!
+                            : x.Batch.CreateAction.CreatedBy,
+                        criteria!.CreatedBy!),
                     !string.IsNullOrWhiteSpace(criteria?.CreatedBy))
                 .FilterBy(
                     x => ReusableQueries.DbCaseInsensitiveContains.Invoke(x.Content, criteria!.Content!),

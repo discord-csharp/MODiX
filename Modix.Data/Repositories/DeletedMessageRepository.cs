@@ -93,13 +93,12 @@ namespace Modix.Data.Repositories
         public async Task<RecordsPage<DeletedMessageSummary>> SearchSummariesPagedAsync(
             DeletedMessageSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
         {
-            var sourceQuery = ModixContext.Set<DeletedMessageEntity>().AsNoTracking();
+            var sourceQuery = ModixContext.Set<DeletedMessageEntity>().AsNoTracking().AsExpandable();
 
             var filteredQuery = sourceQuery
                 .FilterBy(searchCriteria);
 
             var pagedQuery = filteredQuery
-                .AsExpandable()
                 .Select(DeletedMessageSummary.FromEntityProjection)
                 .SortBy(sortingCriteria, DeletedMessageSummary.SortablePropertyMap)
                 .OrderThenBy(x => x.MessageId, SortDirection.Ascending)
