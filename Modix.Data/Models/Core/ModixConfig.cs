@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Modix.Data.Models.Core
+﻿namespace Modix.Data.Models.Core
 {
     public class ModixConfig
     {
@@ -31,5 +29,6 @@ namespace Modix.Data.Models.Core
         public string WebsiteBaseUrl { get; set; } = "https://mod.gg";
 
         public bool EnableStatsd { get; set; }
+        public bool UseBlazor { get; set; }
     }
 }

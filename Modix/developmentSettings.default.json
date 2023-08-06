@@ -9,5 +9,6 @@
   "MessageCacheSize": "",
   "ReplUrl": "",
   "IlUrl": "",
-  "WebsiteBaseUrl": ""
+  "WebsiteBaseUrl": "",
+  "UseBlazor": true
 }
