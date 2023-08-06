@@ -32,19 +32,19 @@
         <MudItem xs="12" md="9" lg="11">
             @if (SubPage == "roles")
             {
-                <AuthorizeView Policy="@nameof(AuthorizationClaim.DesignatedRoleMappingRead)">
+                <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedRoleMappingRead)">
                     <Roles />
                 </AuthorizeView>
             }
             else if (SubPage == "channels")
             {
-                <AuthorizeView Policy="@nameof(AuthorizationClaim.DesignatedChannelMappingRead)">
+                <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedChannelMappingRead)">
                     <Channels />
                 </AuthorizeView>
             }
             else if (SubPage == "claims")
             {
-                <AuthorizeView Policy="@nameof(AuthorizationClaim.AuthorizationConfigure)">
+                <AuthorizeView Roles="@nameof(AuthorizationClaim.AuthorizationConfigure)">
                     <Claims />
                 </AuthorizeView>
             }

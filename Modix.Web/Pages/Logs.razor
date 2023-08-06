@@ -1,7 +1,7 @@
 ﻿@page "/logs/{SubPage}"
 @page "/logs"
 @page "/infractions"
-@attribute [Authorize(Policy = nameof(AuthorizationClaim.ModerationRead))]
+@attribute [Authorize(Roles = nameof(AuthorizationClaim.ModerationRead))]
 @using Modix.Data.Models.Core;
 @using Modix.Web.Components
 @using MudBlazor
@@ -24,13 +24,13 @@
         <MudItem xs="12" md="9" lg="11">
             @if(SubPage == "infractions")
             {
-                <AuthorizeView Policy="@nameof(AuthorizationClaim.ModerationRead)">
+                <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationRead)">
                     <Infractions Subject="@Subject" Id="@Id" />
                 </AuthorizeView>
             }
             else if(SubPage == "deletedMessages")
             {
-                <AuthorizeView Policy="@nameof(AuthorizationClaim.LogViewDeletedMessages)">
+                <AuthorizeView Roles="@nameof(AuthorizationClaim.LogViewDeletedMessages)">
                     <DeletedMessages/>
                 </AuthorizeView>
             }

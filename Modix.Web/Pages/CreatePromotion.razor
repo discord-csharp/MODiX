@@ -1,5 +1,5 @@
 ﻿@page "/promotions/create"
-@attribute [Authorize(Policy = nameof(AuthorizationClaim.PromotionsCreateCampaign))]
+@attribute [Authorize(Roles = nameof(AuthorizationClaim.PromotionsCreateCampaign))]
 @using Modix.Data.Models.Core;
 @using Modix.Services.Promotions;
 @using Modix.Web.Components

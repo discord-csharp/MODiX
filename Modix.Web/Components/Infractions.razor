@@ -34,16 +34,16 @@
             <div class="d-flex" style="column-gap: 1rem">
                 <div style="max-width: 6rem">
                     <MudSelect FullWidth="false" Required="true" @bind-Value="_infractionType">
-                        <AuthorizeView Policy="@nameof(AuthorizationClaim.ModerationNote)">
+                        <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationNote)">
                             <MudSelectItem Value="@InfractionType.Notice"/>
                         </AuthorizeView>
-                        <AuthorizeView Policy="@nameof(AuthorizationClaim.ModerationWarn)">
+                        <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationWarn)">
                             <MudSelectItem Value="@InfractionType.Warning"/>
                         </AuthorizeView>
-                        <AuthorizeView Policy="@nameof(AuthorizationClaim.ModerationMute)">
+                        <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationMute)">
                             <MudSelectItem Value="@InfractionType.Mute"/>
                         </AuthorizeView>
-                        <AuthorizeView Policy="@nameof(AuthorizationClaim.ModerationBan)">
+                        <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationBan)">
                             <MudSelectItem Value="@InfractionType.Ban"/>
                         </AuthorizeView>
                     </MudSelect>

@@ -1,8 +1,6 @@
-﻿using System.Security.Claims;
-using AspNet.Security.OAuth.Discord;
+﻿using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Modix.Data.Models.Core;
 using Modix.Web.Models;
 using Modix.Web.Security;
 using Modix.Web.Services;
@@ -50,15 +48,6 @@ public static class Setup
 
         services.AddRazorPages();
         services.AddServerSideBlazor();
-
-        services.AddAuthorization(config =>
-        {
-            var claims = Enum.GetValues<AuthorizationClaim>();
-            foreach (var claim in claims)
-            {
-                config.AddPolicy(claim.ToString(), builder => builder.RequireClaim(ClaimTypes.Role, claim.ToString()));
-            }
-        });
 
         return services;
     }

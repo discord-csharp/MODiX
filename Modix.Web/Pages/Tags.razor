@@ -44,7 +44,7 @@
 
             <MudTable Items="Data" SortLabel="Sort By" Bordered="true" Filter="FilterFunction">
                 <ToolBarContent>
-                    <AuthorizeView Context="e" Policy="@nameof(AuthorizationClaim.CreateTag)">
+                    <AuthorizeView Context="e" Roles="@nameof(AuthorizationClaim.CreateTag)">
                         <MudButton Class="mr-1" Variant="Variant.Filled" OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
                     </AuthorizeView>
                     <MudButton Variant="Variant.Filled" OnClick="FetchData" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
