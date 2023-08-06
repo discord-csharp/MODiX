@@ -17,7 +17,7 @@
 <CascadingAuthenticationState>
 
     <MudGrid>
-        <MudItem xs="2">
+        <MudItem xs="9" md="2" lg="1">
             <MudText Typo="Typo.h6">Configuration</MudText>
             <MudPaper>
                 <MudList SelectedValue="@SubPage" Clickable="true">
@@ -29,7 +29,7 @@
                 </MudList>
             </MudPaper>
         </MudItem>
-        <MudItem xs="9">
+        <MudItem xs="12" md="9" lg="11">
             @if (SubPage == "roles")
             {
                 <AuthorizeView Policy="@nameof(AuthorizationClaim.DesignatedRoleMappingRead)">

@@ -15,7 +15,7 @@
 @if (ClaimData is not null && MappedClaims is not null && Roles is not null && _selectedRole is not null)
 {
     <MudGrid Class="pl-1">
-        <MudItem xs="3">
+        <MudItem xs="8" md="4">
             <MudPaper>
                 <MudList SelectedValue="@_selectedRole" Clickable="true" DisablePadding="true">
                     @foreach(var role in Roles.Values)
@@ -27,7 +27,7 @@
             </MudPaper>
         </MudItem>
 
-        <MudItem xs="8">
+        <MudItem xs="11" md="8">
             @foreach (var claimData in ClaimData.OrderBy(x => x.Value.Name).GroupBy(x => x.Value.Category))
             {
                 <MudText Typo="Typo.h6">@claimData.Key.ToString().Titleize()</MudText>
@@ -36,7 +36,7 @@
                     MappedClaims.TryGetValue((_selectedRole, groupedClaimData.Key), out var mappedClaimForRole);
 
                     <MudCard Class="pa-3 mb-5">
-                        <div class="d-flex">
+                        <div class="d-flex flex-sm-row flex-column">
                             <MudText Inline="true" Style="font-weight: bold">@groupedClaimData.Value.Name.Titleize()</MudText>
                             <MudSpacer/>
                             <MudButtonGroup Size="Size.Small" Variant="Variant.Outlined" OverrideStyles="false">
