@@ -19,7 +19,7 @@
         </TitleContent>
         <DialogContent>
             <AutoComplete T="ModixUser"
-                          SearchFunc="(query) => DiscordUserService.AutoCompleteAsync(query)"
+                          SearchFunc="(query) => DiscordHelper.AutoCompleteAsync(query)"
                           Placeholder="Username or ID"
                           SelectedItemChanged="SelectedUserChanged"
                           Title="Subject"
@@ -182,7 +182,7 @@
     public IModerationService ModerationService { get; set; } = null!;
 
     [Inject]
-    public DiscordUserService DiscordUserService { get; set; } = null!;
+    public DiscordHelper DiscordHelper { get; set; } = null!;
 
     [Inject]
     public ISnackbar Snackbar { get; set; } = null!;
@@ -339,7 +339,7 @@
 
         try
         {
-            var currentUser = DiscordUserService.GetCurrentUser();
+            var currentUser = DiscordHelper.GetCurrentUser();
             await ModerationService.CreateInfractionAsync(currentUser!.Guild.Id, currentUser.Id, _infractionType, _selectedUser!.UserId, _infractionReason!, duration);
         }
         catch (InvalidOperationException ex)
@@ -401,7 +401,7 @@
 
     private async Task<TableData<InfractionData>> LoadInfractions(TableState tableState)
     {
-        var currentUser = DiscordUserService.GetCurrentUser();
+        var currentUser = DiscordHelper.GetCurrentUser();
 
         var sortingCriteria = new[]
         {

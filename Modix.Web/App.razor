@@ -35,7 +35,7 @@
     public SessionState SessionState { get; set; } = null!;
 
     [Inject]
-    public DiscordUserService DiscordUserService { get; set; } = null!;
+    public DiscordHelper DiscordHelper { get; set; } = null!;
 
     [Inject]
     public AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
@@ -57,7 +57,7 @@
         SessionState.CurrentUserId = userSnowflake;
         SessionState.SelectedGuild = selectedGuildId;
 
-        var currentUser = DiscordUserService.GetCurrentUser();
+        var currentUser = DiscordHelper.GetCurrentUser();
 
         await AuthorizationService.OnAuthenticatedAsync(currentUser!.Id, currentUser.Guild.Id, currentUser.Roles.Select(x => x.Id).ToList());
     }

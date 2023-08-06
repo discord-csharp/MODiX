@@ -21,7 +21,7 @@
         <DialogContent>
             <AutoComplete
                 T="RoleInformation"
-                SearchFunc="(query) => Task.FromResult(DiscordUserService.AutoCompleteRoles(query))"
+                SearchFunc="(query) => Task.FromResult(DiscordHelper.AutoCompleteRoles(query))"
                 Placeholder="@("@Administrator")"
                 SelectedItemChanged="SelectedRoleChanged"
                 Title="Role Name"
@@ -90,7 +90,7 @@
 
 @code {
     [Inject]
-    public DiscordUserService DiscordUserService { get; set; } = null!;
+    public DiscordHelper DiscordHelper { get; set; } = null!;
 
     [Inject]
     public IDesignatedRoleService DesignatedRoleService { get; set; } = null!;
@@ -110,7 +110,7 @@
         if (!firstRender)
             return;
 
-        var currentGuild = DiscordUserService.GetUserGuild();
+        var currentGuild = DiscordHelper.GetUserGuild();
         var designatedRoles = await DesignatedRoleService.GetDesignatedRolesAsync(currentGuild.Id);
 
         DesignatedRoleMappings = designatedRoles
@@ -140,7 +140,7 @@
 
     public async Task SaveDesignation()
     {
-        var currentGuild = DiscordUserService.GetUserGuild();
+        var currentGuild = DiscordHelper.GetUserGuild();
 
         var id = await DesignatedRoleService.AddDesignatedRoleAsync(currentGuild.Id, _selectedRole!.Id, _selectedDesignatedRoleType!.Value);
 

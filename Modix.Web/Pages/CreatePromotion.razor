@@ -28,7 +28,7 @@
         <MudItem xs="9">
             <MudItem Style="margin-bottom: 1.5rem">
                 <AutoComplete T="ModixUser"
-                              SearchFunc="(query) => DiscordUserService.AutoCompleteAsync(query)"
+                              SearchFunc="(query) => DiscordHelper.AutoCompleteAsync(query)"
                               Placeholder="Username or ID"
                               SelectedItemChanged="SelectedUserChanged"
                               Title="Tell us their username"
@@ -80,7 +80,7 @@
     public IPromotionsService PromotionsService { get; set; } = null!;
 
     [Inject]
-    public DiscordUserService DiscordUserService { get; set; } = null!;
+    public DiscordHelper DiscordHelper { get; set; } = null!;
 
     [Inject]
     public ISnackbar Snackbar { get; set; } = null!;
@@ -106,7 +106,7 @@
             return;
 
         var nextRank = await PromotionsService.GetNextRankRoleForUserAsync(user.UserId);
-        var currentGuild = DiscordUserService.GetUserGuild();
+        var currentGuild = DiscordHelper.GetUserGuild();
 
         _nextRank = new NextRank(nextRank?.Name, currentGuild.Roles.First(x => x.Id == nextRank?.Id).Color.ToString());
     }

@@ -158,7 +158,7 @@ public class Program
 
     private static void ConfigureServices(WebApplicationBuilder builder, IConfiguration configuration, ModixConfig modixConfig)
     {
-        builder.Services.AddScoped<DiscordUserService>();
+        builder.Services.AddScoped<DiscordHelper>();
         builder.Services.AddScoped<CookieService>();
         builder.Services.AddScoped<SessionState>();
         builder.Services.AddScoped<LocalStorageService>();

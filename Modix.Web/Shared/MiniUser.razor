@@ -52,7 +52,7 @@
     public Task<AuthenticationState>? AuthenticationState { get; set; } = null!;
 
     [Inject]
-    public DiscordUserService DiscordUserService { get; set; } = null!;
+    public DiscordHelper DiscordHelper { get; set; } = null!;
 
     private string? AvatarUrl { get; set; }
     private string? Username { get; set; }
@@ -76,12 +76,12 @@
             return;
 
         var avatarHash = authState.User.FindFirst(x => x.Type == DiscordAuthenticationConstants.Claims.AvatarHash)?.Value;
-        var user = DiscordUserService.GetCurrentUser();
+        var user = DiscordHelper.GetCurrentUser();
 
         AvatarUrl = $"https://cdn.discordapp.com/avatars/{user!.Id}/{avatarHash}.png";
         Username = authState.User.Identity?.Name;
 
-        GuildOptions = DiscordUserService.GetGuildOptions();
+        GuildOptions = DiscordHelper.GetGuildOptions();
         SelectedGuild = user.Guild;
     }
 

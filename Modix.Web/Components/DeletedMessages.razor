@@ -139,7 +139,7 @@
     public IModerationService ModerationService { get; set; } = null!;
 
     [Inject]
-    public DiscordUserService DiscordUserService { get; set; } = null!;
+    public DiscordHelper DiscordHelper { get; set; } = null!;
 
     [Inject]
     public ISnackbar Snackbar { get; set; } = null!;
@@ -174,7 +174,7 @@
 
     private async Task<TableData<DeletedMessageSummary>> LoadDeletedMessages(TableState tableState)
     {
-        var currentGuild = DiscordUserService.GetUserGuild();
+        var currentGuild = DiscordHelper.GetUserGuild();
 
         var searchCriteria = new DeletedMessageSearchCriteria
         {
@@ -243,7 +243,7 @@
             return;
         }
 
-        var currentUser = DiscordUserService.GetCurrentUser();
+        var currentUser = DiscordHelper.GetCurrentUser();
         var batchChannelId = deletedMessages.Records.First().Channel.Id;
         if (currentUser!.Guild.GetChannel(batchChannelId) is not ISocketMessageChannel foundChannel)
         {

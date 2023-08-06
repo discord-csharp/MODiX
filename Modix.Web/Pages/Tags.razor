@@ -89,7 +89,7 @@
     private ITagService TagService { get; set; } = null!;
 
     [Inject]
-    private DiscordUserService DiscordUserService { get; set; } = null!;
+    private DiscordHelper DiscordHelper { get; set; } = null!;
 
     [Inject]
     private IDialogService DialogService { get; set; } = null!;
@@ -120,7 +120,7 @@
 
     private async Task FetchData()
     {
-        var currentGuild = DiscordUserService.GetUserGuild();
+        var currentGuild = DiscordHelper.GetUserGuild();
 
         var summaries = await TagService.GetSummariesAsync(new TagSearchCriteria
         {
@@ -160,7 +160,7 @@
     {
         try
         {
-            var currentUser = DiscordUserService.GetCurrentUser();
+            var currentUser = DiscordHelper.GetCurrentUser();
 
             await TagService.CreateTagAsync(currentUser!.Guild.Id, currentUser.Id, _tagNameValue, _tagContentValue);
             var createdTag = await TagService.GetTagAsync(currentUser.Guild.Id, _tagNameValue);

@@ -152,7 +152,7 @@
 
 @code {
     [Inject]
-    public DiscordUserService DiscordUserService { get; set; } = null!;
+    public DiscordHelper DiscordHelper { get; set; } = null!;
 
     [Inject]
     public IPromotionsService PromotionsService { get; set; } = null!;
@@ -176,7 +176,7 @@
         if (!firstRender)
             return;
 
-        var currentUser = DiscordUserService.GetCurrentUser();
+        var currentUser = DiscordHelper.GetCurrentUser();
         RoleColors = currentUser!.Guild.Roles.ToDictionary(x => x.Id, x => x.Color.ToString());
 
         Campaigns = await PromotionsService.SearchCampaignsAsync(new PromotionCampaignSearchCriteria

@@ -82,7 +82,7 @@
     public IClaimMappingRepository ClaimMappingRepository { get; set; } = null!;
 
     [Inject]
-    public DiscordUserService DiscordUserService { get; set; } = null!;
+    public DiscordHelper DiscordHelper { get; set; } = null!;
 
     [Inject]
     public Modix.Services.Core.IAuthorizationService AuthorizationService { get; set; } = null!;
@@ -117,7 +117,7 @@
             }
         );
 
-        var currentGuild = DiscordUserService.GetUserGuild();
+        var currentGuild = DiscordHelper.GetUserGuild();
         var mappedClaims = await ClaimMappingRepository.SearchBriefsAsync(new ClaimMappingSearchCriteria
         {
             IsDeleted = false,

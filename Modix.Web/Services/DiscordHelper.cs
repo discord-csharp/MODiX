@@ -6,13 +6,13 @@ using Modix.Web.Models.Common;
 
 namespace Modix.Web.Services;
 
-public class DiscordUserService
+public class DiscordHelper
 {
     private readonly DiscordSocketClient _client;
     private readonly IUserService _userService;
     private readonly SessionState _sessionState;
 
-    public DiscordUserService(
+    public DiscordHelper(
         DiscordSocketClient client,
         IUserService userService,
         SessionState sessionState)

@@ -90,14 +90,14 @@
     IGuildStatService GuildStatService { get; set; } = null!;
 
     [Inject]
-    DiscordUserService DiscordUserService { get; set; } = null!;
+    DiscordHelper DiscordHelper { get; set; } = null!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
             return;
 
-        var currentUser = DiscordUserService.GetCurrentUser();
+        var currentUser = DiscordHelper.GetCurrentUser();
 
         var roleCounts = await GuildStatService.GetGuildMemberDistributionAsync(currentUser!.Guild);
         var messageCounts = await GuildStatService.GetTopMessageCounts(currentUser.Guild, currentUser.Id);

@@ -25,7 +25,7 @@
 
     <div class="mb-6">
         <AutoComplete T="ModixUser"
-                      SearchFunc="(query) => DiscordUserService.AutoCompleteAsync(query)"
+                      SearchFunc="(query) => DiscordHelper.AutoCompleteAsync(query)"
                       Placeholder="Username or ID"
                       SelectedItemChanged="SelectedUserChanged"
                       Title="Tell us their username"
@@ -122,7 +122,7 @@
     UserInformation? userInformation = null;
 
     [Inject]
-    public DiscordUserService DiscordUserService { get; set; } = null!;
+    public DiscordHelper DiscordHelper { get; set; } = null!;
 
     [Inject]
     public IUserService UserService { get; set; } = null!;
@@ -135,7 +135,7 @@
         if(!firstRender)
             return;
 
-        var currentUser = DiscordUserService.GetCurrentUser();
+        var currentUser = DiscordHelper.GetCurrentUser();
         await SelectedUserChanged(ModixUser.FromIGuildUser(currentUser!));
 
         StateHasChanged();
@@ -154,7 +154,7 @@
         if(user is null)
             return;
 
-        var currentGuild = DiscordUserService.GetUserGuild();
+        var currentGuild = DiscordHelper.GetUserGuild();
 
         var ephemeralUser = await UserService.GetUserInformationAsync(currentGuild.Id, user.UserId);
 

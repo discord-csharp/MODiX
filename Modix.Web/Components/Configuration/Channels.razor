@@ -21,7 +21,7 @@
             <DialogContent>
                 <AutoComplete
                     T="ChannelInformation"
-                    SearchFunc="(query) => Task.FromResult(DiscordUserService.AutocompleteChannels(query))"
+                    SearchFunc="(query) => Task.FromResult(DiscordHelper.AutocompleteChannels(query))"
                     Placeholder="@("#general")"
                     SelectedItemChanged="SelectedChannelChanged"
                     Title="Channel Name"
@@ -88,7 +88,7 @@
 
 @code {
     [Inject]
-    public DiscordUserService DiscordUserService { get; set; } = null!;
+    public DiscordHelper DiscordHelper { get; set; } = null!;
 
     [Inject]
     public IDesignatedChannelService DesignatedChannelService { get; set; } = null!;
@@ -108,7 +108,7 @@
         if (!firstRender)
             return;
 
-        var currentGuild = DiscordUserService.GetUserGuild();
+        var currentGuild = DiscordHelper.GetUserGuild();
         var designatedChannels = await DesignatedChannelService.GetDesignatedChannelsAsync(currentGuild.Id);
 
         DesignatedChannelMappings = designatedChannels
@@ -138,7 +138,7 @@
 
     public async Task SaveDesignation()
     {
-        var currentGuild = DiscordUserService.GetUserGuild();
+        var currentGuild = DiscordHelper.GetUserGuild();
         var channel = (Discord.IMessageChannel)currentGuild.GetChannel(_selectedChannel!.Id);
 
         var id = await DesignatedChannelService.AddDesignatedChannelAsync(currentGuild, channel, _selectedDesignatedChannelType!.Value);
