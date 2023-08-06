@@ -23,7 +23,7 @@
         User Lookup@(userInformation is null ? null : $" - {userInformation.Username + (userInformation.Discriminator == "0000" ? "" : "#" + userInformation.Discriminator)}")
     </MudText>
 
-    <div style="margin-bottom: 1.5rem">
+    <div class="mb-6">
         <AutoComplete T="ModixUser"
                       SearchFunc="(query) => DiscordUserService.AutoCompleteAsync(query)"
                       Placeholder="Username or ID"
@@ -40,19 +40,19 @@
     @if (userInformation is not null)
     {
         <MudText Typo="Typo.h4">User Information</MudText>
-        <div class="d-flex" style="margin-bottom: 1.5em">
-            <MudCard Elevation="2" Style="flex-grow: 1; flex-basis: 100%; padding: 1.25rem; margin-bottom: inherit">
+        <div class="d-flex flex-sm-row flex-column-reverse align-center mb-3">
+            <MudCard Class="pa-5 mb-3 align-self-start" Elevation="2" Style="width: 100%;">
                 <UserLookupField Label="ID" Value="@userInformation.Id"/>
                 <UserLookupField Label="First seen" Value="@userInformation.FirstSeen?.ToString("MM/dd/yy, h:mm:ss tt")" Default="@("Never")" />
                 <UserLookupField Label="Last seen" Value="@userInformation.LastSeen?.ToString("MM/dd/yy, h:mm:ss tt")" Default="@("Never")" />
             </MudCard>
-            <div style="margin-left: 1em">
+            <div class="mb-5 ml-sm-3">
                 <MudImage Src="@userInformation.AvatarUrl" Class="rounded-lg" Elevation="4" Fluid="true" Style="min-width: 200px" />
             </div>
         </div>
 
         <MudText Typo="Typo.h4">Guild Participation</MudText>
-        <MudCard Elevation="2" Style="margin-bottom: 1.5em; padding: 1.25rem">
+        <MudCard Class="pa-5 mb-3" Elevation="2">
             <UserLookupField Label="Rank" Value="@userInformation.Rank.Ordinalize()"/>
             <UserLookupField Label="Last 7 days" Value="@("message".ToQuantity(userInformation.Last7DaysMessages))" />
             <UserLookupField Label="Last 30 days" Value="@("message".ToQuantity(userInformation.Last30DaysMessages))"/>
@@ -61,14 +61,14 @@
         </MudCard>
 
         <MudText Typo="Typo.h4">Member Information</MudText>
-        <MudCard Elevation="2" Style="margin-bottom: 1.5em; padding: 1.25rem">
+        <MudCard Class="pa-5 mb-3" Elevation="2">
 
             <UserLookupField Label="Nickname" Value="@userInformation.Nickname" Default="@("No Nickname")" />
             <UserLookupField Label="Created" Value="@userInformation.CreatedAt.ToString("MM/dd/yy, h:mm:ss tt")" />
             <UserLookupField Label="Joined" Value="@userInformation.JoinedAt?.ToString("MM/dd/yy, h:mm:ss tt")" Default="@("Never")" />
 
             <UserLookupField Label="Roles" T="string">
-                <div style="display: inline-flex; align-items:center">
+                <div class="d-flex flex-sm-row flex-column">
                     @if(!userInformation.Roles.Any())
                     {
                         <em class="lookup-text-item">No roles assigned</em>
@@ -88,7 +88,7 @@
         </MudCard>
 
         <MudText Typo="Typo.h4">Messages by Channel</MudText>
-        <MudCard Class="d-flex flex-column" Style="align-items:center; margin-bottom: 1.5em; padding: 1.25rem" Elevation="2">
+        <MudCard Class="d-flex flex-column align-center pa-5 mb-3" Elevation="2">
 
             <MudChipSet MultiSelection="true" Filter="true" SelectedChipsChanged="SelectedChannelsChanged">
                 @foreach (var channel in userInformation.MessageCountsPerChannel)
