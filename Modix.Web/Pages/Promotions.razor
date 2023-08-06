@@ -55,7 +55,7 @@
                                 <MudText Style="margin-left: .5em" Typo="Typo.h4" Inline="true">
                                     @campaign.Subject.GetFullUsername()
                                 </MudText>
-                                <MudText Class="targetRole" Inline="true" Style="@($"color: {RoleColors[campaign.TargetRole.Id]}; vertical-align: text-bottom")">&#10149; @campaign.TargetRole.Name</MudText>
+                                <MudText Class="targetRole" Inline="true" Style="@($"color: {RoleColors[campaign.TargetRole.Id]}; vertical-align: text-bottom; white-space: nowrap")">&#10149; @campaign.TargetRole.Name</MudText>
                             </div>
 
                             @if (campaign.Outcome is null)
