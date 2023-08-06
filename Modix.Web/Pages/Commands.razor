@@ -1,96 +1,96 @@
 ﻿@page "/commands"
 @using Modix.Services.CommandHelp;
 @using Modix.Services.Utilities;
+@using Modix.Web.Components
 @using Modix.Web.Models.Commands;
 @using MudBlazor;
+@using Humanizer;
 
 <PageTitle>Modix - Commands</PageTitle>
 
-    <MudDrawer Open="true" Elevation="0" Variant="DrawerVariant.Responsive" Fixed="true" ClipMode="DrawerClipMode.Always" PreserveOpenState="false" DisableOverlay="true">
+<AnchorNavigation />
+
+@if (Modules is not null)
+{
+    <MudDrawer Open="true" Elevation="0" Variant="DrawerVariant.Responsive" Fixed="true" ClipMode="DrawerClipMode.Always" PreserveOpenState="false" DisableOverlay="true" Style="top: unset !important">
         <MudNavMenu Class="d-flex flex-column px-5">
             @foreach (var module in Modules.OrderBy(m => m.Name))
             {
-                <a href="@("commands/#" + module.Name)"
-                    style="margin: 0.25em 0"
-                    onclick="document.getElementsByName('@module.Name')[0].scrollIntoView({behavior:'smooth'})"
-                    class="mud-typography mud-link mud-primary-text mud-link-underline-hover mud-typography-body1"
-                >
-                    @module.Name
-                </a>
+                <MudLink Class="my-1" Href="@("commands/#" + module.Name.Dehumanize())">@module.Name</MudLink>
             }
         </MudNavMenu>
     </MudDrawer>
 
-<div class="d-flex justify-center mud-height-full flex-column">
-    <MudText Typo="Typo.h2">Commands</MudText>
-    @foreach (var module in Modules.OrderBy(m => m.Name))
-    {
-        <MudLink Underline="Underline.None" Href="@("commands/#" + module.Name)" UserAttributes="@(new Dictionary<string, object>{ { "name", module.Name } })">
-            <MudText Typo="Typo.h4">@module.Name</MudText>
-        </MudLink>
-        <MudText Typo="Typo.h5">@module.Summary</MudText>
-
-        foreach (var command in module.Commands)
+    <div class="d-flex flex-column">
+        @foreach (var module in Modules.OrderBy(m => m.Name))
         {
             <MudContainer MaxWidth="MaxWidth.False">
-                <MudCard Style="background-color:#f5f5f5" Elevation="2">
-                    @foreach (var alias in command.Aliases)
-                    {
-                            <div class="control flex-md-row flex-column">
-                            <MudText Class="command" Typo="Typo.h6">@(command.IsSlashCommand ? '/' : '!')@alias.ToLower()</MudText>
-                            @if (alias == command.Aliases.First())
+                <MudLink Underline="Underline.None" Href="@("commands/#" + module.Name)" UserAttributes="@(new Dictionary<string, object>{ { "id", module.Name.Dehumanize() } })">
+                    <MudText Typo="Typo.h4">@module.Name</MudText>
+                </MudLink>
+                <MudText Typo="Typo.h5">@module.Summary</MudText>
+
+                @foreach (var command in module.Commands)
+                {
+                        <MudCard Class="mb-6" Style="background-color:#f5f5f5" Elevation="2">
+                            @foreach (var alias in command.Aliases)
                             {
-                                <MudText Class="summary">@command.Summary</MudText>
-                                    <div class="d-flex flex-wrap">
-                                @foreach (var parameter in command.Parameters)
-                                {
-                                    @*TODO: Add pointer styling?*@
+                                <div class="control flex-md-row flex-column">
+                                    <MudText Class="command" Typo="Typo.h6">@(command.IsSlashCommand ? '/' : '!')@alias.ToLower()</MudText>
+                                    @if (alias == command.Aliases.First())
+                                    {
+                                        <MudText Class="summary">@command.Summary</MudText>
+                                        <div class="d-flex flex-wrap">
+                                            @foreach (var parameter in command.Parameters)
+                                            {
+                                                @*TODO: Add pointer styling?*@
 
-                                    <div class="tags">
-                                        <MudText Inline="true" Class="tag is-dark">@parameter.Name</MudText>
+                                                <div class="tags">
+                                                    <MudText Inline="true" Class="tag is-dark">@parameter.Name</MudText>
 
-                                        @if (parameter.Summary is not null || parameter.Options.Count > 0)
-                                        {
-                                            var description = $"{parameter.Summary} {string.Join(", ", parameter.Options)}";
-                                            <MudTooltip Inline="true"
-                                                        ShowOnHover="true"
-                                                        Placement="Placement.Top"
-                                                        Text="@description"
-                                                        RootClass="tag"
-                                                        RootStyle="background-color:#f5f5f5">
-                                                &hellip;
-                                            </MudTooltip>
-                                        }
+                                                    @if (parameter.Summary is not null || parameter.Options.Count > 0)
+                                                    {
+                                                        var description = $"{parameter.Summary} {string.Join(", ", parameter.Options)}";
+                                                        <MudTooltip Inline="true"
+                                                                    ShowOnHover="true"
+                                                                    Placement="Placement.Top"
+                                                                    Text="@description"
+                                                                    RootClass="tag"
+                                                                    RootStyle="background-color:#f5f5f5">
+                                                            &hellip;
+                                                        </MudTooltip>
+                                                    }
 
-                                        <span class="tag is-info">@parameter.Type</span>
+                                                    <span class="tag is-info">@parameter.Type</span>
 
-                                        @if (parameter.IsOptional)
-                                        {
+                                                    @if (parameter.IsOptional)
+                                                    {
 
-                                            <MudTooltip Inline="true"
-                                                        ShowOnHover="true"
-                                                        Placement="Placement.Top"
-                                                        Text="Optional"
-                                                        RootClass="tag"
-                                                        RootStyle="background-color:#ffdd57;color:rgba(0,0,0,.7)">
-                                                ?
-                                            </MudTooltip>
-                                        }
-                                    </div>
-                                }
-                                    </div>
+                                                        <MudTooltip Inline="true"
+                                                                    ShowOnHover="true"
+                                                                    Placement="Placement.Top"
+                                                                    Text="Optional"
+                                                                    RootClass="tag"
+                                                                    RootStyle="background-color:#ffdd57;color:rgba(0,0,0,.7)">
+                                                            ?
+                                                        </MudTooltip>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
 
+                                    }
+                                </div>
                             }
-                        </div>
-                    }
-                </MudCard>
+                        </MudCard>
+                }
+
             </MudContainer>
             <MudDivider Light="true" Style="margin:10px 0 10px 0"></MudDivider>
         }
 
-    }
-
-</div>
+    </div>
+}
 
 <style>
 
@@ -117,26 +117,26 @@
         flex-wrap: nowrap;
     }
 
-    .tags .tag {
-        border-radius: 4px;
-        display: inline-flex;
-        height: 2em;
-        margin: 0.16em 0 0.16em 0 !important;
-        align-items: center;
-        padding-left: .75em;
-        padding-right: .75em;
-        font-size: .75rem;
-    }
+        .tags .tag {
+            border-radius: 4px;
+            display: inline-flex;
+            height: 2em;
+            margin: 0.16em 0 0.16em 0 !important;
+            align-items: center;
+            padding-left: .75em;
+            padding-right: .75em;
+            font-size: .75rem;
+        }
 
-    .tags .tag.is-dark {
-        background-color: #363636;
-        color: #fff
-    }
+            .tags .tag.is-dark {
+                background-color: #363636;
+                color: #fff
+            }
 
-    .tags .tag.is-info {
-        background-color: #3298dc;
-        color: #fff
-    }
+            .tags .tag.is-info {
+                background-color: #3298dc;
+                color: #fff
+            }
 
     .tag:not(:last-child) {
         border-bottom-right-radius: 0;
@@ -153,12 +153,15 @@
 
 @code {
     [Inject]
-    ICommandHelpService CommandHelpService { get; set; } = null!;
+    public ICommandHelpService CommandHelpService { get; set; } = null!;
 
-    IReadOnlyCollection<Module> Modules = null!;
+    private IReadOnlyCollection<Module>? Modules;
 
-    protected override void OnInitialized()
+    protected override void OnAfterRender(bool firstRender)
     {
+        if (!firstRender)
+            return;
+
         var modules = CommandHelpService.GetModuleHelpData();
 
         Modules = modules.Select(m =>
@@ -166,5 +169,7 @@
             var commands = m.Commands.Select(c => new Command(c.Name, c.Summary, FormatUtilities.CollapsePlurals(c.Aliases), c.Parameters, c.IsSlashCommand));
             return new Module(m.Name, m.Summary, commands);
         }).ToArray();
+
+        StateHasChanged();
     }
 }
