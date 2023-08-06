@@ -45,7 +45,6 @@ public static class Setup
         services.AddScoped<DiscordHelper>();
         services.AddScoped<CookieService>();
         services.AddScoped<SessionState>();
-        services.AddScoped<LocalStorageService>();
         services.AddMudServices();
         services.AddMudMarkdownServices();
 

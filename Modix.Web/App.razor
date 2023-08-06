@@ -31,6 +31,15 @@
     [Parameter]
     public string? SelectedGuild { get; set; }
 
+    [Parameter]
+    public string? ShowInfractionState { get; set; }
+
+    [Parameter]
+    public string? ShowDeletedInfractions { get; set; }
+
+    [Parameter]
+    public string? ShowInactivePromotions { get; set; }
+
     [Inject]
     public SessionState SessionState { get; set; } = null!;
 
@@ -53,9 +62,15 @@
 
         _ = ulong.TryParse(userId, out var userSnowflake);
         _ = ulong.TryParse(SelectedGuild, out var selectedGuildId);
+        _ = bool.TryParse(ShowInfractionState, out var showInfractionState);
+        _ = bool.TryParse(ShowDeletedInfractions, out var showDeletedInfractions);
+        _ = bool.TryParse(ShowInactivePromotions, out var showInactivePromotions);
 
         SessionState.CurrentUserId = userSnowflake;
         SessionState.SelectedGuild = selectedGuildId;
+        SessionState.ShowInfractionState = showInfractionState;
+        SessionState.ShowDeletedInfractions = showDeletedInfractions;
+        SessionState.ShowInactivePromotions = showInactivePromotions;
 
         var currentUser = DiscordHelper.GetCurrentUser();
 

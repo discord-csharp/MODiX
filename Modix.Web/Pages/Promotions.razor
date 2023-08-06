@@ -8,6 +8,7 @@
 @using Modix.Services.Promotions;
 @using Modix.Web.Components;
 @using Modix.Web.Models.Promotions;
+@using Modix.Web.Models;
 @using Modix.Web.Services;
 @using MudBlazor
 @using Humanizer;
@@ -20,7 +21,7 @@
     <MudContainer>
         <MudText Typo="Typo.h4">Promotion Campaigns</MudText>
         <div class="d-flex" style="justify-content: end; margin-bottom: 1rem">
-            <MudCheckBox @bind-Checked="_showInactive" Label="Show Inactive" Color="Color.Primary"></MudCheckBox>
+            <MudCheckBox T="bool" Checked="_showInactive" CheckedChanged="ShowInactiveChanged" Label="Show Inactive" Color="Color.Primary"></MudCheckBox>
             <MudButton Href="/promotions/create" Style="margin-left: 1rem" Variant="Variant.Filled" Color="Color.Primary">Start One</MudButton>
         </div>
         <MudExpansionPanels MultiExpansion="true">
@@ -152,6 +153,12 @@
 
 @code {
     [Inject]
+    public SessionState SessionState { get; set; } = null!;
+
+    [Inject]
+    public CookieService CookieService { get; set; } = null!;
+
+    [Inject]
     public DiscordHelper DiscordHelper { get; set; } = null!;
 
     [Inject]
@@ -171,6 +178,11 @@
 
     private bool _showInactive;
 
+    protected override void OnInitialized()
+    {
+        _showInactive = SessionState.ShowInactivePromotions;
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
@@ -187,6 +199,12 @@
         CurrentUserId = currentUser.Id;
 
         StateHasChanged();
+    }
+
+    private async Task ShowInactiveChanged(bool showInactive)
+    {
+        _showInactive = showInactive;
+        await CookieService.SetShowInactivePromotionsAsync(showInactive);
     }
 
     private async Task CampaignExpanded(bool wasExpanded, long campaignId, ulong userId)

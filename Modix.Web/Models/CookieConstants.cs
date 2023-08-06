@@ -3,6 +3,7 @@
 public static class CookieConstants
 {
     public const string SelectedGuild = nameof(SelectedGuild);
-    public const string ShowState = nameof(ShowState);
-    public const string ShowDeleted = nameof(ShowDeleted);
+    public const string ShowInfractionState = nameof(ShowInfractionState);
+    public const string ShowDeletedInfractions = nameof(ShowDeletedInfractions);
+    public const string ShowInactivePromotions = nameof(ShowInactivePromotions);
 }

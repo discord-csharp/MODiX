@@ -21,7 +21,12 @@
     <component type="typeof(HeadOutlet)" render-mode="ServerPrerendered" />
 </head>
 <body>
-    <component type="typeof(App)" render-mode="ServerPrerendered" param-SelectedGuild="@Request.Cookies[CookieConstants.SelectedGuild]" />
+    <component type="typeof(App)" render-mode="ServerPrerendered"
+        param-SelectedGuild="@Request.Cookies[CookieConstants.SelectedGuild]"
+        param-ShowInfractionState="@Request.Cookies[CookieConstants.ShowInfractionState]"
+        param-ShowDeletedInfractions="@Request.Cookies[CookieConstants.ShowDeletedInfractions]"
+        param-ShowInactivePromotions="@Request.Cookies[CookieConstants.ShowInactivePromotions]"
+        />
 
     <div id="blazor-error-ui">
         <environment include="Staging,Production">

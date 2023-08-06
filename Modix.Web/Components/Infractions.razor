@@ -96,7 +96,7 @@
             <MudSpacer />
 
             <MudItem xs="12" sm="3" lg="2" Class="py-0">
-                <MudCheckBox T="bool" Checked="@_showState" CheckedChanged="ShowStateChanged" Label="Show State" Color="Color.Primary" />
+                <MudCheckBox T="bool" Checked="_showState" CheckedChanged="ShowStateChanged" Label="Show State" Color="Color.Primary" />
             </MudItem>
             <MudItem xs="12" sm="3" lg="2" Class="py-0">
                 <MudCheckBox T="bool" Checked="_tableFilter.ShowDeleted" CheckedChanged="ShowDeletedChanged" Label="Show Deleted" Color="Color.Primary" />
@@ -191,7 +191,10 @@
     public IDialogService DialogService { get; set; } = null!;
 
     [Inject]
-    public LocalStorageService LocalStorage { get; set; } = null!;
+    public SessionState SessionState { get; set; } = null!;
+
+    [Inject]
+    public CookieService CookieService { get; set; } = null!;
 
     [CascadingParameter]
     private Task<AuthenticationState>? AuthState { get; set; }
@@ -215,10 +218,10 @@
 
     private TableFilter _tableFilter = new();
 
-    protected override void OnParametersSet()
+    protected override void OnInitialized()
     {
-        _tableFilter.Subject = Subject;
-        _tableFilter.IdString = Id;
+        _tableFilter.ShowDeleted = SessionState.ShowDeletedInfractions;
+        _showState = SessionState.ShowInfractionState;
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -232,23 +235,18 @@
         var auth = await AuthState;
         _canRescind = auth.User.HasClaim(ClaimTypes.Role, nameof(AuthorizationClaim.ModerationRescind));
         _canDeleteInfractions = auth.User.HasClaim(ClaimTypes.Role, nameof(AuthorizationClaim.ModerationDeleteInfraction));
-
-        _tableFilter.ShowDeleted = await LocalStorage.GetBoolAsync("showDeleted");
-        _showState = await LocalStorage.GetBoolAsync("showState");
-
-        StateHasChanged();
     }
 
     private async Task ShowStateChanged(bool showState)
     {
         _showState = showState;
-        await LocalStorage.SetBoolAsync(CookieConstants.ShowState, showState);
+        await CookieService.SetShowInfractionStateAsync(showState);
     }
 
     private async Task ShowDeletedChanged(bool showDeleted)
     {
         await FilterChanged(() => _tableFilter.ShowDeleted = showDeleted);
-        await LocalStorage.SetBoolAsync(CookieConstants.ShowDeleted, showDeleted);
+        await CookieService.SetShowDeletedInfractionsAsync(showDeleted);
     }
 
     private void ToggleDialog()
