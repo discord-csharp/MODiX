@@ -71,7 +71,7 @@
     </DialogContent>
 </MudDialog>
 
-<MudContainer>
+<MudContainer MaxWidth="MaxWidth.False">
     <MudTable @ref="@TableRef" Bordered="true" ServerData="LoadDeletedMessages" SortLabel="Sort By">
         <ToolBarContent>
             <MudButton Class="ml-1" Variant="Variant.Filled" OnClick="RefreshTable" StartIcon="@Icons.Material.Filled.Refresh" Color="MudBlazor.Color.Primary">Refresh</MudButton>
