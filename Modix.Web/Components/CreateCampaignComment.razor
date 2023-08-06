@@ -1,0 +1,40 @@
+﻿@using Modix.Data.Models.Promotions;
+@using MudBlazor;
+
+<div class="d-flex mt-3 justify-center">
+    <MudIcon Icon="@Icons.Material.Filled.AddComment"></MudIcon>
+</div>
+
+<MudPaper Outlined="true" Class="mt-3">
+
+<div class="d-flex ml-2 my-2">
+    <div class="d-flex mr-2">
+        <MudSelect Margin="Margin.Dense" DisableUnderLine="true" Class="" T="PromotionSentiment" Required="true" @bind-Value="PromotionSentiment" FullWidth="false">
+            <MudSelectItem Value="@PromotionSentiment.Approve">
+                <MudIcon Icon="@Icons.Material.Filled.ThumbUp"></MudIcon>
+            </MudSelectItem>
+            <MudSelectItem Value="@PromotionSentiment.Oppose">
+                <MudIcon Icon="@Icons.Material.Filled.ThumbDown"></MudIcon>
+            </MudSelectItem>
+        </MudSelect>
+    </div>
+    <MudTextField T="string" Placeholder="Make a Comment..." Immediate="true" Text="@Content" @bind-Value="@Content" />
+
+    <MudButton Class="mx-3" Variant="Variant.Filled" Color="Color.Success" OnClick="Submit">Create</MudButton>
+</div>
+</MudPaper>
+
+@code {
+
+    [Parameter, EditorRequired]
+    public EventCallback<(PromotionSentiment PromotionSentiment, string? Content)> OnCampaignCommentCreation { get; set; }
+
+    private PromotionSentiment PromotionSentiment { get; set; } = PromotionSentiment.Approve;
+    private string? Content { get; set; }
+
+    private async Task Submit()
+    {
+        await OnCampaignCommentCreation.InvokeAsync((PromotionSentiment, Content));
+    }
+
+}
