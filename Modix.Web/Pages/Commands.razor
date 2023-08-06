@@ -13,7 +13,7 @@
 @if (Modules is not null)
 {
     <MudGrid>
-        <MudItem sm="3" Class="d-none d-sm-flex">
+        <MudItem sm="3" md="2" xl="1" Class="d-none d-sm-flex">
             <MudList SelectedValue="string.Empty" Clickable="true" Class="sticky align-self-start pa-3" Style="top: 0" Color="Color.Primary">
                 @foreach (var module in Modules.OrderBy(x => x.Name))
                 {
@@ -24,7 +24,7 @@
             </MudList>
         </MudItem>
 
-        <MudItem sm="9">
+        <MudItem sm="9" md="10" xl="11">
             <div class="d-flex flex-column">
                 @foreach (var module in Modules.OrderBy(m => m.Name))
                 {
