@@ -10,19 +10,11 @@
   <ItemGroup>
     <PackageReference Include="AspNet.Security.OAuth.Discord" />
     <PackageReference Include="Discord.Net" />
-    <PackageReference Include="Microsoft.Extensions.Http.Polly" />
     <PackageReference Include="MudBlazor" Version="6.7.0" />
     <PackageReference Include="MudBlazor.Markdown" Version="0.1.1" />
-    <PackageReference Include="Serilog.AspNetCore" />
-    <PackageReference Include="Serilog.Expressions" />
-    <PackageReference Include="Serilog.Sinks.Console" />
-    <PackageReference Include="Serilog.Sinks.File" />
-    <PackageReference Include="Serilog.Sinks.Seq" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Modix.Bot\Modix.Bot.csproj" />
-    <ProjectReference Include="..\Modix.Common\Modix.Common.csproj" />
     <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
     <ProjectReference Include="..\Modix.Services\Modix.Services.csproj" />
   </ItemGroup>
