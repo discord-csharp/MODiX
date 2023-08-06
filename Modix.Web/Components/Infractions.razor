@@ -84,14 +84,26 @@
     </MudDialog>
 
     <MudContainer MaxWidth="MaxWidth.False">
-        <MudTable @ref="@TableRef" SortLabel="Sort By" Bordered="true" ServerData="LoadInfractions">
-            <ToolBarContent>
-                <MudButton Variant="Variant.Filled" OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
+
+        <MudGrid Class="mb-1">
+            <MudItem xs="12" sm="3" lg="2" Class="py-0">
+                <MudButton Class="ml-1 mb-1" Variant="Variant.Filled" OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
+            </MudItem>
+            <MudItem xs="12" sm="3" lg="2" Class="py-0">
                 <MudButton Class="ml-1" Variant="Variant.Filled" OnClick="Refresh" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
-                <MudSpacer/>
+            </MudItem>
+
+            <MudSpacer />
+
+            <MudItem xs="12" sm="3" lg="2" Class="py-0">
                 <MudCheckBox T="bool" Checked="@_showState" CheckedChanged="ShowStateChanged" Label="Show State" Color="Color.Primary" />
+            </MudItem>
+            <MudItem xs="12" sm="3" lg="2" Class="py-0">
                 <MudCheckBox T="bool" Checked="_tableFilter.ShowDeleted" CheckedChanged="ShowDeletedChanged" Label="Show Deleted" Color="Color.Primary" />
-            </ToolBarContent>
+            </MudItem>
+        </MudGrid>
+
+        <MudTable @ref="@TableRef" SortLabel="Sort By" Bordered="true" ServerData="LoadInfractions">
             <HeaderContent>
                 <MudTh Style="text-align:center; vertical-align: top">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.Id">Id</MudTableSortLabel>
