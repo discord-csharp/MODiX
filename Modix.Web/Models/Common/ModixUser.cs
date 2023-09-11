@@ -3,29 +3,23 @@ using Modix.Services.Utilities;
 
 namespace Modix.Web.Models.Common;
 
-public class ModixUser : IAutoCompleteItem
+public sealed class ModixUser : IAutoCompleteItem
 {
-    public string Name { get; set; }
-    public ulong UserId { get; set; }
-    public string AvatarUrl { get; set; }
+    public string? Name { get; init; }
+    public ulong UserId { get; init; }
+    public string? AvatarUrl { get; init; }
 
-    public static ModixUser FromIGuildUser(IGuildUser user)
+    public static ModixUser FromIGuildUser(IGuildUser user) => new()
     {
-        return new()
-        {
-            Name = user.GetDisplayName(),
-            UserId = user.Id,
-            AvatarUrl = user.GetDisplayAvatarUrl() ?? user.GetDefaultAvatarUrl()
-        };
-    }
+        Name = user.GetDisplayName(),
+        UserId = user.Id,
+        AvatarUrl = user.GetDisplayAvatarUrl() ?? user.GetDefaultAvatarUrl()
+    };
 
-    public static ModixUser FromNonGuildUser(IUser user)
+    public static ModixUser FromNonGuildUser(IUser user) => new()
     {
-        return new()
-        {
-            Name = user.GetDisplayName(),
-            UserId = user.Id,
-            AvatarUrl = user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl()
-        };
-    }
+        Name = user.GetDisplayName(),
+        UserId = user.Id,
+        AvatarUrl = user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl()
+    };
 }

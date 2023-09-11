@@ -41,8 +41,8 @@
                 var sentimentColor = sentimentRatio switch
                 {
                     _ when isCurrentUserCampaign => Color.Transparent,
-                    _ when sentimentRatio > 0.67 => Color.Success,
-                    _ when sentimentRatio > 0.33 => Color.Warning,
+                    > 0.67 => Color.Success,
+                    > 0.33 => Color.Warning,
                     _ => Color.Error
                 };
 

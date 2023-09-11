@@ -6,28 +6,14 @@ using Modix.Web.Models.Common;
 
 namespace Modix.Web.Services;
 
-public class DiscordHelper
+public class DiscordHelper(DiscordSocketClient client, IUserService userService, SessionState sessionState)
 {
-    private readonly DiscordSocketClient _client;
-    private readonly IUserService _userService;
-    private readonly SessionState _sessionState;
-
-    public DiscordHelper(
-        DiscordSocketClient client,
-        IUserService userService,
-        SessionState sessionState)
-    {
-        _client = client;
-        _userService = userService;
-        _sessionState = sessionState;
-    }
-
     public SocketGuild GetUserGuild()
     {
-        if (_sessionState.SelectedGuild != 0)
-            return _client.GetGuild(_sessionState.SelectedGuild);
+        if (sessionState.SelectedGuild != 0)
+            return client.GetGuild(sessionState.SelectedGuild);
 
-        return _client.Guilds.First();
+        return client.Guilds.First();
     }
 
     public IEnumerable<GuildOption> GetGuildOptions()
@@ -36,7 +22,7 @@ public class DiscordHelper
         if (currentUser is null)
             return Array.Empty<GuildOption>();
 
-        return _client
+        return client
             .Guilds
             .Where(d => d.GetUser(currentUser.Id) != null)
             .Select(d => new GuildOption(d.Id, d.Name, d.IconUrl));
@@ -45,7 +31,7 @@ public class DiscordHelper
     public SocketGuildUser? GetCurrentUser()
     {
         var currentGuild = GetUserGuild();
-        return currentGuild.GetUser(_sessionState.CurrentUserId);
+        return currentGuild.GetUser(sessionState.CurrentUserId);
     }
 
     public async Task<IEnumerable<ModixUser>> AutoCompleteAsync(string query)
@@ -62,7 +48,7 @@ public class DiscordHelper
 
         if (!result.Any() && ulong.TryParse(query, out var userId))
         {
-            var user = await _userService.GetUserInformationAsync(userGuild.Id, userId);
+            var user = await userService.GetUserInformationAsync(userGuild.Id, userId);
 
             if (user is not null)
             {
@@ -100,8 +86,8 @@ public class DiscordHelper
 
         var currentGuild = GetUserGuild();
         return currentGuild.Channels
-            .Where(d => d is SocketTextChannel)
-            .Where(d => d.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .Where(d => d is SocketTextChannel
+                && d.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
             .Take(10)
             .Select(d => new ChannelInformation(d.Id, d.Name));
     }

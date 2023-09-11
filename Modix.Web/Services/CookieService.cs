@@ -3,43 +3,32 @@ using Modix.Web.Models;
 
 namespace Modix.Web.Services;
 
-public class CookieService
+public class CookieService(IJSRuntime jsRuntime, SessionState sessionState)
 {
-    private readonly IJSRuntime _jsRuntime;
-    private readonly SessionState _sessionState;
-
-    public CookieService(IJSRuntime jsRuntime, SessionState sessionState)
-    {
-        _jsRuntime = jsRuntime;
-        _sessionState = sessionState;
-    }
-
     public async Task SetSelectedGuildAsync(ulong guildId)
     {
         await SetCookieAsync(CookieConstants.SelectedGuild, guildId);
-        _sessionState.SelectedGuild = guildId;
+        sessionState.SelectedGuild = guildId;
     }
 
     public async Task SetShowDeletedInfractionsAsync(bool showDeleted)
     {
         await SetCookieAsync(CookieConstants.ShowDeletedInfractions, showDeleted);
-        _sessionState.ShowDeletedInfractions = showDeleted;
+        sessionState.ShowDeletedInfractions = showDeleted;
     }
 
     public async Task SetShowInfractionStateAsync(bool showInfractionState)
     {
         await SetCookieAsync(CookieConstants.ShowInfractionState, showInfractionState);
-        _sessionState.ShowInfractionState = showInfractionState;
+        sessionState.ShowInfractionState = showInfractionState;
     }
 
     public async Task SetShowInactivePromotionsAsync(bool showInactivePromotions)
     {
         await SetCookieAsync(CookieConstants.ShowInactivePromotions, showInactivePromotions);
-        _sessionState.ShowInactivePromotions = showInactivePromotions;
+        sessionState.ShowInactivePromotions = showInactivePromotions;
     }
 
     private async Task SetCookieAsync<T>(string key, T value)
-    {
-        await _jsRuntime.InvokeVoidAsync("eval", $"document.cookie = \"{key}={value}; path=/\";");
-    }
+        => await jsRuntime.InvokeVoidAsync("eval", $"document.cookie = \"{key}={value}; path=/\";");
 }

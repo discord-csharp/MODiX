@@ -15,7 +15,6 @@ public record TagData(
         bool CanMaintain,
         TagSummary TagSummary)
 {
-
     public static TagData CreateFromSummary(TagSummary summary)
     {
         return new TagData(

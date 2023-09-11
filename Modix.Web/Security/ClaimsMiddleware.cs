@@ -5,21 +5,14 @@ using Modix.Web.Models;
 
 namespace Modix.Web.Security;
 
-public class ClaimsMiddleware
+public class ClaimsMiddleware(RequestDelegate next)
 {
-    private readonly RequestDelegate _next;
-
-    public ClaimsMiddleware(RequestDelegate next)
-    {
-        _next = next;
-    }
-
     public async Task InvokeAsync(HttpContext context, IAuthorizationService authorizationService, DiscordSocketClient discordClient)
     {
         var userId = context.User.FindFirst(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
         if (!ulong.TryParse(userId, out var userSnowflake))
         {
-            await _next(context);
+            await next(context);
             return;
         }
 
@@ -28,7 +21,7 @@ public class ClaimsMiddleware
 
         if (context.User.Identity is not ClaimsIdentity claimsIdentity)
         {
-            await _next(context);
+            await next(context);
             return;
         }
 
@@ -40,6 +33,6 @@ public class ClaimsMiddleware
 
         claimsIdentity.AddClaims(claims);
 
-        await _next(context);
+        await next(context);
     }
 }
