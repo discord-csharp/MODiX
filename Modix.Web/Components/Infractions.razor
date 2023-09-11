@@ -90,7 +90,7 @@
                 <MudButton Class="ml-1 mb-1" Variant="Variant.Filled" OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
             </MudItem>
             <MudItem xs="12" sm="3" lg="2" Class="py-0">
-                <MudButton Class="ml-1" Variant="Variant.Filled" OnClick="Refresh" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
+                <MudButton Class="ml-1" Variant="Variant.Filled" OnClick="RefreshTable" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
             </MudItem>
 
             <MudSpacer />
@@ -199,7 +199,7 @@
     [CascadingParameter]
     private Task<AuthenticationState>? AuthState { get; set; }
 
-    private MudTable<InfractionData> TableRef;
+    private MudTable<InfractionData>? TableRef;
 
     private bool _showState;
 
@@ -262,7 +262,7 @@
     private async Task FilterChanged(Action filterSetter)
     {
         filterSetter();
-        await TableRef.ReloadServerData();
+        await RefreshTable();
     }
 
     private static string GetUsername(GuildUserBrief userBrief)
@@ -289,7 +289,7 @@
             }
 
             await ModerationService.RescindInfractionAsync(infraction.Id);
-            await Refresh();
+            await RefreshTable();
         }
         catch (Exception ex)
         {
@@ -316,7 +316,7 @@
             }
 
             await ModerationService.DeleteInfractionAsync(infraction.Id);
-            await Refresh();
+            await RefreshTable();
         }
         catch (Exception ex)
         {
@@ -357,7 +357,7 @@
         _newInfractionSeconds = null;
         _infractionReason = null;
 
-        await TableRef.ReloadServerData();
+        await RefreshTable();
 
         TimeSpan? GetTimeSpan(int? months, int? days, int? hours, int? minutes, int? seconds)
         {
@@ -395,7 +395,13 @@
         }
     }
 
-    private async Task Refresh() => await TableRef.ReloadServerData();
+    private async Task RefreshTable()
+    {
+        if(TableRef is null)
+            return;
+
+        await TableRef.ReloadServerData();
+    }
 
     private async Task<TableData<InfractionData>> LoadInfractions(TableState tableState)
     {

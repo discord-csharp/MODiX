@@ -29,7 +29,7 @@
 
 @code {
     [CascadingParameter]
-    MudDialogInstance MudDialog { get; set; }
+    MudDialogInstance? MudDialog { get; set; }
 
     [Parameter]
     public PromotionSentiment PromotionSentiment { get; set; }
@@ -37,6 +37,6 @@
     [Parameter]
     public required string Content { get; set; }
 
-    void Submit() => MudDialog.Close(DialogResult.Ok((PromotionSentiment, Content)));
-    void Cancel() => MudDialog.Cancel();
+    void Submit() => MudDialog?.Close(DialogResult.Ok((PromotionSentiment, Content)));
+    void Cancel() => MudDialog?.Cancel();
 }

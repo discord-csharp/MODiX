@@ -144,14 +144,20 @@
     [Inject]
     public ISnackbar Snackbar { get; set; } = null!;
 
-    private MudTable<DeletedMessageSummary> TableRef;
+    private MudTable<DeletedMessageSummary>? TableRef;
     private Dictionary<long, List<DeletedMessageInformation>> DeletedMessagesContext { get; } = new Dictionary<long, List<DeletedMessageInformation>>();
     private bool _deletedMessagesContextDialogVisible;
     private long _currentContext;
 
     private TableFilter _tableFilter = new();
 
-    private async Task RefreshTable() => await TableRef.ReloadServerData();
+    private async Task RefreshTable()
+    {
+        if(TableRef is null)
+            return;
+
+        await TableRef.ReloadServerData();
+    }
 
     private async Task FilterChanged(Action filterSetter)
     {
