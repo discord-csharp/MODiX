@@ -49,7 +49,7 @@
                 <div class="field">
                     <MudText Typo="Typo.h5">Finally, say a few words on their behalf</MudText>
                     <MudCard  Elevation="4">
-                        <MudTextField
+                        <MudTextField Disabled="@(_nextRank.Name == "None")"
                             Style="padding: .75rem"
                             Immediate="true"
                             @bind-Value="_promotionComment"
@@ -59,7 +59,7 @@
                     </MudCard>
                 </div>
 
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateCampaign">Submit</MudButton>
+                <MudButton Disabled="@(_nextRank.Name == "None")" Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateCampaign">Submit</MudButton>
             }
 
         </MudItem>
@@ -108,7 +108,14 @@
         var nextRank = await PromotionsService.GetNextRankRoleForUserAsync(user.UserId);
         var currentGuild = DiscordHelper.GetUserGuild();
 
-        _nextRank = new NextRank(nextRank?.Name, currentGuild.Roles.First(x => x.Id == nextRank?.Id).Color.ToString());
+        if(nextRank is null)
+        {
+            _nextRank = new NextRank("None", "#607d8b");
+        }
+        else
+        {
+            _nextRank = new NextRank(nextRank.Name, currentGuild.Roles.First(x => x.Id == nextRank.Id).Color.ToString());
+        }
     }
 
     private async Task CreateCampaign()
