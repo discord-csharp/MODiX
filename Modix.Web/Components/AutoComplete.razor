@@ -17,10 +17,7 @@
                     Clearable="true"
                     Adornment="Adornment.Start"
                     SelectValueOnTab="true">
-    <ItemTemplate>
-        @if(ItemTemplate is not null)
-        {
-            @ItemTemplate
-        }
+    <ItemTemplate Context="item">
+        @ItemTemplate?.Invoke(item)
     </ItemTemplate>
 </MudAutocomplete>
