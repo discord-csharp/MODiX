@@ -152,8 +152,7 @@ namespace Modix.Modules
         public async Task EweifyAsync([Summary(description: "The message to owoify.")] string message)
         {
             var eweMessage = message;
-
-            eweMessage = Regex.Replace(eweMessage, "[aeiouyAEIOUY]", "E");
+            eweMessage = Regex.Replace(eweMessage, "[aeiouy]", "E", RegexOptions.IgnoreCase);
 
             await FollowupAsync(eweMessage, allowedMentions: AllowedMentions.None);
         }
