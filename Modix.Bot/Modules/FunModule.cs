@@ -18,7 +18,7 @@ namespace Modix.Modules
     [HelpTags("jumbo")]
     public class FunModule : InteractionModuleBase
     {
-        private static readonly string[] _owoFaces = {"(・`ω´・)", ";;w;;", "owo", "UwU", ">w<", "^w^"};
+        private static readonly string[] _owoFaces = { "(・`ω´・)", ";;w;;", "owo", "UwU", ">w<", "^w^" };
 
         private const ushort MinimumAvatarSize = 16;
         private const ushort MaximumAvatarSize = 4096;
@@ -146,6 +146,16 @@ namespace Modix.Modules
             owoMessage = Regex.Replace(owoMessage, "(?<!\\@)\\!+", " " + _owoFaces[new Random().Next(_owoFaces.Length)] + " ");
 
             await FollowupAsync(owoMessage, allowedMentions: AllowedMentions.None);
+        }
+
+        [SlashCommand("ewe", "Eweifies the given message.")]
+        public async Task EweifyAsync([Summary(description: "The message to owoify.")] string message)
+        {
+            var eweMessage = message;
+
+            eweMessage = Regex.Replace(eweMessage, "[aeiouyAEIOUY]", "E");
+
+            await FollowupAsync(eweMessage, allowedMentions: AllowedMentions.None);
         }
 
         protected IHttpClientFactory HttpClientFactory { get; }
