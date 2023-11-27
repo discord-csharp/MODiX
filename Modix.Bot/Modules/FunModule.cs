@@ -150,4 +150,10 @@ namespace Modix.Modules
 
         protected IHttpClientFactory HttpClientFactory { get; }
     }
+
+    [SlashCommand("alias", "point at what's an alias.")]
+    public async Task AliasAsync([Summary(description: "Aliasing everything.")] string message)
+    {
+        await FollowupAsync("https://c.tenor.com/I1SsTZ2sAaMAAAAC/tenor.gif", allowedMentions: AllowedMentions.None);
+    }
 }
