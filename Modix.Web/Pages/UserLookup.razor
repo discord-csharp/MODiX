@@ -18,7 +18,7 @@
 
 <PageTitle>Modix - User Lookup</PageTitle>
 
-<MudContainer Style="background-color:#f5f5f5">
+<MudContainer>
     <MudText Typo="Typo.h4">
         User Lookup@(userInformation is null ? null : $" - {userInformation.Username + (userInformation.Discriminator == "0000" ? "" : "#" + userInformation.Discriminator)}")
     </MudText>
