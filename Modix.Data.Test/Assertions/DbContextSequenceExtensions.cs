@@ -86,8 +86,8 @@ namespace Microsoft.EntityFrameworkCore
                                                                        .GetOrAdd(property, entity, valueGeneratorConstructor);
         }
 
-        private static readonly Dictionary<Type, Func<IProperty, IEntityType, ValueGenerator>> _valueGeneratorConstructorsByValueType
-            = new Dictionary<Type, Func<IProperty, IEntityType, ValueGenerator>>()
+        private static readonly Dictionary<Type, Func<IProperty, ITypeBase, ValueGenerator>> _valueGeneratorConstructorsByValueType
+            = new Dictionary<Type, Func<IProperty, ITypeBase, ValueGenerator>>()
             {
                 [typeof(long)] = (p, e) => new ResettableInt64SequenceValueGenerator()
             };
