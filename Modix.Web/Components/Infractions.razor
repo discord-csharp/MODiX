@@ -85,20 +85,20 @@
 
     <MudContainer MaxWidth="MaxWidth.False">
 
-        <MudGrid Class="mb-1">
-            <MudItem xs="12" sm="3" lg="2" Class="py-0">
+        <MudGrid Class="mb-1 gap-sm-4">
+            <MudItem xs="12" sm="2" lg="1" Class="py-0">
                 <MudButton Class="ml-1 mb-1" Variant="Variant.Filled" OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
             </MudItem>
-            <MudItem xs="12" sm="3" lg="2" Class="py-0">
+            <MudItem xs="12" sm="2" lg="1" Class="py-0">
                 <MudButton Class="ml-1" Variant="Variant.Filled" OnClick="RefreshTable" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
             </MudItem>
 
             <MudSpacer />
 
-            <MudItem xs="12" sm="3" lg="2" Class="py-0">
+            <MudItem xs="12" sm="2" lg="1" Class="py-0">
                 <MudCheckBox T="bool" Checked="_showState" CheckedChanged="ShowStateChanged" Label="Show State" Color="Color.Primary" />
             </MudItem>
-            <MudItem xs="12" sm="3" lg="2" Class="py-0">
+            <MudItem xs="12" sm="2" lg="1" Class="py-0">
                 <MudCheckBox T="bool" Checked="_tableFilter.ShowDeleted" CheckedChanged="ShowDeletedChanged" Label="Show Deleted" Color="Color.Primary" />
             </MudItem>
         </MudGrid>
