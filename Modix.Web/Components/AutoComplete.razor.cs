@@ -17,7 +17,7 @@ public partial class AutoComplete<T> where T : IAutoCompleteItem
     [Parameter]
     public EventCallback<T> SelectedItemChanged { get; set; }
 
-    [Parameter, EditorRequired]
+    [Parameter]
     public string? Title { get; set; }
 
     [Parameter, EditorRequired]

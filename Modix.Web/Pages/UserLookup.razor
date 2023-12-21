@@ -28,7 +28,6 @@
                       SearchFunc="(query) => DiscordHelper.AutoCompleteAsync(query)"
                       Placeholder="Username or ID"
                       SelectedItemChanged="SelectedUserChanged"
-                      Title="Tell us their username"
         >
             <ItemTemplate Context="user">
                 <MudImage style="vertical-align: bottom" Src="@user.AvatarUrl" Height="24" Width="24" Class="rounded-lg" />

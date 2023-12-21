@@ -4,7 +4,10 @@
 
 @typeparam T
 
-<MudText Typo="Typo.h5">@Title</MudText>
+@if (Title is not null)
+{
+    <MudText Typo="Typo.h5">@Title</MudText>
+}
 <MudAutocomplete T="T"
                     Placeholder="@Placeholder"
                     AdornmentIcon="@Icons.Material.Filled.Search"
