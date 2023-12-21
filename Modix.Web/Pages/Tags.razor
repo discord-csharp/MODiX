@@ -42,15 +42,18 @@
                 </DialogActions>
             </MudDialog>
 
-            <MudTable Items="Data" SortLabel="Sort By" Bordered="true" Filter="FilterFunction">
-                <ToolBarContent>
+            <div class="d-flex align-sm-center flex-sm-row flex-column my-3">
+                <div class="d-flex flex-sm-row flex-column align-start">
                     <AuthorizeView Context="e" Roles="@nameof(AuthorizationClaim.CreateTag)">
                         <MudButton Class="mr-1" Variant="Variant.Filled" OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
                     </AuthorizeView>
                     <MudButton Variant="Variant.Filled" OnClick="FetchData" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
-                    <MudSpacer/>
-                    <MudTextField DebounceInterval="1000" @bind-Value="Query" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
-                </ToolBarContent>
+                </div>
+                <MudSpacer />
+                <MudTextField DebounceInterval="1000" @bind-Value="Query" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </div>
+
+            <MudTable Items="Data" SortLabel="Sort By" Bordered="true" Filter="FilterFunction">
                 <HeaderContent>
                     <MudTh Style="text-align:center"><MudTableSortLabel T="TagData" SortBy="x => x.Name">Name</MudTableSortLabel></MudTh>
                     <MudTh Style="text-align:center"><MudTableSortLabel T="TagData" SortBy="x => x.Created">Last Modified</MudTableSortLabel></MudTh>
