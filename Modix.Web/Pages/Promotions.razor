@@ -224,9 +224,11 @@
             return;
 
         var result = await PromotionsService.GetCampaignDetailsAsync(campaignId);
-
-        if (result is null) // TODO: What to do here?
+        if (result is null)
+        {
+            Snackbar.Add($"Unable to load campaign details for campaign id {campaignId}.", Severity.Error);
             return;
+        }
 
         campaignCommentData[campaignId] = result.Comments
             .Where(x => x.ModifyAction is null)
