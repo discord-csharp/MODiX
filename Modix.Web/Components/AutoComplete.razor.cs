@@ -6,7 +6,10 @@ namespace Modix.Web.Components;
 public partial class AutoComplete<T> where T : IAutoCompleteItem
 {
     [Parameter]
-    public RenderFragment<T>? ItemTemplate { get; set; }
+    // Nullability mismatch between MudBlazor, this value is checked for null in the MudBlazor component and changes behavior based on that
+    // This is to get around the annoying warning when we assign a 'RenderFragment<T>?' to 'RenderFragment<T>'
+    // In theory the nullable variant is "more" correct, but alas, here we are
+    public RenderFragment<T> ItemTemplate { get; set; } = null!;
 
     [Parameter]
     public string? Placeholder { get; set; }

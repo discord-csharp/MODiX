@@ -16,8 +16,6 @@
                     ToStringFunc="item => item?.Name"
                     Clearable="true"
                     Adornment="Adornment.Start"
-                    SelectValueOnTab="true">
-    <ItemTemplate Context="item">
-        @ItemTemplate?.Invoke(item)
-    </ItemTemplate>
+                    SelectValueOnTab="true"
+                    ItemTemplate="ItemTemplate">
 </MudAutocomplete>

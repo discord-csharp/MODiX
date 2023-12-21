@@ -65,7 +65,7 @@
                                         <IndividualDesignation
                                             AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedChannelMappingDelete)"
                                             Id="@designatedChannelMapping.Id"
-                                            NamePrefix="@("@")"
+                                            NamePrefix="@("#")"
                                             Name="@designatedChannelMapping.Name"
                                             RemoveDesignation="(id) => RemoveDesignation(id, designatedChannelMapping.ChannelDesignation)" />
                                     }
