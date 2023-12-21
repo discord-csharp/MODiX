@@ -14,10 +14,10 @@
   <ItemGroup>
     <PackageReference Update="Discord.Net" Version="3.11.0" />
 
-    <PackageReference Update="Microsoft.EntityFrameworkCore" Version="8.0.0-preview.4.*" />
-    <PackageReference Update="Microsoft.EntityFrameworkCore.Design" Version="8.0.0-preview.4.*"/>
-    <PackageReference Update="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0-preview.4.*" />
-    <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0-preview.4" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore.Design" Version="8.0.0"/>
+    <PackageReference Update="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
+    <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
 
     <PackageReference Update="Nito.AsyncEx.Coordination" Version="5.1.2" />
 
