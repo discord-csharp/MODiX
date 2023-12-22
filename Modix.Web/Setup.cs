@@ -1,6 +1,7 @@
 ﻿using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.Extensions.FileProviders;
 using Modix.Web.Models;
 using Modix.Web.Security;
 using Modix.Web.Services;
@@ -21,6 +22,14 @@ public static class Setup
         }
 
         app.UseHttpsRedirection();
+
+        var wwwrootCssFileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "..", "Modix.Web", "wwwroot", "css"));
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = wwwrootCssFileProvider,
+            RequestPath = "/css",
+        });
+
         app.UseStaticFiles();
 
         app.UseRouting();
