@@ -92,8 +92,8 @@
                 <MudButton Class="ml-1" Variant="Variant.Filled" OnClick="RefreshTable" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
             </div>
             <MudSpacer/>
-            <MudCheckBox T="bool" Checked="_showState" CheckedChanged="ShowStateChanged" Label="Show State" Color="Color.Primary" />
-            <MudCheckBox T="bool" Checked="_tableFilter.ShowDeleted" CheckedChanged="ShowDeletedChanged" Label="Show Deleted" Color="Color.Primary" />
+            <MudCheckBox T="bool" Value="_showState" ValueChanged="ShowStateChanged" Label="Show State" Color="Color.Primary" />
+            <MudCheckBox T="bool" Value="_tableFilter.ShowDeleted" ValueChanged="ShowDeletedChanged" Label="Show Deleted" Color="Color.Primary" />
         </div>
 
         <MudTable @ref="@TableRef" SortLabel="Sort By" Bordered="true" ServerData="LoadInfractions">
