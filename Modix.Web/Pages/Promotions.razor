@@ -20,9 +20,9 @@
 
     <MudContainer>
         <MudText Typo="Typo.h4">Promotion Campaigns</MudText>
-        <div class="d-flex" style="justify-content: end; margin-bottom: 1rem">
+        <div class="d-flex align-center justify-sm-end justify-center mb-4">
             <MudCheckBox T="bool" Checked="_showInactive" CheckedChanged="ShowInactiveChanged" Label="Show Inactive" Color="Color.Primary"></MudCheckBox>
-            <MudButton Href="/promotions/create" Style="margin-left: 1rem" Variant="Variant.Filled" Color="Color.Primary">Start One</MudButton>
+            <MudButton Class="ml-4" Href="/promotions/create" Variant="Variant.Filled" Color="Color.Primary">Start One</MudButton>
         </div>
         <MudExpansionPanels MultiExpansion="true">
             @foreach(var campaign in Campaigns.Where(x => _showInactive ? true : (x.Outcome is null)).OrderByDescending(x => x.Outcome is null).ThenByDescending(x => x.CreateAction.Created))
@@ -48,9 +48,9 @@
 
                 <MudExpansionPanel IsExpandedChanged="async (wasExpanded) => _ = CampaignExpanded(wasExpanded, campaign.Id, campaign.Subject.Id)">
                     <TitleContent>
-                        <div class="d-flex" style="align-items: center;">
-                            <div style="flex-grow: 1">
-                                <MudTooltip RootStyle="vertical-align: bottom" Placement="Placement.Top" Text="@($"Status: " + (campaign.Outcome.HasValue ? campaign.Outcome.Value.ToString() : "Active"))">
+                        <div class="d-flex flex-sm-row flex-column align-center justify-space-between">
+                            <div class="d-flex flex-grow-1 flex-sm-row flex-column align-center">
+                                <MudTooltip RootStyle="vertical-align: bottom" Placement="Placement.Top" Text="@($"Status: " + (campaign.Outcome?.ToString() ?? "Active"))">
                                     <MudIcon Size="Size.Large" Icon="@icon"/>
                                 </MudTooltip>
                                 <MudText Style="margin-left: .5em" Typo="Typo.h4" Inline="true">
@@ -59,36 +59,38 @@
                                 <MudText Class="targetRole" Inline="true" Style="@($"color: {RoleColors[campaign.TargetRole.Id]}; vertical-align: text-bottom; white-space: nowrap")">&#10149; @campaign.TargetRole.Name</MudText>
                             </div>
 
-                            @if (campaign.Outcome is null)
-                            {
-                                <AuthorizeView Roles="@nameof(AuthorizationClaim.PromotionsCloseCampaign)">
-                                    <MudButtonGroup OverrideStyles="false">
-                                        <MudIconButton Color="Color.Success" Size="Size.Small" OnClick="() => AcceptCampaign(campaign)" Icon="@Icons.Material.Filled.Check" Title="Accept"/>
-                                        <MudIconButton Color="Color.Error" Size="Size.Small" OnClick="() => RejectCampaign(campaign)" Icon="@Icons.Material.Filled.Close" Title="Reject"/>
-                                    </MudButtonGroup>
-                                </AuthorizeView>
-                            }
-                            <MudIconButton
-                                Href="@($"/infractions?subject={campaign.Subject.Id}")"
-                                Size="Size.Small"
-                                Class="mx-3"
-                                Icon="@Icons.Material.Filled.OpenInNew"
-                                Color="Color.Info"
-                                Title="Infractions"
-                            />
+                            <div class="d-flex">
+                                @if (campaign.Outcome is null)
+                                {
+                                    <AuthorizeView Roles="@nameof(AuthorizationClaim.PromotionsCloseCampaign)">
+                                        <MudButtonGroup OverrideStyles="false" Class="d-flex">
+                                            <MudIconButton Color="Color.Success" Size="Size.Large" OnClick="() => AcceptCampaign(campaign)" Icon="@Icons.Material.Filled.Check" Title="Accept"/>
+                                            <MudIconButton Color="Color.Error" Size="Size.Large" OnClick="() => RejectCampaign(campaign)" Icon="@Icons.Material.Filled.Close" Title="Reject"/>
+                                        </MudButtonGroup>
+                                    </AuthorizeView>
+                                }
+                                <MudIconButton
+                                    Href="@($"/infractions?subject={campaign.Subject.Id}")"
+                                    Size="Size.Small"
+                                    Class="mx-3"
+                                    Icon="@Icons.Material.Filled.OpenInNew"
+                                    Color="Color.Info"
+                                    Title="Infractions"
+                                />
+                            </div>
 
-                            <div style="width: 20%; margin-right: 1rem">
-                                <div class="d-flex" style="justify-content: space-around;">
+                            <div class="d-flex flex-grow-1 flex-column width-sm mr-4">
+                                <div class="d-flex justify-space-around">
                                     <div class="d-flex">
                                         <MudIcon Icon="@Icons.Material.Filled.ThumbUp"/>
-                                        <MudText Style="margin-left: .33rem">@(isCurrentUserCampaign ? "?" : campaign.ApproveCount.ToString())</MudText>
+                                        <MudText Class="ml-1">@(isCurrentUserCampaign ? "?" : campaign.ApproveCount.ToString())</MudText>
                                     </div>
                                     <div class="d-flex">
                                         <MudIcon Icon="@Icons.Material.Filled.ThumbDown"/>
-                                        <MudText Style="margin-left: .33rem">@(isCurrentUserCampaign ? "?" : campaign.OpposeCount.ToString())</MudText>
+                                        <MudText Class="ml-1">@(isCurrentUserCampaign ? "?" : campaign.OpposeCount.ToString())</MudText>
                                     </div>
                                 </div>
-                                <MudProgressLinear Striped="true" Color="sentimentColor" Size="Size.Small" Value="sentimentRatio*100" />
+                                <MudProgressLinear Style="max-width: 60%; margin:auto" Striped="true" Color="sentimentColor" Size="Size.Small" Value="sentimentRatio*100" />
                             </div>
                         </div>
                     </TitleContent>

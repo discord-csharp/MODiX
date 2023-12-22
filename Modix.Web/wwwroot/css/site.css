@@ -1,3 +1,9 @@
 .lookup-text-item {
     margin-left: 10px !important;
 }
+
+@media (max-width: 600px) {
+    .width-sm {
+        width: 100%;
+    }
+}
