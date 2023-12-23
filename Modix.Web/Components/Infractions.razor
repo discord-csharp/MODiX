@@ -86,14 +86,16 @@
     <MudContainer MaxWidth="MaxWidth.False">
 
 
-        <div class="d-flex mb-1 gap-sm-4 flex-sm-row flex-column align-sm-center">
+        <div class="d-flex mb-1 gap-sm-4 align-sm-center">
             <div class="d-flex flex-sm-row flex-column align-start">
                 <MudButton Class="ml-1 mb-1" Variant="Variant.Filled" OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
                 <MudButton Class="ml-1" Variant="Variant.Filled" OnClick="RefreshTable" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
             </div>
             <MudSpacer/>
-            <MudCheckBox T="bool" Value="_showState" ValueChanged="ShowStateChanged" Label="Show State" Color="Color.Primary" />
-            <MudCheckBox T="bool" Value="_tableFilter.ShowDeleted" ValueChanged="ShowDeletedChanged" Label="Show Deleted" Color="Color.Primary" />
+            <div class="d-flex flex-sm-row flex-column">
+                <MudCheckBox T="bool" Value="_showState" ValueChanged="ShowStateChanged" Label="Show State" Color="Color.Primary" />
+                <MudCheckBox T="bool" Value="_tableFilter.ShowDeleted" ValueChanged="ShowDeletedChanged" Label="Show Deleted" Color="Color.Primary" />
+            </div>
         </div>
 
         <MudTable @ref="@TableRef" SortLabel="Sort By" Bordered="true" ServerData="LoadInfractions">
