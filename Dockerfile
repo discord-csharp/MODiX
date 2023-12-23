@@ -15,13 +15,13 @@ RUN dotnet restore Modix.sln
 COPY . . 
 
 FROM dotnet-build-base AS dotnet-build
-RUN dotnet build -c Release --no-restore Modix.sln
+RUN dotnet build -maxcpucount:1 -c Release --no-restore Modix.sln
 
 FROM dotnet-build as dotnet-test
 RUN dotnet test -c Release --no-build --no-restore Modix.sln
 
 FROM dotnet-build AS publish
-RUN dotnet publish -c Release --no-build --no-restore -o /app  Modix/Modix.csproj
+RUN dotnet publish -maxcpucount:1 -c Release --no-build --no-restore -o /app  Modix/Modix.csproj
 
 FROM base AS final
 COPY --from=publish /app .
