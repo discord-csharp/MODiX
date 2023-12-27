@@ -27,8 +27,7 @@
         <AutoComplete T="ModixUser"
                       SearchFunc="(query) => DiscordHelper.AutoCompleteAsync(query)"
                       Placeholder="Username or ID"
-                      SelectedItemChanged="SelectedUserChanged"
-        >
+                      SelectedItemChanged="SelectedUserChanged">
             <ItemTemplate Context="user">
                 <MudImage Src="@user.AvatarUrl" Height="24" Width="24" Class="rounded-lg vertical-bottom" />
                 @user.Name
@@ -41,7 +40,7 @@
         <MudText Typo="Typo.h4">User Information</MudText>
         <div class="d-flex flex-sm-row flex-column-reverse align-center mb-3">
             <MudCard Class="pa-5 mb-3 align-self-start" Elevation="2" Style="width: 100%;">
-                <UserLookupField Label="ID" Value="@userInformation.Id"/>
+                <UserLookupField Label="ID" Value="@userInformation.Id" />
                 <UserLookupField Label="First seen" Value="@userInformation.FirstSeen?.ToString("MM/dd/yy, h:mm:ss tt")" Default="@("Never")" />
                 <UserLookupField Label="Last seen" Value="@userInformation.LastSeen?.ToString("MM/dd/yy, h:mm:ss tt")" Default="@("Never")" />
             </MudCard>
@@ -52,11 +51,11 @@
 
         <MudText Typo="Typo.h4">Guild Participation</MudText>
         <MudCard Class="pa-5 mb-3" Elevation="2">
-            <UserLookupField Label="Rank" Value="@userInformation.Rank.Ordinalize()"/>
+            <UserLookupField Label="Rank" Value="@userInformation.Rank.Ordinalize()" />
             <UserLookupField Label="Last 7 days" Value="@("message".ToQuantity(userInformation.Last7DaysMessages))" />
-            <UserLookupField Label="Last 30 days" Value="@("message".ToQuantity(userInformation.Last30DaysMessages))"/>
-            <UserLookupField Label="Average per day" Value="@("message".ToQuantity((int)userInformation.AverageMessagesPerDay))"/>
-            <UserLookupField Label="Percentile" Value="@userInformation.Percentile.Ordinalize()"/>
+            <UserLookupField Label="Last 30 days" Value="@("message".ToQuantity(userInformation.Last30DaysMessages))" />
+            <UserLookupField Label="Average per day" Value="@("message".ToQuantity((int)userInformation.AverageMessagesPerDay))" />
+            <UserLookupField Label="Percentile" Value="@userInformation.Percentile.Ordinalize()" />
         </MudCard>
 
         <MudText Typo="Typo.h4">Member Information</MudText>
@@ -68,7 +67,7 @@
 
             <UserLookupField Label="Roles" T="string">
                 <div class="d-flex flex-sm-row flex-column">
-                    @if(!userInformation.Roles.Any())
+                    @if (!userInformation.Roles.Any())
                     {
                         <em class="ml-2">No roles assigned</em>
                     }
@@ -78,7 +77,7 @@
                         {
                             var roleName = $"@{role.Name}";
                             var roleColorStyle = $"border: 1px solid {role.Color}";
-                            
+
                             <MudText Class="ml-2" Style=@($"color: {role.Color}")>@roleName</MudText>
                         }
                     }
@@ -94,23 +93,23 @@
                 {
                     var channelColorStyle = $"border: 1px solid {channel.Color}";
                     <MudChip Style="@channelColorStyle"
-                                Value="@channel.ChannelName"
-                                Default="true"
-                                Size="Size.Small"
-                                Variant="Variant.Outlined">
+                             Value="@channel.ChannelName"
+                             Default="true"
+                             Size="Size.Small"
+                             Variant="Variant.Outlined">
                         @($"{channel.ChannelName} ({channel.Count})")
                     </MudChip>
                 }
             </MudChipSet>
 
             <MudChart ChartType="ChartType.Donut"
-                        InputData="@messageCountsPerChannelView.Select(x => x.Count).ToArray()"
-                        ChartOptions="@(new ChartOptions
-                        {
-                            LineStrokeWidth = 25,
-                            DisableLegend = true,
-                            ChartPalette = messageCountsPerChannelView.Select(x => x.Color).ToArray()
-                        })" />
+                      InputData="@messageCountsPerChannelView.Select(x => x.Count).ToArray()"
+                      ChartOptions="@(new ChartOptions
+                      {
+                          LineStrokeWidth = 25,
+                          DisableLegend = true,
+                          ChartPalette = messageCountsPerChannelView.Select(x => x.Color).ToArray()
+                      })" />
         </MudCard>
     }
 
@@ -131,7 +130,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if(!firstRender)
+        if (!firstRender)
             return;
 
         var currentUser = DiscordHelper.GetCurrentUser();
@@ -150,7 +149,7 @@
 
     private async Task SelectedUserChanged(ModixUser user)
     {
-        if(user is null)
+        if (user is null)
             return;
 
         var currentGuild = DiscordHelper.GetUserGuild();

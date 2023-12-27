@@ -14,15 +14,15 @@
     <TitleContent>
         <div class="d-flex align-center">
             <MudText Typo="Typo.h5">Batch Deletion Context</MudText>
-            <MudSpacer/>
+            <MudSpacer />
             <MudIconButton OnClick="CloseDialog" Icon="@Icons.Material.Filled.Close" />
         </div>
     </TitleContent>
     <DialogContent>
-        @if(!DeletedMessagesContext.TryGetValue(_currentContext, out var deletedMessageContext))
+        @if (!DeletedMessagesContext.TryGetValue(_currentContext, out var deletedMessageContext))
         {
             <div class="d-flex justify-center">
-                <MudProgressCircular Indeterminate="true" Color="MudBlazor.Color.Primary"/>
+                <MudProgressCircular Indeterminate="true" Color="MudBlazor.Color.Primary" />
             </div>
         }
         else if (!deletedMessageContext.Any())
@@ -31,13 +31,14 @@
         }
         else
         {
-            <MudText Class="center-text">Starting
+            <MudText Class="center-text">
+                Starting
                 <strong>@deletedMessageContext.First().SentTime?.ToLocalTime().ToString("MM/dd/yy, h:mm:ss tt")</strong>
             </MudText>
 
-            <MudDivider Class="mb-3"/>
+            <MudDivider Class="mb-3" />
 
-            @foreach(var item in deletedMessageContext)
+            @foreach (var item in deletedMessageContext)
             {
                 var wasDeleted = item.SentTime is null;
                 var styling = wasDeleted ? "background-color: #f5f5f5; border-top: 1px solid #fff" : "";
@@ -45,7 +46,7 @@
 
                 <div title="@title" class="d-flex deletedMessageItem" style="@styling">
                     <div class="d-flex align-baseline">
-                        @if(wasDeleted)
+                        @if (wasDeleted)
                         {
                             <MudText Style="width: 45px">🚫</MudText>
                         }
@@ -56,13 +57,13 @@
 
                         <MudText Class="mr-2"><b>@item.Username</b></MudText>
                     </div>
-                    @if(string.IsNullOrWhiteSpace(item.Content))
+                    @if (string.IsNullOrWhiteSpace(item.Content))
                     {
                         <em>No Content</em>
                     }
                     else
                     {
-                        <MudMarkdown Value="@item.Content"/>
+                        <MudMarkdown Value="@item.Content" />
                     }
                 </div>
             }
@@ -112,7 +113,7 @@
             <MudTd DataLabel="Deleted On">@deletedMessage.Created</MudTd>
             <MudTd DataLabel="Deleted By">@deletedMessage.CreatedBy.GetFullUsername()</MudTd>
             <MudTd DataLabel="Content">
-                <MudMarkdown Value="@deletedMessage.Content"/>
+                <MudMarkdown Value="@deletedMessage.Content" />
             </MudTd>
             <MudTd DataLabel="Reason">@deletedMessage.Reason</MudTd>
             <MudTd DataLabel="Batch ID">@deletedMessage.BatchId</MudTd>
@@ -121,7 +122,7 @@
             </MudTd>
         </RowTemplate>
         <PagerContent>
-            <MudTablePager PageSizeOptions="new [] { 10, 20, 30, 40, 50, int.MaxValue }"></MudTablePager>
+            <MudTablePager PageSizeOptions="new [] { 10, 20, 30, 40, 50, int.MaxValue }"/>
         </PagerContent>
     </MudTable>
 </MudContainer>
@@ -153,7 +154,7 @@
 
     private async Task RefreshTable()
     {
-        if(TableRef is null)
+        if (TableRef is null)
             return;
 
         await TableRef.ReloadServerData();
@@ -228,7 +229,8 @@
         if (DeletedMessagesContext.ContainsKey(batchId))
             return;
 
-        var deletedMessages = await ModerationService.SearchDeletedMessagesAsync(new DeletedMessageSearchCriteria
+        var deletedMessages = await ModerationService.SearchDeletedMessagesAsync(
+            new DeletedMessageSearchCriteria
             {
                 BatchId = batchId
             },

@@ -19,12 +19,11 @@
                 <MudText Typo="Typo.h5">Assign a Channel</MudText>
             </TitleContent>
             <DialogContent>
-                <AutoComplete
-                    T="ChannelInformation"
-                    SearchFunc="(query) => Task.FromResult(DiscordHelper.AutocompleteChannels(query))"
-                    Placeholder="@("#general")"
-                    SelectedItemChanged="SelectedChannelChanged"
-                    Title="Channel Name"
+                <AutoComplete T="ChannelInformation"
+                              SearchFunc="(query) => Task.FromResult(DiscordHelper.AutocompleteChannels(query))"
+                              Placeholder="@("#general")"
+                              SelectedItemChanged="SelectedChannelChanged"
+                              Title="Channel Name"
                 />
                 <MudText Class="mt-5" Typo="Typo.h5">Designation</MudText>
                 <MudSelect T="DesignatedChannelType?" @bind-Value="_selectedDesignatedChannelType">
@@ -66,12 +65,11 @@
                                 {
                                     @foreach (var designatedChannelMapping in channelDesignations)
                                     {
-                                        <IndividualDesignation
-                                            AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedChannelMappingDelete)"
-                                            Id="@designatedChannelMapping.Id"
-                                            NamePrefix="@("#")"
-                                            Name="@designatedChannelMapping.Name"
-                                            RemoveDesignation="(id) => RemoveDesignation(id, designatedChannelMapping.ChannelDesignation)" />
+                                        <IndividualDesignation AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedChannelMappingDelete)"
+                                                               Id="@designatedChannelMapping.Id"
+                                                               NamePrefix="@("#")"
+                                                               Name="@designatedChannelMapping.Name"
+                                                               RemoveDesignation="(id) => RemoveDesignation(id, designatedChannelMapping.ChannelDesignation)" />
                                     }
                                 }
                             </div>

@@ -12,24 +12,24 @@
         <MudAppBar Elevation="0" Fixed="false" Color="Color.Primary">
             <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="ToggleDrawer" />
             <AuthorizeView>
-                <MudSpacer/>
-                <MiniUser/>
+                <MudSpacer />
+                <MiniUser />
             </AuthorizeView>
         </MudAppBar>
-        <MudDrawer Color="Color.Primary" @bind-Open="_drawerVisible" Elevation="1" Anchor="Anchor.Top" DisableOverlay="false" ClipMode="DrawerClipMode.Never" Variant="DrawerVariant.Temporary" Fixed="false" >
+        <MudDrawer Color="Color.Primary" @bind-Open="_drawerVisible" Elevation="1" Anchor="Anchor.Top" DisableOverlay="false" ClipMode="DrawerClipMode.Never" Variant="DrawerVariant.Temporary" Fixed="false">
             <MudNavMenu Color="Color.Surface" Bordered="true">
-                <NavMenuLinks/>
+                <NavMenuLinks />
             </MudNavMenu>
         </MudDrawer>
     </div>
 
     <div class="d-none d-lg-flex">
         <MudAppBar Elevation="0" Dense="true" Fixed="false" DisableGutters="true" Color="Color.Primary">
-            <NavMenuLinks/>
+            <NavMenuLinks />
 
             <AuthorizeView>
-                <MudSpacer/>
-                <MiniUser/>
+                <MudSpacer />
+                <MiniUser />
             </AuthorizeView>
         </MudAppBar>
     </div>

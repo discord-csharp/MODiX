@@ -15,23 +15,23 @@
             <MudText Typo="Typo.h6">Logs</MudText>
             <MudPaper>
                 <MudList SelectedValue="@SubPage" Clickable="true">
-                    <MudListItem Value="@("deletedMessages")" Href="/logs/deletedMessages" Text="Deletions"/>
-                    <MudDivider/>
-                    <MudListItem Value="@("infractions")" Href="/logs/infractions" Text="Infractions"/>
+                    <MudListItem Value="@("deletedMessages")" Href="/logs/deletedMessages" Text="Deletions" />
+                    <MudDivider />
+                    <MudListItem Value="@("infractions")" Href="/logs/infractions" Text="Infractions" />
                 </MudList>
             </MudPaper>
         </MudItem>
         <MudItem xs="12" md="9" lg="11">
-            @if(SubPage == "infractions")
+            @if (SubPage == "infractions")
             {
                 <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationRead)">
                     <Infractions Subject="@Subject" Id="@Id" />
                 </AuthorizeView>
             }
-            else if(SubPage == "deletedMessages")
+            else if (SubPage == "deletedMessages")
             {
                 <AuthorizeView Roles="@nameof(AuthorizationClaim.LogViewDeletedMessages)">
-                    <DeletedMessages/>
+                    <DeletedMessages />
                 </AuthorizeView>
             }
         </MudItem>

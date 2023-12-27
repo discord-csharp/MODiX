@@ -18,10 +18,10 @@
         <MudItem xs="8" md="4">
             <MudPaper>
                 <MudList SelectedValue="@_selectedRole" Clickable="true" DisablePadding="true">
-                    @foreach(var role in Roles.Values)
+                    @foreach (var role in Roles.Values)
                     {
                         <MudListItem Value="@role.Id" OnClick="() => _selectedRole = role.Id" Text="@role.Name" />
-                        <MudDivider/>
+                        <MudDivider />
                     }
                 </MudList>
             </MudPaper>
@@ -40,41 +40,35 @@
                             <MudText Inline="true">
                                 <b>@groupedClaimData.Value.Name.Titleize()</b>
                             </MudText>
-                            <MudSpacer/>
+                            <MudSpacer />
                             <MudButtonGroup Size="Size.Small" Variant="Variant.Outlined" OverrideStyles="false">
-                                <MudButton
-                                    OnClick="() => ModifyMapping(_selectedRole.Value, groupedClaimData.Key, ClaimMappingType.Denied)"
-                                    Variant="@(mappedClaimForRole?.Type == ClaimMappingType.Denied ? Variant.Filled : Variant.Outlined)"
-                                    Color="Color.Error"
-                                    DisableElevation="true"
-                                >
-                                X
+                                <MudButton OnClick="() => ModifyMapping(_selectedRole.Value, groupedClaimData.Key, ClaimMappingType.Denied)"
+                                           Variant="@(mappedClaimForRole?.Type == ClaimMappingType.Denied ? Variant.Filled : Variant.Outlined)"
+                                           Color="Color.Error"
+                                           DisableElevation="true">
+                                    X
                                 </MudButton>
 
-                                <MudButton
-                                    OnClick="() => ModifyMapping(_selectedRole.Value, groupedClaimData.Key, null)"
-                                    Variant="@(mappedClaimForRole is null ? Variant.Filled : Variant.Outlined)"
-                                    Color="Color.Dark"
-                                    DisableElevation="true"
-                                >
-                                –
+                                <MudButton OnClick="() => ModifyMapping(_selectedRole.Value, groupedClaimData.Key, null)"
+                                           Variant="@(mappedClaimForRole is null ? Variant.Filled : Variant.Outlined)"
+                                           Color="Color.Dark"
+                                           DisableElevation="true">
+                                    –
                                 </MudButton>
 
-                                <MudButton
-                                    OnClick="() => ModifyMapping(_selectedRole.Value, groupedClaimData.Key, ClaimMappingType.Granted)"
-                                    Variant="@(mappedClaimForRole?.Type == ClaimMappingType.Granted ? Variant.Filled : Variant.Outlined)"
-                                    Color="Color.Success"
-                                    DisableElevation="true"
-                                >
-                                ✓
+                                <MudButton OnClick="() => ModifyMapping(_selectedRole.Value, groupedClaimData.Key, ClaimMappingType.Granted)"
+                                           Variant="@(mappedClaimForRole?.Type == ClaimMappingType.Granted ? Variant.Filled : Variant.Outlined)"
+                                           Color="Color.Success"
+                                           DisableElevation="true">
+                                    ✓
                                 </MudButton>
                             </MudButtonGroup>
                         </div>
                         <MudText>@groupedClaimData.Value.Description</MudText>
 
                     </MudCard>
-                    }
                 }
+            }
         </MudItem>
     </MudGrid>
 }
@@ -145,7 +139,7 @@
             return;
 
         await AuthorizationService.ModifyClaimMappingAsync(roleId, authorizationClaim, claimMappingType);
-        if(claimMappingType is ClaimMappingType.Denied or ClaimMappingType.Granted)
+        if (claimMappingType is ClaimMappingType.Denied or ClaimMappingType.Granted)
         {
             Snackbar.Add($"Claim '{authorizationClaim}' for '{Roles![roleId].Name}' was changed to '{claimMappingType}'", Severity.Success);
             if (claimMapping is null)

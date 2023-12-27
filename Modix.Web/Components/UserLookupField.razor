@@ -5,11 +5,11 @@
     <MudText>
         <b>@Label</b>
     </MudText>
-    @if(ChildContent is not null)
+    @if (ChildContent is not null)
     {
         @ChildContent
     }
-    else if(Value is not null)
+    else if (Value is not null)
     {
         <MudText Class="ml-2">@Value</MudText>
     }

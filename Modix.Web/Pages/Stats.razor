@@ -8,7 +8,7 @@
 
 <PageTitle>Modix - Stats</PageTitle>
 
-@if(Data is not null)
+@if (Data is not null)
 {
     <MudContainer MaxWidth="MaxWidth.False">
         <MudText Typo="Typo.h3">Statistics for C#</MudText>
@@ -26,23 +26,23 @@
                             {
                                 var channelColorStyle = $"border: 1px solid {role.Color}";
                                 <MudChip Style="@channelColorStyle"
-                                            Value="@role.Name"
-                                            Default="true"
-                                            Size="Size.Small"
-                                            Variant="Variant.Outlined">
+                                         Value="@role.Name"
+                                         Default="true"
+                                         Size="Size.Small"
+                                         Variant="Variant.Outlined">
                                     @($"{role.Name} ({role.Count})")
                                 </MudChip>
                             }
                         </MudChipSet>
 
                         <MudChart ChartType="ChartType.Donut"
-                                    InputData="@GuildRoleCountView.Select(x => (double)x.Count).ToArray()"
-                                    ChartOptions="@(new ChartOptions
-                                {
-                                    LineStrokeWidth = 25,
-                                    DisableLegend = true,
-                                    ChartPalette = GuildRoleCountView.Select(x => x.Color).ToArray()
-                                })" />
+                                  InputData="@GuildRoleCountView.Select(x => (double)x.Count).ToArray()"
+                                  ChartOptions="@(new ChartOptions
+                                  {
+                                      LineStrokeWidth = 25,
+                                      DisableLegend = true,
+                                      ChartPalette = GuildRoleCountView.Select(x => x.Color).ToArray()
+                                  })" />
                     </MudCard>
 
                 </MudPaper>
@@ -83,7 +83,7 @@
 }
 
 @code {
-    GuildStatData Data { get; set;} = null!;
+    GuildStatData Data { get; set; } = null!;
     List<GuildRoleCount> GuildRoleCountView { get; set; } = null!;
 
     [Inject]

@@ -20,22 +20,22 @@
             </ChildContent>
         </MudMenu>
     }
-    <MudDivider Class="mr-3" Vertical="true" FlexItem="true"/>
+    <MudDivider Class="mr-3" Vertical="true" FlexItem="true" />
     <MudMenu AnchorOrigin="Origin.BottomRight">
         <ActivatorContent>
             <div class="d-flex align-center">
                 <MudImage Src="@(SelectedGuild?.IconUrl)" Height="32" Width="32" Class="rounded-lg vertical-bottom" />
-                <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown"/>
+                <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" />
             </div>
         </ActivatorContent>
         <ChildContent>
-        @foreach (var guildOption in GuildOptions)
-        {
-            <MudMenuItem Style="white-space: nowrap" OnClick="() => SelectGuild(guildOption.Id)">
-                <MudImage Src="@guildOption.IconUrl" Height="24" Width="24" Class="rounded-lg vertical-bottom" />
-                @guildOption.Name
-            </MudMenuItem>
-        }
+            @foreach (var guildOption in GuildOptions)
+            {
+                <MudMenuItem Style="white-space: nowrap" OnClick="() => SelectGuild(guildOption.Id)">
+                    <MudImage Src="@guildOption.IconUrl" Height="24" Width="24" Class="rounded-lg vertical-bottom" />
+                    @guildOption.Name
+                </MudMenuItem>
+            }
         </ChildContent>
     </MudMenu>
 </div>

@@ -29,15 +29,13 @@
                     <MudMarkdown Value="@_tagContentValue" />
                 </DialogContent>
                 <DialogActions>
-                        <MudButton
-                            Variant="Variant.Filled"
-                            Disabled="@(string.IsNullOrWhiteSpace(_tagNameValue) || string.IsNullOrWhiteSpace(_tagContentValue))"
-                            Color="Color.Success"
-                            OnClick="SaveTag"
-                        >
+                    <MudButton Variant="Variant.Filled"
+                               Disabled="@(string.IsNullOrWhiteSpace(_tagNameValue) || string.IsNullOrWhiteSpace(_tagContentValue))"
+                               Color="Color.Success"
+                               OnClick="SaveTag">
                         Save
-                        </MudButton>
-                        <MudSpacer/>
+                    </MudButton>
+                    <MudSpacer />
                     <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="ToggleDialog">Cancel</MudButton>
                 </DialogActions>
             </MudDialog>
@@ -64,7 +62,7 @@
                 <RowTemplate Context="tag">
                     <MudTd DataLabel="Name">@tag.Name</MudTd>
                     <MudTd style="white-space:nowrap" DataLabel="Last Modified">@tag.Created.ToString("MM/dd/yy, h:mm:ss tt")</MudTd>
-                    @if(tag.OwnerRole is not null)
+                    @if (tag.OwnerRole is not null)
                     {
                         var roleColor = Roles[tag.OwnerRole.Id].Color;
                         <MudTd DataLabel="Owner" Style="@($"color: {roleColor}")">@@@tag.OwnerName</MudTd>
@@ -74,12 +72,12 @@
                         <MudTd DataLabel="Owner">@tag.OwnerName</MudTd>
                     }
                     <MudTd DataLabel="Content">
-                        <MudMarkdown Value="@tag.Content"/>
+                        <MudMarkdown Value="@tag.Content" />
                     </MudTd>
                     <MudTd DataLabel="Uses">@tag.Uses</MudTd>
                 </RowTemplate>
                 <PagerContent>
-                    <MudTablePager PageSizeOptions="new [] { 10, 20, 30, 40, 50, int.MaxValue }" ></MudTablePager>
+                    <MudTablePager PageSizeOptions="new [] { 10, 20, 30, 40, 50, int.MaxValue }"/>
                 </PagerContent>
             </MudTable>
         }
