@@ -50,13 +50,14 @@
                     <TitleContent>
                         <div class="d-flex flex-sm-row flex-column align-center justify-space-between">
                             <div class="d-flex flex-grow-1 flex-sm-row flex-column align-center">
-                                <MudTooltip RootStyle="vertical-align: bottom" Placement="Placement.Top" Text="@($"Status: " + (campaign.Outcome?.ToString() ?? "Active"))">
+                                <MudTooltip Placement="Placement.Top" Text="@($"Status: " + (campaign.Outcome?.ToString() ?? "Active"))">
                                     <MudIcon Size="Size.Large" Icon="@icon"/>
                                 </MudTooltip>
-                                <MudText Style="margin-left: .5em" Typo="Typo.h4" Inline="true">
+                                <MudText Class="ml-4" Typo="Typo.h4" Inline="true">
                                     @campaign.Subject.GetFullUsername()
                                 </MudText>
-                                <MudText Class="targetRole" Inline="true" Style="@($"color: {RoleColors[campaign.TargetRole.Id]}; vertical-align: text-bottom; white-space: nowrap")">&#10149; @campaign.TargetRole.Name</MudText>
+
+                                <MudChip Class="targetRole ml-2" Style="@($"color: {RoleColors[campaign.TargetRole.Id]}")" Icon="@Icons.Material.Filled.ArrowForwardIos">@campaign.TargetRole.Name</MudChip>
                             </div>
 
                             <div class="d-flex">
@@ -99,7 +100,9 @@
                         <MudDivider Light="true"/>
                         @if(campaign.Subject.Id == CurrentUserId)
                         {
-                            <MudText Style="text-align: center; font-weight: bold; margin: 1em 0 .5em 0">Sorry, you aren't allowed to see comments on your own campaign.</MudText>
+                            <MudText Class="center-text mb-2 mt-4">
+                                <b>Sorry, you aren't allowed to see comments on your own campaign.</b>
+                            </MudText>
                         }
                         else if(!campaignCommentData.ContainsKey(campaign.Id))
                         {
@@ -145,16 +148,15 @@
 
 <style>
     .targetRole{
-        font-weight: 400 !important;
-        padding: 4px 8px;
-        border: 2px solid currentColor;
-        border-top-color: currentcolor;
-        border-right-color: currentcolor;
-        border-bottom-color: currentcolor;
-        border-left-color: currentcolor;
+        border: 1px solid currentColor;
         border-color: currentColor !important;
-        border-radius: 3px;
-        margin-left: .5em
+        background-color: var(--mud-palette-background) !important;
+        cursor: inherit;
+    }
+
+    .targetRole:hover{
+        background-color: var(--mud-palette-background) !important;
+        border-color: currentColor !important;
     }
 </style>
 

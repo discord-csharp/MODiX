@@ -37,7 +37,9 @@
 
                     <MudCard Class="pa-3 mb-5">
                         <div class="d-flex flex-sm-row flex-column">
-                            <MudText Inline="true" Style="font-weight: bold">@groupedClaimData.Value.Name.Titleize()</MudText>
+                            <MudText Inline="true">
+                                <b>@groupedClaimData.Value.Name.Titleize()</b>
+                            </MudText>
                             <MudSpacer/>
                             <MudButtonGroup Size="Size.Small" Variant="Variant.Outlined" OverrideStyles="false">
                                 <MudButton

@@ -54,10 +54,14 @@
                 <MudListItem DisableRipple="true">
                     <div class="d-flex align-center">
                         <div>
-                            <MudText Style="font-weight: bold">@designatedRoleType.ToString().Titleize()</MudText>
+                            <MudText>
+                                <b>@designatedRoleType.ToString().Titleize()</b>
+                            </MudText>
                             @if (!DesignatedRoleMappings.TryGetValue(designatedRoleType, out var roleDesignations) || !roleDesignations.Any())
                             {
-                                <MudText Style="color: grey; text-transform: uppercase; font-weight: bold; letter-spacing: 1px" Typo="Typo.caption">None Assigned</MudText>
+                                <MudText Style="color: grey; letter-spacing: 1px" Typo="Typo.caption">
+                                    <b>NONE ASSIGNED</b>
+                                </MudText>
                             }
                             else
                             {

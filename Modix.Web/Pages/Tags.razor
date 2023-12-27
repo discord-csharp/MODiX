@@ -55,11 +55,11 @@
 
             <MudTable Items="Data" SortLabel="Sort By" Bordered="true" Filter="FilterFunction">
                 <HeaderContent>
-                    <MudTh Style="text-align:center"><MudTableSortLabel T="TagData" SortBy="x => x.Name">Name</MudTableSortLabel></MudTh>
-                    <MudTh Style="text-align:center"><MudTableSortLabel T="TagData" SortBy="x => x.Created">Last Modified</MudTableSortLabel></MudTh>
-                    <MudTh Style="text-align:center"><MudTableSortLabel T="TagData" SortBy="x => x.OwnerName">Owner</MudTableSortLabel></MudTh>
-                    <MudTh Style="text-align:center"><MudTableSortLabel T="TagData" SortBy="x => x.Content">Content</MudTableSortLabel></MudTh>
-                    <MudTh Style="text-align:center"><MudTableSortLabel T="TagData" SortBy="x => x.Uses">Uses</MudTableSortLabel></MudTh>
+                    <MudTh Class="center-text"><MudTableSortLabel T="TagData" SortBy="x => x.Name">Name</MudTableSortLabel></MudTh>
+                    <MudTh Class="center-text"><MudTableSortLabel T="TagData" SortBy="x => x.Created">Last Modified</MudTableSortLabel></MudTh>
+                    <MudTh Class="center-text"><MudTableSortLabel T="TagData" SortBy="x => x.OwnerName">Owner</MudTableSortLabel></MudTh>
+                    <MudTh Class="center-text"><MudTableSortLabel T="TagData" SortBy="x => x.Content">Content</MudTableSortLabel></MudTh>
+                    <MudTh Class="center-text"><MudTableSortLabel T="TagData" SortBy="x => x.Uses">Uses</MudTableSortLabel></MudTh>
                 </HeaderContent>
                 <RowTemplate Context="tag">
                     <MudTd DataLabel="Name">@tag.Name</MudTd>

@@ -30,7 +30,7 @@
                       SelectedItemChanged="SelectedUserChanged"
         >
             <ItemTemplate Context="user">
-                <MudImage style="vertical-align: bottom" Src="@user.AvatarUrl" Height="24" Width="24" Class="rounded-lg" />
+                <MudImage Src="@user.AvatarUrl" Height="24" Width="24" Class="rounded-lg vertical-bottom" />
                 @user.Name
             </ItemTemplate>
         </AutoComplete>
@@ -70,7 +70,7 @@
                 <div class="d-flex flex-sm-row flex-column">
                     @if(!userInformation.Roles.Any())
                     {
-                        <em class="lookup-text-item">No roles assigned</em>
+                        <em class="ml-2">No roles assigned</em>
                     }
                     else
                     {
@@ -79,7 +79,7 @@
                             var roleName = $"@{role.Name}";
                             var roleColorStyle = $"border: 1px solid {role.Color}";
                             
-                            <MudText Class="lookup-text-item" Style=@($"color: {role.Color}")>@roleName</MudText>
+                            <MudText Class="ml-2" Style=@($"color: {role.Color}")>@roleName</MudText>
                         }
                     }
                 </div>

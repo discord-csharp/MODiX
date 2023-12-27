@@ -31,7 +31,7 @@
         }
         else
         {
-            <MudText Style="text-align: center">Starting
+            <MudText Class="center-text">Starting
                 <strong>@deletedMessageContext.First().SentTime?.ToLocalTime().ToString("MM/dd/yy, h:mm:ss tt")</strong>
             </MudText>
 
@@ -54,7 +54,7 @@
                             <MudLink Style="font-size: 1em; font-family: monospace; width:45px" Href="@item.Url">@item.SentTime!.Value.ToLocalTime().ToString("hh:mm")</MudLink>
                         }
 
-                        <MudText Class="mr-2" Style="font-weight: bold">@item.Username</MudText>
+                        <MudText Class="mr-2"><b>@item.Username</b></MudText>
                     </div>
                     @if(string.IsNullOrWhiteSpace(item.Content))
                     {
@@ -77,34 +77,34 @@
             <MudButton Class="ml-1" Variant="Variant.Filled" OnClick="RefreshTable" StartIcon="@Icons.Material.Filled.Refresh" Color="MudBlazor.Color.Primary">Refresh</MudButton>
         </ToolBarContent>
         <HeaderContent>
-            <MudTh Style="text-align:center; vertical-align: top">
+            <MudTh Class="center-text vertical-top">
                 <MudTableSortLabel T="DeletedMessageSummary" SortBy="x => x.Channel.Name">Channel</MudTableSortLabel>
                 <MudTextField DebounceInterval="1000" ValueChanged="(string? channel) => FilterChanged(() => _tableFilter.Channel = channel)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
             </MudTh>
-            <MudTh Style="text-align:center; vertical-align: top">
+            <MudTh Class="center-text vertical-top">
                 <MudTableSortLabel T="DeletedMessageSummary" SortBy="x => x.Author.GetFullUsername()">Author</MudTableSortLabel>
                 <MudTextField DebounceInterval="1000" ValueChanged="(string? author) => FilterChanged(() => _tableFilter.Author = author)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
             </MudTh>
-            <MudTh Style="text-align:center; vertical-align: top">
+            <MudTh Class="center-text vertical-top">
                 <MudTableSortLabel T="DeletedMessageSummary" SortBy="x => x.Created">Deleted On</MudTableSortLabel>
             </MudTh>
-            <MudTh Style="text-align:center; vertical-align: top">
+            <MudTh Class="center-text vertical-top">
                 <MudTableSortLabel T="DeletedMessageSummary" SortBy="x => x.CreatedBy.GetFullUsername()">Deleted By</MudTableSortLabel>
                 <MudTextField DebounceInterval="1000" ValueChanged="(string? deletedBy) => FilterChanged(() => _tableFilter.CreatedBy = deletedBy)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
             </MudTh>
-            <MudTh Style="text-align:center; vertical-align: top">
+            <MudTh Class="center-text vertical-top">
                 <MudTableSortLabel T="DeletedMessageSummary" SortBy="x => x.Content">Content</MudTableSortLabel>
                 <MudTextField DebounceInterval="1000" ValueChanged="(string? content) => FilterChanged(() => _tableFilter.Content = content)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
             </MudTh>
-            <MudTh Style="text-align:center; vertical-align: top">
+            <MudTh Class="center-text vertical-top">
                 <MudTableSortLabel T="DeletedMessageSummary" SortBy="x => x.Reason">Reason</MudTableSortLabel>
                 <MudTextField DebounceInterval="1000" ValueChanged="(string? reason) => FilterChanged(() => _tableFilter.Reason = reason)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
             </MudTh>
-            <MudTh Style="text-align:center; vertical-align: top">
+            <MudTh Class="center-text vertical-top">
                 <MudTableSortLabel T="DeletedMessageSummary" SortBy="x => x.BatchId">Batch ID</MudTableSortLabel>
                 <MudTextField DebounceInterval="1000" ValueChanged="(long? batchId) => FilterChanged(() => _tableFilter.BatchId = batchId)" Placeholder="#" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
             </MudTh>
-            <MudTh Style="text-align:center; vertical-align: top">Actions</MudTh>
+            <MudTh Class="center-text vertical-top">Actions</MudTh>
         </HeaderContent>
         <RowTemplate Context="deletedMessage">
             <MudTd DataLabel="Channel">#@deletedMessage.Channel.Name</MudTd>

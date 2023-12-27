@@ -4,26 +4,22 @@
 
 <CascadingAuthenticationState>
     <MudButtonGroup Class="mr-1" OverrideStyles="false">
-        <MudButton
-        Style="text-transform: unset"
-        DisableElevation="true"
-        Size="Size.Small"
-        Variant="Variant.Filled"
-        Color="Color.Info"
-        >
+        <MudButton Style="text-transform: unset"
+                   DisableElevation="true"
+                   Size="Size.Small"
+                   Variant="Variant.Filled"
+                   Color="Color.Info">
             @NamePrefix@Name
         </MudButton>
         <AuthorizeView Roles="@AuthorizationRoleForDelete">
             @if (!_showConfirm)
             {
-                <MudButton
-                OnClick="() => _showConfirm = true"
-                Style="min-width: unset"
-                DisableElevation="true"
-                Size="Size.Small"
-                Variant="Variant.Filled"
-                Color="Color.Error"
-                >
+                <MudButton OnClick="() => _showConfirm = true"
+                           Style="min-width: unset"
+                           DisableElevation="true"
+                           Size="Size.Small"
+                           Variant="Variant.Filled"
+                           Color="Color.Error">
                     X
                 </MudButton>
             }
@@ -31,22 +27,18 @@
             {
                 <MudButton Disabled="true">Remove Designation?</MudButton>
 
-                <MudButton
-                OnClick="() => RemoveDesignation.InvokeAsync(Id)"
-                DisableElevation="true"
-                Size="Size.Small"
-                Variant="Variant.Filled"
-                Color="Color.Success"
-                >
+                <MudButton OnClick="() => RemoveDesignation.InvokeAsync(Id)"
+                           DisableElevation="true"
+                           Size="Size.Small"
+                           Variant="Variant.Filled"
+                           Color="Color.Success">
                     Yes
                 </MudButton>
-                <MudButton
-                OnClick="() => _showConfirm = false"
-                DisableElevation="true"
-                Size="Size.Small"
-                Variant="Variant.Filled"
-                Color="Color.Error"
-                >
+                <MudButton OnClick="() => _showConfirm = false"
+                           DisableElevation="true"
+                           Size="Size.Small"
+                           Variant="Variant.Filled"
+                           Color="Color.Error">
                     No
                 </MudButton>
             }

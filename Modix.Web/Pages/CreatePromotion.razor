@@ -15,18 +15,18 @@
     <MudText Typo="Typo.h4">Start a Campaign</MudText>
     <MudGrid>
         <MudItem xs="3">
-            <MudPaper Style="padding: 1.25rem; margin-top: 1.5rem" Class="d-flex align-center justify-center mud-width-full py-8" Elevation="4">
+            <MudPaper Class="d-flex align-center justify-center mud-width-full pa-5 mt-6" Elevation="4">
                 <p>Feel like someone deserves recognition? <strong>Start a promotion campaign for them</strong> - even if that person is yourself!</p>
             </MudPaper>
-            <MudPaper Style="padding: 1.25rem; margin-top: 1.5rem" Class="d-flex align-center justify-center mud-width-full py-8" Elevation="4">
+            <MudPaper Class="d-flex align-center justify-center mud-width-full pa-5 mt-6" Elevation="4">
                 <p>Once a campaign is started, users can <strong>anonymously comment</strong>, voicing their opinions for or against the individual up for promotion</p>
             </MudPaper>
-            <MudPaper Style="padding: 1.25rem; margin-top: 1.5rem" Class="d-flex align-center justify-center mud-width-full py-8" Elevation="4">
+            <MudPaper Class="d-flex align-center justify-center mud-width-full pa-5 mt-6" Elevation="4">
                 <p>Staff will periodically review campaigns. If approved, the user will be <strong>immediately promoted!</strong> If not, they may be permanently denied, or further looked into as the campaign runs its course.</p>
             </MudPaper>
         </MudItem>
         <MudItem xs="9">
-            <MudItem Style="margin-bottom: 1.5rem">
+            <MudItem Class="mb-6">
                 <AutoComplete T="ModixUser"
                               SearchFunc="(query) => DiscordHelper.AutoCompleteAsync(query)"
                               Placeholder="Username or ID"
@@ -34,23 +34,23 @@
                               Title="Tell us their username"
                 >
                     <ItemTemplate Context="user">
-                        <MudImage style="vertical-align: bottom" Src="@user.AvatarUrl" Height="24" Width="24" Class="rounded-lg" />
+                        <MudImage Src="@user.AvatarUrl" Height="24" Width="24" Class="rounded-lg vertical-bottom" />
                         @user.Name
                     </ItemTemplate>
                 </AutoComplete>
             </MudItem>
             @if(_selectedUser is not null && _nextRank is not null)
             {
-                <div class="field">
+                <div class="mb-4">
                     <MudText Typo="Typo.h5">@_selectedUser.Name can be promoted to this rank</MudText>
                     <MudChip Variant="Variant.Outlined" Style=@($"color: {_nextRank.Color}; border: 2px solid") Label="true">@_nextRank.Name</MudChip>
                 </div>
 
-                <div class="field">
+                <div class="mb-4">
                     <MudText Typo="Typo.h5">Finally, say a few words on their behalf</MudText>
-                    <MudCard  Elevation="4">
+                    <MudCard Elevation="4">
                         <MudTextField Disabled="@(_nextRank.Name == "None")"
-                            Style="padding: .75rem"
+                            Class="pa-3"
                             Immediate="true"
                             @bind-Value="_promotionComment"
                             Lines="5"
@@ -66,13 +66,6 @@
 
     </MudGrid>
 </MudContainer>
-
-
-<style>
-    .field {
-        margin-bottom: 1rem;
-    }
-</style>
 
 @code {
 

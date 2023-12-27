@@ -25,13 +25,13 @@
                           Title="Subject"
             >
                 <ItemTemplate Context="user">
-                    <MudImage style="vertical-align: bottom" Src="@user.AvatarUrl" Height="24" Width="24" Class="rounded-lg" />
+                    <MudImage Src="@user.AvatarUrl" Height="24" Width="24" Class="rounded-lg vertical-bottom" />
                     @user.Name
                 </ItemTemplate>
             </AutoComplete>
 
-            <MudText Typo="Typo.h5" Style="margin-top: 1rem">Infraction</MudText>
-            <div class="d-flex" style="column-gap: 1rem">
+            <MudText Typo="Typo.h5" Class="mt-4">Infraction</MudText>
+            <div class="d-flex gap-4">
                 <div style="max-width: 6rem">
                     <MudSelect FullWidth="false" Required="true" @bind-Value="_infractionType">
                         <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationNote)">
@@ -59,8 +59,8 @@
 
                 @if(_infractionType == InfractionType.Mute)
                 {
-                    <MudText Typo="Typo.h5" Style="margin-top: 1rem">Duration</MudText>
-                    <div class="d-flex" style="column-gap: 1rem">
+                    <MudText Typo="Typo.h5" Class="mt-4">Duration</MudText>
+                    <div class="d-flex gap-4">
                         <MudTextField Label="Months" Placeholder="Months" @bind-Value="_newInfractionMonths"/>
                         <MudTextField Label="Days" Placeholder="Days" @bind-Value="_newInfractionDays"/>
                         <MudTextField Label="Hours" Placeholder="Hours" @bind-Value="_newInfractionHours"/>
@@ -100,11 +100,11 @@
 
         <MudTable @ref="@TableRef" SortLabel="Sort By" Bordered="true" ServerData="LoadInfractions">
             <HeaderContent>
-                <MudTh Style="text-align:center; vertical-align: top">
+                <MudTh Class="center-text vertical-top">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.Id">Id</MudTableSortLabel>
                     <MudTextField Value="@Id" DebounceInterval="1000" ValueChanged="(string? id) => FilterChanged(() => _tableFilter.IdString = id)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                 </MudTh>
-                <MudTh Style="text-align:center; vertical-align: top">
+                <MudTh Class="center-text vertical-top">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.Type">Type</MudTableSortLabel>
                     <MudSelect Placeholder="Filter" Clearable="true" SelectedValuesChanged="(IEnumerable<InfractionType?> values) => FilterChanged(() => _tableFilter.Type = values.FirstOrDefault())">
                         @foreach(var infractionType in Enum.GetValues<InfractionType>())
@@ -113,23 +113,25 @@
                         }
                     </MudSelect>
                 </MudTh>
-                <MudTh Style="text-align:center; vertical-align: top"><MudTableSortLabel T="InfractionData" SortBy="x => x.CreateAction.Created">Created On</MudTableSortLabel></MudTh>
-                <MudTh Style="text-align:center; vertical-align: top">
+                <MudTh Class="center-text vertical-top">
+                    <MudTableSortLabel T="InfractionData" SortBy="x => x.CreateAction.Created">Created On</MudTableSortLabel>
+                </MudTh>
+                <MudTh Class="center-text vertical-top">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.Subject.Username">Subject</MudTableSortLabel>
                     <MudTextField Value="@Subject" DebounceInterval="1000" ValueChanged="(string? subject) => FilterChanged(() => _tableFilter.Subject = subject)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                 </MudTh>
-                <MudTh Style="text-align:center; vertical-align: top">
+                <MudTh Class="center-text vertical-top">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.CreateAction.CreatedBy.Username">Creator</MudTableSortLabel>
                     <MudTextField DebounceInterval="1000" ValueChanged="(string? creator) => FilterChanged(() => _tableFilter.Creator = creator)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                 </MudTh>
-                <MudTh Style="text-align:center; vertical-align: top">Reason</MudTh>
+                <MudTh Class="center-text vertical-top">Reason</MudTh>
                 @if(_showState)
                 {
-                    <MudTh Style="text-align:center; vertical-align: top">State</MudTh>
+                    <MudTh Class="center-text vertical-top">State</MudTh>
                 }
                 @if (_canDeleteInfractions || _canRescind)
                 {
-                    <MudTh Style="text-align:center; vertical-align: top">Actions</MudTh>
+                    <MudTh Class="center-text vertical-top">Actions</MudTh>
                 }
             </HeaderContent>
             <RowTemplate Context="infraction">
@@ -146,7 +148,7 @@
                 @if(_canDeleteInfractions || _canRescind)
                 {
                     <MudTd DataLabel="Actions">
-                        <div class="d-inline-flex" style="column-gap: .33rem">
+                        <div class="d-inline-flex gap-4">
                             @if (infraction.CanBeDeleted)
                             {
                                 <MudButton Variant="Variant.Filled" OnClick="() => DeleteInfraction(infraction)" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Primary">Delete</MudButton>

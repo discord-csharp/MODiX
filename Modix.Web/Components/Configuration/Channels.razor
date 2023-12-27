@@ -53,10 +53,14 @@
                     <MudListItem DisableRipple="true">
                         <div class="d-flex align-center">
                             <div>
-                                <MudText Style="font-weight: bold">@designatedChannelType.ToString().Titleize()</MudText>
+                                <MudText>
+                                    <b>@designatedChannelType.ToString().Titleize()</b>
+                                </MudText>
                                 @if (!DesignatedChannelMappings.TryGetValue(designatedChannelType, out var channelDesignations) || !channelDesignations.Any())
                                 {
-                                    <MudText Style="color: grey; text-transform: uppercase; font-weight: bold; letter-spacing: 1px" Typo="Typo.caption">None Assigned</MudText>
+                                    <MudText Style="color: grey; letter-spacing: 1px" Typo="Typo.caption">
+                                        <b>NONE ASSIGNED</b>
+                                    </MudText>
                                 }
                                 else
                                 {
