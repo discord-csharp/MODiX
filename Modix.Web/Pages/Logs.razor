@@ -10,9 +10,9 @@
 
 <CascadingAuthenticationState>
 
-    <MudGrid>
-        <MudItem xs="9" md="2" lg="1">
-            <MudText Typo="Typo.h6">Logs</MudText>
+    <div class="d-flex flex-sm-row flex-column">
+        <div class="mb-4 px-4">
+            <MudText Class="mb-1" Typo="Typo.h6">Logs</MudText>
             <MudPaper>
                 <MudList SelectedValue="@SubPage" Clickable="true">
                     <MudListItem Value="@("deletedMessages")" Href="/logs/deletedMessages" Text="Deletions" />
@@ -20,8 +20,8 @@
                     <MudListItem Value="@("infractions")" Href="/logs/infractions" Text="Infractions" />
                 </MudList>
             </MudPaper>
-        </MudItem>
-        <MudItem xs="12" md="9" lg="11">
+        </div>
+        <div class="mb-4">
             @if (SubPage == "infractions")
             {
                 <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationRead)">
@@ -34,8 +34,9 @@
                     <DeletedMessages />
                 </AuthorizeView>
             }
-        </MudItem>
-    </MudGrid>
+        </div>
+    </div>
+
 </CascadingAuthenticationState>
 
 @code {

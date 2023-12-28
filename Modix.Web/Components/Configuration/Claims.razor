@@ -10,67 +10,68 @@
 @using Modix.Web.Models.Common;
 
 <PageTitle>Modix - Claims</PageTitle>
-<MudText Typo="Typo.h4">Claim Assignments</MudText>
 
 @if (ClaimData is not null && MappedClaims is not null && Roles is not null && _selectedRole is not null)
 {
-    <MudGrid Class="pl-1">
-        <MudItem xs="8" md="4">
-            <MudPaper>
-                <MudList SelectedValue="@_selectedRole" Clickable="true" DisablePadding="true">
-                    @foreach (var role in Roles.Values)
-                    {
-                        <MudListItem Value="@role.Id" OnClick="() => _selectedRole = role.Id" Text="@role.Name" />
-                        <MudDivider />
-                    }
-                </MudList>
-            </MudPaper>
-        </MudItem>
-
-        <MudItem xs="11" md="8">
-            @foreach (var claimData in ClaimData.OrderBy(x => x.Value.Name).GroupBy(x => x.Value.Category))
-            {
-                <MudText Typo="Typo.h6">@claimData.Key.ToString().Titleize()</MudText>
-                foreach (var groupedClaimData in claimData)
+    <div class="mt-sm-4">
+        <MudText Typo="Typo.h4">Claim Assignments</MudText>
+        <div class="d-flex flex-md-row flex-column">
+            <div class="mr-md-8">
+                <MudPaper>
+                    <MudList SelectedValue="@_selectedRole" Clickable="true" DisablePadding="true">
+                        @foreach (var role in Roles.Values)
+                        {
+                            <MudListItem Value="@role.Id" OnClick="() => _selectedRole = role.Id" Text="@role.Name" />
+                            <MudDivider />
+                        }
+                    </MudList>
+                </MudPaper>
+            </div>
+            <div>
+                @foreach (var claimData in ClaimData.OrderBy(x => x.Value.Name).GroupBy(x => x.Value.Category))
                 {
-                    MappedClaims.TryGetValue((_selectedRole, groupedClaimData.Key), out var mappedClaimForRole);
+                    <MudText Typo="Typo.h6">@claimData.Key.ToString().Titleize()</MudText>
+                    foreach (var groupedClaimData in claimData)
+                    {
+                        MappedClaims.TryGetValue((_selectedRole, groupedClaimData.Key), out var mappedClaimForRole);
 
-                    <MudCard Class="pa-3 mb-5">
-                        <div class="d-flex flex-sm-row flex-column">
-                            <MudText Inline="true">
-                                <b>@groupedClaimData.Value.Name.Titleize()</b>
-                            </MudText>
-                            <MudSpacer />
-                            <MudButtonGroup Size="Size.Small" Variant="Variant.Outlined" OverrideStyles="false">
-                                <MudButton OnClick="() => ModifyMapping(_selectedRole.Value, groupedClaimData.Key, ClaimMappingType.Denied)"
-                                           Variant="@(mappedClaimForRole?.Type == ClaimMappingType.Denied ? Variant.Filled : Variant.Outlined)"
-                                           Color="Color.Error"
-                                           DisableElevation="true">
-                                    X
-                                </MudButton>
+                        <MudCard Class="pa-3 mb-5">
+                            <div class="d-flex flex-sm-row flex-column">
+                                <MudText Inline="true">
+                                    <b>@groupedClaimData.Value.Name.Titleize()</b>
+                                </MudText>
+                                <MudSpacer />
+                                <MudButtonGroup Class="align-center" Size="Size.Small" Variant="Variant.Outlined" OverrideStyles="false">
+                                    <MudButton OnClick="() => ModifyMapping(_selectedRole.Value, groupedClaimData.Key, ClaimMappingType.Denied)"
+                                               Variant="@(mappedClaimForRole?.Type == ClaimMappingType.Denied ? Variant.Filled : Variant.Outlined)"
+                                               Color="Color.Error"
+                                               DisableElevation="true">
+                                        X
+                                    </MudButton>
 
-                                <MudButton OnClick="() => ModifyMapping(_selectedRole.Value, groupedClaimData.Key, null)"
-                                           Variant="@(mappedClaimForRole is null ? Variant.Filled : Variant.Outlined)"
-                                           Color="Color.Dark"
-                                           DisableElevation="true">
-                                    –
-                                </MudButton>
+                                    <MudButton OnClick="() => ModifyMapping(_selectedRole.Value, groupedClaimData.Key, null)"
+                                               Variant="@(mappedClaimForRole is null ? Variant.Filled : Variant.Outlined)"
+                                               Color="Color.Dark"
+                                               DisableElevation="true">
+                                        –
+                                    </MudButton>
 
-                                <MudButton OnClick="() => ModifyMapping(_selectedRole.Value, groupedClaimData.Key, ClaimMappingType.Granted)"
-                                           Variant="@(mappedClaimForRole?.Type == ClaimMappingType.Granted ? Variant.Filled : Variant.Outlined)"
-                                           Color="Color.Success"
-                                           DisableElevation="true">
-                                    ✓
-                                </MudButton>
-                            </MudButtonGroup>
-                        </div>
-                        <MudText>@groupedClaimData.Value.Description</MudText>
+                                    <MudButton OnClick="() => ModifyMapping(_selectedRole.Value, groupedClaimData.Key, ClaimMappingType.Granted)"
+                                               Variant="@(mappedClaimForRole?.Type == ClaimMappingType.Granted ? Variant.Filled : Variant.Outlined)"
+                                               Color="Color.Success"
+                                               DisableElevation="true">
+                                        ✓
+                                    </MudButton>
+                                </MudButtonGroup>
+                            </div>
+                            <MudText>@groupedClaimData.Value.Description</MudText>
 
-                    </MudCard>
+                        </MudCard>
+                    }
                 }
-            }
-        </MudItem>
-    </MudGrid>
+            </div>
+        </div>
+    </div>
 }
 
 @code {
