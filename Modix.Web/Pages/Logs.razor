@@ -21,7 +21,7 @@
                 </MudList>
             </MudPaper>
         </div>
-        <div class="mb-4">
+        <div class="flex-grow-1 mb-4">
             @if (SubPage == "infractions")
             {
                 <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationRead)">
