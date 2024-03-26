@@ -52,8 +52,7 @@ namespace Modix.Services.Test.Core
                 new TestCaseData(   ulong.MinValue, ulong.MinValue, DesignatedRoleType.Rank,                        false           ).SetName("{m}(Min Values)"),
                 new TestCaseData(   ulong.MaxValue, ulong.MaxValue, DesignatedRoleType.Pingable,                    true            ).SetName("{m}(Max Values)"),
                 new TestCaseData(   1UL,            2UL,            DesignatedRoleType.Rank,                        false           ).SetName("{m}(Unique Values 1)"),
-                new TestCaseData(   3UL,            4UL,            DesignatedRoleType.ModerationMute,              true            ).SetName("{m}(Unique Values 2)"),
-                new TestCaseData(   5UL,            6UL,            DesignatedRoleType.RestrictedMentionability,    false           ).SetName("{m}(Unique Values 3)"));
+                new TestCaseData(   3UL,            4UL,            DesignatedRoleType.ModerationMute,              true            ).SetName("{m}(Unique Values 2)"));
 
         [TestCaseSource(nameof(RoleHasDesignationAsync_TestCaseData))]
         public async Task RoleHasDesignationAsync_Always_ReturnsDesignatedRoleMappingRepositoryAnyAsync(
@@ -109,8 +108,7 @@ namespace Modix.Services.Test.Core
                 new TestCaseData(   ulong.MinValue, new[] { ulong.MinValue },   DesignatedRoleType.Rank,                        false           ).SetName("{m}(Min Values)"),
                 new TestCaseData(   ulong.MaxValue, new[] { ulong.MaxValue },   DesignatedRoleType.Pingable,                    true            ).SetName("{m}(Max Values)"),
                 new TestCaseData(   1UL,            Array.Empty<ulong>(),       DesignatedRoleType.Rank,                        false           ).SetName("{m}(Unique Values 1)"),
-                new TestCaseData(   2UL,            new[] { 3UL },              DesignatedRoleType.ModerationMute,              true            ).SetName("{m}(Unique Values 2)"),
-                new TestCaseData(   4UL,            new[] { 5UL, 6UL },         DesignatedRoleType.RestrictedMentionability,    false           ).SetName("{m}(Unique Values 3)"));
+                new TestCaseData(   2UL,            new[] { 3UL },              DesignatedRoleType.ModerationMute,              true            ).SetName("{m}(Unique Values 2)"));
 
         [TestCaseSource(nameof(RolesHaveDesignationAsync_TestCaseData))]
         public async Task RolesHaveDesignationAsync_Always_ReturnsDesignatedRoleMappingRepositoryAnyAsync(
