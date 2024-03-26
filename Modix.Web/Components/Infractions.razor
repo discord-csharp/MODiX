@@ -228,6 +228,8 @@
         var auth = await AuthState;
         _canRescind = auth.User.HasClaim(ClaimTypes.Role, nameof(AuthorizationClaim.ModerationRescind));
         _canDeleteInfractions = auth.User.HasClaim(ClaimTypes.Role, nameof(AuthorizationClaim.ModerationDeleteInfraction));
+
+        _tableFilter.Subject = Subject ?? Id;
     }
 
     private async Task ShowStateChanged(bool showState)
