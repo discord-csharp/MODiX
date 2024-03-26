@@ -10,7 +10,7 @@ services:
       - PGID=1000
       - TZ=Europe/London
       - URL=mod.gg
-      - SUBDOMAINS=portainer,www,paste,repl,stats,db,webhook,logs
+      - SUBDOMAINS=portainer,www,repl,stats,db,webhook,logs,modmail,beta
       - VALIDATION=http
       - EMAIL=certs@cisien.com
       - ONLY_SUBDOMAINS=false
@@ -34,48 +34,12 @@ services:
       - proxy
       - portainer_agent_network
 
-# A self-hosted hastebin instance for ad-hoc pastes
-  hastebin:
-    image: ghcr.io/discord-csharp/haste-server:latest
-    user: node
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7777"]
-      interval: 1m30s
-      timeout: 10s
-      retries: 3
-      start_period: 1s
-    environment:
-      STORAGE_TYPE: file
-      STORAGE_FILEPATH: /data
-      RATELIMITS_NORMAL_TOTAL_REQUESTS: 100
-    deploy:
-      mode: replicated
-      replicas: 1
-      update_config:
-        parallelism: 2
-        delay: 0s
-        order: start-first
-      restart_policy:
-        condition: any
-        delay: 0s
-      resources:
-        limits:
-          cpus: '1'
-          memory: 500M
-        reservations:
-          cpus: '0.25'
-          memory: 20M
-    volumes:
-      - hastebin-data:/data
-    networks:
-      - proxy
-
 # c# repl service
   repl:
     image: ghcr.io/discord-csharp/csharprepl:latest
     read_only: true
     user: www-data
-    environment:
+    environment: 
       - ASPNETCORE_URLS=http://+:31337
       - Logging__LogLevel__Microsoft=Warning
       - Logging__LogLevel__CSDiscordService=Trace
@@ -96,12 +60,6 @@ services:
         reservations:
           cpus: '0.25'
           memory: 20M
-    logging:
-      driver: gelf
-      options:
-        gelf-address: "udp://localhost:12201"
-        tag: "repl"
-        labels: "modix,repl"
     volumes:
       - repl-tmp:/tmp
       - repl-var:/var
@@ -110,7 +68,7 @@ services:
 
 # the modix bot
   modix:
-    image: ghcr.io/discord-csharp/modix:latest
+    image: ghcr.io/discord-csharp/modix:main
     environment:
       COREHOST_TRACE: '0'
       MessageCacheSize: '1000'
@@ -118,8 +76,7 @@ services:
       MODIX_LogWebhookId: '382609729802862592'
       MODIX_ReplUrl: http://repl:31337/eval
       MODIX_IlUrl: http://repl:31337/il
-      MODIX_EnableStatsd: 'True'
-      DD_AGENT_HOST: datadog-agent
+      MODIX_SeqEndpoint: http://seq:5341
     deploy:
       mode: replicated
       replicas: 1
@@ -140,15 +97,16 @@ services:
         target: DbConnection
       - source: log-webhook-token
         target: LogWebhookToken
+      - source: modix-seq-key
+        target: SeqKey
     volumes:
       - modix-keys:/app/dataprotection
       - modix-logs:/app/logs
     networks:
       - proxy
       - repl
-      - datadog
       - modix
-
+      
 # the translation feature of the modix bot
   modix-translator:
     image: ghcr.io/discord-csharp/modix-translator:latest
@@ -166,7 +124,7 @@ services:
     secrets:
       - source: discord-bot-token
         target: DISCORDTOKEN
-      - source: azure-translation-service-key
+      - source: azure-translation-service-key-a
         target: AZURETRANSLATIONKEY
 
 # pgadmin instance with access to the modix instance
@@ -189,7 +147,7 @@ services:
       - pgadmin-data:/var/lib/pgadmin
     networks:
       - proxy
-
+      
 # grafana instance with access to the modix database
   stats:
     image: grafana/grafana:latest
@@ -218,15 +176,16 @@ services:
 # log viewer/aggregator
   seq:
     image: datalust/seq:latest
-    environment:
+    environment: 
       - ACCEPT_EULA=Y
+      - SEQ_CACHE_SYSTEMRAMTARGET=0.7
     deploy:
       mode: replicated
       replicas: 1
       resources:
         limits:
-          cpus: '2'
-          memory: 3G
+          cpus: '3'
+          memory: 4G
         reservations:
           cpus: '0.5'
           memory: 1G
@@ -241,8 +200,10 @@ services:
       - seq-data:/data
     networks:
       - modix
+      - repl
       - proxy
       - seq
+      
 # receives docker logs with the gelf docker log driver
   seq-input-gelf:
     image: datalust/seq-input-gelf:latest
@@ -259,40 +220,21 @@ services:
     networks:
       - repl
       - seq
-
-#experimental services
-  webhook:
-    image: ghcr.io/discord-csharp/discordwebhookproxy:latest
-    environment:
-      - ASPNETCORE_URLS=http://+:8023
+ 
+# monitors the health check (specifically of REPL) and restarts the container
+  autoheal:
+    image: willfarrell/autoheal
     deploy:
-      mode: replicated
-      replicas: 1
-      update_config:
-        delay: 0s
-        order: stop-first
-      restart_policy:
-        condition: any
-        delay: 0s
-    secrets:
-      - source: modix-dev-token
-        target: DiscordToken
+      mode: global
     volumes:
-      - modix-keys:/app/dataprotection
-      - modix-logs:/app/logs
-    networks:
-      - proxy
+      - /var/run/docker.sock:/var/run/docker.sock
+      
 networks:
   proxy:
-    driver: overlay
   repl:
-    driver: overlay
   modix:
-    driver: overlay
-  datadog:
-    driver: overlay
   seq:
-    driver: overlay
+  modix-20:
   portainer_agent_network:
     external:
       name: portainer_agent_network
@@ -307,12 +249,23 @@ secrets:
     external: true
   log-webhook-token:
     external: true
-  datadog-key:
+  modix-seq-key:
     external: true
-  azure-translation-service-key:
+  azure-translation-service-key-a:
     external: true
   modix-dev-token:
     external: true
+  modix-20-bot-token:
+    external: true
+  modix-20-discord-clientsecret:
+    external: true
+  modix-20-db-connection-string-b:
+    external: true
+  modix-20-web-token-signing-secret:
+    external: true
+  modix-20-seq-key:
+    external: true
+
 volumes:
   pgadmin-data:
   grafana-data:
@@ -320,12 +273,14 @@ volumes:
   hastebin-data:
   modix-keys:
   modix-logs:
+  modix-20-keys:
+  
   seq-data:
     driver_opts:
       type: local
       o: bind
       device: /data/1/seq
-
+    
   #workaround for swarm not supporting tmpfs mounts
   repl-tmp:
     driver_opts:
