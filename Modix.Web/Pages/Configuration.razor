@@ -1,0 +1,61 @@
+﻿@page "/config"
+@page "/config/{SubPage}"
+
+@attribute [Authorize(
+    Roles = $@"
+        {nameof(AuthorizationClaim.DesignatedRoleMappingRead)},
+        {nameof(AuthorizationClaim.DesignatedChannelMappingRead)},
+        {nameof(AuthorizationClaim.AuthorizationConfigure)}")]
+
+@using Modix.Data.Models.Core;
+@using Modix.Web.Components
+@using Modix.Web.Components.Configuration
+@using MudBlazor
+
+<PageTitle>Modix - Configuration</PageTitle>
+
+<CascadingAuthenticationState>
+
+    <div class="d-flex flex-sm-row flex-column">
+        <div class="mb-4 px-4">
+            <MudText Class="mb-1" Typo="Typo.h6">Configuration</MudText>
+            <MudPaper>
+                <MudList SelectedValue="@SubPage" Clickable="true">
+                    <MudListItem Value="@("roles")" Href="/config/roles" Text="Roles" />
+                    <MudDivider />
+                    <MudListItem Value="@("channels")" Href="/config/channels" Text="Channels" />
+                    <MudDivider />
+                    <MudListItem Value="@("claims")" Href="/config/claims" Text="Claims" />
+                </MudList>
+            </MudPaper>
+        </div>
+        <div class="flex-grow-1 px-4 mb-4">
+            @if (SubPage == "roles")
+            {
+                <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedRoleMappingRead)">
+                    <Roles />
+                </AuthorizeView>
+            }
+            else if (SubPage == "channels")
+            {
+                <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedChannelMappingRead)">
+                    <Channels />
+                </AuthorizeView>
+            }
+            else if (SubPage == "claims")
+            {
+                <AuthorizeView Roles="@nameof(AuthorizationClaim.AuthorizationConfigure)">
+                    <Claims />
+                </AuthorizeView>
+            }
+        </div>
+    </div>
+
+</CascadingAuthenticationState>
+
+@code {
+
+    [Parameter]
+    public string? SubPage { get; set; }
+
+}

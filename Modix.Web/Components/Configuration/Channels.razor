@@ -1,0 +1,171 @@
+﻿@using Modix.Data.Models.Core;
+@using Modix.Services.Core;
+@using Modix.Web.Models.Common;
+@using Modix.Web.Models.Configuration;
+@using Modix.Web.Models.UserLookup;
+@using Modix.Web.Services;
+@using MudBlazor
+@using Humanizer;
+@using System.Security.Claims;
+
+<PageTitle>Modix - Channels</PageTitle>
+<MudText Typo="Typo.h4">Channel Designations</MudText>
+
+<CascadingAuthenticationState>
+    @if (DesignatedChannelMappings is not null && DesignatedChannelTypes is not null)
+    {
+        <MudDialog @bind-IsVisible="_createDialogVisible" Options="new DialogOptions { FullWidth= true }">
+            <TitleContent>
+                <MudText Typo="Typo.h5">Assign a Channel</MudText>
+            </TitleContent>
+            <DialogContent>
+                <AutoComplete T="ChannelInformation"
+                              SearchFunc="(query) => Task.FromResult(DiscordHelper.AutocompleteChannels(query))"
+                              Placeholder="@("#general")"
+                              SelectedItemChanged="SelectedChannelChanged"
+                              Title="Channel Name"
+                />
+                <MudText Class="mt-5" Typo="Typo.h5">Designation</MudText>
+                <MudSelect T="DesignatedChannelType?" @bind-Value="_selectedDesignatedChannelType">
+                    @foreach (var designation in DesignatedChannelTypes)
+                    {
+                        <MudSelectItem T="DesignatedChannelType?" Value="@designation"></MudSelectItem>
+                    }
+                </MudSelect>
+            </DialogContent>
+            <DialogActions>
+                <MudButton Variant="Variant.Filled"
+                           Disabled="_selectedDesignatedChannelType is null || _selectedChannel is null"
+                           Color="Color.Success"
+                           OnClick="SaveDesignation">
+                    Assign
+                </MudButton>
+                <MudSpacer />
+                <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="ToggleCreateDialog">Cancel</MudButton>
+            </DialogActions>
+        </MudDialog>
+
+        <MudPaper>
+            <MudList Clickable="true" DisablePadding="true">
+                @foreach (var designatedChannelType in DesignatedChannelTypes.OrderBy(x => x.ToString()))
+                {
+                    <MudListItem DisableRipple="true">
+                        <div class="d-flex align-center">
+                            <div>
+                                <MudText>
+                                    <b>@designatedChannelType.ToString().Titleize()</b>
+                                </MudText>
+                                @if (!DesignatedChannelMappings.TryGetValue(designatedChannelType, out var channelDesignations) || !channelDesignations.Any())
+                                {
+                                    <MudText Style="color: grey; letter-spacing: 1px" Typo="Typo.caption">
+                                        <b>NONE ASSIGNED</b>
+                                    </MudText>
+                                }
+                                else
+                                {
+                                    @foreach (var designatedChannelMapping in channelDesignations)
+                                    {
+                                        <IndividualDesignation AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedChannelMappingDelete)"
+                                                               Id="@designatedChannelMapping.Id"
+                                                               NamePrefix="@("#")"
+                                                               Name="@designatedChannelMapping.Name"
+                                                               RemoveDesignation="(id) => RemoveDesignation(id, designatedChannelMapping.ChannelDesignation)" />
+                                    }
+                                }
+                            </div>
+                            <MudSpacer />
+                            <div>
+                                <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedChannelMappingCreate)">
+                                    <MudIconButton OnClick="ToggleCreateDialog" Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Success" />
+                                </AuthorizeView>
+                            </div>
+                        </div>
+                    </MudListItem>
+                    <MudDivider />
+                }
+            </MudList>
+        </MudPaper>
+    }
+</CascadingAuthenticationState>
+
+@code {
+    [Inject]
+    public DiscordHelper DiscordHelper { get; set; } = null!;
+
+    [Inject]
+    public IDesignatedChannelService DesignatedChannelService { get; set; } = null!;
+
+    [Inject]
+    public ISnackbar Snackbar { get; set; } = null!;
+
+    private Dictionary<DesignatedChannelType, List<DesignatedChannelData>>? DesignatedChannelMappings { get; set; }
+    private DesignatedChannelType[]? DesignatedChannelTypes { get; set; }
+
+    private bool _createDialogVisible;
+    private DesignatedChannelType? _selectedDesignatedChannelType;
+    private ChannelInformation? _selectedChannel;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        var currentGuild = DiscordHelper.GetUserGuild();
+        var designatedChannels = await DesignatedChannelService.GetDesignatedChannelsAsync(currentGuild.Id);
+
+        DesignatedChannelMappings = designatedChannels
+            .Select(d => new DesignatedChannelData(d.Id, d.Channel.Id, d.Type, currentGuild?.GetChannel(d.Channel.Id)?.Name ?? d.Channel.Name))
+            .ToLookup(x => x.ChannelDesignation, x => x)
+            .ToDictionary(x => x.Key, x => x.ToList());
+
+        DesignatedChannelTypes = Enum.GetValues<DesignatedChannelType>();
+
+        StateHasChanged();
+    }
+
+    public void ToggleCreateDialog()
+    {
+        _createDialogVisible = !_createDialogVisible;
+        if (_createDialogVisible)
+        {
+            _selectedChannel = null;
+            _selectedDesignatedChannelType = null;
+        }
+    }
+
+    private void SelectedChannelChanged(ChannelInformation channel)
+    {
+        _selectedChannel = channel;
+    }
+
+    public async Task SaveDesignation()
+    {
+        var currentGuild = DiscordHelper.GetUserGuild();
+        var channel = (Discord.IMessageChannel)currentGuild.GetChannel(_selectedChannel!.Id);
+
+        var id = await DesignatedChannelService.AddDesignatedChannelAsync(currentGuild, channel, _selectedDesignatedChannelType!.Value);
+
+        _createDialogVisible = false;
+
+        if (!DesignatedChannelMappings!.ContainsKey(_selectedDesignatedChannelType.Value))
+        {
+            DesignatedChannelMappings[_selectedDesignatedChannelType.Value] = new List<DesignatedChannelData>();
+        }
+
+        DesignatedChannelMappings[_selectedDesignatedChannelType.Value].Add(new DesignatedChannelData(id, _selectedChannel.Id, _selectedDesignatedChannelType.Value, _selectedChannel.Name));
+
+        Snackbar.Add($"Added designation '{_selectedDesignatedChannelType}' to channel '{_selectedChannel.Name}'", Severity.Success);
+    }
+
+    public async Task RemoveDesignation(long id, DesignatedChannelType designatedChannelType)
+    {
+        await DesignatedChannelService.RemoveDesignatedChannelByIdAsync(id);
+
+        var channelMappingsWithType = DesignatedChannelMappings![designatedChannelType];
+        var removedChannelMapping = channelMappingsWithType.First(x => x.Id == id);
+
+        channelMappingsWithType.Remove(removedChannelMapping);
+
+        Snackbar.Add($"Removed designation '{designatedChannelType}' from channel '{removedChannelMapping.Name}'", Severity.Success);
+    }
+}

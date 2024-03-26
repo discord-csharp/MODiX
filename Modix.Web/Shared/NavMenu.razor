@@ -1,0 +1,43 @@
+﻿@using AspNet.Security.OAuth.Discord;
+@using Discord.WebSocket;
+@using Modix.Data.Models.Core;
+@using Modix.Web.Models;
+@using Modix.Web.Services;
+@using MudBlazor;
+@using System.Security.Claims;
+
+<CascadingAuthenticationState>
+
+    <div class="d-flex d-lg-none">
+        <MudAppBar Elevation="0" Fixed="false" Color="Color.Primary">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="ToggleDrawer" />
+            <AuthorizeView>
+                <MudSpacer />
+                <MiniUser />
+            </AuthorizeView>
+        </MudAppBar>
+        <MudDrawer Color="Color.Primary" @bind-Open="_drawerVisible" Elevation="1" Anchor="Anchor.Top" DisableOverlay="false" ClipMode="DrawerClipMode.Never" Variant="DrawerVariant.Temporary" Fixed="false">
+            <MudNavMenu Color="Color.Surface" Bordered="true">
+                <NavMenuLinks />
+            </MudNavMenu>
+        </MudDrawer>
+    </div>
+
+    <div class="d-none d-lg-flex">
+        <MudAppBar Elevation="0" Dense="true" Fixed="false" DisableGutters="true" Color="Color.Primary">
+            <NavMenuLinks />
+
+            <AuthorizeView>
+                <MudSpacer />
+                <MiniUser />
+            </AuthorizeView>
+        </MudAppBar>
+    </div>
+</CascadingAuthenticationState>
+
+@code {
+
+    private bool _drawerVisible;
+
+    private void ToggleDrawer() => _drawerVisible = !_drawerVisible;
+}

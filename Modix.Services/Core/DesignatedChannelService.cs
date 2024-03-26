@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-
 using Discord;
-
-using Serilog;
-
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
-using System.Threading;
+using Serilog;
 
 namespace Modix.Services.Core
 {
@@ -25,7 +22,7 @@ namespace Modix.Services.Core
         /// <param name="channel">The channel to be assigned.</param>
         /// <param name="type">The type of designation to be assigned.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task AddDesignatedChannelAsync(IGuild guild, IMessageChannel channel, DesignatedChannelType type);
+        Task<long> AddDesignatedChannelAsync(IGuild guild, IMessageChannel channel, DesignatedChannelType type);
 
         /// <summary>
         /// Unassigns a channel's previously given designation, for a given guild.
@@ -117,7 +114,7 @@ namespace Modix.Services.Core
         }
 
         /// <inheritdoc />
-        public async Task AddDesignatedChannelAsync(IGuild guild, IMessageChannel logChannel, DesignatedChannelType type)
+        public async Task<long> AddDesignatedChannelAsync(IGuild guild, IMessageChannel logChannel, DesignatedChannelType type)
         {
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.DesignatedChannelMappingCreate);
@@ -135,7 +132,7 @@ namespace Modix.Services.Core
                     throw new InvalidOperationException($"{logChannel.Name} in {guild.Name} is already assigned to {type}");
                 }
 
-                await DesignatedChannelMappingRepository.CreateAsync(new DesignatedChannelMappingCreationData()
+                var id = await DesignatedChannelMappingRepository.CreateAsync(new DesignatedChannelMappingCreationData()
                 {
                     GuildId = guild.Id,
                     ChannelId = logChannel.Id,
@@ -144,6 +141,8 @@ namespace Modix.Services.Core
                 });
 
                 transaction.Commit();
+
+                return id;
             }
         }
 
@@ -205,11 +204,11 @@ namespace Modix.Services.Core
         /// <inheritdoc />
         public Task<IReadOnlyCollection<ulong>> GetDesignatedChannelIdsAsync(ulong guildId, DesignatedChannelType type)
             => DesignatedChannelMappingRepository.SearchChannelIdsAsync(new DesignatedChannelMappingSearchCriteria()
-                {
-                    GuildId = guildId,
-                    Type = type,
-                    IsDeleted = false
-                });
+            {
+                GuildId = guildId,
+                Type = type,
+                IsDeleted = false
+            });
 
         /// <inheritdoc />
         public async Task<IReadOnlyCollection<IMessageChannel>> GetDesignatedChannelsAsync(IGuild guild, DesignatedChannelType type)

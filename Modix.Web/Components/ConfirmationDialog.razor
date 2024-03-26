@@ -1,0 +1,29 @@
+﻿@using Modix.Data.Models.Promotions;
+@using MudBlazor
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5">Confirmation</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>@Content</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Submit">Confirm</MudButton>
+        <MudSpacer />
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public required string Content { get; set; }
+
+    void Submit() => MudDialog?.Close();
+    void Cancel() => MudDialog?.Cancel();
+}

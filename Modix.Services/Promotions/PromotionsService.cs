@@ -50,7 +50,7 @@ namespace Modix.Services.Promotions
         /// <param name="sentiment">The <see cref="PromotionCommentEntity.Sentiment"/> value to use for the new comment.</param>
         /// <param name="content">The <see cref="PromotionCommentEntity.Content"/> value to use for the new comment.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task AddCommentAsync(long campaignId, PromotionSentiment sentiment, string? content);
+        Task<PromotionActionSummary> AddCommentAsync(long campaignId, PromotionSentiment sentiment, string? content);
 
         /// <summary>
         /// Updates an existing comment on a promotion campaign by deleting the comment and adding a new one.
@@ -59,7 +59,7 @@ namespace Modix.Services.Promotions
         /// <param name="newSentiment">The <see cref="PromotionCommentEntity.Sentiment"/> value of the updated comment.</param>
         /// <param name="newContent">The <see cref="PromotionCommentEntity.Content"/> value of the updated comment.</param>
         /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task UpdateCommentAsync(long commentId, PromotionSentiment newSentiment, string? newContent);
+        Task<PromotionActionSummary> UpdateCommentAsync(long commentId, PromotionSentiment newSentiment, string? newContent);
 
         Task AddOrUpdateCommentAsync(long campaignId, Optional<PromotionSentiment> sentiment, Optional<string?> comment = default);
 
@@ -187,7 +187,7 @@ namespace Modix.Services.Promotions
         }
 
         /// <inheritdoc />
-        public async Task AddCommentAsync(long campaignId, PromotionSentiment sentiment, string? content)
+        public async Task<PromotionActionSummary> AddCommentAsync(long campaignId, PromotionSentiment sentiment, string? content)
         {
             AuthorizationService.RequireAuthenticatedGuild();
             AuthorizationService.RequireAuthenticatedUser();
@@ -234,10 +234,12 @@ namespace Modix.Services.Promotions
             }
 
             PublishActionNotificationAsync(resultAction);
+
+            return resultAction;
         }
 
         /// <inheritdoc />
-        public async Task UpdateCommentAsync(long commentId, PromotionSentiment newSentiment, string? newContent)
+        public async Task<PromotionActionSummary> UpdateCommentAsync(long commentId, PromotionSentiment newSentiment, string? newContent)
         {
             AuthorizationService.RequireAuthenticatedUser();
             AuthorizationService.RequireClaims(AuthorizationClaim.PromotionsComment);
@@ -263,6 +265,8 @@ namespace Modix.Services.Promotions
             }
 
             PublishActionNotificationAsync(resultAction);
+
+            return resultAction;
         }
 
         public async Task AddOrUpdateCommentAsync(long campaignId, Optional<PromotionSentiment> sentiment, Optional<string?> content = default)

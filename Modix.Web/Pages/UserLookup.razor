@@ -1,0 +1,182 @@
+﻿@page "/userlookup"
+@attribute [Authorize]
+@using Discord;
+@using Modix.Data.Repositories;
+@using Modix.Services.Core;
+@using Modix.Services.Utilities;
+@using Modix.Web.Components
+@using Modix.Web.Models;
+@using Modix.Web.Models.UserLookup;
+@using Modix.Web.Services
+@using MudBlazor
+@using Discord.WebSocket
+@using System.Linq.Expressions;
+@using MudBlazor.Charts
+@using System.Globalization;
+@using Humanizer;
+@using Modix.Web.Models.Common;
+
+<PageTitle>Modix - User Lookup</PageTitle>
+
+<MudContainer>
+    <MudText Typo="Typo.h4">
+        User Lookup@(userInformation is null ? null : $" - {userInformation.Username + (userInformation.Discriminator == "0000" ? "" : "#" + userInformation.Discriminator)}")
+    </MudText>
+
+    <div class="mb-6">
+        <AutoComplete T="ModixUser"
+                      SearchFunc="(query) => DiscordHelper.AutoCompleteAsync(query)"
+                      Placeholder="Username or ID"
+                      SelectedItemChanged="SelectedUserChanged">
+            <ItemTemplate Context="user">
+                <MudImage Src="@user.AvatarUrl" Height="24" Width="24" Class="rounded-lg vertical-bottom" />
+                @user.Name
+            </ItemTemplate>
+        </AutoComplete>
+    </div>
+
+    @if (userInformation is not null)
+    {
+        <MudText Typo="Typo.h4">User Information</MudText>
+        <div class="d-flex flex-sm-row flex-column-reverse align-center mb-3">
+            <MudCard Class="pa-5 mb-3 align-self-start" Elevation="2" Style="width: 100%;">
+                <UserLookupField Label="ID" Value="@userInformation.Id" />
+                <UserLookupField Label="First seen" Value="@userInformation.FirstSeen?.ToString("MM/dd/yy, h:mm:ss tt")" Default="@("Never")" />
+                <UserLookupField Label="Last seen" Value="@userInformation.LastSeen?.ToString("MM/dd/yy, h:mm:ss tt")" Default="@("Never")" />
+            </MudCard>
+            <div class="mb-5 ml-sm-3">
+                <MudImage Src="@userInformation.AvatarUrl" Class="rounded-lg" Elevation="4" Fluid="true" Style="min-width: 200px" />
+            </div>
+        </div>
+
+        <MudText Typo="Typo.h4">Guild Participation</MudText>
+        <MudCard Class="pa-5 mb-3" Elevation="2">
+            <UserLookupField Label="Rank" Value="@userInformation.Rank.Ordinalize()" />
+            <UserLookupField Label="Last 7 days" Value="@("message".ToQuantity(userInformation.Last7DaysMessages))" />
+            <UserLookupField Label="Last 30 days" Value="@("message".ToQuantity(userInformation.Last30DaysMessages))" />
+            <UserLookupField Label="Average per day" Value="@("message".ToQuantity((int)userInformation.AverageMessagesPerDay))" />
+            <UserLookupField Label="Percentile" Value="@userInformation.Percentile.Ordinalize()" />
+        </MudCard>
+
+        <MudText Typo="Typo.h4">Member Information</MudText>
+        <MudCard Class="pa-5 mb-3" Elevation="2">
+
+            <UserLookupField Label="Nickname" Value="@userInformation.Nickname" Default="@("No Nickname")" />
+            <UserLookupField Label="Created" Value="@userInformation.CreatedAt.ToString("MM/dd/yy, h:mm:ss tt")" />
+            <UserLookupField Label="Joined" Value="@userInformation.JoinedAt?.ToString("MM/dd/yy, h:mm:ss tt")" Default="@("Never")" />
+
+            <UserLookupField Label="Roles" T="string">
+                <div class="d-flex flex-sm-row flex-column">
+                    @if (!userInformation.Roles.Any())
+                    {
+                        <em class="ml-2">No roles assigned</em>
+                    }
+                    else
+                    {
+                        @foreach (var role in userInformation.Roles)
+                        {
+                            var roleName = $"@{role.Name}";
+                            var roleColorStyle = $"border: 1px solid {role.Color}";
+
+                            <MudText Class="ml-2" Style=@($"color: {role.Color}")>@roleName</MudText>
+                        }
+                    }
+                </div>
+            </UserLookupField>
+        </MudCard>
+
+        <MudText Typo="Typo.h4">Messages by Channel</MudText>
+        <MudCard Class="d-flex flex-column align-center pa-5 mb-3" Elevation="2">
+
+            <MudChipSet MultiSelection="true" Filter="true" SelectedChipsChanged="SelectedChannelsChanged">
+                @foreach (var channel in userInformation.MessageCountsPerChannel)
+                {
+                    var channelColorStyle = $"border: 1px solid {channel.Color}";
+                    <MudChip Style="@channelColorStyle"
+                             Value="@channel.ChannelName"
+                             Default="true"
+                             Size="Size.Small"
+                             Variant="Variant.Outlined">
+                        @($"{channel.ChannelName} ({channel.Count})")
+                    </MudChip>
+                }
+            </MudChipSet>
+
+            <MudChart ChartType="ChartType.Donut"
+                      InputData="@messageCountsPerChannelView.Select(x => x.Count).ToArray()"
+                      ChartOptions="@(new ChartOptions
+                      {
+                          LineStrokeWidth = 25,
+                          DisableLegend = true,
+                          ChartPalette = messageCountsPerChannelView.Select(x => x.Color).ToArray()
+                      })" />
+        </MudCard>
+    }
+
+</MudContainer>
+
+@code {
+    MessageCountPerChannelInformation[] messageCountsPerChannelView = Array.Empty<MessageCountPerChannelInformation>();
+    UserInformation? userInformation = null;
+
+    [Inject]
+    public DiscordHelper DiscordHelper { get; set; } = null!;
+
+    [Inject]
+    public IUserService UserService { get; set; } = null!;
+
+    [Inject]
+    public IMessageRepository MessageRepository { get; set; } = null!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        var currentUser = DiscordHelper.GetCurrentUser();
+        await SelectedUserChanged(ModixUser.FromIGuildUser(currentUser!));
+
+        StateHasChanged();
+    }
+
+    private void SelectedChannelsChanged(MudChip[] chips)
+    {
+        var channels = chips.Select(x => x.Value).Cast<string>();
+        messageCountsPerChannelView = userInformation!.MessageCountsPerChannel
+            .Where(x => channels.Contains(x.ChannelName))
+            .ToArray();
+    }
+
+    private async Task SelectedUserChanged(ModixUser user)
+    {
+        if (user is null)
+            return;
+
+        var currentGuild = DiscordHelper.GetUserGuild();
+
+        var ephemeralUser = await UserService.GetUserInformationAsync(currentGuild.Id, user.UserId);
+
+        var userRank = await MessageRepository.GetGuildUserParticipationStatistics(currentGuild.Id, user.UserId);
+        var messages7 = await MessageRepository.GetGuildUserMessageCountByDate(currentGuild.Id, user.UserId, TimeSpan.FromDays(7));
+        var messages30 = await MessageRepository.GetGuildUserMessageCountByDate(currentGuild.Id, user.UserId, TimeSpan.FromDays(30));
+
+        var roles = ephemeralUser!.RoleIds
+            .Select(x => currentGuild.GetRole(x))
+            .OrderByDescending(x => x.IsHoisted)
+            .ThenByDescending(x => x.Position)
+            .ToArray();
+
+        var timespan = DateTimeOffset.UtcNow - DateTimeOffset.MinValue;
+        var result = await MessageRepository.GetGuildUserMessageCountByChannel(currentGuild.Id, user.UserId, timespan);
+        var colors = ColorUtils.GetRainbowColors(result.Count);
+
+        var messageCountsPerChannel = result
+            .Select((x, i) => new MessageCountPerChannelInformation(x.ChannelName, x.MessageCount, colors[i++].ToString()))
+            .OrderByDescending(x => x.Count)
+            .ToList();
+
+        userInformation = UserInformation.FromEphemeralUser(ephemeralUser, userRank, messages7, messages30, roles, messageCountsPerChannel);
+
+        messageCountsPerChannelView = userInformation.MessageCountsPerChannel.ToArray();
+    }
+}

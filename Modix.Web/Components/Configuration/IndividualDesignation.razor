@@ -1,0 +1,66 @@
+﻿@using Modix.Data.Models.Core;
+@using Modix.Web.Models.Configuration;
+@using MudBlazor
+
+<CascadingAuthenticationState>
+    <MudButtonGroup Class="mr-1" OverrideStyles="false">
+        <MudButton Style="text-transform: unset"
+                   DisableElevation="true"
+                   Size="Size.Small"
+                   Variant="Variant.Filled"
+                   Color="Color.Info">
+            @NamePrefix@Name
+        </MudButton>
+        <AuthorizeView Roles="@AuthorizationRoleForDelete">
+            @if (!_showConfirm)
+            {
+                <MudButton OnClick="() => _showConfirm = true"
+                           Style="min-width: unset"
+                           DisableElevation="true"
+                           Size="Size.Small"
+                           Variant="Variant.Filled"
+                           Color="Color.Error">
+                    X
+                </MudButton>
+            }
+            else
+            {
+                <MudButton Disabled="true">Remove Designation?</MudButton>
+
+                <MudButton OnClick="() => RemoveDesignation.InvokeAsync(Id)"
+                           DisableElevation="true"
+                           Size="Size.Small"
+                           Variant="Variant.Filled"
+                           Color="Color.Success">
+                    Yes
+                </MudButton>
+                <MudButton OnClick="() => _showConfirm = false"
+                           DisableElevation="true"
+                           Size="Size.Small"
+                           Variant="Variant.Filled"
+                           Color="Color.Error">
+                    No
+                </MudButton>
+            }
+        </AuthorizeView>
+    </MudButtonGroup>
+</CascadingAuthenticationState>
+
+@code {
+    [Parameter, EditorRequired]
+    public EventCallback<long> RemoveDesignation { get; set; }
+
+    [Parameter, EditorRequired]
+    public string? AuthorizationRoleForDelete { get; set; }
+
+    [Parameter, EditorRequired]
+    public string? NamePrefix { get; set; }
+
+    [Parameter, EditorRequired]
+    public string? Name { get; set; }
+
+    [Parameter, EditorRequired]
+    public long Id { get; set; }
+
+    private bool _showConfirm;
+}

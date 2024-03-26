@@ -1,0 +1,42 @@
+﻿@using Modix.Data.Models.Promotions;
+@using MudBlazor
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5">Edit Comment</MudText>
+    </TitleContent>
+    <DialogContent>
+        <div class="d-flex">
+            <MudSelect T="PromotionSentiment" Required="true" SelectedValues="new [] { PromotionSentiment }" @bind-Value="PromotionSentiment">
+                <MudSelectItem Value="@PromotionSentiment.Approve">
+                    <MudIcon Icon="@Icons.Material.Filled.ThumbUp"></MudIcon>
+                </MudSelectItem>
+                <MudSelectItem Value="@PromotionSentiment.Oppose">
+                    <MudIcon Icon="@Icons.Material.Filled.ThumbDown"></MudIcon>
+                </MudSelectItem>
+            </MudSelect>
+            <MudTextField T="string" Label="Comment" Immediate="true" Text="@Content" @bind-Value="@Content" />
+        </div>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Submit">Update</MudButton>
+        <MudSpacer />
+        <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance? MudDialog { get; set; }
+
+    [Parameter]
+    public PromotionSentiment PromotionSentiment { get; set; }
+
+    [Parameter]
+    public required string Content { get; set; }
+
+    void Submit() => MudDialog?.Close(DialogResult.Ok((PromotionSentiment, Content)));
+    void Cancel() => MudDialog?.Cancel();
+}

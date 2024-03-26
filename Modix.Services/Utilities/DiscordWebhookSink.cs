@@ -1,12 +1,12 @@
 ﻿using System;
-using Serilog;
-using Serilog.Core;
-using Serilog.Events;
-using Serilog.Configuration;
-using Discord.Webhook;
 using Discord;
+using Discord.Webhook;
 using Modix.Services.CodePaste;
 using Newtonsoft.Json;
+using Serilog;
+using Serilog.Configuration;
+using Serilog.Core;
+using Serilog.Events;
 
 namespace Modix.Services.Utilities
 {
@@ -14,7 +14,7 @@ namespace Modix.Services.Utilities
         : ILogEventSink,
             IDisposable
     {
-        private readonly CodePasteService _codePasteService;
+        private readonly Lazy<CodePasteService> _codePasteService;
         private readonly DiscordWebhookClient _discordWebhookClient;
         private readonly IFormatProvider _formatProvider;
         private readonly JsonSerializerSettings _jsonSerializerSettings;
@@ -22,7 +22,7 @@ namespace Modix.Services.Utilities
             ulong webhookId,
             string webhookToken,
             IFormatProvider formatProvider,
-            CodePasteService codePasteService)
+            Lazy<CodePasteService> codePasteService)
         {
             _codePasteService = codePasteService;
             _discordWebhookClient = new DiscordWebhookClient(webhookId, webhookToken);
@@ -58,7 +58,7 @@ namespace Modix.Services.Utilities
 
                 var eventAsJson = JsonConvert.SerializeObject(logEvent, _jsonSerializerSettings);
 
-                var url = _codePasteService.UploadCodeAsync(eventAsJson).GetAwaiter().GetResult();
+                var url = _codePasteService.Value.UploadCodeAsync(eventAsJson).GetAwaiter().GetResult();
 
                 message.AddField(new EmbedFieldBuilder()
                     .WithIsInline(false)
@@ -90,7 +90,7 @@ namespace Modix.Services.Utilities
 
     public static class DiscordWebhookSinkExtensions
     {
-        public static LoggerConfiguration DiscordWebhookSink(this LoggerSinkConfiguration config, ulong id, string token, LogEventLevel minLevel, CodePasteService codePasteService)
+        public static LoggerConfiguration DiscordWebhookSink(this LoggerSinkConfiguration config, ulong id, string token, LogEventLevel minLevel, Lazy<CodePasteService> codePasteService)
         {
             return config.Sink(new DiscordWebhookSink(id, token, null, codePasteService), minLevel);
         }

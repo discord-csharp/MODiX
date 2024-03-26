@@ -1,0 +1,116 @@
+﻿@page "/stats"
+@attribute [Authorize]
+@using Modix.Data.Models.Core;
+@using Modix.Services.GuildStats;
+@using Modix.Web.Models.Stats;
+@using Modix.Web.Services;
+@using MudBlazor
+
+<PageTitle>Modix - Stats</PageTitle>
+
+@if (Data is not null)
+{
+    <MudContainer MaxWidth="MaxWidth.False">
+        <MudText Typo="Typo.h3">Statistics for C#</MudText>
+        <MudGrid Spacing="6">
+            <MudItem lg="6" md="6" xs="12">
+                <MudPaper>
+                    <MudContainer Class="mud-theme-primary pa-12" MaxWidth="MaxWidth.False">
+                        <MudText Typo="Typo.h3">Role Distribution</MudText>
+                    </MudContainer>
+
+                    <MudCard Class="d-flex flex-column align-center">
+
+                        <MudChipSet Class="d-flex flex-wrap justify-center" MultiSelection="true" Filter="true" SelectedChipsChanged="SelectedChannelsChanged">
+                            @foreach (var role in Data.GuildRoleCounts)
+                            {
+                                var channelColorStyle = $"border: 1px solid {role.Color}";
+                                <MudChip Style="@channelColorStyle"
+                                         Value="@role.Name"
+                                         Default="true"
+                                         Size="Size.Small"
+                                         Variant="Variant.Outlined">
+                                    @($"{role.Name} ({role.Count})")
+                                </MudChip>
+                            }
+                        </MudChipSet>
+
+                        <MudChart ChartType="ChartType.Donut"
+                                  InputData="@GuildRoleCountView.Select(x => (double)x.Count).ToArray()"
+                                  ChartOptions="@(new ChartOptions
+                                  {
+                                      LineStrokeWidth = 25,
+                                      DisableLegend = true,
+                                      ChartPalette = GuildRoleCountView.Select(x => x.Color).ToArray()
+                                  })" />
+                    </MudCard>
+
+                </MudPaper>
+            </MudItem>
+            <MudItem lg="6" md="6" xs="12">
+                <MudPaper>
+                    <MudContainer Class="mud-theme-primary pa-12" MaxWidth="MaxWidth.False">
+                        <MudText Typo="Typo.h3">Most Active Users</MudText>
+                        <MudText Typo="Typo.body1">of the last 30 days</MudText>
+                    </MudContainer>
+                    <MudList>
+                        @foreach (var stat in Data.TopUserMessageCounts)
+                        {
+                            var rankSymbol = stat.Rank switch
+                            {
+                                1 => "🥇",
+                                2 => "🥈",
+                                3 => "🥉",
+                                _ => null
+                            };
+
+                            var username = stat.Username;
+                            username += stat.Discriminator == "0000" ? string.Empty : $"#{stat.Discriminator}";
+                            <MudListItem>
+                                <MudText Inline="true" Typo="Typo.h5" Style="@(stat.Rank <= 3 ? "font-weight: bold;" : string.Empty)">
+                                    @($"{rankSymbol ?? $"{stat.Rank}."} {username}")
+                                </MudText>
+                                <MudText Inline="true" Typo="Typo.subtitle2">@stat.MessageCount messages</MudText>
+                            </MudListItem>
+                        }
+                    </MudList>
+
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+    </MudContainer>
+}
+
+@code {
+    GuildStatData Data { get; set; } = null!;
+    List<GuildRoleCount> GuildRoleCountView { get; set; } = null!;
+
+    [Inject]
+    IGuildStatService GuildStatService { get; set; } = null!;
+
+    [Inject]
+    DiscordHelper DiscordHelper { get; set; } = null!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        var currentUser = DiscordHelper.GetCurrentUser();
+
+        var roleCounts = await GuildStatService.GetGuildMemberDistributionAsync(currentUser!.Guild);
+        var messageCounts = await GuildStatService.GetTopMessageCounts(currentUser.Guild, currentUser.Id);
+
+        Data = new GuildStatData(currentUser.Guild.Name, roleCounts, messageCounts);
+        GuildRoleCountView = roleCounts;
+
+        StateHasChanged();
+    }
+
+    private void SelectedChannelsChanged(MudChip[] chips)
+    {
+        var roles = chips.Select(x => x.Value).Cast<string>();
+        GuildRoleCountView = Data.GuildRoleCounts.Where(x => roles.Contains(x.Name)).ToList();
+    }
+}

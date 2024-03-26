@@ -14,28 +14,28 @@
   <ItemGroup>
     <PackageReference Update="Discord.Net" Version="3.11.0" />
 
-    <PackageReference Update="Microsoft.EntityFrameworkCore" Version="8.0.0-preview.4.*" />
-    <PackageReference Update="Microsoft.EntityFrameworkCore.Design" Version="8.0.0-preview.4.*"/>
-    <PackageReference Update="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0-preview.4.*" />
-    <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0-preview.4" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+    <PackageReference Update="Microsoft.EntityFrameworkCore.Design" Version="8.0.0"/>
+    <PackageReference Update="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
+    <PackageReference Update="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
 
     <PackageReference Update="Nito.AsyncEx.Coordination" Version="5.1.2" />
 
-    <PackageReference Update="AspNet.Security.OAuth.Discord" Version="7.0.2" />
+    <PackageReference Update="AspNet.Security.OAuth.Discord" Version="8.0.0" />
     
-    <PackageReference Update="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.0-preview.6.*" />
-    <PackageReference Update="Microsoft.AspNetCore.SpaServices.Extensions" Version="8.0.0-preview.6.*" />
-    <PackageReference Update="Microsoft.Extensions.Caching.Memory" Version="8.0.0-preview.6.*" />
-    <PackageReference Update="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0-preview.6.*" />
-    <PackageReference Update="Microsoft.Extensions.DependencyInjection" Version="8.0.0-preview.6.*" />
-    <PackageReference Update="Microsoft.Extensions.Hosting" Version="8.0.0-preview.6.*" />
-    <PackageReference Update="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0-preview.6.*" />
-    <PackageReference Update="Microsoft.Extensions.Http" Version="8.0.0-preview.6.*" />
-    <PackageReference Update="Microsoft.Extensions.Http.Polly" Version="8.0.0-preview.6.*" />
-    <PackageReference Update="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0-preview.6.*" />
-    <PackageReference Update="Microsoft.Extensions.Logging.Console" Version="8.0.0-preview.6.*" />
-    <PackageReference Update="Microsoft.Extensions.Options" Version="8.0.0-preview.6.*" />
-    <PackageReference Update="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0-preview.6.*" />
+    <PackageReference Update="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.0" />
+    <PackageReference Update="Microsoft.AspNetCore.SpaServices.Extensions" Version="8.0.0" />
+    <PackageReference Update="Microsoft.Extensions.Caching.Memory" Version="8.0.0" />
+    <PackageReference Update="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.0" />
+    <PackageReference Update="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Update="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Update="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+    <PackageReference Update="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageReference Update="Microsoft.Extensions.Http.Polly" Version="8.0.0" />
+    <PackageReference Update="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+    <PackageReference Update="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageReference Update="Microsoft.Extensions.Options" Version="8.0.0" />
+    <PackageReference Update="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
     <PackageReference Update="Microsoft.NET.Test.Sdk" Version="17.*" />
 
     <PackageReference Update="Newtonsoft.Json" Version="13.0.3" />
@@ -44,13 +44,12 @@
 
     <PackageReference Update="LinqKit.Microsoft.EntityFrameworkCore" Version="7.1.4" />
 
-    <PackageReference Update="Serilog" Version="3.0.1" />
-    <PackageReference Update="Serilog.AspNetCore" Version="7.0.0" />
-    <PackageReference Update="Serilog.Expressions" Version="3.4.1" />
-    <PackageReference Update="Serilog.Extensions.Logging" Version="7.0.0" />
-    <PackageReference Update="Serilog.Sinks.Console" Version="4.1.0" />
+    <PackageReference Update="Serilog" Version="3.1.1" />
+    <PackageReference Update="Serilog.AspNetCore" Version="8.0.0" />
+    <PackageReference Update="Serilog.Expressions" Version="4.0.0" />
+    <PackageReference Update="Serilog.Sinks.Console" Version="5.0.1" />
     <PackageReference Update="Serilog.Sinks.File" Version="5.0.0" />
-    <PackageReference Update="Serilog.Sinks.Seq" Version="5.2.2" />
+    <PackageReference Update="Serilog.Sinks.Seq" Version="6.0.0" />
 
     <PackageReference Update="Humanizer.Core" Version="2.14.1" />
 

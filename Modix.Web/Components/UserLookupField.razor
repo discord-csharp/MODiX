@@ -1,0 +1,35 @@
+﻿@using MudBlazor
+@typeparam T
+
+<div class="d-flex profileField align-center mb-2 ml-4">
+    <MudText>
+        <b>@Label</b>
+    </MudText>
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+    else if (Value is not null)
+    {
+        <MudText Class="ml-2">@Value</MudText>
+    }
+    else
+    {
+        <em class="ml-2">@Default</em>
+    }
+</div>
+
+@code {
+
+    [Parameter]
+    public string? Label { get; set; }
+
+    [Parameter]
+    public T? Value { get; set; }
+
+    [Parameter]
+    public T? Default { get; set; }
+
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+}

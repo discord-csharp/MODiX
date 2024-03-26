@@ -1,0 +1,171 @@
+﻿@using Modix.Data.Models.Core;
+@using Modix.Services.Core;
+@using Modix.Web.Models.Configuration;
+@using Modix.Web.Models.UserLookup;
+@using Modix.Web.Services;
+@using MudBlazor
+@using Humanizer;
+@using System.Security.Claims;
+@using Modix.Web.Models.Common;
+
+<PageTitle>Modix - Roles</PageTitle>
+<MudText Typo="Typo.h4">Role Designations</MudText>
+
+<CascadingAuthenticationState>
+    @if (DesignatedRoleMappings is not null && DesignatedRoleTypes is not null)
+    {
+        <MudDialog @bind-IsVisible="_createDialogVisible" Options="new DialogOptions { FullWidth= true }">
+            <TitleContent>
+                <MudText Typo="Typo.h5">Assign a Role</MudText>
+            </TitleContent>
+            <DialogContent>
+                <AutoComplete T="RoleInformation"
+                              SearchFunc="(query) => Task.FromResult(DiscordHelper.AutoCompleteRoles(query))"
+                              Placeholder="@("@Administrator")"
+                              SelectedItemChanged="SelectedRoleChanged"
+                              Title="Role Name"
+                />
+
+                <MudText Class="mt-5" Typo="Typo.h5">Designation</MudText>
+                <MudSelect T="DesignatedRoleType?" @bind-Value="_selectedDesignatedRoleType">
+                    @foreach (var designation in DesignatedRoleTypes)
+                    {
+                        <MudSelectItem T="DesignatedRoleType?" Value="@designation"></MudSelectItem>
+                    }
+                </MudSelect>
+            </DialogContent>
+            <DialogActions>
+                <MudButton Variant="Variant.Filled"
+                           Disabled="_selectedDesignatedRoleType is null || _selectedRole is null"
+                           Color="Color.Success"
+                           OnClick="SaveDesignation">
+                    Assign
+                </MudButton>
+                <MudSpacer />
+                <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="ToggleCreateDialog">Cancel</MudButton>
+            </DialogActions>
+        </MudDialog>
+
+        <MudPaper>
+            <MudList Clickable="true" DisablePadding="true">
+                @foreach (var designatedRoleType in DesignatedRoleTypes.OrderBy(x => x.ToString()))
+                {
+                    <MudListItem DisableRipple="true">
+                        <div class="d-flex align-center">
+                            <div>
+                                <MudText>
+                                    <b>@designatedRoleType.ToString().Titleize()</b>
+                                </MudText>
+                                @if (!DesignatedRoleMappings.TryGetValue(designatedRoleType, out var roleDesignations) || !roleDesignations.Any())
+                                {
+                                    <MudText Style="color: grey; letter-spacing: 1px" Typo="Typo.caption">
+                                        <b>NONE ASSIGNED</b>
+                                    </MudText>
+                                }
+                                else
+                                {
+                                    @foreach (var designatedRoleMapping in roleDesignations)
+                                    {
+                                        <IndividualDesignation AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedRoleMappingDelete)"
+                                                               Id="@designatedRoleMapping.Id"
+                                                               NamePrefix="@("@")"
+                                                               Name="@designatedRoleMapping.Name"
+                                                               RemoveDesignation="(id) => RemoveDesignation(id, designatedRoleMapping.RoleDesignation)" />
+                                    }
+                                }
+                            </div>
+                            <MudSpacer />
+                            <div>
+                                <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedRoleMappingCreate)">
+                                    <MudIconButton OnClick="ToggleCreateDialog" Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Success" />
+                                </AuthorizeView>
+                            </div>
+                        </div>
+                    </MudListItem>
+                    <MudDivider />
+                }
+            </MudList>
+        </MudPaper>
+    }
+</CascadingAuthenticationState>
+
+@code {
+    [Inject]
+    public DiscordHelper DiscordHelper { get; set; } = null!;
+
+    [Inject]
+    public IDesignatedRoleService DesignatedRoleService { get; set; } = null!;
+
+    [Inject]
+    public ISnackbar Snackbar { get; set; } = null!;
+
+    private Dictionary<DesignatedRoleType, List<DesignatedRoleData>>? DesignatedRoleMappings { get; set; }
+    private DesignatedRoleType[]? DesignatedRoleTypes { get; set; }
+
+    private bool _createDialogVisible;
+    private DesignatedRoleType? _selectedDesignatedRoleType;
+    private RoleInformation? _selectedRole;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        var currentGuild = DiscordHelper.GetUserGuild();
+        var designatedRoles = await DesignatedRoleService.GetDesignatedRolesAsync(currentGuild.Id);
+
+        DesignatedRoleMappings = designatedRoles
+            .Select(d => new DesignatedRoleData(d.Id, d.Role.Id, d.Type, currentGuild?.GetRole(d.Role.Id)?.Name ?? d.Role.Name))
+            .ToLookup(x => x.RoleDesignation, x => x)
+            .ToDictionary(x => x.Key, x => x.ToList());
+
+        DesignatedRoleTypes = Enum.GetValues<DesignatedRoleType>();
+
+        StateHasChanged();
+    }
+
+    public void ToggleCreateDialog()
+    {
+        _createDialogVisible = !_createDialogVisible;
+        if (_createDialogVisible)
+        {
+            _selectedRole = null;
+            _selectedDesignatedRoleType = null;
+        }
+    }
+
+    private void SelectedRoleChanged(RoleInformation role)
+    {
+        _selectedRole = role;
+    }
+
+    public async Task SaveDesignation()
+    {
+        var currentGuild = DiscordHelper.GetUserGuild();
+
+        var id = await DesignatedRoleService.AddDesignatedRoleAsync(currentGuild.Id, _selectedRole!.Id, _selectedDesignatedRoleType!.Value);
+
+        _createDialogVisible = false;
+
+        if (!DesignatedRoleMappings!.ContainsKey(_selectedDesignatedRoleType.Value))
+        {
+            DesignatedRoleMappings[_selectedDesignatedRoleType.Value] = new List<DesignatedRoleData>();
+        }
+
+        DesignatedRoleMappings[_selectedDesignatedRoleType.Value].Add(new DesignatedRoleData(id, _selectedRole.Id, _selectedDesignatedRoleType.Value, _selectedRole.Name));
+
+        Snackbar.Add($"Added designation '{_selectedDesignatedRoleType}' to role '{_selectedRole.Name}'", Severity.Success);
+    }
+
+    public async Task RemoveDesignation(long id, DesignatedRoleType designatedRoleType)
+    {
+        await DesignatedRoleService.RemoveDesignatedRoleByIdAsync(id);
+
+        var roleMappingsWithType = DesignatedRoleMappings![designatedRoleType];
+        var removedRoleMapping = roleMappingsWithType.First(x => x.Id == id);
+
+        roleMappingsWithType.Remove(removedRoleMapping);
+
+        Snackbar.Add($"Removed designation '{designatedRoleType}' from role '{removedRoleMapping.Name}'", Severity.Success);
+    }
+}

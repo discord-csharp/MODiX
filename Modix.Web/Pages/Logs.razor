@@ -1,0 +1,66 @@
+﻿@page "/logs/{SubPage}"
+@page "/logs"
+@page "/infractions"
+@attribute [Authorize(Roles = nameof(AuthorizationClaim.ModerationRead))]
+@using Modix.Data.Models.Core;
+@using Modix.Web.Components
+@using MudBlazor
+
+<PageTitle>Modix - Logs</PageTitle>
+
+<CascadingAuthenticationState>
+
+    <div class="d-flex flex-sm-row flex-column">
+        <div class="mb-4 px-4">
+            <MudText Class="mb-1" Typo="Typo.h6">Logs</MudText>
+            <MudPaper>
+                <MudList SelectedValue="@SubPage" Clickable="true">
+                    <MudListItem Value="@("deletedMessages")" Href="/logs/deletedMessages" Text="Deletions" />
+                    <MudDivider />
+                    <MudListItem Value="@("infractions")" Href="/logs/infractions" Text="Infractions" />
+                </MudList>
+            </MudPaper>
+        </div>
+        <div class="flex-grow-1 mb-4">
+            @if (SubPage == "infractions")
+            {
+                <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationRead)">
+                    <Infractions Subject="@Subject" Id="@Id" />
+                </AuthorizeView>
+            }
+            else if (SubPage == "deletedMessages")
+            {
+                <AuthorizeView Roles="@nameof(AuthorizationClaim.LogViewDeletedMessages)">
+                    <DeletedMessages />
+                </AuthorizeView>
+            }
+        </div>
+    </div>
+
+</CascadingAuthenticationState>
+
+@code {
+    [Parameter]
+    public string? SubPage { get; set; }
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; } = null!;
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? Subject { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? Id { get; set; }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+
+        if (relativePath.StartsWith("infractions"))
+        {
+            NavigationManager.NavigateTo($"/logs/{relativePath}", new NavigationOptions { ReplaceHistoryEntry = true, ForceLoad = false });
+        }
+    }
+}

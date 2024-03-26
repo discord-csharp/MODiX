@@ -1,0 +1,166 @@
+﻿@using Modix.Data.Models.Core;
+@using Modix.Data.Repositories;
+@using Modix.Data.Utilities;
+@using Modix.Models.Core;
+@using Modix.Web.Models.UserLookup;
+@using Modix.Web.Services;
+@using MudBlazor
+@using System.Reflection;
+@using Humanizer;
+@using Modix.Web.Models.Common;
+
+<PageTitle>Modix - Claims</PageTitle>
+
+@if (ClaimData is not null && MappedClaims is not null && Roles is not null && _selectedRole is not null)
+{
+    <div class="mt-sm-4">
+        <MudText Typo="Typo.h4">Claim Assignments</MudText>
+        <div class="d-flex flex-md-row flex-column">
+            <div class="mr-md-8">
+                <MudPaper>
+                    <MudList SelectedValue="@_selectedRole" Clickable="true" DisablePadding="true">
+                        @foreach (var role in Roles.Values)
+                        {
+                            <MudListItem Value="@role.Id" OnClick="() => _selectedRole = role.Id" Text="@role.Name" />
+                            <MudDivider />
+                        }
+                    </MudList>
+                </MudPaper>
+            </div>
+            <div>
+                @foreach (var claimData in ClaimData.OrderBy(x => x.Value.Name).GroupBy(x => x.Value.Category))
+                {
+                    <MudText Typo="Typo.h6">@claimData.Key.ToString().Titleize()</MudText>
+                    foreach (var groupedClaimData in claimData)
+                    {
+                        MappedClaims.TryGetValue((_selectedRole, groupedClaimData.Key), out var mappedClaimForRole);
+
+                        <MudCard Class="pa-3 mb-5">
+                            <div class="d-flex flex-sm-row flex-column">
+                                <MudText Inline="true">
+                                    <b>@groupedClaimData.Value.Name.Titleize()</b>
+                                </MudText>
+                                <MudSpacer />
+                                <MudButtonGroup Class="align-center" Size="Size.Small" Variant="Variant.Outlined" OverrideStyles="false">
+                                    <MudButton OnClick="() => ModifyMapping(_selectedRole.Value, groupedClaimData.Key, ClaimMappingType.Denied)"
+                                               Variant="@(mappedClaimForRole?.Type == ClaimMappingType.Denied ? Variant.Filled : Variant.Outlined)"
+                                               Color="Color.Error"
+                                               DisableElevation="true">
+                                        X
+                                    </MudButton>
+
+                                    <MudButton OnClick="() => ModifyMapping(_selectedRole.Value, groupedClaimData.Key, null)"
+                                               Variant="@(mappedClaimForRole is null ? Variant.Filled : Variant.Outlined)"
+                                               Color="Color.Dark"
+                                               DisableElevation="true">
+                                        –
+                                    </MudButton>
+
+                                    <MudButton OnClick="() => ModifyMapping(_selectedRole.Value, groupedClaimData.Key, ClaimMappingType.Granted)"
+                                               Variant="@(mappedClaimForRole?.Type == ClaimMappingType.Granted ? Variant.Filled : Variant.Outlined)"
+                                               Color="Color.Success"
+                                               DisableElevation="true">
+                                        ✓
+                                    </MudButton>
+                                </MudButtonGroup>
+                            </div>
+                            <MudText>@groupedClaimData.Value.Description</MudText>
+
+                        </MudCard>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Inject]
+    public IClaimMappingRepository ClaimMappingRepository { get; set; } = null!;
+
+    [Inject]
+    public DiscordHelper DiscordHelper { get; set; } = null!;
+
+    [Inject]
+    public Modix.Services.Core.IAuthorizationService AuthorizationService { get; set; } = null!;
+
+    [Inject]
+    public ISnackbar Snackbar { get; set; } = null!;
+
+    private Dictionary<AuthorizationClaim, ClaimInfoData>? ClaimData { get; set; }
+    private Dictionary<(ulong?, AuthorizationClaim), ClaimMappingBrief>? MappedClaims { get; set; }
+    private Dictionary<ulong, RoleInformation>? Roles { get; set; }
+
+    private ulong? _selectedRole;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        ClaimData = typeof(AuthorizationClaim).GetFields(BindingFlags.Public | BindingFlags.Static).ToDictionary
+        (
+            d => (AuthorizationClaim)d.GetValue(null)!,
+            d =>
+            {
+                var claimInfo = (ClaimInfoAttribute)d.GetCustomAttributes(typeof(ClaimInfoAttribute), true).First()!;
+
+                return new ClaimInfoData
+                {
+                    Name = d.Name,
+                    Description = claimInfo.Description,
+                    Category = claimInfo.Category
+                };
+            }
+        );
+
+        var currentGuild = DiscordHelper.GetUserGuild();
+        var mappedClaims = await ClaimMappingRepository.SearchBriefsAsync(new ClaimMappingSearchCriteria
+        {
+            IsDeleted = false,
+            GuildId = currentGuild.Id
+        });
+
+        MappedClaims = mappedClaims.ToDictionary(x => (x.RoleId, x.Claim), x => x);
+
+        Roles = currentGuild.Roles
+            .Select(d => new RoleInformation(d.Id, d.Name, d.Color.ToString()))
+            .OrderBy(x => x.Name)
+            .ToDictionary(x => x.Id, x => x);
+
+        _selectedRole = Roles.First().Key;
+
+        StateHasChanged();
+    }
+
+    private async Task ModifyMapping(ulong roleId, AuthorizationClaim authorizationClaim, ClaimMappingType? claimMappingType)
+    {
+        var key = (roleId, authorizationClaim);
+        if (MappedClaims!.TryGetValue(key, out var claimMapping) && claimMapping.Type == claimMappingType)
+            return;
+
+        await AuthorizationService.ModifyClaimMappingAsync(roleId, authorizationClaim, claimMappingType);
+        if (claimMappingType is ClaimMappingType.Denied or ClaimMappingType.Granted)
+        {
+            Snackbar.Add($"Claim '{authorizationClaim}' for '{Roles![roleId].Name}' was changed to '{claimMappingType}'", Severity.Success);
+            if (claimMapping is null)
+            {
+                MappedClaims[key] = new ClaimMappingBrief
+                {
+                    Claim = authorizationClaim,
+                    RoleId = roleId,
+                    Type = claimMappingType.Value
+                };
+            }
+            else
+            {
+                claimMapping.Type = claimMappingType.Value;
+            }
+        }
+        else
+        {
+            Snackbar.Add($"Claim '{authorizationClaim}' for '{Roles![roleId].Name}' was removed.", Severity.Success);
+            MappedClaims.Remove(key);
+        }
+    }
+}

@@ -1,0 +1,128 @@
+﻿@page "/promotions/create"
+@attribute [Authorize(Roles = nameof(AuthorizationClaim.PromotionsCreateCampaign))]
+@using Modix.Data.Models.Core;
+@using Modix.Services.Promotions;
+@using Modix.Web.Components
+@using Modix.Web.Models;
+@using Modix.Web.Models.Common;
+@using Modix.Web.Models.Promotions;
+@using Modix.Web.Services;
+@using MudBlazor
+
+<PageTitle>Modix - Start A Campaign</PageTitle>
+
+<MudContainer>
+    <MudText Typo="Typo.h4">Start a Campaign</MudText>
+    <MudGrid>
+        <MudItem xs="12" sm="3">
+            <MudPaper Class="d-flex align-center justify-center mud-width-full pa-5 mt-6" Elevation="4">
+                <p>Feel like someone deserves recognition? <strong>Start a promotion campaign for them</strong> - even if that person is yourself!</p>
+            </MudPaper>
+            <MudPaper Class="d-flex align-center justify-center mud-width-full pa-5 mt-6" Elevation="4">
+                <p>Once a campaign is started, users can <strong>anonymously comment</strong>, voicing their opinions for or against the individual up for promotion</p>
+            </MudPaper>
+            <MudPaper Class="d-flex align-center justify-center mud-width-full pa-5 mt-6" Elevation="4">
+                <p>Staff will periodically review campaigns. If approved, the user will be <strong>immediately promoted!</strong> If not, they may be permanently denied, or further looked into as the campaign runs its course.</p>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="9">
+            <MudItem Class="mb-6">
+                <AutoComplete T="ModixUser"
+                              SearchFunc="(query) => DiscordHelper.AutoCompleteAsync(query)"
+                              Placeholder="Username or ID"
+                              SelectedItemChanged="SelectedUserChanged"
+                              Title="Tell us their username">
+                    <ItemTemplate Context="user">
+                        <MudImage Src="@user.AvatarUrl" Height="24" Width="24" Class="rounded-lg vertical-bottom" />
+                        @user.Name
+                    </ItemTemplate>
+                </AutoComplete>
+            </MudItem>
+            @if (_selectedUser is not null && _nextRank is not null)
+            {
+                <div class="mb-4">
+                    <MudText Typo="Typo.h5">@_selectedUser.Name can be promoted to this rank</MudText>
+                    <MudChip Variant="Variant.Outlined" Style=@($"color: {_nextRank.Color}; border: 2px solid") Label="true">@_nextRank.Name</MudChip>
+                </div>
+
+                <div class="mb-4">
+                    <MudText Typo="Typo.h5">Finally, say a few words on their behalf</MudText>
+                    <MudCard Elevation="4">
+                        <MudTextField Disabled="@(_nextRank.Name == "None")"
+                                      Class="pa-3"
+                                      Immediate="true"
+                                      @bind-Value="_promotionComment"
+                                      Lines="5"
+                                      Margin="Margin.Dense"
+                                      Placeholder="They should be promoted because..." />
+                    </MudCard>
+                </div>
+
+                <MudButton Disabled="@(_nextRank.Name == "None")" Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateCampaign">Submit</MudButton>
+            }
+
+        </MudItem>
+
+    </MudGrid>
+</MudContainer>
+
+@code {
+
+    [Inject]
+    public IPromotionsService PromotionsService { get; set; } = null!;
+
+    [Inject]
+    public DiscordHelper DiscordHelper { get; set; } = null!;
+
+    [Inject]
+    public ISnackbar Snackbar { get; set; } = null!;
+
+    [Inject]
+    public NavigationManager NavigationManager { get; set; } = null!;
+
+    private ModixUser? _selectedUser;
+    private string? _promotionComment;
+
+    private NextRank? _nextRank;
+
+    private async Task SelectedUserChanged(ModixUser user)
+    {
+        if (user != _selectedUser)
+        {
+            _nextRank = null;
+            _promotionComment = null;
+        }
+
+        _selectedUser = user;
+        if (user is null)
+            return;
+
+        var nextRank = await PromotionsService.GetNextRankRoleForUserAsync(user.UserId);
+        var currentGuild = DiscordHelper.GetUserGuild();
+
+        if (nextRank is null)
+        {
+            _nextRank = new NextRank("None", "#607d8b");
+        }
+        else
+        {
+            _nextRank = new NextRank(nextRank.Name, currentGuild.Roles.First(x => x.Id == nextRank.Id).Color.ToString());
+        }
+    }
+
+    private async Task CreateCampaign()
+    {
+        try
+        {
+            await PromotionsService.CreateCampaignAsync(_selectedUser!.UserId, _promotionComment);
+        }
+        catch (InvalidOperationException ex)
+        {
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
+            Snackbar.Add(ex.Message, Severity.Error);
+            return;
+        }
+
+        NavigationManager.NavigateTo("/promotions");
+    }
+}

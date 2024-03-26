@@ -1,0 +1,37 @@
+﻿@using Modix.Data.Models.Core;
+@using MudBlazor
+@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="@_theme" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<CascadingAuthenticationState>
+    <MudLayout>
+
+        <NavMenu />
+
+        <MudMainContent>
+            @Body
+        </MudMainContent>
+
+    </MudLayout>
+</CascadingAuthenticationState>
+
+@code {
+
+    private MudTheme _theme = new()
+    {
+        Palette = new()
+        {
+            Primary = new("#803788"),
+        },
+        Typography = new()
+        {
+            Default = new()
+            {
+                LetterSpacing = "0"
+            }
+        }
+    };
+}

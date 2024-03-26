@@ -26,6 +26,7 @@ bld/
 .vs/
 # Uncomment if you have tasks that create the project's static files in wwwroot
 wwwroot/
+!Modix.Web/wwwroot/
 dataprotection/
 
 # VS Code
@@ -261,5 +262,5 @@ Modix/config
 /Modix/Properties/launchSettings.json
 
 *.DotSettings
-Modix/developmentSettings\.json
-Modix/logs/*
+**/developmentSettings\.json
+**/logs/*

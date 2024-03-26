@@ -1,0 +1,24 @@
+﻿@using Modix.Web.Models;
+@using Modix.Web.Services;
+@using MudBlazor
+
+@typeparam T
+
+@if (Title is not null)
+{
+    <MudText Typo="Typo.h5">@Title</MudText>
+}
+<MudAutocomplete T="T"
+                 Placeholder="@Placeholder"
+                 AdornmentIcon="@Icons.Material.Filled.Search"
+                 SearchFunc="SearchFunc"
+                 MinCharacters="3"
+                 Immediate="false"
+                 ResetValueOnEmptyText="true"
+                 ValueChanged="SelectedItemChanged"
+                 ToStringFunc="item => item?.Name"
+                 Clearable="true"
+                 Adornment="Adornment.Start"
+                 SelectValueOnTab="true"
+                 ItemTemplate="ItemTemplate">
+</MudAutocomplete>

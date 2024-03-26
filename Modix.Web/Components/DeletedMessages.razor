@@ -1,0 +1,281 @@
+﻿@using Discord.WebSocket;
+@using Discord;
+@using Modix.Data.Models.Moderation;
+@using Modix.Data.Models;
+@using Modix.Services.Moderation;
+@using Modix.Web.Models.DeletedMessages;
+@using Modix.Web.Services;
+@using MudBlazor
+@using Modix.Services.Utilities
+
+<PageTitle>Modix - Deletions</PageTitle>
+
+<MudDialog @bind-IsVisible="_deletedMessagesContextDialogVisible" Options="new DialogOptions { MaxWidth= MaxWidth.ExtraLarge, FullWidth = true }">
+    <TitleContent>
+        <div class="d-flex align-center">
+            <MudText Typo="Typo.h5">Batch Deletion Context</MudText>
+            <MudSpacer />
+            <MudIconButton OnClick="CloseDialog" Icon="@Icons.Material.Filled.Close" />
+        </div>
+    </TitleContent>
+    <DialogContent>
+        @if (!DeletedMessagesContext.TryGetValue(_currentContext, out var deletedMessageContext))
+        {
+            <div class="d-flex justify-center">
+                <MudProgressCircular Indeterminate="true" Color="MudBlazor.Color.Primary" />
+            </div>
+        }
+        else if (!deletedMessageContext.Any())
+        {
+            <MudText>No messages</MudText>
+        }
+        else
+        {
+            <MudText Class="center-text">
+                Starting
+                <strong>@deletedMessageContext.First().SentTime?.ToLocalTime().ToString("MM/dd/yy, h:mm:ss tt")</strong>
+            </MudText>
+
+            <MudDivider Class="mb-3" />
+
+            @foreach (var item in deletedMessageContext)
+            {
+                var wasDeleted = item.SentTime is null;
+                var styling = wasDeleted ? "background-color: #f5f5f5; border-top: 1px solid #fff" : "";
+                var title = wasDeleted ? "This was deleted" : item.SentTime!.Value.ToLocalTime().ToString();
+
+                <div title="@title" class="d-flex deletedMessageItem" style="@styling">
+                    <div class="d-flex align-baseline">
+                        @if (wasDeleted)
+                        {
+                            <MudText Style="width: 45px">🚫</MudText>
+                        }
+                        else
+                        {
+                            <MudLink Style="font-size: 1em; font-family: monospace; width:45px" Href="@item.Url">@item.SentTime!.Value.ToLocalTime().ToString("hh:mm")</MudLink>
+                        }
+
+                        <MudText Class="mr-2"><b>@item.Username</b></MudText>
+                    </div>
+                    @if (string.IsNullOrWhiteSpace(item.Content))
+                    {
+                        <em>No Content</em>
+                    }
+                    else
+                    {
+                        <MudMarkdown Value="@item.Content" />
+                    }
+                </div>
+            }
+        }
+
+    </DialogContent>
+</MudDialog>
+
+<MudContainer MaxWidth="MaxWidth.False">
+    <MudTable @ref="@TableRef" Bordered="true" ServerData="LoadDeletedMessages" SortLabel="Sort By">
+        <ToolBarContent>
+            <MudButton Class="ml-1" Variant="Variant.Filled" OnClick="RefreshTable" StartIcon="@Icons.Material.Filled.Refresh" Color="MudBlazor.Color.Primary">Refresh</MudButton>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh Class="center-text vertical-top">
+                <MudTableSortLabel T="DeletedMessageSummary" SortBy="x => x.Channel.Name">Channel</MudTableSortLabel>
+                <MudTextField DebounceInterval="1000" ValueChanged="(string? channel) => FilterChanged(() => _tableFilter.Channel = channel)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </MudTh>
+            <MudTh Class="center-text vertical-top">
+                <MudTableSortLabel T="DeletedMessageSummary" SortBy="x => x.Author.GetFullUsername()">Author</MudTableSortLabel>
+                <MudTextField DebounceInterval="1000" ValueChanged="(string? author) => FilterChanged(() => _tableFilter.Author = author)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </MudTh>
+            <MudTh Class="center-text vertical-top">
+                <MudTableSortLabel T="DeletedMessageSummary" SortBy="x => x.Created">Deleted On</MudTableSortLabel>
+            </MudTh>
+            <MudTh Class="center-text vertical-top">
+                <MudTableSortLabel T="DeletedMessageSummary" SortBy="x => x.CreatedBy.GetFullUsername()">Deleted By</MudTableSortLabel>
+                <MudTextField DebounceInterval="1000" ValueChanged="(string? deletedBy) => FilterChanged(() => _tableFilter.CreatedBy = deletedBy)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </MudTh>
+            <MudTh Class="center-text vertical-top">
+                <MudTableSortLabel T="DeletedMessageSummary" SortBy="x => x.Content">Content</MudTableSortLabel>
+                <MudTextField DebounceInterval="1000" ValueChanged="(string? content) => FilterChanged(() => _tableFilter.Content = content)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </MudTh>
+            <MudTh Class="center-text vertical-top">
+                <MudTableSortLabel T="DeletedMessageSummary" SortBy="x => x.Reason">Reason</MudTableSortLabel>
+                <MudTextField DebounceInterval="1000" ValueChanged="(string? reason) => FilterChanged(() => _tableFilter.Reason = reason)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </MudTh>
+            <MudTh Class="center-text vertical-top">
+                <MudTableSortLabel T="DeletedMessageSummary" SortBy="x => x.BatchId">Batch ID</MudTableSortLabel>
+                <MudTextField DebounceInterval="1000" ValueChanged="(long? batchId) => FilterChanged(() => _tableFilter.BatchId = batchId)" Placeholder="#" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </MudTh>
+            <MudTh Class="center-text vertical-top">Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="deletedMessage">
+            <MudTd DataLabel="Channel">#@deletedMessage.Channel.Name</MudTd>
+            <MudTd DataLabel="Author">@deletedMessage.Author.GetFullUsername()</MudTd>
+            <MudTd DataLabel="Deleted On">@deletedMessage.Created</MudTd>
+            <MudTd DataLabel="Deleted By">@deletedMessage.CreatedBy.GetFullUsername()</MudTd>
+            <MudTd DataLabel="Content">
+                <MudMarkdown Value="@deletedMessage.Content" />
+            </MudTd>
+            <MudTd DataLabel="Reason">@deletedMessage.Reason</MudTd>
+            <MudTd DataLabel="Batch ID">@deletedMessage.BatchId</MudTd>
+            <MudTd DataLabel="Actions">
+                <MudButton OnClick="() => OpenDialog(deletedMessage.BatchId)" Color="MudBlazor.Color.Primary" Variant="Variant.Filled">Context</MudButton>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new [] { 10, 20, 30, 40, 50, int.MaxValue }"/>
+        </PagerContent>
+    </MudTable>
+</MudContainer>
+
+
+<style>
+    .deletedMessageItem .mud-markdown-body p {
+        margin-bottom: 0 !important;
+    }
+</style>
+
+@code {
+
+    [Inject]
+    public IModerationService ModerationService { get; set; } = null!;
+
+    [Inject]
+    public DiscordHelper DiscordHelper { get; set; } = null!;
+
+    [Inject]
+    public ISnackbar Snackbar { get; set; } = null!;
+
+    private MudTable<DeletedMessageSummary>? TableRef;
+    private Dictionary<long, List<DeletedMessageInformation>> DeletedMessagesContext { get; } = new Dictionary<long, List<DeletedMessageInformation>>();
+    private bool _deletedMessagesContextDialogVisible;
+    private long _currentContext;
+
+    private TableFilter _tableFilter = new();
+
+    private async Task RefreshTable()
+    {
+        if (TableRef is null)
+            return;
+
+        await TableRef.ReloadServerData();
+    }
+
+    private async Task FilterChanged(Action filterSetter)
+    {
+        filterSetter();
+        await RefreshTable();
+    }
+
+    private async Task OpenDialog(long? batchId)
+    {
+        if (batchId is null)
+            return;
+
+        _currentContext = batchId.Value;
+        _deletedMessagesContextDialogVisible = true;
+
+        await GetDeletionContext(_currentContext);
+    }
+
+    private void CloseDialog() => _deletedMessagesContextDialogVisible = false;
+
+    private async Task<TableData<DeletedMessageSummary>> LoadDeletedMessages(TableState tableState)
+    {
+        var currentGuild = DiscordHelper.GetUserGuild();
+
+        var searchCriteria = new DeletedMessageSearchCriteria
+        {
+            GuildId = currentGuild.Id,
+            Channel = _tableFilter.Channel,
+            ChannelId = _tableFilter.ChannelId,
+            Author = _tableFilter.Author,
+            AuthorId = _tableFilter.AuthorId,
+            CreatedBy = _tableFilter.CreatedBy,
+            CreatedById = _tableFilter.CreatedById,
+            Content = _tableFilter.Content,
+            Reason = _tableFilter.Reason,
+            BatchId = _tableFilter.BatchId
+        };
+
+        var result = await ModerationService.SearchDeletedMessagesAsync(searchCriteria,
+            new[]
+            {
+                new SortingCriteria
+                {
+                    PropertyName = tableState.SortLabel ?? nameof(DeletedMessageSummary.Created),
+                    Direction = tableState.SortDirection == MudBlazor.SortDirection.Ascending
+                        ? Data.Models.SortDirection.Ascending
+                        : Data.Models.SortDirection.Descending
+                }
+            },
+            new PagingCriteria
+            {
+                FirstRecordIndex = tableState.Page * tableState.PageSize,
+                PageSize = tableState.PageSize,
+            }
+        );
+
+        return new TableData<DeletedMessageSummary>
+        {
+            TotalItems = (int)result.FilteredRecordCount,
+            Items = result.Records
+        };
+    }
+
+    private async Task GetDeletionContext(long batchId)
+    {
+        _currentContext = batchId;
+
+        if (DeletedMessagesContext.ContainsKey(batchId))
+            return;
+
+        var deletedMessages = await ModerationService.SearchDeletedMessagesAsync(
+            new DeletedMessageSearchCriteria
+            {
+                BatchId = batchId
+            },
+            new SortingCriteria[]
+            {
+                //Sort ascending, so the earliest message is first
+                new SortingCriteria { PropertyName = nameof(DeletedMessageSummary.MessageId), Direction = Data.Models.SortDirection.Ascending }
+            },
+            new PagingCriteria()
+        );
+
+        var firstMessage = deletedMessages.Records.FirstOrDefault();
+
+        if (firstMessage is null)
+        {
+            CloseDialog();
+            Snackbar.Add($"Couldn't find messages for batch id {batchId}", Severity.Error);
+            return;
+        }
+
+        var currentUser = DiscordHelper.GetCurrentUser();
+        var batchChannelId = deletedMessages.Records.First().Channel.Id;
+        if (currentUser!.Guild.GetChannel(batchChannelId) is not ISocketMessageChannel foundChannel)
+        {
+            CloseDialog();
+            Snackbar.Add($"Couldn't recreate context - text channel with id {batchChannelId} not found", Severity.Error);
+            return;
+        }
+
+        if (currentUser.GetPermissions(foundChannel as IGuildChannel).ReadMessageHistory == false)
+        {
+            CloseDialog();
+            Snackbar.Add($"You don't have read permissions for the channel this batch was deleted in (#{foundChannel.Name})", Severity.Error);
+            return;
+        }
+
+        var beforeMessages = await foundChannel.GetMessagesAsync(firstMessage.MessageId, Discord.Direction.Before, 25).FlattenAsync();
+        var afterMessages = await foundChannel.GetMessagesAsync(firstMessage.MessageId, Discord.Direction.After, 25 + (int)deletedMessages.FilteredRecordCount).FlattenAsync();
+
+        var allMessages = new List<DeletedMessageInformation>();
+        allMessages.AddRange(deletedMessages.Records.Select(d => new DeletedMessageInformation(d.MessageId, null, null, d.Author.GetFullUsername(), d.Content)));
+        allMessages.AddRange(beforeMessages.Select(d => DeletedMessageInformation.FromIMessage(d)));
+        allMessages.AddRange(afterMessages.Select(d => DeletedMessageInformation.FromIMessage(d)));
+
+        DeletedMessagesContext[batchId] = allMessages.OrderBy(d => d.MessageId).ToList();
+    }
+
+}
