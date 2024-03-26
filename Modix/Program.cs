@@ -49,27 +49,13 @@ namespace Modix
 
             ConfigureServices(builder, builtConfig, config);
 
-            if (config.UseBlazor)
-            {
-                builder.Services.ConfigureBlazorServices();
-            }
-            else
-            {
-                ConfigureVueServices(builder.Services);
-            }
+            builder.Services.ConfigureBlazorServices();
 
             var host = builder.Build();
 
             ConfigureCommon(host);
 
-            if (config.UseBlazor)
-            {
-                host.ConfigureBlazorApplication();
-            }
-            else
-            {
-                ConfigureVueApplication(host);
-            }
+            host.ConfigureBlazorApplication();
 
             try
             {
@@ -114,18 +100,6 @@ namespace Modix
                     Path.Combine("logs", "{Date}.clef"),
                     rollingInterval: RollingInterval.Day,
                     retainedFileCountLimit: 2);
-
-                var seqEndpoint = modixConfig.SeqEndpoint;
-                var seqKey = modixConfig.SeqKey;
-
-                if (seqEndpoint != null && seqKey == null) // seq is enabled without a key
-                {
-                    lc.WriteTo.Seq(seqEndpoint);
-                }
-                else if (seqEndpoint != null && seqKey != null) //seq is enabled with a key
-                {
-                    lc.WriteTo.Seq(seqEndpoint, apiKey: seqKey);
-                }
 
                 var webhookId = modixConfig.LogWebhookId;
                 var webhookToken = modixConfig.LogWebhookToken;
@@ -174,46 +148,6 @@ namespace Modix
                 });
         }
 
-        public static void ConfigureVueServices(IServiceCollection services)
-        {
-            services.AddMvc(d => d.EnableEndpointRouting = false)
-                .AddNewtonsoftJson(options =>
-                {
-                    options.SerializerSettings.Converters.Add(new StringEnumConverter());
-                    options.SerializerSettings.Converters.Add(new StringULongConverter());
-                });
-        }
-
-        public static void ConfigureVueApplication(WebApplication app)
-        {
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
-            //Map to static files when not hitting the API
-            app.MapWhen(x => !x.Request.Path.Value.StartsWith("/api"), builder =>
-            {
-                //Tiny middleware to redirect invalid requests to index.html,
-                //this ensures that our frontend routing works on fresh requests
-                builder.Use(async (context, next) =>
-                {
-                    await next();
-                    if (context.Response.StatusCode == 404 && !Path.HasExtension(context.Request.Path.Value))
-                    {
-                        context.Request.Path = "/index.html";
-                        await next();
-                    }
-                })
-                .UseDefaultFiles()
-                .UseStaticFiles();
-            });
-
-            //Defer to MVC for anything that doesn't match (and ostensibly
-            //starts with /api)
-            app.UseMvcWithDefaultRoute();
-        }
-
         public static void ConfigureCommon(WebApplication app)
         {
             const string logFilesRequestPath = "/logfiles";
@@ -233,9 +167,6 @@ namespace Modix
             {
                 builder.Run(handler =>
                 {
-                    //TODO: Maybe un-hardcode this?
-                    //handler.Response.StatusCode = StatusCodes
-
                     handler.Response.Redirect("https://aka.ms/csharp-discord");
                     return Task.CompletedTask;
                 });

@@ -16,13 +16,14 @@ namespace Modix.Models
 
         public static ModixUser FromClaimsPrincipal(ClaimsPrincipal user)
         {
-            if (user?.Identity?.Name == null) { return null; }
+            if (user?.Identity?.Name == null)
+            { return null; }
 
             var ret = new ModixUser
             {
                 Name = user.Identity.Name,
                 UserId = ulong.Parse(user.Claims.FirstOrDefault(d => d.Type == ClaimTypes.NameIdentifier).Value),
-                Claims = user.Claims.Where(d=>d.Type == ClaimTypes.Role).Select(d=>d.Value).ToList()
+                Claims = user.Claims.Where(d => d.Type == ClaimTypes.Role).Select(d => d.Value).ToList()
             };
 
             return ret;
