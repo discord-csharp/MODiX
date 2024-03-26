@@ -76,8 +76,6 @@ services:
       MODIX_LogWebhookId: '382609729802862592'
       MODIX_ReplUrl: http://repl:31337/eval
       MODIX_IlUrl: http://repl:31337/il
-      MODIX_SeqEndpoint: http://seq:5341
-      MODIX_UseBlazor: 'True'
     deploy:
       mode: replicated
       replicas: 1
@@ -98,8 +96,6 @@ services:
         target: DbConnection
       - source: log-webhook-token
         target: LogWebhookToken
-      - source: modix-seq-key
-        target: SeqKey
     volumes:
       - modix-keys:/app/dataprotection
       - modix-logs:/app/logs
@@ -173,54 +169,6 @@ services:
       - grafana-data:/gfdata:rw
     networks:
       - proxy
-
-# log viewer/aggregator
-  seq:
-    image: datalust/seq:latest
-    environment: 
-      - ACCEPT_EULA=Y
-      - SEQ_CACHE_SYSTEMRAMTARGET=0.7
-    deploy:
-      mode: replicated
-      replicas: 1
-      resources:
-        limits:
-          cpus: '3'
-          memory: 4G
-        reservations:
-          cpus: '0.5'
-          memory: 1G
-      update_config:
-        parallelism: 1
-        delay: 0s
-        order: stop-first
-      restart_policy:
-        condition: any
-        delay: 0s
-    volumes:
-      - seq-data:/data
-    networks:
-      - modix
-      - repl
-      - proxy
-      - seq
-      
-# receives docker logs with the gelf docker log driver
-  seq-input-gelf:
-    image: datalust/seq-input-gelf:latest
-    environment:
-      - SEQ_ADDRESS=http://seq:5341
-    deploy:
-      mode: replicated
-      replicas: 1
-      restart_policy:
-        condition: any
-        delay: 0s
-    ports:
-      - "12201:12201/udp"
-    networks:
-      - repl
-      - seq
  
 # monitors the health check (specifically of REPL) and restarts the container
   autoheal:
@@ -234,7 +182,6 @@ networks:
   proxy:
   repl:
   modix:
-  seq:
   modix-20:
   portainer_agent_network:
     external:
@@ -250,8 +197,6 @@ secrets:
     external: true
   log-webhook-token:
     external: true
-  modix-seq-key:
-    external: true
   azure-translation-service-key-a:
     external: true
   modix-dev-token:
@@ -264,8 +209,6 @@ secrets:
     external: true
   modix-20-web-token-signing-secret:
     external: true
-  modix-20-seq-key:
-    external: true
 
 volumes:
   pgadmin-data:
@@ -275,12 +218,6 @@ volumes:
   modix-keys:
   modix-logs:
   modix-20-keys:
-  
-  seq-data:
-    driver_opts:
-      type: local
-      o: bind
-      device: /data/1/seq
     
   #workaround for swarm not supporting tmpfs mounts
   repl-tmp:
