@@ -95,6 +95,10 @@ namespace Modix.Data.Models.Core
 
         public string? GlobalName { get; private set; }
 
+        public string? AvatarDecorationHash { get; private set; }
+
+        public ulong? AvatarDecorationSkuId { get; private set; }
+
         public async Task AddRoleAsync(ulong roleId, RequestOptions? options = null)
             => await OnGuildUserOrThrowAsync(user => user.AddRoleAsync(roleId, options));
 
@@ -330,6 +334,12 @@ namespace Modix.Data.Models.Core
             if (user.TimedOutUntil != default)
                 TimedOutUntil = user.TimedOutUntil;
 
+            if (user.AvatarDecorationHash != default)
+                AvatarDecorationHash = user.AvatarDecorationHash;
+
+            if (user.AvatarDecorationSkuId != default)
+                AvatarDecorationSkuId = user.AvatarDecorationSkuId;
+
             return WithIUserData(user)
                 .WithIVoiceStateData(user);
         }
@@ -415,6 +425,9 @@ namespace Modix.Data.Models.Core
 
             return action.Invoke(_guildUser);
         }
+
+        public string GetAvatarDecorationUrl()
+            => $"{DiscordConfig.CDNUrl}avatar-decoration-presets/{AvatarDecorationHash}.png";
 
         private IUser? _user;
         private IGuildUser? _guildUser;
