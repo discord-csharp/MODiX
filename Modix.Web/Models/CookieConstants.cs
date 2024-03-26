@@ -6,4 +6,5 @@ public static class CookieConstants
     public const string ShowInfractionState = nameof(ShowInfractionState);
     public const string ShowDeletedInfractions = nameof(ShowDeletedInfractions);
     public const string ShowInactivePromotions = nameof(ShowInactivePromotions);
+    public const string UseDarkMode = nameof(UseDarkMode);
 }

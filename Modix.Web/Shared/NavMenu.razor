@@ -29,6 +29,18 @@
 
             <AuthorizeView>
                 <MudSpacer />
+
+                @* The color: inherit here is needed to keep the colors consistent between link icons and light/dark theme icons
+                    I would suggest not thinking about it too much :) *@
+                <MudToggleIconButton Class="mr-2" Style="color: inherit"
+                    Size="Size.Small"
+                    ToggledSize="Size.Small"
+                    Toggled="DarkMode"
+                    ToggledChanged="ToggleDarkMode"
+                    ToggledIcon="@Icons.Material.Filled.LightMode"
+                    Icon="@Icons.Material.Filled.DarkMode"
+                    Color="Color.Surface"/>
+
                 <MiniUser />
             </AuthorizeView>
         </MudAppBar>
@@ -36,8 +48,23 @@
 </CascadingAuthenticationState>
 
 @code {
+    [Inject]
+    public required CookieService CookieService { get; set; }
+
+    [Parameter]
+    public bool DarkMode { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> DarkModeChanged { get; set; }
 
     private bool _drawerVisible;
 
     private void ToggleDrawer() => _drawerVisible = !_drawerVisible;
+
+    private async Task ToggleDarkMode(bool toggled)
+    {
+        DarkMode = toggled;
+        await DarkModeChanged.InvokeAsync(DarkMode);
+        await CookieService.SetUseDarkModeAsync(DarkMode);
+    }
 }

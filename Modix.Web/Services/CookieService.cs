@@ -29,6 +29,12 @@ public class CookieService(IJSRuntime jsRuntime, SessionState sessionState)
         sessionState.ShowInactivePromotions = showInactivePromotions;
     }
 
+    public async Task SetUseDarkModeAsync(bool useDarkMode)
+    {
+        await SetCookieAsync(CookieConstants.UseDarkMode, useDarkMode);
+        sessionState.UseDarkMode = useDarkMode;
+    }
+
     private async Task SetCookieAsync<T>(string key, T value)
         => await jsRuntime.InvokeVoidAsync("eval", $"document.cookie = \"{key}={value}; path=/\";");
 }
