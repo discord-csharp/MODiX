@@ -2,10 +2,6 @@
 {
     public class ModixConfig
     {
-        public string? SeqEndpoint { get; set; } = null;
-
-        public string? SeqKey { get; set; } = null;
-
         public string? DiscordToken { get; set; } = null;
 
         public string? StackoverflowToken { get; set; } = null;
@@ -27,8 +23,5 @@
         public string? IlUrl { get; set; } = null;
 
         public string WebsiteBaseUrl { get; set; } = "https://mod.gg";
-
-        public bool EnableStatsd { get; set; }
-        public bool UseBlazor { get; set; }
     }
 }
