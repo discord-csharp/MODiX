@@ -229,7 +229,8 @@
         _canRescind = auth.User.HasClaim(ClaimTypes.Role, nameof(AuthorizationClaim.ModerationRescind));
         _canDeleteInfractions = auth.User.HasClaim(ClaimTypes.Role, nameof(AuthorizationClaim.ModerationDeleteInfraction));
 
-        _tableFilter.Subject = Subject ?? Id;
+        _tableFilter.Subject = Subject;
+        _tableFilter.IdString = Id;
     }
 
     private async Task ShowStateChanged(bool showState)
