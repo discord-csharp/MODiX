@@ -39,7 +39,7 @@
     "vue-template-compiler": "^2.6.11"
   },
   "optionalDependencies": {
-    "fsevents": "1.2.9"
+    "fsevents": "2.2.1"
   },
   "_comment": "fsevent@1.2.9 is locked in to prevent broken builds on windows for v1.2.11"
 }
