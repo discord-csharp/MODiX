@@ -40,6 +40,9 @@
     [Parameter]
     public string? ShowInactivePromotions { get; set; }
 
+    [Parameter]
+    public string? UseDarkMode { get; set; }
+
     [Inject]
     public SessionState SessionState { get; set; } = null!;
 
@@ -65,12 +68,14 @@
         _ = bool.TryParse(ShowInfractionState, out var showInfractionState);
         _ = bool.TryParse(ShowDeletedInfractions, out var showDeletedInfractions);
         _ = bool.TryParse(ShowInactivePromotions, out var showInactivePromotions);
+        _ = bool.TryParse(UseDarkMode, out var useDarkMode);
 
         SessionState.CurrentUserId = userSnowflake;
         SessionState.SelectedGuild = selectedGuildId;
         SessionState.ShowInfractionState = showInfractionState;
         SessionState.ShowDeletedInfractions = showDeletedInfractions;
         SessionState.ShowInactivePromotions = showInactivePromotions;
+        SessionState.UseDarkMode = useDarkMode;
 
         var currentUser = DiscordHelper.GetCurrentUser();
 

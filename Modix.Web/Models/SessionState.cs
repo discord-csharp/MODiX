@@ -7,4 +7,5 @@ public class SessionState
     public bool ShowDeletedInfractions { get; set; }
     public bool ShowInfractionState { get; set; }
     public bool ShowInactivePromotions { get; set; }
+    public bool UseDarkMode { get; set; }
 }
