@@ -121,45 +121,6 @@ namespace Modix.Services.Moderation
             _authorizationService.RequireClaims(AuthorizationClaim.DesignatedRoleMappingCreate);
 
             await SetUpMuteRole(guild);
-            await SetUpMentionableRoles(guild);
-        }
-
-        private async Task SetUpMentionableRoles(IGuild guild)
-        {
-            var mentionableRoleMappings = await _designatedRoleMappingRepository.SearchBriefsAsync(
-                new DesignatedRoleMappingSearchCriteria
-                {
-                    GuildId = guild.Id, Type = DesignatedRoleType.RestrictedMentionability, IsDeleted = false
-                });
-
-            Log.Information("Roles with RestrictedMentionability are: {Roles}",
-                mentionableRoleMappings.Select(d => d.Role.Name));
-
-            //Get the actual roles that correspond to our mappings
-            var mentionableRoles = mentionableRoleMappings
-                .Join(guild.Roles, d => d.Role.Id, d => d.Id, (map, role) => role)
-                .Where(d => d.IsMentionable);
-
-            try
-            {
-                //Ensure all roles with restricted mentionability are not mentionable
-                foreach (var role in mentionableRoles)
-                {
-                    Log.Information("Role @{Role} has RestrictedMentionability but was marked as Mentionable.",
-                        role.Name);
-                    await role.ModifyAsync(d => d.Mentionable = false);
-                    Log.Information("Role @{Role} was set to unmentionable.", role.Name);
-                }
-            }
-            catch (HttpException ex)
-            {
-                var errorTemplate =
-                    "An exception was thrown when attempting to set up mention-restricted roles for {Guild}. " +
-                    "This is likely due to Modix not having the \"Manage Roles\" permission, or Modix's role being below one of " +
-                    "the mention-restricted roles in your server's Role list - please check your server settings.";
-
-                Log.Error(ex, errorTemplate, guild.Name);
-            }
         }
 
         private async Task SetUpMuteRole(IGuild guild)

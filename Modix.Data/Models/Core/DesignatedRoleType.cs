@@ -14,10 +14,6 @@
         /// </summary>
         ModerationMute,
         /// <summary>
-        /// Defines a role whose mentionability is restricted in MODiX.
-        /// </summary>
-        RestrictedMentionability,
-        /// <summary>
         /// Defines a role whose mentionability is allowed throughout the guild.
         /// </summary>
         Pingable,
