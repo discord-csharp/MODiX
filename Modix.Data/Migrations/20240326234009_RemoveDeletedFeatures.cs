@@ -10,14 +10,17 @@ namespace Modix.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            //migrationBuilder.Sql(@"delete from ""ConfigurationActions"" where ""DesignatedChannelMappingId"" in (select ""Id"" from ""DesignatedChannelMappings"" where ""Type"" = 'GiveawayLog')");
-            //migrationBuilder.Sql(@"delete from ""DesignatedChannelMappings"" where ""Type"" = 'GiveawayLog'");
+            migrationBuilder.Sql(@"UPDATE ""DesignatedRoleMappings"" SET ""DeleteActionId"" = NULL WHERE ""Type"" IN ('RestrictedMentionability', 'ResctrictedMentionability')");
+            migrationBuilder.Sql(@"DELETE FROM ""ConfigurationActions"" WHERE ""Id"" IN (392, 393)");
 
-            //migrationBuilder.Sql(@"delete from ""ConfigurationActions"" where ""DesignatedRoleMappingId"" in (select ""Id"" from ""DesignatedRoleMappings"" where ""Type"" = 'RestrictedMentionability')");
-            //migrationBuilder.Sql(@"delete from ""DesignatedRoleMappings"" where ""Type"" = 'RestrictedMentionability'");
+            migrationBuilder.Sql(@"delete from ""ConfigurationActions"" where ""DesignatedChannelMappingId"" in (select ""Id"" from ""DesignatedChannelMappings"" where ""Type"" = 'GiveawayLog')");
+            migrationBuilder.Sql(@"delete from ""DesignatedChannelMappings"" where ""Type"" = 'GiveawayLog'");
 
-            //migrationBuilder.Sql(@"delete from ""ConfigurationActions"" where ""DesignatedRoleMappingId"" in (select ""Id"" from ""DesignatedRoleMappings"" where ""Type"" = 'ResctrictedMentionability')");
-            //migrationBuilder.Sql(@"delete from ""DesignatedRoleMappings"" where ""Type"" = 'ResctrictedMentionability'");
+            migrationBuilder.Sql(@"delete from ""ConfigurationActions"" where ""DesignatedRoleMappingId"" in (select ""Id"" from ""DesignatedRoleMappings"" where ""Type"" = 'RestrictedMentionability')");
+            migrationBuilder.Sql(@"delete from ""DesignatedRoleMappings"" where ""Type"" = 'RestrictedMentionability'");
+
+            migrationBuilder.Sql(@"delete from ""ConfigurationActions"" where ""DesignatedRoleMappingId"" in (select ""Id"" from ""DesignatedRoleMappings"" where ""Type"" = 'ResctrictedMentionability')");
+            migrationBuilder.Sql(@"delete from ""DesignatedRoleMappings"" where ""Type"" = 'ResctrictedMentionability'");
         }
 
         /// <inheritdoc />
