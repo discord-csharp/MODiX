@@ -17,13 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Modix.Common.Test\Modix.Common.Test.csproj" />
-    <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Microsoft.Extensions.Logging.Console">
-      <HintPath>C:\Program Files\dotnet\sdk\NuGetFallbackFolder\microsoft.extensions.logging.console\2.1.1\lib\netstandard2.0\Microsoft.Extensions.Logging.Console.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\..\src\Modix.Data\Modix.Data.csproj" />
   </ItemGroup>
 
 </Project>
