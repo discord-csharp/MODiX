@@ -25,7 +25,10 @@
             <MudButton Class="ml-4" Href="/promotions/create" Variant="Variant.Filled" Color="Color.Primary">Start One</MudButton>
         </div>
         <MudExpansionPanels MultiExpansion="true">
-            @foreach (var campaign in Campaigns.Where(x => _showInactive ? true : (x.Outcome is null)).OrderByDescending(x => x.Outcome is null).ThenByDescending(x => x.CreateAction.Created))
+            @foreach (var (roleColor, campaign) in Campaigns
+                .Where(x => _showInactive ? true : (x.Campaign.Outcome is null))
+                .OrderByDescending(x => x.Campaign.Outcome is null)
+                .ThenByDescending(x => x.Campaign.CreateAction.Created))
             {
                 var isCurrentUserCampaign = CurrentUserId == campaign.Subject.Id;
 
@@ -46,7 +49,7 @@
                     _ => Color.Error
                 };
 
-                <MudExpansionPanel IsExpandedChanged="async (wasExpanded) => _ = CampaignExpanded(wasExpanded, campaign.Id, campaign.Subject.Id)">
+                <MudExpansionPanel IsExpandedChanged="async (wasExpanded) => _ = CampaignExpanded(wasExpanded, campaign.Id, campaign.Subject.Id)" Dense="true">
                     <TitleContent>
                         <div class="d-flex flex-sm-row flex-column align-center justify-space-between">
                             <div class="d-flex flex-grow-1 flex-sm-row flex-column align-center">
@@ -57,7 +60,7 @@
                                     @campaign.Subject.GetFullUsername()
                                 </MudText>
 
-                                <MudChip Class="targetRole ml-2" Style="@($"color: {RoleColors[campaign.TargetRole.Id]}")" Icon="@Icons.Material.Filled.ArrowForwardIos">@campaign.TargetRole.Name</MudChip>
+                                <MudChip Class="targetRole ml-2" Style=@roleColor Icon="@Icons.Material.Filled.ArrowForwardIos">@campaign.TargetRole.Name</MudChip>
                             </div>
 
                             <div class="d-flex">
@@ -102,13 +105,13 @@
                                 <b>Sorry, you aren't allowed to see comments on your own campaign.</b>
                             </MudText>
                         }
-                        else if (!campaignCommentData.ContainsKey(campaign.Id))
+                        else if (!CampaignCommentData.ContainsKey(campaign.Id))
                         {
                             <MudProgressCircular Indeterminate="true" Class="d-flex" Style="margin: auto" />
                         }
                         else
                         {
-                            foreach (var comment in campaignCommentData[campaign.Id].Values.OrderByDescending(x => x.CreatedAt))
+                            foreach (var comment in CampaignCommentData[campaign.Id].Values.OrderByDescending(x => x.CreatedAt))
                             {
                                 var sentimentIcon = comment.PromotionSentiment == PromotionSentiment.Approve ? Icons.Material.Filled.ThumbUp : Icons.Material.Filled.ThumbDown;
                                 <div class="d-flex align-center ma-4">
@@ -129,7 +132,7 @@
                                 <MudDivider Light="true" />
                             }
 
-                            if (campaign.CloseAction is null && !campaignCommentData[campaign.Id].Any(x => x.Value.IsFromCurrentUser))
+                            if (campaign.CloseAction is null && !CampaignCommentData[campaign.Id].Any(x => x.Value.IsFromCurrentUser))
                             {
                                 <CreateCampaignComment OnCampaignCommentCreation="((PromotionSentiment sentiment, string? content) arg) => OnCampaignCommentCreation(campaign.Id, campaign.Subject, arg.sentiment, arg.content)" />
                             }
@@ -177,9 +180,8 @@
 
     private ulong CurrentUserId { get; set; }
 
-    private IReadOnlyCollection<PromotionCampaignSummary> Campaigns = Array.Empty<PromotionCampaignSummary>();
-    private Dictionary<ulong, string> RoleColors = new Dictionary<ulong, string>();
-    private Dictionary<long, Dictionary<long, CampaignCommentData>> campaignCommentData = new Dictionary<long, Dictionary<long, CampaignCommentData>>();
+    private IReadOnlyCollection<(string RoleColor, PromotionCampaignSummary Campaign)> Campaigns = Array.Empty<(string RoleColor, PromotionCampaignSummary Campaign)>();
+    private Dictionary<long, Dictionary<long, CampaignCommentData>> CampaignCommentData = new Dictionary<long, Dictionary<long, CampaignCommentData>>();
 
     private bool _showInactive;
 
@@ -194,16 +196,29 @@
             return;
 
         var currentUser = DiscordHelper.GetCurrentUser();
-        RoleColors = currentUser!.Guild.Roles.ToDictionary(x => x.Id, x => x.Color.ToString());
+        var roleColors = currentUser!.Guild.Roles.ToDictionary(x => x.Id, x => x.Color.ToString());
 
-        Campaigns = await PromotionsService.SearchCampaignsAsync(new PromotionCampaignSearchCriteria
+        Campaigns = (await PromotionsService.SearchCampaignsAsync(new PromotionCampaignSearchCriteria
         {
             GuildId = currentUser.Guild.Id
-        });
+        }))
+        .Select(campaign => (GetRoleColor(roleColors, campaign.TargetRole.Id), campaign))
+        .ToArray();
 
         CurrentUserId = currentUser.Id;
 
         StateHasChanged();
+    }
+
+    private string GetRoleColor(Dictionary<ulong, string> roleColors, ulong roleId)
+    {
+        // In case the role has been deleted and we still have a campaign record for that role we serve a grey color.
+        if (!roleColors.TryGetValue(roleId, out var colorHex))
+        {
+            return $"color: grey";
+        }
+
+        return $"color: {colorHex}";
     }
 
     private async Task ShowInactiveChanged(bool showInactive)
@@ -220,7 +235,7 @@
         if (CurrentUserId == userId)
             return;
 
-        if (campaignCommentData.ContainsKey(campaignId))
+        if (CampaignCommentData.ContainsKey(campaignId))
             return;
 
         var result = await PromotionsService.GetCampaignDetailsAsync(campaignId);
@@ -230,7 +245,7 @@
             return;
         }
 
-        campaignCommentData[campaignId] = result.Comments
+        CampaignCommentData[campaignId] = result.Comments
             .Where(x => x.ModifyAction is null)
             .Select(c => new CampaignCommentData(c.Id, c.Sentiment, c.Content, c.CreateAction.Created, c.CreateAction.CreatedBy.Id == CurrentUserId))
             .ToDictionary(x => x.Id, x => x);
@@ -245,7 +260,7 @@
             var promotionActionSummary = await PromotionsService.AddCommentAsync(campaignId, sentiment, content);
             var newComment = promotionActionSummary.NewComment;
 
-            campaignCommentData[campaignId][newComment!.Id] = new CampaignCommentData(newComment.Id, newComment.Sentiment, newComment.Content, promotionActionSummary.Created, true);
+            CampaignCommentData[campaignId][newComment!.Id] = new CampaignCommentData(newComment.Id, newComment.Sentiment, newComment.Content, promotionActionSummary.Created, true);
         }
         catch (InvalidOperationException ex)
         {
@@ -278,8 +293,8 @@
             var promotionActionSummary = await PromotionsService.UpdateCommentAsync(commentId, newPromotionSentiment, newContent);
             var newComment = promotionActionSummary.NewComment;
 
-            campaignCommentData[campaignId].Remove(commentId);
-            campaignCommentData[campaignId][newComment!.Id] = new CampaignCommentData(newComment.Id, newComment.Sentiment, newComment.Content, promotionActionSummary.Created, true);
+            CampaignCommentData[campaignId].Remove(commentId);
+            CampaignCommentData[campaignId][newComment!.Id] = new CampaignCommentData(newComment.Id, newComment.Sentiment, newComment.Content, promotionActionSummary.Created, true);
         }
         catch (InvalidOperationException ex)
         {
