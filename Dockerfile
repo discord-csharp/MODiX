@@ -5,8 +5,8 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS dotnet-build-base
 WORKDIR /src
 COPY Modix.sln .
 COPY Directory.* .
-COPY **/*.csproj ./
-RUN for file in $(ls *.csproj); do mkdir -p ${file%.*}/ && mv $file ${file%.*}/; done
+COPY src/ ./src/
+COPY test/ ./test/
 RUN dotnet restore Modix.sln
 COPY . . 
 
