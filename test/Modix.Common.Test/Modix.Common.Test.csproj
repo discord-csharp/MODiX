@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Modix.Common\Modix.Common.csproj" />
+    <ProjectReference Include="..\..\src\Modix.Common\Modix.Common.csproj" />
   </ItemGroup>
 
 </Project>

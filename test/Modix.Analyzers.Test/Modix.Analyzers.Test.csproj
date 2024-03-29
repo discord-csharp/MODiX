@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Modix.Analyzers\Modix.Analyzers.csproj" />
+    <ProjectReference Include="..\..\src\Modix.Analyzers\Modix.Analyzers.csproj" />
   </ItemGroup>
 
 </Project>

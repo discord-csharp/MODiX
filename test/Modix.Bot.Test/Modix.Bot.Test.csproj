@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Modix.Bot\Modix.Bot.csproj" />
+    <ProjectReference Include="..\..\src\Modix.Bot\Modix.Bot.csproj" />
   </ItemGroup>
 
 </Project>
