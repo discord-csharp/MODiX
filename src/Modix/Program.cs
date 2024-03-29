@@ -173,9 +173,13 @@ namespace Modix
             });
 
             // Serve up log files for maintainers only
-            app.MapWhen(x => x.Request.Path.Value.StartsWith(logFilesRequestPath), builder =>
+            app.MapWhen(x => x.Request.Path.Value!.StartsWith(logFilesRequestPath), builder =>
             {
-                var fileProvider = new PhysicalFileProvider(Path.Combine(Directory.GetCurrentDirectory(), "logs"));
+                var logsDirectoryPath = Path.Combine(Directory.GetCurrentDirectory(), "logs");
+
+                Directory.CreateDirectory(logsDirectoryPath);
+
+                var fileProvider = new PhysicalFileProvider(logsDirectoryPath);
                 builder
                     .UseMiddleware<LogFilesAuthorizationMiddleware>()
                     .UseDirectoryBrowser(new DirectoryBrowserOptions()
