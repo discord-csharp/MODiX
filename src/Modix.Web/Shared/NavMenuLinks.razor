@@ -34,7 +34,7 @@
             </div>
             <MudSpacer />
             <div class="d-flex">
-                <MudNavLink IconColor="Color.Surface" Href="login" Icon="@Icons.Material.Filled.Login">Log In</MudNavLink>
+                <MudNavLink Class="navmenu-item" IconColor="Color.Surface" Href="login" Icon="@Icons.Material.Filled.Login">Log In</MudNavLink>
             </div>
         </NotAuthorized>
     </AuthorizeView>
@@ -45,8 +45,9 @@
         white-space: nowrap;
         width: auto;
     }
+
+    @* Overriding MudBlazor internal styling to enable the entire button to be clickable *@
+    .navmenu-item > a {
+        align-items: center !important;
+    }
 </style>
-
-@code {
-
-}
