@@ -36,7 +36,6 @@ namespace Modix
 
             var configBuilder = builder.Configuration
                 .AddEnvironmentVariables("MODIX_")
-                .AddJsonFile("developmentSettings.json", optional: true, reloadOnChange: false)
                 .AddKeyPerFile("/run/secrets", true);
 
             if (builder.Environment.IsDevelopment())
