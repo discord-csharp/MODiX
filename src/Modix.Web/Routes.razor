@@ -1,0 +1,83 @@
+﻿@using Modix.Web.Models
+@using Modix.Web.Services
+@using MudBlazor
+@using System.Security.Claims
+
+<CascadingAuthenticationState>
+
+    @*TODO: AdditionalAssemblies="new [] { typeof(Client._Imports).Assembly) }"*@
+
+    <CascadingValue Value="SessionState">
+        <Router AppAssembly="@typeof(App).Assembly">
+            <Found Context="routeData">
+                <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                    <NotAuthorized>
+                        <MudText>Sorry, you don't have access to that page.</MudText>
+                    </NotAuthorized>
+                    <Authorizing>
+                        <MudText>Please wait...</MudText>
+                    </Authorizing>
+                </AuthorizeRouteView>
+                <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+            </Found>
+
+        </Router>
+    </CascadingValue>
+</CascadingAuthenticationState>
+
+@code {
+
+    [Parameter]
+    public string? SelectedGuild { get; set; }
+
+    [Parameter]
+    public string? ShowInfractionState { get; set; }
+
+    [Parameter]
+    public string? ShowDeletedInfractions { get; set; }
+
+    [Parameter]
+    public string? ShowInactivePromotions { get; set; }
+
+    [Parameter]
+    public string? UseDarkMode { get; set; }
+
+    [Inject]
+    public SessionState SessionState { get; set; } = null!;
+
+    [Inject]
+    public DiscordHelper DiscordHelper { get; set; } = null!;
+
+    [Inject]
+    public AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
+
+    [Inject]
+    public Modix.Services.Core.IAuthorizationService AuthorizationService { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated is not true)
+            return;
+
+        var userId = authState.User.FindFirst(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+
+        _ = ulong.TryParse(userId, out var userSnowflake);
+        _ = ulong.TryParse(SelectedGuild, out var selectedGuildId);
+        _ = bool.TryParse(ShowInfractionState, out var showInfractionState);
+        _ = bool.TryParse(ShowDeletedInfractions, out var showDeletedInfractions);
+        _ = bool.TryParse(ShowInactivePromotions, out var showInactivePromotions);
+        _ = bool.TryParse(UseDarkMode, out var useDarkMode);
+
+        SessionState.CurrentUserId = userSnowflake;
+        SessionState.SelectedGuild = selectedGuildId;
+        SessionState.ShowInfractionState = showInfractionState;
+        SessionState.ShowDeletedInfractions = showDeletedInfractions;
+        SessionState.ShowInactivePromotions = showInactivePromotions;
+        SessionState.UseDarkMode = useDarkMode;
+
+        var currentUser = DiscordHelper.GetCurrentUser();
+
+        await AuthorizationService.OnAuthenticatedAsync(currentUser!.Id, currentUser.Guild.Id, currentUser.Roles.Select(x => x.Id).ToList());
+    }
+}

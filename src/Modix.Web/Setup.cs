@@ -13,7 +13,11 @@ public static class Setup
 {
     public static WebApplication ConfigureBlazorApplication(this WebApplication app)
     {
-        if (!app.Environment.IsDevelopment())
+        if (app.Environment.IsDevelopment())
+        {
+            app.UseWebAssemblyDebugging();
+        }
+        else
         {
             app.UseExceptionHandler("/Error");
             // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
@@ -26,6 +30,8 @@ public static class Setup
 
         app.UseRouting();
 
+        app.UseAntiforgery();
+
         app.UseRequestLocalization("en-US");
         app.UseMiddleware<ClaimsMiddleware>();
         app.UseAuthorization();
@@ -33,22 +39,30 @@ public static class Setup
         app.MapGet("/login", async (context) => await context.ChallengeAsync(DiscordAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/" }));
         app.MapGet("/logout", async (context) => await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/" }));
 
-        app.MapBlazorHub();
-        app.MapFallbackToPage("/_Host");
+        app.MapRazorComponents<App>()
+            .AddInteractiveServerRenderMode();
+            //.AddInteractiveWebAssemblyRenderMode();
+        //TODO
+        //.AddAdditionalAssemblies(typeof(Client._Imports).Assembly);
 
         return app;
     }
 
     public static IServiceCollection ConfigureBlazorServices(this IServiceCollection services)
     {
-        services.AddScoped<DiscordHelper>();
-        services.AddScoped<CookieService>();
-        services.AddScoped<SessionState>();
-        services.AddMudServices();
-        services.AddMudMarkdownServices();
+        services
+            .AddScoped<DiscordHelper>()
+            .AddScoped<CookieService>()
+            .AddScoped<SessionState>()
+            .AddMudServices()
+            .AddMudMarkdownServices();
 
-        services.AddRazorPages();
-        services.AddServerSideBlazor();
+        services.AddCascadingAuthenticationState();
+
+        services
+            .AddRazorComponents()
+            .AddInteractiveServerComponents();
+            //.AddInteractiveWebAssemblyComponents();
 
         return services;
     }
