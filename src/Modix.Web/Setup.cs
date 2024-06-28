@@ -36,6 +36,8 @@ public static class Setup
         app.UseMiddleware<ClaimsMiddleware>();
         app.UseAuthorization();
 
+        app.MapControllers();
+
         app.MapGet("/login", async (context) => await context.ChallengeAsync(DiscordAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/" }));
         app.MapGet("/logout", async (context) => await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/" }));
 

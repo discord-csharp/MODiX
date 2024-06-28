@@ -39,9 +39,13 @@ else
 @code {
     private WeatherForecast[]? forecasts;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("sample-data/weather.json");
+        if (!firstRender)
+            return;
+
+        forecasts = await Http.GetFromJsonAsync<WeatherForecast[]>("/api/values/GetData");
+        StateHasChanged();
     }
 
     public class WeatherForecast
