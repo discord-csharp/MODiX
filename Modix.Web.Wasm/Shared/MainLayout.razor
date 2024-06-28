@@ -2,9 +2,9 @@
 @using MudBlazor
 @inherits LayoutComponentBase
 
-@* <MudThemeProvider Theme="@_theme" @bind-IsDarkMode="SessionState.UseDarkMode" />
+<MudThemeProvider Theme="@_theme" @bind-IsDarkMode="SessionState.UseDarkMode" />
 <MudDialogProvider />
-<MudSnackbarProvider /> *@
+<MudSnackbarProvider />
 
 @* TODO *@
 @* <CascadingAuthenticationState> *@
@@ -23,4 +23,24 @@
 
     [CascadingParameter]
     public required SessionState SessionState { get; set; }
+
+    private MudTheme _theme = new()
+    {
+        Palette = new PaletteLight()
+        {
+            Primary = new("#803788"),
+            Surface = new("#fafafa")
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Primary = new("#803788"),
+        },
+        Typography = new()
+        {
+            Default = new()
+            {
+                LetterSpacing = "0"
+            }
+        }
+    };
 }
