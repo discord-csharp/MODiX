@@ -5,10 +5,8 @@
 
 <CascadingAuthenticationState>
 
-    @*TODO: AdditionalAssemblies="new [] { typeof(Client._Imports).Assembly) }"*@
-
     <CascadingValue Value="SessionState">
-        <Router AppAssembly="@typeof(App).Assembly">
+        <Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="new [] { typeof(Wasm._Imports).Assembly }">
             <Found Context="routeData">
                 <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                     <NotAuthorized>
