@@ -16,14 +16,14 @@ public class ClaimsMiddleware(RequestDelegate next)
             return;
         }
 
-        var selectedGuild = context.Request.Cookies[CookieConstants.SelectedGuild];
-        _ = ulong.TryParse(selectedGuild, out var selectedGuildId);
-
         if (context.User.Identity is not ClaimsIdentity claimsIdentity)
         {
             await next(context);
             return;
         }
+
+        var selectedGuild = context.Request.Cookies[CookieConstants.SelectedGuild];
+        _ = ulong.TryParse(selectedGuild, out var selectedGuildId);
 
         var currentGuild = discordClient.GetGuild(selectedGuildId) ?? discordClient.Guilds.First();
         var currentUser = currentGuild.GetUser(userSnowflake);
