@@ -1,6 +1,7 @@
 ﻿@using Discord.WebSocket;
 @using Modix.Web.Models;
 @using Modix.Web.Services;
+@using Modix.Web.Wasm
 @using MudBlazor
 @using System.Security.Claims;
 @using Modix.Services.Core;
@@ -19,11 +20,11 @@
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
     <link href="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.css" rel="stylesheet" />
 
-    <HeadOutlet />
+    <HeadOutlet @rendermode=RenderMode.InteractiveAuto />
 </head>
 
 <body>
-    <Routes
+    <Routes @rendermode=RenderMode.InteractiveAuto
             SelectedGuild="@Context.Request.Cookies[CookieConstants.SelectedGuild]"
             ShowInfractionState="@Context.Request.Cookies[CookieConstants.ShowInfractionState]"
             ShowDeletedInfractions="@Context.Request.Cookies[CookieConstants.ShowDeletedInfractions]"

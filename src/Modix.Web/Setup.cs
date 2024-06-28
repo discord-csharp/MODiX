@@ -53,6 +53,7 @@ public static class Setup
             .AddScoped<DiscordHelper>()
             .AddScoped<CookieService>()
             .AddScoped<SessionState>()
+            .AddCascadingValue<SessionState>(sp => sp.GetRequiredService<SessionState>())
             .AddMudServices()
             .AddMudMarkdownServices();
 

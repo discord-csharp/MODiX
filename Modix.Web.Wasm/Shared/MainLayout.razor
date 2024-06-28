@@ -1,0 +1,26 @@
+﻿@using Modix.Web.Models
+@using MudBlazor
+@inherits LayoutComponentBase
+
+@* <MudThemeProvider Theme="@_theme" @bind-IsDarkMode="SessionState.UseDarkMode" />
+<MudDialogProvider />
+<MudSnackbarProvider /> *@
+
+@* TODO *@
+@* <CascadingAuthenticationState> *@
+    <MudLayout>
+
+        @* <NavMenu @bind-DarkMode="SessionState.UseDarkMode" /> *@
+
+        <MudMainContent>
+            @Body
+        </MudMainContent>
+
+    </MudLayout>
+@* </CascadingAuthenticationState> *@
+
+@code {
+
+    [CascadingParameter]
+    public required SessionState SessionState { get; set; }
+}
