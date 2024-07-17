@@ -34,6 +34,7 @@ namespace Modix.Services.Core
             DiscordSocketClient.AuditLogCreated += OnAuditLogCreatedAsync;
             DiscordSocketClient.ChannelCreated += OnChannelCreatedAsync;
             DiscordSocketClient.ChannelUpdated += OnChannelUpdatedAsync;
+            DiscordSocketClient.VoiceChannelStatusUpdated += OnVoiceChannelStatusUpdated;
             DiscordSocketClient.GuildAvailable += OnGuildAvailableAsync;
             DiscordSocketClient.GuildMemberUpdated += OnGuildMemberUpdatedAsync;
             DiscordSocketClient.InteractionCreated += OnInteractionCreatedAsync;
@@ -61,6 +62,7 @@ namespace Modix.Services.Core
             DiscordSocketClient.AuditLogCreated -= OnAuditLogCreatedAsync;
             DiscordSocketClient.ChannelCreated -= OnChannelCreatedAsync;
             DiscordSocketClient.ChannelUpdated -= OnChannelUpdatedAsync;
+            DiscordSocketClient.VoiceChannelStatusUpdated -= OnVoiceChannelStatusUpdated;
             DiscordSocketClient.GuildAvailable -= OnGuildAvailableAsync;
             DiscordSocketClient.GuildMemberUpdated -= OnGuildMemberUpdatedAsync;
             DiscordSocketClient.InteractionCreated += OnInteractionCreatedAsync;
@@ -99,6 +101,13 @@ namespace Modix.Services.Core
         private Task OnChannelCreatedAsync(SocketChannel channel)
         {
             MessageDispatcher.Dispatch(new ChannelCreatedNotification(channel));
+
+            return Task.CompletedTask;
+        }
+
+        private Task OnVoiceChannelStatusUpdated(Cacheable<SocketVoiceChannel, ulong> channel, string oldStatus, string newStatus)
+        {
+            MessageDispatcher.Dispatch(new VoiceChannelStatusUpdatedNotification(channel, oldStatus, newStatus));
 
             return Task.CompletedTask;
         }
