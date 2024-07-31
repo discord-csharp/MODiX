@@ -64,7 +64,9 @@
                     <MudTd style="white-space:nowrap" DataLabel="Last Modified">@tag.Created.ToString("MM/dd/yy, h:mm:ss tt")</MudTd>
                     @if (tag.OwnerRole is not null)
                     {
-                        var roleColor = Roles[tag.OwnerRole.Id].Color;
+
+                        _ = Roles.TryGetValue(tag.OwnerRole.Id, out var role);
+                        var roleColor = role?.Color ?? "currentColor";
                         <MudTd DataLabel="Owner" Style="@($"color: {roleColor}")">@@@tag.OwnerName</MudTd>
                     }
                     else
