@@ -56,9 +56,6 @@ namespace Modix.Services.Moderation
                 return;
             }
 
-            //TODO: note infraction for change author
-            //How do we obtain the user who changed the status?
-
             Log.Debug("Status {newStatus} from voice channel {channelId} is going to be deleted", newStatus, channel.Id);
 
             //Setting to old status seems risky as there is a race condition
