@@ -15,7 +15,8 @@ namespace Modix.Services.Moderation
 {
     public class MessageContentCheckBehaviour :
         INotificationHandler<MessageReceivedNotification>,
-        INotificationHandler<MessageUpdatedNotification>
+        INotificationHandler<MessageUpdatedNotification>,
+        INotificationHandler<VoiceChannelStatusUpdatedNotification>
     {
         private readonly IDesignatedChannelService _designatedChannelService;
         private readonly IAuthorizationService _authorizationService;
@@ -43,6 +44,29 @@ namespace Modix.Services.Moderation
         public Task HandleNotificationAsync(MessageUpdatedNotification notification,
             CancellationToken cancellationToken = default)
             => TryCheckMessageAsync(notification.NewMessage);
+        public async Task HandleNotificationAsync(VoiceChannelStatusUpdatedNotification notification,
+            CancellationToken cancellationToken = default)
+        {
+            var channel = await notification.Channel.GetOrDownloadAsync();
+            var newStatus = notification.NewStatus;
+            var isBlocked = await IsContentBlocked(channel, newStatus);
+
+            if (!isBlocked)
+            {
+                return;
+            }
+
+            Log.Debug("Status {newStatus} from voice channel {channelId} is going to be deleted", newStatus, channel.Id);
+
+            //Setting to old status seems risky as there is a race condition
+            //between two consecutive edits being moderated in parallel.
+            //May client events being fired in parallel?
+            await channel.SetStatusAsync(string.Empty);
+
+            Log.Debug("Status {newStatus} from voice channel {channelId} was deleted because it contains blocked content", newStatus, channel.Id);
+
+            await channel.SendMessageAsync("Sorry, the new status contained blocked content and has been removed!");
+        }
 
         private async Task TryCheckMessageAsync(IMessage message)
         {
@@ -91,16 +115,20 @@ namespace Modix.Services.Moderation
                 $"Sorry {author.Mention} your message contained blocked content and has been removed!");
         }
 
-        private async Task<bool> IsContentBlocked(IGuildChannel channel, IMessage message)
+        private Task<bool> IsContentBlocked(SocketVoiceChannel channel, string status) =>
+            IsContentBlocked(channel.Guild.Id, status);
+        private Task<bool> IsContentBlocked(IGuildChannel channel, IMessage message) =>
+            IsContentBlocked(channel.GuildId, message.Content);
+        private async Task<bool> IsContentBlocked(ulong guildId, string messageContent)
         {
-            var patterns = await _messageContentPatternService.GetPatterns(channel.GuildId);
+            var patterns = await _messageContentPatternService.GetPatterns(guildId);
 
             foreach (var patternToCheck in patterns.Where(x => x.Type == MessageContentPatternType.Blocked))
             {
                 // If the content is not blocked, we can just continue to check the next
                 // blocked pattern
 
-                var (containsBlockedPattern, blockedMatches) = GetContentMatches(message.Content, patternToCheck);
+                var (containsBlockedPattern, blockedMatches) = GetContentMatches(messageContent, patternToCheck);
 
                 if (!containsBlockedPattern)
                 {
