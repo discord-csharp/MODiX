@@ -1,8 +1,9 @@
-﻿@using AspNet.Security.OAuth.Discord;
-@using Discord.WebSocket;
-@using Modix.Data.Models.Core;
+﻿@* @using AspNet.Security.OAuth.Discord; *@
+@* @using Discord.WebSocket; *@
+@* @using Modix.Data.Models.Core; *@
+@using Microsoft.AspNetCore.Components.Authorization
 @using Modix.Web.Models;
-@using Modix.Web.Services;
+@* @using Modix.Web.Services; *@
 @using MudBlazor
 
 <CascadingAuthenticationState>
@@ -14,15 +15,18 @@
             <MudNavLink Class="navmenu-item" IconColor="Color.Surface" Href="userlookup" Icon="@Icons.Material.Filled.Search">User Lookup</MudNavLink>
             <MudNavLink Class="navmenu-item" IconColor="Color.Surface" Href="tags" Icon="@Icons.Material.Filled.Tag">Tags</MudNavLink>
 
-            <AuthorizeView Context="e" Roles="@nameof(AuthorizationClaim.PromotionsRead)">
+            @* <AuthorizeView Context="e" Roles="@nameof(AuthorizationClaim.PromotionsRead)"> *@
+            <AuthorizeView Context="e" Roles="PromotionsRead">
                 <MudNavLink IconColor="Color.Surface" Class="navmenu-item" Href="promotions" Icon="@Icons.Material.Filled.Celebration">Promotions</MudNavLink>
             </AuthorizeView>
 
-            <AuthorizeView Context="e" Roles="@($"{nameof(AuthorizationClaim.ModerationRead)},{nameof(AuthorizationClaim.LogViewDeletedMessages)}")">
+            @* <AuthorizeView Context="e" Roles="@($"{nameof(AuthorizationClaim.ModerationRead)},{nameof(AuthorizationClaim.LogViewDeletedMessages)}")"> *@
+            <AuthorizeView Context="e" Roles="ModerationRead,LogViewDeletedMessages">
                 <MudNavLink IconColor="Color.Surface" Class="navmenu-item" Href="logs" Icon="@Icons.Material.Filled.DocumentScanner">Logs</MudNavLink>
             </AuthorizeView>
 
-            <AuthorizeView Context="e" Roles="@($"{nameof(AuthorizationClaim.DesignatedRoleMappingRead)},{nameof(AuthorizationClaim.DesignatedChannelMappingRead)},{nameof(AuthorizationClaim.AuthorizationConfigure)}")">
+            @* <AuthorizeView Context="e" Roles="@($"{nameof(AuthorizationClaim.DesignatedRoleMappingRead)},{nameof(AuthorizationClaim.DesignatedChannelMappingRead)},{nameof(AuthorizationClaim.AuthorizationConfigure)}")"> *@
+            <AuthorizeView Context="e" Roles="DesignatedRoleMappingRead,DesignatedChannelMappingRead,AuthorizationConfigure">
                 <MudNavLink IconColor="Color.Surface" Class="navmenu-item" Href="config" Icon="@Icons.Material.Filled.Settings">Config</MudNavLink>
             </AuthorizeView>
 

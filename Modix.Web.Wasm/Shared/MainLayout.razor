@@ -1,4 +1,5 @@
 ﻿@using Modix.Web.Models
+@using Modix.Web.Wasm.Components
 @using MudBlazor
 @inherits LayoutComponentBase
 
@@ -10,7 +11,7 @@
 @* <CascadingAuthenticationState> *@
     <MudLayout>
 
-        @* <NavMenu @bind-DarkMode="SessionState.UseDarkMode" /> *@
+        <NavMenu @bind-DarkMode="SessionState.UseDarkMode" />
 
         <MudMainContent>
             @Body

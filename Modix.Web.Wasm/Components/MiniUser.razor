@@ -1,7 +1,8 @@
-﻿@using AspNet.Security.OAuth.Discord;
-@using Discord.WebSocket;
+﻿@* @using AspNet.Security.OAuth.Discord; *@
+@* @using Discord.WebSocket; *@
+@using Microsoft.AspNetCore.Components.Authorization
 @using Modix.Web.Models;
-@using Modix.Web.Services;
+@* @using Modix.Web.Services; *@
 @using MudBlazor
 
 <div class="d-flex align-center">
@@ -24,18 +25,19 @@
     <MudMenu AnchorOrigin="Origin.BottomRight">
         <ActivatorContent>
             <div class="d-flex align-center">
-                <MudImage Src="@(SelectedGuild?.IconUrl)" Height="32" Width="32" Class="rounded-lg vertical-bottom" />
+                @* <MudImage Src="@(SelectedGuild?.IconUrl)" Height="32" Width="32" Class="rounded-lg vertical-bottom" /> *@
+                <MudImage Height="32" Width="32" Class="rounded-lg vertical-bottom" />
                 <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" />
             </div>
         </ActivatorContent>
         <ChildContent>
-            @foreach (var guildOption in GuildOptions)
+@*             @foreach (var guildOption in GuildOptions)
             {
                 <MudMenuItem Style="white-space: nowrap" OnClick="() => SelectGuild(guildOption.Id)">
                     <MudImage Src="@guildOption.IconUrl" Height="24" Width="24" Class="rounded-lg vertical-bottom" />
                     @guildOption.Name
                 </MudMenuItem>
-            }
+            } *@
         </ChildContent>
     </MudMenu>
 </div>
@@ -51,17 +53,17 @@
     [CascadingParameter]
     public Task<AuthenticationState>? AuthenticationState { get; set; } = null!;
 
-    [Inject]
-    public DiscordHelper DiscordHelper { get; set; } = null!;
+    // [Inject]
+    // public DiscordHelper DiscordHelper { get; set; } = null!;
 
     private string? AvatarUrl { get; set; }
     private string? Username { get; set; }
 
-    private IEnumerable<GuildOption> GuildOptions { get; set; } = Array.Empty<GuildOption>();
-    private SocketGuild? SelectedGuild { get; set; }
+    // private IEnumerable<GuildOption> GuildOptions { get; set; } = Array.Empty<GuildOption>();
+    // private SocketGuild? SelectedGuild { get; set; }
 
-    [Inject]
-    public CookieService CookieService { get; set; } = null!;
+    // [Inject]
+    // public CookieService CookieService { get; set; } = null!;
 
     [Inject]
     public NavigationManager NavigationManager { get; set; } = null!;
@@ -75,19 +77,19 @@
         if (authState.User.Identity?.IsAuthenticated is not true)
             return;
 
-        var avatarHash = authState.User.FindFirst(x => x.Type == DiscordAuthenticationConstants.Claims.AvatarHash)?.Value;
-        var user = DiscordHelper.GetCurrentUser();
+        // var avatarHash = authState.User.FindFirst(x => x.Type == DiscordAuthenticationConstants.Claims.AvatarHash)?.Value;
+        // var user = DiscordHelper.GetCurrentUser();
 
-        AvatarUrl = $"https://cdn.discordapp.com/avatars/{user!.Id}/{avatarHash}.png";
-        Username = authState.User.Identity.Name;
+        // AvatarUrl = $"https://cdn.discordapp.com/avatars/{user!.Id}/{avatarHash}.png";
+        // Username = authState.User.Identity.Name;
 
-        GuildOptions = DiscordHelper.GetGuildOptions();
-        SelectedGuild = user.Guild;
+        // GuildOptions = DiscordHelper.GetGuildOptions();
+        // SelectedGuild = user.Guild;
     }
 
     private async Task SelectGuild(ulong guildId)
     {
-        await CookieService.SetSelectedGuildAsync(guildId);
+        // await CookieService.SetSelectedGuildAsync(guildId);
         NavigationManager.NavigateTo(NavigationManager.Uri, true);
     }
 }

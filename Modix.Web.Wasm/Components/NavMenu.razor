@@ -1,8 +1,9 @@
-﻿@using AspNet.Security.OAuth.Discord;
-@using Discord.WebSocket;
-@using Modix.Data.Models.Core;
+﻿@* @using AspNet.Security.OAuth.Discord;
+@using Discord.WebSocket; *@
+@using Microsoft.AspNetCore.Components.Authorization
+@* @using Modix.Data.Models.Core; *@
 @using Modix.Web.Models;
-@using Modix.Web.Services;
+@* @using Modix.Web.Services; *@
 @using MudBlazor;
 @using System.Security.Claims;
 
@@ -43,8 +44,8 @@
 </CascadingAuthenticationState>
 
 @code {
-    [Inject]
-    public required CookieService CookieService { get; set; }
+    // [Inject]
+    // public required CookieService CookieService { get; set; }
 
     [Parameter]
     public bool DarkMode { get; set; }
@@ -60,6 +61,6 @@
     {
         DarkMode = toggled;
         await DarkModeChanged.InvokeAsync(DarkMode);
-        await CookieService.SetUseDarkModeAsync(DarkMode);
+        // await CookieService.SetUseDarkModeAsync(DarkMode);
     }
 }
