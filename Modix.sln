@@ -64,9 +64,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Web", "src\Modix.Web\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{E74ADFBD-55F3-4E28-885B-2270670294EF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Web.Wasm", "Modix.Web.Wasm\Modix.Web.Wasm.csproj", "{F0DFE404-B6A9-495C-A41C-92FD25138619}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Web.Wasm", "src\Modix.Web.Wasm\Modix.Web.Wasm.csproj", "{F0DFE404-B6A9-495C-A41C-92FD25138619}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Web.Shared", "Modix.Web.Shared\Modix.Web.Shared.csproj", "{A603AE22-F588-466E-A7B1-298989E76890}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Web.Shared", "src\Modix.Web.Shared\Modix.Web.Shared.csproj", "{A603AE22-F588-466E-A7B1-298989E76890}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
