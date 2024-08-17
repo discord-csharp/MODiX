@@ -120,7 +120,7 @@ namespace Modix
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
-                    options.LoginPath = "/api/unauthorized";
+                    options.LoginPath = "/login";
                     //options.LogoutPath = "/logout";
                     options.ExpireTimeSpan = new TimeSpan(7, 0, 0, 0);
                 })

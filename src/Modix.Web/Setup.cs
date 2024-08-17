@@ -1,6 +1,7 @@
 ﻿using AspNet.Security.OAuth.Discord;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Components.Authorization;
 using Modix.Web.Models;
 using Modix.Web.Security;
 using Modix.Web.Services;
@@ -59,6 +60,7 @@ public static class Setup
             .AddMudServices()
             .AddMudMarkdownServices();
 
+        services.AddScoped<AuthenticationStateProvider, PersistingAuthenticationStateProvider>();
         services.AddCascadingAuthenticationState();
 
         services

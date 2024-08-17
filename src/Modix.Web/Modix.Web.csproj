@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.8" />
     <ProjectReference Include="..\..\Modix.Web.Wasm\Modix.Web.Wasm.csproj" />
     <ProjectReference Include="..\..\Modix.Web.Shared\Modix.Web.Shared.csproj" />
     <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />

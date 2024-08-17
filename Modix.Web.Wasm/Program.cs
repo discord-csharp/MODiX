@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+﻿using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using Modix.Web.Wasm.Security;
 
 namespace Modix.Web.Wasm;
 public class Program
@@ -8,6 +10,11 @@ public class Program
         var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
         builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+
+        builder.Services
+            .AddAuthorizationCore()
+            .AddCascadingAuthenticationState()
+            .AddSingleton<AuthenticationStateProvider, PersistentAuthenticationStateProvider>();
 
         await builder.Build().RunAsync();
     }
