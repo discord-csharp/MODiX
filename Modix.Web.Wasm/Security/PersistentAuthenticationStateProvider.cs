@@ -18,7 +18,8 @@ public class PersistentAuthenticationStateProvider : AuthenticationStateProvider
 
         Claim[] claims = [
             new Claim(ClaimTypes.NameIdentifier, userInfo.UserId.ToString()),
-            new Claim(ClaimTypes.Name, userInfo.Name) ];
+            new Claim(ClaimTypes.Name, userInfo.Name),
+            new Claim(nameof(DiscordUser.AvatarHash), userInfo.AvatarHash)];
 
         var roles = userInfo.Claims.Select(role => new Claim(ClaimTypes.Role, role));
 

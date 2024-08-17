@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Modix.Web.Shared.Models;
 
 namespace Modix.Authentication
 {
@@ -22,7 +23,7 @@ namespace Modix.Authentication
 
                 options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
 
-                options.ClaimActions.MapJsonKey(claimType: "avatarHash", jsonKey: "avatar");
+                options.ClaimActions.MapJsonKey(claimType: nameof(DiscordUser.AvatarHash), jsonKey: "avatar");
             });
         }
     }

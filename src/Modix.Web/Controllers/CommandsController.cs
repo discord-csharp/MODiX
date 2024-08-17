@@ -7,7 +7,7 @@ namespace Modix.Web.Controllers;
 
 [Route("~/api")]
 [ApiController]
-public class CommandsController : Controller
+public class CommandsController : ControllerBase
 {
     private readonly ICommandHelpService _commandHelpService;
 

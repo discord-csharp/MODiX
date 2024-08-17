@@ -1,6 +1,8 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @using Modix.Web.Models;
+@using Modix.Web.Shared.Models
 @using MudBlazor
+@using System.Security.Claims
 
 <div class="d-flex align-center">
     @if (AvatarUrl is not null && Username is not null)
@@ -74,11 +76,12 @@
         if (authState.User.Identity?.IsAuthenticated is not true)
             return;
 
-        // var avatarHash = authState.User.FindFirst(x => x.Type == DiscordAuthenticationConstants.Claims.AvatarHash)?.Value;
         // var user = DiscordHelper.GetCurrentUser();
 
-        // AvatarUrl = $"https://cdn.discordapp.com/avatars/{user!.Id}/{avatarHash}.png";
-        // Username = authState.User.Identity.Name;
+        var avatarHash = authState.User.FindFirst(x => x.Type == nameof(DiscordUser.AvatarHash))?.Value;
+        var userId = ulong.Parse(authState.User.FindFirst(d => d.Type == ClaimTypes.NameIdentifier)?.Value);
+        AvatarUrl = $"https://cdn.discordapp.com/avatars/{userId}/{avatarHash}.png";
+        Username = authState.User.Identity.Name;
 
         // GuildOptions = DiscordHelper.GetGuildOptions();
         // SelectedGuild = user.Guild;
