@@ -48,6 +48,7 @@ public class PersistingAuthenticationStateProvider : ServerAuthenticationStatePr
             UserId = userSnowflake,
             Name = user.Identity.Name,
             AvatarHash = avatarHash.Value,
+            Claims = user.Claims.Where(x => x.Type == ClaimTypes.Role).Select(x => x.Value)
         });
     }
 

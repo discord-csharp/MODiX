@@ -20,9 +20,12 @@ public class PersistentAuthenticationStateProvider : AuthenticationStateProvider
             new Claim(ClaimTypes.NameIdentifier, userInfo.UserId.ToString()),
             new Claim(ClaimTypes.Name, userInfo.Name) ];
 
-        _authenticationStateTask = Task.FromResult(
-            new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity(claims,
-                authenticationType: nameof(PersistentAuthenticationStateProvider)))));
+        var roles = userInfo.Claims.Select(role => new Claim(ClaimTypes.Role, role));
+
+        var claimsIdentity = new ClaimsIdentity([..claims, ..roles], authenticationType: nameof(PersistentAuthenticationStateProvider));
+        var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+        var authState = new AuthenticationState(claimsPrincipal);
+        _authenticationStateTask = Task.FromResult(authState);
     }
 
     public override Task<AuthenticationState> GetAuthenticationStateAsync() => _authenticationStateTask;
