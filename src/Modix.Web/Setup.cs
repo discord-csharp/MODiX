@@ -39,7 +39,15 @@ public static class Setup
 
         app.MapControllers();
 
-        app.MapGet("/login", async (context) => await context.ChallengeAsync(DiscordAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/" }));
+        app.MapGet("/login", async (context) =>
+        {
+            await context.ChallengeAsync(DiscordAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties
+            {
+                RedirectUri = context.Request.Query.TryGetValue(CookieAuthenticationDefaults.ReturnUrlParameter, out var returnUrl)
+                    ? returnUrl.ToString()
+                    : "/"
+            });
+        });
         app.MapGet("/logout", async (context) => await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/" }));
 
         app.MapRazorComponents<App>()

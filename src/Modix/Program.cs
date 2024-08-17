@@ -120,7 +120,9 @@ namespace Modix
                 .AddCookie(options =>
                 {
                     options.LoginPath = "/login";
+                    options.AccessDeniedPath = "/unauthorized";
                     //options.LogoutPath = "/logout";
+
                     options.ExpireTimeSpan = new TimeSpan(7, 0, 0, 0);
                 })
                 .AddDiscordAuthentication();

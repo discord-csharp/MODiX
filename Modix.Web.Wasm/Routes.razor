@@ -2,6 +2,7 @@
 @using Modix.Web.Services *@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Modix.Web.Models
+@using Modix.Web.Wasm.Components
 @using Modix.Web.Wasm.Shared
 @using MudBlazor
 @using System.Security.Claims
@@ -10,17 +11,14 @@
 <CascadingValue Value="SessionState">
     <Router AppAssembly="@typeof(Program).Assembly">
         <Found Context="routeData">
-            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"></RouteView>
-
-            @* TODO *@
-            @* <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                 <NotAuthorized>
                     <MudText>Sorry, you don't have access to that page.</MudText>
                 </NotAuthorized>
                 <Authorizing>
                     <MudText>Please wait...</MudText>
                 </Authorizing>
-            </AuthorizeRouteView> *@
+            </AuthorizeRouteView>
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />
         </Found>
 

@@ -1,6 +1,7 @@
 ﻿using AspNet.Security.OAuth.Discord;
 
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
