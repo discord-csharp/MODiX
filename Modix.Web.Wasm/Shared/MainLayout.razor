@@ -7,18 +7,15 @@
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-@* TODO *@
-@* <CascadingAuthenticationState> *@
-    <MudLayout>
+<MudLayout>
 
-        <NavMenu @bind-DarkMode="SessionState.UseDarkMode" />
+    <NavMenu @bind-DarkMode="SessionState.UseDarkMode" />
 
-        <MudMainContent>
-            @Body
-        </MudMainContent>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
 
-    </MudLayout>
-@* </CascadingAuthenticationState> *@
+</MudLayout>
 
 @code {
 

@@ -1,47 +1,39 @@
-﻿@* @using AspNet.Security.OAuth.Discord;
-@using Discord.WebSocket; *@
-@using Microsoft.AspNetCore.Components.Authorization
-@* @using Modix.Data.Models.Core; *@
+﻿@using Microsoft.AspNetCore.Components.Authorization
 @using Modix.Web.Models;
-@* @using Modix.Web.Services; *@
 @using MudBlazor;
 @using System.Security.Claims;
 
-<CascadingAuthenticationState>
+<MudAppBar Elevation="0" Dense="false" DisableGutters="true" Color="Color.Primary" Fixed="false">
+    <div class="d-flex d-lg-none flex-grow-1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" OnClick="ToggleDrawer" />
+    </div>
 
-    <MudAppBar Elevation="0" Dense="false" DisableGutters="true" Color="Color.Primary" Fixed="false">
-        <div class="d-flex d-lg-none flex-grow-1">
-            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" OnClick="ToggleDrawer" />
-        </div>
-
-        <div class="d-none d-lg-flex flex-grow-1" style="height: 100%">
-            <NavMenuLinks />
-        </div>
+    <div class="d-none d-lg-flex flex-grow-1" style="height: 100%">
+        <NavMenuLinks />
+    </div>
 
 
-        @* The color: inherit here is needed to keep the colors consistent between link icons and light/dark theme icons
-        I would suggest not thinking about it too much :) *@
-        <MudToggleIconButton Class="mr-2" Style="color: inherit"
-                             Size="Size.Small"
-                             ToggledSize="Size.Small"
-                             Toggled="DarkMode"
-                             ToggledChanged="ToggleDarkMode"
-                             ToggledIcon="@Icons.Material.Filled.LightMode"
-                             Icon="@Icons.Material.Filled.DarkMode"
-                             Color="Color.Surface" />
+    @* The color: inherit here is needed to keep the colors consistent between link icons and light/dark theme icons
+    I would suggest not thinking about it too much :) *@
+    <MudToggleIconButton Class="mr-2" Style="color: inherit"
+                            Size="Size.Small"
+                            ToggledSize="Size.Small"
+                            Toggled="DarkMode"
+                            ToggledChanged="ToggleDarkMode"
+                            ToggledIcon="@Icons.Material.Filled.LightMode"
+                            Icon="@Icons.Material.Filled.DarkMode"
+                            Color="Color.Surface" />
 
-        <AuthorizeView>
-            <MiniUser />
-        </AuthorizeView>
-    </MudAppBar>
+    <AuthorizeView>
+        <MiniUser />
+    </AuthorizeView>
+</MudAppBar>
 
-    <MudDrawer Color="Color.Primary" @bind-Open="_drawerVisible" Elevation="1" Anchor="Anchor.Top" Variant="DrawerVariant.Temporary">
-        <MudNavMenu Color="Color.Surface" Bordered="true">
-            <NavMenuLinks />
-        </MudNavMenu>
-    </MudDrawer>
-
-</CascadingAuthenticationState>
+<MudDrawer Color="Color.Primary" @bind-Open="_drawerVisible" Elevation="1" Anchor="Anchor.Top" Variant="DrawerVariant.Temporary">
+    <MudNavMenu Color="Color.Surface" Bordered="true">
+        <NavMenuLinks />
+    </MudNavMenu>
+</MudDrawer>
 
 @code {
     // [Inject]

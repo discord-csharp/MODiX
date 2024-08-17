@@ -1,5 +1,4 @@
-﻿@* @using Microsoft.AspNetCore.Components.Authorization *@
-@* @using Modix.Web.Models
+﻿@* @using Modix.Web.Models
 @using Modix.Web.Services *@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Modix.Web.Models
@@ -7,29 +6,26 @@
 @using MudBlazor
 @using System.Security.Claims
 
-@* TODO *@
-@* <CascadingAuthenticationState> *@
 
-    <CascadingValue Value="SessionState">
-        <Router AppAssembly="@typeof(Program).Assembly">
-            <Found Context="routeData">
-                <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"></RouteView>
+<CascadingValue Value="SessionState">
+    <Router AppAssembly="@typeof(Program).Assembly">
+        <Found Context="routeData">
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)"></RouteView>
 
-                @* TODO *@
-                @* <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-                    <NotAuthorized>
-                        <MudText>Sorry, you don't have access to that page.</MudText>
-                    </NotAuthorized>
-                    <Authorizing>
-                        <MudText>Please wait...</MudText>
-                    </Authorizing>
-                </AuthorizeRouteView> *@
-                <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-            </Found>
+            @* TODO *@
+            @* <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    <MudText>Sorry, you don't have access to that page.</MudText>
+                </NotAuthorized>
+                <Authorizing>
+                    <MudText>Please wait...</MudText>
+                </Authorizing>
+            </AuthorizeRouteView> *@
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
 
-        </Router>
-    </CascadingValue>
-@* </CascadingAuthenticationState> *@
+    </Router>
+</CascadingValue>
 
 @code {
 
@@ -49,20 +45,20 @@
     public string? UseDarkMode { get; set; }
 
     [CascadingParameter]
-    public SessionState SessionState { get; set; } = null!;
+    public required SessionState SessionState { get; set; }
 
     // [Inject]
     // public DiscordHelper DiscordHelper { get; set; } = null!;
 
-    [Inject]
-    public AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
+    [CascadingParameter]
+    public required Task<AuthenticationState> AuthenticationState { get; set; }
 
     // [Inject]
     // public Modix.Services.Core.IAuthorizationService AuthorizationService { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var authState = await AuthenticationState;
         if (authState.User.Identity?.IsAuthenticated is not true)
             return;
 
