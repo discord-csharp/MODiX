@@ -21,7 +21,6 @@ using Modix.Extensions;
 using Modix.Services;
 using Modix.Services.Utilities;
 using Modix.Web;
-using Newtonsoft.Json.Converters;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
@@ -139,13 +138,6 @@ namespace Modix
             builder.Services
                 .AddModixHttpClients()
                 .AddModix(configuration);
-
-            //builder.Services.AddMvc(d => d.EnableEndpointRouting = false)
-            //    .AddNewtonsoftJson(options =>
-            //    {
-            //        options.SerializerSettings.Converters.Add(new StringEnumConverter());
-            //        options.SerializerSettings.Converters.Add(new StringULongConverter());
-            //    });
         }
 
         public static void ConfigureCommon(WebApplication app)
