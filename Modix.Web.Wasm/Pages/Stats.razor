@@ -1,10 +1,9 @@
 ﻿@page "/stats"
-@attribute [Authorize]
-@using Modix.Data.Models.Core;
-@using Modix.Services.GuildStats;
-@using Modix.Web.Models.Stats;
-@using Modix.Web.Services;
+@using Microsoft.AspNetCore.Authorization
+@using Modix.Web.Shared.Models.Stats
 @using MudBlazor
+
+@attribute [Authorize]
 
 <PageTitle>Modix - Stats</PageTitle>
 
@@ -83,27 +82,22 @@
 }
 
 @code {
-    GuildStatData Data { get; set; } = null!;
-    List<GuildRoleCount> GuildRoleCountView { get; set; } = null!;
+    GuildStatData? Data { get; set; }
+    IReadOnlyCollection<GuildRoleMemberCount>? GuildRoleCountView { get; set; }
 
     [Inject]
-    IGuildStatService GuildStatService { get; set; } = null!;
-
-    [Inject]
-    DiscordHelper DiscordHelper { get; set; } = null!;
+    public required IHttpClientFactory HttpClientFactory { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
             return;
 
-        var currentUser = DiscordHelper.GetCurrentUser();
+        using var client = HttpClientFactory.CreateClient("api");
+        var guildStatData = await client.GetFromJsonAsync<GuildStatData>("api/guildstats");
 
-        var roleCounts = await GuildStatService.GetGuildMemberDistributionAsync(currentUser!.Guild);
-        var messageCounts = await GuildStatService.GetTopMessageCounts(currentUser.Guild, currentUser.Id);
-
-        Data = new GuildStatData(currentUser.Guild.Name, roleCounts, messageCounts);
-        GuildRoleCountView = roleCounts;
+        Data = guildStatData;
+        GuildRoleCountView = guildStatData?.GuildRoleCounts;
 
         StateHasChanged();
     }
