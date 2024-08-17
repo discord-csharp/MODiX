@@ -1,17 +1,15 @@
 ﻿@page "/commands"
-@using Modix.Services.CommandHelp;
-@using Modix.Services.Utilities;
-@using Modix.Web.Components
-@using Modix.Web.Models
-@using Modix.Web.Models.Commands;
-@using MudBlazor;
-@using Humanizer;
+@using Humanizer
+@using Modix.Web.Shared.Models.Commands
+@using Modix.Web.Wasm.Components
+@using MudBlazor
 
 <PageTitle>Modix - Commands</PageTitle>
 
 <AnchorNavigation />
+@attribute [StreamRendering]
 
-@if (Modules is not null)
+@if (Modules.Any())
 {
     <MudGrid>
         <MudItem sm="3" md="2" xl="1" Class="d-none d-sm-flex">
@@ -94,6 +92,10 @@
         </MudItem>
     </MudGrid>
 }
+else
+{
+    <p><em>Loading...</em></p>
+}
 
 <style>
 
@@ -155,24 +157,34 @@
 </style>
 
 @code {
+
     [Inject]
-    public ICommandHelpService CommandHelpService { get; set; } = null!;
+    public required IHttpClientFactory HttpClientFactory { get; set; }
 
-    private IReadOnlyCollection<Module>? Modules;
+    private List<Module> Modules = [];
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
             return;
 
-        var modules = CommandHelpService.GetModuleHelpData();
+        using var client = HttpClientFactory.CreateClient("api");
 
-        Modules = modules.Select(m =>
+        var request = new HttpRequestMessage(HttpMethod.Get, "api/commands");
+        request.SetBrowserResponseStreamingEnabled(true);
+
+        using var response = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+        response.EnsureSuccessStatusCode();
+
+        var modules = response.Content.ReadFromJsonAsAsyncEnumerable<Module>();
+
+        await foreach (var module in modules)
         {
-            var commands = m.Commands.Select(c => new Command(c.Name, c.Summary, FormatUtilities.CollapsePlurals(c.Aliases), c.Parameters, c.IsSlashCommand));
-            return new Module(m.Name, m.Summary, commands);
-        }).ToArray();
+            if (module is null)
+                continue;
 
-        StateHasChanged();
+            Modules.Add(module);
+            StateHasChanged();
+        }
     }
 }

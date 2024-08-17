@@ -52,6 +52,8 @@ public static class Setup
 
     public static IServiceCollection ConfigureBlazorServices(this IServiceCollection services)
     {
+        services.AddControllers();
+
         services
             .AddScoped<DiscordHelper>()
             .AddScoped<CookieService>()

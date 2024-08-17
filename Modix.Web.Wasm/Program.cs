@@ -6,6 +6,7 @@ using MudBlazor;
 using MudBlazor.Services;
 
 namespace Modix.Web.Wasm;
+
 public class Program
 {
     public static async Task Main(string[] args)
@@ -16,7 +17,7 @@ public class Program
 
         builder.Services.AddCascadingValue(sp => sp.GetRequiredService<SessionState>());
 
-        builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+        builder.Services.AddHttpClient("api", http => http.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
 
         builder.Services
             .AddAuthorizationCore()

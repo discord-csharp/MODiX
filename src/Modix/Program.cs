@@ -140,12 +140,12 @@ namespace Modix
                 .AddModixHttpClients()
                 .AddModix(configuration);
 
-            builder.Services.AddMvc(d => d.EnableEndpointRouting = false)
-                .AddNewtonsoftJson(options =>
-                {
-                    options.SerializerSettings.Converters.Add(new StringEnumConverter());
-                    options.SerializerSettings.Converters.Add(new StringULongConverter());
-                });
+            //builder.Services.AddMvc(d => d.EnableEndpointRouting = false)
+            //    .AddNewtonsoftJson(options =>
+            //    {
+            //        options.SerializerSettings.Converters.Add(new StringEnumConverter());
+            //        options.SerializerSettings.Converters.Add(new StringULongConverter());
+            //    });
         }
 
         public static void ConfigureCommon(WebApplication app)
