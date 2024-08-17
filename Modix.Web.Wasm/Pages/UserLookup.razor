@@ -1,20 +1,13 @@
 ﻿@page "/userlookup"
-@attribute [Authorize]
-@using Discord;
-@using Modix.Data.Repositories;
-@using Modix.Services.Core;
-@using Modix.Services.Utilities;
-@using Modix.Web.Components
-@using Modix.Web.Models;
-@using Modix.Web.Models.UserLookup;
-@using Modix.Web.Services
+@using Humanizer
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Modix.Web.Shared.Models.Common
+@using Modix.Web.Shared.Models.UserLookup
+@using Modix.Web.Wasm.Components
 @using MudBlazor
-@using Discord.WebSocket
-@using System.Linq.Expressions;
-@using MudBlazor.Charts
-@using System.Globalization;
-@using Humanizer;
-@using Modix.Web.Models.Common;
+@using System.Security.Claims
+@attribute [Authorize]
 
 <PageTitle>Modix - User Lookup</PageTitle>
 
@@ -25,7 +18,7 @@
 
     <div class="mb-6">
         <AutoComplete T="ModixUser"
-                      SearchFunc="(query) => DiscordHelper.AutoCompleteAsync(query)"
+                      SearchFunc="(query) => AutoCompleteAsync(query)"
                       Placeholder="Username or ID"
                       SelectedItemChanged="SelectedUserChanged">
             <ItemTemplate Context="user">
@@ -89,7 +82,7 @@
         <MudCard Class="d-flex flex-column align-center pa-5 mb-3" Elevation="2">
 
             <MudChipSet MultiSelection="true" Filter="true" SelectedChipsChanged="SelectedChannelsChanged">
-                @foreach (var channel in userInformation.MessageCountsPerChannel)
+                @foreach (var channel in messageCountsPerChannel)
                 {
                     var channelColorStyle = $"border: 1px solid {channel.Color}";
                     <MudChip Style="@channelColorStyle"
@@ -116,25 +109,30 @@
 </MudContainer>
 
 @code {
+    MessageCountPerChannelInformation[] messageCountsPerChannel = Array.Empty<MessageCountPerChannelInformation>();
     MessageCountPerChannelInformation[] messageCountsPerChannelView = Array.Empty<MessageCountPerChannelInformation>();
     UserInformation? userInformation = null;
 
     [Inject]
-    public DiscordHelper DiscordHelper { get; set; } = null!;
+    public required IHttpClientFactory HttpClientFactory { get; set; }
 
-    [Inject]
-    public IUserService UserService { get; set; } = null!;
-
-    [Inject]
-    public IMessageRepository MessageRepository { get; set; } = null!;
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthState { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (!firstRender)
             return;
 
-        var currentUser = DiscordHelper.GetCurrentUser();
-        await SelectedUserChanged(ModixUser.FromIGuildUser(currentUser!));
+        //TODO: add an endpoint for this?
+        // var currentUser = DiscordHelper.GetCurrentUser();
+        // await SelectedUserChanged(ModixUser.FromIGuildUser(currentUser!));
+
+        var authState = await AuthState;
+        var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        var currentUser = await AutoCompleteAsync(userId);
+        await SelectedUserChanged(currentUser.FirstOrDefault());
 
         StateHasChanged();
     }
@@ -142,41 +140,32 @@
     private void SelectedChannelsChanged(MudChip[] chips)
     {
         var channels = chips.Select(x => x.Value).Cast<string>();
-        messageCountsPerChannelView = userInformation!.MessageCountsPerChannel
+        messageCountsPerChannelView = messageCountsPerChannel
             .Where(x => channels.Contains(x.ChannelName))
             .ToArray();
     }
 
-    private async Task SelectedUserChanged(ModixUser user)
+    private async Task<IEnumerable<ModixUser>> AutoCompleteAsync(string query)
+    {
+        using var client = HttpClientFactory.CreateClient("api");
+
+        var users = await client.GetFromJsonAsync<ModixUser[]>($"api/autocomplete/users/{query}");
+
+        return users ?? [];
+    }
+
+    private async Task SelectedUserChanged(ModixUser? user)
     {
         if (user is null)
             return;
 
-        var currentGuild = DiscordHelper.GetUserGuild();
+        using var client = HttpClientFactory.CreateClient("api");
 
-        var ephemeralUser = await UserService.GetUserInformationAsync(currentGuild.Id, user.UserId);
+        var userInformationTask = client.GetFromJsonAsync<UserInformation>($"api/userinformation/{user.UserId}");
+        var messageCountsPerChannelTask = client.GetFromJsonAsync<MessageCountPerChannelInformation[]>($"api/userinformation/{user.UserId}/messages");
 
-        var userRank = await MessageRepository.GetGuildUserParticipationStatistics(currentGuild.Id, user.UserId);
-        var messages7 = await MessageRepository.GetGuildUserMessageCountByDate(currentGuild.Id, user.UserId, TimeSpan.FromDays(7));
-        var messages30 = await MessageRepository.GetGuildUserMessageCountByDate(currentGuild.Id, user.UserId, TimeSpan.FromDays(30));
-
-        var roles = ephemeralUser!.RoleIds
-            .Select(x => currentGuild.GetRole(x))
-            .OrderByDescending(x => x.IsHoisted)
-            .ThenByDescending(x => x.Position)
-            .ToArray();
-
-        var timespan = DateTimeOffset.UtcNow - DateTimeOffset.MinValue;
-        var result = await MessageRepository.GetGuildUserMessageCountByChannel(currentGuild.Id, user.UserId, timespan);
-        var colors = ColorUtils.GetRainbowColors(result.Count);
-
-        var messageCountsPerChannel = result
-            .Select((x, i) => new MessageCountPerChannelInformation(x.ChannelName, x.MessageCount, colors[i++].ToString()))
-            .OrderByDescending(x => x.Count)
-            .ToList();
-
-        userInformation = UserInformation.FromEphemeralUser(ephemeralUser, userRank, messages7, messages30, roles, messageCountsPerChannel);
-
-        messageCountsPerChannelView = userInformation.MessageCountsPerChannel.ToArray();
+        userInformation = await userInformationTask;
+        messageCountsPerChannel = (await messageCountsPerChannelTask) ?? [];
+        messageCountsPerChannelView = messageCountsPerChannel;
     }
 }

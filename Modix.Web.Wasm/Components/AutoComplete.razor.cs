@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Modix.Web.Models.Common;
+using Modix.Web.Shared.Models.Common;
 
-namespace Modix.Web.Components;
+namespace Modix.Web.Wasm.Components;
 
 public partial class AutoComplete<T> where T : IAutoCompleteItem
 {

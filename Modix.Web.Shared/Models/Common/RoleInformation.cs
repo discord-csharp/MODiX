@@ -1,3 +1,3 @@
-﻿namespace Modix.Web.Models.Common;
+﻿namespace Modix.Web.Shared.Models.Common;
 
 public record RoleInformation(ulong Id, string Name, string Color) : IAutoCompleteItem;

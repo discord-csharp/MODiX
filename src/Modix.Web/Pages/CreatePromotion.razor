@@ -4,9 +4,10 @@
 @using Modix.Services.Promotions;
 @using Modix.Web.Components
 @using Modix.Web.Models;
-@using Modix.Web.Models.Common;
 @using Modix.Web.Models.Promotions;
 @using Modix.Web.Services;
+@using Modix.Web.Shared.Models.Common
+@using Modix.Web.Wasm.Components
 @using MudBlazor
 
 <PageTitle>Modix - Start A Campaign</PageTitle>
@@ -28,7 +29,7 @@
         <MudItem xs="12" sm="9">
             <MudItem Class="mb-6">
                 <AutoComplete T="ModixUser"
-                              SearchFunc="(query) => DiscordHelper.AutoCompleteAsync(query)"
+                              @* SearchFunc="(query) => DiscordHelper.AutoCompleteAsync(query)" *@
                               Placeholder="Username or ID"
                               SelectedItemChanged="SelectedUserChanged"
                               Title="Tell us their username">

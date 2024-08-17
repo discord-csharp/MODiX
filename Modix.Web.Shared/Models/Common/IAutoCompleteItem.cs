@@ -1,4 +1,4 @@
-﻿namespace Modix.Web.Models.Common;
+﻿namespace Modix.Web.Shared.Models.Common;
 
 public interface IAutoCompleteItem
 {

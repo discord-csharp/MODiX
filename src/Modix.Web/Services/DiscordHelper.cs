@@ -2,7 +2,7 @@
 using Discord.WebSocket;
 using Modix.Services.Core;
 using Modix.Web.Models;
-using Modix.Web.Models.Common;
+using Modix.Web.Shared.Models.Common;
 
 namespace Modix.Web.Services;
 
@@ -32,31 +32,6 @@ public class DiscordHelper(DiscordSocketClient client, IUserService userService,
     {
         var currentGuild = GetUserGuild();
         return currentGuild.GetUser(sessionState.CurrentUserId);
-    }
-
-    public async Task<IEnumerable<ModixUser>> AutoCompleteAsync(string query)
-    {
-        var userGuild = GetUserGuild();
-
-        if (userGuild?.Users is null)
-            return Array.Empty<ModixUser>();
-
-        var result = userGuild.Users
-                .Where(d => d.Username.Contains(query, StringComparison.OrdinalIgnoreCase) || d.Id.ToString() == query)
-                .Take(10)
-                .Select(ModixUser.FromIGuildUser);
-
-        if (!result.Any() && ulong.TryParse(query, out var userId))
-        {
-            var user = await userService.GetUserInformationAsync(userGuild.Id, userId);
-
-            if (user is not null)
-            {
-                result = result.Append(ModixUser.FromNonGuildUser(user));
-            }
-        }
-
-        return result;
     }
 
     public IEnumerable<RoleInformation> AutoCompleteRoles(string query)
