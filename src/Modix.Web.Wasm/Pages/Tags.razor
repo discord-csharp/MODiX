@@ -1,14 +1,10 @@
 ﻿@page "/tags"
-@attribute [Authorize]
-@using Modix.Data.Models.Core;
-@using Modix.Data.Models.Tags;
-@using Modix.Services.Tags;
-@using Modix.Web.Models;
-@using Modix.Web.Models.Tags;
-@using Modix.Web.Services;
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 @using Modix.Web.Shared.Models.Common
+@using Modix.Web.Shared.Models.Tags
 @using MudBlazor
-@using System.Globalization;
+@attribute [Authorize]
 
 <PageTitle>Modix - Tags</PageTitle>
 
@@ -42,7 +38,9 @@
 
             <div class="d-flex align-sm-center flex-sm-row flex-column my-3">
                 <div class="d-flex align-start">
-                    <AuthorizeView Context="e" Roles="@nameof(AuthorizationClaim.CreateTag)">
+                    @* TODO *@
+                    @* <AuthorizeView Context="e" Roles="@nameof(AuthorizationClaim.CreateTag)"> *@
+                    <AuthorizeView Context="e" Roles="CreateTag">
                         <MudButton Class="mr-1" Variant="Variant.Filled" OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
                     </AuthorizeView>
                     <MudButton Variant="Variant.Filled" OnClick="FetchData" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
@@ -62,9 +60,9 @@
                 <RowTemplate Context="tag">
                     <MudTd DataLabel="Name">@tag.Name</MudTd>
                     <MudTd style="white-space:nowrap" DataLabel="Last Modified">@tag.Created.ToString("MM/dd/yy, h:mm:ss tt")</MudTd>
-                    @if (tag.OwnerRole is not null)
+                    @if (tag.IsOwnedByRole)
                     {
-                        _ = Roles.TryGetValue(tag.OwnerRole.Id, out var role);
+                        _ = Roles.TryGetValue(tag.OwnerId, out var role);
                         var roleColor = role?.Color ?? "currentColor";
                         <MudTd DataLabel="Owner" Style="@($"color: {roleColor}")">@@@tag.OwnerName</MudTd>
                     }
@@ -88,23 +86,20 @@
 
 @code {
     [Inject]
-    private ITagService TagService { get; set; } = null!;
+    public required IDialogService DialogService { get; set; }
 
     [Inject]
-    private DiscordHelper DiscordHelper { get; set; } = null!;
+    public required ISnackbar Snackbar { get; set; }
 
     [Inject]
-    private IDialogService DialogService { get; set; } = null!;
-
-    [Inject]
-    private ISnackbar Snackbar { get; set; } = null!;
+    public required IHttpClientFactory HttpClientFactory { get; set; }
 
     [Parameter]
     [SupplyParameterFromQuery]
     public string? Query { get; set; }
 
     private Dictionary<ulong, RoleInformation>? Roles { get; set; }
-    private TagData[]? Data { get; set; }
+    private List<TagData>? Data { get; set; }
 
     private string? _tagNameValue;
     private string? _tagContentValue;
@@ -122,20 +117,24 @@
 
     private async Task FetchData()
     {
-        var currentGuild = DiscordHelper.GetUserGuild();
+        Data = [];
 
-        var summaries = await TagService.GetSummariesAsync(new TagSearchCriteria
+        using var client = HttpClientFactory.CreateClient("api");
+
+        var rolesTask = client.GetFromJsonAsync<Dictionary<ulong, RoleInformation>>("api/roles");
+
+        var tagData = client.GetFromJsonAsAsyncEnumerable<TagData>("api/tags");
+
+        await foreach(var tag in tagData)
         {
-            GuildId = currentGuild.Id,
-        });
+            if (tag is null)
+                continue;
 
-        Data = summaries
-            .Select(TagData.CreateFromSummary)
-            .ToArray();
+            Data.Add(tag);
+            StateHasChanged();
+        }
 
-        Roles = currentGuild.Roles
-            .Select(x => new RoleInformation(x.Id, x.Name, x.Color.ToString()))
-            .ToDictionary(x => x.Id, x => x);
+        Roles = await rolesTask;
     }
 
     private bool FilterFunction(TagData tag)
@@ -143,10 +142,7 @@
         if (string.IsNullOrWhiteSpace(Query))
             return true;
 
-        if (tag.OwnerUser is not null && (tag.OwnerUser.Username.Contains(Query, StringComparison.OrdinalIgnoreCase) || tag.OwnerUser.Id.ToString() == Query))
-            return true;
-
-        if (tag.OwnerRole is not null && (tag.OwnerRole.Name.Contains(Query, StringComparison.OrdinalIgnoreCase) || tag.OwnerRole.Id.ToString() == Query))
+        if(tag.OwnerName.Contains(Query, StringComparison.OrdinalIgnoreCase) || tag.OwnerId.ToString() == Query)
             return true;
 
         if (tag.Name.Contains(Query, StringComparison.OrdinalIgnoreCase))
@@ -162,12 +158,20 @@
     {
         try
         {
-            var currentUser = DiscordHelper.GetCurrentUser();
+            var tagCreationData = new TagCreationData(_tagNameValue, _tagContentValue);
 
-            await TagService.CreateTagAsync(currentUser!.Guild.Id, currentUser.Id, _tagNameValue, _tagContentValue);
-            var createdTag = await TagService.GetTagAsync(currentUser.Guild.Id, _tagNameValue);
+            using var client = HttpClientFactory.CreateClient("api");
+            using var response = await client.PutAsJsonAsync("api/tags", tagCreationData);
 
-            Data = Data!.Append(TagData.CreateFromSummary(createdTag)).ToArray();
+            var createdTag = await response.Content.ReadFromJsonAsync<TagData>();
+
+            if (createdTag is null)
+            {
+                Snackbar.Add("Something went wrong while saving the tag.", Severity.Error);
+                return;
+            }
+
+            Data?.Add(createdTag);
             Snackbar.Add($"Tag '{_tagNameValue}' created.", Severity.Success);
         }
         catch (Exception ex)
