@@ -2,11 +2,11 @@
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Modix.Controllers;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
-using Modix.Web.Models;
 using Modix.Web.Shared.Models.Common;
 using Modix.Web.Shared.Models.UserLookup;
 
@@ -15,17 +15,16 @@ namespace Modix.Web.Controllers;
 [Route("~/api/userinformation")]
 [ApiController]
 [Authorize]
-public class UserInformationController : ControllerBase
+public class UserInformationController : ModixController
 {
     private readonly IUserService _userService;
     private readonly IMessageRepository _messageRepository;
-    private readonly DiscordSocketClient _discordSocketClient;
 
-    public UserInformationController(IUserService userService, IMessageRepository messageRepository, DiscordSocketClient discordSocketClient)
+    public UserInformationController(IUserService userService, IMessageRepository messageRepository, DiscordSocketClient discordSocketClient, Modix.Services.Core.IAuthorizationService authorizationService)
+        : base(discordSocketClient, authorizationService)
     {
         _userService = userService;
         _messageRepository = messageRepository;
-        _discordSocketClient = discordSocketClient;
     }
 
 
@@ -35,31 +34,16 @@ public class UserInformationController : ControllerBase
         if (!ulong.TryParse(userIdString, out var userId))
             return null;
 
-        // TODO: Move this to a base class like ModixController?
-
-        var guildCookie = Request.Cookies[CookieConstants.SelectedGuild];
-
-        SocketGuild guildToSearch;
-        if (!string.IsNullOrWhiteSpace(guildCookie))
-        {
-            var guildId = ulong.Parse(guildCookie);
-            guildToSearch = _discordSocketClient.GetGuild(guildId);
-        }
-        else
-        {
-            guildToSearch = _discordSocketClient.Guilds.First();
-        }
-
-        var userInformation = await _userService.GetUserInformationAsync(guildToSearch.Id, userId);
+        var userInformation = await _userService.GetUserInformationAsync(UserGuild.Id, userId);
         if (userInformation is null)
             return null;
 
-        var userRank = await _messageRepository.GetGuildUserParticipationStatistics(guildToSearch.Id, userId);
-        var messages7 = await _messageRepository.GetGuildUserMessageCountByDate(guildToSearch.Id, userId, TimeSpan.FromDays(7));
-        var messages30 = await _messageRepository.GetGuildUserMessageCountByDate(guildToSearch.Id, userId, TimeSpan.FromDays(30));
+        var userRank = await _messageRepository.GetGuildUserParticipationStatistics(UserGuild.Id, userId);
+        var messages7 = await _messageRepository.GetGuildUserMessageCountByDate(UserGuild.Id, userId, TimeSpan.FromDays(7));
+        var messages30 = await _messageRepository.GetGuildUserMessageCountByDate(UserGuild.Id, userId, TimeSpan.FromDays(30));
 
         var roles = userInformation.RoleIds
-            .Select(x => guildToSearch.GetRole(x))
+            .Select(x => UserGuild.GetRole(x))
             .OrderByDescending(x => x.IsHoisted)
             .ThenByDescending(x => x.Position)
             .ToArray();
@@ -73,21 +57,8 @@ public class UserInformationController : ControllerBase
         if (!ulong.TryParse(userIdString, out var userId))
             return [];
 
-        var guildCookie = Request.Cookies[CookieConstants.SelectedGuild];
-
-        SocketGuild guildToSearch;
-        if (!string.IsNullOrWhiteSpace(guildCookie))
-        {
-            var guildId = ulong.Parse(guildCookie);
-            guildToSearch = _discordSocketClient.GetGuild(guildId);
-        }
-        else
-        {
-            guildToSearch = _discordSocketClient.Guilds.First();
-        }
-
         var timespan = DateTimeOffset.UtcNow - after;
-        var result = await _messageRepository.GetGuildUserMessageCountByChannel(guildToSearch.Id, userId, timespan);
+        var result = await _messageRepository.GetGuildUserMessageCountByChannel(UserGuild.Id, userId, timespan);
         var colors = ColorUtils.GetRainbowColors(result.Count);
 
         return result.Select((x,i) => new MessageCountPerChannelInformation(x.ChannelName, x.MessageCount, colors[i].ToString()))
