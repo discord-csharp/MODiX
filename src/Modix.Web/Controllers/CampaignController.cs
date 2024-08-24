@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modix.Controllers;
@@ -89,7 +90,6 @@ public class CampaignController : ModixController
         return new CampaignCommentData(newComment.Id, (PromotionSentiment)(int)newComment.Sentiment, newComment.Content, promotionActionSummary.Created, true);
     }
 
-
     [HttpPatch("updatecomment")]
     public async Task<CampaignCommentData> UpdateCommentAsync([FromBody] CampaignCommentData campaignCommentData)
     {
@@ -115,5 +115,23 @@ public class CampaignController : ModixController
     public async Task RejectCampaignAsync(long campaignId)
     {
         await _promotionsService.RejectCampaignAsync(campaignId);
+    }
+
+    [HttpGet("{subjectId}/nextrank")]
+    public async Task<NextRank> GetNextRankRoleForUserAsync(ulong subjectId)
+    {
+        var nextRank = await _promotionsService.GetNextRankRoleForUserAsync(subjectId);
+
+        if (nextRank is null)
+            return new NextRank("None", "#607d8b");
+
+        var color = UserGuild.Roles.First(r => r.Id == nextRank.Id).Color;
+        return new NextRank(nextRank.Name, color.ToString());
+    }
+
+    [HttpPut("create")]
+    public async Task CreateAsync([FromBody] PromotionCreationData creationData)
+    {
+        await _promotionsService.CreateCampaignAsync(creationData.UserId, creationData.Comment);
     }
 }

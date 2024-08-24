@@ -1,14 +1,14 @@
 ﻿@page "/promotions/create"
-@attribute [Authorize(Roles = nameof(AuthorizationClaim.PromotionsCreateCampaign))]
-@using Modix.Data.Models.Core;
-@using Modix.Services.Promotions;
-@using Modix.Web.Components
+@using Microsoft.AspNetCore.Authorization
 @using Modix.Web.Models;
-@using Modix.Web.Models.Promotions;
-@using Modix.Web.Services;
 @using Modix.Web.Shared.Models.Common
+@using Modix.Web.Shared.Models.Promotions
 @using Modix.Web.Wasm.Components
 @using MudBlazor
+
+@*TODO*@
+@* @attribute [Authorize(Roles = nameof(AuthorizationClaim.PromotionsCreateCampaign))] *@
+@attribute [Authorize(Roles = "PromotionsCreateCampaign")]
 
 <PageTitle>Modix - Start A Campaign</PageTitle>
 
@@ -29,7 +29,7 @@
         <MudItem xs="12" sm="9">
             <MudItem Class="mb-6">
                 <AutoComplete T="ModixUser"
-                              @* SearchFunc="(query) => DiscordHelper.AutoCompleteAsync(query)" *@
+                              SearchFunc="(query) => AutoCompleteAsync(query)"
                               Placeholder="Username or ID"
                               SelectedItemChanged="SelectedUserChanged"
                               Title="Tell us their username">
@@ -70,16 +70,13 @@
 @code {
 
     [Inject]
-    public IPromotionsService PromotionsService { get; set; } = null!;
+    public required IHttpClientFactory HttpClientFactory { get; set; }
 
     [Inject]
-    public DiscordHelper DiscordHelper { get; set; } = null!;
+    public required ISnackbar Snackbar { get; set; }
 
     [Inject]
-    public ISnackbar Snackbar { get; set; } = null!;
-
-    [Inject]
-    public NavigationManager NavigationManager { get; set; } = null!;
+    public required NavigationManager NavigationManager { get; set; }
 
     private ModixUser? _selectedUser;
     private string? _promotionComment;
@@ -98,32 +95,36 @@
         if (user is null)
             return;
 
-        var nextRank = await PromotionsService.GetNextRankRoleForUserAsync(user.UserId);
-        var currentGuild = DiscordHelper.GetUserGuild();
-
-        if (nextRank is null)
-        {
-            _nextRank = new NextRank("None", "#607d8b");
-        }
-        else
-        {
-            _nextRank = new NextRank(nextRank.Name, currentGuild.Roles.First(x => x.Id == nextRank.Id).Color.ToString());
-        }
+        using var client = HttpClientFactory.CreateClient("api");
+        _nextRank = await client.GetFromJsonAsync<NextRank>($"api/campaigns/{user.UserId}/nextrank");
     }
 
     private async Task CreateCampaign()
     {
         try
         {
-            await PromotionsService.CreateCampaignAsync(_selectedUser!.UserId, _promotionComment);
+            using var client = HttpClientFactory.CreateClient("api");
+
+            var response = await client.PutAsJsonAsync("api/campaigns/create", new PromotionCreationData(_selectedUser!.UserId, _promotionComment));
+
+            response.EnsureSuccessStatusCode();
+
+            NavigationManager.NavigateTo("/promotions");
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex)
         {
             Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
             Snackbar.Add(ex.Message, Severity.Error);
             return;
         }
+    }
 
-        NavigationManager.NavigateTo("/promotions");
+    private async Task<IEnumerable<ModixUser>> AutoCompleteAsync(string query)
+    {
+        using var client = HttpClientFactory.CreateClient("api");
+
+        var users = await client.GetFromJsonAsync<ModixUser[]>($"api/autocomplete/users/{query}");
+
+        return users ?? [];
     }
 }
