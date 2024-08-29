@@ -1,4 +1,4 @@
-﻿namespace Modix.Web.Models.DeletedMessages;
+﻿namespace Modix.Web.Shared.Models.DeletedMessages;
 
 public class TableFilter
 {
