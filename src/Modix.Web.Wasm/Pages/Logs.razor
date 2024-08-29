@@ -1,9 +1,14 @@
 ﻿@page "/logs/{SubPage}"
 @page "/logs"
 @page "/infractions"
-@attribute [Authorize(Roles = nameof(AuthorizationClaim.ModerationRead))]
-@using Modix.Data.Models.Core;
-@using Modix.Web.Components
+
+@* TODO *@
+@* @attribute [Authorize(Roles = nameof(AuthorizationClaim.ModerationRead))] *@
+@attribute [Authorize(Roles = "ModerationRead")]
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Modix.Web.Wasm.Components.Infractions
 @using MudBlazor
 
 <PageTitle>Modix - Logs</PageTitle>
@@ -24,15 +29,16 @@
         <div class="flex-grow-1 mb-4">
             @if (SubPage == "infractions")
             {
-                <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationRead)">
+                @* <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationRead)"> *@
+                <AuthorizeView Roles="ModerationRead">
                     <Infractions Subject="@Subject" Id="@Id" />
                 </AuthorizeView>
             }
             else if (SubPage == "deletedMessages")
             {
-                <AuthorizeView Roles="@nameof(AuthorizationClaim.LogViewDeletedMessages)">
+@*                 <AuthorizeView Roles="@nameof(AuthorizationClaim.LogViewDeletedMessages)">
                     <DeletedMessages />
-                </AuthorizeView>
+                </AuthorizeView> *@
             }
         </div>
     </div>

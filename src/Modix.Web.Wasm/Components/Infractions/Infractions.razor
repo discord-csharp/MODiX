@@ -1,11 +1,7 @@
-﻿@using Modix.Data.Models;
-@using Modix.Data.Models.Core;
-@using Modix.Data.Models.Moderation;
-@using Modix.Services.Moderation;
+﻿@using Microsoft.AspNetCore.Components.Authorization
 @using Modix.Web.Models;
-@using Modix.Web.Models.Infractions;
-@using Modix.Web.Services;
 @using Modix.Web.Shared.Models.Common
+@using Modix.Web.Shared.Models.Infractions
 @using Modix.Web.Wasm.Components
 @using MudBlazor;
 @using System.Security.Claims;
@@ -20,7 +16,7 @@
         </TitleContent>
         <DialogContent>
             <AutoComplete T="ModixUser"
-                          @*SearchFunc="(query) => DiscordHelper.AutoCompleteAsync(query)"*@
+                          SearchFunc="(query) => AutoCompleteAsync(query)"
                           Placeholder="Username or ID"
                           SelectedItemChanged="SelectedUserChanged"
                           Title="Subject">
@@ -34,16 +30,21 @@
             <div class="d-flex gap-4">
                 <div style="max-width: 6rem">
                     <MudSelect FullWidth="false" Required="true" @bind-Value="_infractionType">
-                        <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationNote)">
+                        @*TODO *@
+                        @* <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationNote)"> *@
+                        <AuthorizeView Roles="ModerationNote">
                             <MudSelectItem Value="@InfractionType.Notice" />
                         </AuthorizeView>
-                        <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationWarn)">
+                        @* <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationWarn)"> *@
+                        <AuthorizeView Roles="ModerationWarn">
                             <MudSelectItem Value="@InfractionType.Warning" />
                         </AuthorizeView>
-                        <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationMute)">
+                        @* <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationMute)"> *@
+                        <AuthorizeView Roles="ModerationMute">
                             <MudSelectItem Value="@InfractionType.Mute" />
                         </AuthorizeView>
-                        <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationBan)">
+                        @* <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationBan)"> *@
+                        <AuthorizeView Roles="ModerationBan">
                             <MudSelectItem Value="@InfractionType.Ban" />
                         </AuthorizeView>
                     </MudSelect>
@@ -99,7 +100,7 @@
             <HeaderContent>
                 <MudTh Class="center-text vertical-top">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.Id">Id</MudTableSortLabel>
-                    <MudTextField Value="@Id" DebounceInterval="1000" ValueChanged="(string? id) => FilterChanged(() => _tableFilter.IdString = id)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                    <MudTextField Value="@_tableFilter.IdString" DebounceInterval="1000" ValueChanged="(string? id) => FilterChanged(() => _tableFilter.IdString = id)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                 </MudTh>
                 <MudTh Class="center-text vertical-top">
                     <MudTableSortLabel T="InfractionData" SortBy="x => x.Type">Type</MudTableSortLabel>
@@ -111,15 +112,15 @@
                     </MudSelect>
                 </MudTh>
                 <MudTh Class="center-text vertical-top">
-                    <MudTableSortLabel T="InfractionData" SortBy="x => x.CreateAction.Created">Created On</MudTableSortLabel>
+                    <MudTableSortLabel T="InfractionData" SortBy="x => x.Created">Created On</MudTableSortLabel>
                 </MudTh>
                 <MudTh Class="center-text vertical-top">
-                    <MudTableSortLabel T="InfractionData" SortBy="x => x.Subject.Username">Subject</MudTableSortLabel>
-                    <MudTextField Value="@Subject" DebounceInterval="1000" ValueChanged="(string? subject) => FilterChanged(() => _tableFilter.Subject = subject)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                    <MudTableSortLabel T="InfractionData" SortBy="x => x.SubjectName">Subject</MudTableSortLabel>
+                    <MudTextField Value="_tableFilter.Subject" DebounceInterval="1000" ValueChanged="(string? subject) => FilterChanged(() => _tableFilter.Subject = subject)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                 </MudTh>
                 <MudTh Class="center-text vertical-top">
-                    <MudTableSortLabel T="InfractionData" SortBy="x => x.CreateAction.CreatedBy.Username">Creator</MudTableSortLabel>
-                    <MudTextField DebounceInterval="1000" ValueChanged="(string? creator) => FilterChanged(() => _tableFilter.Creator = creator)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                    <MudTableSortLabel T="InfractionData" SortBy="x => x.CreatedBy">Creator</MudTableSortLabel>
+                    <MudTextField Value="@_tableFilter.Creator" DebounceInterval="1000" ValueChanged="(string? creator) => FilterChanged(() => _tableFilter.Creator = creator)" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                 </MudTh>
                 <MudTh Class="center-text vertical-top">Reason</MudTh>
                 @if (_showState)
@@ -134,13 +135,24 @@
             <RowTemplate Context="infraction">
                 <MudTd DataLabel="Id">@infraction.Id</MudTd>
                 <MudTd DataLabel="Type">@infraction.Type</MudTd>
-                <MudTd DataLabel="Created On">@infraction.CreateAction.Created.ToString("MM/dd/yy, h:mm:ss tt")</MudTd>
-                <MudTd DataLabel="Subject">@(GetUsername(infraction.Subject))</MudTd>
-                <MudTd DataLabel="Creator">@(GetUsername(infraction.CreateAction.CreatedBy))</MudTd>
+                <MudTd DataLabel="Created On">@infraction.Created.ToString("MM/dd/yy, h:mm:ss tt")</MudTd>
+                <MudTd DataLabel="Subject">@infraction.SubjectName</MudTd>
+                <MudTd DataLabel="Creator">@infraction.CreatedBy</MudTd>
                 <MudTd DataLabel="Reason">@infraction.Reason</MudTd>
                 @if (_showState)
                 {
-                    <MudTd DataLabel="State">@(infraction.RescindAction != null ? "Rescinded" : infraction.DeleteAction != null ? "Deleted" : "Active")</MudTd>
+                    if(!infraction.IsRescinded && !infraction.IsDeleted)
+                    {
+                        <MudTd DataLabel="State">Active</MudTd>
+                    }
+                    else if (infraction.IsDeleted)
+                    {
+                        <MudTd DataLabel="State">Deleted</MudTd>
+                    }
+                    else
+                    {
+                        <MudTd DataLabel="State">Rescinded</MudTd>
+                    }
                 }
                 @if (_canDeleteInfractions || _canRescind)
                 {
@@ -150,7 +162,7 @@
                             {
                                 <MudButton Variant="Variant.Filled" OnClick="() => DeleteInfraction(infraction)" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Primary">Delete</MudButton>
                             }
-                            @if (infraction.CanBeRescind)
+                            @if (infraction.CanBeRescinded)
                             {
                                 <MudButton Variant="Variant.Filled" OnClick="() => RescindInfraction(infraction)" StartIcon="@Icons.Material.Filled.Stop" Color="Color.Primary">Rescind</MudButton>
                             }
@@ -173,22 +185,19 @@
     public string? Id { get; set; }
 
     [Inject]
-    public ModerationService ModerationService { get; set; } = null!;
+    public required ISnackbar Snackbar { get; set; }
 
     [Inject]
-    public DiscordHelper DiscordHelper { get; set; } = null!;
+    public required IDialogService DialogService { get; set; }
 
     [Inject]
-    public ISnackbar Snackbar { get; set; } = null!;
+    public required SessionState SessionState { get; set; }
 
     [Inject]
-    public IDialogService DialogService { get; set; } = null!;
+    public required IHttpClientFactory HttpClientFactory { get; set; }
 
-    [Inject]
-    public SessionState SessionState { get; set; } = null!;
-
-    [Inject]
-    public CookieService CookieService { get; set; } = null!;
+    // [Inject]
+    // public CookieService CookieService { get; set; } = null!;
 
     [CascadingParameter]
     private Task<AuthenticationState>? AuthState { get; set; }
@@ -227,8 +236,10 @@
             return;
 
         var auth = await AuthState;
-        _canRescind = auth.User.HasClaim(ClaimTypes.Role, nameof(AuthorizationClaim.ModerationRescind));
-        _canDeleteInfractions = auth.User.HasClaim(ClaimTypes.Role, nameof(AuthorizationClaim.ModerationDeleteInfraction));
+
+        // TODO:
+        // _canRescind = auth.User.HasClaim(ClaimTypes.Role, nameof(AuthorizationClaim.ModerationRescind));
+        // _canDeleteInfractions = auth.User.HasClaim(ClaimTypes.Role, nameof(AuthorizationClaim.ModerationDeleteInfraction));
 
         _tableFilter.Subject = Subject;
         _tableFilter.IdString = Id;
@@ -237,13 +248,15 @@
     private async Task ShowStateChanged(bool showState)
     {
         _showState = showState;
-        await CookieService.SetShowInfractionStateAsync(showState);
+        // TODO:
+        // await CookieService.SetShowInfractionStateAsync(showState);
     }
 
     private async Task ShowDeletedChanged(bool showDeleted)
     {
         await FilterChanged(() => _tableFilter.ShowDeleted = showDeleted);
-        await CookieService.SetShowDeletedInfractionsAsync(showDeleted);
+        //TODO:
+        // await CookieService.SetShowDeletedInfractionsAsync(showDeleted);
     }
 
     private void ToggleDialog()
@@ -262,10 +275,10 @@
         await RefreshTable();
     }
 
-    private static string GetUsername(GuildUserBrief userBrief)
-    {
-        return $"{userBrief.Username}{(userBrief.Discriminator == "0000" ? "" : "#" + userBrief.Discriminator)}";
-    }
+    // private static string GetUsername(GuildUserBrief userBrief)
+    // {
+    //     return $"{userBrief.Username}{(userBrief.Discriminator == "0000" ? "" : "#" + userBrief.Discriminator)}";
+    // }
 
     private async Task RescindInfraction(InfractionData infraction)
     {
@@ -285,7 +298,11 @@
                 return;
             }
 
-            await ModerationService.RescindInfractionAsync(infraction.Id);
+            using var client = HttpClientFactory.CreateClient("api");
+            var response = await client.PostAsync($"api/infractions/rescind/{infraction.Id}", default);
+
+            response.EnsureSuccessStatusCode();
+
             await RefreshTable();
         }
         catch (Exception ex)
@@ -312,7 +329,11 @@
                 return;
             }
 
-            await ModerationService.DeleteInfractionAsync(infraction.Id);
+            using var client = HttpClientFactory.CreateClient("api");
+            var response = await client.DeleteAsync($"api/infractions/{infraction.Id}");
+
+            response.EnsureSuccessStatusCode();
+
             await RefreshTable();
         }
         catch (Exception ex)
@@ -334,17 +355,18 @@
 
         try
         {
-            var currentUser = DiscordHelper.GetCurrentUser();
-            await ModerationService.CreateInfractionAsync(currentUser!.Guild.Id, currentUser.Id, _infractionType, _selectedUser!.UserId, _infractionReason!, duration);
+            using var client = HttpClientFactory.CreateClient("api");
+            var response = await client.PostAsJsonAsync("api/infractions/create", new InfractionCreationData(_infractionType, _selectedUser!.UserId, _infractionReason!, duration));
+
+            response.EnsureSuccessStatusCode();
+
+            Snackbar.Add($"Added infraction for user {_selectedUser!.Name}", Severity.Success);
         }
-        catch (InvalidOperationException ex)
+        catch (Exception ex)
         {
             Snackbar.Add(ex.Message, Severity.Error);
             return;
         }
-
-
-        Snackbar.Add($"Added infraction for user {_selectedUser!.Name}", Severity.Success);
 
         _selectedUser = null;
         _newInfractionMonths = null;
@@ -402,58 +424,26 @@
 
     private async Task<TableData<InfractionData>> LoadInfractions(TableState tableState)
     {
-        var currentUser = DiscordHelper.GetCurrentUser();
 
-        var sortingCriteria = new[]
-        {
-            new SortingCriteria()
-            {
-                PropertyName = tableState.SortLabel ?? nameof(InfractionData.Id),
-                Direction = tableState.SortDirection == MudBlazor.SortDirection.Ascending
-                    ? Data.Models.SortDirection.Ascending
-                    : Data.Models.SortDirection.Descending,
-            }
-        };
+        using var client = HttpClientFactory.CreateClient("api");
+        var response = await client.PutAsJsonAsync("api/infractions", new { tableFilter = _tableFilter, tableState = tableState });
+        response.EnsureSuccessStatusCode();
 
-        var searchCriteria = new InfractionSearchCriteria
-        {
-            GuildId = currentUser!.Guild.Id,
-            Id = _tableFilter.Id,
-            Types = _tableFilter.Types,
-            Subject = _tableFilter.Subject,
-            SubjectId = _tableFilter.SubjectId,
-            Creator = _tableFilter.Creator,
-            CreatedById = _tableFilter.CreatedById,
-            IsDeleted = _tableFilter.ShowDeleted ? null : false
-        };
-
-        var pagingCriteria = new PagingCriteria
-        {
-            FirstRecordIndex = tableState.Page * tableState.PageSize,
-            PageSize = tableState.PageSize,
-        };
-
-        var result = await ModerationService.SearchInfractionsAsync(
-            searchCriteria,
-            sortingCriteria,
-            pagingCriteria);
-
-        var outranksValues = new Dictionary<ulong, bool>();
-
-        foreach (var (guildId, subjectId) in result.Records
-            .Select(x => (guildId: x.GuildId, subjectId: x.Subject.Id))
-            .Distinct())
-        {
-            outranksValues[subjectId]
-                = await ModerationService.DoesModeratorOutrankUserAsync(guildId, currentUser.Id, subjectId);
-        }
-
-        var mapped = result.Records.Select(x => InfractionData.FromInfractionSummary(x, outranksValues)).ToArray();
+        var infractions = await response.Content.ReadFromJsonAsync<InfractionData[]>();
 
         return new TableData<InfractionData>
         {
-            Items = mapped,
-            TotalItems = mapped.Length
+            Items = infractions,
+            TotalItems = infractions.Length
         };
+    }
+
+    private async Task<IEnumerable<ModixUser>> AutoCompleteAsync(string query)
+    {
+        using var client = HttpClientFactory.CreateClient("api");
+
+        var users = await client.GetFromJsonAsync<ModixUser[]>($"api/autocomplete/users/{query}");
+
+        return users ?? [];
     }
 }
