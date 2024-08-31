@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Modix.Web.Models;
 using Modix.Web.Security;
 using Modix.Web.Services;
+using Modix.Web.Shared.Services;
 using MudBlazor;
 using MudBlazor.Services;
 
@@ -64,7 +65,7 @@ public static class Setup
 
         services
             .AddScoped<DiscordHelper>()
-            .AddScoped<CookieService>()
+            .AddScoped<ICookieService, CookieService>()
             .AddScoped<SessionState>()
             .AddCascadingValue<SessionState>(sp => sp.GetRequiredService<SessionState>())
             .AddMudServices()

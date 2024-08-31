@@ -33,6 +33,9 @@ public class ClaimsMiddleware(RequestDelegate next)
 
         claimsIdentity.AddClaims(claims);
 
+        // Look, I thought it was funny, okay? :D
+        claimsIdentity.AddClaim(new Claim(ClaimTypes.PostalCode, currentGuild.Id.ToString()));
+
         await next(context);
     }
 }

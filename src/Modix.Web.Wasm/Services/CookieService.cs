@@ -2,7 +2,7 @@
 using Modix.Web.Models;
 using Modix.Web.Shared.Services;
 
-namespace Modix.Web.Services;
+namespace Modix.Web.Wasm.Services;
 
 public class CookieService(IJSRuntime jsRuntime, SessionState sessionState) : ICookieService
 {

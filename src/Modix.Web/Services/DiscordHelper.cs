@@ -16,42 +16,6 @@ public class DiscordHelper(DiscordSocketClient client, IUserService userService,
         return client.Guilds.First();
     }
 
-    public IEnumerable<GuildOption> GetGuildOptions()
-    {
-        var currentUser = GetCurrentUser();
-        if (currentUser is null)
-            return Array.Empty<GuildOption>();
-
-        return client
-            .Guilds
-            .Where(d => d.GetUser(currentUser.Id) != null)
-            .Select(d => new GuildOption(d.Id, d.Name, d.IconUrl));
-    }
-
-    public SocketGuildUser? GetCurrentUser()
-    {
-        var currentGuild = GetUserGuild();
-        return currentGuild.GetUser(sessionState.CurrentUserId);
-    }
-
-    public IEnumerable<RoleInformation> AutoCompleteRoles(string query)
-    {
-        if (query.StartsWith('@'))
-        {
-            query = query[1..];
-        }
-
-        var currentGuild = GetUserGuild();
-        IEnumerable<IRole> result = currentGuild.Roles;
-
-        if (!string.IsNullOrWhiteSpace(query))
-        {
-            result = result.Where(d => d.Name.Contains(query, StringComparison.OrdinalIgnoreCase));
-        }
-
-        return result.Take(10).Select(d => new RoleInformation(d.Id, d.Name, d.Color.ToString()));
-    }
-
     public IEnumerable<ChannelInformation> AutocompleteChannels(string query)
     {
         if (query.StartsWith('#'))

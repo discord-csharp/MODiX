@@ -1,6 +1,7 @@
-﻿@using Microsoft.AspNetCore.Components.Authorization
-@using Modix.Web.Models;
+﻿@using Modix.Web.Models
 @using Modix.Web.Shared.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@using Modix.Web.Shared.Services
 @using MudBlazor
 @using System.Security.Claims
 
@@ -24,19 +25,18 @@
     <MudMenu AnchorOrigin="Origin.BottomRight">
         <ActivatorContent>
             <div class="d-flex align-center">
-                @* <MudImage Src="@(SelectedGuild?.IconUrl)" Height="32" Width="32" Class="rounded-lg vertical-bottom" /> *@
-                <MudImage Height="32" Width="32" Class="rounded-lg vertical-bottom" />
+                <MudImage Src="@(SelectedGuild?.IconUrl)" Height="32" Width="32" Class="rounded-lg vertical-bottom" />
                 <MudIcon Icon="@Icons.Material.Filled.ArrowDropDown" />
             </div>
         </ActivatorContent>
         <ChildContent>
-@*             @foreach (var guildOption in GuildOptions)
+            @foreach (var guildOption in GuildOptions)
             {
                 <MudMenuItem Style="white-space: nowrap" OnClick="() => SelectGuild(guildOption.Id)">
                     <MudImage Src="@guildOption.IconUrl" Height="24" Width="24" Class="rounded-lg vertical-bottom" />
                     @guildOption.Name
                 </MudMenuItem>
-            } *@
+            }
         </ChildContent>
     </MudMenu>
 </div>
@@ -49,23 +49,26 @@
 
 
 @code {
-    [CascadingParameter]
-    public Task<AuthenticationState>? AuthenticationState { get; set; } = null!;
-
-    // [Inject]
-    // public DiscordHelper DiscordHelper { get; set; } = null!;
-
     private string? AvatarUrl { get; set; }
     private string? Username { get; set; }
 
-    // private IEnumerable<GuildOption> GuildOptions { get; set; } = Array.Empty<GuildOption>();
-    // private SocketGuild? SelectedGuild { get; set; }
+    private IEnumerable<GuildOption> GuildOptions { get; set; } = Array.Empty<GuildOption>();
+    private GuildOption? SelectedGuild { get; set; }
 
-    // [Inject]
-    // public CookieService CookieService { get; set; } = null!;
+    [CascadingParameter]
+    public required Task<AuthenticationState> AuthenticationState { get; set; }
 
     [Inject]
-    public NavigationManager NavigationManager { get; set; } = null!;
+    public required ICookieService CookieService { get; set; }
+
+    [CascadingParameter]
+    public required SessionState SessionState { get; set; }
+
+    [Inject]
+    public required IHttpClientFactory HttpClientFactory { get; set; }
+
+    [Inject]
+    public required NavigationManager NavigationManager { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -76,20 +79,27 @@
         if (authState.User.Identity?.IsAuthenticated is not true)
             return;
 
-        // var user = DiscordHelper.GetCurrentUser();
-
         var avatarHash = authState.User.FindFirst(x => x.Type == nameof(DiscordUser.AvatarHash))?.Value;
         var userId = ulong.Parse(authState.User.FindFirst(d => d.Type == ClaimTypes.NameIdentifier)?.Value);
         AvatarUrl = $"https://cdn.discordapp.com/avatars/{userId}/{avatarHash}.png";
         Username = authState.User.Identity.Name;
 
-        // GuildOptions = DiscordHelper.GetGuildOptions();
-        // SelectedGuild = user.Guild;
+        // TODO: Figure out why HttpClient does not have a base address in OnInitializedAsync()
+
+        using var client = HttpClientFactory.CreateClient("api");
+
+        if (client.BaseAddress is null)
+            return;
+
+        var result = await client.GetFromJsonAsync<GuildOption[]>("api/guild/guildoptions");
+
+        GuildOptions = result ?? [];
+        SelectedGuild = GuildOptions.FirstOrDefault(x => x.Id == SessionState.SelectedGuild);
     }
 
     private async Task SelectGuild(ulong guildId)
     {
-        // await CookieService.SetSelectedGuildAsync(guildId);
+        await CookieService.SetSelectedGuildAsync(guildId);
         NavigationManager.NavigateTo(NavigationManager.Uri, true);
     }
 }

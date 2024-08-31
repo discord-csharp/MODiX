@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Modix.Web.Models;
+using Modix.Web.Shared.Services;
 using Modix.Web.Wasm.Security;
+using Modix.Web.Wasm.Services;
 using MudBlazor;
 using MudBlazor.Services;
 
@@ -13,7 +15,9 @@ public class Program
     {
         var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
-        builder.Services.AddScoped<SessionState>();
+        builder.Services
+            .AddScoped<SessionState>()
+            .AddScoped<ICookieService, CookieService>();
 
         builder.Services.AddCascadingValue(sp => sp.GetRequiredService<SessionState>());
 
