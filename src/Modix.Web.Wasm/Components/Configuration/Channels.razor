@@ -143,7 +143,7 @@
     public async Task SaveDesignation()
     {
         using var client = HttpClientFactory.CreateClient("api");
-        var response = await client.PutAsync($"api/config/channels/{_selectedChannel.Id}/{_selectedDesignatedChannelType.Value}", default);
+        using var response = await client.PutAsync($"api/config/channels/{_selectedChannel.Id}/{_selectedDesignatedChannelType.Value}", default);
 
         _createDialogVisible = false;
 
@@ -170,7 +170,7 @@
     public async Task RemoveDesignation(long id, DesignatedChannelType designatedChannelType)
     {
         using var client = HttpClientFactory.CreateClient("api");
-        var response = await client.DeleteAsync($"api/config/channels/{id}");
+        using var response = await client.DeleteAsync($"api/config/channels/{id}");
 
         response.EnsureSuccessStatusCode();
 

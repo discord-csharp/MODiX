@@ -56,6 +56,24 @@ public class AutocompleteController : ModixController
             .Select(d => new ChannelInformation(d.Id, d.Name));
     }
 
+    [HttpGet("roles/{query}")]
+    public IEnumerable<RoleInformation> AutoCompleteRoles(string query)
+    {
+        if (query.StartsWith('@'))
+        {
+            query = query[1..];
+        }
+
+        IEnumerable<IRole> result = UserGuild.Roles;
+
+        if (!string.IsNullOrWhiteSpace(query))
+        {
+            result = result.Where(d => d.Name.Contains(query, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return result.Take(10).Select(d => new RoleInformation(d.Id, d.Name, d.Color.ToString()));
+    }
+
     public static ModixUser FromIGuildUser(IGuildUser user) => new()
     {
         Name = user.GetDisplayName(),

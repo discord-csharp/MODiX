@@ -33,7 +33,7 @@ public class DesignatedChannelController : ModixController
                 d.Id,
                 d.Channel.Id,
                 (Shared.Models.Configuration.DesignatedChannelType)(int)d.Type,
-                UserGuild?.GetChannel(d.Channel.Id)?.Name ?? d.Channel.Name))
+                UserGuild.GetChannel(d.Channel.Id)?.Name ?? d.Channel.Name))
             .ToLookup(x => x.ChannelDesignation, x => x)
             .ToDictionary(x => x.Key, x => x.ToList());
     }
@@ -42,7 +42,7 @@ public class DesignatedChannelController : ModixController
     [Authorize(Roles = nameof(AuthorizationClaim.DesignatedChannelMappingCreate))]
     public async Task<IActionResult> CreateDesignationAsync(ulong channelId, Shared.Models.Configuration.DesignatedChannelType designatedChannelType)
     {
-        var foundChannel = UserGuild?.GetChannel(channelId);
+        var foundChannel = UserGuild.GetChannel(channelId);
 
         if (foundChannel is not ISocketMessageChannel messageChannel)
             return BadRequest($"A message channel was not found with id {channelId} in guild with id {UserGuild.Id}");

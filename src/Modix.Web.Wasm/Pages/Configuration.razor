@@ -39,9 +39,10 @@
         <div class="flex-grow-1 px-4 mb-4">
             @if (SubPage == "roles")
             {
-@*                 <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedRoleMappingRead)">
+                @* <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedRoleMappingRead)"> *@
+                <AuthorizeView Roles="DesignatedRoleMappingRead">
                     <Roles />
-                </AuthorizeView> *@
+                </AuthorizeView>
             }
             else if (SubPage == "channels")
             {

@@ -1,11 +1,8 @@
-﻿@using Modix.Data.Models.Core;
-@using Modix.Services.Core;
-@using Modix.Web.Models.Configuration;
-@using Modix.Web.Services;
+﻿@using Humanizer
+@using Microsoft.AspNetCore.Components.Authorization
 @using Modix.Web.Shared.Models.Common
+@using Modix.Web.Shared.Models.Configuration
 @using MudBlazor
-@using Humanizer;
-@using System.Security.Claims;
 
 <PageTitle>Modix - Roles</PageTitle>
 <MudText Typo="Typo.h4">Role Designations</MudText>
@@ -19,7 +16,7 @@
             </TitleContent>
             <DialogContent>
                 <AutoComplete T="RoleInformation"
-                              SearchFunc="(query) => Task.FromResult(DiscordHelper.AutoCompleteRoles(query))"
+                              SearchFunc="(query) => AutoCompleteRoles(query)"
                               Placeholder="@("@Administrator")"
                               SelectedItemChanged="SelectedRoleChanged"
                               Title="Role Name"
@@ -65,7 +62,9 @@
                                 {
                                     @foreach (var designatedRoleMapping in roleDesignations)
                                     {
-                                        <IndividualDesignation AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedRoleMappingDelete)"
+                                        @* TODO *@
+                                        @* <IndividualDesignation AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedRoleMappingDelete)" *@
+                                        <IndividualDesignation AuthorizationRoleForDelete="DesignatedRoleMappingDelete"
                                                                Id="@designatedRoleMapping.Id"
                                                                NamePrefix="@("@")"
                                                                Name="@designatedRoleMapping.Name"
@@ -75,7 +74,8 @@
                             </div>
                             <MudSpacer />
                             <div>
-                                <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedRoleMappingCreate)">
+                                @* <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedRoleMappingCreate)"> *@
+                                <AuthorizeView Roles="DesignatedRoleMappingCreate">
                                     <MudIconButton OnClick="ToggleCreateDialog" Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Success" />
                                 </AuthorizeView>
                             </div>
@@ -90,13 +90,10 @@
 
 @code {
     [Inject]
-    public DiscordHelper DiscordHelper { get; set; } = null!;
+    public required ISnackbar Snackbar { get; set; }
 
     [Inject]
-    public IDesignatedRoleService DesignatedRoleService { get; set; } = null!;
-
-    [Inject]
-    public ISnackbar Snackbar { get; set; } = null!;
+    public required IHttpClientFactory HttpClientFactory { get; set; }
 
     private Dictionary<DesignatedRoleType, List<DesignatedRoleData>>? DesignatedRoleMappings { get; set; }
     private DesignatedRoleType[]? DesignatedRoleTypes { get; set; }
@@ -110,13 +107,9 @@
         if (!firstRender)
             return;
 
-        var currentGuild = DiscordHelper.GetUserGuild();
-        var designatedRoles = await DesignatedRoleService.GetDesignatedRolesAsync(currentGuild.Id);
 
-        DesignatedRoleMappings = designatedRoles
-            .Select(d => new DesignatedRoleData(d.Id, d.Role.Id, d.Type, currentGuild?.GetRole(d.Role.Id)?.Name ?? d.Role.Name))
-            .ToLookup(x => x.RoleDesignation, x => x)
-            .ToDictionary(x => x.Key, x => x.ToList());
+        using var client = HttpClientFactory.CreateClient("api");
+        DesignatedRoleMappings = await client.GetFromJsonAsync<Dictionary<DesignatedRoleType, List<DesignatedRoleData>>>("api/config/roles");
 
         DesignatedRoleTypes = Enum.GetValues<DesignatedRoleType>();
 
@@ -133,6 +126,14 @@
         }
     }
 
+    private async Task<IEnumerable<RoleInformation>> AutoCompleteRoles(string query)
+    {
+        using var client = HttpClientFactory.CreateClient("api");
+        var roles = await client.GetFromJsonAsync<RoleInformation[]>($"api/autocomplete/roles/{query}");
+
+        return roles ?? [];
+    }
+
     private void SelectedRoleChanged(RoleInformation role)
     {
         _selectedRole = role;
@@ -140,11 +141,20 @@
 
     public async Task SaveDesignation()
     {
-        var currentGuild = DiscordHelper.GetUserGuild();
-
-        var id = await DesignatedRoleService.AddDesignatedRoleAsync(currentGuild.Id, _selectedRole!.Id, _selectedDesignatedRoleType!.Value);
+        using var client = HttpClientFactory.CreateClient("api");
+        using var response = await client.PutAsync($"api/config/roles/{_selectedRole.Id}/{_selectedDesignatedRoleType.Value}", default);
 
         _createDialogVisible = false;
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            Snackbar.Add(errorMessage, Severity.Error);
+
+            return;
+        }
+
+        var id = long.Parse(await response.Content.ReadAsStringAsync());
 
         if (!DesignatedRoleMappings!.ContainsKey(_selectedDesignatedRoleType.Value))
         {
@@ -158,7 +168,10 @@
 
     public async Task RemoveDesignation(long id, DesignatedRoleType designatedRoleType)
     {
-        await DesignatedRoleService.RemoveDesignatedRoleByIdAsync(id);
+        using var client = HttpClientFactory.CreateClient("api");
+        using var response = await client.DeleteAsync($"api/config/roles/{id}");
+
+        response.EnsureSuccessStatusCode();
 
         var roleMappingsWithType = DesignatedRoleMappings![designatedRoleType];
         var removedRoleMapping = roleMappingsWithType.First(x => x.Id == id);
