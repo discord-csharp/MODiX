@@ -1,15 +1,22 @@
 ﻿@page "/config"
 @page "/config/{SubPage}"
 
-@attribute [Authorize(
+@* TODO *@
+@* @attribute [Authorize(
     Roles = $@"
         {nameof(AuthorizationClaim.DesignatedRoleMappingRead)},
         {nameof(AuthorizationClaim.DesignatedChannelMappingRead)},
-        {nameof(AuthorizationClaim.AuthorizationConfigure)}")]
+        {nameof(AuthorizationClaim.AuthorizationConfigure)}")] *@
 
-@using Modix.Data.Models.Core;
-@using Modix.Web.Components
-@using Modix.Web.Components.Configuration
+@attribute [Authorize(
+    Roles = $@"
+        DesignatedRoleMappingRead,
+        DesignatedChannelMappingRead,
+        AuthorizationConfigure")]
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Modix.Web.Wasm.Components.Configuration
 @using MudBlazor
 
 <PageTitle>Modix - Configuration</PageTitle>
@@ -32,21 +39,22 @@
         <div class="flex-grow-1 px-4 mb-4">
             @if (SubPage == "roles")
             {
-                <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedRoleMappingRead)">
+@*                 <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedRoleMappingRead)">
                     <Roles />
-                </AuthorizeView>
+                </AuthorizeView> *@
             }
             else if (SubPage == "channels")
             {
-                <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedChannelMappingRead)">
+                @* <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedChannelMappingRead)"> *@
+                <AuthorizeView Roles="DesignatedChannelMappingRead">
                     <Channels />
                 </AuthorizeView>
             }
             else if (SubPage == "claims")
             {
-                <AuthorizeView Roles="@nameof(AuthorizationClaim.AuthorizationConfigure)">
+@*                 <AuthorizeView Roles="@nameof(AuthorizationClaim.AuthorizationConfigure)">
                     <Claims />
-                </AuthorizeView>
+                </AuthorizeView> *@
             }
         </div>
     </div>

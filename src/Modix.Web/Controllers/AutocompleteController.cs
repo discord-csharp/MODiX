@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modix.Controllers;
 using Modix.Data.Utilities;
@@ -12,7 +11,6 @@ namespace Modix.Web.Controllers;
 
 [Route("~/api/autocomplete")]
 [ApiController]
-[Authorize]
 public class AutocompleteController : ModixController
 {
     private readonly IUserService _userService;
@@ -32,17 +30,30 @@ public class AutocompleteController : ModixController
                 .Take(10)
                 .Select(FromIGuildUser);
 
-        if (!result.Any() && ulong.TryParse(query, out var userId))
-        {
-            var user = await _userService.GetUserInformationAsync(UserGuild.Id, userId);
+        if (result.Any() || !ulong.TryParse(query, out var userId))
+            return result;
 
-            if (user is not null)
-            {
-                result = [ FromNonGuildUser(user) ];
-            }
+        var user = await _userService.GetUserInformationAsync(UserGuild.Id, userId);
+
+        if (user is not null)
+            return [ FromNonGuildUser(user) ];
+
+        return [];
+    }
+
+    [HttpGet("channels/{query}")]
+    public IEnumerable<ChannelInformation> AutoCompleteChannels(string query)
+    {
+        if (query.StartsWith('#'))
+        {
+            query = query[1..];
         }
 
-        return result;
+        return UserGuild.Channels
+            .Where(d => d is SocketTextChannel
+                && d.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .Take(10)
+            .Select(d => new ChannelInformation(d.Id, d.Name));
     }
 
     public static ModixUser FromIGuildUser(IGuildUser user) => new()

@@ -1,7 +1,5 @@
-﻿@using Modix.Data.Models.Core;
-@using Modix.Services;
-@using Modix.Web.Models.Configuration;
-@using Modix.Web.Services;
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Modix.Web.Shared.Models.Configuration
 @using Modix.Web.Wasm.Components
 @using MudBlazor
 @using Humanizer;
@@ -19,11 +17,10 @@
             </TitleContent>
             <DialogContent>
                 <AutoComplete T="ChannelInformation"
-                              SearchFunc="(query) => Task.FromResult(DiscordHelper.AutocompleteChannels(query))"
+                              SearchFunc="(query) => AutoCompleteChannels(query)"
                               Placeholder="@("#general")"
                               SelectedItemChanged="SelectedChannelChanged"
-                              Title="Channel Name"
-                />
+                              Title="Channel Name" />
                 <MudText Class="mt-5" Typo="Typo.h5">Designation</MudText>
                 <MudSelect T="DesignatedChannelType?" @bind-Value="_selectedDesignatedChannelType">
                     @foreach (var designation in DesignatedChannelTypes)
@@ -64,7 +61,9 @@
                                 {
                                     @foreach (var designatedChannelMapping in channelDesignations)
                                     {
-                                        <IndividualDesignation AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedChannelMappingDelete)"
+                                        @*TODO*@
+                                        @* <IndividualDesignation AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedChannelMappingDelete)" *@
+                                        <IndividualDesignation AuthorizationRoleForDelete="DesignatedChannelMappingDelete"
                                                                Id="@designatedChannelMapping.Id"
                                                                NamePrefix="@("#")"
                                                                Name="@designatedChannelMapping.Name"
@@ -74,7 +73,9 @@
                             </div>
                             <MudSpacer />
                             <div>
-                                <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedChannelMappingCreate)">
+                                @*TODO*@
+                                @* <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedChannelMappingCreate)"> *@
+                                <AuthorizeView Roles="DesignatedChannelMappingCreate">
                                     <MudIconButton OnClick="ToggleCreateDialog" Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Success" />
                                 </AuthorizeView>
                             </div>
@@ -89,13 +90,10 @@
 
 @code {
     [Inject]
-    public DiscordHelper DiscordHelper { get; set; } = null!;
+    public required ISnackbar Snackbar { get; set; }
 
     [Inject]
-    public DesignatedChannelService DesignatedChannelService { get; set; } = null!;
-
-    [Inject]
-    public ISnackbar Snackbar { get; set; } = null!;
+    public required IHttpClientFactory HttpClientFactory { get; set; }
 
     private Dictionary<DesignatedChannelType, List<DesignatedChannelData>>? DesignatedChannelMappings { get; set; }
     private DesignatedChannelType[]? DesignatedChannelTypes { get; set; }
@@ -109,17 +107,22 @@
         if (!firstRender)
             return;
 
-        var currentGuild = DiscordHelper.GetUserGuild();
-        var designatedChannels = await DesignatedChannelService.GetDesignatedChannels(currentGuild.Id);
-
-        DesignatedChannelMappings = designatedChannels
-            .Select(d => new DesignatedChannelData(d.Id, d.Channel.Id, d.Type, currentGuild?.GetChannel(d.Channel.Id)?.Name ?? d.Channel.Name))
-            .ToLookup(x => x.ChannelDesignation, x => x)
-            .ToDictionary(x => x.Key, x => x.ToList());
+        using var client = HttpClientFactory.CreateClient("api");
+        DesignatedChannelMappings = await client.GetFromJsonAsync<Dictionary<DesignatedChannelType, List<DesignatedChannelData>>>("api/config/channels");
 
         DesignatedChannelTypes = Enum.GetValues<DesignatedChannelType>();
 
         StateHasChanged();
+    }
+
+    private async Task<IEnumerable<ChannelInformation>> AutoCompleteChannels(string query)
+    {
+        using var client = HttpClientFactory.CreateClient("api");
+
+        var escapedQuery = Uri.EscapeDataString(query);
+        var channels = await client.GetFromJsonAsync<ChannelInformation[]>($"api/autocomplete/channels/{escapedQuery}");
+
+        return channels ?? [];
     }
 
     public void ToggleCreateDialog()
@@ -139,12 +142,20 @@
 
     public async Task SaveDesignation()
     {
-        var currentGuild = DiscordHelper.GetUserGuild();
-        var channel = (Discord.IMessageChannel)currentGuild.GetChannel(_selectedChannel!.Id);
-
-        var id = await DesignatedChannelService.AddDesignatedChannel(currentGuild, channel, _selectedDesignatedChannelType!.Value);
+        using var client = HttpClientFactory.CreateClient("api");
+        var response = await client.PutAsync($"api/config/channels/{_selectedChannel.Id}/{_selectedDesignatedChannelType.Value}", default);
 
         _createDialogVisible = false;
+
+        if(!response.IsSuccessStatusCode)
+        {
+            var errorMessage = await response.Content.ReadAsStringAsync();
+            Snackbar.Add(errorMessage, Severity.Error);
+
+            return;
+        }
+
+        var id = long.Parse(await response.Content.ReadAsStringAsync());
 
         if (!DesignatedChannelMappings!.ContainsKey(_selectedDesignatedChannelType.Value))
         {
@@ -158,7 +169,10 @@
 
     public async Task RemoveDesignation(long id, DesignatedChannelType designatedChannelType)
     {
-        await DesignatedChannelService.RemoveDesignatedChannelById(id);
+        using var client = HttpClientFactory.CreateClient("api");
+        var response = await client.DeleteAsync($"api/config/channels/{id}");
+
+        response.EnsureSuccessStatusCode();
 
         var channelMappingsWithType = DesignatedChannelMappings![designatedChannelType];
         var removedChannelMapping = channelMappingsWithType.First(x => x.Id == id);
