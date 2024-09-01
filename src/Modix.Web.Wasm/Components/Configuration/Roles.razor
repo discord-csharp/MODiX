@@ -8,83 +8,81 @@
 <PageTitle>Modix - Roles</PageTitle>
 <MudText Typo="Typo.h4">Role Designations</MudText>
 
-<CascadingAuthenticationState>
-    @if (DesignatedRoleMappings is not null && DesignatedRoleTypes is not null)
-    {
-        <MudDialog @bind-IsVisible="_createDialogVisible" Options="new DialogOptions { FullWidth= true }">
-            <TitleContent>
-                <MudText Typo="Typo.h5">Assign a Role</MudText>
-            </TitleContent>
-            <DialogContent>
-                <AutoComplete T="RoleInformation"
-                              SearchFunc="(query) => AutoCompleteRoles(query)"
-                              Placeholder="@("@Administrator")"
-                              SelectedItemChanged="SelectedRoleChanged"
-                              Title="Role Name"
-                />
+@if (DesignatedRoleMappings is not null && DesignatedRoleTypes is not null)
+{
+    <MudDialog @bind-IsVisible="_createDialogVisible" Options="new DialogOptions { FullWidth= true }">
+        <TitleContent>
+            <MudText Typo="Typo.h5">Assign a Role</MudText>
+        </TitleContent>
+        <DialogContent>
+            <AutoComplete T="RoleInformation"
+                            SearchFunc="(query) => AutoCompleteRoles(query)"
+                            Placeholder="@("@Administrator")"
+                            SelectedItemChanged="SelectedRoleChanged"
+                            Title="Role Name"
+            />
 
-                <MudText Class="mt-5" Typo="Typo.h5">Designation</MudText>
-                <MudSelect T="DesignatedRoleType?" @bind-Value="_selectedDesignatedRoleType">
-                    @foreach (var designation in DesignatedRoleTypes)
-                    {
-                        <MudSelectItem T="DesignatedRoleType?" Value="@designation"></MudSelectItem>
-                    }
-                </MudSelect>
-            </DialogContent>
-            <DialogActions>
-                <MudButton Variant="Variant.Filled"
-                           Disabled="_selectedDesignatedRoleType is null || _selectedRole is null"
-                           Color="Color.Success"
-                           OnClick="SaveDesignation">
-                    Assign
-                </MudButton>
-                <MudSpacer />
-                <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="ToggleCreateDialog">Cancel</MudButton>
-            </DialogActions>
-        </MudDialog>
-
-        <MudPaper>
-            <MudList Clickable="true" DisablePadding="true">
-                @foreach (var designatedRoleType in DesignatedRoleTypes.OrderBy(x => x.ToString()))
+            <MudText Class="mt-5" Typo="Typo.h5">Designation</MudText>
+            <MudSelect T="DesignatedRoleType?" @bind-Value="_selectedDesignatedRoleType">
+                @foreach (var designation in DesignatedRoleTypes)
                 {
-                    <MudListItem DisableRipple="true">
-                        <div class="d-flex align-center">
-                            <div>
-                                <MudText>
-                                    <b>@designatedRoleType.ToString().Titleize()</b>
-                                </MudText>
-                                @if (!DesignatedRoleMappings.TryGetValue(designatedRoleType, out var roleDesignations) || !roleDesignations.Any())
-                                {
-                                    <MudText Style="color: grey; letter-spacing: 1px" Typo="Typo.caption">
-                                        <b>NONE ASSIGNED</b>
-                                    </MudText>
-                                }
-                                else
-                                {
-                                    @foreach (var designatedRoleMapping in roleDesignations)
-                                    {
-                                        <IndividualDesignation AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedRoleMappingDelete)"
-                                                               Id="@designatedRoleMapping.Id"
-                                                               NamePrefix="@("@")"
-                                                               Name="@designatedRoleMapping.Name"
-                                                               RemoveDesignation="(id) => RemoveDesignation(id, designatedRoleMapping.RoleDesignation)" />
-                                    }
-                                }
-                            </div>
-                            <MudSpacer />
-                            <div>
-                                <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedRoleMappingCreate)">
-                                    <MudIconButton OnClick="ToggleCreateDialog" Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Success" />
-                                </AuthorizeView>
-                            </div>
-                        </div>
-                    </MudListItem>
-                    <MudDivider />
+                    <MudSelectItem T="DesignatedRoleType?" Value="@designation"></MudSelectItem>
                 }
-            </MudList>
-        </MudPaper>
-    }
-</CascadingAuthenticationState>
+            </MudSelect>
+        </DialogContent>
+        <DialogActions>
+            <MudButton Variant="Variant.Filled"
+                        Disabled="_selectedDesignatedRoleType is null || _selectedRole is null"
+                        Color="Color.Success"
+                        OnClick="SaveDesignation">
+                Assign
+            </MudButton>
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="ToggleCreateDialog">Cancel</MudButton>
+        </DialogActions>
+    </MudDialog>
+
+    <MudPaper>
+        <MudList Clickable="true" DisablePadding="true">
+            @foreach (var designatedRoleType in DesignatedRoleTypes.OrderBy(x => x.ToString()))
+            {
+                <MudListItem DisableRipple="true">
+                    <div class="d-flex align-center">
+                        <div>
+                            <MudText>
+                                <b>@designatedRoleType.ToString().Titleize()</b>
+                            </MudText>
+                            @if (!DesignatedRoleMappings.TryGetValue(designatedRoleType, out var roleDesignations) || !roleDesignations.Any())
+                            {
+                                <MudText Style="color: grey; letter-spacing: 1px" Typo="Typo.caption">
+                                    <b>NONE ASSIGNED</b>
+                                </MudText>
+                            }
+                            else
+                            {
+                                @foreach (var designatedRoleMapping in roleDesignations)
+                                {
+                                    <IndividualDesignation AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedRoleMappingDelete)"
+                                                            Id="@designatedRoleMapping.Id"
+                                                            NamePrefix="@("@")"
+                                                            Name="@designatedRoleMapping.Name"
+                                                            RemoveDesignation="(id) => RemoveDesignation(id, designatedRoleMapping.RoleDesignation)" />
+                                }
+                            }
+                        </div>
+                        <MudSpacer />
+                        <div>
+                            <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedRoleMappingCreate)">
+                                <MudIconButton OnClick="ToggleCreateDialog" Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Success" />
+                            </AuthorizeView>
+                        </div>
+                    </div>
+                </MudListItem>
+                <MudDivider />
+            }
+        </MudList>
+    </MudPaper>
+}
 
 @code {
     [Inject]

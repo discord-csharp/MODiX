@@ -9,79 +9,75 @@
 
 <PageTitle>Modix - Tags</PageTitle>
 
-<CascadingAuthenticationState>
-
-    <MudContainer Class="mb-4" MaxWidth="MaxWidth.False">
-        <MudText Typo="Typo.h3">Tags</MudText>
-        @if (Data is not null && Roles is not null)
-        {
-            <MudDialog @bind-IsVisible="_createDialogVisible" Options="new DialogOptions { FullWidth= true }">
-                <TitleContent>
-                    <MudText Typo="Typo.h5">Create Tag</MudText>
-                </TitleContent>
-                <DialogContent>
-                    <MudTextField @bind-Value="_tagNameValue" Label="Name"></MudTextField>
-                    <MudTextField @bind-Value="_tagContentValue" Label="Content" Lines="5" Immediate="true"></MudTextField>
-                    <MudText Typo="Typo.subtitle1">Preview</MudText>
-                    <MudMarkdown Value="@_tagContentValue" />
-                </DialogContent>
-                <DialogActions>
-                    <MudButton Variant="Variant.Filled"
-                               Disabled="@(string.IsNullOrWhiteSpace(_tagNameValue) || string.IsNullOrWhiteSpace(_tagContentValue))"
-                               Color="Color.Success"
-                               OnClick="SaveTag">
-                        Save
-                    </MudButton>
-                    <MudSpacer />
-                    <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="ToggleDialog">Cancel</MudButton>
-                </DialogActions>
-            </MudDialog>
-
-            <div class="d-flex align-sm-center flex-sm-row flex-column my-3">
-                <div class="d-flex align-start">
-                    <AuthorizeView Roles="@nameof(AuthorizationClaim.CreateTag)">
-                        <MudButton Class="mr-1" Variant="Variant.Filled" OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
-                    </AuthorizeView>
-                    <MudButton Variant="Variant.Filled" OnClick="FetchData" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
-                </div>
+<MudContainer Class="mb-4" MaxWidth="MaxWidth.False">
+    <MudText Typo="Typo.h3">Tags</MudText>
+    @if (Data is not null && Roles is not null)
+    {
+        <MudDialog @bind-IsVisible="_createDialogVisible" Options="new DialogOptions { FullWidth= true }">
+            <TitleContent>
+                <MudText Typo="Typo.h5">Create Tag</MudText>
+            </TitleContent>
+            <DialogContent>
+                <MudTextField @bind-Value="_tagNameValue" Label="Name"></MudTextField>
+                <MudTextField @bind-Value="_tagContentValue" Label="Content" Lines="5" Immediate="true"></MudTextField>
+                <MudText Typo="Typo.subtitle1">Preview</MudText>
+                <MudMarkdown Value="@_tagContentValue" />
+            </DialogContent>
+            <DialogActions>
+                <MudButton Variant="Variant.Filled"
+                            Disabled="@(string.IsNullOrWhiteSpace(_tagNameValue) || string.IsNullOrWhiteSpace(_tagContentValue))"
+                            Color="Color.Success"
+                            OnClick="SaveTag">
+                    Save
+                </MudButton>
                 <MudSpacer />
-                <MudTextField DebounceInterval="1000" @bind-Value="Query" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="ToggleDialog">Cancel</MudButton>
+            </DialogActions>
+        </MudDialog>
+
+        <div class="d-flex align-sm-center flex-sm-row flex-column my-3">
+            <div class="d-flex align-start">
+                <AuthorizeView Roles="@nameof(AuthorizationClaim.CreateTag)">
+                    <MudButton Class="mr-1" Variant="Variant.Filled" OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
+                </AuthorizeView>
+                <MudButton Variant="Variant.Filled" OnClick="FetchData" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>
             </div>
+            <MudSpacer />
+            <MudTextField DebounceInterval="1000" @bind-Value="Query" Placeholder="Filter" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </div>
 
-            <MudTable Items="Data" SortLabel="Sort By" Bordered="true" Filter="FilterFunction">
-                <HeaderContent>
-                    <MudTh Class="center-text"><MudTableSortLabel T="TagData" SortBy="x => x.Name">Name</MudTableSortLabel></MudTh>
-                    <MudTh Class="center-text"><MudTableSortLabel T="TagData" SortBy="x => x.Created">Last Modified</MudTableSortLabel></MudTh>
-                    <MudTh Class="center-text"><MudTableSortLabel T="TagData" SortBy="x => x.OwnerName">Owner</MudTableSortLabel></MudTh>
-                    <MudTh Class="center-text"><MudTableSortLabel T="TagData" SortBy="x => x.Content">Content</MudTableSortLabel></MudTh>
-                    <MudTh Class="center-text"><MudTableSortLabel T="TagData" SortBy="x => x.Uses">Uses</MudTableSortLabel></MudTh>
-                </HeaderContent>
-                <RowTemplate Context="tag">
-                    <MudTd DataLabel="Name">@tag.Name</MudTd>
-                    <MudTd style="white-space:nowrap" DataLabel="Last Modified">@tag.Created.ToString("MM/dd/yy, h:mm:ss tt")</MudTd>
-                    @if (tag.IsOwnedByRole)
-                    {
-                        _ = Roles.TryGetValue(tag.OwnerId, out var role);
-                        var roleColor = role?.Color ?? "currentColor";
-                        <MudTd DataLabel="Owner" Style="@($"color: {roleColor}")">@@@tag.OwnerName</MudTd>
-                    }
-                    else
-                    {
-                        <MudTd DataLabel="Owner">@tag.OwnerName</MudTd>
-                    }
-                    <MudTd DataLabel="Content">
-                        <MudMarkdown Value="@tag.Content" />
-                    </MudTd>
-                    <MudTd DataLabel="Uses">@tag.Uses</MudTd>
-                </RowTemplate>
-                <PagerContent>
-                    <MudTablePager PageSizeOptions="new [] { 10, 20, 30, 40, 50, int.MaxValue }"/>
-                </PagerContent>
-            </MudTable>
-        }
-    </MudContainer>
-
-</CascadingAuthenticationState>
+        <MudTable Items="Data" SortLabel="Sort By" Bordered="true" Filter="FilterFunction">
+            <HeaderContent>
+                <MudTh Class="center-text"><MudTableSortLabel T="TagData" SortBy="x => x.Name">Name</MudTableSortLabel></MudTh>
+                <MudTh Class="center-text"><MudTableSortLabel T="TagData" SortBy="x => x.Created">Last Modified</MudTableSortLabel></MudTh>
+                <MudTh Class="center-text"><MudTableSortLabel T="TagData" SortBy="x => x.OwnerName">Owner</MudTableSortLabel></MudTh>
+                <MudTh Class="center-text"><MudTableSortLabel T="TagData" SortBy="x => x.Content">Content</MudTableSortLabel></MudTh>
+                <MudTh Class="center-text"><MudTableSortLabel T="TagData" SortBy="x => x.Uses">Uses</MudTableSortLabel></MudTh>
+            </HeaderContent>
+            <RowTemplate Context="tag">
+                <MudTd DataLabel="Name">@tag.Name</MudTd>
+                <MudTd style="white-space:nowrap" DataLabel="Last Modified">@tag.Created.ToString("MM/dd/yy, h:mm:ss tt")</MudTd>
+                @if (tag.IsOwnedByRole)
+                {
+                    _ = Roles.TryGetValue(tag.OwnerId, out var role);
+                    var roleColor = role?.Color ?? "currentColor";
+                    <MudTd DataLabel="Owner" Style="@($"color: {roleColor}")">@@@tag.OwnerName</MudTd>
+                }
+                else
+                {
+                    <MudTd DataLabel="Owner">@tag.OwnerName</MudTd>
+                }
+                <MudTd DataLabel="Content">
+                    <MudMarkdown Value="@tag.Content" />
+                </MudTd>
+                <MudTd DataLabel="Uses">@tag.Uses</MudTd>
+            </RowTemplate>
+            <PagerContent>
+                <MudTablePager PageSizeOptions="new [] { 10, 20, 30, 40, 50, int.MaxValue }"/>
+            </PagerContent>
+        </MudTable>
+    }
+</MudContainer>
 
 @code {
     [Inject]

@@ -18,132 +18,128 @@
 
 <PageTitle>Modix - Promotions</PageTitle>
 
-<CascadingAuthenticationState>
-
-    <MudContainer Class="mb-4">
-        <MudText Typo="Typo.h4">Promotion Campaigns</MudText>
-        <div class="d-flex align-center justify-sm-end justify-center mb-4">
-            <MudCheckBox T="bool" Value="_showInactive" ValueChanged="ShowInactiveChanged" Label="Show Inactive" Color="Color.Primary"></MudCheckBox>
-            <MudButton Class="ml-4" Href="/promotions/create" Variant="Variant.Filled" Color="Color.Primary">Start One</MudButton>
-        </div>
-        <MudExpansionPanels MultiExpansion="true">
-            @foreach (var (roleColor, campaign) in Campaigns
-            .Where(x => _showInactive ? true : !x.Campaign.IsClosed)
-            .OrderByDescending(x => !x.Campaign.IsClosed)
-            .ThenByDescending(x => x.Campaign.Created))
+<MudContainer Class="mb-4">
+    <MudText Typo="Typo.h4">Promotion Campaigns</MudText>
+    <div class="d-flex align-center justify-sm-end justify-center mb-4">
+        <MudCheckBox T="bool" Value="_showInactive" ValueChanged="ShowInactiveChanged" Label="Show Inactive" Color="Color.Primary"></MudCheckBox>
+        <MudButton Class="ml-4" Href="/promotions/create" Variant="Variant.Filled" Color="Color.Primary">Start One</MudButton>
+    </div>
+    <MudExpansionPanels MultiExpansion="true">
+        @foreach (var (roleColor, campaign) in Campaigns
+        .Where(x => _showInactive ? true : !x.Campaign.IsClosed)
+        .OrderByDescending(x => !x.Campaign.IsClosed)
+        .ThenByDescending(x => x.Campaign.Created))
+        {
+            var icon = campaign.Outcome switch
             {
-                var icon = campaign.Outcome switch
-                {
-                    PromotionCampaignOutcome.Accepted => Icons.Material.Filled.Check,
-                    PromotionCampaignOutcome.Rejected => Icons.Material.Filled.NotInterested,
-                    PromotionCampaignOutcome.Failed => Icons.Material.Filled.Error,
-                    _ => Icons.Material.Filled.HowToVote
-                };
+                PromotionCampaignOutcome.Accepted => Icons.Material.Filled.Check,
+                PromotionCampaignOutcome.Rejected => Icons.Material.Filled.NotInterested,
+                PromotionCampaignOutcome.Failed => Icons.Material.Filled.Error,
+                _ => Icons.Material.Filled.HowToVote
+            };
 
-                var sentimentRatio = campaign.IsCurrentUserCampaign ? 0d : (double)campaign.ApproveCount / (campaign.ApproveCount + campaign.OpposeCount);
-                var sentimentColor = sentimentRatio switch
-                {
-                    _ when campaign.IsCurrentUserCampaign => Color.Transparent,
-                    > 0.67 => Color.Success,
-                    > 0.33 => Color.Warning,
-                    _ => Color.Error
-                };
+            var sentimentRatio = campaign.IsCurrentUserCampaign ? 0d : (double)campaign.ApproveCount / (campaign.ApproveCount + campaign.OpposeCount);
+            var sentimentColor = sentimentRatio switch
+            {
+                _ when campaign.IsCurrentUserCampaign => Color.Transparent,
+                > 0.67 => Color.Success,
+                > 0.33 => Color.Warning,
+                _ => Color.Error
+            };
 
-                <MudExpansionPanel IsExpandedChanged="async (wasExpanded) => _ = CampaignExpanded(wasExpanded, campaign.Id, campaign.SubjectId)" Dense="true">
-                    <TitleContent>
-                        <div class="d-flex flex-sm-row flex-column align-center justify-space-between">
-                            <div class="d-flex flex-grow-1 flex-sm-row flex-column align-center">
-                                <MudTooltip Placement="Placement.Top" Text="@($"Status: " + (campaign.Outcome?.ToString() ?? "Active"))">
-                                    <MudIcon Size="Size.Large" Icon="@icon" />
-                                </MudTooltip>
-                                <MudText Class="ml-4" Typo="Typo.h4" Inline="true">
-                                    @campaign.SubjectName
-                                </MudText>
-
-                                <MudChip Class="targetRole ml-2" Style=@roleColor Icon="@Icons.Material.Filled.ArrowForwardIos">@campaign.TargetRoleName</MudChip>
-                            </div>
-
-                            <div class="d-flex">
-                                @if (campaign.Outcome is null)
-                                {
-                                    <AuthorizeView Roles="@nameof(AuthorizationClaim.PromotionsCloseCampaign)">
-                                        <MudButtonGroup OverrideStyles="false" Class="d-flex">
-                                            <MudIconButton Color="Color.Success" Size="Size.Large" OnClick="() => AcceptCampaign(campaign)" Icon="@Icons.Material.Filled.Check" Title="Accept" />
-                                            <MudIconButton Color="Color.Error" Size="Size.Large" OnClick="() => RejectCampaign(campaign)" Icon="@Icons.Material.Filled.Close" Title="Reject" />
-                                        </MudButtonGroup>
-                                    </AuthorizeView>
-                                }
-                                <MudIconButton Href="@($"/infractions?subject={campaign.SubjectId}")"
-                                               Size="Size.Small"
-                                               Class="mx-3"
-                                               Icon="@Icons.Material.Filled.OpenInNew"
-                                               Color="Color.Info"
-                                               Title="Infractions" />
-                            </div>
-
-                            <div class="d-flex flex-grow-1 flex-column width-sm mr-4">
-                                <div class="d-flex justify-space-around">
-                                    <div class="d-flex">
-                                        <MudIcon Icon="@Icons.Material.Filled.ThumbUp" />
-                                        <MudText Class="ml-1">@(campaign.IsCurrentUserCampaign ? "?" : campaign.ApproveCount.ToString())</MudText>
-                                    </div>
-                                    <div class="d-flex">
-                                        <MudIcon Icon="@Icons.Material.Filled.ThumbDown" />
-                                        <MudText Class="ml-1">@(campaign.IsCurrentUserCampaign ? "?" : campaign.OpposeCount.ToString())</MudText>
-                                    </div>
-                                </div>
-                                <MudProgressLinear Style="max-width: 60%; margin:auto" Striped="true" Color="sentimentColor" Size="Size.Small" Value="sentimentRatio*100" />
-                            </div>
-                        </div>
-                    </TitleContent>
-                    <ChildContent>
-                        <MudText>Campaign started @campaign.Created.ToString("MM/dd/yy, h:mm:ss tt")</MudText>
-                        <MudDivider Light="true" />
-                        @if (campaign.IsCurrentUserCampaign)
-                        {
-                            <MudText Class="center-text mb-2 mt-4">
-                                <b>Sorry, you aren't allowed to see comments on your own campaign.</b>
+            <MudExpansionPanel IsExpandedChanged="async (wasExpanded) => _ = CampaignExpanded(wasExpanded, campaign.Id, campaign.SubjectId)" Dense="true">
+                <TitleContent>
+                    <div class="d-flex flex-sm-row flex-column align-center justify-space-between">
+                        <div class="d-flex flex-grow-1 flex-sm-row flex-column align-center">
+                            <MudTooltip Placement="Placement.Top" Text="@($"Status: " + (campaign.Outcome?.ToString() ?? "Active"))">
+                                <MudIcon Size="Size.Large" Icon="@icon" />
+                            </MudTooltip>
+                            <MudText Class="ml-4" Typo="Typo.h4" Inline="true">
+                                @campaign.SubjectName
                             </MudText>
-                        }
-                        else if (!CampaignCommentData.ContainsKey(campaign.Id))
-                        {
-                            <MudProgressCircular Indeterminate="true" Class="d-flex" Style="margin: auto" />
-                        }
-                        else
-                        {
-                            foreach (var comment in CampaignCommentData[campaign.Id].Values.OrderByDescending(x => x.CreatedAt))
+
+                            <MudChip Class="targetRole ml-2" Style=@roleColor Icon="@Icons.Material.Filled.ArrowForwardIos">@campaign.TargetRoleName</MudChip>
+                        </div>
+
+                        <div class="d-flex">
+                            @if (campaign.Outcome is null)
                             {
-                                var sentimentIcon = comment.PromotionSentiment == PromotionSentiment.Approve ? Icons.Material.Filled.ThumbUp : Icons.Material.Filled.ThumbDown;
-                                <div class="d-flex align-center ma-4">
-                                    <MudIcon Icon="@sentimentIcon"></MudIcon>
-                                    <MudText Class="ml-4" Inline="true">@comment.Content</MudText>
-                                    <MudSpacer />
-                                    @if (comment.IsFromCurrentUser && !campaign.IsClosed)
-                                    {
-                                        <MudButton Variant="Variant.Filled"
-                                                   OnClick="() => ToggleEditDialog(campaign.Id, comment.Id, comment.PromotionSentiment, comment.Content)"
-                                                   Color="Color.Primary"
-                                                   Class="mr-4">
-                                            Edit
-                                        </MudButton>
-                                    }
-                                    <MudText Style="color: grey" Inline="true">@comment.CreatedAt.ToString("MM/dd/yy, h:mm:ss tt")</MudText>
+                                <AuthorizeView Roles="@nameof(AuthorizationClaim.PromotionsCloseCampaign)">
+                                    <MudButtonGroup OverrideStyles="false" Class="d-flex">
+                                        <MudIconButton Color="Color.Success" Size="Size.Large" OnClick="() => AcceptCampaign(campaign)" Icon="@Icons.Material.Filled.Check" Title="Accept" />
+                                        <MudIconButton Color="Color.Error" Size="Size.Large" OnClick="() => RejectCampaign(campaign)" Icon="@Icons.Material.Filled.Close" Title="Reject" />
+                                    </MudButtonGroup>
+                                </AuthorizeView>
+                            }
+                            <MudIconButton Href="@($"/infractions?subject={campaign.SubjectId}")"
+                                            Size="Size.Small"
+                                            Class="mx-3"
+                                            Icon="@Icons.Material.Filled.OpenInNew"
+                                            Color="Color.Info"
+                                            Title="Infractions" />
+                        </div>
+
+                        <div class="d-flex flex-grow-1 flex-column width-sm mr-4">
+                            <div class="d-flex justify-space-around">
+                                <div class="d-flex">
+                                    <MudIcon Icon="@Icons.Material.Filled.ThumbUp" />
+                                    <MudText Class="ml-1">@(campaign.IsCurrentUserCampaign ? "?" : campaign.ApproveCount.ToString())</MudText>
                                 </div>
-                                <MudDivider Light="true" />
-                            }
-
-                            if (!campaign.IsClosed && !CampaignCommentData[campaign.Id].Any(x => x.Value.IsFromCurrentUser))
-                            {
-                                <CreateCampaignComment OnCampaignCommentCreation="((PromotionSentiment sentiment, string? content) arg) => OnCampaignCommentCreation(campaign.Id, campaign.SubjectName, arg.sentiment, arg.content)" />
-                            }
+                                <div class="d-flex">
+                                    <MudIcon Icon="@Icons.Material.Filled.ThumbDown" />
+                                    <MudText Class="ml-1">@(campaign.IsCurrentUserCampaign ? "?" : campaign.OpposeCount.ToString())</MudText>
+                                </div>
+                            </div>
+                            <MudProgressLinear Style="max-width: 60%; margin:auto" Striped="true" Color="sentimentColor" Size="Size.Small" Value="sentimentRatio*100" />
+                        </div>
+                    </div>
+                </TitleContent>
+                <ChildContent>
+                    <MudText>Campaign started @campaign.Created.ToString("MM/dd/yy, h:mm:ss tt")</MudText>
+                    <MudDivider Light="true" />
+                    @if (campaign.IsCurrentUserCampaign)
+                    {
+                        <MudText Class="center-text mb-2 mt-4">
+                            <b>Sorry, you aren't allowed to see comments on your own campaign.</b>
+                        </MudText>
+                    }
+                    else if (!CampaignCommentData.ContainsKey(campaign.Id))
+                    {
+                        <MudProgressCircular Indeterminate="true" Class="d-flex" Style="margin: auto" />
+                    }
+                    else
+                    {
+                        foreach (var comment in CampaignCommentData[campaign.Id].Values.OrderByDescending(x => x.CreatedAt))
+                        {
+                            var sentimentIcon = comment.PromotionSentiment == PromotionSentiment.Approve ? Icons.Material.Filled.ThumbUp : Icons.Material.Filled.ThumbDown;
+                            <div class="d-flex align-center ma-4">
+                                <MudIcon Icon="@sentimentIcon"></MudIcon>
+                                <MudText Class="ml-4" Inline="true">@comment.Content</MudText>
+                                <MudSpacer />
+                                @if (comment.IsFromCurrentUser && !campaign.IsClosed)
+                                {
+                                    <MudButton Variant="Variant.Filled"
+                                                OnClick="() => ToggleEditDialog(campaign.Id, comment.Id, comment.PromotionSentiment, comment.Content)"
+                                                Color="Color.Primary"
+                                                Class="mr-4">
+                                        Edit
+                                    </MudButton>
+                                }
+                                <MudText Style="color: grey" Inline="true">@comment.CreatedAt.ToString("MM/dd/yy, h:mm:ss tt")</MudText>
+                            </div>
+                            <MudDivider Light="true" />
                         }
-                    </ChildContent>
-                </MudExpansionPanel>
-            }
-        </MudExpansionPanels>
-    </MudContainer>
 
-</CascadingAuthenticationState>
+                        if (!campaign.IsClosed && !CampaignCommentData[campaign.Id].Any(x => x.Value.IsFromCurrentUser))
+                        {
+                            <CreateCampaignComment OnCampaignCommentCreation="((PromotionSentiment sentiment, string? content) arg) => OnCampaignCommentCreation(campaign.Id, campaign.SubjectName, arg.sentiment, arg.content)" />
+                        }
+                    }
+                </ChildContent>
+            </MudExpansionPanel>
+        }
+    </MudExpansionPanels>
+</MudContainer>
 
 <style>
     .targetRole {

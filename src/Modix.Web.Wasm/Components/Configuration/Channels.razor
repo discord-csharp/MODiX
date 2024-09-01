@@ -9,81 +9,79 @@
 <PageTitle>Modix - Channels</PageTitle>
 <MudText Typo="Typo.h4">Channel Designations</MudText>
 
-<CascadingAuthenticationState>
-    @if (DesignatedChannelMappings is not null && DesignatedChannelTypes is not null)
-    {
-        <MudDialog @bind-IsVisible="_createDialogVisible" Options="new DialogOptions { FullWidth= true }">
-            <TitleContent>
-                <MudText Typo="Typo.h5">Assign a Channel</MudText>
-            </TitleContent>
-            <DialogContent>
-                <AutoComplete T="ChannelInformation"
-                              SearchFunc="(query) => AutoCompleteChannels(query)"
-                              Placeholder="@("#general")"
-                              SelectedItemChanged="SelectedChannelChanged"
-                              Title="Channel Name" />
-                <MudText Class="mt-5" Typo="Typo.h5">Designation</MudText>
-                <MudSelect T="DesignatedChannelType?" @bind-Value="_selectedDesignatedChannelType">
-                    @foreach (var designation in DesignatedChannelTypes)
-                    {
-                        <MudSelectItem T="DesignatedChannelType?" Value="@designation"></MudSelectItem>
-                    }
-                </MudSelect>
-            </DialogContent>
-            <DialogActions>
-                <MudButton Variant="Variant.Filled"
-                           Disabled="_selectedDesignatedChannelType is null || _selectedChannel is null"
-                           Color="Color.Success"
-                           OnClick="SaveDesignation">
-                    Assign
-                </MudButton>
-                <MudSpacer />
-                <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="ToggleCreateDialog">Cancel</MudButton>
-            </DialogActions>
-        </MudDialog>
-
-        <MudPaper>
-            <MudList Clickable="true" DisablePadding="true">
-                @foreach (var designatedChannelType in DesignatedChannelTypes.OrderBy(x => x.ToString()))
+@if (DesignatedChannelMappings is not null && DesignatedChannelTypes is not null)
+{
+    <MudDialog @bind-IsVisible="_createDialogVisible" Options="new DialogOptions { FullWidth= true }">
+        <TitleContent>
+            <MudText Typo="Typo.h5">Assign a Channel</MudText>
+        </TitleContent>
+        <DialogContent>
+            <AutoComplete T="ChannelInformation"
+                            SearchFunc="(query) => AutoCompleteChannels(query)"
+                            Placeholder="@("#general")"
+                            SelectedItemChanged="SelectedChannelChanged"
+                            Title="Channel Name" />
+            <MudText Class="mt-5" Typo="Typo.h5">Designation</MudText>
+            <MudSelect T="DesignatedChannelType?" @bind-Value="_selectedDesignatedChannelType">
+                @foreach (var designation in DesignatedChannelTypes)
                 {
-                    <MudListItem DisableRipple="true">
-                        <div class="d-flex align-center">
-                            <div>
-                                <MudText>
-                                    <b>@designatedChannelType.ToString().Titleize()</b>
-                                </MudText>
-                                @if (!DesignatedChannelMappings.TryGetValue(designatedChannelType, out var channelDesignations) || !channelDesignations.Any())
-                                {
-                                    <MudText Style="color: grey; letter-spacing: 1px" Typo="Typo.caption">
-                                        <b>NONE ASSIGNED</b>
-                                    </MudText>
-                                }
-                                else
-                                {
-                                    @foreach (var designatedChannelMapping in channelDesignations)
-                                    {
-                                        <IndividualDesignation AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedChannelMappingDelete)"
-                                                               Id="@designatedChannelMapping.Id"
-                                                               NamePrefix="@("#")"
-                                                               Name="@designatedChannelMapping.Name"
-                                                               RemoveDesignation="(id) => RemoveDesignation(id, designatedChannelMapping.ChannelDesignation)" />
-                                    }
-                                }
-                            </div>
-                            <MudSpacer />
-                            <div>
-                                <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedChannelMappingCreate)">
-                                    <MudIconButton OnClick="ToggleCreateDialog" Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Success" />
-                                </AuthorizeView>
-                            </div>
-                        </div>
-                    </MudListItem>
-                    <MudDivider />
+                    <MudSelectItem T="DesignatedChannelType?" Value="@designation"></MudSelectItem>
                 }
-            </MudList>
-        </MudPaper>
-    }
-</CascadingAuthenticationState>
+            </MudSelect>
+        </DialogContent>
+        <DialogActions>
+            <MudButton Variant="Variant.Filled"
+                        Disabled="_selectedDesignatedChannelType is null || _selectedChannel is null"
+                        Color="Color.Success"
+                        OnClick="SaveDesignation">
+                Assign
+            </MudButton>
+            <MudSpacer />
+            <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="ToggleCreateDialog">Cancel</MudButton>
+        </DialogActions>
+    </MudDialog>
+
+    <MudPaper>
+        <MudList Clickable="true" DisablePadding="true">
+            @foreach (var designatedChannelType in DesignatedChannelTypes.OrderBy(x => x.ToString()))
+            {
+                <MudListItem DisableRipple="true">
+                    <div class="d-flex align-center">
+                        <div>
+                            <MudText>
+                                <b>@designatedChannelType.ToString().Titleize()</b>
+                            </MudText>
+                            @if (!DesignatedChannelMappings.TryGetValue(designatedChannelType, out var channelDesignations) || !channelDesignations.Any())
+                            {
+                                <MudText Style="color: grey; letter-spacing: 1px" Typo="Typo.caption">
+                                    <b>NONE ASSIGNED</b>
+                                </MudText>
+                            }
+                            else
+                            {
+                                @foreach (var designatedChannelMapping in channelDesignations)
+                                {
+                                    <IndividualDesignation AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedChannelMappingDelete)"
+                                                            Id="@designatedChannelMapping.Id"
+                                                            NamePrefix="@("#")"
+                                                            Name="@designatedChannelMapping.Name"
+                                                            RemoveDesignation="(id) => RemoveDesignation(id, designatedChannelMapping.ChannelDesignation)" />
+                                }
+                            }
+                        </div>
+                        <MudSpacer />
+                        <div>
+                            <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedChannelMappingCreate)">
+                                <MudIconButton OnClick="ToggleCreateDialog" Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Success" />
+                            </AuthorizeView>
+                        </div>
+                    </div>
+                </MudListItem>
+                <MudDivider />
+            }
+        </MudList>
+    </MudPaper>
+}
 
 @code {
     [Inject]
