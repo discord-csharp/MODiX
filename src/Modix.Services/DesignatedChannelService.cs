@@ -7,6 +7,7 @@ using Discord;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data;
 using Modix.Data.Models.Core;
+using Modix.Models.Core;
 using Modix.Services.Core;
 
 namespace Modix.Services;

@@ -20,6 +20,7 @@ using Modix.Common.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
 using Modix.Data.Utilities;
+using Modix.Models.Core;
 using Modix.Services.CommandHelp;
 using Modix.Services.Promotions;
 using Modix.Services.Utilities;

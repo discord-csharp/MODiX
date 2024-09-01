@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data;
 using Modix.Data.Models.Core;
+using Modix.Models.Core;
 
 namespace Modix.Services;
 

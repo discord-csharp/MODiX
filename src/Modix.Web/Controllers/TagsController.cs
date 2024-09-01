@@ -3,8 +3,8 @@ using Discord.WebSocket;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modix.Controllers;
-using Modix.Data.Models.Core;
 using Modix.Data.Models.Tags;
+using Modix.Models.Core;
 using Modix.Services.Tags;
 using Modix.Web.Shared.Models.Tags;
 

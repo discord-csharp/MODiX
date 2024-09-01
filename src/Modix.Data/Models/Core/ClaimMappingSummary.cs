@@ -2,6 +2,7 @@
 using System.Linq.Expressions;
 
 using Modix.Data.ExpandableQueries;
+using Modix.Models.Core;
 
 namespace Modix.Data.Models.Core
 {

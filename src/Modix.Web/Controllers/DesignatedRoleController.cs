@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modix.Controllers;
-using Modix.Data.Models.Core;
+using Modix.Models.Core;
 using Modix.Services.Core;
 using Modix.Web.Shared.Models.Configuration;
 

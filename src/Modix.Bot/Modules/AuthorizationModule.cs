@@ -10,6 +10,7 @@ using Modix.Bot.AutocompleteHandlers;
 using Modix.Bot.Extensions;
 using Modix.Bot.Preconditions;
 using Modix.Data.Models.Core;
+using Modix.Models.Core;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 

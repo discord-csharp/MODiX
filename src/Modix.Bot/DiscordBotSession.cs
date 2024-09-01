@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord.Commands;
 using Discord.WebSocket;
-using Modix.Data.Models.Core;
+using Modix.Models.Core;
 using Modix.Services;
 
 namespace Modix.Bot;

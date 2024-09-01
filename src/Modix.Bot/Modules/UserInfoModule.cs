@@ -21,6 +21,7 @@ using Modix.Data.Models.Core;
 using Modix.Data.Models.Emoji;
 using Modix.Data.Models.Promotions;
 using Modix.Data.Repositories;
+using Modix.Models.Core;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;

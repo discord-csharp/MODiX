@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Modix.Data;
 using Modix.Data.Models.Core;
+using Modix.Models.Core;
 
 namespace Modix.Services;
 
