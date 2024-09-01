@@ -257,7 +257,7 @@
         try
         {
             using var client = HttpClientFactory.CreateClient("api");
-            var response = await client.PutAsJsonAsync($"api/campaigns/{campaignId}/createcomment", new CampaignCommentData(default, sentiment, content, default, default));
+            using var response = await client.PutAsJsonAsync($"api/campaigns/{campaignId}/createcomment", new CampaignCommentData(default, sentiment, content, default, default));
 
             response.EnsureSuccessStatusCode();
 
@@ -294,7 +294,7 @@
         try
         {
             using var client = HttpClientFactory.CreateClient("api");
-            var response = await client.PatchAsJsonAsync("api/campaigns/updatecomment", new CampaignCommentData(commentId, newPromotionSentiment, newContent, default, default));
+            using var response = await client.PatchAsJsonAsync("api/campaigns/updatecomment", new CampaignCommentData(commentId, newPromotionSentiment, newContent, default, default));
 
             response.EnsureSuccessStatusCode();
 
@@ -342,7 +342,7 @@
         try
         {
             using var client = HttpClientFactory.CreateClient("api");
-            var response = await client.PostAsync($"api/campaigns/{campaign.Id}/accept/{force}", default);
+            using var response = await client.PostAsync($"api/campaigns/{campaign.Id}/accept/{force}", default);
 
             response.EnsureSuccessStatusCode();
 
@@ -362,7 +362,7 @@
         try
         {
             using var client = HttpClientFactory.CreateClient("api");
-            var response = await client.PostAsync($"api/campaigns/{campaign.Id}/reject", default);
+            using var response = await client.PostAsync($"api/campaigns/{campaign.Id}/reject", default);
 
             response.EnsureSuccessStatusCode();
 

@@ -172,7 +172,7 @@
     private async Task<TableData<DeletedMessageBatchInformation>> LoadDeletedMessages(TableState tableState)
     {
         using var client = HttpClientFactory.CreateClient("api");
-        var response = await client.PutAsJsonAsync("api/deletedmessages", new DeletedMessagesQuery(_tableFilter, tableState));
+        using var response = await client.PutAsJsonAsync("api/deletedmessages", new DeletedMessagesQuery(_tableFilter, tableState));
 
         response.EnsureSuccessStatusCode();
 

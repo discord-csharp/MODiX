@@ -104,7 +104,7 @@
         {
             using var client = HttpClientFactory.CreateClient("api");
 
-            var response = await client.PutAsJsonAsync("api/campaigns/create", new PromotionCreationData(_selectedUser!.UserId, _promotionComment));
+            using var response = await client.PutAsJsonAsync("api/campaigns/create", new PromotionCreationData(_selectedUser!.UserId, _promotionComment));
 
             response.EnsureSuccessStatusCode();
 
