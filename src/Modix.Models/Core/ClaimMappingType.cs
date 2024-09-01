@@ -1,4 +1,4 @@
-﻿namespace Modix.Data.Models.Core
+﻿namespace Modix.Models.Core
 {
     /// <summary>
     /// Defines the possible types of claim mappings.

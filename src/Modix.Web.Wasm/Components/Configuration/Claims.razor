@@ -1,13 +1,10 @@
-﻿@using Modix.Data.Models.Core;
-@using Modix.Data.Repositories;
-@using Modix.Data.Utilities;
-@using Modix.Models.Core;
+﻿@using Modix.Models.Core;
 @using Modix.Models.Utilities
-@using Modix.Web.Services;
 @using Modix.Web.Shared.Models.Common
 @using MudBlazor
 @using System.Reflection;
 @using Humanizer;
+@using Modix.Web.Shared.Models.Configuration;
 
 <PageTitle>Modix - Claims</PageTitle>
 
@@ -76,19 +73,13 @@
 
 @code {
     [Inject]
-    public IClaimMappingRepository ClaimMappingRepository { get; set; } = null!;
+    public required IHttpClientFactory HttpClientFactory { get; set; }
 
     [Inject]
-    public DiscordHelper DiscordHelper { get; set; } = null!;
-
-    [Inject]
-    public Modix.Services.Core.IAuthorizationService AuthorizationService { get; set; } = null!;
-
-    [Inject]
-    public ISnackbar Snackbar { get; set; } = null!;
+    public required ISnackbar Snackbar { get; set; }
 
     private Dictionary<AuthorizationClaim, ClaimInfoData>? ClaimData { get; set; }
-    private Dictionary<(ulong?, AuthorizationClaim), ClaimMappingBrief>? MappedClaims { get; set; }
+    private Dictionary<(ulong?, AuthorizationClaim), ClaimMappingData>? MappedClaims { get; set; }
     private Dictionary<ulong, RoleInformation>? Roles { get; set; }
 
     private ulong? _selectedRole;
@@ -98,37 +89,18 @@
         if (!firstRender)
             return;
 
-        ClaimData = typeof(AuthorizationClaim).GetFields(BindingFlags.Public | BindingFlags.Static).ToDictionary
-        (
-            d => (AuthorizationClaim)d.GetValue(null)!,
-            d =>
-            {
-                var claimInfo = (ClaimInfoAttribute)d.GetCustomAttributes(typeof(ClaimInfoAttribute), true).First()!;
+        ClaimData = ClaimInfoData.GetClaims();
 
-                return new ClaimInfoData
-                {
-                    Name = d.Name,
-                    Description = claimInfo.Description,
-                    Category = claimInfo.Category
-                };
-            }
-        );
+        using var client = HttpClientFactory.CreateClient("api");
 
-        var currentGuild = DiscordHelper.GetUserGuild();
-        var mappedClaims = await ClaimMappingRepository.SearchBriefsAsync(new ClaimMappingSearchCriteria
-        {
-            IsDeleted = false,
-            GuildId = currentGuild.Id
-        });
+        var rolesTask = client.GetFromJsonAsync<Dictionary<ulong, RoleInformation>>("api/roles");
 
-        MappedClaims = mappedClaims.ToDictionary(x => (x.RoleId, x.Claim), x => x);
+        var mappedClaims = await client.GetFromJsonAsync<ClaimMappingData[]>("api/config/claims");
+        MappedClaims = mappedClaims?.ToDictionary(x => (x.RoleId, x.Claim), x => x);
 
-        Roles = currentGuild.Roles
-            .Select(d => new RoleInformation(d.Id, d.Name, d.Color.ToString()))
-            .OrderBy(x => x.Name)
-            .ToDictionary(x => x.Id, x => x);
+        Roles = await rolesTask;
 
-        _selectedRole = Roles.First().Key;
+        _selectedRole = Roles?.First().Key;
 
         StateHasChanged();
     }
@@ -139,22 +111,22 @@
         if (MappedClaims!.TryGetValue(key, out var claimMapping) && claimMapping.Type == claimMappingType)
             return;
 
-        await AuthorizationService.ModifyClaimMappingAsync(roleId, authorizationClaim, claimMappingType);
+        using var client = HttpClientFactory.CreateClient("api");
+        using var response = await client.PatchAsync($"api/config/claims/{roleId}/{authorizationClaim}/{claimMappingType}", default);
+
+        response.EnsureSuccessStatusCode();
+
         if (claimMappingType is ClaimMappingType.Denied or ClaimMappingType.Granted)
         {
             Snackbar.Add($"Claim '{authorizationClaim}' for '{Roles![roleId].Name}' was changed to '{claimMappingType}'", Severity.Success);
             if (claimMapping is null)
             {
-                MappedClaims[key] = new ClaimMappingBrief
-                {
-                    Claim = authorizationClaim,
-                    RoleId = roleId,
-                    Type = claimMappingType.Value
-                };
+                MappedClaims[key] = new ClaimMappingData(roleId, authorizationClaim, claimMappingType.Value);
             }
             else
             {
-                claimMapping.Type = claimMappingType.Value;
+                var clone = claimMapping with { Type = claimMappingType.Value };
+                MappedClaims[key] = clone;
             }
         }
         else
