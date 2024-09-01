@@ -12,7 +12,7 @@ using Microsoft.Extensions.Options;
 using Modix.Bot.Extensions;
 using Modix.Common.Extensions;
 using Modix.Data.Models.Core;
-using Modix.Data.Models.Moderation;
+using Modix.Models.Moderation;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.Moderation;

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Modix.Data.Models.Core;
+using Modix.Models.Moderation;
 
 namespace Modix.Data.Models.Moderation
 {

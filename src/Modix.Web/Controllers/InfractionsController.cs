@@ -52,7 +52,7 @@ public class InfractionsController : ModixController
         {
             GuildId = UserGuild.Id,
             Id = tableFilter.Id,
-            Types = tableFilter.Types?.Cast<Data.Models.Moderation.InfractionType>().ToArray(),
+            Types = tableFilter.Types,
             Subject = tableFilter.Subject,
             SubjectId = tableFilter.SubjectId,
             Creator = tableFilter.Creator,
@@ -78,8 +78,7 @@ public class InfractionsController : ModixController
             .Select(x => new InfractionData(
                 x.Id,
                 x.GuildId,
-                // TODO:
-                (Shared.Models.Infractions.InfractionType)(int)x.Type,
+                x.Type,
                 x.Reason,
                 x.Duration,
                 x.Subject.Username,
@@ -91,7 +90,7 @@ public class InfractionsController : ModixController
 
                 x.RescindAction is null
                     && x.DeleteAction is null
-                    && (x.Type == Data.Models.Moderation.InfractionType.Mute || x.Type == Data.Models.Moderation.InfractionType.Ban)
+                    && (x.Type == Modix.Models.Moderation.InfractionType.Mute || x.Type == Modix.Models.Moderation.InfractionType.Ban)
                     && outranksValues[x.Subject.Id],
 
                 x.DeleteAction is null
@@ -121,8 +120,7 @@ public class InfractionsController : ModixController
         await _moderationService.CreateInfractionAsync(
             UserGuild.Id,
             SocketUser.Id,
-            // TODO:
-            (Data.Models.Moderation.InfractionType)(int)creationData.Type,
+            creationData.Type,
             creationData.SubjectId,
             creationData.Reason,
             creationData.Duration);

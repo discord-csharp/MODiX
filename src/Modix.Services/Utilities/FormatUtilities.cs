@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -11,7 +10,7 @@ using System.Threading.Tasks;
 using Discord;
 using Humanizer;
 using Humanizer.Localisation;
-using Modix.Data.Models.Moderation;
+using Modix.Models.Moderation;
 
 namespace Modix.Services.Utilities
 {

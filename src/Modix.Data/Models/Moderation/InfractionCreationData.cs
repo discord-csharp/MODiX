@@ -1,4 +1,5 @@
 ﻿using System;
+using Modix.Models.Moderation;
 
 namespace Modix.Data.Models.Moderation
 {

@@ -1,4 +1,4 @@
-﻿namespace Modix.Web.Shared.Models.Infractions;
+﻿namespace Modix.Models.Moderation;
 
 /// <summary>
 /// Defines the possible types of infractions that can be recorded for a user.

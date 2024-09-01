@@ -1,4 +1,6 @@
-﻿namespace Modix.Web.Shared.Models.Infractions;
+﻿using Modix.Models.Moderation;
+
+namespace Modix.Web.Shared.Models.Infractions;
 
 public class TableFilter
 {

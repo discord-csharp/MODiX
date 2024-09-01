@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 
 using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
+using Modix.Models.Moderation;
 
 namespace Modix.Data.Models.Moderation
 {

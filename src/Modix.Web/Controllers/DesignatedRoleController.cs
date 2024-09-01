@@ -45,7 +45,7 @@ public class DesignatedRoleController : ModixController
         if (foundRole is null)
             return BadRequest($"A role was not found with id {roleId} in guild with id {ModixAuth.CurrentGuildId}");
 
-        var id = await _designatedRoleService.AddDesignatedRoleAsync(UserGuild.Id, roleId, (DesignatedRoleType)(int)designatedRoleType);
+        var id = await _designatedRoleService.AddDesignatedRoleAsync(UserGuild.Id, roleId, designatedRoleType);
 
         return Ok(id);
     }

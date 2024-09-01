@@ -15,6 +15,7 @@ using Modix.Models.Core;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
 using Serilog;
+using Modix.Models.Moderation;
 
 namespace Modix.Services.Moderation;
 
