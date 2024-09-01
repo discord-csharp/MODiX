@@ -24,10 +24,6 @@
 </CascadingValue>
 
 @code {
-
-    [Parameter]
-    public string? SelectedGuild { get; set; }
-
     [Parameter]
     public string? ShowInfractionState { get; set; }
 
@@ -71,7 +67,7 @@
         var currentGuild = authState.User.FindFirst(ClaimTypes.PostalCode)?.Value;
 
         _ = ulong.TryParse(userId, out var userSnowflake);
-        _ = ulong.TryParse(currentGuild ?? SelectedGuild, out var selectedGuildId);
+        _ = ulong.TryParse(currentGuild, out var selectedGuildId);
         _ = bool.TryParse(ShowInfractionState, out var showInfractionState);
         _ = bool.TryParse(ShowDeletedInfractions, out var showDeletedInfractions);
         _ = bool.TryParse(ShowInactivePromotions, out var showInactivePromotions);
