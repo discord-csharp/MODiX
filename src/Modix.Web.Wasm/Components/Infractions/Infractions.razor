@@ -416,7 +416,7 @@
     {
 
         using var client = HttpClientFactory.CreateClient("api");
-        var response = await client.PutAsJsonAsync("api/infractions", new { tableFilter = _tableFilter, tableState = tableState });
+        var response = await client.PutAsJsonAsync("api/infractions", new InfractionsQuery(_tableFilter, tableState));
         response.EnsureSuccessStatusCode();
 
         var infractions = await response.Content.ReadFromJsonAsync<InfractionData[]>();

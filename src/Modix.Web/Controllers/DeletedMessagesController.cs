@@ -26,19 +26,11 @@ public class DeletedMessagesController : ModixController
         _moderationService = moderationService;
     }
 
-    // TODO: Refactor this
-    public class Intermediate
-    {
-        public TableFilter tableFilter { get; set; }
-        public TableState tableState { get; set; }
-    }
-
-
     [HttpPut]
-    public async Task<DeletedMessageBatchInformation[]> GetDeletedMessagesBatchAsync(Intermediate inter)
+    public async Task<DeletedMessageBatchInformation[]> GetDeletedMessagesBatchAsync(DeletedMessagesQuery deletedMessagesQuery)
     {
-        var tableState = inter.tableState;
-        var tableFilter = inter.tableFilter;
+        var tableState = deletedMessagesQuery.TableState;
+        var tableFilter = deletedMessagesQuery.Filter;
 
         var searchCriteria = new DeletedMessageSearchCriteria
         {

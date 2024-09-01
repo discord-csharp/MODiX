@@ -23,19 +23,12 @@ public class InfractionsController : ModixController
         _moderationService = moderationService;
     }
 
-    // TODO: Refactor this
-    public class Intermediate
-    {
-        public TableFilter tableFilter { get; set; }
-        public TableState tableState { get; set; }
-    }
-
     [HttpPut]
     [Authorize(Roles = nameof(AuthorizationClaim.ModerationRead))]
-    public async Task<InfractionData[]> GetInfractionsAsync(Intermediate inter)
+    public async Task<InfractionData[]> GetInfractionsAsync(InfractionsQuery infractionsQuery)
     {
-        var tableState = inter.tableState;
-        var tableFilter = inter.tableFilter;
+        var tableState = infractionsQuery.TableState;
+        var tableFilter = infractionsQuery.Filter;
 
         var sortingCriteria = new[]
         {
