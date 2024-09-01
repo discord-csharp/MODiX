@@ -6,6 +6,7 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Modix.Models.Core
 @using Modix.Models.Promotions
+@using Modix.Models.Utilities
 @using Modix.Web.Models;
 @using Modix.Web.Shared.Models.Common
 @using Modix.Web.Shared.Models.Promotions
@@ -318,13 +319,9 @@
         var username = campaign.SubjectName;
         bool force = false;
 
-        // TODO: Fix this, this should not be hardcoded
-        // if (timeSince < PromotionCampaignEntityExtensions.CampaignAcceptCooldown)
-        var campaignAcceptCooldown = TimeSpan.FromHours(48);
-        if (timeSince < campaignAcceptCooldown)
+        if (timeSince < PromotionCampaignEntityExtensions.CampaignAcceptCooldown)
         {
-            var timeLeft = campaign.Created.Add(campaignAcceptCooldown) - DateTimeOffset.UtcNow;
-            var timeLeftHumanized = timeLeft.Humanize(3);
+            var timeLeftHumanized = campaign.Created.GetTimeUntilCampaignCanBeClosed().Humanize(3);
             var dialogParams = new DialogParameters<ConfirmationDialog>
             {
                 { x => x.Content, $"There is {timeLeftHumanized} left on the campaign. Do you want to force accept the campaign for {username}?" }

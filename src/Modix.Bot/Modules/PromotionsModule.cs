@@ -22,6 +22,7 @@ using Modix.Data.Models.Promotions;
 using Modix.Data.Utilities;
 using Modix.Models.Core;
 using Modix.Models.Promotions;
+using Modix.Models.Utilities;
 using Modix.Services.CommandHelp;
 using Modix.Services.Promotions;
 using Modix.Services.Utilities;
@@ -336,7 +337,7 @@ namespace Modix.Modules
                 return;
             }
 
-            var timeRemaining = campaign.GetTimeUntilCampaignCanBeClosed();
+            var timeRemaining = campaign.CreateAction.Created.GetTimeUntilCampaignCanBeClosed();
 
             if (timeRemaining.TotalMinutes > 1)
             {
@@ -443,7 +444,7 @@ namespace Modix.Modules
                 _ => Color.Red,
             };
 
-            var expectedCloseTime = campaign.GetExpectedCampaignCloseTimeStamp();
+            var expectedCloseTime = campaign.CreateAction.Created.GetExpectedCampaignCloseTimeStamp();
 
             var timeRemainingLabel = campaign.Outcome switch
             {
