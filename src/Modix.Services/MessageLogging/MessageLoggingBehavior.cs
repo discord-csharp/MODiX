@@ -12,7 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using Modix.Common.Messaging;
-using Modix.Data.Models.Core;
+using Modix.Models.Core;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
 

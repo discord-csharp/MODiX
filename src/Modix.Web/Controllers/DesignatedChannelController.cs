@@ -22,7 +22,7 @@ public class DesignatedChannelController : ModixController
 
     [HttpGet]
     [Authorize(Roles = nameof(AuthorizationClaim.DesignatedChannelMappingRead))]
-    public async Task<Dictionary<Shared.Models.Configuration.DesignatedChannelType, List<DesignatedChannelData>>> GetChannelDesignationsAsync()
+    public async Task<Dictionary<DesignatedChannelType, List<DesignatedChannelData>>> GetChannelDesignationsAsync()
     {
         var designatedChannels = await _designatedChannelService.GetDesignatedChannels(UserGuild.Id);
 
@@ -30,7 +30,7 @@ public class DesignatedChannelController : ModixController
             .Select(d => new DesignatedChannelData(
                 d.Id,
                 d.Channel.Id,
-                (Shared.Models.Configuration.DesignatedChannelType)(int)d.Type,
+                d.Type,
                 UserGuild.GetChannel(d.Channel.Id)?.Name ?? d.Channel.Name))
             .ToLookup(x => x.ChannelDesignation, x => x)
             .ToDictionary(x => x.Key, x => x.ToList());
@@ -38,14 +38,14 @@ public class DesignatedChannelController : ModixController
 
     [HttpPut("{channelId}/{designatedChannelType}")]
     [Authorize(Roles = nameof(AuthorizationClaim.DesignatedChannelMappingCreate))]
-    public async Task<IActionResult> CreateDesignationAsync(ulong channelId, Shared.Models.Configuration.DesignatedChannelType designatedChannelType)
+    public async Task<IActionResult> CreateDesignationAsync(ulong channelId, DesignatedChannelType designatedChannelType)
     {
         var foundChannel = UserGuild.GetChannel(channelId);
 
         if (foundChannel is not ISocketMessageChannel messageChannel)
             return BadRequest($"A message channel was not found with id {channelId} in guild with id {UserGuild.Id}");
 
-        var id = await _designatedChannelService.AddDesignatedChannel(foundChannel.Guild, messageChannel, (Data.Models.Core.DesignatedChannelType)(int)designatedChannelType);
+        var id = await _designatedChannelService.AddDesignatedChannel(foundChannel.Guild, messageChannel, (Modix.Models.Core.DesignatedChannelType)(int)designatedChannelType);
 
         return Ok(id);
     }

@@ -1,3 +1,5 @@
-﻿namespace Modix.Web.Shared.Models.Configuration;
+﻿using Modix.Models.Core;
+
+namespace Modix.Web.Shared.Models.Configuration;
 
 public record DesignatedChannelData(long Id, ulong RoleId, DesignatedChannelType ChannelDesignation, string Name);

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 using Modix.Data.Models.Core;
+using Modix.Models.Core;
 
 namespace Modix.Data.Test.TestData
 {
