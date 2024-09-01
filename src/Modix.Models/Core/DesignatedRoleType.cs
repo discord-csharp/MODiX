@@ -1,4 +1,4 @@
-﻿namespace Modix.Web.Shared.Models.Configuration;
+﻿namespace Modix.Models.Core;
 
 /// <summary>
 /// Defines the possible types designations that may be assigned to roles.

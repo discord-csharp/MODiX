@@ -45,7 +45,7 @@ public class DesignatedChannelController : ModixController
         if (foundChannel is not ISocketMessageChannel messageChannel)
             return BadRequest($"A message channel was not found with id {channelId} in guild with id {UserGuild.Id}");
 
-        var id = await _designatedChannelService.AddDesignatedChannel(foundChannel.Guild, messageChannel, (Modix.Models.Core.DesignatedChannelType)(int)designatedChannelType);
+        var id = await _designatedChannelService.AddDesignatedChannel(foundChannel.Guild, messageChannel, designatedChannelType);
 
         return Ok(id);
     }

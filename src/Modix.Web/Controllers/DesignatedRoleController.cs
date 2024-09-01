@@ -22,7 +22,7 @@ public class DesignatedRoleController : ModixController
 
     [HttpGet]
     [Authorize(Roles = nameof(AuthorizationClaim.DesignatedRoleMappingRead))]
-    public async Task<Dictionary<Shared.Models.Configuration.DesignatedRoleType, List<DesignatedRoleData>>> GetRoleDesignationsAsync()
+    public async Task<Dictionary<DesignatedRoleType, List<DesignatedRoleData>>> GetRoleDesignationsAsync()
     {
         var designatedRoles = await _designatedRoleService.GetDesignatedRolesAsync(UserGuild.Id);
 
@@ -30,7 +30,7 @@ public class DesignatedRoleController : ModixController
             .Select(d => new DesignatedRoleData(
                 d.Id,
                 d.Role.Id,
-                (Shared.Models.Configuration.DesignatedRoleType)(int)d.Type,
+                d.Type,
                 UserGuild.GetRole(d.Role.Id)?.Name ?? d.Role.Name))
             .ToLookup(x => x.RoleDesignation, x => x)
             .ToDictionary(x => x.Key, x => x.ToList());
@@ -38,14 +38,14 @@ public class DesignatedRoleController : ModixController
 
     [HttpPut("{roleId}/{designatedRoleType}")]
     [Authorize(Roles = nameof(AuthorizationClaim.DesignatedRoleMappingCreate))]
-    public async Task<IActionResult> CreateDesignationAsync(ulong roleId, Shared.Models.Configuration.DesignatedRoleType designatedRoleType)
+    public async Task<IActionResult> CreateDesignationAsync(ulong roleId, DesignatedRoleType designatedRoleType)
     {
         var foundRole = UserGuild.GetRole(roleId);
 
         if (foundRole is null)
             return BadRequest($"A role was not found with id {roleId} in guild with id {ModixAuth.CurrentGuildId}");
 
-        var id = await _designatedRoleService.AddDesignatedRoleAsync(UserGuild.Id, roleId, (Data.Models.Core.DesignatedRoleType)(int)designatedRoleType);
+        var id = await _designatedRoleService.AddDesignatedRoleAsync(UserGuild.Id, roleId, (DesignatedRoleType)(int)designatedRoleType);
 
         return Ok(id);
     }
