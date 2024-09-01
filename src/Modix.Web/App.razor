@@ -20,11 +20,11 @@
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
     <link href="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.css" rel="stylesheet" />
 
-    <HeadOutlet @rendermode=RenderMode.InteractiveAuto />
+    <HeadOutlet @rendermode=RenderMode.InteractiveWebAssembly />
 </head>
 
 <body>
-    <Routes @rendermode=RenderMode.InteractiveAuto
+    <Routes @rendermode=RenderMode.InteractiveWebAssembly
             ShowInfractionState="@Context.Request.Cookies[CookieConstants.ShowInfractionState]"
             ShowDeletedInfractions="@Context.Request.Cookies[CookieConstants.ShowDeletedInfractions]"
             ShowInactivePromotions="@Context.Request.Cookies[CookieConstants.ShowInactivePromotions]"

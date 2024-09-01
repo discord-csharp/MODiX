@@ -52,7 +52,7 @@ public static class Setup
         app.MapGet("/logout", async (context) => await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme, new AuthenticationProperties { RedirectUri = "/" }));
 
         app.MapRazorComponents<App>()
-            .AddInteractiveServerRenderMode()
+            //.AddInteractiveServerRenderMode()
             .AddInteractiveWebAssemblyRenderMode()
             .AddAdditionalAssemblies(typeof(Wasm._Imports).Assembly);
 
@@ -76,7 +76,7 @@ public static class Setup
 
         services
             .AddRazorComponents()
-            .AddInteractiveServerComponents()
+            //.AddInteractiveServerComponents()
             .AddInteractiveWebAssemblyComponents();
 
         return services;
