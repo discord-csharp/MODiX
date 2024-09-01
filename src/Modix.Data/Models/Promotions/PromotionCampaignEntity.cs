@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 using Modix.Data.Models.Core;
+using Modix.Models.Promotions;
 
 namespace Modix.Data.Models.Promotions
 {

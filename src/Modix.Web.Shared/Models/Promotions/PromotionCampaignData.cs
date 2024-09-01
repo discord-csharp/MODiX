@@ -1,4 +1,6 @@
-﻿namespace Modix.Web.Shared.Models.Promotions;
+﻿using Modix.Models.Promotions;
+
+namespace Modix.Web.Shared.Models.Promotions;
 
 public record PromotionCampaignData
 {

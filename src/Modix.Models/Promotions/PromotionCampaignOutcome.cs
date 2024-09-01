@@ -1,5 +1,8 @@
-﻿namespace Modix.Web.Shared.Models.Promotions;
+﻿namespace Modix.Models.Promotions;
 
+/// <summary>
+/// Defines the possible types of outcomes of a promotion campaign.
+/// </summary>
 public enum PromotionCampaignOutcome
 {
     /// <summary>

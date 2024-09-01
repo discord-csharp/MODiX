@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Promotions;
+using Modix.Models.Promotions;
 
 namespace Modix.Data.Repositories
 {

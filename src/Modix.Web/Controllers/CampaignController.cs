@@ -38,10 +38,7 @@ public class CampaignController : ModixController
                 SubjectName = campaign.Subject.GetFullUsername(),
                 TargetRoleId = campaign.TargetRole.Id,
                 TargetRoleName = campaign.TargetRole.Name,
-
-                // This is... very neat :)
-                Outcome = campaign.Outcome == null ? null : (Shared.Models.Promotions.PromotionCampaignOutcome)(int)campaign.Outcome,
-
+                Outcome = campaign.Outcome,
                 Created = campaign.CreateAction.Created,
                 IsCurrentUserCampaign = campaign.Subject.Id == SocketUser.Id,
                 ApproveCount = campaign.ApproveCount,
@@ -64,7 +61,7 @@ public class CampaignController : ModixController
             .Select(x => new CampaignCommentData
                 (
                     x.Id,
-                    (PromotionSentiment)(int)x.Sentiment,
+                    x.Sentiment,
                     x.Content,
                     x.CreateAction.Created,
                     x.CreateAction.CreatedBy.Id == SocketUser.Id
@@ -80,12 +77,12 @@ public class CampaignController : ModixController
     {
         var promotionActionSummary = await _promotionsService.AddCommentAsync(
             campaignId,
-            (Data.Models.Promotions.PromotionSentiment)(int)campaignCommentData.PromotionSentiment,
+            campaignCommentData.PromotionSentiment,
             campaignCommentData.Content);
 
         var newComment = promotionActionSummary.NewComment;
 
-        return new CampaignCommentData(newComment.Id, (PromotionSentiment)(int)newComment.Sentiment, newComment.Content, promotionActionSummary.Created, true);
+        return new CampaignCommentData(newComment.Id, newComment.Sentiment, newComment.Content, promotionActionSummary.Created, true);
     }
 
     [HttpPatch("updatecomment")]
@@ -93,12 +90,12 @@ public class CampaignController : ModixController
     {
         var promotionActionSummary = await _promotionsService.UpdateCommentAsync(
             campaignCommentData.Id,
-            (Data.Models.Promotions.PromotionSentiment)(int)campaignCommentData.PromotionSentiment,
+            campaignCommentData.PromotionSentiment,
             campaignCommentData.Content);
 
         var newComment = promotionActionSummary.NewComment;
 
-        return new CampaignCommentData(newComment.Id, (PromotionSentiment)(int)newComment.Sentiment, newComment.Content, promotionActionSummary.Created, true);
+        return new CampaignCommentData(newComment.Id, newComment.Sentiment, newComment.Content, promotionActionSummary.Created, true);
     }
 
     [HttpPost("{campaignId}/accept/{force}")]

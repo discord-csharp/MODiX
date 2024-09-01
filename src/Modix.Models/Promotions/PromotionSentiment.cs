@@ -1,4 +1,4 @@
-﻿namespace Modix.Data.Models.Promotions
+﻿namespace Modix.Models.Promotions
 {
     /// <summary>
     /// Defines the possible opinions that a <see cref="PromotionCommentEntity"/> may express about a <see cref="PromotionCampaignEntity"/>.

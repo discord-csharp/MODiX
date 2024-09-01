@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Linq.Expressions;
 using Modix.Data.Models.Promotions;
+using Modix.Models.Promotions;
 
 namespace Modix.Data.Extensions
 {
