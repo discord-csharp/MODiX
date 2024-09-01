@@ -1,5 +1,6 @@
 ﻿@using Humanizer
 @using Microsoft.AspNetCore.Components.Authorization
+@using Modix.Models.Core
 @using Modix.Web.Shared.Models.Common
 @using Modix.Web.Shared.Models.Configuration
 @using MudBlazor
@@ -62,9 +63,7 @@
                                 {
                                     @foreach (var designatedRoleMapping in roleDesignations)
                                     {
-                                        @* TODO *@
-                                        @* <IndividualDesignation AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedRoleMappingDelete)" *@
-                                        <IndividualDesignation AuthorizationRoleForDelete="DesignatedRoleMappingDelete"
+                                        <IndividualDesignation AuthorizationRoleForDelete="@nameof(AuthorizationClaim.DesignatedRoleMappingDelete)"
                                                                Id="@designatedRoleMapping.Id"
                                                                NamePrefix="@("@")"
                                                                Name="@designatedRoleMapping.Name"
@@ -74,8 +73,7 @@
                             </div>
                             <MudSpacer />
                             <div>
-                                @* <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedRoleMappingCreate)"> *@
-                                <AuthorizeView Roles="DesignatedRoleMappingCreate">
+                                <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedRoleMappingCreate)">
                                     <MudIconButton OnClick="ToggleCreateDialog" Icon="@Icons.Material.Filled.Add" Variant="Variant.Filled" Color="Color.Success" />
                                 </AuthorizeView>
                             </div>

@@ -1,14 +1,13 @@
 ﻿@page "/promotions/create"
 @using Microsoft.AspNetCore.Authorization
+@using Modix.Models.Core
 @using Modix.Web.Models;
 @using Modix.Web.Shared.Models.Common
 @using Modix.Web.Shared.Models.Promotions
 @using Modix.Web.Wasm.Components
 @using MudBlazor
 
-@*TODO*@
-@* @attribute [Authorize(Roles = nameof(AuthorizationClaim.PromotionsCreateCampaign))] *@
-@attribute [Authorize(Roles = "PromotionsCreateCampaign")]
+@attribute [Authorize(Roles = nameof(AuthorizationClaim.PromotionsCreateCampaign))]
 
 <PageTitle>Modix - Start A Campaign</PageTitle>
 

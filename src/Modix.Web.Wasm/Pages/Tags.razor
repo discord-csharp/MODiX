@@ -1,6 +1,7 @@
 ﻿@page "/tags"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using Modix.Models.Core
 @using Modix.Web.Shared.Models.Common
 @using Modix.Web.Shared.Models.Tags
 @using MudBlazor
@@ -38,9 +39,7 @@
 
             <div class="d-flex align-sm-center flex-sm-row flex-column my-3">
                 <div class="d-flex align-start">
-                    @* TODO *@
-                    @* <AuthorizeView Context="e" Roles="@nameof(AuthorizationClaim.CreateTag)"> *@
-                    <AuthorizeView Context="e" Roles="CreateTag">
+                    <AuthorizeView Roles="@nameof(AuthorizationClaim.CreateTag)">
                         <MudButton Class="mr-1" Variant="Variant.Filled" OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
                     </AuthorizeView>
                     <MudButton Variant="Variant.Filled" OnClick="FetchData" StartIcon="@Icons.Material.Filled.Refresh" Color="Color.Primary">Refresh</MudButton>

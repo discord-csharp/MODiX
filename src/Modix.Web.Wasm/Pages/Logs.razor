@@ -2,12 +2,11 @@
 @page "/logs"
 @page "/infractions"
 
-@* TODO *@
-@* @attribute [Authorize(Roles = nameof(AuthorizationClaim.ModerationRead))] *@
-@attribute [Authorize(Roles = "ModerationRead")]
+@attribute [Authorize(Roles = nameof(AuthorizationClaim.ModerationRead))]
 
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using Modix.Models.Core
 @using Modix.Web.Wasm.Components.Infractions
 @using MudBlazor
 
@@ -29,15 +28,13 @@
         <div class="flex-grow-1 mb-4">
             @if (SubPage == "infractions")
             {
-                @* <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationRead)"> *@
-                <AuthorizeView Roles="ModerationRead">
+                <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationRead)">
                     <Infractions Subject="@Subject" Id="@Id" />
                 </AuthorizeView>
             }
             else if (SubPage == "deletedMessages")
             {
-                @* TODO *@
-                <AuthorizeView Roles="LogViewDeletedMessages">
+                <AuthorizeView Roles="@nameof(AuthorizationClaim.LogViewDeletedMessages)">
                     <DeletedMessages />
                 </AuthorizeView>
             }

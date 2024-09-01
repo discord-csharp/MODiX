@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @using Modix.Web.Models;
+@using Modix.Web.Shared.Services
 @using MudBlazor;
 @using System.Security.Claims;
 
@@ -36,8 +37,8 @@
 </MudDrawer>
 
 @code {
-    // [Inject]
-    // public required CookieService CookieService { get; set; }
+    [Inject]
+    public required ICookieService CookieService { get; set; }
 
     [Parameter]
     public bool DarkMode { get; set; }
@@ -53,6 +54,6 @@
     {
         DarkMode = toggled;
         await DarkModeChanged.InvokeAsync(DarkMode);
-        // await CookieService.SetUseDarkModeAsync(DarkMode);
+        await CookieService.SetUseDarkModeAsync(DarkMode);
     }
 }

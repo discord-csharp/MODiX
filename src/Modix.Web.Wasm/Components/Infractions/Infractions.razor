@@ -1,7 +1,9 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Modix.Models.Core
 @using Modix.Web.Models;
 @using Modix.Web.Shared.Models.Common
 @using Modix.Web.Shared.Models.Infractions
+@using Modix.Web.Shared.Services
 @using Modix.Web.Wasm.Components
 @using MudBlazor;
 @using System.Security.Claims;
@@ -30,21 +32,16 @@
             <div class="d-flex gap-4">
                 <div style="max-width: 6rem">
                     <MudSelect FullWidth="false" Required="true" @bind-Value="_infractionType">
-                        @*TODO *@
-                        @* <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationNote)"> *@
-                        <AuthorizeView Roles="ModerationNote">
+                        <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationNote)">
                             <MudSelectItem Value="@InfractionType.Notice" />
                         </AuthorizeView>
-                        @* <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationWarn)"> *@
-                        <AuthorizeView Roles="ModerationWarn">
+                        <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationWarn)">
                             <MudSelectItem Value="@InfractionType.Warning" />
                         </AuthorizeView>
-                        @* <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationMute)"> *@
-                        <AuthorizeView Roles="ModerationMute">
+                        <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationMute)">
                             <MudSelectItem Value="@InfractionType.Mute" />
                         </AuthorizeView>
-                        @* <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationBan)"> *@
-                        <AuthorizeView Roles="ModerationBan">
+                        <AuthorizeView Roles="@nameof(AuthorizationClaim.ModerationBan)">
                             <MudSelectItem Value="@InfractionType.Ban" />
                         </AuthorizeView>
                     </MudSelect>
@@ -191,13 +188,13 @@
     public required IDialogService DialogService { get; set; }
 
     [Inject]
-    public required SessionState SessionState { get; set; }
-
-    [Inject]
     public required IHttpClientFactory HttpClientFactory { get; set; }
 
-    // [Inject]
-    // public CookieService CookieService { get; set; } = null!;
+    [Inject]
+    public required ICookieService CookieService { get; set; }
+
+    [CascadingParameter]
+    public required SessionState SessionState { get; set; }
 
     [CascadingParameter]
     private Task<AuthenticationState>? AuthState { get; set; }
@@ -237,9 +234,8 @@
 
         var auth = await AuthState;
 
-        // TODO:
-        // _canRescind = auth.User.HasClaim(ClaimTypes.Role, nameof(AuthorizationClaim.ModerationRescind));
-        // _canDeleteInfractions = auth.User.HasClaim(ClaimTypes.Role, nameof(AuthorizationClaim.ModerationDeleteInfraction));
+        _canRescind = auth.User.HasClaim(ClaimTypes.Role, nameof(AuthorizationClaim.ModerationRescind));
+        _canDeleteInfractions = auth.User.HasClaim(ClaimTypes.Role, nameof(AuthorizationClaim.ModerationDeleteInfraction));
 
         _tableFilter.Subject = Subject;
         _tableFilter.IdString = Id;
@@ -248,15 +244,13 @@
     private async Task ShowStateChanged(bool showState)
     {
         _showState = showState;
-        // TODO:
-        // await CookieService.SetShowInfractionStateAsync(showState);
+        await CookieService.SetShowInfractionStateAsync(showState);
     }
 
     private async Task ShowDeletedChanged(bool showDeleted)
     {
         await FilterChanged(() => _tableFilter.ShowDeleted = showDeleted);
-        //TODO:
-        // await CookieService.SetShowDeletedInfractionsAsync(showDeleted);
+        await CookieService.SetShowDeletedInfractionsAsync(showDeleted);
     }
 
     private void ToggleDialog()
@@ -274,11 +268,6 @@
         filterSetter();
         await RefreshTable();
     }
-
-    // private static string GetUsername(GuildUserBrief userBrief)
-    // {
-    //     return $"{userBrief.Username}{(userBrief.Discriminator == "0000" ? "" : "#" + userBrief.Discriminator)}";
-    // }
 
     private async Task RescindInfraction(InfractionData infraction)
     {

@@ -1,21 +1,15 @@
 ﻿@page "/config"
 @page "/config/{SubPage}"
 
-@* TODO *@
-@* @attribute [Authorize(
+@attribute [Authorize(
     Roles = $@"
         {nameof(AuthorizationClaim.DesignatedRoleMappingRead)},
         {nameof(AuthorizationClaim.DesignatedChannelMappingRead)},
-        {nameof(AuthorizationClaim.AuthorizationConfigure)}")] *@
-
-@attribute [Authorize(
-    Roles = $@"
-        DesignatedRoleMappingRead,
-        DesignatedChannelMappingRead,
-        AuthorizationConfigure")]
+        {nameof(AuthorizationClaim.AuthorizationConfigure)}")]
 
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using Modix.Models.Core
 @using Modix.Web.Wasm.Components.Configuration
 @using MudBlazor
 
@@ -39,22 +33,19 @@
         <div class="flex-grow-1 px-4 mb-4">
             @if (SubPage == "roles")
             {
-                @* <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedRoleMappingRead)"> *@
-                <AuthorizeView Roles="DesignatedRoleMappingRead">
+                <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedRoleMappingRead)">
                     <Roles />
                 </AuthorizeView>
             }
             else if (SubPage == "channels")
             {
-                @* <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedChannelMappingRead)"> *@
-                <AuthorizeView Roles="DesignatedChannelMappingRead">
+                <AuthorizeView Roles="@nameof(AuthorizationClaim.DesignatedChannelMappingRead)">
                     <Channels />
                 </AuthorizeView>
             }
             else if (SubPage == "claims")
             {
-                @* <AuthorizeView Roles="@nameof(AuthorizationClaim.AuthorizationConfigure)"> *@
-                <AuthorizeView Roles="AuthorizationConfigure">
+                <AuthorizeView Roles="@nameof(AuthorizationClaim.AuthorizationConfigure)">
                     <Claims />
                 </AuthorizeView>
             }

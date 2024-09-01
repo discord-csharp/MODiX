@@ -1,14 +1,14 @@
 ﻿@page "/promotions"
 
-@* TODO *@
-@* @attribute [Authorize(Roles = nameof(AuthorizationClaim.PromotionsRead))] *@
-@attribute [Authorize(Roles = "PromotionsRead")]
+@attribute [Authorize(Roles = nameof(AuthorizationClaim.PromotionsRead))]
 
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using Modix.Models.Core
 @using Modix.Web.Models;
 @using Modix.Web.Shared.Models.Common
 @using Modix.Web.Shared.Models.Promotions
+@using Modix.Web.Shared.Services
 @using Modix.Web.Wasm.Components
 @using MudBlazor
 @using Humanizer;
@@ -64,9 +64,7 @@
                             <div class="d-flex">
                                 @if (campaign.Outcome is null)
                                 {
-                                    @* TODO *@
-                                    @* <AuthorizeView Roles="@nameof(AuthorizationClaim.PromotionsCloseCampaign)"> *@
-                                    <AuthorizeView Roles="PromotionsCloseCampaign">
+                                    <AuthorizeView Roles="@nameof(AuthorizationClaim.PromotionsCloseCampaign)">
                                         <MudButtonGroup OverrideStyles="false" Class="d-flex">
                                             <MudIconButton Color="Color.Success" Size="Size.Large" OnClick="() => AcceptCampaign(campaign)" Icon="@Icons.Material.Filled.Check" Title="Accept" />
                                             <MudIconButton Color="Color.Error" Size="Size.Large" OnClick="() => RejectCampaign(campaign)" Icon="@Icons.Material.Filled.Close" Title="Reject" />
@@ -161,16 +159,19 @@
 
 @code {
     [Inject]
-    public required SessionState SessionState { get; set; }
-
-    [Inject]
     public required IDialogService DialogService { get; set; }
 
     [Inject]
     public required ISnackbar Snackbar { get; set; }
 
     [Inject]
+    public required ICookieService CookieService { get; set; }
+
+    [Inject]
     public required IHttpClientFactory HttpClientFactory { get; set; }
+
+    [CascadingParameter]
+    public required SessionState SessionState { get; set; }
 
     [CascadingParameter]
     public required Task<AuthenticationState> AuthenticationState { get; set; }
@@ -217,8 +218,7 @@
     private async Task ShowInactiveChanged(bool showInactive)
     {
         _showInactive = showInactive;
-        //TODO
-        // await CookieService.SetShowInactivePromotionsAsync(showInactive);
+        await CookieService.SetShowInactivePromotionsAsync(showInactive);
     }
 
     private async Task CampaignExpanded(bool wasExpanded, long campaignId, ulong userId)

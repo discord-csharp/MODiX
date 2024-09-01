@@ -124,10 +124,6 @@
         if (!firstRender)
             return;
 
-        //TODO: add an endpoint for this?
-        // var currentUser = DiscordHelper.GetCurrentUser();
-        // await SelectedUserChanged(ModixUser.FromIGuildUser(currentUser!));
-
         var authState = await AuthState;
         var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
