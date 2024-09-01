@@ -2,7 +2,6 @@
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Modix.Controllers;
 using Modix.Data.Models.Tags;
 using Modix.Models.Core;
 using Modix.Services.Tags;
@@ -12,7 +11,7 @@ namespace Modix.Web.Controllers;
 
 [Route("~/api/tags")]
 [ApiController]
-[Authorize]
+[Authorize(Roles = nameof(AuthorizationClaim.UseTag))]
 public class TagsController : ModixController
 {
     private readonly ITagService _tagService;

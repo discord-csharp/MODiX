@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Mvc;
-using Modix.Controllers;
 using Modix.Data.Utilities;
 using Modix.Services.Core;
 using Modix.Services.Utilities;
@@ -20,7 +19,6 @@ public class AutocompleteController : ModixController
     {
         _userService = userService;
     }
-
 
     [HttpGet("users/{query}")]
     public async Task<IEnumerable<ModixUser>> AutocompleteUsersAsync(string query)

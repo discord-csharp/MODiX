@@ -1,7 +1,6 @@
 ﻿using Discord.WebSocket;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Modix.Controllers;
 using Modix.Models.Core;
 using Modix.Services.Core;
 using Modix.Web.Shared.Models.Configuration;

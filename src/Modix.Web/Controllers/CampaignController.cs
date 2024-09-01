@@ -1,7 +1,6 @@
 ﻿using Discord.WebSocket;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Modix.Controllers;
 using Modix.Models.Core;
 using Modix.Services.Promotions;
 using Modix.Services.Utilities;
@@ -11,7 +10,7 @@ namespace Modix.Web.Controllers;
 
 [Route("~/api/campaigns")]
 [ApiController]
-[Authorize]
+[Authorize(Roles = nameof(AuthorizationClaim.PromotionsRead))]
 public class CampaignController : ModixController
 {
     private readonly IPromotionsService _promotionsService;
@@ -117,6 +116,7 @@ public class CampaignController : ModixController
     }
 
     [HttpGet("{subjectId}/nextrank")]
+    [Authorize(Roles = nameof(AuthorizationClaim.PromotionsCreateCampaign))]
     public async Task<NextRank> GetNextRankRoleForUserAsync(ulong subjectId)
     {
         var nextRank = await _promotionsService.GetNextRankRoleForUserAsync(subjectId);
@@ -129,6 +129,7 @@ public class CampaignController : ModixController
     }
 
     [HttpPut("create")]
+    [Authorize(Roles = nameof(AuthorizationClaim.PromotionsCreateCampaign))]
     public async Task CreateAsync([FromBody] PromotionCreationData creationData)
     {
         await _promotionsService.CreateCampaignAsync(creationData.UserId, creationData.Comment);

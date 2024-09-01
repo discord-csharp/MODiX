@@ -1,7 +1,6 @@
 ﻿using Discord.WebSocket;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Modix.Controllers;
 using Modix.Models.Core;
 using Modix.Services;
 using Modix.Web.Shared.Models.Configuration;
@@ -20,7 +19,6 @@ public class DesignatedChannelController : ModixController
     {
         _designatedChannelService = designatedChannelService;
     }
-
 
     [HttpGet]
     [Authorize(Roles = nameof(AuthorizationClaim.DesignatedChannelMappingRead))]

@@ -2,7 +2,6 @@
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Modix.Controllers;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
@@ -26,7 +25,6 @@ public class UserInformationController : ModixController
         _userService = userService;
         _messageRepository = messageRepository;
     }
-
 
     [HttpGet("{userIdString}")]
     public async Task<UserInformation?> GetUserInformationAsync(string userIdString)

@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
-using Modix.Controllers;
 using Modix.Web.Shared.Models.Common;
 
 namespace Modix.Web.Controllers;

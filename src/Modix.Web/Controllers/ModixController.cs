@@ -1,5 +1,4 @@
-﻿#nullable enable
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Discord.WebSocket;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Modix.Web.Models;
 
-namespace Modix.Controllers;
+namespace Modix.Web.Controllers;
 
 [Authorize]
 public class ModixController : Controller
@@ -16,14 +15,13 @@ public class ModixController : Controller
     protected SocketGuildUser SocketUser { get; private set; }
     protected SocketGuild UserGuild => SocketUser.Guild;
 
-    protected Services.Core.IAuthorizationService ModixAuth { get; private set; }
+    protected Modix.Services.Core.IAuthorizationService ModixAuth { get; private set; }
 
-    public ModixController(DiscordSocketClient client, Services.Core.IAuthorizationService modixAuth)
+    public ModixController(DiscordSocketClient client, Modix.Services.Core.IAuthorizationService modixAuth)
     {
         DiscordSocketClient = client;
         ModixAuth = modixAuth;
     }
-
 
     public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
@@ -64,7 +62,7 @@ public class ModixController : Controller
             return;
         }
 
-        await ModixAuth.OnAuthenticatedAsync(SocketUser.Id, SocketUser.Guild.Id, [.. SocketUser.Roles.Select(x => x.Id) ]);
+        await ModixAuth.OnAuthenticatedAsync(SocketUser.Id, SocketUser.Guild.Id, [.. SocketUser.Roles.Select(x => x.Id)]);
 
         await next();
     }
