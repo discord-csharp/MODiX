@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
+using Modix.Models;
 using Modix.Models.Core;
 using Modix.Services.Moderation;
 using Modix.Services.Utilities;
 using Modix.Web.Shared.Models.DeletedMessages;
-using MudBlazor;
 
 namespace Modix.Web.Controllers;
 
@@ -27,7 +27,7 @@ public class DeletedMessagesController : ModixController
     }
 
     [HttpPut]
-    public async Task<DeletedMessageBatchInformation[]> GetDeletedMessagesBatchAsync(DeletedMessagesQuery deletedMessagesQuery)
+    public async Task<RecordsPage<DeletedMessageBatchInformation>> GetDeletedMessagesBatchAsync(DeletedMessagesQuery deletedMessagesQuery)
     {
         var tableState = deletedMessagesQuery.TableState;
         var tableFilter = deletedMessagesQuery.Filter;
@@ -60,10 +60,9 @@ public class DeletedMessagesController : ModixController
             PageSize = tableState.PageSize,
         };
 
-
         var deletedMessages = await _moderationService.SearchDeletedMessagesAsync(searchCriteria, [sortingCriteria], pagingCriteria);
 
-        return deletedMessages.Records
+        var deletedMessagesBatchInformation = deletedMessages.Records
             .Select(x => new DeletedMessageBatchInformation(
                 x.Channel.Name,
                 x.Author.GetFullUsername(),
@@ -73,6 +72,13 @@ public class DeletedMessagesController : ModixController
                 x.Reason,
                 x.BatchId))
             .ToArray();
+
+        return new RecordsPage<DeletedMessageBatchInformation>
+        {
+            FilteredRecordCount = deletedMessagesBatchInformation.Length,
+            Records = deletedMessagesBatchInformation,
+            TotalRecordCount = deletedMessages.TotalRecordCount
+        };
     }
 
     [HttpGet("{batchId}")]

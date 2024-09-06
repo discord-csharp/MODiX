@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Modix.Models
 @using Modix.Models.Core
 @using Modix.Web.Models;
 @using Modix.Web.Shared.Models.Common
@@ -79,7 +80,6 @@
 
 <MudContainer MaxWidth="MaxWidth.False">
 
-
     <div class="d-flex mb-1 gap-sm-4 align-sm-center">
         <div class="d-flex flex-sm-row flex-column align-start">
             <MudButton Class="ml-1 mb-1" Variant="Variant.Filled" OnClick="ToggleDialog" StartIcon="@Icons.Material.Filled.Create" Color="Color.Primary">Create</MudButton>
@@ -92,7 +92,7 @@
         </div>
     </div>
 
-    <MudTable @ref="@TableRef" SortLabel="Sort By" Bordered="true" ServerData="LoadInfractions">
+    <MudTable Virtualize="true" @ref="@TableRef" SortLabel="Sort By" Bordered="true" ServerData="LoadInfractions">
         <HeaderContent>
             <MudTh Class="center-text vertical-top">
                 <MudTableSortLabel T="InfractionData" SortBy="x => x.Id">Id</MudTableSortLabel>
@@ -416,13 +416,13 @@
         using var client = HttpClientFactory.CreateClient("api");
         using var response = await client.PutAsJsonAsync("api/infractions", new InfractionsQuery(_tableFilter, tableState));
         response.EnsureSuccessStatusCode();
-
-        var infractions = await response.Content.ReadFromJsonAsync<InfractionData[]>();
+        
+        var infractions = await response.Content.ReadFromJsonAsync<RecordsPage<InfractionData>>();
 
         return new TableData<InfractionData>
         {
-            Items = infractions,
-            TotalItems = infractions.Length
+            Items = infractions.Records,
+            TotalItems = (int)infractions.TotalRecordCount
         };
     }
 

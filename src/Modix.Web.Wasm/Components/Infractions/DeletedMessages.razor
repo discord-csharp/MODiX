@@ -1,4 +1,5 @@
-﻿@using Modix.Web.Shared.Models.DeletedMessages
+﻿@using Modix.Models
+@using Modix.Web.Shared.Models.DeletedMessages
 @using MudBlazor
 
 <PageTitle>Modix - Deletions</PageTitle>
@@ -66,7 +67,7 @@
 </MudDialog>
 
 <MudContainer MaxWidth="MaxWidth.False">
-    <MudTable @ref="@TableRef" Bordered="true" ServerData="LoadDeletedMessages" SortLabel="Sort By">
+    <MudTable @ref="@TableRef" Virtualize="true" Bordered="true" ServerData="LoadDeletedMessages" SortLabel="Sort By">
         <ToolBarContent>
             <MudButton Class="ml-1" Variant="Variant.Filled" OnClick="RefreshTable" StartIcon="@Icons.Material.Filled.Refresh" Color="MudBlazor.Color.Primary">Refresh</MudButton>
         </ToolBarContent>
@@ -176,12 +177,12 @@
 
         response.EnsureSuccessStatusCode();
 
-        var result = await response.Content.ReadFromJsonAsync<DeletedMessageBatchInformation[]>();
+        var result = await response.Content.ReadFromJsonAsync<RecordsPage<DeletedMessageBatchInformation>>();
 
         return new TableData<DeletedMessageBatchInformation>
         {
-            TotalItems = result.Length,
-            Items = result
+            TotalItems = (int)result.TotalRecordCount,
+            Items = result.Records
         };
     }
 

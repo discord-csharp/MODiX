@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
+using Modix.Models;
 using Modix.Models.Core;
 using Modix.Services.Moderation;
 using Modix.Web.Shared.Models.Infractions;
-using MudBlazor;
 
 namespace Modix.Web.Controllers;
 
@@ -25,7 +25,7 @@ public class InfractionsController : ModixController
 
     [HttpPut]
     [Authorize(Roles = nameof(AuthorizationClaim.ModerationRead))]
-    public async Task<InfractionData[]> GetInfractionsAsync(InfractionsQuery infractionsQuery)
+    public async Task<RecordsPage<InfractionData>> GetInfractionsAsync(InfractionsQuery infractionsQuery)
     {
         var tableState = infractionsQuery.TableState;
         var tableFilter = infractionsQuery.Filter;
@@ -67,7 +67,7 @@ public class InfractionsController : ModixController
             outranksValues[subjectId] = await _moderationService.DoesModeratorOutrankUserAsync(guildId, SocketUser.Id, subjectId);
         }
 
-        return infractions.Records
+        var infractionData = infractions.Records
             .Select(x => new InfractionData(
                 x.Id,
                 x.GuildId,
@@ -90,6 +90,13 @@ public class InfractionsController : ModixController
                     && outranksValues[x.Subject.Id]
                 ))
             .ToArray();
+
+        return new RecordsPage<InfractionData>
+        {
+            FilteredRecordCount = infractions.Records.Count,
+            Records = infractionData,
+            TotalRecordCount = infractions.TotalRecordCount,
+        };
     }
 
     [Authorize(Roles = nameof(AuthorizationClaim.ModerationRescind))]
