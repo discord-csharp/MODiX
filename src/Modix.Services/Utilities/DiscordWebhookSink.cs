@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Webhook;
 using Modix.Services.CodePaste;
-using Newtonsoft.Json;
 using Serilog;
 using Serilog.Configuration;
 using Serilog.Core;
@@ -18,7 +20,7 @@ public sealed class DiscordWebhookSink : ILogEventSink, IAsyncDisposable
     private readonly Lazy<CodePasteService> _codePasteService;
     private readonly DiscordWebhookClient _discordWebhookClient;
     private readonly IFormatProvider _formatProvider;
-    private readonly JsonSerializerSettings _jsonSerializerSettings;
+    private readonly JsonSerializerOptions _jsonSerializerOptions;
     private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly Task _logEventProcessorTask;
     private readonly BlockingCollection<LogEvent> _logEventQueue;
@@ -33,11 +35,14 @@ public sealed class DiscordWebhookSink : ILogEventSink, IAsyncDisposable
         _discordWebhookClient = new DiscordWebhookClient(webhookId, webhookToken);
         _formatProvider = formatProvider;
 
-        _jsonSerializerSettings = new JsonSerializerSettings
+        _jsonSerializerOptions = new JsonSerializerOptions
         {
-            Formatting = Formatting.Indented,
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            ContractResolver = new ExceptionContractResolver()
+            WriteIndented = true,
+            ReferenceHandler= ReferenceHandler.IgnoreCycles,
+            TypeInfoResolver = new DefaultJsonTypeInfoResolver
+            {
+                Modifiers = { ExceptionJsonTypeInfoResolver.Modifier }
+            }
         };
 
         _cancellationTokenSource = new CancellationTokenSource();
@@ -73,7 +78,7 @@ public sealed class DiscordWebhookSink : ILogEventSink, IAsyncDisposable
                         .WithName($"LogLevel: {logEvent.Level}")
                         .WithValue(Format.Code(messagePayload.TruncateTo(DiscordStringTruncateLength))));
 
-                    var eventAsJson = JsonConvert.SerializeObject(logEvent, _jsonSerializerSettings);
+                    var eventAsJson = JsonSerializer.Serialize(logEvent, _jsonSerializerOptions);
 
                     var url = await _codePasteService.Value.UploadCodeAsync(eventAsJson);
 

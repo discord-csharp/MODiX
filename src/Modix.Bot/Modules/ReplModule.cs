@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
@@ -12,7 +13,6 @@ using Modix.Services.AutoRemoveMessage;
 using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
 using Modix.Services.Utilities;
-using Newtonsoft.Json;
 
 namespace Modix.Bot.Modules
 {
@@ -106,7 +106,7 @@ namespace Modix.Bot.Modules
                 return;
             }
 
-            var parsedResult = JsonConvert.DeserializeObject<Result>(await res.Content.ReadAsStringAsync());
+            var parsedResult = JsonSerializer.Deserialize<Result>(await res.Content.ReadAsStringAsync());
 
             var embed = await BuildEmbedAsync(guildUser, parsedResult);
 

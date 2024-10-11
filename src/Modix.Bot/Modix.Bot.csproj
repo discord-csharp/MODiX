@@ -6,7 +6,6 @@
     <PackageReference Include="Humanizer.Core" />
     <PackageReference Include="Microsoft.Extensions.Hosting" />
     <PackageReference Include="Microsoft.Extensions.Http" />
-    <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="LZStringCSharp" />
   </ItemGroup>
   <ItemGroup>
