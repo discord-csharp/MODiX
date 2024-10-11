@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
@@ -20,7 +21,6 @@ using Modix.Data.Models.Core;
 using Modix.Services.CodePaste;
 using Modix.Services.Utilities;
 using Modix.Web;
-using Newtonsoft.Json.Converters;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
@@ -141,10 +141,10 @@ namespace Modix
                 .AddModix(configuration);
 
             builder.Services.AddMvc(d => d.EnableEndpointRouting = false)
-                .AddNewtonsoftJson(options =>
+                .AddJsonOptions(options =>
                 {
-                    options.SerializerSettings.Converters.Add(new StringEnumConverter());
-                    options.SerializerSettings.Converters.Add(new StringULongConverter());
+                    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                    options.JsonSerializerOptions.Converters.Add(new StringULongConverter());
                 });
         }
 

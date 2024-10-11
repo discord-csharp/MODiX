@@ -4,7 +4,6 @@
     <PackageReference Include="Humanizer.Core" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="Microsoft.Extensions.Http" />
-    <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Serilog" />
     <PackageReference Include="SixLabors.ImageSharp" />
   </ItemGroup>

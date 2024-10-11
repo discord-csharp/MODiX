@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Net.Http;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Discord;
 using Modix.Data.Utilities;
 using Modix.Services.Utilities;
-using Newtonsoft.Json.Linq;
 
 namespace Modix.Services.CodePaste
 {
@@ -46,10 +47,17 @@ namespace Modix.Services.CodePaste
                 throw new Exception($"{response.StatusCode} returned when calling {response.RequestMessage?.RequestUri}. Response body: {body}");
             }
 
-            var urlResponse = await response.Content.ReadAsStringAsync();
-            var pasteKey = JObject.Parse(urlResponse)["key"]?.Value<string>();
+            var responseStream = await response.Content.ReadAsStreamAsync();
+            var uploadCodeResponse = await JsonSerializer.DeserializeAsync<UploadCodeResponse>(responseStream);
+            var pasteKey = uploadCodeResponse.Key;
 
             return $"{ApiReferenceUrl}{pasteKey}";
+        }
+
+        public class UploadCodeResponse
+        {
+            [JsonPropertyName("key")]
+            public string Key { get; set; }
         }
 
         /// <summary>

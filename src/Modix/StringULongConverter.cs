@@ -1,25 +1,39 @@
 ﻿using System;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.Options;
 
 namespace Modix
 {
-    public class StringULongConverter : JsonConverter
+    public class StringULongConverter : JsonConverterFactory
     {
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType == typeof(ulong);
-        }
+        public override bool CanConvert(Type typeToConvert)
+            => typeToConvert == typeof(ulong);
 
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        public override JsonConverter CreateConverter(Type typeToConvert, JsonSerializerOptions options)
         {
-            writer.WriteValue(value.ToString());
-        }
+            if (typeToConvert != typeof(ulong))
+            {
+                throw new ArgumentOutOfRangeException(nameof(typeToConvert), "JsonConverterFactory_TypeNotSupported");
+            }
 
-        public override bool CanRead => false;
-
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            throw new NotImplementedException();
+            return ULongConverterFactory.Create(typeToConvert, options);
         }
+    }
+
+    public class ULongConverterFactory
+    {
+        public static JsonConverter Create(Type typeToConvert, JsonSerializerOptions options)
+            => new ULongConverter();
+    }
+
+    public class ULongConverter : JsonConverter<ulong>
+    {
+        public override ulong Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            => throw new NotImplementedException();
+
+        public override void Write(Utf8JsonWriter writer, ulong value, JsonSerializerOptions options)
+            => writer.WriteStringValue(value.ToString());
     }
 }
