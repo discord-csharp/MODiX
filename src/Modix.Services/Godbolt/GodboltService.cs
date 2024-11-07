@@ -47,5 +47,4 @@ namespace Modix.Services.Godbolt
 
         protected IHttpClientFactory HttpClientFactory { get; }
     }
-
 }
