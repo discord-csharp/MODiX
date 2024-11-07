@@ -3,7 +3,6 @@ using System;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Interactions;
-using Modix.Services.AutoRemoveMessage;
 using Modix.Services.CommandHelp;
 using Modix.Services.Godbolt;
 
@@ -12,12 +11,10 @@ namespace Modix.Bot.Modules
     [ModuleHelp("Godbolt", "Commands for working with Godbolt.")]
     public class GodboltModule : InteractionModuleBase
     {
-        private readonly IAutoRemoveMessageService _autoRemoveMessageService;
         private readonly GodboltService _godboltService;
 
-        public GodboltModule(IAutoRemoveMessageService autoRemoveMessageService, GodboltService godboltService)
+        public GodboltModule(GodboltService godboltService)
         {
-            _autoRemoveMessageService = autoRemoveMessageService;
             _godboltService = godboltService;
         }
 
