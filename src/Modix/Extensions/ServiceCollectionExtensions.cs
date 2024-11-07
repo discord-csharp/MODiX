@@ -27,6 +27,7 @@ using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.Csharp;
 using Modix.Services.EmojiStats;
+using Modix.Services.Godbolt;
 using Modix.Services.GuildStats;
 using Modix.Services.Images;
 using Modix.Services.Moderation;
@@ -174,6 +175,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddScoped<WikipediaService>();
             services.AddScoped<StackExchangeService>();
             services.AddScoped<DocumentationService>();
+            services.AddScoped<GodboltService>();
 
             services.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>();
             services.AddScoped<INotificationHandler<PromotionActionCreatedNotification>, PromotionLoggingHandler>();
