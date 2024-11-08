@@ -24,7 +24,7 @@ namespace Modix.Bot.Modules
 
         [InputLabel("Language: csharp, fsharp, vb or il")]
         [ModalTextInput("language", initValue: "csharp")]
-        [RequiredInput(false)]
+        [RequiredInput(true)]
         public required string Language
         {
             get => _language;
