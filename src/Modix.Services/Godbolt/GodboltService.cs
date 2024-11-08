@@ -16,18 +16,13 @@ namespace Modix.Services.Godbolt
             HttpClientFactory = httpClientFactory;
         }
 
-        public async Task<string> CompileAsync(string code, string lang, string arguments, bool execute)
+        public async Task<string> CompileAsync(string code, string lang, string arguments)
         {
             var request = new CompileRequest(lang, code);
 
             if (!string.IsNullOrWhiteSpace(arguments))
             {
                 request.Options.UserArguments = arguments;
-            }
-
-            if (execute)
-            {
-                request.Options.Filters.Execute = true;
             }
 
             var requestJson = JsonSerializer.Serialize(request, _jsonOptions);

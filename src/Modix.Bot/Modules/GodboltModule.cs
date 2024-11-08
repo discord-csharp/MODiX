@@ -3,6 +3,7 @@ using System;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Interactions;
+using Modix.Bot.Attributes;
 using Modix.Services.CommandHelp;
 using Modix.Services.Godbolt;
 
@@ -18,55 +19,38 @@ namespace Modix.Bot.Modules
             _godboltService = godboltService;
         }
 
-        [SlashCommand("godbolt", "Compile and disassemble the JIT code.")]
-        public async Task DisasmAsync(
-            [Summary(description: "The code to compiler.")] string code,
-            [Summary(description: "The language of code.")] Language language = Language.CSharp,
-            [Summary(description: "Arguments to pass to the compiler.")] string arguments = "",
-            [Summary(description: "Execute the code.")] bool execute = false)
-        {
-            var langId = language switch
-            {
-                Language.CSharp => "csharp",
-                Language.FSharp => "fsharp",
-                Language.VisualBasic => "vb",
-                Language.IL => "il",
-                _ => throw new ArgumentOutOfRangeException(nameof(language))
-            };
+        [SlashCommand("godbolt", description: "Compile and disassemble JIT code.")]
+        [DoNotDefer]
+        public Task DisasmAsync() => Context.Interaction.RespondWithModalAsync<GodboltDisasmModal>("godbolt_disasm");
 
+        [ModalInteraction("godbolt_disasm")]
+        public async Task ProcessDisasmAsync(GodboltDisasmModal modal)
+        {
             try
             {
                 var response = $"""
+                    ```{modal.Language}
+                    {modal.Code}
+                    ```
+                    Disassembly {(string.IsNullOrWhiteSpace(modal.Arguments) ? "" : $"with ``{modal.Arguments}``")}:
                     ```asm
-                    {await _godboltService.CompileAsync(code, langId, arguments, execute)}
+                    {await _godboltService.CompileAsync(modal.Code, modal.Language, modal.Arguments)}
                     ```
                     """;
 
                 if (response.Length > DiscordConfig.MaxMessageSize)
                 {
-                    await FollowupAsync("Error: The disassembly code is too long to be converted to a message.");
+                    await FollowupAsync("Error: The code is too long to be converted to a message.", allowedMentions: AllowedMentions.None);
                     return;
                 }
 
-                await FollowupAsync(text: response);
+                await FollowupAsync(response, allowedMentions: AllowedMentions.None);
             }
             catch (Exception ex)
             {
-                await FollowupAsync($"Error: {ex}");
+                await FollowupAsync($"Error: {ex}", allowedMentions: AllowedMentions.None);
                 return;
             }
-        }
-
-        public enum Language
-        {
-            [ChoiceDisplay("C#")]
-            CSharp,
-            [ChoiceDisplay("F#")]
-            FSharp,
-            [ChoiceDisplay("VB.NET")]
-            VisualBasic,
-            [ChoiceDisplay("IL")]
-            IL
         }
     }
 }
