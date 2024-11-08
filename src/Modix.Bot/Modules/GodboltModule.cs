@@ -32,8 +32,8 @@ namespace Modix.Bot.Modules
                     ```{modal.Language}
                     {modal.Code}
                     ```
-                    Disassembly {(string.IsNullOrWhiteSpace(modal.Arguments) ? "" : $"with ``{modal.Arguments}``")}:
-                    ```asm
+                    Disassembly{(string.IsNullOrWhiteSpace(modal.Arguments) ? "" : $" with ``{modal.Arguments}``")}:
+                    ```
                     {await _godboltService.CompileAsync(modal.Code, modal.Language, modal.Arguments)}
                     ```
                     """;
