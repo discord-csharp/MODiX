@@ -9,7 +9,7 @@ To work on Modix, you need a few things:
 - [PostgreSQL database server](https://www.postgresql.org/download/). A docker container also works.
 - **Optional**: [Docker](https://www.docker.com/get-docker). You **do not** need Docker if you're just developing locally - it's mostly just to test if your changes are significant enough that they might break CI, or if you prefer to keep your dev environment clean. If you're on Windows, make sure you switch to Linux containers.
 
-If you're working on a feature that involves Modix's core services, and only needs to work with the Discord bot frontend, then you can proceed to opening `Modix.sln`. 
+If you're working on a feature that involves Modix's core services, and only needs to work with the Discord bot frontend, then you can proceed to opening `Modix.sln`.
 
 # Setting Configuration
 ### Config file
@@ -28,11 +28,10 @@ If you prefer to use environment variables for configuration, they must all be p
   - `DiscordClientSecret` - same as above.
 - **Optional**
   - `MessageCacheSize` - An integer value defining the internal Discord.Net message cache size - used for logging deleted messages. Should be around 10 or more, and will default to that if unset, but you don't need it unless you're testing message deletion.
-  - `LogWebhookId` - The ID of the Discord webhook to log to. Only necessary if you want log messages to appear in a channel on the server. 
+  - `LogWebhookId` - The ID of the Discord webhook to log to. Only necessary if you want log messages to appear in a channel on the server.
     - `https://discord.com/api/webhooks/[this part]/asda2ed2klkm5lkn42n34jk`
   - `LogWebhookToken` - Same as above, but the token of the webhook.
     - `https://discord.com/api/webhooks/000000000000000000/[this part]`
-  - `StackoverflowToken` - A token for the StackOverflow API, if you need to use the StackOverflow module.
   - `ReplUrl` - The URL of the endpoint that will be receiving REPL (`!eval`/`!exec`) requests - required if you want to test the REPL, and requires you to host the [repl](https://github.com/discord-csharp/CSDiscord).
   - `IlUrl` - The URL of the endpoint that will be receiving IL (`!il`) requests. Same as above, and will likely be the same URL.
 
