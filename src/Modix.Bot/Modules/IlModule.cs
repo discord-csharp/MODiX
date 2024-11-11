@@ -7,8 +7,8 @@ using Discord;
 using Discord.Commands;
 using Microsoft.Extensions.Options;
 using Modix.Data.Models.Core;
+using Modix.Services;
 using Modix.Services.AutoRemoveMessage;
-using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
 using Modix.Services.Utilities;
 using Serilog;
@@ -22,12 +22,12 @@ namespace Modix.Modules
     {
         private const string DefaultIlRemoteUrl = "http://csdiscord-repl-service:31337/Il";
         private readonly string _ilUrl;
-        private readonly CodePasteService _pasteService;
+        private readonly PasteService _pasteService;
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
         private readonly IHttpClientFactory _httpClientFactory;
 
         public IlModule(
-            CodePasteService pasteService,
+            PasteService pasteService,
             IAutoRemoveMessageService autoRemoveMessageService,
             IHttpClientFactory httpClientFactory,
             IOptions<ModixConfig> modixConfig)
@@ -118,10 +118,12 @@ namespace Modix.Modules
 
             embed.AddField(a => a.WithName("Code").WithValue(Format.Code(code, "cs")));
 
-            embed.AddField(a => a.WithName($"Result:")
-                 .WithValue(Format.Code(result.TruncateTo(990), "asm")));
+            const int MAX_LENGTH = 990;
 
-            await embed.UploadToServiceIfBiggerThan(result, 990, _pasteService);
+            embed.AddField(a => a.WithName($"Result:")
+                 .WithValue(Format.Code(result.TruncateTo(MAX_LENGTH), "asm")));
+
+            await embed.UploadToServiceIfBiggerThan(result, MAX_LENGTH, _pasteService);
 
             return embed;
         }

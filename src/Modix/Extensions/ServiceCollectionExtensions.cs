@@ -22,7 +22,6 @@ using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Services;
 using Modix.Services.AutoRemoveMessage;
-using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.Csharp;
@@ -157,7 +156,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddModixCore()
                 .AddModixModeration()
                 .AddModixPromotions()
-                .AddCodePaste()
                 .AddCommandHelp()
                 .AddGuildStats()
                 .AddModixTags()
@@ -165,6 +163,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddAutoRemoveMessage()
                 .AddEmojiStats()
                 .AddImages();
+
+            services.AddScoped<PasteService>();
 
             services.AddScoped<IQuoteService, QuoteService>();
             services.AddSingleton<IBehavior, MessageLinkBehavior>();

@@ -76,7 +76,7 @@ dotnet_naming_style.interface_style.capitalization = pascal_case
 dotnet_naming_style.interface_style.required_prefix = I
 
 # Async methods are suffixed with Async
-dotnet_naming_rule.async_methods_should_be_suffixed.severity = warning
+dotnet_naming_rule.async_methods_should_be_suffixed.severity = none
 dotnet_naming_rule.async_methods_should_be_suffixed.symbols = async_methods
 dotnet_naming_rule.async_methods_should_be_suffixed.style = async_method_style
 
