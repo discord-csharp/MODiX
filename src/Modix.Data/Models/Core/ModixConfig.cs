@@ -4,8 +4,6 @@
     {
         public string? DiscordToken { get; set; } = null;
 
-        public string? StackoverflowToken { get; set; } = null;
-
         public string? DbConnection { get; set; } = null;
 
         public string? LogWebhookToken { get; set; } = null;

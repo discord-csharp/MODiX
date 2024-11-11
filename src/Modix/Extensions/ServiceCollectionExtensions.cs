@@ -32,7 +32,6 @@ using Modix.Services.Images;
 using Modix.Services.Moderation;
 using Modix.Services.Promotions;
 using Modix.Services.Quote;
-using Modix.Services.StackExchange;
 using Modix.Services.Starboard;
 using Modix.Services.Tags;
 using Modix.Services.Utilities;
@@ -51,7 +50,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddHttpClient(HttpClientNames.RetryOnTransientErrorPolicy)
                 .AddPolicyHandler(HttpPolicyExtensions.HandleTransientHttpError()
-                    .WaitAndRetryAsync(2, retryAttempt => TimeSpan.FromSeconds(5)));                
+                    .WaitAndRetryAsync(2, retryAttempt => TimeSpan.FromSeconds(5)));
 
             services.AddHttpClient(HttpClientNames.TimeoutFiveSeconds)
                 .ConfigureHttpClient(client =>
@@ -172,7 +171,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddMemoryCache();
 
             services.AddScoped<WikipediaService>();
-            services.AddScoped<StackExchangeService>();
             services.AddScoped<DocumentationService>();
 
             services.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>();

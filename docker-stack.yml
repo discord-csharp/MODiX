@@ -39,7 +39,7 @@ services:
     image: ghcr.io/discord-csharp/csharprepl:latest
     read_only: true
     user: www-data
-    environment: 
+    environment:
       - ASPNETCORE_URLS=http://+:31337
       - Logging__LogLevel__Microsoft=Warning
       - Logging__LogLevel__CSDiscordService=Trace
@@ -90,8 +90,6 @@ services:
         target: DiscordToken
       - source: discord-client-secret
         target: DiscordClientSecret
-      - source: stackoverflow-token
-        target: StackoverflowToken
       - source: db-connection-string
         target: DbConnection
       - source: log-webhook-token
@@ -103,7 +101,7 @@ services:
       - proxy
       - repl
       - modix
-      
+
 # the translation feature of the modix bot
   modix-translator:
     image: ghcr.io/discord-csharp/modix-translator:latest
@@ -144,7 +142,7 @@ services:
       - pgadmin-data:/var/lib/pgadmin
     networks:
       - proxy
-      
+
 # grafana instance with access to the modix database
   stats:
     image: grafana/grafana:latest
@@ -169,7 +167,7 @@ services:
       - grafana-data:/gfdata:rw
     networks:
       - proxy
- 
+
 # monitors the health check (specifically of REPL) and restarts the container
   autoheal:
     image: willfarrell/autoheal
@@ -177,7 +175,7 @@ services:
       mode: global
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      
+
 networks:
   proxy:
   repl:
@@ -218,7 +216,7 @@ volumes:
   modix-keys:
   modix-logs:
   modix-20-keys:
-    
+
   #workaround for swarm not supporting tmpfs mounts
   repl-tmp:
     driver_opts:
