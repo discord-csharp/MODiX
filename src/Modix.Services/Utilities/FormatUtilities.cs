@@ -8,14 +8,10 @@ using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
 using Discord;
-
 using Humanizer;
 using Humanizer.Localisation;
-
 using Modix.Data.Models.Moderation;
-using Modix.Services.CodePaste;
 
 namespace Modix.Services.Utilities
 {
@@ -38,18 +34,16 @@ namespace Modix.Services.Utilities
             //strip out the ` characters and code block markers
             _buildContentRegex.Replace(code.Trim(), string.Empty);
 
-        public static async Task UploadToServiceIfBiggerThan(this EmbedBuilder embed, string content, uint size, CodePasteService service)
+        public static async Task UploadToServiceIfBiggerThan(this EmbedBuilder embed, string content, uint size,
+            PasteService service)
         {
             if (content.Length > size)
             {
-                try
+                var resultLink = await service.UploadPaste(content);
+
+                if (!string.IsNullOrWhiteSpace(resultLink))
                 {
-                    var resultLink = await service.UploadCodeAsync(content);
-                    embed.AddField(a => a.WithName("More...").WithValue($"[View on Hastebin]({resultLink})"));
-                }
-                catch (WebException we)
-                {
-                    embed.AddField(a => a.WithName("More...").WithValue(we.Message));
+                    embed.AddField(a => a.WithName("More...").WithValue($"[View on paste.mod.gg]({resultLink})"));
                 }
             }
         }
@@ -87,7 +81,8 @@ namespace Modix.Services.Utilities
                 Value: x
             ));
 
-            var groupedBySingulars = withSingulars.GroupBy(x => x.Singular, x => x.Value, new SequenceEqualityComparer<string>());
+            var groupedBySingulars =
+                withSingulars.GroupBy(x => x.Singular, x => x.Value, new SequenceEqualityComparer<string>());
 
             var withDistinctParts = new HashSet<string>[groupedBySingulars.Count()][];
 
@@ -129,7 +124,8 @@ namespace Modix.Services.Utilities
                             ? word.First()
                             : word.Last();
 
-                        parenthesized[aliasIndex][wordIndex] = $"{longestForm[..indexOfDifference]}({longestForm[indexOfDifference..]})";
+                        parenthesized[aliasIndex][wordIndex] =
+                            $"{longestForm[..indexOfDifference]}({longestForm[indexOfDifference..]})";
                     }
                     else
                     {
@@ -202,6 +198,7 @@ namespace Modix.Services.Utilities
                             AddRemainingLineComment();
                             break;
                         }
+
                         braceOnlyLinesEliminated++;
                     }
                     else if (!TryAddLine(line))
@@ -244,11 +241,13 @@ namespace Modix.Services.Utilities
             bool TryAddLine(string line)
             {
                 var remainingCount = GetRemainingLineCount();
-                var possibleRemainingLineCommentLength = remainingCount > 1 // 1, because the current line is included in the count
-                    ? GetRemainingLineCountComment(remainingCount).Length
-                    : 0;
+                var possibleRemainingLineCommentLength =
+                    remainingCount > 1 // 1, because the current line is included in the count
+                        ? GetRemainingLineCountComment(remainingCount).Length
+                        : 0;
 
-                if (line.Length + currentLength + possibleRemainingLineCommentLength + 1 > maxLength) // +1 because of the newline that will be added later
+                if (line.Length + currentLength + possibleRemainingLineCommentLength + 1 >
+                    maxLength) // +1 because of the newline that will be added later
                     return false;
 
                 processedLines.Add(line);

@@ -8,8 +8,8 @@ using Discord;
 using Discord.Commands;
 using Microsoft.Extensions.Options;
 using Modix.Data.Models.Core;
+using Modix.Services;
 using Modix.Services.AutoRemoveMessage;
-using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
 using Modix.Services.Utilities;
 using Newtonsoft.Json;
@@ -36,12 +36,12 @@ namespace Modix.Bot.Modules
         private const int MaxFormattedFieldSize = 1000;
         private const string DefaultReplRemoteUrl = "http://csdiscord-repl-service:31337/Eval";
         private readonly string _replUrl;
-        private readonly CodePasteService _pasteService;
+        private readonly PasteService _pasteService;
         private readonly IAutoRemoveMessageService _autoRemoveMessageService;
         private readonly IHttpClientFactory _httpClientFactory;
 
         public ReplModule(
-            CodePasteService pasteService,
+            PasteService pasteService,
             IAutoRemoveMessageService autoRemoveMessageService,
             IHttpClientFactory httpClientFactory,
             IOptions<ModixConfig> modixConfig)
