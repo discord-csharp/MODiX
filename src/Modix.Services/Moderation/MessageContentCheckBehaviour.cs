@@ -18,14 +18,14 @@ namespace Modix.Services.Moderation
         INotificationHandler<MessageUpdatedNotification>,
         INotificationHandler<VoiceChannelStatusUpdatedNotification>
     {
-        private readonly IDesignatedChannelService _designatedChannelService;
+        private readonly DesignatedChannelService _designatedChannelService;
         private readonly IAuthorizationService _authorizationService;
         private readonly IModerationService _moderationService;
         private readonly IMessageContentPatternService _messageContentPatternService;
         private readonly DiscordSocketClient _discordSocketClient;
 
         public MessageContentCheckBehaviour(
-            IDesignatedChannelService designatedChannelService,
+            DesignatedChannelService designatedChannelService,
             DiscordSocketClient discordSocketClient,
             IAuthorizationService authorizationService,
             IModerationService moderationService, IMessageContentPatternService messageContentPatternService)
@@ -91,7 +91,7 @@ namespace Modix.Services.Moderation
                 return;
             }
 
-            if (await _designatedChannelService.ChannelHasDesignationAsync(channel.Guild.Id,
+            if (await _designatedChannelService.ChannelHasDesignation(channel.Guild.Id,
                 channel.Id, DesignatedChannelType.Unmoderated, default))
             {
                 return;

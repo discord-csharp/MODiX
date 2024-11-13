@@ -2,17 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-
 using Discord;
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-
-using Modix.Bot.Extensions;
 using Modix.Common.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Repositories;
+using Modix.Services;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
 using Modix.Services.Utilities;
@@ -24,15 +21,19 @@ namespace Modix.Behaviors
     /// </summary>
     public class ModerationLoggingBehavior : IModerationActionEventHandler
     {
+        private readonly DiscordRelayService _discordRelayService;
+
         /// <summary>
         /// Constructs a new <see cref="ModerationLoggingBehavior"/> object, with injected dependencies.
         /// </summary>
         public ModerationLoggingBehavior(
             IServiceProvider serviceProvider,
             IDiscordClient discordClient,
-            IDesignatedChannelService designatedChannelService,
+            DesignatedChannelService designatedChannelService,
+            DiscordRelayService discordRelayService,
             IOptions<ModixConfig> config)
         {
+            _discordRelayService = discordRelayService;
             DiscordClient = discordClient;
             DesignatedChannelService = designatedChannelService;
             Config = config.Value;
@@ -43,7 +44,9 @@ namespace Modix.Behaviors
         /// <inheritdoc />
         public async Task OnModerationActionCreatedAsync(long moderationActionId, ModerationActionCreationData data)
         {
-            if (!await DesignatedChannelService.AnyDesignatedChannelAsync(data.GuildId, DesignatedChannelType.ModerationLog))
+            var designatedChannels = await DesignatedChannelService.GetDesignatedChannelIds(data.GuildId, DesignatedChannelType.ModerationLog);
+
+            if (!designatedChannels.Any())
                 return;
 
             var moderationAction = await ModerationService.GetModerationActionSummaryAsync(moderationActionId);
@@ -73,8 +76,10 @@ namespace Modix.Behaviors
                 moderationAction.OriginalInfractionReason,
                 string.IsNullOrEmpty(moderationAction.Infraction?.RescindReason) ? "" : $"for reason: ```\n{moderationAction.Infraction?.RescindReason}```");
 
-            await DesignatedChannelService.SendToDesignatedChannelsAsync(
-                await DiscordClient.GetGuildAsync(data.GuildId), DesignatedChannelType.ModerationLog, message);
+            foreach (var channel in designatedChannels)
+            {
+                await _discordRelayService.SendMessageToChannel(channel, message);
+            }
         }
 
         /// <summary>
@@ -85,7 +90,7 @@ namespace Modix.Behaviors
         /// <summary>
         /// An <see cref="IDesignatedChannelService"/> for logging moderation actions.
         /// </summary>
-        internal protected IDesignatedChannelService DesignatedChannelService { get; }
+        internal protected DesignatedChannelService DesignatedChannelService { get; }
 
         /// <summary>
         /// An <see cref="IModerationService"/> for performing moderation actions.

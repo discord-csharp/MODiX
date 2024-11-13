@@ -26,20 +26,5 @@ namespace Modix.Data.Models.Core
         /// See <see cref="ConfigurationActionEntity.CreatedById"/>.
         /// </summary>
         public ulong CreatedById { get; set; }
-
-        internal DesignatedChannelMappingEntity ToEntity()
-            => new DesignatedChannelMappingEntity()
-            {
-                GuildId = GuildId,
-                ChannelId = ChannelId,
-                Type = Type,
-                CreateAction = new ConfigurationActionEntity()
-                {
-                    GuildId = GuildId,
-                    Type = ConfigurationActionType.DesignatedChannelMappingCreated,
-                    Created = DateTimeOffset.UtcNow,
-                    CreatedById = CreatedById
-                }
-            };
     }
 }

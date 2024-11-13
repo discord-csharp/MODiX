@@ -11,7 +11,7 @@ using Modix.Services.Utilities;
 
 namespace Modix.Bot.Responders
 {
-    public class StarboardReactionResponder(IStarboardService starboardService, IDesignatedChannelService designatedChannelService)
+    public class StarboardReactionResponder(IStarboardService starboardService, DesignatedChannelService designatedChannelService)
         : INotificationHandler<ReactionAddedNotificationV3>, INotificationHandler<ReactionRemovedNotificationV3>
     {
         public Task Handle(ReactionAddedNotificationV3 notification, CancellationToken cancellationToken)
@@ -35,10 +35,10 @@ namespace Modix.Bot.Responders
             }
 
             var isIgnoredFromStarboard = await designatedChannelService
-                .ChannelHasDesignationAsync(channel.Guild.Id, channel.Id, DesignatedChannelType.IgnoredFromStarboard, default);
+                .ChannelHasDesignation(channel.Guild.Id, channel.Id, DesignatedChannelType.IgnoredFromStarboard, default);
 
             var starboardExists = await designatedChannelService
-                .AnyDesignatedChannelAsync(channel.GuildId, DesignatedChannelType.Starboard);
+                .HasDesignatedChannelForType(channel.GuildId, DesignatedChannelType.Starboard);
 
             if (isIgnoredFromStarboard || !starboardExists)
             {

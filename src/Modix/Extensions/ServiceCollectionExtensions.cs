@@ -161,6 +161,7 @@ internal static class ServiceCollectionExtensions
         services.AddScoped<MessageQuoteEmbedHelper>();
 		services.AddScoped<PasteService>();
 		services.AddScoped<CommandErrorService>();
+		services.AddScoped<DiscordRelayService>();
 
         services.AddMemoryCache();
 

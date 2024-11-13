@@ -80,7 +80,7 @@ namespace Modix.Services.Starboard
     /// <inheritdoc />
     public class StarboardService : IStarboardService
     {
-        private readonly IDesignatedChannelService _designatedChannelService;
+        private readonly DesignatedChannelService _designatedChannelService;
         private readonly IMessageRepository _messageRepository;
         private static readonly IReadOnlyDictionary<int, string> _emojis = new Dictionary<int, string>
         {
@@ -91,7 +91,7 @@ namespace Modix.Services.Starboard
         }.OrderByDescending(k => k.Key).ToDictionary(k => k.Key, k => k.Value);
 
         public StarboardService(
-            IDesignatedChannelService designatedChannelService,
+            DesignatedChannelService designatedChannelService,
             IMessageRepository messageRepository)
         {
             _designatedChannelService = designatedChannelService;
@@ -115,7 +115,7 @@ namespace Modix.Services.Starboard
         private async Task<ITextChannel> GetStarboardChannel(IGuild guild)
         {
             var starboardChannels = await _designatedChannelService
-                .GetDesignatedChannelsAsync(guild, DesignatedChannelType.Starboard);
+                .GetDesignatedChannels(guild, DesignatedChannelType.Starboard);
 
             return starboardChannels.First() as ITextChannel;
         }

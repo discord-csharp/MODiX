@@ -86,7 +86,6 @@ namespace Modix.Modules
 
             var counts = await _moderationService.GetInfractionCountsForUserAsync(user.Id);
 
-            // https://modix.gg/infractions?subject=12345
             var url = new UriBuilder(_config.WebsiteBaseUrl)
             {
                 Path = "/infractions",

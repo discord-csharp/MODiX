@@ -95,7 +95,7 @@ namespace Modix.Services.Moderation
         };
 
         public AttachmentBlacklistBehavior(
-            IDesignatedChannelService designatedChannelService,
+            DesignatedChannelService designatedChannelService,
             DiscordSocketClient discordSocketClient,
             ILogger<AttachmentBlacklistBehavior> logger,
             IModerationService moderationService)
@@ -136,7 +136,7 @@ namespace Modix.Services.Moderation
             }
 
             AttachmentBlacklistLogMessages.ChannelModerationStatusFetching(_logger);
-            var channelIsUnmoderated = await _designatedChannelService.ChannelHasDesignationAsync(
+            var channelIsUnmoderated = await _designatedChannelService.ChannelHasDesignation(
                 guild.Id,
                 channel.Id,
                 DesignatedChannelType.Unmoderated,
@@ -180,7 +180,7 @@ namespace Modix.Services.Moderation
             AttachmentBlacklistLogMessages.ReplySent(_logger);
         }
 
-        private readonly IDesignatedChannelService _designatedChannelService;
+        private readonly DesignatedChannelService _designatedChannelService;
         private readonly DiscordSocketClient _discordSocketClient;
         private readonly ILogger _logger;
         private readonly IModerationService _moderationService;
