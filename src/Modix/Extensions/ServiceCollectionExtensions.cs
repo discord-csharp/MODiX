@@ -21,7 +21,6 @@ using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Services;
 using Modix.Services.AutoRemoveMessage;
-using Modix.Services.CodePaste;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
 using Modix.Services.Csharp;
@@ -154,7 +153,6 @@ internal static class ServiceCollectionExtensions
             .AddModixCore()
             .AddModixModeration()
             .AddModixPromotions()
-            .AddCodePaste()
             .AddCommandHelp()
             .AddGuildStats()
             .AddModixTags()
@@ -167,6 +165,7 @@ internal static class ServiceCollectionExtensions
         services.AddScoped<MessageQuoteEmbedHelper>();
         services.AddScoped<INotificationHandler<ReactionAddedNotification>, StarboardHandler>();
         services.AddScoped<INotificationHandler<ReactionRemovedNotification>, StarboardHandler>();
+		services.AddScoped<PasteService>();
 
         services.AddMemoryCache();
 

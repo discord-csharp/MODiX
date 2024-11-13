@@ -18,7 +18,7 @@ using Modix.Configuration;
 using Modix.Data;
 using Modix.Data.Models.Core;
 using Modix.Extensions;
-using Modix.Services.CodePaste;
+using Modix.Services;
 using Modix.Services.Utilities;
 using Modix.Web;
 using Newtonsoft.Json.Converters;
@@ -107,7 +107,7 @@ namespace Modix
                 if (webhookId.HasValue && webhookToken != null)
                 {
                     lc
-                        .WriteTo.DiscordWebhookSink(webhookId.Value, webhookToken, LogEventLevel.Error, new Lazy<CodePasteService>(sp.GetRequiredService<CodePasteService>));
+                        .WriteTo.DiscordWebhookSink(webhookId.Value, webhookToken, LogEventLevel.Error, new Lazy<PasteService>(sp.GetRequiredService<PasteService>));
                 }
             });
 

@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Webhook;
-using Modix.Services.CodePaste;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Configuration;
@@ -15,7 +14,7 @@ namespace Modix.Services.Utilities;
 
 public sealed class DiscordWebhookSink : ILogEventSink, IAsyncDisposable
 {
-    private readonly Lazy<CodePasteService> _codePasteService;
+    private readonly Lazy<PasteService> _codePasteService;
     private readonly DiscordWebhookClient _discordWebhookClient;
     private readonly IFormatProvider _formatProvider;
     private readonly JsonSerializerSettings _jsonSerializerSettings;
@@ -27,7 +26,7 @@ public sealed class DiscordWebhookSink : ILogEventSink, IAsyncDisposable
         ulong webhookId,
         string webhookToken,
         IFormatProvider formatProvider,
-        Lazy<CodePasteService> codePasteService)
+        Lazy<PasteService> codePasteService)
     {
         _codePasteService = codePasteService;
         _discordWebhookClient = new DiscordWebhookClient(webhookId, webhookToken);
@@ -75,12 +74,15 @@ public sealed class DiscordWebhookSink : ILogEventSink, IAsyncDisposable
 
                     var eventAsJson = JsonConvert.SerializeObject(logEvent, _jsonSerializerSettings);
 
-                    var url = await _codePasteService.Value.UploadCodeAsync(eventAsJson);
+                    var url = await _codePasteService.Value.UploadPaste(eventAsJson);
 
-                    message.AddField(new EmbedFieldBuilder()
-                        .WithIsInline(false)
-                        .WithName("Full Log Event")
-                        .WithValue($"[view on paste.mod.gg]({url})"));
+                    if (!string.IsNullOrWhiteSpace(url))
+                    {
+                        message.AddField(new EmbedFieldBuilder()
+                            .WithIsInline(false)
+                            .WithName("Full Log Event")
+                            .WithValue($"[view on paste.mod.gg]({url})"));
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -121,7 +123,7 @@ public sealed class DiscordWebhookSink : ILogEventSink, IAsyncDisposable
 
 public static class DiscordWebhookSinkExtensions
 {
-    public static LoggerConfiguration DiscordWebhookSink(this LoggerSinkConfiguration config, ulong id, string token, LogEventLevel minLevel, Lazy<CodePasteService> codePasteService)
+    public static LoggerConfiguration DiscordWebhookSink(this LoggerSinkConfiguration config, ulong id, string token, LogEventLevel minLevel, Lazy<PasteService> codePasteService)
         => config.Sink(new DiscordWebhookSink(id, token, null, codePasteService), minLevel);
 }
 
