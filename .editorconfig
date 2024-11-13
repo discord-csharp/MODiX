@@ -42,7 +42,7 @@ dotnet_style_predefined_type_for_locals_parameters_members = true:suggestion
 dotnet_style_predefined_type_for_member_access = true:suggestion
 
 # Modifier settings
-dotnet_style_require_accessibility_modifiers = always:error
+dotnet_style_require_accessibility_modifiers = always:suggestion
 dotnet_style_readonly_field = true:suggestion
 
 # Parentheses settings

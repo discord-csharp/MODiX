@@ -17,6 +17,7 @@ using Modix.Authentication;
 using Modix.Configuration;
 using Modix.Data;
 using Modix.Data.Models.Core;
+using Modix.Extensions;
 using Modix.Services.CodePaste;
 using Modix.Services.Utilities;
 using Modix.Web;

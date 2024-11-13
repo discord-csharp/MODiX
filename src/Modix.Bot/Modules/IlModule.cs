@@ -23,12 +23,12 @@ namespace Modix.Modules
         private const string DefaultIlRemoteUrl = "http://csdiscord-repl-service:31337/Il";
         private readonly string _ilUrl;
         private readonly CodePasteService _pasteService;
-        private readonly IAutoRemoveMessageService _autoRemoveMessageService;
+        private readonly AutoRemoveMessageService _autoRemoveMessageService;
         private readonly IHttpClientFactory _httpClientFactory;
 
         public IlModule(
             CodePasteService pasteService,
-            IAutoRemoveMessageService autoRemoveMessageService,
+            AutoRemoveMessageService autoRemoveMessageService,
             IHttpClientFactory httpClientFactory,
             IOptions<ModixConfig> modixConfig)
         {

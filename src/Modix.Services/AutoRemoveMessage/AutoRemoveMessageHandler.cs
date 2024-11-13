@@ -18,7 +18,7 @@ namespace Modix.Services.AutoRemoveMessage
     {
         public AutoRemoveMessageHandler(
             IMemoryCache cache,
-            IAutoRemoveMessageService autoRemoveMessageService)
+            AutoRemoveMessageService autoRemoveMessageService)
         {
             Cache = cache;
             AutoRemoveMessageService = autoRemoveMessageService;
@@ -75,7 +75,7 @@ namespace Modix.Services.AutoRemoveMessage
 
         protected IMemoryCache Cache { get; }
 
-        protected IAutoRemoveMessageService AutoRemoveMessageService { get; }
+        protected AutoRemoveMessageService AutoRemoveMessageService { get; }
 
         private static object GetKey(ulong messageId)
             => new

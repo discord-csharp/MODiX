@@ -2,6 +2,7 @@
   <ItemGroup>
     <PackageReference Include="Discord.Net" />
     <PackageReference Include="Humanizer.Core" />
+    <PackageReference Include="MediatR" Version="12.4.1" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" />
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Newtonsoft.Json" />

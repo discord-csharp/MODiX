@@ -16,9 +16,9 @@ namespace Modix.Bot.Modules
     [ModuleHelp("SharpLab", "Commands for working with SharpLab.")]
     public class SharpLabModule : InteractionModuleBase
     {
-        private readonly IAutoRemoveMessageService _autoRemoveMessageService;
+        private readonly AutoRemoveMessageService _autoRemoveMessageService;
 
-        public SharpLabModule(IAutoRemoveMessageService autoRemoveMessageService)
+        public SharpLabModule(AutoRemoveMessageService autoRemoveMessageService)
         {
             _autoRemoveMessageService = autoRemoveMessageService;
         }

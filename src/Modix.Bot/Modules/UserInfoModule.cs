@@ -43,9 +43,8 @@ namespace Modix.Modules
         private readonly IPromotionsService _promotionsService;
         private readonly IImageService _imageService;
         private readonly ModixConfig _config;
-        private readonly IAutoRemoveMessageService _autoRemoveMessageService;
+        private readonly AutoRemoveMessageService _autoRemoveMessageService;
 
-        //optimization: UtcNow is slow and the module is created per-request
         private readonly DateTime _utcNow = DateTime.UtcNow;
 
         public UserInfoModule(
@@ -58,9 +57,9 @@ namespace Modix.Modules
             IPromotionsService promotionsService,
             IImageService imageService,
             IOptions<ModixConfig> config,
-            IAutoRemoveMessageService autoRemoveMessageService)
+            AutoRemoveMessageService autoRemoveMessageService)
         {
-            _log = logger ?? new NullLogger<UserInfoModule>();
+            _log = logger;
             _userService = userService;
             _moderationService = moderationService;
             _authorizationService = authorizationService;

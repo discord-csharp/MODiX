@@ -14,14 +14,14 @@ namespace Modix.Modules
     [HelpTags("docs")]
     public class DocumentationModule : InteractionModuleBase
     {
-        private readonly IAutoRemoveMessageService _autoRemoveMessageService;
+        private readonly AutoRemoveMessageService _autoRemoveMessageService;
         private readonly DocumentationService _documentationService;
 
         // lang=regex
         private const string QueryPattern = "^[0-9A-Za-z.<>]$";
 
         public DocumentationModule(DocumentationService documentationService,
-            IAutoRemoveMessageService autoRemoveMessageService)
+            AutoRemoveMessageService autoRemoveMessageService)
         {
             _documentationService = documentationService;
             _autoRemoveMessageService = autoRemoveMessageService;
