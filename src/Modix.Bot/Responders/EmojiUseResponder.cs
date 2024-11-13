@@ -2,42 +2,26 @@
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Discord;
 using Discord.WebSocket;
-
-using Modix.Common.Messaging;
+using MediatR;
+using Modix.Bot.Notifications;
 using Modix.Data.Models.Emoji;
 using Modix.Data.Repositories;
 using Modix.Services.Utilities;
 
-namespace Modix.Services.EmojiStats
+namespace Modix.Bot.Responders
 {
-    /// <summary>
-    /// Implements a handler that maintains MODiX's record of emoji.
-    /// </summary>
-    public sealed class EmojiUsageHandler :
-        INotificationHandler<ReactionAddedNotification>,
-        INotificationHandler<ReactionRemovedNotification>,
-        INotificationHandler<MessageReceivedNotification>,
-        INotificationHandler<MessageUpdatedNotification>,
-        INotificationHandler<MessageDeletedNotification>
+    public sealed class EmojiUseResponder(IEmojiRepository emojiRepository) :
+        INotificationHandler<ReactionAddedNotificationV3>,
+        INotificationHandler<ReactionRemovedNotificationV3>,
+        INotificationHandler<MessageReceivedNotificationV3>,
+        INotificationHandler<MessageUpdatedNotificationV3>,
+        INotificationHandler<MessageDeletedNotificationV3>
     {
-        private readonly IEmojiRepository _emojiRepository;
+        private static readonly Regex _emojiRegex = new($@"(<a?:\w+:[0-9]+>|{EmojiUtilities.EmojiPattern})", RegexOptions.Compiled);
 
-        public static readonly Regex EmojiRegex = new($@"(<a?:\w+:[0-9]+>|{EmojiUtilities.EmojiPattern})", RegexOptions.Compiled);
-
-        /// <summary>
-        /// Constructs a new <see cref="EmojiUsageHandler"/> object with the given injected dependencies.
-        /// </summary>
-        /// <param name="emojiRepository">Repository for managing emoji entities within an underlying data storage provider.</param>
-        public EmojiUsageHandler(
-            IEmojiRepository emojiRepository)
-        {
-            _emojiRepository = emojiRepository;
-        }
-
-        public async Task HandleNotificationAsync(ReactionAddedNotification notification, CancellationToken cancellationToken)
+        public async Task Handle(ReactionAddedNotificationV3 notification, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;
@@ -59,21 +43,11 @@ namespace Modix.Services.EmojiStats
             await LogReactionAsync(channel, message, reaction, emote);
         }
 
-        /// <summary>
-        /// Logs a reaction in the database.
-        /// </summary>
-        /// <param name="channel">The channel that the emoji was used in.</param>
-        /// <param name="message">The message associated with the emoji.</param>
-        /// <param name="reaction">The emoji that was used.</param>
-        /// <param name="emote">The emote that was used, if any.</param>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation completes.
-        /// </returns>
         private async Task LogReactionAsync(ITextChannel channel, IUserMessage message, SocketReaction reaction, Emote emote)
         {
-            using var transaction = await _emojiRepository.BeginMaintainTransactionAsync();
+            using var transaction = await emojiRepository.BeginMaintainTransactionAsync();
 
-            await _emojiRepository.CreateAsync(new EmojiCreationData()
+            await emojiRepository.CreateAsync(new EmojiCreationData()
             {
                 GuildId = channel.GuildId,
                 ChannelId = channel.Id,
@@ -88,7 +62,7 @@ namespace Modix.Services.EmojiStats
             transaction.Commit();
         }
 
-        public async Task HandleNotificationAsync(ReactionRemovedNotification notification, CancellationToken cancellationToken)
+        public async Task Handle(ReactionRemovedNotificationV3 notification, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;
@@ -110,21 +84,11 @@ namespace Modix.Services.EmojiStats
             await UnlogReactionAsync(channel, message, reaction, emote);
         }
 
-        /// <summary>
-        /// Unlogs an emoji from the database.
-        /// </summary>
-        /// <param name="channel">The channel that the emoji was used in.</param>
-        /// <param name="message">The message associated with the emoji.</param>
-        /// <param name="reaction">The emoji that was used.</param>
-        /// <param name="emote">The emote that was used, if any.</param>
-        /// <returns>
-        /// A <see cref="Task"/> that will complete when the operation completes.
-        /// </returns>
         private async Task UnlogReactionAsync(ITextChannel channel, IUserMessage message, SocketReaction reaction, Emote emote)
         {
-            using var transaction = await _emojiRepository.BeginMaintainTransactionAsync();
+            using var transaction = await emojiRepository.BeginMaintainTransactionAsync();
 
-            await _emojiRepository.DeleteAsync(new EmojiSearchCriteria()
+            await emojiRepository.DeleteAsync(new EmojiSearchCriteria()
             {
                 GuildId = channel.GuildId,
                 ChannelId = channel.Id,
@@ -140,7 +104,7 @@ namespace Modix.Services.EmojiStats
             transaction.Commit();
         }
 
-        public async Task HandleNotificationAsync(MessageReceivedNotification notification, CancellationToken cancellationToken)
+        public async Task Handle(MessageReceivedNotificationV3 notification, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;
@@ -151,12 +115,12 @@ namespace Modix.Services.EmojiStats
             if (notification.Message is not { Author: { IsBot: false }, Content: not null } message)
                 return;
 
-            var newEmoji = EmojiRegex.Matches(message.Content);
+            var newEmoji = _emojiRegex.Matches(message.Content);
 
             if (newEmoji.Count == 0)
                 return;
 
-            foreach (var (emoji, count) in newEmoji.Cast<Match>().GroupBy(x => x.Value).Select(x => (x.Key, x.Count())))
+            foreach (var (emoji, count) in newEmoji.GroupBy(x => x.Value).Select(x => (x.Key, x.Count())))
             {
                 var isEmote = Emote.TryParse(emoji, out var emote);
 
@@ -164,7 +128,7 @@ namespace Modix.Services.EmojiStats
             }
         }
 
-        public async Task HandleNotificationAsync(MessageUpdatedNotification notification, CancellationToken cancellationToken)
+        public async Task Handle(MessageUpdatedNotificationV3 notification, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;
@@ -180,7 +144,7 @@ namespace Modix.Services.EmojiStats
             if (notification.NewMessage is not { Author: { IsBot: false }, Content: not null } newMessage)
                 return;
 
-            var newEmoji = EmojiRegex.Matches(newMessage.Content);
+            var newEmoji = _emojiRegex.Matches(newMessage.Content);
 
             if (newEmoji.Count == 0)
                 return;
@@ -193,7 +157,7 @@ namespace Modix.Services.EmojiStats
             }
         }
 
-        public async Task HandleNotificationAsync(MessageDeletedNotification notification, CancellationToken cancellationToken)
+        public async Task Handle(MessageDeletedNotificationV3 notification, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)
                 return;
@@ -209,9 +173,9 @@ namespace Modix.Services.EmojiStats
 
         private async Task LogMultipleMessageEmojiAsync(ITextChannel channel, IMessage message, string emoji, Emote emote, int count)
         {
-            using var transaction = await _emojiRepository.BeginMaintainTransactionAsync();
+            using var transaction = await emojiRepository.BeginMaintainTransactionAsync();
 
-            await _emojiRepository.CreateMultipleAsync(new EmojiCreationData()
+            await emojiRepository.CreateMultipleAsync(new EmojiCreationData()
             {
                 GuildId = channel.GuildId,
                 ChannelId = channel.Id,
@@ -229,9 +193,9 @@ namespace Modix.Services.EmojiStats
 
         private async Task UnlogMessageContentEmojiAsync(ITextChannel channel, ulong messageId)
         {
-            using var transaction = await _emojiRepository.BeginMaintainTransactionAsync();
+            using var transaction = await emojiRepository.BeginMaintainTransactionAsync();
 
-            await _emojiRepository.DeleteAsync(new EmojiSearchCriteria()
+            await emojiRepository.DeleteAsync(new EmojiSearchCriteria()
             {
                 GuildId = channel.GuildId,
                 ChannelId = channel.Id,
@@ -244,9 +208,9 @@ namespace Modix.Services.EmojiStats
 
         private async Task UnlogAllEmojiAsync(ITextChannel channel, ulong messageId)
         {
-            using var transaction = await _emojiRepository.BeginMaintainTransactionAsync();
+            using var transaction = await emojiRepository.BeginMaintainTransactionAsync();
 
-            await _emojiRepository.DeleteAsync(new EmojiSearchCriteria()
+            await emojiRepository.DeleteAsync(new EmojiSearchCriteria()
             {
                 GuildId = channel.GuildId,
                 ChannelId = channel.Id,

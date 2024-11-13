@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Microsoft.Extensions.Options;
+using Modix.Bot.Responders.AutoRemoveMessages;
 using Modix.Data.Models.Core;
 using Modix.Services;
 using Modix.Services.AutoRemoveMessage;

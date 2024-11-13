@@ -4,9 +4,12 @@ using MediatR;
 
 namespace Modix.Bot.Notifications;
 
-public class MessageUpdatedNotificationV3(Cacheable<IMessage, ulong> cachedMessage, SocketMessage newMessage, ISocketMessageChannel channel) : INotification
+public class MessageUpdatedNotificationV3(
+    Cacheable<IMessage, ulong> oldMessage,
+    SocketMessage newMessage,
+    ISocketMessageChannel channel) : INotification
 {
-    public Cacheable<IMessage, ulong> Cached { get; } = cachedMessage;
-    public SocketMessage Message { get; } = newMessage;
+    public Cacheable<IMessage, ulong> OldMessage { get; } = oldMessage;
+    public SocketMessage NewMessage { get; } = newMessage;
     public ISocketMessageChannel Channel { get; } = channel;
 }

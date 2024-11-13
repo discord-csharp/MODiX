@@ -1,8 +1,9 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using MediatR;
+using Modix.Bot.Notifications;
 using Modix.Bot.Responders.MessageQuotes;
-using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Services.Core;
 using Modix.Services.Starboard;
@@ -10,31 +11,19 @@ using Modix.Services.Utilities;
 
 namespace Modix.Bot.Responders
 {
-    public class StarboardHandler :
-        INotificationHandler<ReactionAddedNotification>,
-        INotificationHandler<ReactionRemovedNotification>
+    public class StarboardReactionResponder(IStarboardService starboardService, IDesignatedChannelService designatedChannelService)
+        : INotificationHandler<ReactionAddedNotificationV3>, INotificationHandler<ReactionRemovedNotificationV3>
     {
-        private readonly IStarboardService _starboardService;
-        private readonly IDesignatedChannelService _designatedChannelService;
-
-        public StarboardHandler(
-            IStarboardService starboardService,
-            IDesignatedChannelService designatedChannelService)
-        {
-            _starboardService = starboardService;
-            _designatedChannelService = designatedChannelService;
-        }
-
-        public Task HandleNotificationAsync(ReactionAddedNotification notification, CancellationToken cancellationToken)
+        public Task Handle(ReactionAddedNotificationV3 notification, CancellationToken cancellationToken)
             => HandleReactionAsync(notification.Message, notification.Reaction);
 
-        public Task HandleNotificationAsync(ReactionRemovedNotification notification, CancellationToken cancellationToken)
+        public Task Handle(ReactionRemovedNotificationV3 notification, CancellationToken cancellationToken)
             => HandleReactionAsync(notification.Message, notification.Reaction);
 
         private async Task HandleReactionAsync(Cacheable<IUserMessage, ulong> cachedMessage, IReaction reaction)
         {
             var emote = reaction.Emote;
-            if (!_starboardService.IsStarEmote(emote))
+            if (!starboardService.IsStarEmote(emote))
             {
                 return;
             }
@@ -45,10 +34,10 @@ namespace Modix.Bot.Responders
                 return;
             }
 
-            var isIgnoredFromStarboard = await _designatedChannelService
+            var isIgnoredFromStarboard = await designatedChannelService
                 .ChannelHasDesignationAsync(channel.Guild.Id, channel.Id, DesignatedChannelType.IgnoredFromStarboard, default);
 
-            var starboardExists = await _designatedChannelService
+            var starboardExists = await designatedChannelService
                 .AnyDesignatedChannelAsync(channel.GuildId, DesignatedChannelType.Starboard);
 
             if (isIgnoredFromStarboard || !starboardExists)
@@ -56,26 +45,26 @@ namespace Modix.Bot.Responders
                 return;
             }
 
-            var reactionCount = await _starboardService.GetReactionCount(message, emote);
+            var reactionCount = await starboardService.GetReactionCount(message, emote);
 
-            if (await _starboardService.ExistsOnStarboard(message))
+            if (await starboardService.ExistsOnStarboard(message))
             {
-                if (_starboardService.IsAboveReactionThreshold(reactionCount))
+                if (starboardService.IsAboveReactionThreshold(reactionCount))
                 {
-                    await _starboardService.ModifyEntry(channel.Guild, message, FormatContent(reactionCount), GetEmbedColor(reactionCount));
+                    await starboardService.ModifyEntry(channel.Guild, message, FormatContent(reactionCount), GetEmbedColor(reactionCount));
                 }
                 else
                 {
-                    await _starboardService.RemoveFromStarboard(channel.Guild, message);
+                    await starboardService.RemoveFromStarboard(channel.Guild, message);
                 }
             }
-            else if (_starboardService.IsAboveReactionThreshold(reactionCount))
+            else if (starboardService.IsAboveReactionThreshold(reactionCount))
             {
                 var embed = GetStarEmbed(message, GetEmbedColor(reactionCount));
 
                 if (embed is { })
                 {
-                    await _starboardService.AddToStarboard(channel.Guild, message, FormatContent(reactionCount), embed);
+                    await starboardService.AddToStarboard(channel.Guild, message, FormatContent(reactionCount), embed);
                 }
             }
         }
@@ -96,7 +85,7 @@ namespace Modix.Bot.Responders
 
         private string FormatContent(int reactionCount)
         {
-            return $"**{reactionCount}** {_starboardService.GetStarEmote(reactionCount)}";
+            return $"**{reactionCount}** {starboardService.GetStarEmote(reactionCount)}";
         }
 
         private Embed GetStarEmbed(IUserMessage message, Color color)

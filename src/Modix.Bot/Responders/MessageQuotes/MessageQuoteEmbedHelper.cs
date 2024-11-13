@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Humanizer.Bytes;
+using Modix.Bot.Responders.AutoRemoveMessages;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.Utilities;
 
