@@ -8,12 +8,10 @@ using Discord.Rest;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Modix.Behaviors;
 using Modix.Bot;
 using Modix.Bot.Behaviors;
-using Modix.Bot.Responders;
 using Modix.Bot.Responders.AutoRemoveMessages;
 using Modix.Bot.Responders.CommandErrors;
 using Modix.Bot.Responders.MessageQuotes;
@@ -22,10 +20,8 @@ using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Services;
-using Modix.Services.AutoRemoveMessage;
 using Modix.Services.CommandHelp;
 using Modix.Services.Core;
-using Modix.Services.Csharp;
 using Modix.Services.EmojiStats;
 using Modix.Services.GuildStats;
 using Modix.Services.Images;
@@ -34,7 +30,6 @@ using Modix.Services.Promotions;
 using Modix.Services.Starboard;
 using Modix.Services.Tags;
 using Modix.Services.Utilities;
-using Modix.Services.Wikipedia;
 using Polly;
 using Polly.Extensions.Http;
 
@@ -168,9 +163,6 @@ internal static class ServiceCollectionExtensions
 		services.AddScoped<CommandErrorService>();
 
         services.AddMemoryCache();
-
-        services.AddScoped<WikipediaService>();
-        services.AddScoped<DocumentationService>();
 
         services.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>();
         services.AddScoped<INotificationHandler<PromotionActionCreatedNotification>, PromotionLoggingHandler>();
