@@ -24,7 +24,7 @@ namespace Modix.Services.MessageLogging
             INotificationHandler<MessageUpdatedNotification>
     {
         public MessageLoggingBehavior(
-            IDesignatedChannelService designatedChannelService,
+            DesignatedChannelService designatedChannelService,
             DiscordSocketClient discordSocketClient,
             ILogger<MessageLoggingBehavior> logger)
         {
@@ -175,7 +175,7 @@ namespace Modix.Services.MessageLogging
                 return;
             }
 
-            var channelIsUnmoderated = await _designatedChannelService.ChannelHasDesignationAsync(
+            var channelIsUnmoderated = await _designatedChannelService.ChannelHasDesignation(
                 guild.Id,
                 channel.Id,
                 DesignatedChannelType.Unmoderated,
@@ -187,7 +187,7 @@ namespace Modix.Services.MessageLogging
             }
             MessageLoggingLogMessages.ModeratedChannelIdentified(_logger);
 
-            var messageLogChannels = await _designatedChannelService.GetDesignatedChannelsAsync(
+            var messageLogChannels = await _designatedChannelService.GetDesignatedChannels(
                 guild,
                 DesignatedChannelType.MessageLog);
             if (messageLogChannels.Count == 0)
@@ -207,7 +207,7 @@ namespace Modix.Services.MessageLogging
             }
         }
 
-        private readonly IDesignatedChannelService _designatedChannelService;
+        private readonly DesignatedChannelService _designatedChannelService;
         private readonly DiscordSocketClient _discordSocketClient;
         private readonly ILogger _logger;
     }

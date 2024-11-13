@@ -12,6 +12,7 @@ using Modix.Common.Extensions;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
+using Modix.Services;
 using Modix.Services.Core;
 using Modix.Services.Promotions;
 using Modix.Services.Utilities;
@@ -24,17 +25,21 @@ namespace Modix.Behaviors
     public class PromotionLoggingHandler :
         INotificationHandler<PromotionActionCreatedNotification>
     {
+        private readonly DiscordRelayService _discordRelayService;
+
         /// <summary>
         /// Constructs a new <see cref="PromotionLoggingHandler"/> object, with injected dependencies.
         /// </summary>
         public PromotionLoggingHandler(
             IAuthorizationService authorizationService,
             DiscordSocketClient discordSocketClient,
-            IDesignatedChannelService designatedChannelService,
+            DesignatedChannelService designatedChannelService,
             IUserService userService,
             IPromotionsService promotionsService,
+            DiscordRelayService discordRelayService,
             IOptions<ModixConfig> modixConfig)
         {
+            _discordRelayService = discordRelayService;
             AuthorizationService = authorizationService;
             DiscordSocketClient = discordSocketClient;
             DesignatedChannelService = designatedChannelService;
@@ -49,26 +54,36 @@ namespace Modix.Behaviors
             if (AuthorizationService.CurrentUserId is null)
                 await AuthorizationService.OnAuthenticatedAsync(DiscordSocketClient.CurrentUser);
 
-            if (await DesignatedChannelService.AnyDesignatedChannelAsync(notification.Data.GuildId, DesignatedChannelType.PromotionLog))
+            if (await DesignatedChannelService.HasDesignatedChannelForType(notification.Data.GuildId, DesignatedChannelType.PromotionLog))
             {
                 var message = await FormatPromotionLogEntryAsync(notification.Id);
 
                 if (message == null)
                     return;
 
-                await DesignatedChannelService.SendToDesignatedChannelsAsync(
-                    await DiscordSocketClient.GetGuildAsync(notification.Data.GuildId), DesignatedChannelType.PromotionLog, message);
+                var designatedChannels = await DesignatedChannelService.GetDesignatedChannelIds(notification.Data.GuildId,
+                    DesignatedChannelType.PromotionLog);
+
+                foreach (var channel in designatedChannels)
+                {
+                    await _discordRelayService.SendMessageToChannel(channel, message);
+                }
             }
 
-            if (await DesignatedChannelService.AnyDesignatedChannelAsync(notification.Data.GuildId, DesignatedChannelType.PromotionNotifications))
+            if (await DesignatedChannelService.HasDesignatedChannelForType(notification.Data.GuildId, DesignatedChannelType.PromotionNotifications))
             {
                 var embed = await FormatPromotionNotificationAsync(notification.Id, notification.Data);
 
                 if (embed == null)
                     return;
 
-                await DesignatedChannelService.SendToDesignatedChannelsAsync(
-                    await DiscordSocketClient.GetGuildAsync(notification.Data.GuildId), DesignatedChannelType.PromotionNotifications, "", embed);
+                var designatedChannels = await DesignatedChannelService.GetDesignatedChannelIds(notification.Data.GuildId,
+                    DesignatedChannelType.PromotionNotifications);
+
+                foreach (var channel in designatedChannels)
+                {
+                    await _discordRelayService.SendMessageToChannel(channel, string.Empty, embed);
+                }
             }
         }
 
@@ -144,7 +159,7 @@ namespace Modix.Behaviors
         /// <summary>
         /// An <see cref="IDesignatedChannelService"/> for logging moderation actions.
         /// </summary>
-        internal protected IDesignatedChannelService DesignatedChannelService { get; }
+        internal protected DesignatedChannelService DesignatedChannelService { get; }
 
         /// <summary>
         /// An <see cref="IUserService"/> for retrieving user info

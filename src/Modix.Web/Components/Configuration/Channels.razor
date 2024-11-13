@@ -1,12 +1,10 @@
 ﻿@using Modix.Data.Models.Core;
-@using Modix.Services.Core;
 @using Modix.Web.Models.Common;
 @using Modix.Web.Models.Configuration;
-@using Modix.Web.Models.UserLookup;
 @using Modix.Web.Services;
 @using MudBlazor
 @using Humanizer;
-@using System.Security.Claims;
+@using Modix.Services
 
 <PageTitle>Modix - Channels</PageTitle>
 <MudText Typo="Typo.h4">Channel Designations</MudText>
@@ -93,7 +91,7 @@
     public DiscordHelper DiscordHelper { get; set; } = null!;
 
     [Inject]
-    public IDesignatedChannelService DesignatedChannelService { get; set; } = null!;
+    public DesignatedChannelService DesignatedChannelService { get; set; } = null!;
 
     [Inject]
     public ISnackbar Snackbar { get; set; } = null!;
@@ -111,7 +109,7 @@
             return;
 
         var currentGuild = DiscordHelper.GetUserGuild();
-        var designatedChannels = await DesignatedChannelService.GetDesignatedChannelsAsync(currentGuild.Id);
+        var designatedChannels = await DesignatedChannelService.GetDesignatedChannels(currentGuild.Id);
 
         DesignatedChannelMappings = designatedChannels
             .Select(d => new DesignatedChannelData(d.Id, d.Channel.Id, d.Type, currentGuild?.GetChannel(d.Channel.Id)?.Name ?? d.Channel.Name))
@@ -143,7 +141,7 @@
         var currentGuild = DiscordHelper.GetUserGuild();
         var channel = (Discord.IMessageChannel)currentGuild.GetChannel(_selectedChannel!.Id);
 
-        var id = await DesignatedChannelService.AddDesignatedChannelAsync(currentGuild, channel, _selectedDesignatedChannelType!.Value);
+        var id = await DesignatedChannelService.AddDesignatedChannel(currentGuild, channel, _selectedDesignatedChannelType!.Value);
 
         _createDialogVisible = false;
 
@@ -159,7 +157,7 @@
 
     public async Task RemoveDesignation(long id, DesignatedChannelType designatedChannelType)
     {
-        await DesignatedChannelService.RemoveDesignatedChannelByIdAsync(id);
+        await DesignatedChannelService.RemoveDesignatedChannelById(id);
 
         var channelMappingsWithType = DesignatedChannelMappings![designatedChannelType];
         var removedChannelMapping = channelMappingsWithType.First(x => x.Id == id);

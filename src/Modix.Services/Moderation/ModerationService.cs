@@ -82,7 +82,7 @@ namespace Modix.Services.Moderation
         private readonly IDeletedMessageRepository _deletedMessageRepository;
         private readonly IDeletedMessageBatchRepository _deletedMessageBatchRepository;
         private readonly IRoleService _roleService;
-        private readonly IDesignatedChannelService _designatedChannelService;
+        private readonly DesignatedChannelService _designatedChannelService;
 
         // TODO: Push this to a bot-wide config? Or maybe on a per-guild basis, but with a bot-wide default, that's pulled from config?
         private const string MuteRoleName = "MODiX_Moderation_Mute";
@@ -100,7 +100,7 @@ namespace Modix.Services.Moderation
             IDeletedMessageRepository deletedMessageRepository,
             IDeletedMessageBatchRepository deletedMessageBatchRepository,
             IRoleService roleService,
-            IDesignatedChannelService designatedChannelService)
+            DesignatedChannelService designatedChannelService)
         {
             _discordClient = discordClient;
             _authorizationService = authorizationService;
@@ -128,7 +128,7 @@ namespace Modix.Services.Moderation
             var muteRole = await GetOrCreateDesignatedMuteRoleAsync(guild, _authorizationService.CurrentUserId!.Value);
 
             var unmoderatedChannels =
-                await _designatedChannelService.GetDesignatedChannelIdsAsync(guild.Id,
+                await _designatedChannelService.GetDesignatedChannelIds(guild.Id,
                     DesignatedChannelType.Unmoderated);
 
             var nonCategoryChannels =
@@ -169,7 +169,7 @@ namespace Modix.Services.Moderation
 
             if (channel is IGuildChannel guildChannel)
             {
-                var isUnmoderated = await _designatedChannelService.ChannelHasDesignationAsync(guildChannel.Guild.Id,
+                var isUnmoderated = await _designatedChannelService.ChannelHasDesignation(guildChannel.Guild.Id,
                     channel.Id, DesignatedChannelType.Unmoderated, default);
 
                 if (isUnmoderated)

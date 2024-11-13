@@ -35,11 +35,10 @@ namespace Modix.Services.Core
                 .AddScoped<IGuildChannelRepository, GuildChannelRepository>()
                 .AddScoped<IGuildRoleRepository, GuildRoleRepository>()
                 .AddScoped<IGuildUserRepository, GuildUserRepository>()
-                .AddScoped<IDesignatedChannelService, DesignatedChannelService>()
+                .AddScoped<DesignatedChannelService>()
                 .AddScoped<IDesignatedRoleService, DesignatedRoleService>()
                 .AddScoped<IClaimMappingRepository, ClaimMappingRepository>()
                 .AddScoped<IConfigurationActionRepository, ConfigurationActionRepository>()
-                .AddScoped<IDesignatedChannelMappingRepository, DesignatedChannelMappingRepository>()
                 .AddScoped<IDesignatedRoleMappingRepository, DesignatedRoleMappingRepository>()
                 .AddScoped<IMessageRepository, MessageRepository>()
                 .AddScoped<IMessageService, MessageService>();
