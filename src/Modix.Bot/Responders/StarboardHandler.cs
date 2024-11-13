@@ -1,13 +1,14 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using Modix.Bot.Responders.MessageQuotes;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Services.Core;
-using Modix.Services.Quote;
+using Modix.Services.Starboard;
 using Modix.Services.Utilities;
 
-namespace Modix.Services.Starboard
+namespace Modix.Bot.Responders
 {
     public class StarboardHandler :
         INotificationHandler<ReactionAddedNotification>,
@@ -15,16 +16,13 @@ namespace Modix.Services.Starboard
     {
         private readonly IStarboardService _starboardService;
         private readonly IDesignatedChannelService _designatedChannelService;
-        private readonly IQuoteService _quoteService;
 
         public StarboardHandler(
             IStarboardService starboardService,
-            IDesignatedChannelService designatedChannelService,
-            IQuoteService quoteService)
+            IDesignatedChannelService designatedChannelService)
         {
             _starboardService = starboardService;
             _designatedChannelService = designatedChannelService;
-            _quoteService = quoteService;
         }
 
         public Task HandleNotificationAsync(ReactionAddedNotification notification, CancellationToken cancellationToken)
@@ -104,7 +102,7 @@ namespace Modix.Services.Starboard
         private Embed GetStarEmbed(IUserMessage message, Color color)
         {
             var author = message.Author as IGuildUser;
-            var embed = _quoteService.BuildQuoteEmbed(message, author);
+            var embed = MessageQuoteEmbedHelper.BuildQuoteEmbed(message, author);
 
             if (embed is null)
             {

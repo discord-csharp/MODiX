@@ -10,78 +10,58 @@ using Discord.Commands;
 using Discord.Interactions;
 using Discord.Rest;
 using Discord.WebSocket;
+using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Modix.Bot.Notifications;
 using Modix.Data.Models.Core;
 
-namespace Modix
+namespace Modix.Bot
 {
-    public sealed class ModixBot : BackgroundService
+    public sealed class ModixBot(
+        DiscordSocketClient discordSocketClient,
+        DiscordRestClient discordRestClient,
+        IOptions<ModixConfig> modixConfig,
+        CommandService commandService,
+        InteractionService interactionService,
+        DiscordSerilogAdapter discordSerilogAdapter,
+        IHostApplicationLifetime hostApplicationLifetime,
+        IServiceProvider serviceProvider,
+        ILogger<ModixBot> logger,
+        IHostEnvironment hostEnvironment) : BackgroundService
     {
-        private readonly DiscordSocketClient _client;
-        private readonly DiscordRestClient _restClient;
-        private readonly CommandService _commands;
-        private readonly InteractionService _interactions;
-        private readonly IServiceProvider _provider;
-        private readonly ModixConfig _config;
-        private readonly DiscordSerilogAdapter _serilogAdapter;
-        private readonly IHostApplicationLifetime _applicationLifetime;
-        private readonly IHostEnvironment _env;
         private IServiceScope _scope;
         private readonly ConcurrentDictionary<ICommandContext, IServiceScope> _commandScopes = new();
-
-        public ModixBot(
-            DiscordSocketClient discordClient,
-            DiscordRestClient restClient,
-            IOptions<ModixConfig> modixConfig,
-            CommandService commandService,
-            InteractionService interactions,
-            DiscordSerilogAdapter serilogAdapter,
-            IHostApplicationLifetime applicationLifetime,
-            IServiceProvider serviceProvider,
-            ILogger<ModixBot> logger,
-            IHostEnvironment env)
-        {
-            _client = discordClient ?? throw new ArgumentNullException(nameof(discordClient));
-            _restClient = restClient ?? throw new ArgumentNullException(nameof(restClient));
-            _config = modixConfig?.Value ?? throw new ArgumentNullException(nameof(modixConfig));
-            _commands = commandService ?? throw new ArgumentNullException(nameof(commandService));
-            _interactions = interactions ?? throw new ArgumentNullException(nameof(interactions));
-            _provider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            _serilogAdapter = serilogAdapter ?? throw new ArgumentNullException(nameof(serilogAdapter));
-            _applicationLifetime = applicationLifetime ?? throw new ArgumentNullException(nameof(applicationLifetime));
-            Log = logger ?? throw new ArgumentNullException(nameof(logger));
-            _env = env;
-        }
-
-        private ILogger<ModixBot> Log { get; }
+        private TaskCompletionSource<object> _whenReadySource;
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-us");
             Thread.CurrentThread.CurrentUICulture = Thread.CurrentThread.CurrentCulture;
 
-            Log.LogInformation("Starting bot background service.");
+            logger.LogInformation("Starting bot background service");
 
             IServiceScope scope = null;
+
             try
             {
                 // Create a new scope for the session.
-                scope = _provider.CreateScope();
+                scope = serviceProvider.CreateScope();
 
-                Log.LogTrace("Registering listeners for Discord client events.");
+                logger.LogTrace("Registering listeners for Discord client events");
 
-                _client.LatencyUpdated += OnLatencyUpdated;
-                _client.Disconnected += OnDisconnect;
+                discordSocketClient.LatencyUpdated += OnLatencyUpdated;
+                discordSocketClient.Disconnected += OnDisconnect;
+                discordSocketClient.Log += discordSerilogAdapter.HandleLog;
+                discordSocketClient.Ready += OnClientReady;
+                discordSocketClient.MessageReceived += OnMessageReceived;
+                discordSocketClient.MessageUpdated += OnMessageUpdated;
 
-                _client.Log += _serilogAdapter.HandleLog;
-                _restClient.Log += _serilogAdapter.HandleLog;
-                _commands.Log += _serilogAdapter.HandleLog;
+                discordRestClient.Log += discordSerilogAdapter.HandleLog;
+                commandService.Log += discordSerilogAdapter.HandleLog;
 
-                // Register with the cancellation token so we can stop listening to client events if the service is
-                // shutting down or being disposed.
                 stoppingToken.Register(OnStopping);
 
                 // The only thing that could go wrong at this point is the client failing to login and start. Promote
@@ -89,46 +69,45 @@ namespace Modix
                 // start firing after we've connected.
                 _scope = scope;
 
-                Log.LogInformation("Loading command modules...");
+                logger.LogInformation("Loading command modules...");
 
-                await _commands.AddModulesAsync(typeof(ModixBot).Assembly, _scope.ServiceProvider);
+                await commandService.AddModulesAsync(typeof(ModixBot).Assembly, _scope.ServiceProvider);
 
-                Log.LogInformation("{Modules} modules loaded, containing {Commands} commands",
-                    _commands.Modules.Count(), _commands.Modules.SelectMany(d=>d.Commands).Count());
+                logger.LogInformation("{Modules} modules loaded, containing {Commands} commands",
+                    commandService.Modules.Count(), commandService.Modules.SelectMany(d=>d.Commands).Count());
 
-                Log.LogInformation("Logging into Discord and starting the client.");
+                logger.LogInformation("Logging into Discord and starting the client");
 
                 await StartClient(stoppingToken);
 
-                Log.LogInformation("Discord client started successfully.");
+                logger.LogInformation("Discord client started successfully");
 
-                Log.LogInformation("Loading interaction modules...");
+                logger.LogInformation("Loading interaction modules...");
 
-                var modules = (await _interactions.AddModulesAsync(typeof(ModixBot).Assembly, _scope.ServiceProvider)).ToArray();
+                var modules = (await interactionService.AddModulesAsync(typeof(ModixBot).Assembly, _scope.ServiceProvider)).ToArray();
 
-                foreach (var guild in _client.Guilds)
+                foreach (var guild in discordSocketClient.Guilds)
                 {
-                    var commands = await _interactions.AddModulesToGuildAsync(guild, deleteMissing: true, modules);
+                    var commands = await interactionService.AddModulesToGuildAsync(guild, deleteMissing: true, modules);
                 }
 
-                Log.LogInformation("{Modules} interaction modules loaded.", modules.Length);
-                Log.LogInformation("Loaded {SlashCommands} slash commands.", modules.SelectMany(x => x.SlashCommands).Count());
-                Log.LogInformation("Loaded {ContextCommands} context commands.", modules.SelectMany(x => x.ContextCommands).Count());
-                Log.LogInformation("Loaded {ModalCommands} modal commands.", modules.SelectMany(x => x.ModalCommands).Count());
-                Log.LogInformation("Loaded {ComponentCommands} component commands.", modules.SelectMany(x => x.ComponentCommands).Count());
+                logger.LogInformation("{Modules} interaction modules loaded", modules.Length);
+                logger.LogInformation("Loaded {SlashCommands} slash commands", modules.SelectMany(x => x.SlashCommands).Count());
+                logger.LogInformation("Loaded {ContextCommands} context commands", modules.SelectMany(x => x.ContextCommands).Count());
+                logger.LogInformation("Loaded {ModalCommands} modal commands", modules.SelectMany(x => x.ModalCommands).Count());
+                logger.LogInformation("Loaded {ComponentCommands} component commands", modules.SelectMany(x => x.ComponentCommands).Count());
 
-                await Task.Delay(-1);
+                await Task.Delay(-1, stoppingToken);
             }
             catch (Exception ex)
             {
-                Log.LogError(ex, "An error occurred while attempting to start the background service.");
+                logger.LogError(ex, "An error occurred while attempting to start the background service");
 
                 try
                 {
                     OnStopping();
-
-                    Log.LogInformation("Logging out of Discord.");
-                    await _client.LogoutAsync();
+                    logger.LogInformation("Logging out of Discord");
+                    await discordSocketClient.LogoutAsync();
                 }
                 finally
                 {
@@ -139,16 +118,16 @@ namespace Modix
                 throw;
             }
 
+            return;
+
             void OnStopping()
             {
-                Log.LogInformation("Stopping background service.");
+                logger.LogInformation("Stopping background service");
 
-                _client.Disconnected -= OnDisconnect;
-                _client.LatencyUpdated -= OnLatencyUpdated;
+                UnregisterClientHandlers();
 
-                _client.Log -= _serilogAdapter.HandleLog;
-                _commands.Log -= _serilogAdapter.HandleLog;
-                _restClient.Log -= _serilogAdapter.HandleLog;
+                commandService.Log -= discordSerilogAdapter.HandleLog;
+                discordRestClient.Log -= discordSerilogAdapter.HandleLog;
 
                 foreach (var context in _commandScopes.Keys)
                 {
@@ -160,7 +139,7 @@ namespace Modix
 
         private Task OnLatencyUpdated(int arg1, int arg2)
         {
-            if (_env.IsProduction())
+            if (hostEnvironment.IsProduction())
             {
                 return File.WriteAllTextAsync("healthcheck.txt", DateTimeOffset.UtcNow.ToString("o"));
             }
@@ -174,13 +153,68 @@ namespace Modix
             // don't need to worry about handling this ourselves
             if(ex is GatewayReconnectException)
             {
-                Log.LogInformation("Received gateway reconnect");
+                logger.LogInformation("Received gateway reconnect");
                 return Task.CompletedTask;
             }
 
-            Log.LogInformation(ex, "The bot disconnected unexpectedly. Stopping the application.");
-            _applicationLifetime.StopApplication();
+            logger.LogInformation(ex, "The bot disconnected unexpectedly. Stopping the application");
+            hostApplicationLifetime.StopApplication();
             return Task.CompletedTask;
+        }
+
+        private async Task StartClient(CancellationToken cancellationToken)
+        {
+            _whenReadySource = new TaskCompletionSource<object>();
+
+            try
+            {
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                await discordSocketClient.LoginAsync(TokenType.Bot, modixConfig.Value.DiscordToken);
+                await discordSocketClient.StartAsync();
+
+                await discordRestClient.LoginAsync(TokenType.Bot, modixConfig.Value.DiscordToken);
+
+                await _whenReadySource.Task;
+            }
+            catch (Exception)
+            {
+                UnregisterClientHandlers();
+                throw;
+            }
+        }
+
+        private void UnregisterClientHandlers()
+        {
+            discordSocketClient.LatencyUpdated -= OnLatencyUpdated;
+            discordSocketClient.Disconnected -= OnDisconnect;
+            discordSocketClient.Log -= discordSerilogAdapter.HandleLog;
+
+            discordSocketClient.Ready -= OnClientReady;
+
+            discordSocketClient.MessageReceived -= OnMessageReceived;
+            discordSocketClient.MessageUpdated -= OnMessageUpdated;
+        }
+
+        private async Task OnClientReady()
+        {
+            await discordSocketClient.SetGameAsync(modixConfig.Value.WebsiteBaseUrl);
+            _whenReadySource.SetResult(null);
+        }
+
+        private async Task OnMessageReceived(SocketMessage arg)
+        {
+            using var scope = serviceProvider.CreateScope();
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            await mediator.Publish(new MessageReceivedNotificationV3(arg));
+        }
+
+        private async Task OnMessageUpdated(Cacheable<IMessage, ulong> cachedMessage, SocketMessage newMessage, ISocketMessageChannel channel)
+        {
+            using var scope = serviceProvider.CreateScope();
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            await mediator.Publish(new MessageUpdatedNotificationV3(cachedMessage, newMessage, channel));
         }
 
         public override void Dispose()
@@ -194,42 +228,8 @@ namespace Modix
             finally
             {
                 _scope?.Dispose();
-                _client.Dispose();
-                _restClient.Dispose();
-            }
-        }
-
-        private async Task StartClient(CancellationToken cancellationToken)
-        {
-            var whenReadySource = new TaskCompletionSource<object>();
-
-            try
-            {
-                _client.Ready += OnClientReady;
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                await _client.LoginAsync(TokenType.Bot, _config.DiscordToken);
-                await _client.StartAsync();
-
-                await _restClient.LoginAsync(TokenType.Bot, _config.DiscordToken);
-
-                await whenReadySource.Task;
-            }
-            catch (Exception)
-            {
-                _client.Ready -= OnClientReady;
-
-                throw;
-            }
-
-            async Task OnClientReady()
-            {
-                Log.LogTrace("Discord client is ready. Setting game status.");
-                _client.Ready -= OnClientReady;
-                await _client.SetGameAsync(_config.WebsiteBaseUrl);
-
-                whenReadySource.SetResult(null);
+                discordSocketClient.Dispose();
+                discordRestClient.Dispose();
             }
         }
     }

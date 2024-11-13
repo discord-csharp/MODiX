@@ -37,12 +37,12 @@ namespace Modix.Bot.Modules
         private const string DefaultReplRemoteUrl = "http://csdiscord-repl-service:31337/Eval";
         private readonly string _replUrl;
         private readonly PasteService _pasteService;
-        private readonly IAutoRemoveMessageService _autoRemoveMessageService;
+        private readonly AutoRemoveMessageService _autoRemoveMessageService;
         private readonly IHttpClientFactory _httpClientFactory;
 
         public ReplModule(
             PasteService pasteService,
-            IAutoRemoveMessageService autoRemoveMessageService,
+            AutoRemoveMessageService autoRemoveMessageService,
             IHttpClientFactory httpClientFactory,
             IOptions<ModixConfig> modixConfig)
         {

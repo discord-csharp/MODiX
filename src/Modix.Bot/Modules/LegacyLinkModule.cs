@@ -16,9 +16,9 @@ namespace Modix.Bot.Modules
     [Summary("Commands for working with links.")]
     public class LegacyLinkModule : ModuleBase
     {
-        private readonly IAutoRemoveMessageService _autoRemoveMessageService;
+        private readonly AutoRemoveMessageService _autoRemoveMessageService;
 
-        public LegacyLinkModule(IAutoRemoveMessageService autoRemoveMessageService)
+        public LegacyLinkModule(AutoRemoveMessageService autoRemoveMessageService)
         {
             _autoRemoveMessageService = autoRemoveMessageService;
         }
