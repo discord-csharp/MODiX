@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Interactions;
 using LZStringCSharp;
+using Modix.Bot.Responders.AutoRemoveMessages;
 using Modix.Services.AutoRemoveMessage;
 using Modix.Services.CommandHelp;
 using Modix.Services.Utilities;

@@ -1,121 +1,82 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Discord;
 using Discord.Commands;
-
-using Modix.Common.Messaging;
-using Modix.Services.CommandHelp;
+using MediatR;
+using Modix.Bot.Notifications;
+using Modix.Bot.Responders.CommandErrors;
 using Modix.Services.Core;
-using Modix.Services.Utilities;
-
 using Serilog;
-
 using Stopwatch = System.Diagnostics.Stopwatch;
 
-namespace Modix.Bot.Behaviors
+namespace Modix.Bot.Behaviors;
+
+public class CommandListeningBehavior(
+    ICommandPrefixParser commandPrefixParser,
+    IServiceProvider serviceProvider,
+    CommandService commandService,
+    CommandErrorService commandErrorService,
+    IDiscordClient discordClient,
+    IAuthorizationService authorizationService) : INotificationHandler<MessageReceivedNotificationV3>
 {
-    /// <summary>
-    /// Listens for user commands within messages received from Discord, and executes them, if found.
-    /// </summary>
-    public class CommandListeningBehavior : INotificationHandler<MessageReceivedNotification>
+    public async Task Handle(MessageReceivedNotificationV3 notification, CancellationToken cancellationToken = default)
     {
-        /// <summary>
-        /// Constructs a new <see cref="CommandListeningBehavior"/>, with the given dependencies.
-        /// </summary>
-        public CommandListeningBehavior(
-            ICommandPrefixParser commandPrefixParser,
-            IServiceProvider serviceProvider,
-            CommandService commandService,
-            CommandErrorHandler commandErrorHandler,
-            IDiscordClient discordClient,
-            IAuthorizationService authorizationService)
+        var stopwatch = new Stopwatch();
+        stopwatch.Start();
+
+        if (!(notification.Message is IUserMessage userMessage)
+            || (userMessage.Author is null))
+            return;
+
+        if (!(userMessage.Author is IGuildUser author)
+            || (author.Guild is null)
+            || author.IsBot
+            || author.IsWebhook)
+            return;
+
+        if (userMessage.Content.Length <= 1)
+            return;
+
+        var argPos = await commandPrefixParser.TryFindCommandArgPosAsync(userMessage, cancellationToken);
+
+        if (argPos is null)
+            return;
+
+        var commandContext = new CommandContext(discordClient, userMessage);
+
+        await authorizationService.OnAuthenticatedAsync(author.Id, author.Guild.Id, author.RoleIds.ToList());
+
+        var commandResult =  await commandService.ExecuteAsync(commandContext, argPos.Value, serviceProvider);
+
+        if(!commandResult.IsSuccess)
         {
-            _commandPrefixParser = commandPrefixParser;
-            ServiceProvider = serviceProvider;
-            CommandService = commandService;
-            CommandErrorHandler = commandErrorHandler;
-            DiscordClient = discordClient;
-            AuthorizationService = authorizationService;
-        }
+            var error = $"{commandResult.Error}: {commandResult.ErrorReason}";
 
-        /// <inheritdoc />
-        public async Task HandleNotificationAsync(MessageReceivedNotification notification, CancellationToken cancellationToken = default)
-        {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-
-            if (!(notification.Message is IUserMessage userMessage)
-                || (userMessage.Author is null))
-                return;
-
-            if (!(userMessage.Author is IGuildUser author)
-                || (author.Guild is null)
-                || author.IsBot
-                || author.IsWebhook)
-                return;
-
-            if (userMessage.Content.Length <= 1)
-                return;
-
-            var argPos = await _commandPrefixParser.TryFindCommandArgPosAsync(userMessage, cancellationToken);
-            if (argPos is null)
-                return;
-
-            var commandContext = new CommandContext(DiscordClient, userMessage);
-
-            await AuthorizationService.OnAuthenticatedAsync(author.Id, author.Guild.Id, author.RoleIds.ToList());
-
-            var commandResult =  await CommandService.ExecuteAsync(commandContext, argPos.Value, ServiceProvider);
-
-            if(!commandResult.IsSuccess)
+            if (string.Equals(commandResult.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
             {
-                var error = $"{commandResult.Error}: {commandResult.ErrorReason}";
-
-                if (string.Equals(commandResult.ErrorReason, "UnknownCommand", StringComparison.OrdinalIgnoreCase))
-                    Log.Error(error);
-                else
-                    Log.Warning(error);
-
-                if (commandResult.Error == CommandError.Exception)
-                    await commandContext.Channel.SendMessageAsync($"Error: {commandResult.ErrorReason}", allowedMentions: AllowedMentions.None);
-                else
-                    await CommandErrorHandler.AssociateErrorAsync(userMessage, error);
+                Log.Error(error);
+            }
+            else
+            {
+                Log.Warning(error);
             }
 
-            stopwatch.Stop();
-            Log.Information($"Command took {stopwatch.ElapsedMilliseconds}ms to process: {commandContext.Message}");
+            if (commandResult.Error == CommandError.Exception)
+            {
+                await commandContext.Channel.SendMessageAsync($"Error: {commandResult.ErrorReason}", allowedMentions: AllowedMentions.None);
+            }
+            else
+            {
+                await commandErrorService.SignalError(userMessage, error);
+            }
         }
 
-        /// <summary>
-        /// The <see cref="IServiceProvider"/> for the current service scope.
-        /// </summary>
-        internal protected IServiceProvider ServiceProvider { get; }
+        stopwatch.Stop();
 
-        /// <summary>
-        /// A <see cref="Discord.Commands.CommandService"/> used to parse and execute commands.
-        /// </summary>
-        internal protected CommandService CommandService { get; }
-
-        /// <summary>
-        /// A <see cref="Services.CommandHelp.CommandErrorHandler"/> used to report and track command errors, in the Discord UI.
-        /// </summary>
-        internal protected CommandErrorHandler CommandErrorHandler { get; }
-
-        /// <summary>
-        /// An <see cref="IDiscordClient"/> used to interact with the Discord API.
-        /// </summary>
-        internal protected IDiscordClient DiscordClient { get; }
-
-        /// <summary>
-        /// An <see cref="IAuthorizationService"/> used to interact with the application authorization system.
-        /// </summary>
-        internal protected IAuthorizationService AuthorizationService { get; }
-
-        private readonly ICommandPrefixParser _commandPrefixParser;
-   }
+        Log.Information("Command took {StopwatchElapsedMilliseconds}ms to process: {CommandContextMessage}",
+            stopwatch.ElapsedMilliseconds,
+            commandContext.Message);
+    }
 }

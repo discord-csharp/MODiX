@@ -21,7 +21,7 @@ public class MessageQuoteResponder(
 
     public async Task Handle(MessageUpdatedNotificationV3 notification, CancellationToken cancellationToken)
     {
-        var cachedMessage = await notification.Cached.GetOrDownloadAsync();
+        var cachedMessage = await notification.OldMessage.GetOrDownloadAsync();
 
         if (_pattern.IsMatch(cachedMessage.Content))
             return;

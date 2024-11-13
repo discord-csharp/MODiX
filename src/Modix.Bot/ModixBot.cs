@@ -58,6 +58,9 @@ namespace Modix.Bot
                 discordSocketClient.Ready += OnClientReady;
                 discordSocketClient.MessageReceived += OnMessageReceived;
                 discordSocketClient.MessageUpdated += OnMessageUpdated;
+                discordSocketClient.MessageDeleted += OnMessageDeleted;
+                discordSocketClient.ReactionAdded += OnReactionAdded;
+                discordSocketClient.ReactionRemoved += OnReactionRemoved;
 
                 discordRestClient.Log += discordSerilogAdapter.HandleLog;
                 commandService.Log += discordSerilogAdapter.HandleLog;
@@ -195,6 +198,9 @@ namespace Modix.Bot
 
             discordSocketClient.MessageReceived -= OnMessageReceived;
             discordSocketClient.MessageUpdated -= OnMessageUpdated;
+            discordSocketClient.MessageDeleted -= OnMessageDeleted;
+            discordSocketClient.ReactionAdded -= OnReactionAdded;
+            discordSocketClient.ReactionRemoved -= OnReactionRemoved;
         }
 
         private async Task OnClientReady()
@@ -215,6 +221,27 @@ namespace Modix.Bot
             using var scope = serviceProvider.CreateScope();
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
             await mediator.Publish(new MessageUpdatedNotificationV3(cachedMessage, newMessage, channel));
+        }
+
+        private async Task OnMessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
+        {
+            using var scope = serviceProvider.CreateScope();
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            await mediator.Publish(new MessageDeletedNotificationV3(message, channel));
+        }
+
+        private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
+        {
+            using var scope = serviceProvider.CreateScope();
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            await mediator.Publish(new ReactionAddedNotificationV3(message, channel, reaction));
+        }
+
+        private async Task OnReactionRemoved(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
+        {
+            using var scope = serviceProvider.CreateScope();
+            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+            await mediator.Publish(new ReactionRemovedNotificationV3(message, channel, reaction));
         }
 
         public override void Dispose()

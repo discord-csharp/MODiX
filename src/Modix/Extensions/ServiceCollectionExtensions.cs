@@ -14,6 +14,8 @@ using Modix.Behaviors;
 using Modix.Bot;
 using Modix.Bot.Behaviors;
 using Modix.Bot.Responders;
+using Modix.Bot.Responders.AutoRemoveMessages;
+using Modix.Bot.Responders.CommandErrors;
 using Modix.Bot.Responders.MessageQuotes;
 using Modix.Common;
 using Modix.Common.Messaging;
@@ -123,8 +125,7 @@ internal static class ServiceCollectionExtensions
                 service.AddTypeReader<Uri>(new UriTypeReader());
 
                 return service;
-            })
-            .AddScoped<Modix.Common.Messaging.INotificationHandler<MessageReceivedNotification>, CommandListeningBehavior>();
+            });
 
         services.AddSingleton(provider =>
             {
@@ -157,15 +158,14 @@ internal static class ServiceCollectionExtensions
             .AddGuildStats()
             .AddModixTags()
             .AddStarboard()
-            .AddAutoRemoveMessage()
             .AddEmojiStats()
             .AddImages();
 
         services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ModixBot).Assembly));
+        services.AddScoped<AutoRemoveMessageService>();
         services.AddScoped<MessageQuoteEmbedHelper>();
-        services.AddScoped<INotificationHandler<ReactionAddedNotification>, StarboardHandler>();
-        services.AddScoped<INotificationHandler<ReactionRemovedNotification>, StarboardHandler>();
 		services.AddScoped<PasteService>();
+		services.AddScoped<CommandErrorService>();
 
         services.AddMemoryCache();
 

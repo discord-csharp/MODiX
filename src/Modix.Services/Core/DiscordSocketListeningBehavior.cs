@@ -42,8 +42,6 @@ namespace Modix.Services.Core
             DiscordSocketClient.MessageDeleted += OnMessageDeletedAsync;
             DiscordSocketClient.MessageReceived += OnMessageReceivedAsync;
             DiscordSocketClient.MessageUpdated += OnMessageUpdatedAsync;
-            DiscordSocketClient.ReactionAdded += OnReactionAddedAsync;
-            DiscordSocketClient.ReactionRemoved += OnReactionRemovedAsync;
             DiscordSocketClient.Ready += OnReadyAsync;
             DiscordSocketClient.RoleCreated += OnRoleCreatedAsync;
             DiscordSocketClient.RoleUpdated += OnRoleUpdatedAsync;
@@ -70,8 +68,6 @@ namespace Modix.Services.Core
             DiscordSocketClient.MessageDeleted -= OnMessageDeletedAsync;
             DiscordSocketClient.MessageReceived -= OnMessageReceivedAsync;
             DiscordSocketClient.MessageUpdated -= OnMessageUpdatedAsync;
-            DiscordSocketClient.ReactionAdded -= OnReactionAddedAsync;
-            DiscordSocketClient.ReactionRemoved -= OnReactionRemovedAsync;
             DiscordSocketClient.Ready -= OnReadyAsync;
             DiscordSocketClient.ThreadCreated -= OnThreadCreatedAsync;
             DiscordSocketClient.ThreadUpdated -= OnThreadUpdatedAsync;
@@ -164,20 +160,6 @@ namespace Modix.Services.Core
         private Task OnMessageUpdatedAsync(Cacheable<IMessage, ulong> oldMessage, SocketMessage newMessage, ISocketMessageChannel channel)
         {
             MessageDispatcher.Dispatch(new MessageUpdatedNotification(oldMessage, newMessage, channel));
-
-            return Task.CompletedTask;
-        }
-
-        private Task OnReactionAddedAsync(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
-        {
-            MessageDispatcher.Dispatch(new ReactionAddedNotification(message, channel, reaction));
-
-            return Task.CompletedTask;
-        }
-
-        private Task OnReactionRemovedAsync(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
-        {
-            MessageDispatcher.Dispatch(new ReactionRemovedNotification(message, channel, reaction));
 
             return Task.CompletedTask;
         }

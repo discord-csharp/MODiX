@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Modix.Bot.Extensions;
+using Modix.Bot.Responders.AutoRemoveMessages;
 using Modix.Common.Extensions;
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
