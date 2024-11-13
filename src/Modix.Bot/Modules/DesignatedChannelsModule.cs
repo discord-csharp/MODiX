@@ -9,20 +9,20 @@ using Modix.Bot.Extensions;
 using Modix.Bot.Preconditions;
 using Modix.Common.Extensions;
 using Modix.Data.Models.Core;
+using Modix.Services;
 using Modix.Services.CommandHelp;
-using Modix.Services.Core;
 
 namespace Modix.Bot.Modules
 {
     [ModuleHelp("Channel Designations", "Configures channel designation for various bot services.")]
     [Group("channel-designations", "Configures channel designation for various bot services.")]
     [DefaultMemberPermissions(GuildPermission.BanMembers)]
-    public class ChannelDesignationsModule : InteractionModuleBase
+    public class DesignatedChannelsModule : InteractionModuleBase
     {
         private readonly DesignatedChannelService _designatedChannelService;
         private readonly ModixConfig _config;
 
-        public ChannelDesignationsModule(DesignatedChannelService designatedChannelService, IOptions<ModixConfig> config)
+        public DesignatedChannelsModule(DesignatedChannelService designatedChannelService, IOptions<ModixConfig> config)
         {
             _designatedChannelService = designatedChannelService;
             _config = config.Value;
