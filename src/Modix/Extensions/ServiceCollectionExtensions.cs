@@ -162,6 +162,10 @@ internal static class ServiceCollectionExtensions
 		services.AddScoped<PasteService>();
 		services.AddScoped<CommandErrorService>();
 		services.AddScoped<DiscordRelayService>();
+		services.AddScoped<GuildOnboardingService>();
+		services.AddScoped<AuthorizationClaimService>();
+		services.AddScoped<AuthorizationClaimMappingService>();
+		services.AddScoped<IScopedSession, DiscordBotSession>();
 
         services.AddMemoryCache();
 

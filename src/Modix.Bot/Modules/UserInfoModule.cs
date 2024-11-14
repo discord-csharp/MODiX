@@ -37,7 +37,7 @@ namespace Modix.Modules
     {
         private readonly ILogger<UserInfoModule> _log;
         private readonly IUserService _userService;
-        private readonly IModerationService _moderationService;
+        private readonly ModerationService _moderationService;
         private readonly IAuthorizationService _authorizationService;
         private readonly IMessageRepository _messageRepository;
         private readonly IEmojiRepository _emojiRepository;
@@ -51,7 +51,7 @@ namespace Modix.Modules
         public UserInfoModule(
             ILogger<UserInfoModule> logger,
             IUserService userService,
-            IModerationService moderationService,
+            ModerationService moderationService,
             IAuthorizationService authorizationService,
             IMessageRepository messageRepository,
             IEmojiRepository emojiRepository,

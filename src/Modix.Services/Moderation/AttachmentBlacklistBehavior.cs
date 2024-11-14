@@ -98,7 +98,7 @@ namespace Modix.Services.Moderation
             DesignatedChannelService designatedChannelService,
             DiscordSocketClient discordSocketClient,
             ILogger<AttachmentBlacklistBehavior> logger,
-            IModerationService moderationService)
+            ModerationService moderationService)
         {
             _designatedChannelService = designatedChannelService;
             _discordSocketClient = discordSocketClient;
@@ -183,6 +183,6 @@ namespace Modix.Services.Moderation
         private readonly DesignatedChannelService _designatedChannelService;
         private readonly DiscordSocketClient _discordSocketClient;
         private readonly ILogger _logger;
-        private readonly IModerationService _moderationService;
+        private readonly ModerationService _moderationService;
     }
 }

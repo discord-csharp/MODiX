@@ -22,9 +22,6 @@ namespace Modix.Services.Core
             => services
                 .AddSingleton<IBehavior, DiscordSocketListeningBehavior>()
                 .AddScoped<IAuthorizationService, AuthorizationService>()
-                .AddScoped<AuthorizationAutoConfigBehavior>()
-                .AddScoped<INotificationHandler<GuildAvailableNotification>>(x => x.GetService<AuthorizationAutoConfigBehavior>())
-                .AddScoped<INotificationHandler<JoinedGuildNotification>>(x => x.GetService<AuthorizationAutoConfigBehavior>())
                 .AddScoped<IChannelService, ChannelService>()
                 .AddScoped<ChannelTrackingBehavior>()
                 .AddScoped<INotificationHandler<ChannelCreatedNotification>>(x => x.GetService<ChannelTrackingBehavior>())

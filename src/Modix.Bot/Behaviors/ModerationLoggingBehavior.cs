@@ -38,7 +38,7 @@ namespace Modix.Behaviors
             DesignatedChannelService = designatedChannelService;
             Config = config.Value;
 
-            _lazyModerationService = new Lazy<IModerationService>(() => serviceProvider.GetRequiredService<IModerationService>());
+            _lazyModerationService = new Lazy<ModerationService>(() => serviceProvider.GetRequiredService<ModerationService>());
         }
 
         /// <inheritdoc />
@@ -95,9 +95,9 @@ namespace Modix.Behaviors
         /// <summary>
         /// An <see cref="IModerationService"/> for performing moderation actions.
         /// </summary>
-        internal protected IModerationService ModerationService
+        internal protected ModerationService ModerationService
             => _lazyModerationService.Value;
-        private readonly Lazy<IModerationService> _lazyModerationService;
+        private readonly Lazy<ModerationService> _lazyModerationService;
 
         internal protected static ModixConfig Config { get; private set; }
 

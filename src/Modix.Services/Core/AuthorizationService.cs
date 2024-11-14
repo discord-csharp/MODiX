@@ -34,15 +34,6 @@ namespace Modix.Services.Core
         ulong? CurrentGuildId { get; }
 
         /// <summary>
-        /// Automatically configures default claim mappings for a guild, if none yet exist.
-        /// Default claims include granting all existing claims to any role that has the Discord "Administrate" permission.
-        /// </summary>
-        /// <param name="guild">The guild to be configured.</param>
-        /// <param name="cancellationToken">A <see cref="CancellationToken"/> that may be used to cancel the returned <see cref="Task"/>.</param>
-        /// <returns>A <see cref="Task"/> that will complete when the operation has completed.</returns>
-        Task AutoConfigureGuildAsync(IGuild guild, CancellationToken cancellationToken = default);
-
-        /// <summary>
         /// Modifies a claim mapping for a role.
         /// </summary>
         /// <param name="roleId">The role for which the claim mapping is to be modified.</param>
@@ -222,40 +213,6 @@ namespace Modix.Services.Core
 
         /// <inheritdoc />
         public IReadOnlyCollection<AuthorizationClaim> CurrentClaims { get; internal protected set; }
-
-        /// <inheritdoc />
-        public async Task AutoConfigureGuildAsync(IGuild guild, CancellationToken cancellationToken = default)
-        {
-            if (await ClaimMappingRepository.AnyAsync(new ClaimMappingSearchCriteria()
-            {
-                GuildId = guild.Id,
-                IsDeleted = false,
-            }))
-            {
-                return;
-            }
-
-            var selfUser = _discordSocketClient.CurrentUser;
-
-            // Need the bot user to exist, before we start adding claims, created by the bot user.
-            await UserService.TrackUserAsync(guild, selfUser.Id);
-
-            using var transaction = await ClaimMappingRepository.BeginCreateTransactionAsync();
-
-            foreach (var claim in Enum.GetValues(typeof(AuthorizationClaim)).Cast<AuthorizationClaim>())
-                foreach (var role in guild.Roles.Where(x => x.Permissions.Administrator))
-                    await ClaimMappingRepository.CreateAsync(new ClaimMappingCreationData()
-                    {
-                        Type = ClaimMappingType.Granted,
-                        GuildId = guild.Id,
-                        RoleId = role.Id,
-                        UserId = null,
-                        Claim = claim,
-                        CreatedById = selfUser.Id
-                    });
-
-            transaction.Commit();
-        }
 
         /// <inheritdoc />
         public async Task ModifyClaimMappingAsync(ulong roleId, AuthorizationClaim claim, ClaimMappingType? newType)

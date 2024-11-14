@@ -7,6 +7,7 @@ using Discord.Commands;
 using MediatR;
 using Modix.Bot.Notifications;
 using Modix.Bot.Responders.CommandErrors;
+using Modix.Services;
 using Modix.Services.Core;
 using Serilog;
 using Stopwatch = System.Diagnostics.Stopwatch;
@@ -19,7 +20,8 @@ public class CommandListeningBehavior(
     CommandService commandService,
     CommandErrorService commandErrorService,
     IDiscordClient discordClient,
-    IAuthorizationService authorizationService) : INotificationHandler<MessageReceivedNotificationV3>
+    IAuthorizationService authorizationService,
+    IScopedSession scopedSession) : INotificationHandler<MessageReceivedNotificationV3>
 {
     public async Task Handle(MessageReceivedNotificationV3 notification, CancellationToken cancellationToken = default)
     {
@@ -45,6 +47,9 @@ public class CommandListeningBehavior(
             return;
 
         var commandContext = new CommandContext(discordClient, userMessage);
+
+        var discordSession = (DiscordBotSession)scopedSession;
+        discordSession.ApplyCommandContext(commandContext);
 
         await authorizationService.OnAuthenticatedAsync(author.Id, author.Guild.Id, author.RoleIds.ToList());
 

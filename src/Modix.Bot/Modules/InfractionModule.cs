@@ -24,10 +24,10 @@ namespace Modix.Modules
     [ModuleHelp("Infractions", "Provides commands for working with infractions.")]
     public class InfractionModule : InteractionModuleBase
     {
-        private readonly IModerationService _moderationService;
+        private readonly ModerationService _moderationService;
         private readonly ModixConfig _config;
 
-        public InfractionModule(IModerationService moderationService, IOptions<ModixConfig> config)
+        public InfractionModule(ModerationService moderationService, IOptions<ModixConfig> config)
         {
             _moderationService = moderationService;
             _config = config.Value;

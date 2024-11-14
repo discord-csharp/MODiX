@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Modix.Bot.Notifications;
 using Modix.Data.Models.Core;
+using Modix.Services;
 
 namespace Modix.Bot
 {
@@ -61,6 +62,12 @@ namespace Modix.Bot
                 discordSocketClient.MessageDeleted += OnMessageDeleted;
                 discordSocketClient.ReactionAdded += OnReactionAdded;
                 discordSocketClient.ReactionRemoved += OnReactionRemoved;
+                discordSocketClient.UserJoined += OnUserJoined;
+                discordSocketClient.AuditLogCreated += OnAuditLogCreated;
+                discordSocketClient.GuildAvailable += OnGuildAvailable;
+                discordSocketClient.ChannelCreated += OnChannelCreated;
+                discordSocketClient.ChannelUpdated += OnChannelUpdated;
+                discordSocketClient.JoinedGuild += OnJoinedGuild;
 
                 discordRestClient.Log += discordSerilogAdapter.HandleLog;
                 commandService.Log += discordSerilogAdapter.HandleLog;
@@ -77,7 +84,7 @@ namespace Modix.Bot
                 await commandService.AddModulesAsync(typeof(ModixBot).Assembly, _scope.ServiceProvider);
 
                 logger.LogInformation("{Modules} modules loaded, containing {Commands} commands",
-                    commandService.Modules.Count(), commandService.Modules.SelectMany(d=>d.Commands).Count());
+                    commandService.Modules.Count(), commandService.Modules.SelectMany(d => d.Commands).Count());
 
                 logger.LogInformation("Logging into Discord and starting the client");
 
@@ -87,7 +94,9 @@ namespace Modix.Bot
 
                 logger.LogInformation("Loading interaction modules...");
 
-                var modules = (await interactionService.AddModulesAsync(typeof(ModixBot).Assembly, _scope.ServiceProvider)).ToArray();
+                var modules =
+                    (await interactionService.AddModulesAsync(typeof(ModixBot).Assembly, _scope.ServiceProvider))
+                    .ToArray();
 
                 foreach (var guild in discordSocketClient.Guilds)
                 {
@@ -95,10 +104,14 @@ namespace Modix.Bot
                 }
 
                 logger.LogInformation("{Modules} interaction modules loaded", modules.Length);
-                logger.LogInformation("Loaded {SlashCommands} slash commands", modules.SelectMany(x => x.SlashCommands).Count());
-                logger.LogInformation("Loaded {ContextCommands} context commands", modules.SelectMany(x => x.ContextCommands).Count());
-                logger.LogInformation("Loaded {ModalCommands} modal commands", modules.SelectMany(x => x.ModalCommands).Count());
-                logger.LogInformation("Loaded {ComponentCommands} component commands", modules.SelectMany(x => x.ComponentCommands).Count());
+                logger.LogInformation("Loaded {SlashCommands} slash commands",
+                    modules.SelectMany(x => x.SlashCommands).Count());
+                logger.LogInformation("Loaded {ContextCommands} context commands",
+                    modules.SelectMany(x => x.ContextCommands).Count());
+                logger.LogInformation("Loaded {ModalCommands} modal commands",
+                    modules.SelectMany(x => x.ModalCommands).Count());
+                logger.LogInformation("Loaded {ComponentCommands} component commands",
+                    modules.SelectMany(x => x.ComponentCommands).Count());
 
                 await Task.Delay(-1, stoppingToken);
             }
@@ -154,7 +167,7 @@ namespace Modix.Bot
         {
             // Reconnections are handled by Discord.NET, we
             // don't need to worry about handling this ourselves
-            if(ex is GatewayReconnectException)
+            if (ex is GatewayReconnectException)
             {
                 logger.LogInformation("Received gateway reconnect");
                 return Task.CompletedTask;
@@ -171,7 +184,6 @@ namespace Modix.Bot
 
             try
             {
-
                 cancellationToken.ThrowIfCancellationRequested();
 
                 await discordSocketClient.LoginAsync(TokenType.Bot, modixConfig.Value.DiscordToken);
@@ -193,14 +205,18 @@ namespace Modix.Bot
             discordSocketClient.LatencyUpdated -= OnLatencyUpdated;
             discordSocketClient.Disconnected -= OnDisconnect;
             discordSocketClient.Log -= discordSerilogAdapter.HandleLog;
-
             discordSocketClient.Ready -= OnClientReady;
-
             discordSocketClient.MessageReceived -= OnMessageReceived;
             discordSocketClient.MessageUpdated -= OnMessageUpdated;
             discordSocketClient.MessageDeleted -= OnMessageDeleted;
             discordSocketClient.ReactionAdded -= OnReactionAdded;
             discordSocketClient.ReactionRemoved -= OnReactionRemoved;
+            discordSocketClient.UserJoined -= OnUserJoined;
+            discordSocketClient.AuditLogCreated -= OnAuditLogCreated;
+            discordSocketClient.GuildAvailable -= OnGuildAvailable;
+            discordSocketClient.ChannelCreated -= OnChannelCreated;
+            discordSocketClient.ChannelUpdated -= OnChannelUpdated;
+            discordSocketClient.JoinedGuild -= OnJoinedGuild;
         }
 
         private async Task OnClientReady()
@@ -209,40 +225,53 @@ namespace Modix.Bot
             _whenReadySource.SetResult(null);
         }
 
-        private async Task OnMessageReceived(SocketMessage arg)
+        private async Task PublishMessage<T>(T message) where T : INotification
         {
             using var scope = serviceProvider.CreateScope();
-            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-            await mediator.Publish(new MessageReceivedNotificationV3(arg));
+            await PublishMessage(scope, message);
         }
 
-        private async Task OnMessageUpdated(Cacheable<IMessage, ulong> cachedMessage, SocketMessage newMessage, ISocketMessageChannel channel)
+        private async Task PublishMessage<T>(IServiceScope scope, T message) where T : INotification
         {
-            using var scope = serviceProvider.CreateScope();
             var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-            await mediator.Publish(new MessageUpdatedNotificationV3(cachedMessage, newMessage, channel));
+            await mediator.Publish(message);
         }
 
-        private async Task OnMessageDeleted(Cacheable<IMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel)
-        {
-            using var scope = serviceProvider.CreateScope();
-            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-            await mediator.Publish(new MessageDeletedNotificationV3(message, channel));
-        }
+        private Task OnMessageReceived(SocketMessage message) =>
+            PublishMessage(new MessageReceivedNotificationV3(message));
 
-        private async Task OnReactionAdded(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
-        {
-            using var scope = serviceProvider.CreateScope();
-            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-            await mediator.Publish(new ReactionAddedNotificationV3(message, channel, reaction));
-        }
+        private Task OnMessageUpdated(Cacheable<IMessage, ulong> cachedMessage, SocketMessage newMessage,
+            ISocketMessageChannel channel) =>
+            PublishMessage(new MessageUpdatedNotificationV3(cachedMessage, newMessage, channel));
 
-        private async Task OnReactionRemoved(Cacheable<IUserMessage, ulong> message, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
-        {
-            using var scope = serviceProvider.CreateScope();
-            var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-            await mediator.Publish(new ReactionRemovedNotificationV3(message, channel, reaction));
-        }
+        private Task OnMessageDeleted(Cacheable<IMessage, ulong> message,
+            Cacheable<IMessageChannel, ulong> channel) =>
+            PublishMessage(new MessageDeletedNotificationV3(message, channel));
+
+        private Task OnReactionAdded(Cacheable<IUserMessage, ulong> message,
+            Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction) =>
+            PublishMessage(new ReactionAddedNotificationV3(message, channel, reaction));
+
+        private Task OnReactionRemoved(Cacheable<IUserMessage, ulong> message,
+            Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction) =>
+            PublishMessage(new ReactionRemovedNotificationV3(message, channel, reaction));
+
+        private Task OnUserJoined(SocketGuildUser guildUser) =>
+            PublishMessage(new UserJoinedNotificationV3(guildUser));
+
+        private Task OnAuditLogCreated(SocketAuditLogEntry entry, SocketGuild guild) =>
+            PublishMessage(new AuditLogCreatedNotificationV3(entry, guild));
+
+        private Task OnGuildAvailable(SocketGuild guild)
+            => PublishMessage(new GuildAvailableNotificationV3(guild));
+
+        private Task OnChannelCreated(SocketChannel channel) =>
+            PublishMessage(new ChannelCreatedNotificationV3(channel));
+
+        private Task OnChannelUpdated(SocketChannel oldChannel, SocketChannel newChannel) =>
+            PublishMessage(new ChannelUpdatedNotificationV3(oldChannel, newChannel));
+
+        private Task OnJoinedGuild(SocketGuild guild) => PublishMessage(new JoinedGuildNotificationV3(guild));
 
         public override void Dispose()
         {

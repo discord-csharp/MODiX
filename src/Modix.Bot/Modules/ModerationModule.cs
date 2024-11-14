@@ -26,7 +26,7 @@ namespace Modix.Modules
     public class ModerationModule : ModuleBase
     {
         public ModerationModule(
-            IModerationService moderationService,
+            ModerationService moderationService,
             IUserService userService,
             IOptions<ModixConfig> config)
         {
@@ -306,7 +306,7 @@ namespace Modix.Modules
                 + $"{Format.Bold(author.GetDisplayName())} ({userOrAuthor.UserId}), the message's author?");
         }
 
-        internal protected IModerationService ModerationService { get; }
+        internal protected ModerationService ModerationService { get; }
 
         internal protected IUserService UserService { get; }
 
