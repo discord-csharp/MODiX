@@ -9,11 +9,11 @@ using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Repositories;
 using Modix.Services.Core;
-using Modix.Services.Utilities;
 using Serilog;
 using System.Threading;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data;
+using Modix.Services.MessageContentPatterns;
 
 namespace Modix.Services.Moderation;
 
@@ -23,14 +23,14 @@ public class ModerationService(
     IChannelService channelService,
     IUserService userService,
     IModerationActionRepository moderationActionRepository,
-    IDesignatedRoleMappingRepository designatedRoleMappingRepository,
     IInfractionRepository infractionRepository,
     IDeletedMessageRepository deletedMessageRepository,
     IDeletedMessageBatchRepository deletedMessageBatchRepository,
+    IScopedSession scopedSession,
     ModixContext db)
 {
     public const string MUTE_ROLE_NAME = "MODiX_Moderation_Mute";
-    private const int MaxReasonLength = 1000;
+    private const int MAX_REASON_LENGTH = 1000;
 
     public async Task AutoRescindExpiredInfractions()
     {
@@ -39,150 +39,133 @@ public class ModerationService(
             .Where(x => x.RescindActionId == null)
             .Where(x => x.DeleteActionId == null)
             .Where(x => x.CreateAction.Created + x.Duration <= DateTime.UtcNow)
-            .Select(x => new
-            {
-                x.Id,
-                x.GuildId,
-                x.SubjectId
-            }).ToListAsync();
+            .Select(x => new { x.Id, x.GuildId, x.SubjectId }).ToListAsync();
 
         foreach (var expiredInfraction in expiredInfractions)
         {
-            await RescindInfractionAsync(expiredInfraction.Id,
-                expiredInfraction.GuildId,
-                expiredInfraction.SubjectId,
-                isAutoRescind: true);
+            await RescindInfraction(expiredInfraction.Id, "Expired");
         }
     }
 
-    public async Task CreateInfractionAsync(ulong guildId, ulong moderatorId, InfractionType type, ulong subjectId,
-        string reason, TimeSpan? duration)
+    public async Task<ServiceResponse> AddInfraction(ulong guildId,
+        ulong addedByUserId,
+        InfractionType type,
+        ulong subjectId,
+        string reason,
+        TimeSpan? duration)
     {
-        authorizationService.RequireClaims(_createInfractionClaimsByType[type]);
+        ArgumentException.ThrowIfNullOrWhiteSpace(reason);
 
-        if (reason is null)
-            throw new ArgumentNullException(nameof(reason));
-
-        if (reason.Length >= MaxReasonLength)
-            throw new ArgumentException($"Reason must be less than {MaxReasonLength} characters in length",
-                nameof(reason));
-
-        if (type is InfractionType.Notice or InfractionType.Warning && string.IsNullOrWhiteSpace(reason))
-            throw new InvalidOperationException($"{type.ToString()} infractions require a reason to be given");
-
-        var guild = await discordClient.GetGuildAsync(guildId);
-        var subject = await userService.TryGetGuildUserAsync(guild, subjectId, CancellationToken.None);
-
-        using (var transaction = await infractionRepository.BeginCreateTransactionAsync())
+        if (reason.Length >= MAX_REASON_LENGTH)
         {
-            if (type is InfractionType.Ban or InfractionType.Mute)
-            {
-                await RequireSubjectRankLowerThanModeratorRankAsync(guild, moderatorId, subject);
-
-                if (await infractionRepository.AnyAsync(new InfractionSearchCriteria()
-                    {
-                        GuildId = guildId,
-                        Types = [type],
-                        SubjectId = subjectId,
-                        IsRescinded = false,
-                        IsDeleted = false
-                    }))
-                    throw new InvalidOperationException(
-                        $"Discord user {subjectId} already has an active {type} infraction");
-            }
-
-            await infractionRepository.CreateAsync(
-                new InfractionCreationData()
-                {
-                    GuildId = guildId,
-                    Type = type,
-                    SubjectId = subjectId,
-                    Reason = reason,
-                    Duration = duration,
-                    CreatedById = moderatorId
-                });
-
-            transaction.Commit();
+            return ServiceResponse.Fail($"Reason is too long, must be less than {MAX_REASON_LENGTH} characters");
         }
 
-        // TODO: Implement ModerationSyncBehavior to listen for mutes and bans that happen directly in Discord, instead of through bot commands,
-        // and to read the Discord Audit Log to check for mutes and bans that were missed during downtime, and add all such actions to
-        // the Infractions and ModerationActions repositories.
-        // Note that we'll need to upgrade to the latest Discord.NET version to get access to the audit log.
+        var hasClaim = await scopedSession.HasClaim(_createInfractionClaimsByType[type]);
 
-        // Assuming that our Infractions repository is always correct, regarding the state of the Discord API.
+        if (!hasClaim)
+        {
+            return ServiceResponse.Fail("Missing claim for infraction type");
+        }
+
+        var guild = await discordClient.GetGuildAsync(guildId);
+        var subject = await userService.TryGetGuildUserAsync(guild, subjectId, default);
+        await RequireSubjectRankLowerThanModeratorRank(guild, addedByUserId, subject);
+
+        if (type is InfractionType.Mute or InfractionType.Ban)
+        {
+            var hasExistingInfractionForType = await db.Set<InfractionEntity>()
+                .Where(x => x.GuildId == guildId)
+                .Where(x => x.SubjectId == subjectId)
+                .Where(x => x.Type == type)
+                .Where(x => x.DeleteActionId == null)
+                .Where(x => x.RescindActionId == null)
+                .AnyAsync();
+
+            if (hasExistingInfractionForType)
+            {
+                return ServiceResponse.Fail("This infraction already exists");
+            }
+        }
+
+        var infraction = new InfractionEntity
+        {
+            GuildId = guildId,
+            Type = type,
+            SubjectId = subjectId,
+            Reason = reason,
+            Duration = duration,
+            CreateAction = new ModerationActionEntity
+            {
+                GuildId = guildId,
+                Type = ModerationActionType.InfractionCreated,
+                CreatedById = addedByUserId,
+                Created = DateTime.UtcNow,
+            }
+        };
+
+        db.Add(infraction);
+
+        await db.SaveChangesAsync();
+
         switch (type)
         {
             case InfractionType.Mute when subject is not null:
                 await subject.AddRoleAsync(
-                    await GetDesignatedMuteRoleAsync(guild));
+                    await GetDesignatedMuteRole(guild));
                 break;
 
             case InfractionType.Ban:
                 await guild.AddBanAsync(subjectId, reason: reason);
                 break;
         }
+
+        return ServiceResponse.Ok();
     }
 
-    public async Task RescindInfractionAsync(long infractionId, string? reason = null)
+    public async Task RescindInfraction(InfractionType type, ulong guildId, ulong subjectId, string? reason = null)
     {
-        authorizationService.RequireAuthenticatedUser();
-        authorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
+        var targetInfraction = await db.Set<InfractionEntity>()
+            .Where(x => x.GuildId == guildId)
+            .Where(x => x.SubjectId == subjectId)
+            .Where(x => x.Type == type)
+            .Where(x => x.RescindActionId == null)
+            .Where(x => x.DeleteActionId == null)
+            .Select(x => (long?)x.Id)
+            .FirstOrDefaultAsync();
 
-        var infraction = await infractionRepository.ReadSummaryAsync(infractionId);
-        await DoRescindInfractionAsync(infraction!.Type, infraction.GuildId, infraction.Subject.Id, infraction,
-            reason);
+        if (targetInfraction is null)
+            return;
+
+        await RescindInfraction(targetInfraction.Value, reason);
     }
 
     public async Task RescindInfractionAsync(InfractionType type, ulong guildId, ulong subjectId,
         string? reason = null)
     {
-        authorizationService.RequireAuthenticatedGuild();
-        authorizationService.RequireAuthenticatedUser();
-        authorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
+        var hasClaim = await scopedSession.HasClaim(AuthorizationClaim.ModerationRescind);
 
-        if (reason?.Length >= MaxReasonLength)
-            throw new ArgumentException($"Reason must be less than {MaxReasonLength} characters in length",
-                nameof(reason));
+        if (!hasClaim)
+            return;
 
-        var infraction = (await infractionRepository.SearchSummariesAsync(
-            new InfractionSearchCriteria()
-            {
-                GuildId = authorizationService.CurrentGuildId.Value,
-                Types = new[] {type},
-                SubjectId = subjectId,
-                IsRescinded = false,
-                IsDeleted = false,
-            })).FirstOrDefault();
+        var infraction = await db.Set<InfractionEntity>()
+            .Where(x => x.Id == infractionId)
+            .Select(x =>
+                new
+                {
+                    Entity = x,
+                    x.GuildId,
+                    x.SubjectId,
+                    x.Type,
+                    x.Subject.User.Username
+                }).SingleAsync();
 
-        await DoRescindInfractionAsync(type, guildId, subjectId, infraction, reason);
-    }
+        await RequireSubjectRankLowerThanModeratorRank(infraction.GuildId,
+            scopedSession.ExecutingUserId,
+            infraction.GuildId);
 
-    private async Task RescindInfractionAsync(long infractionId, ulong guildId, ulong subjectId,
-        string? reason = null, bool isAutoRescind = false)
-    {
-        authorizationService.RequireAuthenticatedUser();
-        authorizationService.RequireClaims(AuthorizationClaim.ModerationRescind);
-
-        var infraction = await infractionRepository.ReadSummaryAsync(infractionId);
-
-        await DoRescindInfractionAsync(infraction!.Type, guildId, subjectId, infraction, reason, isAutoRescind);
-    }
-
-    public async Task DeleteInfractionAsync(long infractionId)
-    {
-        authorizationService.RequireAuthenticatedUser();
-        authorizationService.RequireClaims(AuthorizationClaim.ModerationDeleteInfraction);
-
-        var infraction = await infractionRepository.ReadSummaryAsync(infractionId);
-
-        if (infraction == null)
-            throw new InvalidOperationException($"Infraction {infractionId} does not exist");
-
-        await RequireSubjectRankLowerThanModeratorRankAsync(infraction.GuildId,
-            authorizationService.CurrentUserId.Value, infraction.Subject.Id);
-
-        await infractionRepository.TryDeleteAsync(infraction.Id, authorizationService.CurrentUserId.Value);
+        RequestOptions? GetRequestOptions() =>
+            string.IsNullOrEmpty(reason) ? null : new RequestOptions { AuditLogReason = reason };
 
         var guild = await discordClient.GetGuildAsync(infraction.GuildId);
 
@@ -190,31 +173,115 @@ public class ModerationService(
         {
             case InfractionType.Mute:
 
-                if (await userService.GuildUserExistsAsync(guild.Id, infraction.Subject.Id))
+                if (!await userService.GuildUserExistsAsync(infraction.GuildId, infraction.SubjectId))
                 {
-                    var subject = await userService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
-                    await subject.RemoveRoleAsync(await GetDesignatedMuteRoleAsync(guild));
+                    Log.Information(
+                        "Attempted to remove the mute role from {Username} ({SubjectId}), but they were not in the server",
+                        infraction.Username,
+                        infraction.SubjectId);
+                    break;
+                }
+
+                var subject = await userService.GetGuildUserAsync(infraction.GuildId, infraction.SubjectId);
+                await subject.RemoveRoleAsync(await GetDesignatedMuteRole(guild), GetRequestOptions());
+                break;
+
+            case InfractionType.Ban:
+                await guild.RemoveBanAsync(infraction.SubjectId, GetRequestOptions());
+                break;
+
+            default:
+                throw new InvalidOperationException($"{infraction.Type} infractions cannot be rescinded");
+        }
+
+        var entity = new ModerationActionEntity()
+        {
+            GuildId = infraction.GuildId,
+            Type = ModerationActionType.InfractionRescinded,
+            Created = DateTimeOffset.UtcNow,
+            CreatedById = scopedSession.ExecutingUserId,
+            InfractionId = infractionId
+        };
+
+        infraction.Entity.RescindReason = reason;
+
+        db.Add(entity);
+
+        await db.SaveChangesAsync();
+
+        await infractionRepository.TryRescindAsync(infractionid, authorizationService.CurrentUserId!.Value, reason);
+    }
+
+    public async Task DeleteInfractionAsync(long infractionId)
+    {
+        var hasClaim = await scopedSession.HasClaim(AuthorizationClaim.ModerationDeleteInfraction);
+
+        if (!hasClaim)
+            return;
+
+        var infraction = await db
+            .Set<InfractionEntity>()
+            .Where(x => x.Id == infractionId)
+            .Select(x =>
+                new
+                {
+                    x.GuildId,
+                    x.SubjectId,
+                    x.Type,
+                    x.Subject.User.Username,
+                    x.RescindActionId
+                }).SingleAsync();
+
+        await RequireSubjectRankLowerThanModeratorRank(infraction.GuildId,
+            scopedSession.ExecutingUserId,
+            infraction.SubjectId);
+
+        var guild = await discordClient.GetGuildAsync(infraction.GuildId);
+
+        switch (infraction.Type)
+        {
+            case InfractionType.Mute:
+
+                if (await userService.GuildUserExistsAsync(infraction.GuildId, infraction.SubjectId))
+                {
+                    var subject = await userService.GetGuildUserAsync(infraction.GuildId, infraction.SubjectId);
+                    await subject.RemoveRoleAsync(await GetDesignatedMuteRole(guild));
                 }
                 else
                 {
                     Log.Warning(
                         "Tried to unmute {User} while deleting mute infraction, but they weren't in the guild: {Guild}",
-                        infraction.Subject.Id, guild.Id);
+                        infraction.SubjectId,
+                        infraction.GuildId);
                 }
 
                 break;
 
             case InfractionType.Ban:
 
-                //If the infraction has already been rescinded, we don't need to actually perform the unmute/unban
-                //Doing so will return a 404 from Discord (trying to remove a nonexistant ban)
-                if (infraction.RescindAction is null)
+                // If the infraction has already been rescinded, we don't need to actually perform the unmute/unban
+                // Doing so will return a 404 from Discord (trying to remove a non-existent ban)
+                if (infraction.RescindActionId is null)
                 {
-                    await guild.RemoveBanAsync(infraction.Subject.Id);
+                    await guild.RemoveBanAsync(infraction.SubjectId);
                 }
 
                 break;
         }
+
+        var entity = new ModerationActionEntity()
+        {
+            GuildId = infraction.GuildId,
+            Type = ModerationActionType.InfractionDeleted,
+            Created = DateTimeOffset.UtcNow,
+            CreatedById = scopedSession.ExecutingUserId,
+            InfractionId = infractionId
+        };
+
+        db.Add(entity);
+        await db.SaveChangesAsync();
+
+        await infractionRepository.TryDeleteAsync(infraction.Id, authorizationService.CurrentUserId.Value);
     }
 
     public async Task DeleteMessageAsync(IMessage message, string reason, ulong deletedById,
@@ -225,7 +292,8 @@ public class ModerationService(
                 $"Cannot delete message {message.Id} because it is not a guild message");
 
         await userService.TrackUserAsync((IGuildUser)message.Author, cancellationToken);
-        await channelService.TrackChannelAsync(guildChannel.Name, guildChannel.Id, guildChannel.GuildId, guildChannel is IThreadChannel threadChannel ? threadChannel.CategoryId : null, cancellationToken);
+        await channelService.TrackChannelAsync(guildChannel.Name, guildChannel.Id, guildChannel.GuildId,
+            guildChannel is IThreadChannel threadChannel ? threadChannel.CategoryId : null, cancellationToken);
 
         using var transaction = await deletedMessageRepository.BeginCreateTransactionAsync(cancellationToken);
 
@@ -241,7 +309,7 @@ public class ModerationService(
                 CreatedById = deletedById
             }, cancellationToken);
 
-        await message.DeleteAsync(new RequestOptions() {CancelToken = cancellationToken});
+        await message.DeleteAsync(new RequestOptions() { CancelToken = cancellationToken });
 
         transaction.Commit();
     }
@@ -363,7 +431,7 @@ public class ModerationService(
                 }
             });
 
-    public async Task<bool> DoesModeratorOutrankUserAsync(ulong guildId, ulong moderatorId, ulong subjectId)
+    public async Task<bool> DoesModeratorOutrankUser(ulong guildId, ulong moderatorId, ulong subjectId)
     {
         //If the user doesn't exist in the guild, we outrank them
         if (await userService.GuildUserExistsAsync(guildId, subjectId) == false)
@@ -371,7 +439,7 @@ public class ModerationService(
 
         var subject = await userService.GetGuildUserAsync(guildId, subjectId);
 
-        return await DoesModeratorOutrankUserAsync(subject.Guild, moderatorId, subject);
+        return await DoesModeratorOutrankUser(subject.Guild, moderatorId, subject);
     }
 
     public async Task<bool> AnyActiveInfractions(ulong guildId, ulong userId, InfractionType? type = null)
@@ -415,7 +483,8 @@ public class ModerationService(
         await channel.DeleteMessagesAsync(messages);
 
         using var transaction = await deletedMessageBatchRepository.BeginCreateTransactionAsync();
-        await channelService.TrackChannelAsync(channel.Name, channel.Id, channel.GuildId, channel is IThreadChannel threadChannel ? threadChannel.CategoryId : null);
+        await channelService.TrackChannelAsync(channel.Name, channel.Id, channel.GuildId,
+            channel is IThreadChannel threadChannel ? threadChannel.CategoryId : null);
 
         await deletedMessageBatchRepository.CreateAsync(new DeletedMessageBatchCreationData()
         {
@@ -436,99 +505,39 @@ public class ModerationService(
         transaction.Commit();
     }
 
-    private async Task DoRescindInfractionAsync(InfractionType type,
-        ulong guildId,
-        ulong subjectId,
-        InfractionSummary? infraction,
-        string? reason = null,
-        bool isAutoRescind = false)
+    private async Task<IRole> GetDesignatedMuteRole(IGuild guild)
     {
-        RequestOptions? GetRequestOptions() =>
-            string.IsNullOrEmpty(reason) ? null : new RequestOptions {AuditLogReason = reason};
+        var muteDesignationId = await db.Set<DesignatedRoleMappingEntity>()
+            .Where(x => x.GuildId == guild.Id)
+            .Where(x => x.Type == DesignatedRoleType.ModerationMute)
+            .Where(x => x.DeleteActionId == null)
+            .Select(x => x.RoleId)
+            .SingleAsync();
 
-        if (!isAutoRescind)
-        {
-            await RequireSubjectRankLowerThanModeratorRankAsync(guildId, authorizationService.CurrentUserId!.Value,
-                subjectId);
-        }
-
-        var guild = await discordClient.GetGuildAsync(guildId);
-
-        switch (type)
-        {
-            case InfractionType.Mute:
-                if (!await userService.GuildUserExistsAsync(guild.Id, subjectId))
-                {
-                    Log.Information(
-                        "Attempted to remove the mute role from {0} ({1}), but they were not in the server.",
-                        infraction?.Subject.GetFullUsername() ?? "Unknown user",
-                        subjectId);
-                    break;
-                }
-
-                var subject = await userService.GetGuildUserAsync(guild.Id, subjectId);
-                await subject.RemoveRoleAsync(await GetDesignatedMuteRoleAsync(guild), GetRequestOptions());
-                break;
-
-            case InfractionType.Ban:
-                await guild.RemoveBanAsync(subjectId, GetRequestOptions());
-                break;
-
-            default:
-                throw new InvalidOperationException($"{type} infractions cannot be rescinded.");
-        }
-
-        if (infraction != null)
-        {
-            await infractionRepository.TryRescindAsync(infraction.Id, authorizationService.CurrentUserId!.Value,
-                reason);
-        }
+        return guild.Roles.First(x => x.Id == muteDesignationId);
     }
 
-    private async Task<IRole> GetDesignatedMuteRoleAsync(IGuild guild)
-    {
-        var mapping = (await designatedRoleMappingRepository.SearchBriefsAsync(
-            new DesignatedRoleMappingSearchCriteria()
-            {
-                GuildId = guild.Id, Type = DesignatedRoleType.ModerationMute, IsDeleted = false
-            })).FirstOrDefault();
-
-        if (mapping == null)
-            throw new InvalidOperationException(
-                $"There are currently no designated mute roles within guild {guild.Id}");
-
-        return guild.Roles.First(x => x.Id == mapping.Role.Id);
-    }
-
-    private async Task<IEnumerable<GuildRoleBrief>> GetRankRolesAsync(ulong guildId)
-        => (await designatedRoleMappingRepository
-                .SearchBriefsAsync(new DesignatedRoleMappingSearchCriteria
-                {
-                    GuildId = guildId, Type = DesignatedRoleType.Rank, IsDeleted = false,
-                }))
-            .Select(r => r.Role);
-
-    private async Task RequireSubjectRankLowerThanModeratorRankAsync(ulong guildId, ulong moderatorId,
+    private async Task RequireSubjectRankLowerThanModeratorRank(ulong guildId, ulong moderatorId,
         ulong subjectId)
     {
-        if (!await DoesModeratorOutrankUserAsync(guildId, moderatorId, subjectId))
+        if (!await DoesModeratorOutrankUser(guildId, moderatorId, subjectId))
             throw new InvalidOperationException(
                 "Cannot moderate users that have a rank greater than or equal to your own.");
     }
 
-    private async ValueTask RequireSubjectRankLowerThanModeratorRankAsync(IGuild guild, ulong moderatorId,
+    private async ValueTask RequireSubjectRankLowerThanModeratorRank(IGuild guild, ulong moderatorId,
         IGuildUser? subject)
     {
         // If the subject is null, then the moderator automatically outranks them.
         if (subject is null)
             return;
 
-        if (!await DoesModeratorOutrankUserAsync(guild, moderatorId, subject))
+        if (!await DoesModeratorOutrankUser(guild, moderatorId, subject))
             throw new InvalidOperationException(
                 "Cannot moderate users that have a rank greater than or equal to your own.");
     }
 
-    private async Task<bool> DoesModeratorOutrankUserAsync(IGuild guild, ulong moderatorId, IGuildUser subject)
+    private async Task<bool> DoesModeratorOutrankUser(IGuild guild, ulong moderatorId, IGuildUser subject)
     {
         //If the subject is the guild owner, and the moderator is not the owner, the moderator does not outrank them
         if (guild.OwnerId == subject.Id && guild.OwnerId != moderatorId)
@@ -540,7 +549,17 @@ public class ModerationService(
         if (moderator.GuildPermissions.Administrator)
             return true;
 
-        var rankRoles = await GetRankRolesAsync(guild.Id);
+        var rankRoles = await db
+            .Set<DesignatedRoleMappingEntity>()
+            .Where(x => x.GuildId == guild.Id)
+            .Where(x => x.Type == DesignatedRoleType.Rank)
+            .Where(x => x.DeleteActionId == null)
+            .Select(x => new
+            {
+                Id = x.RoleId,
+                x.Role.Position
+            })
+            .ToListAsync();
 
         var subjectRankRoles = rankRoles.Where(r => subject.RoleIds.Contains(r.Id));
         var moderatorRankRoles = rankRoles.Where(r => moderator.RoleIds.Contains(r.Id));
@@ -558,9 +577,9 @@ public class ModerationService(
     private static readonly Dictionary<InfractionType, AuthorizationClaim> _createInfractionClaimsByType
         = new()
         {
-            {InfractionType.Notice, AuthorizationClaim.ModerationNote},
-            {InfractionType.Warning, AuthorizationClaim.ModerationWarn},
-            {InfractionType.Mute, AuthorizationClaim.ModerationMute},
-            {InfractionType.Ban, AuthorizationClaim.ModerationBan}
+            { InfractionType.Notice, AuthorizationClaim.ModerationNote },
+            { InfractionType.Warning, AuthorizationClaim.ModerationWarn },
+            { InfractionType.Mute, AuthorizationClaim.ModerationMute },
+            { InfractionType.Ban, AuthorizationClaim.ModerationBan }
         };
 }

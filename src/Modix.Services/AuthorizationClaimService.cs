@@ -9,9 +9,10 @@ namespace Modix.Services;
 
 public class AuthorizationClaimService(ModixContext db)
 {
-    public async Task<IReadOnlyCollection<AuthorizationClaim>> GetClaimsForUser(ulong userId)
+    public async Task<IReadOnlyCollection<AuthorizationClaim>> GetClaimsForUser(ulong guildId, ulong userId)
     {
         return await db.Set<ClaimMappingEntity>()
+            .Where(x => x.GuildId == guildId)
             .Where(x => x.UserId == userId)
             .Where(x => x.Type == ClaimMappingType.Granted)
             .Where(x => x.DeleteActionId == null)

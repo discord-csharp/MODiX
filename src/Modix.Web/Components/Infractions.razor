@@ -284,7 +284,7 @@
                 return;
             }
 
-            await ModerationService.RescindInfractionAsync(infraction.Id);
+            await ModerationService.RescindInfraction(infraction.Id, "No reason provided");
             await RefreshTable();
         }
         catch (Exception ex)
@@ -334,7 +334,7 @@
         try
         {
             var currentUser = DiscordHelper.GetCurrentUser();
-            await ModerationService.CreateInfractionAsync(currentUser!.Guild.Id, currentUser.Id, _infractionType, _selectedUser!.UserId, _infractionReason!, duration);
+            await ModerationService.AddInfraction(currentUser!.Guild.Id, currentUser.Id, _infractionType, _selectedUser!.UserId, _infractionReason!, duration);
         }
         catch (InvalidOperationException ex)
         {
@@ -444,7 +444,7 @@
             .Distinct())
         {
             outranksValues[subjectId]
-                = await ModerationService.DoesModeratorOutrankUserAsync(guildId, currentUser.Id, subjectId);
+                = await ModerationService.DoesModeratorOutrankUser(guildId, currentUser.Id, subjectId);
         }
 
         var mapped = result.Records.Select(x => InfractionData.FromInfractionSummary(x, outranksValues)).ToArray();
