@@ -20,7 +20,7 @@ namespace Modix.Services.Moderation
     {
         private readonly DesignatedChannelService _designatedChannelService;
         private readonly IAuthorizationService _authorizationService;
-        private readonly IModerationService _moderationService;
+        private readonly ModerationService _moderationService;
         private readonly IMessageContentPatternService _messageContentPatternService;
         private readonly DiscordSocketClient _discordSocketClient;
 
@@ -28,7 +28,7 @@ namespace Modix.Services.Moderation
             DesignatedChannelService designatedChannelService,
             DiscordSocketClient discordSocketClient,
             IAuthorizationService authorizationService,
-            IModerationService moderationService, IMessageContentPatternService messageContentPatternService)
+            ModerationService moderationService, IMessageContentPatternService messageContentPatternService)
         {
             _designatedChannelService = designatedChannelService;
             _discordSocketClient = discordSocketClient;
