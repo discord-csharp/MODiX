@@ -46,6 +46,6 @@ public class AuditLogCreatedResponder :
         var moderator = guild.GetUser(entry.User.Id);
 
         await _authorizationService.OnAuthenticatedAsync(moderator.Id, moderator.Guild.Id, moderator.Roles.Select(x => x.Id).ToList());
-        await _moderationService.CreateInfractionAsync(guild.Id, entry.User.Id, InfractionType.Ban, bannedUser.Id, reason, null);
+        await _moderationService.AddInfraction(guild.Id, entry.User.Id, InfractionType.Ban, bannedUser.Id, reason, null);
     }
 }
