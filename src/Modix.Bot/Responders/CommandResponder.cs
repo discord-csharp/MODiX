@@ -12,9 +12,9 @@ using Modix.Services.Core;
 using Serilog;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
-namespace Modix.Bot.Behaviors;
+namespace Modix.Bot.Responders;
 
-public class CommandListeningBehavior(
+public class CommandResponder(
     ICommandPrefixParser commandPrefixParser,
     IServiceProvider serviceProvider,
     CommandService commandService,
