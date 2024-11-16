@@ -113,6 +113,7 @@ public class DesignatedChannelService(
             .Set<DesignatedChannelMappingEntity>()
             .Where(x => x.GuildId == guildId)
             .Where(x => x.Type == type)
+            .Where(x => x.DeleteActionId == null)
             .Select(x => x.ChannelId)
             .ToListAsync();
     }
