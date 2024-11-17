@@ -36,7 +36,7 @@ public class AuditLogCreatedResponder :
     {
         var bannedUser = await data.Target.GetOrDownloadAsync();
 
-        if (await _moderationService.AnyActiveInfractions(guild.Id, bannedUser.Id, InfractionType.Ban))
+        if (await _moderationService.HasActiveInfractions(guild.Id, bannedUser.Id, InfractionType.Ban))
             return;
 
         var reason = string.IsNullOrWhiteSpace(entry.Reason)

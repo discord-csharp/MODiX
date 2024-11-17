@@ -13,11 +13,33 @@ namespace Modix.Bot.Extensions
     public static class ContextExtensions
     {
         private static readonly Emoji _checkmarkEmoji = new("✅");
+        private static readonly Emoji _errorEmoji = new("⚠️");
         private static readonly Emoji _xEmoji = new("❌");
 
         private const int ConfirmationTimeoutSeconds = 30;
 
-        public static async Task AddConfirmationAsync(this ICommandContext context)
+        public static async Task AddFailure(this ICommandContext context)
+        {
+            if (context.Channel is not IGuildChannel guildChannel)
+            {
+                return;
+            }
+
+            var currentUser = await context.Guild.GetCurrentUserAsync();
+            var permissions = currentUser.GetPermissions(guildChannel);
+
+            if (!permissions.AddReactions)
+            {
+                Log.Information(
+                    "Unable to add a confirmation reaction in {GuildName}, because the AddReactions permission is denied",
+                    guildChannel.Name);
+                return;
+            }
+
+            await context.Message.AddReactionAsync(_errorEmoji);
+        }
+
+        public static async Task AddConfirmation(this ICommandContext context)
         {
             if (context.Channel is not IGuildChannel guildChannel)
             {
@@ -36,7 +58,7 @@ namespace Modix.Bot.Extensions
             await context.Message.AddReactionAsync(_checkmarkEmoji);
         }
 
-        public static async Task AddConfirmationAsync(this IInteractionContext context, string? additionalText = null)
+        public static async Task AddConfirmation(this IInteractionContext context, string? additionalText = null)
         {
             var message = $"\\{_checkmarkEmoji} Command successful. ";
 
@@ -48,7 +70,7 @@ namespace Modix.Bot.Extensions
             await context.Interaction.FollowupAsync(message, allowedMentions: AllowedMentions.None);
         }
 
-        public static async Task<bool> GetUserConfirmationAsync(this ICommandContext context, string mainMessage)
+        public static async Task<bool> GetUserConfirmation(this ICommandContext context, string mainMessage)
         {
             if (context.Channel is not IGuildChannel guildChannel)
             {
@@ -101,7 +123,7 @@ namespace Modix.Bot.Extensions
             }
         }
 
-        public static async Task GetUserConfirmationAsync(this IInteractionContext context, string message, string customIdSuffix)
+        public static async Task GetUserConfirmation(this IInteractionContext context, string message, string customIdSuffix)
         {
             message = $"{message}\nRespond in the next {ConfirmationTimeoutSeconds} seconds to finalize or cancel the operation.";
 

@@ -106,7 +106,7 @@ namespace Modix.Services.Moderation
 
             Log.Debug("Message {MessageId} is going to be deleted", message.Id);
 
-            await _moderationService.DeleteMessageAsync(message, "Unauthorized Message Content",
+            await _moderationService.DeleteMessage(message, "Unauthorized Message Content",
                 _discordSocketClient.CurrentUser.Id, default);
 
             Log.Debug("Message {MessageId} was deleted because it contains blocked content", message.Id);

@@ -12,7 +12,6 @@ using Microsoft.Extensions.Options;
 using Modix.Bot.Extensions;
 using Modix.Bot.Preconditions;
 using Modix.Common.Extensions;
-using Modix.Data.Models;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Services.CommandHelp;
@@ -52,20 +51,12 @@ namespace Modix.Modules
         {
             user ??= Context.User;
 
-            var infractions = await _moderationService.SearchInfractionsAsync(
+            var infractions = await _moderationService.SearchInfractions(
                 new InfractionSearchCriteria
                 {
                     GuildId = Context.Guild.Id,
                     SubjectId = user.Id,
                     IsDeleted = false
-                },
-                new[]
-                {
-                    new SortingCriteria()
-                    {
-                        PropertyName = nameof(InfractionSummary.CreateAction.Created),
-                        Direction = SortDirection.Descending,
-                    },
                 });
 
             if (infractions.Count == 0)
@@ -127,8 +118,8 @@ namespace Modix.Modules
             [Summary(description: "The ID value of the infraction to be deleted.")]
                     long infractionId)
         {
-            await _moderationService.DeleteInfractionAsync(infractionId);
-            await Context.AddConfirmationAsync();
+            await _moderationService.DeleteInfraction(infractionId);
+            await Context.AddConfirmation();
         }
 
         [SlashCommand("infraction-update", "Updates an infraction by ID, overwriting the existing reason.")]
@@ -140,7 +131,7 @@ namespace Modix.Modules
             [Summary(description: "New reason for the infraction.")]
                     string newReason)
         {
-            var (success, errorMessage) = await _moderationService.UpdateInfractionAsync(infractionId, newReason, Context.User.Id);
+            var (success, errorMessage) = await _moderationService.UpdateInfraction(infractionId, newReason, Context.User.Id);
 
             if (!success)
             {
@@ -152,7 +143,7 @@ namespace Modix.Modules
                 return;
             }
 
-            await Context.AddConfirmationAsync();
+            await Context.AddConfirmation();
         }
 
         private static string GetEmojiForInfractionType(InfractionType infractionType)

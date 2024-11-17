@@ -148,9 +148,7 @@ public class DesignatedChannelService(
                 Id = x.Id,
                 Channel = new GuildChannelBrief
                 {
-                    Id = x.ChannelId,
-                    Name = x.Channel.Name,
-                    ParentChannelId = x.Channel.ParentChannelId,
+                    Id = x.ChannelId, Name = x.Channel.Name, ParentChannelId = x.Channel.ParentChannelId,
                 },
                 Type = x.Type,
             }).ToListAsync();

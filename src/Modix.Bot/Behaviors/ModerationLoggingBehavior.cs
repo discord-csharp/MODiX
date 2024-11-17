@@ -49,7 +49,7 @@ namespace Modix.Behaviors
             if (!designatedChannels.Any())
                 return;
 
-            var moderationAction = await ModerationService.GetModerationActionSummaryAsync(moderationActionId);
+            var moderationAction = await ModerationService.GetModerationAction(moderationActionId);
 
             if (!_renderTemplates.TryGetValue((moderationAction.Type, moderationAction.Infraction?.Type), out var renderTemplate))
                 return;

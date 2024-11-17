@@ -11,22 +11,20 @@ using Modix.Data.Repositories;
 using Modix.Services.Core;
 using Serilog;
 using System.Threading;
+using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using Modix.Data;
+using Modix.Data.Utilities;
 using Modix.Services.MessageContentPatterns;
 
 namespace Modix.Services.Moderation;
 
 public class ModerationService(
     IDiscordClient discordClient,
-    IAuthorizationService authorizationService,
     IChannelService channelService,
     IUserService userService,
-    IModerationActionRepository moderationActionRepository,
-    IInfractionRepository infractionRepository,
-    IDeletedMessageRepository deletedMessageRepository,
-    IDeletedMessageBatchRepository deletedMessageBatchRepository,
     IScopedSession scopedSession,
+    DesignatedChannelRelayService designatedChannelRelayService,
     ModixContext db)
 {
     public const string MUTE_ROLE_NAME = "MODiX_Moderation_Mute";
@@ -154,6 +152,7 @@ public class ModerationService(
                 new
                 {
                     Entity = x,
+                    x.Id,
                     x.GuildId,
                     x.SubjectId,
                     x.Type,
@@ -209,10 +208,13 @@ public class ModerationService(
 
         await db.SaveChangesAsync();
 
-        await infractionRepository.TryRescindAsync(infractionid, authorizationService.CurrentUserId!.Value, reason);
+        await designatedChannelRelayService.RelayMessageToGuild(
+            DesignatedChannelType.ModerationLog,
+            infraction.GuildId,
+            $"Infraction {infraction.Id} rescinded for reason: {reason}");
     }
 
-    public async Task DeleteInfractionAsync(long infractionId)
+    public async Task DeleteInfraction(long infractionId)
     {
         var hasClaim = await scopedSession.HasClaim(AuthorizationClaim.ModerationDeleteInfraction);
 
@@ -225,6 +227,7 @@ public class ModerationService(
             .Select(x =>
                 new
                 {
+                    x.Id,
                     x.GuildId,
                     x.SubjectId,
                     x.Type,
@@ -281,44 +284,66 @@ public class ModerationService(
         db.Add(entity);
         await db.SaveChangesAsync();
 
-        await infractionRepository.TryDeleteAsync(infraction.Id, authorizationService.CurrentUserId.Value);
+        await designatedChannelRelayService.RelayMessageToGuild(
+            DesignatedChannelType.ModerationLog,
+            infraction.GuildId,
+            $"Infraction {infraction.Id} deleted");
     }
 
-    public async Task DeleteMessageAsync(IMessage message, string reason, ulong deletedById,
+    public async Task DeleteMessage(IMessage message, string reason, ulong deletedById,
         CancellationToken cancellationToken)
     {
+        var hasClaim = await scopedSession.HasClaim(AuthorizationClaim.ModerationDeleteMessage);
+
+        if (!hasClaim)
+        {
+            return;
+        }
+
         if (message.Channel is not IGuildChannel guildChannel)
             throw new InvalidOperationException(
                 $"Cannot delete message {message.Id} because it is not a guild message");
 
+        var threadId = guildChannel is IThreadChannel threadChannel ? threadChannel.CategoryId : null;
+
         await userService.TrackUserAsync((IGuildUser)message.Author, cancellationToken);
-        await channelService.TrackChannelAsync(guildChannel.Name, guildChannel.Id, guildChannel.GuildId,
-            guildChannel is IThreadChannel threadChannel ? threadChannel.CategoryId : null, cancellationToken);
 
-        using var transaction = await deletedMessageRepository.BeginCreateTransactionAsync(cancellationToken);
+        await channelService.TrackChannelAsync(guildChannel.Name,
+            guildChannel.Id,
+            guildChannel.GuildId,
+            threadId, cancellationToken);
 
-        await deletedMessageRepository.CreateAsync(
-            new DeletedMessageCreationData()
+        var entity = new DeletedMessageEntity()
+        {
+            MessageId = message.Id,
+            GuildId = guildChannel.GuildId,
+            ChannelId = guildChannel.Id,
+            AuthorId = message.Author.Id,
+            Content = message.Content,
+            Reason = reason,
+            CreateAction = new ModerationActionEntity()
             {
                 GuildId = guildChannel.GuildId,
-                ChannelId = guildChannel.Id,
-                MessageId = message.Id,
-                AuthorId = message.Author.Id,
-                Content = message.Content,
-                Reason = reason,
+                Type = ModerationActionType.MessageDeleted,
+                Created = DateTimeOffset.UtcNow,
                 CreatedById = deletedById
-            }, cancellationToken);
+            }
+        };
 
-        await message.DeleteAsync(new RequestOptions() { CancelToken = cancellationToken });
+        db.Add(entity);
+        await db.SaveChangesAsync(cancellationToken);
 
-        transaction.Commit();
+        await designatedChannelRelayService.RelayMessageToGuild(
+            DesignatedChannelType.ModerationLog,
+            guildChannel.GuildId,
+            $"Deleted message: {message.Content}");
+
+        await message.DeleteAsync(new RequestOptions { CancelToken = cancellationToken });
     }
 
-    public async Task DeleteMessagesAsync(ITextChannel channel, int count, bool skipOne,
+    public async Task DeleteMessages(ITextChannel channel, int count, bool skipOne,
         Func<Task<bool>> confirmDelegate)
     {
-        authorizationService.RequireClaims(AuthorizationClaim.ModerationMassDeleteMessages);
-
         if (confirmDelegate is null)
             throw new ArgumentNullException(nameof(confirmDelegate));
 
@@ -340,14 +365,12 @@ public class ModerationService(
             ? (await channel.GetMessagesAsync(clampedCount + 1).FlattenAsync()).Skip(1)
             : await channel.GetMessagesAsync(clampedCount).FlattenAsync();
 
-        await DoDeleteMessagesAsync(channel, guildChannel, messages);
+        await DoDeleteMessages(channel, guildChannel, messages);
     }
 
-    public async Task DeleteMessagesAsync(ITextChannel channel, IGuildUser user, int count,
+    public async Task DeleteMessages(ITextChannel channel, IGuildUser user, int count,
         Func<Task<bool>> confirmDelegate)
     {
-        authorizationService.RequireClaims(AuthorizationClaim.ModerationMassDeleteMessages);
-
         if (confirmDelegate is null)
             throw new ArgumentNullException(nameof(confirmDelegate));
 
@@ -368,68 +391,436 @@ public class ModerationService(
         var messages = (await channel.GetMessagesAsync(100).FlattenAsync()).Where(x => x.Author.Id == user.Id)
             .Take(clampedCount);
 
-        await DoDeleteMessagesAsync(channel, guildChannel, messages);
+        await DoDeleteMessages(channel, guildChannel, messages);
     }
 
-    public async Task<RecordsPage<DeletedMessageSummary>> SearchDeletedMessagesAsync(
-        DeletedMessageSearchCriteria searchCriteria, IEnumerable<SortingCriteria> sortingCriteria,
+    public async Task<RecordsPage<DeletedMessageSummary>> GetDeletedMessages(
+        DeletedMessageSearchCriteria searchCriteria,
+        IEnumerable<SortingCriteria> sortingCriteria,
         PagingCriteria pagingCriteria)
     {
-        authorizationService.RequireClaims(AuthorizationClaim.LogViewDeletedMessages);
+        var hasClaim = await scopedSession.HasClaim(AuthorizationClaim.LogViewDeletedMessages);
 
-        return await deletedMessageRepository.SearchSummariesPagedAsync(searchCriteria, sortingCriteria,
-            pagingCriteria);
+        if (!hasClaim)
+        {
+            return new RecordsPage<DeletedMessageSummary>();
+        }
+
+        var query = db
+            .Set<DeletedMessageEntity>()
+            .AsQueryable();
+
+        if (searchCriteria.GuildId != null)
+        {
+            query = query.Where(x => x.GuildId == searchCriteria.GuildId);
+        }
+
+        if (searchCriteria.ChannelId != null)
+        {
+            query = query.Where(x => x.ChannelId == searchCriteria.ChannelId);
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchCriteria.Channel))
+        {
+            query = query.Where(x =>
+                ReusableQueries.DbCaseInsensitiveContains.Invoke(x.Channel.Name, searchCriteria.Channel));
+        }
+
+        if (searchCriteria.AuthorId != null)
+        {
+            query = query.Where(x => x.AuthorId == searchCriteria.AuthorId);
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchCriteria.Author))
+        {
+            query = query.Where(x =>
+                ReusableQueries.DbCaseInsensitiveContains.Invoke(x.Author.User.Username, searchCriteria.Author));
+        }
+
+        if (searchCriteria.CreatedById != null)
+        {
+            query = query.Where(x =>
+                x.BatchId != null
+                    ? x.Batch!.CreateAction.CreatedById == searchCriteria.CreatedById
+                    : x.CreateAction.CreatedById == searchCriteria.CreatedById);
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchCriteria.CreatedBy))
+        {
+            query = query.Where(x =>
+                x.BatchId != null
+                    ? ReusableQueries.DbCaseInsensitiveContains.Invoke(x.Batch!.CreateAction.CreatedBy.User.Username,
+                        searchCriteria.CreatedBy)
+                    : ReusableQueries.DbCaseInsensitiveContains.Invoke(x.CreateAction.CreatedBy.User.Username,
+                        searchCriteria.CreatedBy));
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchCriteria.Content))
+        {
+            query = query.Where(x =>
+                ReusableQueries.DbCaseInsensitiveContains.Invoke(x.Content, searchCriteria.Content));
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchCriteria.Reason))
+        {
+            query = query.Where(x =>
+                ReusableQueries.DbCaseInsensitiveContains.Invoke(x.Reason, searchCriteria.Reason));
+        }
+
+        if (searchCriteria.BatchId != null)
+        {
+            query = query.Where(x => x.BatchId == searchCriteria.BatchId);
+        }
+
+        var sourceQuery = query;
+
+        var resultsQuery = query
+            .SortByV3(sortingCriteria)
+            .OrderThenBy(x => x.MessageId, SortDirection.Ascending)
+            .PageBy(pagingCriteria)
+            .Select(x => new DeletedMessageSummary
+            {
+                MessageId = x.MessageId,
+                GuildId = x.GuildId,
+                Content = x.Content,
+                Reason = x.Reason,
+                BatchId = x.BatchId,
+                Created = x.CreateAction.Created,
+                Channel = new GuildChannelBrief
+                {
+                    Id = x.ChannelId, Name = x.Channel.Name, ParentChannelId = x.Channel.ParentChannelId
+                },
+                Author = new GuildUserBrief
+                {
+                    Id = x.AuthorId,
+                    Username = x.Author.User.Username,
+                    Discriminator = x.Author.User.Discriminator,
+                    Nickname = x.Author.Nickname,
+                },
+                CreatedBy = new GuildUserBrief
+                {
+                    Id = x.CreateAction.CreatedById,
+                    Username = x.CreateAction.CreatedBy.User.Username,
+                    Discriminator = x.CreateAction.CreatedBy.User.Discriminator,
+                    Nickname = x.CreateAction.CreatedBy.Nickname,
+                },
+                Batch = x.BatchId != null
+                    ? new DeletedMessageBatchBrief
+                    {
+                        Id = x.BatchId.Value,
+                        CreateAction = new ModerationActionBrief
+                        {
+                            Id = x.Batch!.CreateAction.Id,
+                            Created = x.Batch!.CreateAction.Created,
+                            CreatedBy = new GuildUserBrief
+                            {
+                                Id = x.CreateAction.CreatedById,
+                                Username = x.CreateAction.CreatedBy.User.Username,
+                                Discriminator = x.CreateAction.CreatedBy.User.Discriminator,
+                                Nickname = x.CreateAction.CreatedBy.Nickname,
+                            }
+                        }
+                    }
+                    : null
+            });
+
+        return new RecordsPage<DeletedMessageSummary>()
+        {
+            TotalRecordCount = await sourceQuery.LongCountAsync(),
+            FilteredRecordCount = await resultsQuery.LongCountAsync(),
+            Records = await resultsQuery.ToArrayAsync(),
+        };
     }
 
-    public Task<IReadOnlyCollection<InfractionSummary>> SearchInfractionsAsync(
-        InfractionSearchCriteria searchCriteria, IEnumerable<SortingCriteria>? sortingCriteria = null)
+    public async Task<IReadOnlyCollection<InfractionSummary>> SearchInfractions(InfractionSearchCriteria searchCriteria)
     {
-        authorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
+        var hasClaim = await scopedSession.HasClaim(AuthorizationClaim.ModerationRead);
 
-        return infractionRepository.SearchSummariesAsync(searchCriteria, sortingCriteria);
+        if (!hasClaim)
+        {
+            return [];
+        }
+
+        return await ProjectInfractionQuery(BuildInfractionQuery(searchCriteria)).ToListAsync();
     }
 
-    public Task<RecordsPage<InfractionSummary>> SearchInfractionsAsync(InfractionSearchCriteria searchCriteria,
+    public async Task<RecordsPage<InfractionSummary>> SearchInfractions(InfractionSearchCriteria searchCriteria,
         IEnumerable<SortingCriteria> sortingCriteria, PagingCriteria pagingCriteria)
     {
-        authorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
+        var hasClaim = await scopedSession.HasClaim(AuthorizationClaim.ModerationRead);
 
-        return infractionRepository.SearchSummariesPagedAsync(searchCriteria, sortingCriteria, pagingCriteria);
+        if (!hasClaim)
+        {
+            return new RecordsPage<InfractionSummary>();
+        }
+
+        var sourceQuery = BuildInfractionQuery(searchCriteria);
+
+        var resultsQuery = sourceQuery
+            .SortByV3(sortingCriteria)
+            .OrderThenBy(x => x.Id, SortDirection.Ascending)
+            .PageBy(pagingCriteria);
+
+        var projected = ProjectInfractionQuery(resultsQuery);
+
+        return new RecordsPage<InfractionSummary>()
+        {
+            TotalRecordCount = await sourceQuery.LongCountAsync(),
+            FilteredRecordCount = await resultsQuery.LongCountAsync(),
+            Records = await projected.ToArrayAsync(),
+        };
+    }
+
+    private IQueryable<InfractionSummary> ProjectInfractionQuery(IQueryable<InfractionEntity> query)
+    {
+        return query.Select(x => new InfractionSummary
+        {
+            Id = x.Id,
+            GuildId = x.GuildId,
+            Type = x.Type,
+            Reason = x.Reason,
+            Duration = x.Duration,
+            Subject =
+                new GuildUserBrief()
+                {
+                    Id = x.Subject.User.Id,
+                    Username = x.Subject.User.Username,
+                    Discriminator = x.Subject.User.Discriminator,
+                    Nickname = x.Subject.Nickname
+                },
+            CreateAction = new ModerationActionBrief()
+            {
+                Id = x.CreateAction.Id,
+                Created = x.CreateAction.Created,
+                CreatedBy = new GuildUserBrief()
+                {
+                    Id = x.CreateAction.CreatedBy.User.Id,
+                    Username = x.CreateAction.CreatedBy.User.Username,
+                    Discriminator = x.CreateAction.CreatedBy.User.Discriminator,
+                    Nickname = x.CreateAction.CreatedBy.Nickname
+                },
+            },
+            RescindAction = (x.RescindAction == null)
+                ? null
+                : new ModerationActionBrief()
+                {
+                    Id = x.RescindAction.Id,
+                    Created = x.RescindAction.Created,
+                    CreatedBy = new GuildUserBrief()
+                    {
+                        Id = x.RescindAction.CreatedBy.User.Id,
+                        Username = x.RescindAction.CreatedBy.User.Username,
+                        Discriminator = x.RescindAction.CreatedBy.User.Discriminator,
+                        Nickname = x.RescindAction.CreatedBy.Nickname
+                    }
+                },
+            DeleteAction = (x.DeleteAction == null)
+                ? null
+                : new ModerationActionBrief()
+                {
+                    Id = x.DeleteAction.Id,
+                    Created = x.DeleteAction.Created,
+                    CreatedBy = new GuildUserBrief()
+                    {
+                        Id = x.DeleteAction.CreatedBy.User.Id,
+                        Username = x.DeleteAction.CreatedBy.User.Username,
+                        Discriminator = x.DeleteAction.CreatedBy.User.Discriminator,
+                        Nickname = x.DeleteAction.CreatedBy.Nickname
+                    }
+                },
+            Expires = x.CreateAction.Created + x.Duration
+        });
+    }
+
+    private IQueryable<InfractionEntity> BuildInfractionQuery(InfractionSearchCriteria searchCriteria)
+    {
+        var query = db
+            .Set<InfractionEntity>()
+            .AsQueryable();
+
+        if (searchCriteria.Id is not null)
+        {
+            query = query.Where(x => x.Id == searchCriteria.Id);
+        }
+
+        if (searchCriteria.GuildId is not null)
+        {
+            query = query.Where(x => x.GuildId == searchCriteria.GuildId);
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchCriteria.Subject))
+        {
+            query = query.Where(x =>
+                ReusableQueries.DbCaseInsensitiveContains.Invoke(x.Subject.User.Username, searchCriteria.Subject));
+        }
+
+        if (searchCriteria.SubjectId is not null)
+        {
+            query = query.Where(x => x.SubjectId == searchCriteria.SubjectId);
+        }
+
+        if (searchCriteria.CreatedById is not null)
+        {
+            query = query.Where(x => x.CreateAction.CreatedById == searchCriteria.CreatedById);
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchCriteria.Creator))
+        {
+            query = query.Where(x =>
+                ReusableQueries.DbCaseInsensitiveContains.Invoke(x.CreateAction.CreatedBy.User.Username,
+                    searchCriteria.Creator));
+        }
+
+        if (searchCriteria.Types is not null)
+        {
+            query = query.Where(x => searchCriteria.Types.Contains(x.Type));
+        }
+
+        if (searchCriteria.CreatedRange is not null)
+        {
+            query = query.Where(x =>
+                x.CreateAction.Created >= searchCriteria.CreatedRange.Value.From
+                && x.CreateAction.Created <= searchCriteria.CreatedRange.Value.To);
+        }
+
+        if (searchCriteria.ExpiresRange is not null)
+        {
+            query = query.Where(x => (x.CreateAction.Created + x.Duration) >= searchCriteria.ExpiresRange.Value.From
+                                     && (x.CreateAction.Created + x.Duration) <= searchCriteria.ExpiresRange.Value.To);
+        }
+
+        if (searchCriteria.IsDeleted is not null)
+        {
+            query = query.Where(x =>
+                searchCriteria.IsDeleted == true
+                    ? x.DeleteActionId != null
+                    : x.DeleteActionId == null);
+        }
+
+        if (searchCriteria.IsRescinded is not null)
+        {
+            query = query.Where(x =>
+                searchCriteria.IsRescinded == true
+                    ? x.RescindActionId != null
+                    : x.RescindActionId == null);
+        }
+
+        return query;
     }
 
     public async Task<IDictionary<InfractionType, int>> GetInfractionCountsForUserAsync(ulong subjectId)
     {
-        authorizationService.RequireClaims(AuthorizationClaim.ModerationRead);
+        var hasClaim = await scopedSession.HasClaim(AuthorizationClaim.ModerationRead);
 
-        return await infractionRepository.GetInfractionCountsAsync(new InfractionSearchCriteria
+        if (!hasClaim)
         {
-            GuildId = authorizationService.CurrentGuildId, SubjectId = subjectId, IsDeleted = false
-        });
+            return new Dictionary<InfractionType, int>();
+        }
+
+        var grouped = await db.Set<InfractionEntity>()
+            .Where(x => x.GuildId == scopedSession.ExecutingGuildId)
+            .Where(x => x.SubjectId == subjectId)
+            .Where(x => x.DeleteActionId == null)
+            .GroupBy(x => x.Type)
+            .Select(x => new { x.Key, Count = x.Count() })
+            .ToListAsync();
+
+        return Enum.GetValues<InfractionType>()
+            .ToDictionary(x => x, x =>
+                grouped.Where(y => y.Key == x).Sum(y => y.Count));
     }
 
-    public Task<ModerationActionSummary?> GetModerationActionSummaryAsync(long moderationActionId)
+    public async Task<ModerationActionSummary?> GetModerationAction(long moderationActionId)
     {
-        return moderationActionRepository.ReadSummaryAsync(moderationActionId);
+        return await db.Set<ModerationActionEntity>()
+            .Where(x => x.Id == moderationActionId)
+            .Select(entity => new ModerationActionSummary
+            {
+                Id = entity.Id,
+                GuildId = entity.GuildId,
+                Type = entity.Type,
+                Created = entity.Created,
+                CreatedBy = new GuildUserBrief()
+                {
+                    Id = entity.CreatedBy.User.Id,
+                    Username = entity.CreatedBy.User.Username,
+                    Discriminator = entity.CreatedBy.User.Discriminator,
+                    Nickname = entity.CreatedBy.Nickname
+                },
+                Infraction = (entity.Infraction == null)
+                    ? null
+                    : new InfractionBrief
+                    {
+                        Id = entity.Infraction.Id,
+                        Type = entity.Infraction.Type,
+                        Reason = entity.Infraction.Reason,
+                        RescindReason = entity.Infraction.RescindReason,
+                        Duration = entity.Infraction.Duration,
+                        Subject = new GuildUserBrief
+                        {
+                            Id = entity.Infraction.Subject.User.Id,
+                            Username = entity.Infraction.Subject.User.Username,
+                            Discriminator = entity.Infraction.Subject.User.Discriminator,
+                            Nickname = entity.Infraction.Subject.Nickname
+                        }
+                    },
+                DeletedMessage = (entity.DeletedMessage == null)
+                    ? null
+                    : new DeletedMessageBrief()
+                    {
+                        Id = entity.DeletedMessage.MessageId,
+                        Channel = new GuildChannelBrief
+                        {
+                            Id = entity.DeletedMessage.ChannelId,
+                            Name = entity.DeletedMessage.Channel.Name,
+                            ParentChannelId = entity.DeletedMessage.Channel.ParentChannelId
+                        },
+                        Author = new GuildUserBrief
+                        {
+                            Id = entity.DeletedMessage.Author.User.Id,
+                            Username = entity.DeletedMessage.Author.User.Username,
+                            Discriminator = entity.DeletedMessage.Author.User.Discriminator,
+                            Nickname = entity.DeletedMessage.Author.Nickname,
+                        },
+                        Content = entity.DeletedMessage.Content,
+                        Reason = entity.DeletedMessage.Reason,
+                        BatchId = entity.DeletedMessage.BatchId,
+                    },
+                DeletedMessages = (entity.DeletedMessageBatchId == null)
+                    ? null
+                    : entity.DeletedMessageBatch!.DeletedMessages.Select(deletedMessage => new DeletedMessageBrief
+                    {
+                        Id = deletedMessage.MessageId,
+                        Channel = new GuildChannelBrief
+                        {
+                            Id = deletedMessage.ChannelId,
+                            Name = deletedMessage.Channel.Name,
+                            ParentChannelId = deletedMessage.Channel.ParentChannelId,
+                        },
+                        Author = new GuildUserBrief
+                        {
+                            Id = deletedMessage.Author.User.Id,
+                            Username = deletedMessage.Author.User.Username,
+                            Discriminator = deletedMessage.Author.User.Discriminator,
+                            Nickname = deletedMessage.Author.Nickname
+                        },
+                        Content = deletedMessage.Content,
+                        Reason = deletedMessage.Reason,
+                        BatchId = deletedMessage.BatchId,
+                    }).ToArray(),
+                OriginalInfractionReason = entity.OriginalInfractionReason,
+            }).SingleAsync();
     }
 
-    public Task<DateTimeOffset?> GetNextInfractionExpiration()
-        => infractionRepository.ReadExpiresFirstOrDefaultAsync(
-            new InfractionSearchCriteria()
-            {
-                IsRescinded = false,
-                IsDeleted = false,
-                ExpiresRange = new DateTimeOffsetRange()
-                {
-                    From = DateTimeOffset.MinValue, To = DateTimeOffset.MaxValue,
-                }
-            },
-            new[]
-            {
-                new SortingCriteria()
-                {
-                    PropertyName = nameof(InfractionSummary.Expires), Direction = SortDirection.Ascending
-                }
-            });
+    public async Task<DateTimeOffset?> GetNextInfractionExpiration()
+    {
+        return await db.Set<InfractionEntity>()
+            .Where(x => x.DeleteActionId == null)
+            .Where(x => x.RescindActionId == null)
+            .OrderBy(x => x.CreateAction.Created + x.Duration)
+            .Select(x => x.CreateAction.Created + x.Duration)
+            .FirstOrDefaultAsync();
+    }
 
     public async Task<bool> DoesModeratorOutrankUser(ulong guildId, ulong moderatorId, ulong subjectId)
     {
@@ -442,7 +833,7 @@ public class ModerationService(
         return await DoesModeratorOutrankUser(subject.Guild, moderatorId, subject);
     }
 
-    public async Task<bool> AnyActiveInfractions(ulong guildId, ulong userId, InfractionType? type = null)
+    public async Task<bool> HasActiveInfractions(ulong guildId, ulong userId, InfractionType? type = null)
     {
         return await db
             .Set<InfractionEntity>()
@@ -454,55 +845,94 @@ public class ModerationService(
             .AnyAsync();
     }
 
-    public async Task<(bool success, string? errorMessage)> UpdateInfractionAsync(long infractionId,
+    public async Task<(bool success, string? errorMessage)> UpdateInfraction(long infractionId,
         string newReason, ulong currentUserId)
     {
-        var infraction = await infractionRepository.ReadSummaryAsync(infractionId);
+        var entity = await db.Set<InfractionEntity>()
+            .Where(x => x.Id == infractionId)
+            .SingleOrDefaultAsync();
 
-        if (infraction is null)
-            return (false, $"An infraction with an ID of {infractionId} could not be found.");
-
-        authorizationService.RequireClaims(_createInfractionClaimsByType[infraction.Type]);
-
-        // Allow users who created the infraction to bypass any further
-        // validation and update their own infraction
-        if (infraction.CreateAction.CreatedBy.Id == currentUserId)
+        if (entity is null)
         {
-            return (await infractionRepository.TryUpdateAsync(infractionId, newReason, currentUserId), null);
+            return (false, "No infraction found");
         }
 
-        // Else we know it's not the user's infraction
-        authorizationService.RequireClaims(AuthorizationClaim.ModerationUpdateInfraction);
+        var hasClaim = await scopedSession.HasClaim(_createInfractionClaimsByType[entity.Type]);
 
-        return (await infractionRepository.TryUpdateAsync(infractionId, newReason, currentUserId), null);
+        if (!hasClaim)
+        {
+            return (false, "No infraction claim found");
+        }
+
+        var createdByUserId = await db.Set<InfractionEntity>()
+            .Where(x => x.Id == infractionId)
+            .Select(x => x.CreateAction.CreatedById)
+            .SingleAsync();
+
+        if (createdByUserId != currentUserId)
+        {
+            var hasOtherEditClaim = await scopedSession.HasClaim(AuthorizationClaim.ModerationUpdateInfraction);
+
+            if (!hasOtherEditClaim)
+            {
+                return (false, "No infraction claim found");
+            }
+        }
+
+        entity.Reason = newReason;
+        await db.SaveChangesAsync();
+
+        return (true, null);
     }
 
-    private async Task DoDeleteMessagesAsync(ITextChannel channel, IGuildChannel guildChannel,
+    private async Task DoDeleteMessages(ITextChannel channel, IGuildChannel guildChannel,
         IEnumerable<IMessage> messages)
     {
-        await channel.DeleteMessagesAsync(messages);
+        var hasClaim = await scopedSession.HasClaim(AuthorizationClaim.ModerationMassDeleteMessages);
 
-        using var transaction = await deletedMessageBatchRepository.BeginCreateTransactionAsync();
+        if (!hasClaim)
+        {
+            return;
+        }
+
         await channelService.TrackChannelAsync(channel.Name, channel.Id, channel.GuildId,
             channel is IThreadChannel threadChannel ? threadChannel.CategoryId : null);
 
-        await deletedMessageBatchRepository.CreateAsync(new DeletedMessageBatchCreationData()
+        var entity = new DeletedMessageBatchEntity()
         {
-            CreatedById = authorizationService.CurrentUserId!.Value,
-            GuildId = authorizationService.CurrentGuildId!.Value,
-            Data = messages.Select(
-                x => new DeletedMessageCreationData()
-                {
-                    AuthorId = x.Author.Id,
-                    ChannelId = x.Channel.Id,
-                    Content = x.Content,
-                    GuildId = authorizationService.CurrentGuildId.Value,
-                    MessageId = x.Id,
-                    Reason = "Mass-deleted.",
-                }),
-        });
+            CreateAction = new ModerationActionEntity()
+            {
+                Created = DateTimeOffset.UtcNow,
+                CreatedById = scopedSession.ExecutingUserId,
+                GuildId = scopedSession.ExecutingUserId,
+                Type = ModerationActionType.MessageBatchDeleted,
+            }
+        };
 
-        transaction.Commit();
+        db.Add(entity);
+        await db.SaveChangesAsync();
+
+        var messageEntities = messages
+            .Select(x => new DeletedMessageEntity
+            {
+                MessageId = x.Id,
+                GuildId = scopedSession.ExecutingGuildId,
+                ChannelId = x.Channel.Id,
+                AuthorId = x.Author.Id,
+                Content = x.Content,
+                Reason = "Mass-deleted",
+                BatchId = entity.Id,
+            }).ToList();
+
+        db.AddRange(messageEntities);
+        await db.SaveChangesAsync();
+
+        await channel.DeleteMessagesAsync(messages);
+
+        await designatedChannelRelayService.RelayMessageToGuild(
+            DesignatedChannelType.ModerationLog,
+            guildChannel.GuildId,
+            $"Mass-deleted messages in {channel.Name}");
     }
 
     private async Task<IRole> GetDesignatedMuteRole(IGuild guild)
@@ -554,11 +984,7 @@ public class ModerationService(
             .Where(x => x.GuildId == guild.Id)
             .Where(x => x.Type == DesignatedRoleType.Rank)
             .Where(x => x.DeleteActionId == null)
-            .Select(x => new
-            {
-                Id = x.RoleId,
-                x.Role.Position
-            })
+            .Select(x => new { Id = x.RoleId, x.Role.Position })
             .ToListAsync();
 
         var subjectRankRoles = rankRoles.Where(r => subject.RoleIds.Contains(r.Id));

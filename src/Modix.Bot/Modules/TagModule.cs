@@ -49,7 +49,7 @@ namespace Modix.Bot.Modules
         public async Task CreateTagFromModalResponseAsync(TagCreateModal modal)
         {
             await _tagService.CreateTagAsync(Context.Guild.Id, Context.User.Id, modal.Name, modal.Content);
-            await Context.AddConfirmationAsync($"Added tag '{modal.Name}'.");
+            await Context.AddConfirmation($"Added tag '{modal.Name}'.");
         }
 
         [SlashCommand("update", "Updates the contents of a tag.")]
@@ -84,7 +84,7 @@ namespace Modix.Bot.Modules
             var name = ((IModalInteraction)Context.Interaction).Data.Components.Single(x => x.CustomId == "tag_name").Value;
             var content = ((IModalInteraction)Context.Interaction).Data.Components.Single(x => x.CustomId == "tag_content").Value;
             await _tagService.ModifyTagAsync(Context.Guild.Id, Context.User.Id, name, content);
-            await Context.AddConfirmationAsync($"Updated tag '{name}'.");
+            await Context.AddConfirmation($"Updated tag '{name}'.");
         }
 
         [SlashCommand("delete", "Deletes a tag.")]
@@ -94,7 +94,7 @@ namespace Modix.Bot.Modules
                 string name)
         {
             await _tagService.DeleteTagAsync(Context.Guild.Id, Context.User.Id, name);
-            await Context.AddConfirmationAsync($"Deleted tag '{name}'.");
+            await Context.AddConfirmation($"Deleted tag '{name}'.");
         }
 
         [SlashCommand("ownedby", "Lists all tags owned by the supplied user or role.")]
@@ -215,7 +215,7 @@ namespace Modix.Bot.Modules
                 return;
             }
 
-            await Context.AddConfirmationAsync();
+            await Context.AddConfirmation();
         }
 
         [SlashCommand("search", "Searches for a tag based on a partial name.")]

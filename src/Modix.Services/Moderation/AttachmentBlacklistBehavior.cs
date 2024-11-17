@@ -174,7 +174,7 @@ namespace Modix.Services.Moderation
             AttachmentBlacklistLogMessages.SelfUserFetched(_logger, selfUser.Id);
 
             AttachmentBlacklistLogMessages.SuspiciousMessageDeleting(_logger);
-            await _moderationService.DeleteMessageAsync(
+            await _moderationService.DeleteMessage(
                 message,
                 $"Message had suspicious files attached: {string.Join(", ", blacklistedFilenames)}",
                 selfUser.Id,

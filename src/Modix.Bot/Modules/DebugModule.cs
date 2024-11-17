@@ -28,7 +28,7 @@ namespace Modix.Modules
             Log.Error(new Exception("ExceptionEvent"), "ExceptionEvent Template");
             Log.Information("Extra stuff we shouldn't see");
 
-            await Context.AddConfirmationAsync();
+            await Context.AddConfirmation();
         }
 
         [SlashCommand("joined", "Displays all servers that the bot has joined.")]

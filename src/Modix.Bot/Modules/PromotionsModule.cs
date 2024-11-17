@@ -87,7 +87,7 @@ namespace Modix.Modules
                 return;
             }
             
-            await Context.GetUserConfirmationAsync(
+            await Context.GetUserConfirmation(
                 $"You are nominating {subject.Mention} for promotion to {MentionUtils.MentionRole(targetRole.Id)}.",
                 customIdSuffix: $"nominate:{Context.User.Id},{subject.Id}");
         }
@@ -338,14 +338,14 @@ namespace Modix.Modules
 
             if (timeRemaining.TotalMinutes > 1)
             {
-                await Context.GetUserConfirmationAsync(
+                await Context.GetUserConfirmation(
                     $"Campaign {campaignId} still has {timeRemaining.Humanize(precision: 2, minUnit: TimeUnit.Minute)} remaining. Are you sure you want to accept it?",
                     $"accept:{campaignId},{Context.User.Id}");
                 return;
             }
 
             await promotionsService.AcceptCampaignAsync(campaignId, true);
-            await Context.AddConfirmationAsync();
+            await Context.AddConfirmation();
         }
 
         [ComponentInteraction("button_confirm_accept:*,*")]
@@ -394,7 +394,7 @@ namespace Modix.Modules
                 long campaignId)
         {
             await promotionsService.RejectCampaignAsync(campaignId);
-            await Context.AddConfirmationAsync();
+            await Context.AddConfirmation();
         }
 
         private async Task RefreshCampaignMessageAsync(IUserMessage message, long campaignId)
