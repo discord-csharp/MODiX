@@ -311,7 +311,7 @@
                 return;
             }
 
-            await ModerationService.DeleteInfractionAsync(infraction.Id);
+            await ModerationService.DeleteInfraction(infraction.Id);
             await RefreshTable();
         }
         catch (Exception ex)
@@ -432,7 +432,7 @@
             PageSize = tableState.PageSize,
         };
 
-        var result = await ModerationService.SearchInfractionsAsync(
+        var result = await ModerationService.SearchInfractions(
             searchCriteria,
             sortingCriteria,
             pagingCriteria);

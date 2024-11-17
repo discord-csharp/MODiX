@@ -18,7 +18,7 @@ public class MutedUserJoinedResponder(ModerationService moderationService)
 
     private async Task MuteUser(SocketGuildUser guildUser)
     {
-        if (!await moderationService.AnyActiveInfractions(guildUser.Guild.Id, guildUser.Id, InfractionType.Mute))
+        if (!await moderationService.HasActiveInfractions(guildUser.Guild.Id, guildUser.Id, InfractionType.Mute))
         {
             return;
         }

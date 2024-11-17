@@ -26,10 +26,7 @@ namespace Modix.Services.Moderation
                 .AddSingleton<IInfractionEventHandler>(serviceProvider =>
                     serviceProvider.GetRequiredService<ModerationAutoRescindBehavior>())
                 .AddScoped<ModerationService>()
-                .AddScoped<IModerationActionRepository, ModerationActionRepository>()
                 .AddScoped<IInfractionRepository, InfractionRepository>()
-                .AddScoped<IDeletedMessageRepository, DeletedMessageRepository>()
-                .AddScoped<IDeletedMessageBatchRepository, DeletedMessageBatchRepository>()
                 .AddScoped<INotificationHandler<MessageReceivedNotification>, MessageContentCheckBehaviour>()
                 .AddScoped<INotificationHandler<MessageUpdatedNotification>, MessageContentCheckBehaviour>();
     }

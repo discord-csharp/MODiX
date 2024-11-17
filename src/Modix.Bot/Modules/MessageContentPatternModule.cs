@@ -71,7 +71,7 @@ namespace Modix.Bot.Modules
                 return;
             }
 
-            await Context.AddConfirmationAsync();
+            await Context.AddConfirmation();
         }
 
         [Command("allow")]
@@ -86,7 +86,7 @@ namespace Modix.Bot.Modules
                 return;
             }
 
-            await Context.AddConfirmationAsync();
+            await Context.AddConfirmation();
         }
 
         [Command("remove")]
@@ -102,7 +102,7 @@ namespace Modix.Bot.Modules
                 return;
             }
 
-            await Context.AddConfirmationAsync();
+            await Context.AddConfirmation();
         }
     }
 }

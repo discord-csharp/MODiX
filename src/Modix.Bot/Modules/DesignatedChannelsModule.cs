@@ -79,7 +79,7 @@ namespace Modix.Bot.Modules
                 DesignatedChannelType designation)
         {
             await _designatedChannelService.AddDesignatedChannel(Context.Guild, channel, designation);
-            await Context.AddConfirmationAsync();
+            await Context.AddConfirmation();
         }
 
         [SlashCommand("remove", "Removes a designation from the given channel.")]
@@ -91,7 +91,7 @@ namespace Modix.Bot.Modules
                 DesignatedChannelType designation)
         {
             await _designatedChannelService.RemoveDesignatedChannel(Context.Guild, channel, designation);
-            await Context.AddConfirmationAsync();
+            await Context.AddConfirmation();
         }
     }
 }

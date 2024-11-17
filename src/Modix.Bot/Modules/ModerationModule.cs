@@ -51,7 +51,19 @@ namespace Modix.Modules
 
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
-            await ModerationService.AddInfraction(Context.Guild.Id, Context.User.Id, InfractionType.Notice, subject.UserId, reasonWithUrls, null);
+            var response = await ModerationService.AddInfraction(Context.Guild.Id,
+                Context.User.Id,
+                InfractionType.Notice,
+                subject.UserId,
+                reasonWithUrls,
+                null);
+
+            if (!response.Success)
+            {
+                await Context.AddFailure();
+                return;
+            }
+
             await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
 
@@ -71,7 +83,19 @@ namespace Modix.Modules
 
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
-            await ModerationService.AddInfraction(Context.Guild.Id, Context.User.Id, InfractionType.Warning, subject.UserId, reasonWithUrls, null);
+            var response = await ModerationService.AddInfraction(Context.Guild.Id,
+                Context.User.Id,
+                InfractionType.Warning,
+                subject.UserId,
+                reasonWithUrls,
+                null);
+
+            if (!response.Success)
+            {
+                await Context.AddFailure();
+                return;
+            }
+
             await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
 
@@ -91,7 +115,18 @@ namespace Modix.Modules
 
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
-            await ModerationService.AddInfraction(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.UserId, reasonWithUrls, null);
+            var response = await ModerationService.AddInfraction(Context.Guild.Id, Context.User.Id,
+                InfractionType.Mute,
+                subject.UserId,
+                reasonWithUrls,
+                null);
+
+            if (!response.Success)
+            {
+                await Context.AddFailure();
+                return;
+            }
+
             await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
 
@@ -114,7 +149,20 @@ namespace Modix.Modules
 
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
-            await ModerationService.AddInfraction(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.UserId, reasonWithUrls, duration);
+            var response = await ModerationService
+                .AddInfraction(Context.Guild.Id,
+                    Context.User.Id,
+                    InfractionType.Mute,
+                    subject.UserId,
+                    reasonWithUrls,
+                    duration);
+
+            if (!response.Success)
+            {
+                await Context.AddFailure();
+                return;
+            }
+
             await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
 
@@ -137,7 +185,20 @@ namespace Modix.Modules
 
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
-            await ModerationService.AddInfraction(Context.Guild.Id, Context.User.Id, InfractionType.Mute, subject.UserId, reasonWithUrls, duration);
+            var response = await ModerationService
+                .AddInfraction(Context.Guild.Id,
+                    Context.User.Id,
+                    InfractionType.Mute,
+                    subject.UserId,
+                    reasonWithUrls,
+                    duration);
+
+            if (!response.Success)
+            {
+                await Context.AddFailure();
+                return;
+            }
+
             await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
 
@@ -176,7 +237,19 @@ namespace Modix.Modules
 
             var reasonWithUrls = AppendUrlsFromMessage(reason);
 
-            await ModerationService.AddInfraction(Context.Guild.Id, Context.User.Id, InfractionType.Ban, subject.UserId, reasonWithUrls, null);
+            var response = await ModerationService.AddInfraction(Context.Guild.Id,
+                Context.User.Id,
+                InfractionType.Ban,
+                subject.UserId,
+                reasonWithUrls,
+                null);
+
+            if (!response.Success)
+            {
+                await Context.AddFailure();
+                return;
+            }
+
             await ConfirmAndReplyWithCountsAsync(subject.UserId);
         }
 
@@ -208,9 +281,9 @@ namespace Modix.Modules
                 int count)
         {
             var channel = Context.Channel as ITextChannel;
-            await ModerationService.DeleteMessagesAsync(
+            await ModerationService.DeleteMessages(
                 channel, count, true,
-                    () => Context.GetUserConfirmationAsync(
+                    () => Context.GetUserConfirmation(
                         $"You are attempting to delete the past {count} messages in {channel.Mention}.{Environment.NewLine}"));
         }
 
@@ -222,9 +295,9 @@ namespace Modix.Modules
                 int count,
             [Summary("The channel to clean.")]
                 ITextChannel channel)
-            => await ModerationService.DeleteMessagesAsync(
+            => await ModerationService.DeleteMessages(
                 channel, count, Context.Channel.Id == channel.Id,
-                    () => Context.GetUserConfirmationAsync(
+                    () => Context.GetUserConfirmation(
                         $"You are attempting to delete the past {count} messages in {channel.Mention}.{Environment.NewLine}"));
 
         [Command("clean")]
@@ -237,15 +310,15 @@ namespace Modix.Modules
                 IGuildUser user)
         {
             var channel = Context.Channel as ITextChannel;
-            await ModerationService.DeleteMessagesAsync(
+            await ModerationService.DeleteMessages(
                 channel, user, count,
-                    () => Context.GetUserConfirmationAsync(
+                    () => Context.GetUserConfirmation(
                         $"You are attempting to delete the past {count} messages by {user.GetDisplayName()} in {channel.Mention}.{Environment.NewLine}"));
         }
 
         private async Task ConfirmAndReplyWithCountsAsync(ulong userId)
         {
-            await Context.AddConfirmationAsync();
+            await Context.AddConfirmation();
 
             // If the channel is public, do not list the infraction embed that occurs after a user has reached 3 infractions
             if ((Context.Channel as IGuildChannel)?.IsPublic() is true)
@@ -301,7 +374,7 @@ namespace Modix.Modules
 
             Debug.Assert(author is not null); // author should be nonnull, because we have a message written by someone with that ID
 
-            return await Context.GetUserConfirmationAsync(
+            return await Context.GetUserConfirmation(
                 "Detected a message ID instead of a user ID. Do you want to perform this action on "
                 + $"{Format.Bold(author.GetDisplayName())} ({userOrAuthor.UserId}), the message's author?");
         }

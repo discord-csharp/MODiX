@@ -197,12 +197,12 @@
             BatchId = _tableFilter.BatchId
         };
 
-        var result = await ModerationService.SearchDeletedMessagesAsync(searchCriteria,
+        var result = await ModerationService.GetDeletedMessages(searchCriteria,
             new[]
             {
                 new SortingCriteria
                 {
-                    PropertyName = tableState.SortLabel ?? nameof(DeletedMessageSummary.Created),
+                    PropertyName = tableState.SortLabel ?? "CreateAction.Created",
                     Direction = tableState.SortDirection == MudBlazor.SortDirection.Ascending
                         ? Data.Models.SortDirection.Ascending
                         : Data.Models.SortDirection.Descending
@@ -229,7 +229,7 @@
         if (DeletedMessagesContext.ContainsKey(batchId))
             return;
 
-        var deletedMessages = await ModerationService.SearchDeletedMessagesAsync(
+        var deletedMessages = await ModerationService.GetDeletedMessages(
             new DeletedMessageSearchCriteria
             {
                 BatchId = batchId

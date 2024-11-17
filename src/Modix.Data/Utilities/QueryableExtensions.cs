@@ -136,5 +136,66 @@ namespace Modix.Data.Utilities
 
             return source;
         }
+
+        public static IQueryable<T> SortByV3<T>(
+            this IQueryable<T> query,
+            SortingCriteria sortingCriteria)
+        {
+            return SortByV3(query, [sortingCriteria]);
+        }
+
+        public static IQueryable<T> SortByV3<T>(
+        this IQueryable<T> query,
+        IEnumerable<SortingCriteria> sortingCriteria)
+    {
+        if (sortingCriteria == null || !sortingCriteria.Any())
+        {
+            throw new ArgumentException("Sorting criteria must not be null or empty.", nameof(sortingCriteria));
+        }
+
+        IOrderedQueryable<T>? orderedQuery = null;
+
+        foreach (var (criteria, isFirst) in sortingCriteria.Select((c, i) => (c, i == 0)))
+        {
+            var parameter = Expression.Parameter(typeof(T), "x");
+            Expression property;
+
+            // Handle navigation properties (e.g., "Property.SubProperty")
+            if (criteria.PropertyName.Contains('.'))
+            {
+                var properties = criteria.PropertyName.Split('.');
+                property = properties.Aggregate<string, Expression>(parameter, Expression.Property);
+            }
+            else
+            {
+                property = Expression.Property(parameter, criteria.PropertyName);
+            }
+
+            var keySelector = Expression.Lambda(property, parameter);
+
+            if (isFirst)
+            {
+                // Use OrderBy or OrderByDescending for the first criteria
+                var methodName = criteria.Direction == SortDirection.Ascending ? "OrderBy" : "OrderByDescending";
+                var method = typeof(Queryable).GetMethods()
+                    .First(m => m.Name == methodName && m.GetParameters().Length == 2)
+                    .MakeGenericMethod(typeof(T), property.Type);
+
+                orderedQuery = (IOrderedQueryable<T>)method.Invoke(null, new object[] { query, keySelector })!;
+            }
+            else
+            {
+                // Use ThenBy or ThenByDescending for subsequent criteria
+                var methodName = criteria.Direction == SortDirection.Ascending ? "ThenBy" : "ThenByDescending";
+                var method = typeof(Queryable).GetMethods()
+                    .First(m => m.Name == methodName && m.GetParameters().Length == 2)
+                    .MakeGenericMethod(typeof(T), property.Type);
+
+                orderedQuery = (IOrderedQueryable<T>)method.Invoke(null, new object[] { orderedQuery!, keySelector })!;
+            }
+        }
+
+        return orderedQuery!;
+    }
     }
 }

@@ -64,12 +64,12 @@ namespace Modix.Modules
             if (target is IGuildUser user)
             {
                 await _authorizationService.AddClaimMappingAsync(user, type, claim);
-                await Context.AddConfirmationAsync();
+                await Context.AddConfirmation();
             }
             else if (target is IRole role)
             {
                 await _authorizationService.AddClaimMappingAsync(role, type, claim);
-                await Context.AddConfirmationAsync();
+                await Context.AddConfirmation();
             }
             else
             {
@@ -91,12 +91,12 @@ namespace Modix.Modules
             if (target is IGuildUser user)
             {
                 await _authorizationService.RemoveClaimMappingAsync(user, type, claim);
-                await Context.AddConfirmationAsync();
+                await Context.AddConfirmation();
             }
             else if (target is IRole role)
             {
                 await _authorizationService.RemoveClaimMappingAsync(role, type, claim);
-                await Context.AddConfirmationAsync();
+                await Context.AddConfirmation();
             }
             else
             {
