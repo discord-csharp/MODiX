@@ -143,6 +143,7 @@ namespace Modix.Modules
             owoMessage = Regex.Replace(owoMessage, "N([aeiou])", "Ny$1");
             owoMessage = Regex.Replace(owoMessage, "N([AEIOU])", "Ny$1");
             owoMessage = Regex.Replace(owoMessage, "ove", "uv");
+            owoMessage = Regex.Replace(owoMessage, "q", "kw");
             owoMessage = Regex.Replace(owoMessage, "(?<!\\@)\\!+", " " + _owoFaces[new Random().Next(_owoFaces.Length)] + " ");
 
             await FollowupAsync(owoMessage, allowedMentions: AllowedMentions.None);
