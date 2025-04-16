@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Modix.Data.Utilities;
+using Modix.Models.Core;
 
 namespace Modix.Data.Models.Core
 {

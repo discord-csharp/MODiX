@@ -9,8 +9,9 @@ using Modix.Common.Extensions;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Repositories;
+using Modix.Models.Core;
+using Modix.Models.Moderation;
 using Modix.Services;
-using Modix.Services.Core;
 using Modix.Services.Moderation;
 using Modix.Services.Utilities;
 

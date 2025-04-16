@@ -6,8 +6,7 @@ using Discord;
 using Discord.Interactions;
 
 using Microsoft.Extensions.DependencyInjection;
-
-using Modix.Data.Models.Core;
+using Modix.Models.Core;
 using Modix.Services.Core;
 
 namespace Modix.Bot.Preconditions

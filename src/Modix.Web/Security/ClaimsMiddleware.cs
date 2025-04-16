@@ -16,14 +16,14 @@ public class ClaimsMiddleware(RequestDelegate next)
             return;
         }
 
-        var selectedGuild = context.Request.Cookies[CookieConstants.SelectedGuild];
-        _ = ulong.TryParse(selectedGuild, out var selectedGuildId);
-
         if (context.User.Identity is not ClaimsIdentity claimsIdentity)
         {
             await next(context);
             return;
         }
+
+        var selectedGuild = context.Request.Cookies[CookieConstants.SelectedGuild];
+        _ = ulong.TryParse(selectedGuild, out var selectedGuildId);
 
         var currentGuild = discordClient.GetGuild(selectedGuildId) ?? discordClient.Guilds.First();
         var currentUser = currentGuild.GetUser(userSnowflake);
@@ -32,6 +32,9 @@ public class ClaimsMiddleware(RequestDelegate next)
             .Select(d => new Claim(ClaimTypes.Role, d.ToString()));
 
         claimsIdentity.AddClaims(claims);
+
+        // Look, I thought it was funny, okay? :D
+        claimsIdentity.AddClaim(new Claim(ClaimTypes.PostalCode, currentGuild.Id.ToString()));
 
         await next(context);
     }

@@ -1,0 +1,44 @@
+﻿@using Modix.Web.Models
+@using Modix.Web.Wasm.Components
+@using MudBlazor
+@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="@_theme" @bind-IsDarkMode="SessionState.UseDarkMode" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+
+    <NavMenu @bind-DarkMode="SessionState.UseDarkMode" />
+
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+
+</MudLayout>
+
+@code {
+
+    [CascadingParameter]
+    public required SessionState SessionState { get; set; }
+
+    private MudTheme _theme = new()
+    {
+        Palette = new PaletteLight()
+        {
+            Primary = new("#803788"),
+            Surface = new("#fafafa")
+        },
+        PaletteDark = new PaletteDark()
+        {
+            Primary = new("#803788"),
+        },
+        Typography = new()
+        {
+            Default = new()
+            {
+                LetterSpacing = "0"
+            }
+        }
+    };
+}

@@ -2,9 +2,9 @@
 using System.Threading.Tasks;
 using Discord;
 using Modix.Services.Core;
-using Modix.Data.Models.Core;
 using System.Collections.Generic;
 using Modix.Data.Repositories;
+using Modix.Models.Core;
 
 namespace Modix.Services.Starboard
 {

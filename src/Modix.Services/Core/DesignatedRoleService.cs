@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
+using Modix.Models.Core;
 
 namespace Modix.Services.Core
 {

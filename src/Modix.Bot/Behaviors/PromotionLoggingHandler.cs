@@ -12,6 +12,8 @@ using Modix.Common.Extensions;
 using Modix.Common.Messaging;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Promotions;
+using Modix.Models.Core;
+using Modix.Models.Promotions;
 using Modix.Services;
 using Modix.Services.Core;
 using Modix.Services.Promotions;

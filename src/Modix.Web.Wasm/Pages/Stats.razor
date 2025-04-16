@@ -1,0 +1,110 @@
+﻿@page "/stats"
+@using Microsoft.AspNetCore.Authorization
+@using Modix.Web.Shared.Models.Stats
+@using MudBlazor
+
+@attribute [Authorize]
+
+<PageTitle>Modix - Stats</PageTitle>
+
+@if (Data is not null)
+{
+    <MudContainer MaxWidth="MaxWidth.False">
+        <MudText Typo="Typo.h3">Statistics for C#</MudText>
+        <MudGrid Spacing="6">
+            <MudItem lg="6" md="6" xs="12">
+                <MudPaper>
+                    <MudContainer Class="mud-theme-primary pa-12" MaxWidth="MaxWidth.False">
+                        <MudText Typo="Typo.h3">Role Distribution</MudText>
+                    </MudContainer>
+
+                    <MudCard Class="d-flex flex-column align-center">
+
+                        <MudChipSet Class="d-flex flex-wrap justify-center" MultiSelection="true" Filter="true" SelectedChipsChanged="SelectedChannelsChanged">
+                            @foreach (var role in Data.GuildRoleCounts)
+                            {
+                                var channelColorStyle = $"border: 1px solid {role.Color}";
+                                <MudChip Style="@channelColorStyle"
+                                         Value="@role.Name"
+                                         Default="true"
+                                         Size="Size.Small"
+                                         Variant="Variant.Outlined">
+                                    @($"{role.Name} ({role.Count})")
+                                </MudChip>
+                            }
+                        </MudChipSet>
+
+                        <MudChart ChartType="ChartType.Donut"
+                                  InputData="@GuildRoleCountView.Select(x => (double)x.Count).ToArray()"
+                                  ChartOptions="@(new ChartOptions
+                                  {
+                                      LineStrokeWidth = 25,
+                                      DisableLegend = true,
+                                      ChartPalette = GuildRoleCountView.Select(x => x.Color).ToArray()
+                                  })" />
+                    </MudCard>
+
+                </MudPaper>
+            </MudItem>
+            <MudItem lg="6" md="6" xs="12">
+                <MudPaper>
+                    <MudContainer Class="mud-theme-primary pa-12" MaxWidth="MaxWidth.False">
+                        <MudText Typo="Typo.h3">Most Active Users</MudText>
+                        <MudText Typo="Typo.body1">of the last 30 days</MudText>
+                    </MudContainer>
+                    <MudList>
+                        @foreach (var stat in Data.TopUserMessageCounts)
+                        {
+                            var rankSymbol = stat.Rank switch
+                            {
+                                1 => "🥇",
+                                2 => "🥈",
+                                3 => "🥉",
+                                _ => null
+                            };
+
+                            var username = stat.Username;
+                            username += stat.Discriminator == "0000" ? string.Empty : $"#{stat.Discriminator}";
+                            <MudListItem>
+                                <MudText Inline="true" Typo="Typo.h5" Style="@(stat.Rank <= 3 ? "font-weight: bold;" : string.Empty)">
+                                    @($"{rankSymbol ?? $"{stat.Rank}."} {username}")
+                                </MudText>
+                                <MudText Inline="true" Typo="Typo.subtitle2">@stat.MessageCount messages</MudText>
+                            </MudListItem>
+                        }
+                    </MudList>
+
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+    </MudContainer>
+}
+
+@code {
+    GuildStatData? Data { get; set; }
+    IReadOnlyCollection<GuildRoleMemberCount>? GuildRoleCountView { get; set; }
+
+    [Inject]
+    public required IHttpClientFactory HttpClientFactory { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        using var client = HttpClientFactory.CreateClient("api");
+        var guildStatData = await client.GetFromJsonAsync<GuildStatData>("api/guildstats");
+
+        Data = guildStatData;
+        GuildRoleCountView = guildStatData?.GuildRoleCounts;
+
+        StateHasChanged();
+    }
+
+    private void SelectedChannelsChanged(MudChip[] chips)
+    {
+        var roles = chips.Select(x => x.Value).Cast<string>();
+        GuildRoleCountView = Data.GuildRoleCounts.Where(x => roles.Contains(x.Name)).ToList();
+    }
+}

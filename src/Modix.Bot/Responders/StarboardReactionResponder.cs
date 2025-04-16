@@ -4,7 +4,7 @@ using Discord;
 using MediatR;
 using Modix.Bot.Notifications;
 using Modix.Bot.Responders.MessageQuotes;
-using Modix.Data.Models.Core;
+using Modix.Models.Core;
 using Modix.Services;
 using Modix.Services.Starboard;
 using Modix.Services.Utilities;

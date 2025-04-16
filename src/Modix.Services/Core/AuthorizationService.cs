@@ -15,6 +15,7 @@ using Discord.WebSocket;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Services.Utilities;
+using Modix.Models.Core;
 
 namespace Modix.Services.Core
 {

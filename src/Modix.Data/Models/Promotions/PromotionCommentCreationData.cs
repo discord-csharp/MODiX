@@ -1,4 +1,5 @@
 ﻿using System;
+using Modix.Models.Promotions;
 
 namespace Modix.Data.Models.Promotions
 {

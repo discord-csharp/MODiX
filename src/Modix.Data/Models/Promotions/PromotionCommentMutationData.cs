@@ -1,4 +1,6 @@
-﻿namespace Modix.Data.Models.Promotions
+﻿using Modix.Models.Promotions;
+
+namespace Modix.Data.Models.Promotions
 {
     /// <summary>
     /// Describes an operation to modify a <see cref="PromotionCommentEntity"/> object.

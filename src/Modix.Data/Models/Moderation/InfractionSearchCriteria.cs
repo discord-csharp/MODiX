@@ -5,6 +5,7 @@ using LinqKit;
 using Modix.Data.Models.Core;
 using Modix.Data.Repositories;
 using Modix.Data.Utilities;
+using Modix.Models.Moderation;
 
 namespace Modix.Data.Models.Moderation
 {

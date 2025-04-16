@@ -14,6 +14,7 @@ using Modix.Data.Repositories;
 using Modix.Services.Core;
 
 using Modix.Common.Test;
+using Modix.Models.Core;
 
 namespace Modix.Services.Test.Core
 {

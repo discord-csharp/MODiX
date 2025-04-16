@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 
 using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
+using Modix.Models.Promotions;
 
 namespace Modix.Data.Models.Promotions
 {

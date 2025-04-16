@@ -8,6 +8,7 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Modix.Data;
 using Modix.Data.Models.Core;
+using Modix.Models.Core;
 using Modix.Services.Core;
 
 namespace Modix.Services.MessageContentPatterns

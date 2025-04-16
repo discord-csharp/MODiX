@@ -4,6 +4,7 @@ using System.Linq;
 
 using Modix.Data.Models;
 using Modix.Data.Models.Core;
+using Modix.Models.Core;
 
 namespace Modix.Data.Test.TestData
 {

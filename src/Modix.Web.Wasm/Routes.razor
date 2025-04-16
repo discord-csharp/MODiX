@@ -1,0 +1,89 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Modix.Web.Models
+@using Modix.Web.Wasm.Components
+@using Modix.Web.Wasm.Shared
+@using MudBlazor
+@using System.Security.Claims
+
+
+<CascadingValue Value="SessionState">
+    <Router AppAssembly="@typeof(Program).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    <MudText>Sorry, you don't have access to that page.</MudText>
+                </NotAuthorized>
+                <Authorizing>
+                    <MudText>Please wait...</MudText>
+                </Authorizing>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
+
+    </Router>
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public string? ShowInfractionState { get; set; }
+
+    [Parameter]
+    public string? ShowDeletedInfractions { get; set; }
+
+    [Parameter]
+    public string? ShowInactivePromotions { get; set; }
+
+    [Parameter]
+    public string? UseDarkMode { get; set; }
+
+    [CascadingParameter]
+    public required SessionState SessionState { get; set; }
+
+    [CascadingParameter]
+    public required Task<AuthenticationState> AuthenticationState { get; set; }
+
+    [Inject]
+    public required PersistentComponentState State { get; set; }
+
+
+    protected override void OnParametersSet()
+    {
+        State.RegisterOnPersisting(OnPersisting, RenderMode.InteractiveAuto);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationState;
+        if (authState.User.Identity?.IsAuthenticated is not true)
+            return;
+
+        if (State.TryTakeFromJson<SessionState>(nameof(SessionState), out var sessionState) && sessionState is not null)
+        {
+            SessionState = sessionState;
+            return;
+        }
+
+        var userId = authState.User.FindFirst(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
+        var currentGuild = authState.User.FindFirst(ClaimTypes.PostalCode)?.Value;
+
+        _ = ulong.TryParse(userId, out var userSnowflake);
+        _ = ulong.TryParse(currentGuild, out var selectedGuildId);
+        _ = bool.TryParse(ShowInfractionState, out var showInfractionState);
+        _ = bool.TryParse(ShowDeletedInfractions, out var showDeletedInfractions);
+        _ = bool.TryParse(ShowInactivePromotions, out var showInactivePromotions);
+        _ = bool.TryParse(UseDarkMode, out var useDarkMode);
+
+        SessionState.CurrentUserId = userSnowflake;
+        SessionState.SelectedGuild = selectedGuildId;
+        SessionState.ShowInfractionState = showInfractionState;
+        SessionState.ShowDeletedInfractions = showDeletedInfractions;
+        SessionState.ShowInactivePromotions = showInactivePromotions;
+        SessionState.UseDarkMode = useDarkMode;
+    }
+
+    private Task OnPersisting()
+    {
+        State.PersistAsJson(nameof(SessionState), SessionState);
+        return Task.CompletedTask;
+    }
+}

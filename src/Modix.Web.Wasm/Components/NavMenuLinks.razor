@@ -1,0 +1,49 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Modix.Models.Core
+@using Modix.Web.Models;
+@using MudBlazor
+
+<AuthorizeView>
+    <Authorized>
+        <MudNavLink Class="navmenu-item" IconColor="Color.Surface" Href="" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+        <MudNavLink Class="navmenu-item" IconColor="Color.Surface" Href="stats" Icon="@Icons.Material.Filled.FormatListNumbered">Stats</MudNavLink>
+        <MudNavLink Class="navmenu-item" IconColor="Color.Surface" Href="commands" Icon="@Icons.Material.Filled.KeyboardCommandKey">Commands</MudNavLink>
+        <MudNavLink Class="navmenu-item" IconColor="Color.Surface" Href="userlookup" Icon="@Icons.Material.Filled.Search">User Lookup</MudNavLink>
+        <MudNavLink Class="navmenu-item" IconColor="Color.Surface" Href="tags" Icon="@Icons.Material.Filled.Tag">Tags</MudNavLink>
+
+        <AuthorizeView Context="e" Roles="@nameof(AuthorizationClaim.PromotionsRead)">
+            <MudNavLink IconColor="Color.Surface" Class="navmenu-item" Href="promotions" Icon="@Icons.Material.Filled.Celebration">Promotions</MudNavLink>
+        </AuthorizeView>
+
+        <AuthorizeView Context="e" Roles="@($"{nameof(AuthorizationClaim.ModerationRead)},{nameof(AuthorizationClaim.LogViewDeletedMessages)}")">
+            <MudNavLink IconColor="Color.Surface" Class="navmenu-item" Href="logs" Icon="@Icons.Material.Filled.DocumentScanner">Logs</MudNavLink>
+        </AuthorizeView>
+
+        <AuthorizeView Context="e" Roles="@($"{nameof(AuthorizationClaim.DesignatedRoleMappingRead)},{nameof(AuthorizationClaim.DesignatedChannelMappingRead)},{nameof(AuthorizationClaim.AuthorizationConfigure)}")">
+            <MudNavLink IconColor="Color.Surface" Class="navmenu-item" Href="config" Icon="@Icons.Material.Filled.Settings">Config</MudNavLink>
+        </AuthorizeView>
+
+    </Authorized>
+    <NotAuthorized>
+        <div class="d-flex flex-lg-row flex-column">
+            <MudNavLink IconColor="Color.Surface" Class="navmenu-item" Href="" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+            <MudNavLink IconColor="Color.Surface" Class="navmenu-item" Href="commands" Icon="@Icons.Material.Filled.KeyboardCommandKey">Commands</MudNavLink>
+        </div>
+        <MudSpacer />
+        <div class="d-flex">
+            <MudNavLink Class="navmenu-item" IconColor="Color.Surface" Href="login" Icon="@Icons.Material.Filled.Login">Log In</MudNavLink>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+<style>
+    .navmenu-item {
+        white-space: nowrap;
+        width: auto;
+    }
+
+    @* Overriding MudBlazor internal styling to enable the entire button to be clickable *@
+    .navmenu-item > a {
+        align-items: center !important;
+    }
+</style>

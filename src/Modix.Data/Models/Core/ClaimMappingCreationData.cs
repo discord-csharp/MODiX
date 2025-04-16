@@ -1,4 +1,5 @@
 ﻿using System;
+using Modix.Models.Core;
 
 namespace Modix.Data.Models.Core
 {

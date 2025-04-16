@@ -1,84 +1,62 @@
 ﻿@using Discord.WebSocket;
 @using Modix.Web.Models;
 @using Modix.Web.Services;
+@using Modix.Web.Wasm
 @using MudBlazor
 @using System.Security.Claims;
 @using Modix.Services.Core;
 
-<CascadingAuthenticationState>
-    <Router AppAssembly="@typeof(App).Assembly">
-        <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-                <NotAuthorized>
-                    <MudText>Sorry, you don't have access to that page.</MudText>
-                </NotAuthorized>
-                <Authorizing>
-                    <MudText>Please wait...</MudText>
-                </Authorizing>
-            </AuthorizeRouteView>
-            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-        </Found>
-        <NotFound>
-            <PageTitle>Not found</PageTitle>
-            <LayoutView Layout="@typeof(MainLayout)">
-                <MudText>Sorry, there's nothing at this address.</MudText>
-            </LayoutView>
-        </NotFound>
-    </Router>
-</CascadingAuthenticationState>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link href="_content/Modix.Web/css/site.css" rel="stylesheet" />
+    <link href="_content/Modix.Web/Modix.Web.bundle.scp.css" rel="stylesheet" />
+    <link rel="shortcut icon" type="image/x-icon" href="_content/Modix.Web/favicon.ico" />
+
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <link href="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.css" rel="stylesheet" />
+
+    <HeadOutlet @rendermode=RenderMode.InteractiveWebAssembly />
+</head>
+
+<body>
+    <Routes @rendermode=RenderMode.InteractiveWebAssembly
+            ShowInfractionState="@Context.Request.Cookies[CookieConstants.ShowInfractionState]"
+            ShowDeletedInfractions="@Context.Request.Cookies[CookieConstants.ShowDeletedInfractions]"
+            ShowInactivePromotions="@Context.Request.Cookies[CookieConstants.ShowInactivePromotions]"
+            UseDarkMode="@Context.Request.Cookies[CookieConstants.UseDarkMode]" />
+
+    <div id="blazor-error-ui">
+        @if(Env.IsDevelopment())
+        {
+            <text>
+                An unhandled exception has occurred. See browser dev tools for details.
+            </text>
+        }
+        else
+        {
+            <text>
+                An error has occurred. This application may no longer respond until reloaded.
+            </text>
+        }
+    </div>
+    <script src="_framework/blazor.web.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.js"></script>
+
+</body>
+
+</html>
 
 @code {
-    [Parameter]
-    public string? SelectedGuild { get; set; }
-
-    [Parameter]
-    public string? ShowInfractionState { get; set; }
-
-    [Parameter]
-    public string? ShowDeletedInfractions { get; set; }
-
-    [Parameter]
-    public string? ShowInactivePromotions { get; set; }
-
-    [Parameter]
-    public string? UseDarkMode { get; set; }
 
     [Inject]
-    public SessionState SessionState { get; set; } = null!;
+    public required IWebHostEnvironment Env { get; set; }
 
-    [Inject]
-    public DiscordHelper DiscordHelper { get; set; } = null!;
-
-    [Inject]
-    public AuthenticationStateProvider AuthenticationStateProvider { get; set; } = null!;
-
-    [Inject]
-    public Modix.Services.Core.IAuthorizationService AuthorizationService { get; set; } = null!;
-
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        if (!authState.User.Identity?.IsAuthenticated ?? false)
-            return;
-
-        var userId = authState.User.FindFirst(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
-
-        _ = ulong.TryParse(userId, out var userSnowflake);
-        _ = ulong.TryParse(SelectedGuild, out var selectedGuildId);
-        _ = bool.TryParse(ShowInfractionState, out var showInfractionState);
-        _ = bool.TryParse(ShowDeletedInfractions, out var showDeletedInfractions);
-        _ = bool.TryParse(ShowInactivePromotions, out var showInactivePromotions);
-        _ = bool.TryParse(UseDarkMode, out var useDarkMode);
-
-        SessionState.CurrentUserId = userSnowflake;
-        SessionState.SelectedGuild = selectedGuildId;
-        SessionState.ShowInfractionState = showInfractionState;
-        SessionState.ShowDeletedInfractions = showDeletedInfractions;
-        SessionState.ShowInactivePromotions = showInactivePromotions;
-        SessionState.UseDarkMode = useDarkMode;
-
-        var currentUser = DiscordHelper.GetCurrentUser();
-
-        await AuthorizationService.OnAuthenticatedAsync(currentUser!.Id, currentUser.Guild.Id, currentUser.Roles.Select(x => x.Id).ToList());
-    }
+    [CascadingParameter]
+    public required HttpContext Context { get; set; }
 }

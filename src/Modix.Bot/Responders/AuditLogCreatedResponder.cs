@@ -5,7 +5,7 @@ using Discord;
 using Discord.WebSocket;
 using MediatR;
 using Modix.Bot.Notifications;
-using Modix.Data.Models.Moderation;
+using Modix.Models.Moderation;
 using Modix.Services.Core;
 using Modix.Services.Moderation;
 using Modix.Services.Utilities;

@@ -3,6 +3,7 @@ using System.Linq;
 
 using Modix.Data.Repositories;
 using Modix.Data.Utilities;
+using Modix.Models.Promotions;
 
 namespace Modix.Data.Models.Promotions
 {

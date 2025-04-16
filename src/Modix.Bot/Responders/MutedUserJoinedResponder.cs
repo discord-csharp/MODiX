@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Discord.WebSocket;
 using MediatR;
 using Modix.Bot.Notifications;
-using Modix.Data.Models.Moderation;
+using Modix.Models.Moderation;
 using Modix.Services.Moderation;
 using Serilog;
 

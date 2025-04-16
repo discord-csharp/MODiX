@@ -1,9 +1,10 @@
 ﻿using Microsoft.JSInterop;
 using Modix.Web.Models;
+using Modix.Web.Shared.Services;
 
 namespace Modix.Web.Services;
 
-public class CookieService(IJSRuntime jsRuntime, SessionState sessionState)
+public class CookieService(IJSRuntime jsRuntime, SessionState sessionState) : ICookieService
 {
     public async Task SetSelectedGuildAsync(ulong guildId)
     {

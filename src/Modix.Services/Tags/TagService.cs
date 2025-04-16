@@ -13,6 +13,7 @@ using Modix.Data.ExpandableQueries;
 using Modix.Data.Models.Core;
 using Modix.Data.Models.Tags;
 using Modix.Data.Repositories;
+using Modix.Models.Core;
 using Modix.Services.Core;
 
 namespace Modix.Services.Tags

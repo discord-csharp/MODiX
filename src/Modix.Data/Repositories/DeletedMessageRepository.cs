@@ -10,6 +10,7 @@ using Modix.Data.ExpandableQueries;
 using Modix.Data.Models;
 using Modix.Data.Models.Moderation;
 using Modix.Data.Utilities;
+using Modix.Models;
 
 namespace Modix.Data.Repositories
 {

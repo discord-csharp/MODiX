@@ -1,0 +1,375 @@
+﻿@page "/promotions"
+
+@attribute [Authorize(Roles = nameof(AuthorizationClaim.PromotionsRead))]
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Modix.Models.Core
+@using Modix.Models.Promotions
+@using Modix.Models.Utilities
+@using Modix.Web.Models;
+@using Modix.Web.Shared.Models.Common
+@using Modix.Web.Shared.Models.Promotions
+@using Modix.Web.Shared.Services
+@using Modix.Web.Wasm.Components
+@using MudBlazor
+@using Humanizer;
+@using System.Security.Claims
+
+<PageTitle>Modix - Promotions</PageTitle>
+
+<MudContainer Class="mb-4">
+    <MudText Typo="Typo.h4">Promotion Campaigns</MudText>
+    <div class="d-flex align-center justify-sm-end justify-center mb-4">
+        <MudCheckBox T="bool" Value="_showInactive" ValueChanged="ShowInactiveChanged" Label="Show Inactive" Color="Color.Primary"></MudCheckBox>
+        <MudButton Class="ml-4" Href="/promotions/create" Variant="Variant.Filled" Color="Color.Primary">Start One</MudButton>
+    </div>
+    <MudExpansionPanels MultiExpansion="true">
+        @foreach (var (roleColor, campaign) in Campaigns
+        .Where(x => _showInactive ? true : !x.Campaign.IsClosed)
+        .OrderByDescending(x => !x.Campaign.IsClosed)
+        .ThenByDescending(x => x.Campaign.Created))
+        {
+            var icon = campaign.Outcome switch
+            {
+                PromotionCampaignOutcome.Accepted => Icons.Material.Filled.Check,
+                PromotionCampaignOutcome.Rejected => Icons.Material.Filled.NotInterested,
+                PromotionCampaignOutcome.Failed => Icons.Material.Filled.Error,
+                _ => Icons.Material.Filled.HowToVote
+            };
+
+            var sentimentRatio = campaign.IsCurrentUserCampaign ? 0d : (double)campaign.ApproveCount / (campaign.ApproveCount + campaign.OpposeCount);
+            var sentimentColor = sentimentRatio switch
+            {
+                _ when campaign.IsCurrentUserCampaign => Color.Transparent,
+                > 0.67 => Color.Success,
+                > 0.33 => Color.Warning,
+                _ => Color.Error
+            };
+
+            <MudExpansionPanel IsExpandedChanged="async (wasExpanded) => _ = CampaignExpanded(wasExpanded, campaign.Id, campaign.SubjectId)" Dense="true">
+                <TitleContent>
+                    <div class="d-flex flex-sm-row flex-column align-center justify-space-between">
+                        <div class="d-flex flex-grow-1 flex-sm-row flex-column align-center">
+                            <MudTooltip Placement="Placement.Top" Text="@($"Status: " + (campaign.Outcome?.ToString() ?? "Active"))">
+                                <MudIcon Size="Size.Large" Icon="@icon" />
+                            </MudTooltip>
+                            <MudText Class="ml-4" Typo="Typo.h4" Inline="true">
+                                @campaign.SubjectName
+                            </MudText>
+
+                            <MudChip Class="targetRole ml-2" Style=@roleColor Icon="@Icons.Material.Filled.ArrowForwardIos">@campaign.TargetRoleName</MudChip>
+                        </div>
+
+                        <div class="d-flex">
+                            @if (campaign.Outcome is null)
+                            {
+                                <AuthorizeView Roles="@nameof(AuthorizationClaim.PromotionsCloseCampaign)">
+                                    <MudButtonGroup OverrideStyles="false" Class="d-flex">
+                                        <MudIconButton Color="Color.Success" Size="Size.Large" OnClick="() => AcceptCampaign(campaign)" Icon="@Icons.Material.Filled.Check" Title="Accept" />
+                                        <MudIconButton Color="Color.Error" Size="Size.Large" OnClick="() => RejectCampaign(campaign)" Icon="@Icons.Material.Filled.Close" Title="Reject" />
+                                    </MudButtonGroup>
+                                </AuthorizeView>
+                            }
+                            <MudIconButton Href="@($"/infractions?subject={campaign.SubjectId}")"
+                                            Size="Size.Small"
+                                            Class="mx-3"
+                                            Icon="@Icons.Material.Filled.OpenInNew"
+                                            Color="Color.Info"
+                                            Title="Infractions" />
+                        </div>
+
+                        <div class="d-flex flex-grow-1 flex-column width-sm mr-4">
+                            <div class="d-flex justify-space-around">
+                                <div class="d-flex">
+                                    <MudIcon Icon="@Icons.Material.Filled.ThumbUp" />
+                                    <MudText Class="ml-1">@(campaign.IsCurrentUserCampaign ? "?" : campaign.ApproveCount.ToString())</MudText>
+                                </div>
+                                <div class="d-flex">
+                                    <MudIcon Icon="@Icons.Material.Filled.ThumbDown" />
+                                    <MudText Class="ml-1">@(campaign.IsCurrentUserCampaign ? "?" : campaign.OpposeCount.ToString())</MudText>
+                                </div>
+                            </div>
+                            <MudProgressLinear Style="max-width: 60%; margin:auto" Striped="true" Color="sentimentColor" Size="Size.Small" Value="sentimentRatio*100" />
+                        </div>
+                    </div>
+                </TitleContent>
+                <ChildContent>
+                    <MudText>Campaign started @campaign.Created.ToString("MM/dd/yy, h:mm:ss tt")</MudText>
+                    <MudDivider Light="true" />
+                    @if (campaign.IsCurrentUserCampaign)
+                    {
+                        <MudText Class="center-text mb-2 mt-4">
+                            <b>Sorry, you aren't allowed to see comments on your own campaign.</b>
+                        </MudText>
+                    }
+                    else if (!CampaignCommentData.ContainsKey(campaign.Id))
+                    {
+                        <MudProgressCircular Indeterminate="true" Class="d-flex" Style="margin: auto" />
+                    }
+                    else
+                    {
+                        foreach (var comment in CampaignCommentData[campaign.Id].Values.OrderByDescending(x => x.CreatedAt))
+                        {
+                            var sentimentIcon = comment.PromotionSentiment == PromotionSentiment.Approve ? Icons.Material.Filled.ThumbUp : Icons.Material.Filled.ThumbDown;
+                            <div class="d-flex align-center ma-4">
+                                <MudIcon Icon="@sentimentIcon"></MudIcon>
+                                <MudText Class="ml-4" Inline="true">@comment.Content</MudText>
+                                <MudSpacer />
+                                @if (comment.IsFromCurrentUser && !campaign.IsClosed)
+                                {
+                                    <MudButton Variant="Variant.Filled"
+                                                OnClick="() => ToggleEditDialog(campaign.Id, comment.Id, comment.PromotionSentiment, comment.Content)"
+                                                Color="Color.Primary"
+                                                Class="mr-4">
+                                        Edit
+                                    </MudButton>
+                                }
+                                <MudText Style="color: grey" Inline="true">@comment.CreatedAt.ToString("MM/dd/yy, h:mm:ss tt")</MudText>
+                            </div>
+                            <MudDivider Light="true" />
+                        }
+
+                        if (!campaign.IsClosed && !CampaignCommentData[campaign.Id].Any(x => x.Value.IsFromCurrentUser))
+                        {
+                            <CreateCampaignComment OnCampaignCommentCreation="((PromotionSentiment sentiment, string? content) arg) => OnCampaignCommentCreation(campaign.Id, campaign.SubjectName, arg.sentiment, arg.content)" />
+                        }
+                    }
+                </ChildContent>
+            </MudExpansionPanel>
+        }
+    </MudExpansionPanels>
+</MudContainer>
+
+<style>
+    .targetRole {
+        border: 1px solid currentColor;
+        border-color: currentColor !important;
+        background-color: var(--mud-palette-background) !important;
+        cursor: inherit;
+    }
+
+        .targetRole:hover {
+            background-color: var(--mud-palette-background) !important;
+            border-color: currentColor !important;
+        }
+</style>
+
+@code {
+    [Inject]
+    public required IDialogService DialogService { get; set; }
+
+    [Inject]
+    public required ISnackbar Snackbar { get; set; }
+
+    [Inject]
+    public required ICookieService CookieService { get; set; }
+
+    [Inject]
+    public required IHttpClientFactory HttpClientFactory { get; set; }
+
+    [CascadingParameter]
+    public required SessionState SessionState { get; set; }
+
+    [CascadingParameter]
+    public required Task<AuthenticationState> AuthenticationState { get; set; }
+
+    private List<(string RoleColor, PromotionCampaignData Campaign)> Campaigns = [];
+    private Dictionary<long, Dictionary<long, CampaignCommentData>> CampaignCommentData = new Dictionary<long, Dictionary<long, CampaignCommentData>>();
+
+    private bool _showInactive;
+
+    protected override void OnInitialized()
+    {
+        _showInactive = SessionState.ShowInactivePromotions;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender)
+            return;
+
+        using var client = HttpClientFactory.CreateClient("api");
+
+        var roles = await client.GetFromJsonAsync<Dictionary<ulong, RoleInformation>>("api/roles");
+        var campaigns = client.GetFromJsonAsAsyncEnumerable<PromotionCampaignData>("api/campaigns");
+
+        await foreach (var campaign in campaigns)
+        {
+            var roleColor = GetRoleColor(roles, campaign.TargetRoleId);
+            Campaigns.Add((roleColor, campaign));
+            StateHasChanged();
+        }
+    }
+
+    private string GetRoleColor(Dictionary<ulong, RoleInformation> roles, ulong roleId)
+    {
+        // In case the role has been deleted and we still have a campaign record for that role we serve a grey color.
+        if (!roles.TryGetValue(roleId, out var roleInformation))
+        {
+            return $"color: grey";
+        }
+
+        return $"color: {roleInformation.Color}";
+    }
+
+    private async Task ShowInactiveChanged(bool showInactive)
+    {
+        _showInactive = showInactive;
+        await CookieService.SetShowInactivePromotionsAsync(showInactive);
+    }
+
+    private async Task CampaignExpanded(bool wasExpanded, long campaignId, ulong userId)
+    {
+        if (!wasExpanded)
+            return;
+
+        var authState = await AuthenticationState;
+        var currentUserId = authState.User.FindFirst(ClaimTypes.NameIdentifier)!.Value;
+        var userSnowflake = ulong.Parse(currentUserId);
+
+        if (userSnowflake == userId)
+            return;
+
+        if (CampaignCommentData.ContainsKey(campaignId))
+            return;
+
+        using var client = HttpClientFactory.CreateClient("api");
+        var campaignComments = await client.GetFromJsonAsync<Dictionary<long, CampaignCommentData>>($"api/campaigns/{campaignId}");
+
+        if (campaignComments is null)
+        {
+            Snackbar.Add($"Unable to load campaign details for campaign id {campaignId}.", Severity.Error);
+            return;
+        }
+
+        CampaignCommentData[campaignId] = campaignComments;
+
+        StateHasChanged();
+    }
+
+    private async Task OnCampaignCommentCreation(long campaignId, string campaignSubjectName, PromotionSentiment sentiment, string? content)
+    {
+        try
+        {
+            using var client = HttpClientFactory.CreateClient("api");
+            using var response = await client.PutAsJsonAsync($"api/campaigns/{campaignId}/createcomment", new CampaignCommentData(default, sentiment, content, default, default));
+
+            response.EnsureSuccessStatusCode();
+
+            var newComment = await response.Content.ReadFromJsonAsync<CampaignCommentData>();
+
+            CampaignCommentData[campaignId][newComment!.Id] = newComment;
+
+            Snackbar.Add($"Added comment to campaign for user {campaignSubjectName}.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+            return;
+        }
+
+    }
+
+    private async Task ToggleEditDialog(long campaignId, long commentId, PromotionSentiment oldPromotionSentiment, string oldContent)
+    {
+        var dialogParams = new DialogParameters<EditPromotionCommentDialog>
+        {
+            { x => x.PromotionSentiment, oldPromotionSentiment },
+            { x => x.Content, oldContent}
+        };
+
+        var dialog = DialogService.Show<EditPromotionCommentDialog>("", dialogParams);
+        var result = await dialog.Result;
+
+        if (result.Canceled)
+            return;
+
+        var (newPromotionSentiment, newContent) = ((PromotionSentiment, string))result.Data;
+
+        try
+        {
+            using var client = HttpClientFactory.CreateClient("api");
+            using var response = await client.PatchAsJsonAsync("api/campaigns/updatecomment", new CampaignCommentData(commentId, newPromotionSentiment, newContent, default, default));
+
+            response.EnsureSuccessStatusCode();
+
+            var newComment = await response.Content.ReadFromJsonAsync<CampaignCommentData>();
+
+            CampaignCommentData[campaignId].Remove(commentId);
+            CampaignCommentData[campaignId][newComment!.Id] = newComment;
+
+            Snackbar.Add("Campaign vote was updated.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+            return;
+        }
+    }
+
+    private async Task AcceptCampaign(PromotionCampaignData campaign)
+    {
+        var timeSince = DateTime.UtcNow - campaign.Created;
+
+        var username = campaign.SubjectName;
+        bool force = false;
+
+        if (timeSince < PromotionCampaignEntityExtensions.CampaignAcceptCooldown)
+        {
+            var timeLeftHumanized = campaign.Created.GetTimeUntilCampaignCanBeClosed().Humanize(3);
+            var dialogParams = new DialogParameters<ConfirmationDialog>
+            {
+                { x => x.Content, $"There is {timeLeftHumanized} left on the campaign. Do you want to force accept the campaign for {username}?" }
+            };
+
+            var dialog = DialogService.Show<ConfirmationDialog>("", dialogParams);
+            var confirmationResult = await dialog.Result;
+
+            if (confirmationResult.Canceled)
+            {
+                Snackbar.Add("Action was cancelled", Severity.Info);
+                return;
+            }
+
+            force = true;
+        }
+
+        try
+        {
+            using var client = HttpClientFactory.CreateClient("api");
+            using var response = await client.PostAsync($"api/campaigns/{campaign.Id}/accept/{force}", default);
+
+            response.EnsureSuccessStatusCode();
+
+            campaign.Outcome = PromotionCampaignOutcome.Accepted;
+            Snackbar.Add($"Campaign for '{username}' was accepted.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+            return;
+        }
+
+    }
+
+    private async Task RejectCampaign(PromotionCampaignData campaign)
+    {
+        try
+        {
+            using var client = HttpClientFactory.CreateClient("api");
+            using var response = await client.PostAsync($"api/campaigns/{campaign.Id}/reject", default);
+
+            response.EnsureSuccessStatusCode();
+
+            campaign.Outcome = PromotionCampaignOutcome.Rejected;
+            Snackbar.Add($"Campaign for '{campaign.SubjectName}' was rejected.", Severity.Success);
+
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+            return;
+        }
+    }
+}

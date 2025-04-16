@@ -21,7 +21,6 @@ using Modix.Extensions;
 using Modix.Services;
 using Modix.Services.Utilities;
 using Modix.Web;
-using Newtonsoft.Json.Converters;
 using Serilog;
 using Serilog.Events;
 using Serilog.Formatting.Compact;
@@ -36,7 +35,6 @@ namespace Modix
 
             var configBuilder = builder.Configuration
                 .AddEnvironmentVariables("MODIX_")
-                .AddJsonFile("developmentSettings.json", optional: true, reloadOnChange: false)
                 .AddKeyPerFile("/run/secrets", true);
 
             if (builder.Environment.IsDevelopment())
@@ -121,8 +119,10 @@ namespace Modix
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
-                    options.LoginPath = "/api/unauthorized";
+                    options.LoginPath = "/login";
+                    options.AccessDeniedPath = "/unauthorized";
                     //options.LogoutPath = "/logout";
+
                     options.ExpireTimeSpan = new TimeSpan(7, 0, 0, 0);
                 })
                 .AddDiscordAuthentication();
@@ -140,13 +140,6 @@ namespace Modix
             builder.Services
                 .AddModixHttpClients()
                 .AddModix(configuration);
-
-            builder.Services.AddMvc(d => d.EnableEndpointRouting = false)
-                .AddNewtonsoftJson(options =>
-                {
-                    options.SerializerSettings.Converters.Add(new StringEnumConverter());
-                    options.SerializerSettings.Converters.Add(new StringULongConverter());
-                });
         }
 
         public static void ConfigureCommon(WebApplication app)

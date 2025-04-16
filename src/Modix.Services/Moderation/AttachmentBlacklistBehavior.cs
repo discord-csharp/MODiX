@@ -13,7 +13,7 @@ using Discord.WebSocket;
 
 using Modix.Common.Messaging;
 using Modix.Services.Core;
-using Modix.Data.Models.Core;
+using Modix.Models.Core;
 
 namespace Modix.Services.Moderation
 {
