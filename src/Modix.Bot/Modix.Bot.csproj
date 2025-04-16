@@ -9,6 +9,9 @@
     <PackageReference Include="Microsoft.Extensions.Http" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="LZStringCSharp" />
+    <PackageReference Include="protobuf-net" />
+    <!-- unneeded, after an upgrade to net9.0 or higher -->
+    <PackageReference Include="Microsoft.Bcl.Memory" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Modix.Analyzers\Modix.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" PrivateAssets="all" SetTargetFramework="TargetFramework=netstandard2.0" />

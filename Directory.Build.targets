@@ -67,6 +67,11 @@
     <PackageReference Update="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.NUnit" Version="1.*" />
     <PackageReference Update="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.NUnit" Version="1.*" />
     <PackageReference Update="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.9.2" />
+
+    <PackageReference Update="protobuf-net" Version="3.2.52" />
+
+    <!-- unneeded, after an upgrade to net9.0 or higher -->
+    <PackageReference Update="Microsoft.Bcl.Memory" Version="9.0.4" />
   </ItemGroup>
 
 </Project>

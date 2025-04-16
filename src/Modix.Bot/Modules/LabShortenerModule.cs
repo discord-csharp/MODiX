@@ -1,33 +1,38 @@
 ﻿#nullable enable
 
 using System;
+using System.Buffers.Text;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.IO.Compression;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Interactions;
 using LZStringCSharp;
 using Modix.Bot.Responders.AutoRemoveMessages;
-using Modix.Services.AutoRemoveMessage;
 using Modix.Services.CommandHelp;
 using Modix.Services.Utilities;
+using ProtoBuf;
 
 namespace Modix.Bot.Modules
 {
-    [ModuleHelp("SharpLab", "Commands for working with SharpLab.")]
-    public class SharpLabModule : InteractionModuleBase
+    [ModuleHelp("LabShortener", "Commands for working with sharplab.io/lab.razor.fyi.")]
+    public partial class LabShortenerModule : InteractionModuleBase
     {
         private readonly AutoRemoveMessageService _autoRemoveMessageService;
 
-        public SharpLabModule(AutoRemoveMessageService autoRemoveMessageService)
+        public LabShortenerModule(AutoRemoveMessageService autoRemoveMessageService)
         {
             _autoRemoveMessageService = autoRemoveMessageService;
         }
 
-        [SlashCommand("sharplab", "Shortens the provided link.")]
+        [SlashCommand("shorten", "Shortens the provided link.")]
         public async Task LinkAsync(
             [Summary(description: "The link to shorten.")]
-                Uri uri)
+            Uri uri)
         {
             var host = uri.Host;
 
@@ -43,7 +48,15 @@ namespace Modix.Bot.Modules
 
             var urlMarkdown = Format.Url($"{host} (click here)", uri.ToString());
 
-            var description = host.Equals("sharplab.io") && TryPrepareSharplabPreview(uri.OriginalString, urlMarkdown.Length + 1, out var preview)
+            string? preview = null;
+            var previewSuccess = host switch
+            {
+                "sharplab.io" => TryPrepareSharplabPreview(uri.Fragment, urlMarkdown.Length + 1, out preview),
+                "lab.razor.fyi" => TryPrepareRazorLabPreview(uri.Fragment, urlMarkdown.Length + 1, out preview),
+                _ => throw new UnreachableException("already checked for other hosts"),
+            };
+
+            var description = previewSuccess
                 ? $"{urlMarkdown}\n{preview}"
                 : urlMarkdown;
 
@@ -61,9 +74,9 @@ namespace Modix.Bot.Modules
             await _autoRemoveMessageService.RegisterRemovableMessageAsync(Context.User, embed, async e => await FollowupAsync(embed: e.Build()));
         }
 
-        private static bool TryPrepareSharplabPreview(string url, int markdownLength, out string? preview)
+        private static bool TryPrepareSharplabPreview(string fragment, int markdownLength, [NotNullWhen(true)] out string? preview)
         {
-            if (!url.Contains("#v2:"))
+            if (!fragment.StartsWith("#v2:"))
             {
                 preview = null;
                 return false;
@@ -72,7 +85,7 @@ namespace Modix.Bot.Modules
             try
             {
                 // Decode the compressed code from the URL payload
-                var base64Text = url.Substring(url.IndexOf("#v2:") + "#v2:".Length);
+                var base64Text = fragment[4..];
                 var plainText = LZString.DecompressFromBase64(base64Text);
 
                 // Extract the option and get the target language
@@ -87,7 +100,7 @@ namespace Modix.Bot.Modules
                     sourceCode = ReplaceTokens(sourceCode, _sharplabCSTokens);
 
                     // Strip using directives
-                    sourceCode = Regex.Replace(sourceCode, @"using \w+(?:\.\w+)*;", string.Empty);
+                    sourceCode = RemoveUsings(sourceCode);
                 }
                 else if (language is "il")
                     sourceCode = ReplaceTokens(sourceCode, _sharplabILTokens);
@@ -107,6 +120,47 @@ namespace Modix.Bot.Modules
             }
         }
 
+        private static bool TryPrepareRazorLabPreview(string fragment, int markdownLength, [NotNullWhen(true)] out string? preview)
+        {
+            if (string.IsNullOrWhiteSpace(fragment))
+            {
+                preview = null;
+                return false;
+            }
+
+            try
+            {
+                var bytes = Base64Url.DecodeFromChars(fragment.AsSpan(1));
+                using var deflateStream = new DeflateStream(new MemoryStream(bytes), CompressionMode.Decompress);
+
+                var savedState = Serializer.Deserialize<RazorLabSavedState>(deflateStream);
+                var selectedFile = savedState.Inputs[savedState.SelectedInputIndex];
+
+                if (selectedFile.FileExtension != ".cs")
+                {
+                    preview = null;
+                    return false;
+                }
+
+                var source = RemoveUsings(selectedFile.Text);
+
+                var maxPreviewLength = EmbedBuilder.MaxDescriptionLength - (markdownLength + "```cs\n\n```".Length);
+
+                preview = FormatUtilities.FormatCodeForEmbed("cs", source, maxPreviewLength);
+
+                return !string.IsNullOrWhiteSpace(preview);
+            }
+            catch
+            {
+                preview = null;
+                return false;
+            }
+        }
+
+        [GeneratedRegex(@"using \w+(?:\.\w+)*;")]
+        private static partial Regex UsingsRegex();
+        private static string RemoveUsings(string sourceCode) => UsingsRegex().Replace(sourceCode, "");
+
         private static string ReplaceTokens(string sourceCode, ImmutableArray<string> tokens)
         {
             return Regex.Replace(sourceCode, @"@(\d+|@)", match =>
@@ -119,14 +173,13 @@ namespace Modix.Bot.Modules
         }
 
         private static readonly ImmutableArray<string> _allowedHosts
-            = ImmutableArray.Create
-            (
-                "sharplab.io"
-            );
+            = [
+                "sharplab.io",
+                "lab.razor.fyi"
+            ];
 
         private static readonly ImmutableArray<string> _sharplabCSTokens
-            = ImmutableArray.Create(new[]
-            {
+            = [
                 "using",
                 "System",
                 "class",
@@ -153,11 +206,10 @@ namespace Modix.Bot.Modules
                 "public static class Program",
                 "Inspect.Allocations(() =>",
                 "Inspect.MemoryGraph("
-            });
+            ];
 
         private static readonly ImmutableArray<string> _sharplabILTokens
-            = ImmutableArray.Create(new[]
-            {
+            = [
                 "Main ()",
                 "Program",
                 "ConsoleApp",
@@ -169,6 +221,29 @@ namespace Modix.Bot.Modules
                 "extends System.Object",
                 ".method public hidebysig",
                 "call void [System.Console]System.Console::WriteLine("
-            });
+            ];
+    }
+
+    // the below definitions were taken from https://github.com/jjonescz/DotNetLab at commit dedcefec241a1d32fe8a6683ccaa39ff40dc1730
+    // as such they are licensed under the MIT license in that repo, https://github.com/jjonescz/DotNetLab/blob/dedcefec241a1d32fe8a6683ccaa39ff40dc1730/LICENSE
+    [ProtoContract]
+    sealed file record RazorLabInputCode
+    {
+        [ProtoMember(1)]
+        public required string FileName { get; init; }
+        [ProtoMember(2)]
+        public required string Text { get; init; }
+
+        public string FileExtension => Path.GetExtension(FileName);
+    }
+
+    [ProtoContract]
+    sealed file record RazorLabSavedState
+    {
+        [ProtoMember(1)]
+        public ImmutableArray<RazorLabInputCode> Inputs { get; init; }
+
+        [ProtoMember(8)]
+        public int SelectedInputIndex { get; init; }
     }
 }
