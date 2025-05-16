@@ -1,6 +1,8 @@
 ﻿#nullable enable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,78 +23,85 @@ namespace Modix.Services.Moderation
     public class AttachmentBlacklistBehavior
         : INotificationHandler<MessageReceivedNotification>
     {
-        public static readonly IReadOnlyCollection<string> BlacklistedExtensions = new[]
-        {
-                ".exe",
-                ".dll",
-                ".application",
-                ".msc",
-                ".bat",
-                ".pdb",
-                ".sh",
-                ".com",
-                ".scr",
-                ".msi",
-                ".cmd",
-                ".vbs",
-                ".js",
-                ".reg",
-                ".pif",
-                ".msp",
-                ".hta",
-                ".cpl",
-                ".jar",
-                ".vbe",
-                ".ws",
-                ".wsf",
-                ".wsc",
-                ".wsh",
-                ".ps1",
-                ".ps1xml",
-                ".ps2",
-                ".ps2xml",
-                ".psc1",
-                ".pasc2",
-                ".msh",
-                ".msh1",
-                ".msh2",
-                ".mshxml",
-                ".msh1xml",
-                ".msh2xml",
-                ".scf",
-                ".lnk",
-                ".inf",
-                ".doc",
-                ".xls",
-                ".ppt",
-                ".docm",
-                ".dotm",
-                ".xlsm",
-                ".xltm",
-                ".xlam",
-                ".pptm",
-                ".potm",
-                ".ppam",
-                ".ppsm",
-                ".sldn",
-                ".sb",
-                ".bin",
-                ".com",
-                ".gadget",
-                ".inf1",
-                ".ins",
-                ".inx",
-                ".isu",
-                ".job",
-                ".jse",
-                ".paf",
-                ".rgs",
-                ".sct",
-                ".shb",
-                ".shs",
-                ".u3p",
-                ".vbscript"
-        };
+        /// <summary>
+        /// Gets the set of blacklisted extensions.
+        /// </summary>
+        /// <remarks>
+        /// When adding new extensions, maintain the alphabetical order to improve readability.
+        /// </remarks>
+        public static readonly ImmutableHashSet<string> BlacklistedExtensions =
+        [
+               ".application",
+               ".bat",
+               ".bin",
+               ".cmd",
+               ".com",
+               ".cpl",
+               ".dll",
+               ".doc",
+               ".docm",
+               ".dotm",
+               ".exe",
+               ".gadget",
+               ".hta",
+               ".inf",
+               ".inf1",
+               ".ins",
+               ".inx",
+               ".isu",
+               ".jar",
+               ".job",
+               ".js",
+               ".jse",
+               ".lnk",
+               ".msc",
+               ".msh",
+               ".msh1",
+               ".msh1xml",
+               ".msh2",
+               ".msh2xml",
+               ".mshxml",
+               ".msi",
+               ".msp",
+               ".paf",
+               ".pasc2",
+               ".pdb",
+               ".pdf",
+               ".pif",
+               ".potm",
+               ".ppam",
+               ".ppsm",
+               ".ppt",
+               ".pptm",
+               ".ps1",
+               ".ps1xml",
+               ".ps2",
+               ".ps2xml",
+               ".psc1",
+               ".reg",
+               ".rgs",
+               ".sb",
+               ".scf",
+               ".scr",
+               ".sct",
+               ".sh",
+               ".shb",
+               ".shs",
+               ".sldn",
+               ".u3p",
+               ".vbe",
+               ".vbs",
+               ".vbscript",
+               ".ws",
+               ".wsc",
+               ".wsf",
+               ".wsh",
+               ".xlam",
+               ".xls",
+               ".xlsm",
+               ".xltm",
+               ".zip",
+        ];
 
         public AttachmentBlacklistBehavior(
             DesignatedChannelService designatedChannelService,
@@ -151,8 +160,7 @@ namespace Modix.Services.Moderation
             AttachmentBlacklistLogMessages.SuspiciousAttachmentsSearching(_logger);
             var blacklistedFilenames = message.Attachments
                 .Select(attachment => attachment.Filename.ToLower())
-                .Where(filename => BlacklistedExtensions
-                    .Any(extension => filename.EndsWith(extension)))
+                .Where(filename => BlacklistedExtensions.Contains(Path.GetExtension(filename)))
                 .ToArray();
 
             if(!blacklistedFilenames.Any())
