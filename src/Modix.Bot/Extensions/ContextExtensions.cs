@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
@@ -51,7 +52,7 @@ namespace Modix.Bot.Extensions
 
             if (!permissions.AddReactions)
             {
-                Log.Information("Unable to add a confirmation reaction in {0}, because the AddReactions permission is denied.", guildChannel.Name);
+                Log.Information("Unable to add a confirmation reaction in {GuildName}, because the AddReactions permission is denied", guildChannel.Name);
                 return;
             }
 
@@ -61,6 +62,18 @@ namespace Modix.Bot.Extensions
         public static async Task AddConfirmation(this IInteractionContext context, string? additionalText = null)
         {
             var message = $"\\{_checkmarkEmoji} Command successful. ";
+
+            if (!string.IsNullOrWhiteSpace(additionalText))
+            {
+                message += additionalText;
+            }
+
+            await context.Interaction.FollowupAsync(message, allowedMentions: AllowedMentions.None);
+        }
+
+        public static async Task AddFailure(this IInteractionContext context, string? additionalText = null)
+        {
+            var message = $"\\{_errorEmoji} Command failed. ";
 
             if (!string.IsNullOrWhiteSpace(additionalText))
             {
