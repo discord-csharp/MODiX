@@ -13,50 +13,19 @@ namespace Modix.Services;
 
 public class DesignatedChannelService(
     ModixContext db,
+    IScopedSession scopedService,
     IAuthorizationService authorizationService)
 {
-    public async Task<long> AddDesignatedChannel(IGuild guild, IMessageChannel logChannel,
+    public async Task<ServiceResponse<long>> AddDesignatedChannel(IGuild guild, IMessageChannel logChannel,
         DesignatedChannelType type)
     {
-        authorizationService.RequireAuthenticatedUser();
-        authorizationService.RequireClaims(AuthorizationClaim.DesignatedChannelMappingCreate);
+        var hasClaim = await scopedService.HasClaim(AuthorizationClaim.DesignatedChannelMappingCreate);
 
-        var designationId = await db
-            .Set<DesignatedChannelMappingEntity>()
-            .Where(x => x.GuildId == guild.Id)
-            .Where(x => x.ChannelId == logChannel.Id)
-            .Where(x => x.Type == type)
-            .Where(x => x.DeleteActionId == null)
-            .Select(x => (long?)x.Id)
-            .SingleOrDefaultAsync();
-
-        if (designationId is not null)
+        if (!hasClaim)
         {
-            return designationId.Value;
+            return ServiceResponse.Fail<long>("You do not have permission to create designated channels.");
         }
 
-        var newEntity = new DesignatedChannelMappingEntity
-        {
-            GuildId = guild.Id,
-            ChannelId = logChannel.Id,
-            Type = type,
-            CreateAction = new ConfigurationActionEntity
-            {
-                GuildId = guild.Id,
-                Type = ConfigurationActionType.DesignatedChannelMappingCreated,
-                Created = DateTimeOffset.UtcNow,
-                CreatedById = authorizationService.CurrentUserId!.Value,
-            }
-        };
-
-        db.Add(newEntity);
-        await db.SaveChangesAsync();
-
-        return newEntity.Id;
-    }
-
-    public async Task RemoveDesignatedChannel(IGuild guild, IMessageChannel logChannel, DesignatedChannelType type)
-    {
         var designationId = await db
             .Set<DesignatedChannelMappingEntity>()
             .Where(x => x.GuildId == guild.Id)
@@ -68,16 +37,63 @@ public class DesignatedChannelService(
 
         if (designationId is null)
         {
-            return;
+            var newEntity = new DesignatedChannelMappingEntity
+            {
+                GuildId = guild.Id,
+                ChannelId = logChannel.Id,
+                Type = type,
+                CreateAction = new ConfigurationActionEntity
+                {
+                    GuildId = guild.Id,
+                    Type = ConfigurationActionType.DesignatedChannelMappingCreated,
+                    Created = DateTimeOffset.UtcNow,
+                    CreatedById = authorizationService.CurrentUserId!.Value,
+                }
+            };
+
+            db.Add(newEntity);
+            await db.SaveChangesAsync();
+
+            designationId = newEntity.Id;
         }
 
-        await RemoveDesignatedChannelById(designationId.Value);
+        return ServiceResponse.Ok(designationId.Value);
     }
 
-    public async Task RemoveDesignatedChannelById(long designationId)
+    public async Task<ServiceResponse> RemoveDesignatedChannel(IGuild guild, IMessageChannel logChannel, DesignatedChannelType type)
     {
-        authorizationService.RequireAuthenticatedUser();
-        authorizationService.RequireClaims(AuthorizationClaim.DesignatedChannelMappingDelete);
+        var hasClaim = await scopedService.HasClaim(AuthorizationClaim.DesignatedChannelMappingDelete);
+
+        if (!hasClaim)
+        {
+            return ServiceResponse.Fail("You do not have permission to delete designated channels.");
+        }
+
+        var designationId = await db
+            .Set<DesignatedChannelMappingEntity>()
+            .Where(x => x.GuildId == guild.Id)
+            .Where(x => x.ChannelId == logChannel.Id)
+            .Where(x => x.Type == type)
+            .Where(x => x.DeleteActionId == null)
+            .Select(x => (long?)x.Id)
+            .SingleOrDefaultAsync();
+
+        if (designationId is null)
+        {
+            return ServiceResponse.Fail("Designated channel does not have a mapping");
+        }
+
+        return await RemoveDesignatedChannelById(designationId.Value);
+    }
+
+    public async Task<ServiceResponse> RemoveDesignatedChannelById(long designationId)
+    {
+        var hasClaim = await scopedService.HasClaim(AuthorizationClaim.DesignatedChannelMappingDelete);
+
+        if (!hasClaim)
+        {
+            return ServiceResponse.Fail("You do not have permission to delete designated channels.");
+        }
 
         var designation = await db
             .Set<DesignatedChannelMappingEntity>()
@@ -95,6 +111,8 @@ public class DesignatedChannelService(
 
         db.Add(deleteAction);
         await db.SaveChangesAsync();
+
+        return ServiceResponse.Ok();
     }
 
     public async Task<bool> HasDesignatedChannelForType(ulong guildId, DesignatedChannelType type)

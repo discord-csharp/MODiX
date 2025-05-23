@@ -141,7 +141,12 @@
         var currentGuild = DiscordHelper.GetUserGuild();
         var channel = (Discord.IMessageChannel)currentGuild.GetChannel(_selectedChannel!.Id);
 
-        var id = await DesignatedChannelService.AddDesignatedChannel(currentGuild, channel, _selectedDesignatedChannelType!.Value);
+        var response = await DesignatedChannelService.AddDesignatedChannel(currentGuild, channel, _selectedDesignatedChannelType!.Value);
+
+        if (response.Failure)
+        {
+            return;
+        }
 
         _createDialogVisible = false;
 
@@ -150,14 +155,19 @@
             DesignatedChannelMappings[_selectedDesignatedChannelType.Value] = new List<DesignatedChannelData>();
         }
 
-        DesignatedChannelMappings[_selectedDesignatedChannelType.Value].Add(new DesignatedChannelData(id, _selectedChannel.Id, _selectedDesignatedChannelType.Value, _selectedChannel.Name));
+        DesignatedChannelMappings[_selectedDesignatedChannelType.Value].Add(new DesignatedChannelData(response.Value, _selectedChannel.Id, _selectedDesignatedChannelType.Value, _selectedChannel.Name));
 
         Snackbar.Add($"Added designation '{_selectedDesignatedChannelType}' to channel '{_selectedChannel.Name}'", Severity.Success);
     }
 
     public async Task RemoveDesignation(long id, DesignatedChannelType designatedChannelType)
     {
-        await DesignatedChannelService.RemoveDesignatedChannelById(id);
+        var response = await DesignatedChannelService.RemoveDesignatedChannelById(id);
+
+        if (response.Failure)
+        {
+            return;
+        }
 
         var channelMappingsWithType = DesignatedChannelMappings![designatedChannelType];
         var removedChannelMapping = channelMappingsWithType.First(x => x.Id == id);

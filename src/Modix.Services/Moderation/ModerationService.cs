@@ -118,6 +118,11 @@ public class ModerationService(
                 break;
         }
 
+        await designatedChannelRelayService.RelayMessageToGuild(
+            DesignatedChannelType.ModerationLog,
+            infraction.GuildId,
+            $"[{infraction.Type}] Infraction {infraction.Id} created for : {reason}");
+
         return ServiceResponse.Ok();
     }
 

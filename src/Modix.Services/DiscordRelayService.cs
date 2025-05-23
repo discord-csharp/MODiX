@@ -6,13 +6,13 @@ namespace Modix.Services;
 
 public class DiscordRelayService(IMediator mediator)
 {
-    public async Task<bool> SendMessageToChannel(ulong channelId, string message, Embed embed = null)
+    public async Task SendMessageToChannel(ulong channelId, string message, Embed embed = null)
     {
-        return await mediator.Send(new SendMessageInDiscordRequest(channelId, message, embed));
+        await mediator.Publish(new SendMessageInDiscordRequest(channelId, message, embed));
     }
 }
 
-public class SendMessageInDiscordRequest(ulong channelId, string message, Embed embed) : IRequest<bool>
+public class SendMessageInDiscordRequest(ulong channelId, string message, Embed embed) : INotification
 {
     public ulong ChannelId { get; } = channelId;
     public string Message { get; } = message;

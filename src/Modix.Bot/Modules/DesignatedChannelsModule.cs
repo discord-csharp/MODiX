@@ -78,8 +78,16 @@ namespace Modix.Bot.Modules
             [Summary(description: "The designation to assign.")]
                 DesignatedChannelType designation)
         {
-            await _designatedChannelService.AddDesignatedChannel(Context.Guild, channel, designation);
-            await Context.AddConfirmation();
+            var response = await _designatedChannelService.AddDesignatedChannel(Context.Guild, channel, designation);
+
+            if (response.Failure)
+            {
+                await Context.AddFailure();
+            }
+            else
+            {
+                await Context.AddConfirmation();
+            }
         }
 
         [SlashCommand("remove", "Removes a designation from the given channel.")]
