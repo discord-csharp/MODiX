@@ -61,6 +61,8 @@ namespace Modix.Bot.Modules
         {
             name = name.Trim().ToLower();
 
+            await _tagService.EnsureUserCanMaintainTagAsync(Context.Guild.Id, name, Context.User.Id);
+
             var currentTagData = await _tagService.GetTagAsync(Context.Guild.Id, name);
 
             if (currentTagData is null)
