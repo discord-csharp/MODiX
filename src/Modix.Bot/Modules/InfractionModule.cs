@@ -38,14 +38,14 @@ namespace Modix.Modules
         // Discord doesn't currently give us many good options for default permissions.
         // Would be much better if the bot could set role-based defaults instead.
         // Goal is to at least make this not visible to ordinary users and visible to Associate+.
-        [DefaultMemberPermissions((GuildPermission)(1UL << 43))] // Currently undocumented, Create Expressions
+        [DefaultMemberPermissions(GuildPermission.ViewAuditLog)]
         public async Task SearchAsync(IMessage message)
             => await SearchAsync(message.Author);
 
         [SlashCommand("infractions", "Displays all non-deleted infractions for a user.")]
         [UserCommand("Infractions")]
         [RequireClaims(AuthorizationClaim.ModerationRead)]
-        [DefaultMemberPermissions((GuildPermission)(1UL << 43))] // Currently undocumented, Create Expressions
+        [DefaultMemberPermissions(GuildPermission.ViewAuditLog)]
         public async Task SearchAsync(
             [Summary(description: "The user whose infractions are to be displayed.")]
                 IUser? user = null)
@@ -133,7 +133,7 @@ namespace Modix.Modules
 
         [SlashCommand("infraction-update", "Updates an infraction by ID, overwriting the existing reason.")]
         [RequireAnyClaim(AuthorizationClaim.ModerationUpdateInfraction, AuthorizationClaim.ModerationNote, AuthorizationClaim.ModerationWarn, AuthorizationClaim.ModerationMute, AuthorizationClaim.ModerationBan)]
-        [DefaultMemberPermissions((GuildPermission)(1UL << 43))] // Currently undocumented, Create Expressions
+        [DefaultMemberPermissions(GuildPermission.ViewAuditLog)]
         public async Task UpdateAsync(
             [Summary(description: "The ID value of the infraction to be update.")]
                     long infractionId,
