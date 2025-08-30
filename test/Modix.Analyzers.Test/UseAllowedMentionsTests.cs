@@ -1,12 +1,12 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Testing;
 using Modix.Analyzers.UseAllowedMentions;
 using NUnit.Framework;
 
 namespace Modix.Analyzers.Test
 {
-    using VerifyCodeFix = CSharpCodeFixVerifier<UseAllowedMentionsAnalyzer, UseAllowedMentionsCodeFixProvider, NUnitVerifier>;
+    using VerifyCodeFix = CSharpCodeFixVerifier<UseAllowedMentionsAnalyzer, UseAllowedMentionsCodeFixProvider, DefaultVerifier>;
 
     [TestFixture]
     public class UseAllowedMentionsTests

@@ -1,12 +1,12 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Testing;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
+using Microsoft.CodeAnalysis.Testing;
 using Modix.Analyzers.AddDoNotDefer;
 using NUnit.Framework;
 
 namespace Modix.Analyzers.Test
 {
-    using VerifyCodeFix = CSharpCodeFixVerifier<AddDoNotDeferAnalyzer, AddDoNotDeferCodeFixProvider, NUnitVerifier>;
+    using VerifyCodeFix = CSharpCodeFixVerifier<AddDoNotDeferAnalyzer, AddDoNotDeferCodeFixProvider, DefaultVerifier>;
 
     [TestFixture]
     public class AddDoNotDeferTests
