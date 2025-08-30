@@ -123,7 +123,7 @@ public class GuildOnboardingService(
         var role = guild.Roles.FirstOrDefault(x => x.Name == ModerationService.MUTE_ROLE_NAME)
                    ?? await guild.CreateRoleAsync(ModerationService.MUTE_ROLE_NAME, isMentionable: false);
 
-        if (hasRoleMapping)
+        if (!hasRoleMapping)
         {
             var entity = new DesignatedRoleMappingEntity
             {
