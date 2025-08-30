@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Operations;
 
 namespace Modix.Analyzers.AddDoNotDefer
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class AddDoNotDeferAnalyzer : DiagnosticAnalyzer
     {
         public const string DiagnosticId = "MDX002";

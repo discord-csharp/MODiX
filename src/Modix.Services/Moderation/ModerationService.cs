@@ -67,23 +67,22 @@ public class ModerationService(
             throw new ArgumentException($"Reason must be less than {MaxReasonLength} characters in length",
                 nameof(reason));
 
-        if (((type == InfractionType.Notice) || (type == InfractionType.Warning))
-            && string.IsNullOrWhiteSpace(reason))
+        if (type is InfractionType.Notice or InfractionType.Warning && string.IsNullOrWhiteSpace(reason))
             throw new InvalidOperationException($"{type.ToString()} infractions require a reason to be given");
 
         var guild = await discordClient.GetGuildAsync(guildId);
-        var subject = await userService.TryGetGuildUserAsync(guild, subjectId, default);
-
-        await RequireSubjectRankLowerThanModeratorRankAsync(guild, moderatorId, subject);
+        var subject = await userService.TryGetGuildUserAsync(guild, subjectId, CancellationToken.None);
 
         using (var transaction = await infractionRepository.BeginCreateTransactionAsync())
         {
-            if ((type == InfractionType.Mute) || (type == InfractionType.Ban))
+            if (type is InfractionType.Ban or InfractionType.Mute)
             {
+                await RequireSubjectRankLowerThanModeratorRankAsync(guild, moderatorId, subject);
+
                 if (await infractionRepository.AnyAsync(new InfractionSearchCriteria()
                     {
                         GuildId = guildId,
-                        Types = new[] {type},
+                        Types = [type],
                         SubjectId = subjectId,
                         IsRescinded = false,
                         IsDeleted = false
@@ -135,7 +134,6 @@ public class ModerationService(
             reason);
     }
 
-    /// <inheritdoc />
     public async Task RescindInfractionAsync(InfractionType type, ulong guildId, ulong subjectId,
         string? reason = null)
     {

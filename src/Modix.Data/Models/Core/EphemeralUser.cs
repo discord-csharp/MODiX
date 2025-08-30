@@ -13,6 +13,8 @@ namespace Modix.Data.Models.Core
 
         public string? Nickname { get; private set; }
 
+        public string? GuildBannerHash { get; private set; }
+
         public GuildPermissions GuildPermissions { get; private set; } = new GuildPermissions();
 
         public IGuild? Guild { get; private set; }
@@ -130,6 +132,8 @@ namespace Modix.Data.Models.Core
         {
             return OnGuildUserOrThrow(user => user.GetPermissions(channel));
         }
+
+        public string GetGuildBannerUrl(ImageFormat format = ImageFormat.Auto, ushort size = 128) => throw new NotImplementedException();
 
         public async Task KickAsync(string? reason = null, RequestOptions? options = null)
         {
