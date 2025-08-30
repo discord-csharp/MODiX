@@ -42,6 +42,8 @@ namespace Modix.Services.Tags
         Task<bool> TagExistsAsync(ulong guildId, string name);
 
         Task RefreshCache(ulong guildId);
+
+        Task EnsureUserCanMaintainTagAsync(ulong guildId, string name, ulong currentUserId);
     }
 
     internal class TagService : ITagService
@@ -338,6 +340,20 @@ namespace Modix.Services.Tags
                 .ToArrayAsync();
 
             _tagCache.Set(guildId, tags);
+        }
+
+        public async Task EnsureUserCanMaintainTagAsync(ulong guildId, string name, ulong currentUserId)
+        {
+            var tag = await _modixContext
+                .Set<TagEntity>()
+                .Include(x => x.OwnerRole)
+                .Include(x => x.OwnerUser)
+                .Where(x => x.GuildId == guildId)
+                .Where(x => x.DeleteActionId == null)
+                .Where(x => x.Name == name)
+                .SingleOrDefaultAsync();
+
+            await EnsureUserCanMaintainTagAsync(tag, currentUserId);
         }
 
         private async Task EnsureUserCanMaintainTagAsync(TagEntity tag, ulong currentUserId)
