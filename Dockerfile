@@ -1,14 +1,14 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS dotnet-build-base
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS dotnet-build-base
 WORKDIR /src
 COPY Modix.sln .
 COPY Directory.* .
 COPY src/ ./src/
 COPY test/ ./test/
 RUN dotnet restore Modix.sln
-COPY . . 
+COPY . .
 
 FROM dotnet-build-base AS dotnet-build
 RUN dotnet build -maxcpucount:1 -c Release --no-restore Modix.sln
