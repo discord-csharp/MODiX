@@ -1,6 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using Discord.WebSocket;
 using MediatR;
 using Modix.Bot.Notifications;
 using Modix.Bot.Responders.MessageQuotes;
@@ -34,13 +35,21 @@ namespace Modix.Bot.Responders
                 return;
             }
 
+            if (channel.ChannelType == ChannelType.PrivateThread)
+            {
+                return;
+            }
+
             var isIgnoredFromStarboard = await designatedChannelService
                 .ChannelHasDesignation(channel.Guild.Id, channel.Id, DesignatedChannelType.IgnoredFromStarboard, default);
+
+            var isParentIgnoredFromStarboard = channel is SocketThreadChannel threadChannel && await designatedChannelService
+                .ChannelHasDesignation(channel.Guild.Id, threadChannel.ParentChannel.Id, DesignatedChannelType.IgnoredFromStarboard, default);
 
             var starboardExists = await designatedChannelService
                 .HasDesignatedChannelForType(channel.GuildId, DesignatedChannelType.Starboard);
 
-            if (isIgnoredFromStarboard || !starboardExists)
+            if (isIgnoredFromStarboard || isParentIgnoredFromStarboard || !starboardExists)
             {
                 return;
             }
