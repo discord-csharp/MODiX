@@ -43,7 +43,7 @@ namespace Modix.Bot.Responders
             var isIgnoredFromStarboard = await designatedChannelService
                 .ChannelHasDesignation(channel.Guild.Id, channel.Id, DesignatedChannelType.IgnoredFromStarboard, default);
 
-            var isParentIgnoredFromStarboard = channel is SocketThreadChannel threadChannel && await designatedChannelService
+            var isParentIgnoredFromStarboard = channel is SocketThreadChannel { ParentChannel: not null } threadChannel && await designatedChannelService
                 .ChannelHasDesignation(channel.Guild.Id, threadChannel.ParentChannel.Id, DesignatedChannelType.IgnoredFromStarboard, default);
 
             var starboardExists = await designatedChannelService
