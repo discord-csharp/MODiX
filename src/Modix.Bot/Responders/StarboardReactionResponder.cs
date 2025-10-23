@@ -21,6 +21,37 @@ namespace Modix.Bot.Responders
         public Task Handle(ReactionRemovedNotificationV3 notification, CancellationToken cancellationToken)
             => HandleReactionAsync(notification.Message, notification.Reaction);
 
+        private async ValueTask<bool> IsChannelIgnoredFromStarboard(IGuildChannel channel)
+        {
+            if (channel.ChannelType == ChannelType.PrivateThread)
+            {
+                return true;
+            }
+
+            var hasDirectDesignation = await designatedChannelService
+                .ChannelHasDesignation(channel.Guild.Id, channel.Id, DesignatedChannelType.IgnoredFromStarboard, default);
+
+            if (hasDirectDesignation)
+            {
+                return true;
+            }
+
+            if (channel is SocketThreadChannel { ParentChannel: not null } threadChannel)
+            {
+                var parentChannelId = threadChannel.ParentChannel.Id;
+
+                var parentHasDesignation = await designatedChannelService
+                    .ChannelHasDesignation(channel.Guild.Id, parentChannelId, DesignatedChannelType.IgnoredFromStarboard, default);
+
+                if (parentHasDesignation)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private async Task HandleReactionAsync(Cacheable<IUserMessage, ulong> cachedMessage, IReaction reaction)
         {
             var emote = reaction.Emote;
@@ -35,21 +66,15 @@ namespace Modix.Bot.Responders
                 return;
             }
 
-            if (channel.ChannelType == ChannelType.PrivateThread)
+            if (await IsChannelIgnoredFromStarboard(channel))
             {
                 return;
             }
 
-            var isIgnoredFromStarboard = await designatedChannelService
-                .ChannelHasDesignation(channel.Guild.Id, channel.Id, DesignatedChannelType.IgnoredFromStarboard, default);
-
-            var isParentIgnoredFromStarboard = channel is SocketThreadChannel { ParentChannel: not null } threadChannel && await designatedChannelService
-                .ChannelHasDesignation(channel.Guild.Id, threadChannel.ParentChannel.Id, DesignatedChannelType.IgnoredFromStarboard, default);
-
             var starboardExists = await designatedChannelService
                 .HasDesignatedChannelForType(channel.GuildId, DesignatedChannelType.Starboard);
 
-            if (isIgnoredFromStarboard || isParentIgnoredFromStarboard || !starboardExists)
+            if (!starboardExists)
             {
                 return;
             }
