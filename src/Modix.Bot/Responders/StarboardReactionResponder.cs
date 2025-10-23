@@ -23,7 +23,7 @@ namespace Modix.Bot.Responders
 
         private async ValueTask<bool> IsChannelIgnoredFromStarboard(IGuildChannel channel)
         {
-            if (channel.ChannelType == ChannelType.PrivateThread)
+            if (channel.ChannelType is ChannelType.PrivateThread)
             {
                 return true;
             }
