@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31521.260
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11312.151 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Modix.Bot", "src\Modix.Bot\Modix.Bot.csproj", "{9BBC702D-F919-4482-BF6C-0FC8EA2740C4}"
 EndProject
@@ -17,7 +17,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		Directory.Build.props = Directory.Build.props
-		Directory.Build.targets = Directory.Build.targets
 		docker-stack.yml = docker-stack.yml
 		Dockerfile = Dockerfile
 		readme.md = readme.md
@@ -223,12 +222,12 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{E8C7267F-5BC3-4A13-B5EF-60DC1B0E919F} = {E74ADFBD-55F3-4E28-885B-2270670294EF}
+		{D9BFC7C7-10B2-4D61-99EA-79805074CCD7} = {E74ADFBD-55F3-4E28-885B-2270670294EF}
+		{4F9BDC85-B8B2-4AC5-99BC-1F2F0CF80016} = {E74ADFBD-55F3-4E28-885B-2270670294EF}
+		{E9D29AA9-1B7D-4A90-839A-2E8665A8714F} = {E74ADFBD-55F3-4E28-885B-2270670294EF}
 		{092916B2-32C6-4ED9-A4EA-DF31D2F91A8F} = {23DA774D-7AE9-48C1-A261-F27D15A07858}
 		{9A28A475-067B-4CBD-94BC-CA31C0D1555A} = {E74ADFBD-55F3-4E28-885B-2270670294EF}
-		{4F9BDC85-B8B2-4AC5-99BC-1F2F0CF80016} = {E74ADFBD-55F3-4E28-885B-2270670294EF}
-		{D9BFC7C7-10B2-4D61-99EA-79805074CCD7} = {E74ADFBD-55F3-4E28-885B-2270670294EF}
-		{E9D29AA9-1B7D-4A90-839A-2E8665A8714F} = {E74ADFBD-55F3-4E28-885B-2270670294EF}
-		{E8C7267F-5BC3-4A13-B5EF-60DC1B0E919F} = {E74ADFBD-55F3-4E28-885B-2270670294EF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {36BDDB86-FBAB-45BF-AA22-DD4509504772}

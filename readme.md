@@ -18,13 +18,13 @@ If you want to report issues, discuss development or simply meet those who maint
 
 ### Development environment
 
-You will need the .NET 8 SDK installed. MODiX is developed in VS Code, Visual Studio and Rider to maximise developer satisfaction.
+You will need the .NET 10 SDK installed. MODiX is developed in VS Code, Visual Studio and Rider to maximise developer satisfaction.
 
 We recommend you set up a containerised environment. MODiX is powered by a PostgreSQL database, and the easiest way to get started is by using Docker (or equivalent). Steps below apply if you use Docker.
 
 The following assumes you have:
 - [Docker](https://docs.docker.com/engine/install/) installed
-- The .NET SDK 8 installed
+- The .NET SDK 10 installed
 - A Discord application (via the [Discord developer portal](https://discord.com/developers/applications))
 
 #### Steps
