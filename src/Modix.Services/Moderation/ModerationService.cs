@@ -27,10 +27,14 @@ public class ModerationService(
     IInfractionRepository infractionRepository,
     IDeletedMessageRepository deletedMessageRepository,
     IDeletedMessageBatchRepository deletedMessageBatchRepository,
-    ModixContext db)
+    ModixContext db,
+    IEnumerable<IInfractionTypeHandler> infractionTypeHandlers)
 {
     public const string MUTE_ROLE_NAME = "MODiX_Moderation_Mute";
     private const int MaxReasonLength = 1000;
+
+    private readonly Dictionary<InfractionType, IInfractionTypeHandler> _handlersByType =
+        infractionTypeHandlers.ToDictionary(h => h.Type);
 
     public async Task AutoRescindExpiredInfractions()
     {
@@ -58,7 +62,8 @@ public class ModerationService(
     public async Task CreateInfractionAsync(ulong guildId, ulong moderatorId, InfractionType type, ulong subjectId,
         string reason, TimeSpan? duration)
     {
-        authorizationService.RequireClaims(_createInfractionClaimsByType[type]);
+        var handler = _handlersByType[type];
+        authorizationService.RequireClaims(handler.RequiredClaim);
 
         if (reason is null)
             throw new ArgumentNullException(nameof(reason));
@@ -67,7 +72,7 @@ public class ModerationService(
             throw new ArgumentException($"Reason must be less than {MaxReasonLength} characters in length",
                 nameof(reason));
 
-        if (type is InfractionType.Notice or InfractionType.Warning && string.IsNullOrWhiteSpace(reason))
+        if (handler.RequiresReason && string.IsNullOrWhiteSpace(reason))
             throw new InvalidOperationException($"{type.ToString()} infractions require a reason to be given");
 
         var guild = await discordClient.GetGuildAsync(guildId);
@@ -75,10 +80,13 @@ public class ModerationService(
 
         using (var transaction = await infractionRepository.BeginCreateTransactionAsync())
         {
-            if (type is InfractionType.Ban or InfractionType.Mute)
+            if (handler.RequiresRankValidation)
             {
                 await RequireSubjectRankLowerThanModeratorRankAsync(guild, moderatorId, subject);
+            }
 
+            if (handler.RequiresUniqueActiveInfraction)
+            {
                 if (await infractionRepository.AnyAsync(new InfractionSearchCriteria()
                     {
                         GuildId = guildId,
@@ -111,17 +119,7 @@ public class ModerationService(
         // Note that we'll need to upgrade to the latest Discord.NET version to get access to the audit log.
 
         // Assuming that our Infractions repository is always correct, regarding the state of the Discord API.
-        switch (type)
-        {
-            case InfractionType.Mute when subject is not null:
-                await subject.AddRoleAsync(
-                    await GetDesignatedMuteRoleAsync(guild));
-                break;
-
-            case InfractionType.Ban:
-                await guild.AddBanAsync(subjectId, reason: reason);
-                break;
-        }
+        await handler.ApplyInfractionAsync(guild, subject, subjectId, reason);
     }
 
     public async Task RescindInfractionAsync(long infractionId, string? reason = null)
@@ -185,36 +183,8 @@ public class ModerationService(
         await infractionRepository.TryDeleteAsync(infraction.Id, authorizationService.CurrentUserId.Value);
 
         var guild = await discordClient.GetGuildAsync(infraction.GuildId);
-
-        switch (infraction.Type)
-        {
-            case InfractionType.Mute:
-
-                if (await userService.GuildUserExistsAsync(guild.Id, infraction.Subject.Id))
-                {
-                    var subject = await userService.GetGuildUserAsync(guild.Id, infraction.Subject.Id);
-                    await subject.RemoveRoleAsync(await GetDesignatedMuteRoleAsync(guild));
-                }
-                else
-                {
-                    Log.Warning(
-                        "Tried to unmute {User} while deleting mute infraction, but they weren't in the guild: {Guild}",
-                        infraction.Subject.Id, guild.Id);
-                }
-
-                break;
-
-            case InfractionType.Ban:
-
-                //If the infraction has already been rescinded, we don't need to actually perform the unmute/unban
-                //Doing so will return a 404 from Discord (trying to remove a nonexistant ban)
-                if (infraction.RescindAction is null)
-                {
-                    await guild.RemoveBanAsync(infraction.Subject.Id);
-                }
-
-                break;
-        }
+        var handler = _handlersByType[infraction.Type];
+        await handler.DeleteInfractionAsync(guild, infraction.Subject.Id, infraction);
     }
 
     public async Task DeleteMessageAsync(IMessage message, string reason, ulong deletedById,
@@ -394,7 +364,8 @@ public class ModerationService(
         if (infraction is null)
             return (false, $"An infraction with an ID of {infractionId} could not be found.");
 
-        authorizationService.RequireClaims(_createInfractionClaimsByType[infraction.Type]);
+        var handler = _handlersByType[infraction.Type];
+        authorizationService.RequireClaims(handler.RequiredClaim);
 
         // Allow users who created the infraction to bypass any further
         // validation and update their own infraction
@@ -443,8 +414,10 @@ public class ModerationService(
         string? reason = null,
         bool isAutoRescind = false)
     {
-        RequestOptions? GetRequestOptions() =>
-            string.IsNullOrEmpty(reason) ? null : new RequestOptions {AuditLogReason = reason};
+        var handler = _handlersByType[type];
+
+        if (!handler.CanBeRescinded)
+            throw new InvalidOperationException($"{type} infractions cannot be rescinded.");
 
         if (!isAutoRescind)
         {
@@ -453,51 +426,13 @@ public class ModerationService(
         }
 
         var guild = await discordClient.GetGuildAsync(guildId);
-
-        switch (type)
-        {
-            case InfractionType.Mute:
-                if (!await userService.GuildUserExistsAsync(guild.Id, subjectId))
-                {
-                    Log.Information(
-                        "Attempted to remove the mute role from {0} ({1}), but they were not in the server.",
-                        infraction?.Subject.GetFullUsername() ?? "Unknown user",
-                        subjectId);
-                    break;
-                }
-
-                var subject = await userService.GetGuildUserAsync(guild.Id, subjectId);
-                await subject.RemoveRoleAsync(await GetDesignatedMuteRoleAsync(guild), GetRequestOptions());
-                break;
-
-            case InfractionType.Ban:
-                await guild.RemoveBanAsync(subjectId, GetRequestOptions());
-                break;
-
-            default:
-                throw new InvalidOperationException($"{type} infractions cannot be rescinded.");
-        }
+        await handler.RescindInfractionAsync(guild, subjectId, reason, infraction);
 
         if (infraction != null)
         {
             await infractionRepository.TryRescindAsync(infraction.Id, authorizationService.CurrentUserId!.Value,
                 reason);
         }
-    }
-
-    private async Task<IRole> GetDesignatedMuteRoleAsync(IGuild guild)
-    {
-        var mapping = (await designatedRoleMappingRepository.SearchBriefsAsync(
-            new DesignatedRoleMappingSearchCriteria()
-            {
-                GuildId = guild.Id, Type = DesignatedRoleType.ModerationMute, IsDeleted = false
-            })).FirstOrDefault();
-
-        if (mapping == null)
-            throw new InvalidOperationException(
-                $"There are currently no designated mute roles within guild {guild.Id}");
-
-        return guild.Roles.First(x => x.Id == mapping.Role.Id);
     }
 
     private async Task<IEnumerable<GuildRoleBrief>> GetRankRolesAsync(ulong guildId)
@@ -554,13 +489,4 @@ public class ModerationService(
 
         return greatestSubjectRankPosition < greatestModeratorRankPosition;
     }
-
-    private static readonly Dictionary<InfractionType, AuthorizationClaim> _createInfractionClaimsByType
-        = new()
-        {
-            {InfractionType.Notice, AuthorizationClaim.ModerationNote},
-            {InfractionType.Warning, AuthorizationClaim.ModerationWarn},
-            {InfractionType.Mute, AuthorizationClaim.ModerationMute},
-            {InfractionType.Ban, AuthorizationClaim.ModerationBan}
-        };
 }

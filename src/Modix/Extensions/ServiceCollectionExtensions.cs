@@ -172,6 +172,11 @@ internal static class ServiceCollectionExtensions
         services.AddScoped<IModerationActionEventHandler, ModerationLoggingBehavior>();
         services.AddScoped<INotificationHandler<PromotionActionCreatedNotification>, PromotionLoggingHandler>();
 
+        services.AddScoped<IInfractionTypeHandler, BanInfractionHandler>();
+        services.AddScoped<IInfractionTypeHandler, WarningInfractionHandler>();
+        services.AddScoped<IInfractionTypeHandler, NoticeInfractionHandler>();
+        services.AddScoped<IInfractionTypeHandler, MuteInfractionHandler>();
+
         services.AddHostedService<ModixBot>();
 
         return services;
