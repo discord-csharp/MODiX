@@ -19,7 +19,6 @@ namespace Modix.Services.Tags
         /// <returns><paramref name="services"/></returns>
         public static IServiceCollection AddModixTags(this IServiceCollection services)
             => services
-                .AddScoped<ITagService, TagService>()
-                .AddScoped<INotificationHandler<MessageReceivedNotification>, TagInlineParsingHandler>();
+                .AddScoped<ITagService, TagService>();
     }
 }
