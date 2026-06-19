@@ -6,7 +6,6 @@ using Discord;
 using Discord.Commands;
 using MediatR;
 using Modix.Bot.Notifications;
-using Modix.Bot.Responders.CommandErrors;
 using Modix.Services;
 using Modix.Services.Core;
 using Serilog;
@@ -18,7 +17,6 @@ public class CommandResponder(
     ICommandPrefixParser commandPrefixParser,
     IServiceProvider serviceProvider,
     CommandService commandService,
-    CommandErrorService commandErrorService,
     IDiscordClient discordClient,
     IAuthorizationService authorizationService,
     IScopedSession scopedSession) : INotificationHandler<MessageReceivedNotificationV3>
@@ -71,10 +69,6 @@ public class CommandResponder(
             if (commandResult.Error == CommandError.Exception)
             {
                 await commandContext.Channel.SendMessageAsync($"Error: {commandResult.ErrorReason}", allowedMentions: AllowedMentions.None);
-            }
-            else
-            {
-                await commandErrorService.SignalError(userMessage, error);
             }
         }
 
