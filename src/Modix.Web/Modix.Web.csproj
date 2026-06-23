@@ -8,14 +8,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AspNet.Security.OAuth.Discord" />
-    <PackageReference Include="Discord.Net" />
     <PackageReference Include="MudBlazor" />
-    <PackageReference Include="MudBlazor.Markdown" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Modix.Data\Modix.Data.csproj" />
-    <ProjectReference Include="..\Modix.Services\Modix.Services.csproj" />
   </ItemGroup>
 </Project>
